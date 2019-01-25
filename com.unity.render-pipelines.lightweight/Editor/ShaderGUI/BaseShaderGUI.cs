@@ -167,14 +167,14 @@ namespace UnityEditor
             // material to a lightweight shader.
             if (m_FirstTimeApply)
             {
-                OnOpenGUI(material);
+                OnOpenGUI(material, materialEditorIn);
                 m_FirstTimeApply = false;
             }
 
             ShaderPropertiesGUI(material);
         }
 
-        public virtual void OnOpenGUI(Material material)
+        public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
         {
             // Foldout states
             m_HeaderStateKey = k_KeyPrefix + material.shader.name; // Create key string for editor prefs
@@ -182,7 +182,8 @@ namespace UnityEditor
             m_SurfaceInputsFoldout = new SavedBool($"{m_HeaderStateKey}.SurfaceInputsFoldout", true);
             m_AdvancedFoldout = new SavedBool($"{m_HeaderStateKey}.AdvancedFoldout", false);
             
-            MaterialChanged(material);
+            foreach (var obj in  materialEditor.targets)
+                MaterialChanged((Material)obj);
         }
 
         public void ShaderPropertiesGUI(Material material)
@@ -190,12 +191,11 @@ namespace UnityEditor
             if (material == null)
                 throw new ArgumentNullException("material");
 
+            EditorGUI.BeginChangeCheck();
+            
             m_SurfaceOptionsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_SurfaceOptionsFoldout.value, Styles.SurfaceOptions);
             if(m_SurfaceOptionsFoldout.value){
-                EditorGUI.BeginChangeCheck();
                 DrawSurfaceOptions(material);
-                if (EditorGUI.EndChangeCheck())
-                    MaterialChanged(material);
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -203,10 +203,7 @@ namespace UnityEditor
             m_SurfaceInputsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_SurfaceInputsFoldout.value, Styles.SurfaceInputs);
             if (m_SurfaceInputsFoldout.value)
             {
-                EditorGUI.BeginChangeCheck();
                 DrawSurfaceInputs(material);
-                if (EditorGUI.EndChangeCheck())
-                    MaterialChanged(material);
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -214,23 +211,18 @@ namespace UnityEditor
             m_AdvancedFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdvancedFoldout.value, Styles.AdvancedLabel);
             if (m_AdvancedFoldout.value)
             {
-                EditorGUI.BeginChangeCheck();
                 DrawAdvancedOptions(material);
-                if (EditorGUI.EndChangeCheck())
-                    MaterialChanged(material);
+                EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
 
-            EditorGUI.BeginChangeCheck();
             DrawAdditionalFoldouts(material);
+            
             if (EditorGUI.EndChangeCheck())
-                MaterialChanged(material);
-        }
-
-        public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
-        {
-            base.AssignNewShaderToMaterial(material, oldShader, newShader);
-            OnOpenGUI(material);
+            {
+                foreach (var obj in  materialEditor.targets)
+                    MaterialChanged((Material)obj);
+            }
         }
 
         #endregion
@@ -246,18 +238,24 @@ namespace UnityEditor
                 DoPopup(Styles.blendingMode, blendModeProp, Enum.GetNames(typeof(BlendMode)));
 
             EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = cullingProp.hasMixedValue;
             var culling = (RenderFace)cullingProp.floatValue;
             culling = (RenderFace)EditorGUILayout.EnumPopup(Styles.cullingText, culling);
             if (EditorGUI.EndChangeCheck())
             {
+                materialEditor.RegisterPropertyChangeUndo(Styles.cullingText.text);
                 cullingProp.floatValue = (float)culling;
-                material.doubleSidedGI = culling != RenderFace.Front;
+                material.doubleSidedGI = (RenderFace)cullingProp.floatValue != RenderFace.Front;
             }
 
+            EditorGUI.showMixedValue = false;
+
             EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = alphaClipProp.hasMixedValue;
             var alphaClipEnabled = EditorGUILayout.Toggle(Styles.alphaClipText, alphaClipProp.floatValue == 1);
             if (EditorGUI.EndChangeCheck())
                 alphaClipProp.floatValue = alphaClipEnabled ? 1 : 0;
+            EditorGUI.showMixedValue = false;
 
             if (alphaClipProp.floatValue == 1)
                 materialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, 1);
@@ -265,10 +263,12 @@ namespace UnityEditor
             if (receiveShadowsProp != null)
             {
                 EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = receiveShadowsProp.hasMixedValue;
                 var receiveShadows =
                     EditorGUILayout.Toggle(Styles.receiveShadowText, receiveShadowsProp.floatValue == 1.0f);
                 if (EditorGUI.EndChangeCheck())
                     receiveShadowsProp.floatValue = receiveShadows ? 1.0f : 0.0f;
+                EditorGUI.showMixedValue = false;
             }
         }
 
@@ -283,7 +283,12 @@ namespace UnityEditor
 
             if (queueOffsetProp != null)
             {
-                queueOffsetProp.floatValue = EditorGUILayout.IntSlider(Styles.queueSlider, (int)queueOffsetProp.floatValue, -queueOffsetRange, queueOffsetRange);
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = queueOffsetProp.hasMixedValue;
+                var queue = EditorGUILayout.IntSlider(Styles.queueSlider, (int)queueOffsetProp.floatValue, -queueOffsetRange, queueOffsetRange);
+                if (EditorGUI.EndChangeCheck())
+                    queueOffsetProp.floatValue = queue;
+                EditorGUI.showMixedValue = false;
             }
         }
 
@@ -476,8 +481,10 @@ namespace UnityEditor
         #region HelperFunctions
 
         public static void TwoFloatSingleLine(GUIContent title, MaterialProperty prop1, GUIContent prop1Label,
-            MaterialProperty prop2, GUIContent prop2Label, float labelWidth = 30f)
+            MaterialProperty prop2, GUIContent prop2Label, MaterialEditor materialEditor, float labelWidth = 30f)
         {
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prop1.hasMixedValue || prop2.hasMixedValue;
             Rect rect = EditorGUILayout.GetControlRect();
             EditorGUI.PrefixLabel(rect, title);
             var indent = EditorGUI.indentLevel;
@@ -486,14 +493,23 @@ namespace UnityEditor
             EditorGUIUtility.labelWidth = labelWidth;
             Rect propRect1 = new Rect(rect.x + preLabelWidth, rect.y,
                 (rect.width - preLabelWidth) * 0.5f, EditorGUIUtility.singleLineHeight);
-            prop1.floatValue = EditorGUI.FloatField(propRect1, prop1Label, prop1.floatValue);
+            var prop1val = EditorGUI.FloatField(propRect1, prop1Label, prop1.floatValue);
             
             Rect propRect2 = new Rect(propRect1.x + propRect1.width, rect.y,
                 propRect1.width, EditorGUIUtility.singleLineHeight);
-            prop2.floatValue = EditorGUI.FloatField(propRect2, prop2Label, prop2.floatValue);
+            var prop2val = EditorGUI.FloatField(propRect2, prop2Label, prop2.floatValue);
 
             EditorGUI.indentLevel = indent;
             EditorGUIUtility.labelWidth = preLabelWidth;
+            
+            if (EditorGUI.EndChangeCheck())
+            {
+                materialEditor.RegisterPropertyChangeUndo(title.text);
+                prop1.floatValue = prop1val;
+                prop2.floatValue = prop2val;
+            }
+
+            EditorGUI.showMixedValue = false;
         }
         
         public void DoPopup(GUIContent label, MaterialProperty property, string[] options)
@@ -524,17 +540,27 @@ namespace UnityEditor
         public static Rect TextureColorProps(MaterialEditor materialEditor, GUIContent label, MaterialProperty textureProp, MaterialProperty colorProp, bool hdr = false)
         {
             Rect rect = EditorGUILayout.GetControlRect();
+            EditorGUI.showMixedValue = textureProp.hasMixedValue;
             materialEditor.TexturePropertyMiniThumbnail(rect, textureProp, label.text, label.tooltip);
+            EditorGUI.showMixedValue = false;
 
             if (colorProp != null)
             {
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = colorProp.hasMixedValue;
                 int indentLevel = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0;
                 Rect rectAfterLabel = new Rect(rect.x + EditorGUIUtility.labelWidth, rect.y,
                     EditorGUIUtility.fieldWidth, EditorGUIUtility.singleLineHeight);
-                colorProp.colorValue = EditorGUI.ColorField(rectAfterLabel, GUIContent.none, colorProp.colorValue, true,
+                var col = EditorGUI.ColorField(rectAfterLabel, GUIContent.none, colorProp.colorValue, true,
                     false, hdr);
                 EditorGUI.indentLevel = indentLevel;
+                if (EditorGUI.EndChangeCheck())
+                {
+                    materialEditor.RegisterPropertyChangeUndo(colorProp.displayName);
+                    colorProp.colorValue = col;
+                }
+                EditorGUI.showMixedValue = false;
             }
 
             return rect;
