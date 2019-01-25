@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add seed slot to constant random mode of Attribute from curve and map
 - Add customizable function in VariantProvider to replace the default cartesian product
 - Add Inverse Lerp node
+- Expose light probes parameters in VisualEffect inspector
 
 ### Fixed
 - Some fixes in noise library
