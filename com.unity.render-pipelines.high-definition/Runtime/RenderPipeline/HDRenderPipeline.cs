@@ -2486,6 +2486,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.UpdateEnvironment(hdCamera, m_LightLoop.GetCurrentSunLight(), cmd);
         }
 
+        public void RequestSkyEnvironmentUpdate()
+        {
+            m_SkyManager.RequestEnvironmentUpdate();
+        }
+
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
             var colorBuffer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
