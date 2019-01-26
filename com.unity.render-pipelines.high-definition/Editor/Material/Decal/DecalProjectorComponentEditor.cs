@@ -22,10 +22,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         private DecalProjectorComponentHandle m_Handle = new DecalProjectorComponentHandle();
 
+        private int m_LayerMask;
+
         private void OnEnable()
         {
             // Create an instance of the MaterialEditor
             m_DecalProjectorComponent = (DecalProjectorComponent)target;
+            m_LayerMask = m_DecalProjectorComponent.gameObject.layer;
             m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);
             m_DecalProjectorComponent.OnMaterialChange += OnMaterialChange;
             m_MaterialProperty = serializedObject.FindProperty("m_Material");
@@ -135,6 +138,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
+            }
+
+            if(m_LayerMask != m_DecalProjectorComponent.gameObject.layer)
+            {
+                m_DecalProjectorComponent.OnValidate();
             }
 
             if (m_MaterialEditor != null)

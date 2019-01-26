@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Lighting and BackLighting slots in Lit, StackLit, Fabric and Hair master nodes
 - Added support for overriding terrain detail rendering shaders, via the render pipeline editor resources asset
 - Added xrInstancing flag support to RTHandle
+- Added support for cullmask for decal projectors
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
