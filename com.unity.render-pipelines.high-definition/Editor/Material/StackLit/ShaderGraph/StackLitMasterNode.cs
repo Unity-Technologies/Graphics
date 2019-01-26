@@ -700,12 +700,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 validSlots.Add(SpecularColorSlotId);
             }
 
-            AddSlot(new Vector1MaterialSlot(SmoothnessASlotId, SmoothnessASlotName, SmoothnessASlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(SmoothnessASlotId, SmoothnessASlotName, SmoothnessASlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
             validSlots.Add(SmoothnessASlotId);
 
             if (anisotropy.isOn)
             {
-                AddSlot(new Vector1MaterialSlot(AnisotropyASlotId, AnisotropyASlotName, AnisotropyASlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(AnisotropyASlotId, AnisotropyASlotName, AnisotropyASlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(AnisotropyASlotId);
             }
 
@@ -716,7 +716,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 AddSlot(new Vector1MaterialSlot(CoatSmoothnessSlotId, CoatSmoothnessSlotName, CoatSmoothnessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(CoatSmoothnessSlotId);
-                AddSlot(new Vector1MaterialSlot(CoatIorSlotId, CoatIorSlotName, CoatIorSlotName, SlotType.Input, 1.5f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(CoatIorSlotId, CoatIorSlotName, CoatIorSlotName, SlotType.Input, 1.4f, ShaderStageCapability.Fragment));
                 validSlots.Add(CoatIorSlotId);
                 AddSlot(new Vector1MaterialSlot(CoatThicknessSlotId, CoatThicknessSlotName, CoatThicknessSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(CoatThicknessSlotId);
@@ -791,7 +791,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (alphaTest.isOn)
             {
-                AddSlot(new Vector1MaterialSlot(AlphaClipThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(AlphaClipThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaClipThresholdSlotId);
             }
 
@@ -800,7 +800,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (HasDistortion())
             {
-                AddSlot(new Vector2MaterialSlot(DistortionSlotId, DistortionSlotName, DistortionSlotName, SlotType.Input, new Vector2(0.0f, 0.0f), ShaderStageCapability.Fragment));
+                AddSlot(new Vector2MaterialSlot(DistortionSlotId, DistortionSlotName, DistortionSlotName, SlotType.Input, new Vector2(2.0f, -1.0f), ShaderStageCapability.Fragment));
                 validSlots.Add(DistortionSlotId);
 
                 AddSlot(new Vector1MaterialSlot(DistortionBlurSlotId, DistortionBlurSlotName, DistortionBlurSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
@@ -809,10 +809,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (geometricSpecularAA.isOn)
             {
-                AddSlot(new Vector1MaterialSlot(SpecularAAScreenSpaceVarianceSlotId, SpecularAAScreenSpaceVarianceSlotName, SpecularAAScreenSpaceVarianceSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(SpecularAAScreenSpaceVarianceSlotId, SpecularAAScreenSpaceVarianceSlotName, SpecularAAScreenSpaceVarianceSlotName, SlotType.Input, 0.1f, ShaderStageCapability.Fragment));
                 validSlots.Add(SpecularAAScreenSpaceVarianceSlotId);
 
-                AddSlot(new Vector1MaterialSlot(SpecularAAThresholdSlotId, SpecularAAThresholdSlotName, SpecularAAThresholdSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(SpecularAAThresholdSlotId, SpecularAAThresholdSlotName, SpecularAAThresholdSlotName, SlotType.Input, 0.2f, ShaderStageCapability.Fragment));
                 validSlots.Add(SpecularAAThresholdSlotId);
             }
 
