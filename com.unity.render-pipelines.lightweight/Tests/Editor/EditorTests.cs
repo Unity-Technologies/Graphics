@@ -20,6 +20,9 @@ class EditorTests
         Assert.AreEqual(asset.defaultUIOverdrawMaterial, null);
         Assert.AreEqual(asset.defaultUIETC1SupportedMaterial, null);
         Assert.AreEqual(asset.default2DMaterial, null);
+
+        Assert.AreNotEqual(asset.m_EditorResourcesAsset, null, "Editor Resources should be initialized when creating a new pipeline.");
+        Assert.AreNotEqual(asset.m_RendererData, null, "A default renderer data should be created when creating a new pipeline.");
         ScriptableObject.DestroyImmediate(asset);
     }
 
