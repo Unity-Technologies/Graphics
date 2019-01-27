@@ -96,6 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with alpha shadow clip (was incorrectly clipping object shadow)
 - Fixed an issue where sky cubemap would not be cleared correctly when setting the current sky to None
 - Fixed a typo in Static Lighting Sky component UI
+- Fixed issue with incorrect reset of RenderQueue when switching shader in inspector GUI
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).

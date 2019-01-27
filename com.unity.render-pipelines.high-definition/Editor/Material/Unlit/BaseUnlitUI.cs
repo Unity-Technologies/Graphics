@@ -735,7 +735,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
+            // When switching shader, the custom RenderQueue is reset due to shader assignment
+            // To keep the correct render queue we need to save it here, do the change and re-assign it
+            int currentRenderQueue = material.renderQueue;
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
+            material.renderQueue = currentRenderQueue;
 
             SetupMaterialKeywordsAndPassInternal(material);
         }
