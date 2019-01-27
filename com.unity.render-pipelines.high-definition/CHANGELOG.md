@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed instancing macro usage for decals
 - Fixed issue with alpha shadow clip (was incorrectly clipping object shadow)
 - Fixed double sided flip mode
+- Fixed issue with incorrect reset of RenderQueue when switching shader in inspector GUI
 
 ## [4.8.0-preview] - 2019-01-16
 
@@ -53,7 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Scene Color and Depth nodes for shader graph
 - Fixed SSR in forward
 - Fixed custom editor of PBR shader graph master node
-- Fixed issue with NewFrame not correctly calcualted in Editor when switching scene
+- Fixed issue with NewFrame not correctly calculated in Editor when switching scene
 
 ### Changed
 - Update several properties naming and caption based on feedback from documentation team
