@@ -469,7 +469,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // HD use specific GraphicsSettings
             GraphicsSettings.lightsUseLinearIntensity = true;
             GraphicsSettings.lightsUseColorTemperature = true;
-            GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
+
+            // TODO: Unity engine introduced a bug that breaks SRP batcher on metal :( disabling it for now.
+            GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
             {
