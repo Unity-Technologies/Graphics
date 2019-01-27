@@ -136,7 +136,7 @@ StructuredBuffer<uint> g_TileList;
 void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
 {
     uint  tileIndex   = g_TileList[g_TileListOffset + groupId];
-    uint2 tileCoord   = uint2(tileIndex & ((1 << TILE_SIZE_FPTL) - 1), tileIndex >> TILE_SIZE_FPTL);
+    uint2 tileCoord   = uint2(tileIndex & 0x0000FFFF, tileIndex >> 16); // see builddispatchindirect.compute
     uint2 pixelCoord  = tileCoord * GetTileSize() + groupThreadId;
 
     uint screenWidth  = (uint)_ScreenSize.x;
@@ -161,7 +161,6 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
     // Can't rely on stencil as we are in compute shader
-    // TODO : if we have depth bounds test we could remove such a test ?
     if (depth == UNITY_RAW_FAR_CLIP_VALUE)
     {
         return;

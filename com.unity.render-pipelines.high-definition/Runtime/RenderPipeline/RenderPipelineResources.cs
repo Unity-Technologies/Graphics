@@ -45,6 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader screenSpaceShadowCS;
             public ComputeShader volumeVoxelizationCS;
             public ComputeShader volumetricLightingCS;
+            public Shader deferredTilePS;
 
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
             public Shader combineLightingPS;
@@ -224,9 +225,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 volumeVoxelizationCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/VolumetricLighting/VolumeVoxelization.compute"),
                 volumetricLightingCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/VolumetricLighting/VolumetricLighting.compute"),
 
+                deferredTilePS = Load<Shader>(HDRenderPipelinePath + "Lighting/LightLoop/DeferredTile.shader"),
+
                 subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.compute"),
                 combineLightingPS = Load<Shader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/CombineLighting.shader"),
-
+                
                 // General
                 cameraMotionVectorsPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader"),
                 copyStencilBufferPS = Load<Shader>(HDRenderPipelinePath + "ShaderLibrary/CopyStencilBuffer.shader"),

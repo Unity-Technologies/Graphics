@@ -158,6 +158,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxStereoEyes = 2;
         public static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
+        #if UNITY_SWITCH
+        public static bool k_PreferFragment = true;
+        #else
+        public static bool k_PreferFragment = false;
+        #endif
+        #if !UNITY_EDITOR && UNITY_SWITCH
+        public const bool k_HasNativeQuadSupport = true;
+        #else
+        public const bool k_HasNativeQuadSupport = false;
+        #endif
+
+        #if !UNITY_EDITOR && UNITY_SWITCH
+        public const int k_ThreadGroupOptimalSize = 32;
+        #else
+        public const int k_ThreadGroupOptimalSize = 64;
+        #endif
+
         public int m_MaxDirectionalLightsOnScreen;
         public int m_MaxPunctualLightsOnScreen;
         public int m_MaxAreaLightsOnScreen;
@@ -263,6 +280,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private ComputeShader deferredComputeShader { get { return m_Resources.shaders.deferredCS; } }
         private ComputeShader screenSpaceShadowComputeShader { get { return m_Resources.shaders.screenSpaceShadowCS; } }
 
+        private Shader deferredTilePixelShader { get { return m_Resources.shaders.deferredTilePS; } }
+
 
         static int s_GenAABBKernel;
         static int s_GenAABBKernel_Oblique;
@@ -273,6 +292,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int s_ClearVoxelAtomicKernel;
         static int s_ClearDispatchIndirectKernel;
         static int s_BuildDispatchIndirectKernel;
+        static int s_ClearDrawInstancedIndirectKernel;
+        static int s_BuildDrawInstancedIndirectKernel;
         static int s_BuildMaterialFlagsWriteKernel;
         static int s_BuildMaterialFlagsOrKernel;
 
@@ -300,7 +321,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
 
-#if UNITY_SWITCH
+#if !UNITY_EDITOR && UNITY_SWITCH
         const int k_Log2NumClusters = 5;     // accepted range is from 0 to 5 (NR_THREADS is set to 32 on Switch). NumClusters is 1<<g_iLog2NumClusters
 #else
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6 (NR_THREADS is set to 64 on other platforms). NumClusters is 1<<g_iLog2NumClusters
@@ -313,6 +334,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_GlobalLightListAtomic = null;
 
         static DebugLightVolumes s_lightVolumes = null;
+
+        static Material s_DeferredTileRegularLightingMat;   // stencil-test set to touch regular pixels only
+        static Material s_DeferredTileSplitLightingMat;     // stencil-test set to touch split-lighting pixels only
+        static Material s_DeferredTileMat;                  // fallback when regular and split-lighting pixels must be touch
+        static String[] s_variantNames = new String[LightDefinitions.s_NumFeatureVariants];
 
         public enum ClusterPrepassSource : int
         {
@@ -517,6 +543,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_BuildDispatchIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildDispatchIndirect");
             s_ClearDispatchIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDispatchIndirect");
 
+            s_BuildDrawInstancedIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildDrawInstancedIndirect");
+            s_ClearDrawInstancedIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDrawInstancedIndirect");
+
             s_BuildMaterialFlagsOrKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Or");
             s_BuildMaterialFlagsWriteKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen_Write");
 
@@ -549,7 +578,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_AABBBoundsBuffer = new ComputeBuffer(k_MaxStereoEyes * 2 * m_MaxLightsOnScreen, 4 * sizeof(float));
             s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxStereoEyes * m_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
             s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxStereoEyes * m_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
-            s_DispatchIndirectBuffer = new ComputeBuffer(LightDefinitions.s_NumFeatureVariants * 3, sizeof(uint), ComputeBufferType.IndirectArguments);
+            // Need 3 ints for DispatchIndirect, but need 4 ints for DrawInstancedIndirect.
+            s_DispatchIndirectBuffer = new ComputeBuffer(LightDefinitions.s_NumFeatureVariants * 4, sizeof(uint), ComputeBufferType.IndirectArguments);
 
             s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
 
@@ -580,12 +610,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
                             m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, outputSplitLighting == 1 ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting);
                             m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._SrcBlend, (int)BlendMode.One);
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._DstBlend, (int)BlendMode.Zero);
                         }
                     }
                 }
             }
+
+            // Stencil set to only touch "regular lighting" pixels.
+            s_DeferredTileRegularLightingMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
+            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.RegularLighting);
+            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
+
+            // Stencil set to only touch "split-lighting" pixels.
+            s_DeferredTileSplitLightingMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
+            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
+            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
+
+            // Stencil set to touch all pixels excepted background/sky.
+            s_DeferredTileMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
+            s_DeferredTileMat.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
+            s_DeferredTileMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
+
+            for (int i = 0; i < LightDefinitions.s_NumFeatureVariants; ++i)
+                s_variantNames[i] = "VARIANT" + i;
 
             m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
             m_DefaultTexture2DArray.hideFlags = HideFlags.HideAndDontSave;
@@ -668,6 +714,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
             }
+
+            CoreUtils.Destroy(s_DeferredTileRegularLightingMat);
+            CoreUtils.Destroy(s_DeferredTileSplitLightingMat);
+            CoreUtils.Destroy(s_DeferredTileMat);
 
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
@@ -2401,16 +2451,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // clear dispatch indirect buffer
-                cmd.SetComputeBufferParam(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                cmd.DispatchCompute(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
+                if (k_PreferFragment)
+                {
+                    cmd.SetComputeBufferParam(clearDispatchIndirectShader, s_ClearDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.SetComputeIntParam(clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, numTiles);
+                    cmd.SetComputeIntParam(clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
+                    cmd.DispatchCompute(clearDispatchIndirectShader, s_ClearDrawInstancedIndirectKernel, 1, 1, 1);
 
-                // add tiles to indirect buffer
-                cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileList, s_TileList);
-                cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
-                cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, numTiles);
-                cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, numTilesX);
-                cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (numTiles + 63) / 64, 1, 1);
+                    // add tiles to indirect buffer
+                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileList, s_TileList);
+                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, numTiles);
+                    cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, numTilesX);
+                    cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, (numTiles + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, 1);
+                }
+                else
+                {
+                    cmd.SetComputeBufferParam(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.DispatchCompute(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
+
+                    // add tiles to indirect buffer
+                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileList, s_TileList);
+                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, numTiles);
+                    cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, numTilesX);
+                    cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (numTiles + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, 1);
+                }
             }
 
             cmd.EndSample("Build Light List");
@@ -2614,13 +2682,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LightingPassOptions options)
         {
             cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_LightList);
-            
-            if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) && options.outputSplitLighting)
+            if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) && options.outputSplitLighting && !k_PreferFragment)
             {
                 // The CS is always in the MRT mode. Do not execute the same shader twice.
                 return;
             }
-
 
             // Predeclared to reduce GC pressure
             string tilePassName = "TilePass - Deferred Lighting Pass";
@@ -2635,7 +2701,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, sLabel, CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
             {
                 // Compute path
-                if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation))
+                if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) && !k_PreferFragment)
                 {
                     int w = hdCamera.actualWidth;
                     int h = hdCamera.actualHeight;
@@ -2695,6 +2761,74 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 cmd.SetGlobalInt(HDShaderIDs._ComputeEyeIndex, eye);
                                 cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX, numTilesY, 1);
                             }
+                        }
+                    }
+                }
+                // Compute as pixel shader (faster on some platforms)
+                else if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) && k_PreferFragment)
+                {
+                    int w = hdCamera.actualWidth;
+                    int h = hdCamera.actualHeight;
+                    int numTilesX = hdCamera.camera.stereoEnabled ? ((w / 2) + 15) / 16 : (w + 15) / 16;
+                    int numTilesY = (h + 15) / 16;
+                    int numTiles = numTilesX * numTilesY;
+
+                    bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnabled() && !hdCamera.camera.stereoEnabled; // TODO VR: Reenable later
+
+                    if (options.outputSplitLighting)
+                        cmd.SetRenderTarget(colorBuffers, depthStencilBuffer);
+                    else
+                        cmd.SetRenderTarget(colorBuffers[0], depthStencilBuffer);
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, depthTexture);
+                    cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    cmd.SetGlobalBuffer(HDShaderIDs.g_TileList, s_TileList);
+                    cmd.SetGlobalInt(HDShaderIDs._ComputeEyeIndex, 0);
+
+                    // If SSS is disabled, do lighting for both split lighting and no split lighting
+                    // Must set stencil parameters through Material.
+                    Material deferredMat;
+
+                    if (options.outputSplitLighting)
+                        deferredMat = s_DeferredTileSplitLightingMat;
+                    else if (m_FrameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
+                        deferredMat = s_DeferredTileRegularLightingMat;
+                    else
+                        deferredMat = s_DeferredTileMat;
+
+                    CoreUtils.SetKeyword(cmd, "OUTPUT_SPLIT_LIGHTING", options.outputSplitLighting);
+                    CoreUtils.SetKeyword(cmd, "SHADOWS_SHADOWMASK", m_enableBakeShadowMask);
+
+                    if (enableFeatureVariants)
+                    {
+                        int numVariants = LightDefinitions.s_NumFeatureVariants;
+
+                        for (int variant = 0; variant < numVariants; variant++)
+                        {
+                            cmd.SetGlobalInt(HDShaderIDs.g_TileListOffset, variant * numTiles);
+
+                            cmd.EnableShaderKeyword(s_variantNames[variant]);
+
+                            MeshTopology topology = k_HasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
+                            cmd.DrawProceduralIndirect(Matrix4x4.identity, deferredMat, 0, topology, s_DispatchIndirectBuffer, variant * 4 * sizeof(uint), null);
+
+                            // Must disable variant keyword because it will not get overriden.
+                            cmd.DisableShaderKeyword(s_variantNames[variant]);
+                        }
+                    }
+                    else
+                    {
+                        CoreUtils.SetKeyword(cmd, "LIGHTLOOP_DISABLE_TILE_AND_CLUSTER", m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile));
+                        CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplaySettings.IsDebugDisplayEnabled());
+
+                        int numEyes = hdCamera.camera.stereoEnabled ? (int)hdCamera.numEyes : 1;
+
+                        for (int eye = 0; eye < numEyes; eye++)
+                        {
+                            cmd.SetGlobalInt(HDShaderIDs._ComputeEyeIndex, eye);
+                            if (options.outputSplitLighting)
+                                CoreUtils.DrawFullScreen(cmd, deferredMat, colorBuffers, depthStencilBuffer, null, 1);
+                            else
+                                CoreUtils.DrawFullScreen(cmd, deferredMat, colorBuffers[0], depthStencilBuffer, null, 1);
                         }
                     }
                 }
