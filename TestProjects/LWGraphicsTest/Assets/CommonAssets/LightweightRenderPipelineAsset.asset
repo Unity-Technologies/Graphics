@@ -14,6 +14,8 @@ MonoBehaviour:
   m_Name: LightweightRenderPipelineAsset
   m_EditorClassIdentifier: 
   k_AssetVersion: 4
+  m_RendererType: 1
+  m_RendererData: {fileID: 11400000, guid: 618d298269e66c542b306de85db1faea, type: 2}
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
@@ -42,5 +44,4 @@ MonoBehaviour:
   m_LocalShadowsAtlasResolution: 512
   m_MaxPixelLights: 4
   m_ShadowAtlasResolution: 2048
-  m_ResourcesAsset: {fileID: 11400000, guid: aac5a08c32552a14c89394b703f1978a, type: 2}
   m_ShaderVariantLogLevel: 0
