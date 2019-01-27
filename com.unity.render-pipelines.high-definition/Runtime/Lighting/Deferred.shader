@@ -2,10 +2,6 @@ Shader "Hidden/HDRP/Deferred"
 {
     Properties
     {
-        // We need to be able to control the blend mode for deferred shader in case we do multiple pass
-        [HideInInspector] _SrcBlend("", Float) = 1
-        [HideInInspector] _DstBlend("", Float) = 1
-
         [HideInInspector] _StencilMask("_StencilMask", Int) = 7
         [HideInInspector] _StencilRef("", Int) = 0
         [HideInInspector] _StencilCmp("", Int) = 3
@@ -26,7 +22,7 @@ Shader "Hidden/HDRP/Deferred"
 
             ZWrite Off
             ZTest  Always
-            Blend [_SrcBlend] [_DstBlend], One Zero
+            Blend Off
             Cull Off
 
             HLSLPROGRAM
