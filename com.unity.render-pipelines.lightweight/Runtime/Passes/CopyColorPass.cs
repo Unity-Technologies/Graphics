@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         const string k_CopyColorTag = "Copy Color";
         float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
         int m_SampleOffsetShaderHandle;
+        Material m_SamplingMaterial;
 
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
@@ -23,8 +24,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         /// <summary>
         /// Create the CopyColorPass
         /// </summary>
-        public CopyColorPass()
+        public CopyColorPass(Material samplingMaterial)
         {
+            m_SamplingMaterial = samplingMaterial;
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
         }
 
@@ -42,6 +44,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (m_SamplingMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_SamplingMaterial, GetType().Name);
+                return;
+            }
+
             if (renderer == null)
                 throw new ArgumentNullException("renderer");
                 
@@ -66,9 +74,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmd.Blit(colorRT, opaqueColorRT);
                     break;
                 case Downsampling._4xBox:
-                    Material samplingMaterial = renderer.GetMaterial(MaterialHandle.Sampling);
-                    samplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                    cmd.Blit(colorRT, opaqueColorRT, samplingMaterial, 0);
+                    m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
+                    cmd.Blit(colorRT, opaqueColorRT, m_SamplingMaterial, 0);
                     break;
                 case Downsampling._4xBilinear:
                     cmd.Blit(colorRT, opaqueColorRT);

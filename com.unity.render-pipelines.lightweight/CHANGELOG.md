@@ -6,9 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.0.0] - 2019-xx-xx
 ### Added
+- You can now implement a custom renderer for LWRP. To do so, implement an `IRendererData` that contains all resources used in rendering. Then create an `IRendererSetup` that creates and queues `ScriptableRenderPass`. Change the renderer type either in the Pipeline Asset or in the Camera Inspector.
 - LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
 - You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
-- Baked Lit Shader, which uses global illumination via Light Probes and lightmaps, but no real-time lighting. 
 - Distortion support in all Particle Shaders.
 - An upgrade system for LWRP Materials with `MaterialPostprocessor`.
 - An upgrade path for Unlit shaders
