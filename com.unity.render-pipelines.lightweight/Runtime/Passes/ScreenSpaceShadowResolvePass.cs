@@ -8,12 +8,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         const string k_CollectShadowsTag = "Collect Shadows";
         RenderTextureFormat m_ColorFormat;
+        Material m_ScreenSpaceShadowsMaterial;
 
-        public ScreenSpaceShadowResolvePass()
+        public ScreenSpaceShadowResolvePass(Material screenspaceShadowsMaterial)
         {
             m_ColorFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
                 ? RenderTextureFormat.R8
                 : RenderTextureFormat.ARGB32;
+
+            m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
         }
 
         private RenderTargetHandle colorAttachmentHandle { get; set; }
@@ -33,6 +36,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (m_ScreenSpaceShadowsMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_ScreenSpaceShadowsMaterial, GetType().Name);
+                return;
+            }
+
             if (renderer == null)
                 throw new ArgumentNullException("renderer");
             
@@ -57,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // In order to avoid it we can do a cmd.DrawMesh instead, however because LWRP doesn't setup camera matrices itself,
             // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
             // We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP. 
-            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, renderer.GetMaterial(MaterialHandle.ScreenSpaceShadow));
+            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
 
             if (renderingData.cameraData.isStereoEnabled)
             {

@@ -17,8 +17,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
+        Material m_CopyDepthMaterial;
 
         const string k_DepthCopyTag = "Copy Depth";
+
+        public CopyDepthPass(Material copyDepthMaterial)
+        {
+            m_CopyDepthMaterial = copyDepthMaterial;
+        }
 
         /// <summary>
         /// Configure the pass with the source and destination to execute on.
@@ -34,13 +40,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (m_CopyDepthMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_CopyDepthMaterial, GetType().Name);
+                return;
+            }
+
             if (renderer == null)
                 throw new ArgumentNullException("renderer");
             
             CommandBuffer cmd = CommandBufferPool.Get(k_DepthCopyTag);
             RenderTargetIdentifier depthSurface = source.Identifier();
             RenderTargetIdentifier copyDepthSurface = destination.Identifier();
-            Material depthCopyMaterial = renderer.GetMaterial(MaterialHandle.CopyDepth);
 
             RenderTextureDescriptor descriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
             descriptor.colorFormat = RenderTextureFormat.Depth;
@@ -64,14 +75,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
                 }
-                cmd.Blit(depthSurface, copyDepthSurface, depthCopyMaterial);
+                cmd.Blit(depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
             else
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                ScriptableRenderer.CopyTexture(cmd, depthSurface, copyDepthSurface, depthCopyMaterial);
+                ScriptableRenderer.CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

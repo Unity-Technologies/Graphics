@@ -7,33 +7,23 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
-public class CustomLWPipe : MonoBehaviour, IRendererSetup
+public class CustomLWPipe : IRendererSetup
 {  
     private SetupForwardRenderingPass m_SetupForwardRenderingPass;
     private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
     private SetupLightweightConstanstPass m_SetupLightweightConstants;
     private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
 
-    [NonSerialized]
-    private bool m_Initialized = false;
-
-    private void Init()
+    public CustomLWPipe(CustomRenderGraphData data)
     {
-        if (m_Initialized)
-            return;
-
         m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
         m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
         m_SetupLightweightConstants = new SetupLightweightConstanstPass();
         m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
-
-        m_Initialized = true;
     }
 
-    public void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
+    public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        Init();
-
         renderer.SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
         RenderTextureDescriptor baseDescriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;
