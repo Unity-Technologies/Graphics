@@ -1,4 +1,5 @@
-#pragma kernel BuildDispatchIndirect
+#pragma kernel BuildDispatchIndirect        BUILDINDIRECT=BuildDispatchIndirect         IS_DRAWINSTANCEDINDIRECT=0
+#pragma kernel BuildDrawInstancedIndirect   BUILDINDIRECT=BuildDrawInstancedIndirect    IS_DRAWINSTANCEDINDIRECT=1
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -9,6 +10,12 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
+#if PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
+#define NR_THREADS              PLATFORM_THREAD_GROUP_OPTIMAL_SIZE  // use platform optimal thread group size if possible
+#else
+#define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
+#endif
+
 RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );   // Indirect arguments have to be in a _buffer_, not a structured buffer
 RWStructuredBuffer<uint> g_TileList;
 StructuredBuffer<uint> g_TileFeatureFlags;
@@ -16,8 +23,8 @@ StructuredBuffer<uint> g_TileFeatureFlags;
 uniform uint g_NumTiles;
 uniform uint g_NumTilesX;
 
-[numthreads(64, 1, 1)]
-void BuildDispatchIndirect(uint dispatchThreadId : SV_DispatchThreadID)
+[numthreads(NR_THREADS, 1, 1)]
+void BUILDINDIRECT(uint dispatchThreadId : SV_DispatchThreadID)
 {
     if (dispatchThreadId >= g_NumTiles)
         return;
@@ -33,7 +40,15 @@ void BuildDispatchIndirect(uint dispatchThreadId : SV_DispatchThreadID)
     {
         uint variant = FeatureFlagsToTileVariant(featureFlags);
         uint offset;
+
+#if IS_DRAWINSTANCEDINDIRECT
+        // We are filling up an indirect argument buffer for DrawInstancedIndirect.
+        InterlockedAdd(g_DispatchIndirectBuffer[variant * 4 + 1], 1, offset);
+#else
+        // We are filling up an indirect argument buffer for DispatchIndirect.
         InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, offset);
+#endif
+
         g_TileList[variant * g_NumTiles + offset] = (tileY << 16) | tileX;
     }
 }
