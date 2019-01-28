@@ -5,8 +5,6 @@ TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 TEXTURE2D(_MaskTex);
 SAMPLER(sampler_MaskTex);
-TEXTURE2D(_PointLightingTex);
-SAMPLER(sampler_PointLightingTex);
 TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
 uniform half4 _MainTex_ST;
@@ -98,25 +96,13 @@ half4 CombinedShapeLightFragment(Varyings i) : SV_Target
     half4 shapeLight2Additive = 0;
 #endif
 
-#if USE_POINT_LIGHTS
-    float2 lightingUV = i.lightingUV;
-
-#if UNITY_UV_STARTS_AT_TOP
-    lightingUV.y = 1.0 - lightingUV.y;
-#endif
-
-    half4 pointLight = SAMPLE_TEXTURE2D(_PointLightingTex, sampler_PointLightingTex, lightingUV);
-#else
-    half4 pointLight = 0;
-#endif
 
     half4 finalOutput;
-    half4 finalModulate = shapeLight0Modulate + shapeLight1Modulate + shapeLight2Modulate + pointLight;
+    half4 finalModulate = shapeLight0Modulate + shapeLight1Modulate + shapeLight2Modulate;
     half4 finalAdditve = shapeLight0Additive + shapeLight1Additive + shapeLight2Additive;
     finalOutput = main * finalModulate + finalAdditve;
 
     finalOutput.a = main.a;
     return finalOutput;
 }
-
 #endif

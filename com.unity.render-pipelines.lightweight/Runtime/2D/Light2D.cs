@@ -11,7 +11,6 @@ using System.Linq;
 using UnityEditor;
 #endif
 
-
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     // TODO: 
@@ -324,24 +323,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return data[0];
         }
 
-        void CalculateBoundingSphere(ref Vector3[] vertices)
-        {
-            m_LocalBounds = new Bounds();
-
-            Vector3 minimum = new Vector3(float.MaxValue, float.MaxValue);
-            Vector3 maximum = new Vector3(float.MinValue, float.MinValue);
-            for (int i=0;i<vertices.Length;i++)
-            {
-                Vector3 vertex = vertices[i];
-                minimum.x = vertex.x < minimum.x ? vertex.x : minimum.x;
-                minimum.y = vertex.y < minimum.y ? vertex.y : minimum.y;
-                maximum.x = vertex.x > maximum.x ? vertex.x : maximum.x;
-                maximum.y = vertex.y > maximum.y ? vertex.y : maximum.y;
-            }
-
-            m_LocalBounds.max = maximum;
-            m_LocalBounds.min = minimum;
-        }
 
         public void UpdateShapeLightMesh(Color color)
         {
@@ -414,9 +395,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_Mesh.tangents = volumeColors;
             m_Mesh.colors = finalColors.ToArray();
             m_Mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
-            
 
-            CalculateBoundingSphere(ref vertices);
+            m_LocalBounds = LightUtility.CalculateBoundingSphere(ref vertices);
         }
 
         public Material GetVolumeMaterial()
@@ -553,164 +533,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return null;
         }
 
-        public Mesh GenerateParametricMesh(float radius, int sides, float feathering, Color color)
-        {
-
-            float angleOffset = Mathf.PI / 2.0f;
-            if (sides < 3)
-            {
-                radius = 0.70710678118654752440084436210485f * radius;
-                angleOffset = Mathf.PI / 4.0f;
-                sides = 4;
-            }
-
-            // Return a shape with radius = 1
-            Vector3[] vertices;
-            int[] triangles;
-            Color[] colors;
-            Vector4[] volumeColors;
-
-            int centerIndex;
-            if (feathering <= 0.0f || feathering >= 1.0f)
-            {
-                vertices = new Vector3[1 + sides];
-                triangles = new int[3 * sides];
-                colors = new Color[1 + sides];
-                volumeColors = new Vector4[1 + sides];
-                centerIndex = sides;
-            }
-            else
-            {
-                vertices = new Vector3[1 + 2 * sides];
-                colors = new Color[1 + 2 * sides];
-                triangles = new int[3 * 3 * sides];
-                volumeColors = new Vector4[1 + 2 * sides];
-                centerIndex = 2 * sides;
-            }
-
-
-            Vector3 posOffset = new Vector3(m_ShapeLightOffset.x, m_ShapeLightOffset.y);
-            Color transparentColor = new Color(color.r, color.g, color.b, 0);
-            Color volumeColor = new Vector4(1, 1, 1, m_LightVolumeOpacity);
-            vertices[centerIndex] = Vector3.zero + posOffset;
-            colors[centerIndex] = color;
-            volumeColors[centerIndex] = volumeColor;
-
-            float radiansPerSide = 2 * Mathf.PI / sides;
-            for (int i = 0; i < sides; i++)
-            {
-                float endAngle = (i + 1) * radiansPerSide;
-                Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0) + posOffset;
-
-                int vertexIndex;
-                if (feathering <= 0.0f)
-                {
-                    vertexIndex = (i + 1) % sides;
-                    vertices[vertexIndex] = endPoint;
-                    colors[vertexIndex] = color;
-                    volumeColors[vertexIndex] = volumeColor;
-
-                    int triangleIndex = 3 * i;
-                    triangles[triangleIndex] = (i + 1) % sides;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = centerIndex;
-                }
-                else if (feathering >= 1.0f)
-                {
-                    vertexIndex = (i + 1) % sides;
-                    vertices[vertexIndex] = endPoint;
-                    colors[vertexIndex] = transparentColor;
-                    volumeColors[vertexIndex] = volumeColor;
-
-                    int triangleIndex = 3 * i;
-                    triangles[triangleIndex] = vertexIndex;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = centerIndex;
-                }
-                else
-                {
-                    Vector3 endSplitPoint = (1 - feathering) * endPoint;
-                    vertexIndex = (2 * i + 2) % (2 * sides);
-
-                    vertices[vertexIndex] = endPoint;
-                    vertices[vertexIndex + 1] = endSplitPoint;
-
-                    colors[vertexIndex] = transparentColor;
-                    colors[vertexIndex + 1] = color;
-                    volumeColors[vertexIndex] = volumeColor;
-                    volumeColors[vertexIndex + 1] = volumeColor;
-
-                    // Triangle 1 (Tip)
-                    int triangleIndex = 9 * i;
-                    triangles[triangleIndex] = vertexIndex + 1;
-                    triangles[triangleIndex + 1] = 2 * i + 1;
-                    triangles[triangleIndex + 2] = centerIndex;
-
-                    // Triangle 2 (Upper Top Left)
-                    triangles[triangleIndex + 3] = vertexIndex;
-                    triangles[triangleIndex + 4] = 2 * i;
-                    triangles[triangleIndex + 5] = 2 * i + 1;
-
-                    // Triangle 2 (Bottom Top Left)
-                    triangles[triangleIndex + 6] = vertexIndex + 1;
-                    triangles[triangleIndex + 7] = vertexIndex;
-                    triangles[triangleIndex + 8] = 2 * i + 1;
-                }
-            }
-
-            m_Mesh.Clear();
-            m_Mesh.vertices = vertices;
-            m_Mesh.colors = colors;
-            m_Mesh.triangles = triangles;
-            m_Mesh.tangents = volumeColors;
-
-            CalculateBoundingSphere(ref vertices);
-
-            return m_Mesh;
-        }
-
-        public Mesh GenerateSpriteMesh(Sprite sprite, Color color)
-        {
-            if (sprite != null)
-            {
-                Vector2[] vertices2d = sprite.vertices;
-                Vector3[] vertices3d = new Vector3[vertices2d.Length];
-                Color[] colors = new Color[vertices2d.Length];
-                Vector4[] volumeColor = new Vector4[vertices2d.Length];
-
-                ushort[] triangles2d = sprite.triangles;
-                int[] triangles3d = new int[triangles2d.Length];
-
-
-                Vector3 center = 0.5f * (sprite.bounds.min + sprite.bounds.max);
-
-                for (int vertexIdx = 0; vertexIdx < vertices2d.Length; vertexIdx++)
-                {
-                    Vector3 pos = new Vector3(vertices2d[vertexIdx].x, vertices2d[vertexIdx].y) - center;
-                    pos = new Vector3(vertices2d[vertexIdx].x / sprite.bounds.size.x, vertices2d[vertexIdx].y / sprite.bounds.size.y);
-                    vertices3d[vertexIdx] = pos;
-                    colors[vertexIdx] = color;
-                    volumeColor[vertexIdx] = new Vector4(1, 1, 1, m_LightVolumeOpacity);
-                }
-
-                for (int triangleIdx = 0; triangleIdx < triangles2d.Length; triangleIdx++)
-                {
-                    triangles3d[triangleIdx] = (int)triangles2d[triangleIdx];
-                }
-
-                m_Mesh.Clear();
-                m_Mesh.vertices = vertices3d;
-                m_Mesh.uv = sprite.uv;
-                m_Mesh.triangles = triangles3d;
-                m_Mesh.colors = colors;
-                m_Mesh.tangents = volumeColor;
-
-                CalculateBoundingSphere(ref vertices3d);
-            }
-
-
-            return m_Mesh;
-        }
 
         public Mesh GetMesh(bool forceUpdate = false)
         {
@@ -726,16 +548,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                         if (m_ParametricShape == ParametricShapes.Freeform)
                             UpdateShapeLightMesh(m_LightColor);
                         else
-                            m_Mesh = GenerateParametricMesh(0.5f, m_ParametricSides, m_ShapeLightFeathering, m_LightColor);
+                        {
+                            m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 0.5f, m_ShapeLightOffset, m_ParametricSides, m_ShapeLightFeathering, m_LightColor, m_LightVolumeOpacity);
+                        }
                     }
                     else if (m_ShapeLightStyle == CookieStyles.Sprite)
                     {
-                        m_Mesh = GenerateSpriteMesh(m_LightCookieSprite, m_LightColor);
+                        m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, m_LightColor, m_LightVolumeOpacity, 1);
                     }
                 }
                 else if(m_LightProjectionType == LightProjectionTypes.Point)
                 {
-                    m_Mesh = GenerateParametricMesh(1, 32 /* 4 sides */, 0, m_LightColor);
+                     m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 4, 0, m_LightColor, m_LightVolumeOpacity);
                 }
             }
 

@@ -2,11 +2,8 @@
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
 		_Color("Color", Color) = (1,1,1,1)
     }
-
-	
 
 	HLSLINCLUDE
 	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
@@ -52,9 +49,12 @@
 			#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile LIGHT_QUALITY_FAST __
+			#pragma multi_compile USE_POINT_LIGHT_COOKIES __ 
 
-			TEXTURE2D(_MainTex);
-			SAMPLER(sampler_MainTex);
+			#if USE_POINT_LIGHT_COOKIES
+			TEXTURE2D(_PointLightCookieTex);
+			SAMPLER(sampler_PointLightCookieTex);
+			#endif
 
 			TEXTURE2D(_LightLookup);
 			SAMPLER(sampler_LightLookup);
@@ -104,7 +104,9 @@
 
             half4 frag (Varyings input) : SV_Target
             {
-                half4 cookie = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex,  input.uv);
+				#if USE_POINT_LIGHT_COOKIES
+				half4 cookieColor = SAMPLE_TEXTURE2D(_PointLightCookieTex, sampler_PointLightCookieTex,  input.lookupUV);
+				#endif
 
 				half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);
 				half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
@@ -133,11 +135,15 @@
 					dirToLight	  = normalize(dirToLight);
 				#endif
 
-
 				float cosAngle = (1 - usingDefaultNormalMap) * saturate(dot(dirToLight, normalUnpacked)) + usingDefaultNormalMap;
-				half4 lightColor = _LightColor * attenuation * cosAngle;
 
-				return lightColor * _InverseLightIntensityScale;
+				#if USE_POINT_LIGHT_COOKIES
+					half4 lightColor = cookieColor * _LightColor * attenuation * cosAngle;
+				#else
+					half4 lightColor = _LightColor * attenuation * cosAngle;
+				#endif
+
+					return lightColor * _InverseLightIntensityScale;
 
 				//return 1;
             }
