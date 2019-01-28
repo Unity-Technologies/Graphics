@@ -155,7 +155,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public void EnqueuePass(ScriptableRenderPass pass)
         {
-            m_ActiveRenderPassQueue.Add(pass);
+            if (pass != null)
+                m_ActiveRenderPassQueue.Add(pass);
         }
 
         public void SetupPerObjectLightIndices(ref CullingResults cullResults, ref LightData lightData)

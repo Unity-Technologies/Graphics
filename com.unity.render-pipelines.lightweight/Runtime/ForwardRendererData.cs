@@ -1,14 +1,18 @@
+using System.Collections.Generic;
+
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    //[CreateAssetMenu()]
-    public class ForwardRendererData : IRendererData
+    [CreateAssetMenu]
+    public class ForwardRendererData : RendererData
     {
         [SerializeField] Shader m_BlitShader = null;
         [SerializeField] Shader m_CopyDepthShader = null;
         [SerializeField] Shader m_ScreenSpaceShadowShader = null;
         [SerializeField] Shader m_SamplingShader = null;
-
-        public override IRendererSetup Create()
+        
+        [SerializeField] List<RenderPassFeature> m_RenderPassFeatures = new List<RenderPassFeature>(10);
+        
+        public override RendererSetup Create()
         {
             return new ForwardRendererSetup(this);
         }
@@ -35,6 +39,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             get => m_SamplingShader;
             set => m_SamplingShader = value;
+        }
+
+        public List<RenderPassFeature> renderPassFeatures
+        {
+            get => m_RenderPassFeatures;
+            set => m_RenderPassFeatures = value;
         }
     }
 }

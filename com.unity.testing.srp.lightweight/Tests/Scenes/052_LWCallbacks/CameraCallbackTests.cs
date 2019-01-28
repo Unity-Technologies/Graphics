@@ -4,15 +4,9 @@ using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
 
-public class CameraCallbackTests : MonoBehaviour
-	, IBeforeRender
-	, IAfterOpaquePass
-	, IAfterOpaquePostProcess
-	, IAfterSkyboxPass
-	, IAfterTransparentPass
-	, IAfterRender
+[CreateAssetMenu]
+public class CameraCallbackTests : RenderPassFeature
 {
-	
 	static RenderTargetHandle beforeAll;
 	static RenderTargetHandle afterOpaque;
 	static RenderTargetHandle afterOpaquePost;
@@ -25,9 +19,6 @@ public class CameraCallbackTests : MonoBehaviour
     
 	public CameraCallbackTests()
 	{
-	    m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/CopyDepth"));
-	    m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling"));
-	    
 		beforeAll.Init("_BeforeAll");
 		afterOpaque.Init("_AfterOpaque");
 		afterOpaquePost.Init("_AfterOpaquePost");
@@ -36,7 +27,13 @@ public class CameraCallbackTests : MonoBehaviour
 		afterAll.Init("_AfterAll");
 	}
 
-    internal class ClearColorPass : ScriptableRenderPass
+	private void OnEnable()
+	{
+		m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/CopyDepth"));
+		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling"));
+	}
+
+	internal class ClearColorPass : ScriptableRenderPass
     {
         RenderTargetHandle m_ColorHandle;
         ClearFlag m_ClearFlag;
@@ -61,42 +58,47 @@ public class CameraCallbackTests : MonoBehaviour
         }
     }
 
-    ScriptableRenderPass IBeforeRender.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthAttachmentHandle, ClearFlag clearFlag)
-	{
-        return new ClearColorPass(colorHandle, clearFlag);
-	}
+    public override InjectionPoint injectionPoints =>
+	    InjectionPoint.BeforeRenderPasses
+	    | InjectionPoint.AfterOpaqueRenderPasses
+	    | InjectionPoint.AfterOpaquePostProcessPasses
+	    | InjectionPoint.AfterSkyboxPasses
+	    | InjectionPoint.AfterTransparentPasses
+	    | InjectionPoint.AfterRenderPasses;
 
-	ScriptableRenderPass IAfterOpaquePass.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorAttachmentHandle,
-		RenderTargetHandle depthAttachmentHandle)
-	{
-		var pass = new CopyColorPass(m_SamplingMaterial);
-		pass.Setup(colorAttachmentHandle, afterOpaque);
-		return pass;
-	}
-
-	ScriptableRenderPass IAfterOpaquePostProcess.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle,
-		RenderTargetHandle depthHandle)
-	{
-		var pass = new CopyColorPass(m_SamplingMaterial);;
-		pass.Setup(colorHandle, afterOpaquePost);
-		return pass;
-	}
-
-	ScriptableRenderPass IAfterSkyboxPass.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle,
-		RenderTargetHandle depthHandle)
-	{
-		var pass = new CopyColorPass(m_SamplingMaterial);
-		pass.Setup(colorHandle, afterSkybox);
-		return pass;
-	}
-
-	ScriptableRenderPass IAfterTransparentPass.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle,
-		RenderTargetHandle depthHandle)
-	{
-		var pass = new CopyColorPass(m_SamplingMaterial);
-		pass.Setup(colorHandle, afterTransparent);
-		return pass;
-	}
+    public override ScriptableRenderPass GetPassToEnqueue(
+	    InjectionPoint injection, 
+	    RenderTextureDescriptor baseDescriptor, 
+	    RenderTargetHandle colorAttachmentHandle, 
+	    RenderTargetHandle depthAttachmentHandle)
+    {
+	    CopyColorPass pass;
+	    switch (injection)
+		{
+			case InjectionPoint.BeforeRenderPasses:
+				return new ClearColorPass(colorAttachmentHandle, ClearFlag.Color);
+			case InjectionPoint.AfterOpaqueRenderPasses:
+				pass = new CopyColorPass(m_SamplingMaterial);
+				pass.Setup(colorAttachmentHandle, afterOpaque);
+				return pass;
+			case InjectionPoint.AfterOpaquePostProcessPasses:
+				pass = new CopyColorPass(m_SamplingMaterial);;
+				pass.Setup(colorAttachmentHandle, afterOpaquePost);
+				return pass;
+			case InjectionPoint.AfterSkyboxPasses:
+				pass = new CopyColorPass(m_SamplingMaterial);
+				pass.Setup(colorAttachmentHandle, afterSkybox);
+				return pass;
+			case InjectionPoint.AfterTransparentPasses:
+				pass = new CopyColorPass(m_SamplingMaterial);
+				pass.Setup(colorAttachmentHandle, afterTransparent);
+				return pass;
+			case InjectionPoint.AfterRenderPasses:
+				return new BlitPass(colorAttachmentHandle, depthAttachmentHandle);
+			default:
+				throw new ArgumentOutOfRangeException(nameof(injection), injection, null);
+		}
+    }
 
 	class BlitPass : ScriptableRenderPass
 	{
@@ -159,10 +161,5 @@ public class CameraCallbackTests : MonoBehaviour
 			
 			base.FrameCleanup(cmd);
 		}
-	}
-
-	ScriptableRenderPass IAfterRender.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
-	{
-		return new BlitPass(colorHandle, depthHandle);
 	}
 }

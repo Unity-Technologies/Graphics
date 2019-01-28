@@ -78,13 +78,13 @@ namespace UnityEngine.Rendering.LWRP
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
-        internal IRendererSetup m_RendererSetup;
+        internal RendererSetup m_RendererSetup;
 
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
 
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
-        [SerializeField] internal IRendererData m_RendererData = null;
+        [SerializeField] internal RendererData m_RendererData = null;
         
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.LWRP
             return instance;
         }
 
-        public IRendererData LoadBuiltinRendererData()
+        public RendererData LoadBuiltinRendererData()
         {
             switch (m_RendererType)
             {
@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.LWRP
 #endif
         }
 
-        public IRendererSetup rendererSetup
+        public RendererSetup rendererSetup
         {
             get
             {
@@ -469,7 +469,7 @@ namespace UnityEngine.Rendering.LWRP
             get { return editorResources.autodeskInteractiveMaskedShader; }
         }
 
-        public override Shader terrainDetailLitShader
+        /*public override Shader terrainDetailLitShader
         {
             get { return editorResources.terrainDetailLitShader; }
         }
@@ -482,7 +482,7 @@ namespace UnityEngine.Rendering.LWRP
         public override Shader terrainDetailGrassBillboardShader
         {
             get { return editorResources.terrainDetailGrassBillboardShader; }
-        }
+        }*/
 #endif
 
         public void OnBeforeSerialize()

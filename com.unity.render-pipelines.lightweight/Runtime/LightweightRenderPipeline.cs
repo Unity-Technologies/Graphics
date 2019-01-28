@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 renderer.Clear();
 
-                IRendererSetup rendererSetup = (additionalCameraData != null) ? additionalCameraData.rendererSetup : settings.rendererSetup;
+                RendererSetup rendererSetup = (additionalCameraData != null) ? additionalCameraData.rendererSetup : settings.rendererSetup;
                 rendererSetup.Setup(renderer, ref renderingData);
                 renderer.Execute(context, ref renderingData);
             }

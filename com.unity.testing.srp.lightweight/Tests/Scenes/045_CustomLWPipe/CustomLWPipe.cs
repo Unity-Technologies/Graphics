@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
-public class CustomLWPipe : IRendererSetup
+public class CustomLWPipe : RendererSetup
 {  
     private SetupForwardRenderingPass m_SetupForwardRenderingPass;
     private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
