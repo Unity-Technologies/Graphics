@@ -109,7 +109,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         Pass m_PassMETA = new Pass()
         {
             Name = "META",
-            LightMode = "Meta",
+            LightMode = "META",
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
@@ -291,7 +291,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassMotionVectors = new Pass()
         {
-            Name = "Motion Vectors",
+            Name = "MotionVectors",
             LightMode = "MotionVectors",
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
@@ -355,7 +355,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassDistortion = new Pass()
         {
-            Name = "Distortion",
+            Name = "DistortionVectors",
             LightMode = "DistortionVectors",
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
@@ -614,7 +614,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassRaytracingReflection = new Pass()
         {
-            Name = "RTRaytrace_Reflections",
+            Name = "ReflectionDXR",
             LightMode = "ReflectionDXR",
             TemplateName = "HDLitRaytracingPass.template",
             MaterialName = "Lit",
@@ -666,7 +666,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassRaytracingVisibility = new Pass()
         {
-            Name = "RTRaytrace_Visibility",
+            Name = "ShadowsDXR",
             LightMode = "ShadowsDXR",
             TemplateName = "HDLitRaytracingPass.template",
             MaterialName = "Lit",
