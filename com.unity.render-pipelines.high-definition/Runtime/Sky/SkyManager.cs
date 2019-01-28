@@ -312,16 +312,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (Shader.GetGlobalTexture(HDShaderIDs._SkyTexture) == null)
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTexture);
 
+            bool isRegularPreview = HDUtils.IsRegularPreviewCamera(hdCamera.camera);
+
             SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode;
             SkyUpdateContext currentSky = m_LightingOverrideSky.IsValid() ? m_LightingOverrideSky : m_VisualSky;
 
             // Preview should never use dynamic ambient or they will conflict with main view (async readback of sky texture will update ambient probe for main view one frame later)
-            if (HDUtils.IsRegularPreviewCamera(hdCamera.camera))
+            if (isRegularPreview)
                 ambientMode = SkyAmbientMode.Static;
 
             m_SkyRenderingContext.UpdateEnvironment(currentSky, hdCamera, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, cmd);
             StaticLightingSky staticLightingSky = GetStaticLightingSky();
-            if (staticLightingSky != null)
+            // We don't want to update the static sky during preview because it contains custom lights that may change the result.
+            // The consequence is that previews will use main scene static lighting but we consider this to be acceptable.
+            if (staticLightingSky != null && !isRegularPreview)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
                 m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, hdCamera, sunLight, false, true, cmd);
