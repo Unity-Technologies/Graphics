@@ -8,10 +8,75 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class DecalSubShader : IDecalSubShader
     {
-        Pass m_PassProjector = new Pass()
+        // CAUTION: Render code in RenderIntoDBuffer() in DecalSystem relies on the order in which the passes are declared, any change will need to be reflected.
+        Pass m_PassProjector3RT = new Pass()
         {
-            Name = "ShaderGraph_DBufferProjector",
-            LightMode = "ShaderGraph_DBufferProjector",
+            Name = "ShaderGraph_DBufferProjector3RT",
+            LightMode = "ShaderGraph_DBufferProjector3RT",
+            TemplateName = "DecalPass.template",
+            MaterialName = "Decal",
+            ShaderPassName = "SHADERPASS_DBUFFER_PROJECTOR",
+
+            CullOverride = "Cull Front",
+            ZTestOverride = "ZTest Greater",
+            ZWriteOverride = "ZWrite Off",
+            BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
+
+            ExtraDefines = new List<string>()
+            {
+                "#define DECALS_3RT",
+            },
+
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
+            },
+
+            RequiredFields = new List<string>()
+            {
+            },
+
+            PixelShaderSlots = new List<int>()
+            {
+                DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
+                DecalMasterNode.NormalSlotId,
+                DecalMasterNode.NormaOpacitySlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.MAOSOpacitySlotId,
+            },
+
+            VertexShaderSlots = new List<int>()
+            {
+            },
+
+            UseInPreview = true,
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+
+                DecalMasterNode masterNode = node as DecalMasterNode;
+                int colorMaskIndex = 4; // smoothness only
+                pass.ColorMaskOverride = m_ColorMasks[colorMaskIndex];
+                pass.StencilOverride = new List<string>()
+                {
+                    "// Stencil setup",
+                    "Stencil",
+                    "{",
+                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        "Comp Always",
+                        "Pass Replace",
+                    "}"
+                };
+            }
+        };
+
+        Pass m_PassProjector4RT = new Pass()
+        {
+            Name = "ShaderGraph_DBufferProjector4RT",
+            LightMode = "ShaderGraph_DBufferProjector4RT",
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_DBUFFER_PROJECTOR",
@@ -20,6 +85,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZTestOverride = "ZTest Greater",
             ZWriteOverride = "ZWrite Off",
             BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor",
+
+            ExtraDefines = new List<string>()
+            {
+                "#define DECALS_4RT",
+            },
 
             Includes = new List<string>()
             {
@@ -70,10 +140,81 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         };
 
 
-        Pass m_PassMesh = new Pass()
+        Pass m_PassMesh3RT = new Pass()
         {
-            Name = "ShaderGraph_DBufferMesh",
-            LightMode = "ShaderGraph_DBufferMesh",
+            Name = "ShaderGraph_DBufferMesh3RT",
+            LightMode = "ShaderGraph_DBufferMesh3RT",
+            TemplateName = "DecalPass.template",
+            MaterialName = "Decal",
+            ShaderPassName = "SHADERPASS_DBUFFER_MESH",
+
+            ZTestOverride = "ZTest LEqual",
+            ZWriteOverride = "ZWrite Off",
+            BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
+
+            ExtraDefines = new List<string>()
+            {
+                "#define DECALS_3RT",
+            },
+
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
+            },
+
+            RequiredFields = new List<string>()
+            {
+                "AttributesMesh.normalOS",
+                "AttributesMesh.tangentOS",
+                "AttributesMesh.uv0",
+
+                "FragInputs.worldToTangent",
+                "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
+            },
+
+            PixelShaderSlots = new List<int>()
+            {
+                DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
+                DecalMasterNode.NormalSlotId,
+                DecalMasterNode.NormaOpacitySlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.MAOSOpacitySlotId,
+            },
+
+            VertexShaderSlots = new List<int>()
+            {
+            },
+
+            UseInPreview = true,
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+
+                DecalMasterNode masterNode = node as DecalMasterNode;
+                int colorMaskIndex = 4; // smoothness only
+                pass.ColorMaskOverride = m_ColorMasks[colorMaskIndex];
+                pass.StencilOverride = new List<string>()
+                {
+                    "// Stencil setup",
+                    "Stencil",
+                    "{",
+                        string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        string.Format("   Ref  {0}", (int) HDRenderPipeline.StencilBitMask.Decals),
+                        "Comp Always",
+                        "Pass Replace",
+                    "}"
+                };
+            }
+        };
+
+
+        Pass m_PassMesh4RT = new Pass()
+        {
+            Name = "ShaderGraph_DBufferMesh4RT",
+            LightMode = "ShaderGraph_DBufferMesh4RT",
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_DBUFFER_MESH",
@@ -81,6 +222,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZTestOverride = "ZTest LEqual",
             ZWriteOverride = "ZWrite Off",
             BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor",
+
+            ExtraDefines = new List<string>()
+            {
+                "#define DECALS_4RT",
+            },
 
             Includes = new List<string>()
             {
@@ -150,7 +296,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         };
 
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(INode iMasterNode, Pass pass)
+        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
 
@@ -158,6 +304,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode == null)
             {
                 return activeFields;
+            }
+            if(masterNode.affectsAlbedo.isOn)
+            {
+                activeFields.Add("Material.AffectsAlbedo");
+            }
+            if (masterNode.affectsNormal.isOn)
+            {
+                activeFields.Add("Material.AffectsNormal");
             }
             return activeFields;
         }
@@ -200,7 +354,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(SurfaceType.Opaque, false, false, 0);
+                HDMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(HDRenderQueue.RenderQueueType.Opaque, 0, false);
 
                 // Add tags at the SubShader level
                 {
@@ -209,8 +363,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     subShader.AddShaderChunk(tagsVisitor.ToString(), false);
                 }
 
-                GenerateShaderPass(masterNode, m_PassProjector, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(masterNode, m_PassMesh, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassProjector3RT, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassProjector4RT, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassMesh3RT, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassMesh4RT, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

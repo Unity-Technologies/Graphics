@@ -1,496 +1,387 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text;
 using UnityEngine.Rendering;
-using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    /// <summary>Helper to handle Deferred or Forward but not both</summary>
     public enum LitShaderMode
     {
         Forward,
         Deferred
     }
 
-    [Flags]
-    public enum FrameSettingsOverrides
+    // To add a new element to FrameSettings, add en entry in this enum using the FrameSettingsFieldAttribute.
+    // Inspector UI and DebugMenu are generated from this.
+    // If you have very specific display requirement, you could add them in FrameSettingsUI.Drawer.cs with a AmmendInfo command.
+    public enum FrameSettingsField
     {
-        //lighting settings
-        Shadow = 1 << 0,
-        ContactShadow = 1 << 1,
-        ShadowMask = 1 << 2,
-        SSR = 1 << 3,
-        SSAO = 1 << 4,
-        SubsurfaceScattering = 1 << 5,
-        Transmission = 1 << 6,
-        AtmosphericScaterring = 1 << 7,
-        Volumetrics = 1 << 8,
-        ReprojectionForVolumetrics = 1 << 9,
-        LightLayers = 1 << 10,
-        MSAA = 1 << 11,
+        None = -1,
 
-        //rendering pass
-        TransparentPrepass = 1 << 13,
-        TransparentPostpass = 1 << 14,
-        MotionVectors = 1 << 15,
-        ObjectMotionVectors = 1 << 16,
-        Decals = 1 << 17,
-        RoughRefraction = 1 << 18,
-        Distortion = 1 << 19,
-        Postprocess = 1 << 20,
+        //rendering settings from 0 to 19
+        [FrameSettingsField(0, autoName: LitShaderMode, type: FrameSettingsFieldAttribute.DisplayType.BoolAsEnumPopup, targetType: typeof(LitShaderMode), customOrderInGroup: 0)]
+        LitShaderMode = 0,
+        [FrameSettingsField(0, displayedName: "Depth Prepass within Deferred", positiveDependencies: new[] { LitShaderMode })]
+        DepthPrepassWithDeferredRendering = 1,
+        [FrameSettingsField(0, displayedName: "MSAA within Forward", negativeDependencies: new[] { LitShaderMode }, customOrderInGroup: 2)]
+        MSAA = 31,
+        [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 3)]
+        OpaqueObjects = 2,
+        [FrameSettingsField(0, autoName: TransparentObjects)]
+        TransparentObjects = 3,
+        [FrameSettingsField(0, autoName: RealtimePlanarReflection)]
+        RealtimePlanarReflection = 4,
+        
+        [FrameSettingsField(0, autoName: TransparentPrepass)]
+        TransparentPrepass = 8,
+        [FrameSettingsField(0, autoName: TransparentPostpass)]
+        TransparentPostpass = 9,
+        [FrameSettingsField(0, autoName: MotionVectors)]
+        MotionVectors = 10,
+        [FrameSettingsField(0, autoName: ObjectMotionVectors, positiveDependencies: new[] { MotionVectors })]
+        ObjectMotionVectors = 11,
+        [FrameSettingsField(0, autoName: Decals)]
+        Decals = 12,
+        [FrameSettingsField(0, autoName: RoughRefraction)]
+        RoughRefraction = 13,
+        [FrameSettingsField(0, autoName: Distortion)]
+        Distortion = 14,
+        [FrameSettingsField(0, autoName: Postprocess)]
+        Postprocess = 15,
 
-        //rendering settings
-        ShaderLitMode = 1 << 21,
-        DepthPrepassWithDeferredRendering = 1 << 22,
-        OpaqueObjects = 1 << 24,
-        TransparentObjects = 1 << 25,
-        RealtimePlanarReflection = 1 << 26,
+        //lighting settings from 20 to 39
+        [FrameSettingsField(1, autoName: Shadow)]
+        Shadow = 20,
+        [FrameSettingsField(1, autoName: ContactShadows)]
+        ContactShadows = 21,
+        [FrameSettingsField(1, autoName: ShadowMask)]
+        ShadowMask = 22,
+        [FrameSettingsField(1, autoName: SSR)]
+        SSR = 23,
+        [FrameSettingsField(1, autoName: SSAO)]
+        SSAO = 24,
+        [FrameSettingsField(1, autoName: SubsurfaceScattering)]
+        SubsurfaceScattering = 25,
+        [FrameSettingsField(1, autoName: Transmission)]
+        Transmission = 26,
+        [FrameSettingsField(1, autoName: AtmosphericScattering)]
+        AtmosphericScattering = 27,
+        [FrameSettingsField(1, autoName: Volumetrics, positiveDependencies: new[] { AtmosphericScattering })]
+        Volumetrics = 28,
+        [FrameSettingsField(1, autoName: ReprojectionForVolumetrics, positiveDependencies: new[] { AtmosphericScattering })]
+        ReprojectionForVolumetrics = 29,
+        [FrameSettingsField(1, autoName: LightLayers)]
+        LightLayers = 30,
+        [FrameSettingsField(1, autoName: ExposureControl, customOrderInGroup: 32)]
+        ExposureControl = 32,
+        
+        //async settings from 40 to 59
+        [FrameSettingsField(2, autoName: AsyncCompute)]
+        AsyncCompute = 40,
+        [FrameSettingsField(2, autoName: LightListAsync, positiveDependencies: new[] { AsyncCompute })]
+        LightListAsync = 41,
+        [FrameSettingsField(2, autoName: SSRAsync, positiveDependencies: new[] { AsyncCompute })]
+        SSRAsync = 42,
+        [FrameSettingsField(2, autoName: SSAOAsync, positiveDependencies: new[] { AsyncCompute })]
+        SSAOAsync = 43,
+        [FrameSettingsField(2, autoName: ContactShadowsAsync, positiveDependencies: new[] { AsyncCompute })]
+        ContactShadowsAsync = 44,
+        [FrameSettingsField(2, autoName: VolumeVoxelizationsAsync, positiveDependencies: new[] { AsyncCompute })]
+        VolumeVoxelizationsAsync = 45,
 
-        // Async settings
-        AsyncCompute = 1 << 23,
-        LightListAsync = 1 << 27,
-        SSRAsync = 1 << 28,
-        SSAOAsync = 1 << 29,
-        ContactShadowsAsync = 1 << 30,
-        VolumeVoxelizationsAsync = 1 << 31,
+        //from 60 to 119 : space for new scopes
+
+        //lightLoop settings from 120 to 127
+        [FrameSettingsField(3, autoName: FPTLForForwardOpaque)]
+        FPTLForForwardOpaque = 120,
+        [FrameSettingsField(3, autoName: BigTilePrepass)]
+        BigTilePrepass = 121,
+        [FrameSettingsField(3, autoName: DeferredTile)]
+        DeferredTile = 122,
+        [FrameSettingsField(3, autoName: ComputeLightEvaluation, positiveDependencies: new[] { DeferredTile })]
+        ComputeLightEvaluation = 123,
+        [FrameSettingsField(3, autoName: ComputeLightVariants, positiveDependencies: new[] { ComputeLightEvaluation, DeferredTile })]
+        ComputeLightVariants = 124,
+        [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { ComputeLightEvaluation, DeferredTile })]
+        ComputeMaterialVariants = 125,
+        Reflection = 126, //set by engine, not for DebugMenu/Inspector
+
+        //only 128 booleans saved. For more, change the BitArray used
     }
 
-    // The settings here are per frame settings.
-    // Each camera must have its own per frame settings
+    /// <summary>BitField that state which element is overridden.</summary>
     [Serializable]
-    [System.Diagnostics.DebuggerDisplay("FrameSettings overriding {overrides.ToString(\"X\")}")]
-    public class FrameSettings
+    [System.Diagnostics.DebuggerDisplay("{mask.humanizedData}")]
+    public struct FrameSettingsOverrideMask
     {
-        static Dictionary<FrameSettingsOverrides, Action<FrameSettings, FrameSettings>> s_Overrides = new Dictionary<FrameSettingsOverrides, Action<FrameSettings, FrameSettings>>
+        [SerializeField]
+        public BitArray128 mask;
+    }
+    
+    /// <summary>Per renderer and per frame settings.</summary>
+    [Serializable]
+    [System.Diagnostics.DebuggerDisplay("{bitDatas.humanizedData}")]
+    public partial struct FrameSettings
+    {
+        /// <summary>Default FrameSettings for Camera renderer.</summary>
+        public static readonly FrameSettings defaultCamera = new FrameSettings()
         {
-            {FrameSettingsOverrides.Shadow, (a, b) => { a.enableShadow = b.enableShadow; } },
-            {FrameSettingsOverrides.ContactShadow, (a, b) => { a.enableContactShadows = b.enableContactShadows; } },
-            {FrameSettingsOverrides.ShadowMask, (a, b) => { a.enableShadowMask = b.enableShadowMask; } },
-            {FrameSettingsOverrides.SSR, (a, b) => { a.enableSSR = b.enableSSR; } },
-            {FrameSettingsOverrides.SSAO, (a, b) => { a.enableSSAO = b.enableSSAO; } },
-            {FrameSettingsOverrides.SubsurfaceScattering, (a, b) => { a.enableSubsurfaceScattering = b.enableSubsurfaceScattering; } },
-            {FrameSettingsOverrides.Transmission, (a, b) => { a.enableTransmission = b.enableTransmission; } },
-            {FrameSettingsOverrides.AtmosphericScaterring, (a, b) => { a.enableAtmosphericScattering = b.enableAtmosphericScattering; } },
-            {FrameSettingsOverrides.Volumetrics, (a, b) => { a.enableVolumetrics = b.enableVolumetrics; } },
-            {FrameSettingsOverrides.ReprojectionForVolumetrics, (a, b) => { a.enableReprojectionForVolumetrics = b.enableReprojectionForVolumetrics; } },
-            {FrameSettingsOverrides.LightLayers, (a, b) => { a.enableLightLayers = b.enableLightLayers; } },
-            {FrameSettingsOverrides.MSAA, (a, b) => { a.enableMSAA = b.enableMSAA; } },
-            {FrameSettingsOverrides.TransparentPrepass, (a, b) => { a.enableTransparentPrepass = b.enableTransparentPrepass; } },
-            {FrameSettingsOverrides.TransparentPostpass, (a, b) => { a.enableTransparentPostpass = b.enableTransparentPostpass; } },
-            {FrameSettingsOverrides.MotionVectors, (a, b) => { a.enableMotionVectors = b.enableMotionVectors; } },
-            {FrameSettingsOverrides.ObjectMotionVectors, (a, b) => { a.enableObjectMotionVectors = b.enableObjectMotionVectors; } },
-            {FrameSettingsOverrides.Decals, (a, b) => { a.enableDecals = b.enableDecals; } },
-            {FrameSettingsOverrides.RoughRefraction, (a, b) => { a.enableRoughRefraction = b.enableRoughRefraction; } },
-            {FrameSettingsOverrides.Distortion, (a, b) => { a.enableDistortion = b.enableDistortion; } },
-            {FrameSettingsOverrides.Postprocess, (a, b) => { a.enablePostprocess = b.enablePostprocess; } },
-            {FrameSettingsOverrides.ShaderLitMode, (a, b) => { a.shaderLitMode = b.shaderLitMode; } },
-            {FrameSettingsOverrides.DepthPrepassWithDeferredRendering, (a, b) => { a.enableDepthPrepassWithDeferredRendering = b.enableDepthPrepassWithDeferredRendering; } },
-            {FrameSettingsOverrides.AsyncCompute, (a, b) => { a.enableAsyncCompute = b.enableAsyncCompute; } },
-            {FrameSettingsOverrides.OpaqueObjects, (a, b) => { a.enableOpaqueObjects = b.enableOpaqueObjects; } },
-            {FrameSettingsOverrides.TransparentObjects, (a, b) => { a.enableTransparentObjects = b.enableTransparentObjects; } },
-            {FrameSettingsOverrides.RealtimePlanarReflection, (a, b) => { a.enableRealtimePlanarReflection = b.enableRealtimePlanarReflection; } },
-            {FrameSettingsOverrides.LightListAsync, (a, b) => { a.runLightListAsync = b.runLightListAsync; } },
-            {FrameSettingsOverrides.SSRAsync, (a, b) => { a.runSSRAsync= b.runSSRAsync; } },
-            {FrameSettingsOverrides.SSAOAsync, (a, b) => { a.runSSAOAsync = b.runSSAOAsync; } },
-            {FrameSettingsOverrides.ContactShadowsAsync, (a, b) => { a.runContactShadowsAsync = b.runContactShadowsAsync; } },
-            {FrameSettingsOverrides.VolumeVoxelizationsAsync, (a, b) => { a.runVolumeVoxelizationAsync = b.runVolumeVoxelizationAsync; } }
+            bitDatas = new BitArray128(new uint[] {
+                (uint)FrameSettingsField.Shadow,
+                (uint)FrameSettingsField.ContactShadows,
+                (uint)FrameSettingsField.ShadowMask,
+                (uint)FrameSettingsField.SSAO,
+                (uint)FrameSettingsField.SubsurfaceScattering,
+                (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
+                (uint)FrameSettingsField.AtmosphericScattering,
+                (uint)FrameSettingsField.Volumetrics,
+                (uint)FrameSettingsField.ReprojectionForVolumetrics,
+                (uint)FrameSettingsField.LightLayers,
+                (uint)FrameSettingsField.ExposureControl,
+                (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
+                (uint)FrameSettingsField.TransparentPrepass,
+                (uint)FrameSettingsField.TransparentPostpass,
+                (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
+                (uint)FrameSettingsField.ObjectMotionVectors,
+                (uint)FrameSettingsField.Decals,
+                (uint)FrameSettingsField.RoughRefraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
+                (uint)FrameSettingsField.Distortion,
+                (uint)FrameSettingsField.Postprocess,
+                (uint)FrameSettingsField.OpaqueObjects,
+                (uint)FrameSettingsField.TransparentObjects,
+                (uint)FrameSettingsField.RealtimePlanarReflection,
+                (uint)FrameSettingsField.AsyncCompute,
+                (uint)FrameSettingsField.LightListAsync,
+                (uint)FrameSettingsField.SSRAsync,
+                (uint)FrameSettingsField.SSRAsync,
+                (uint)FrameSettingsField.SSAOAsync,
+                (uint)FrameSettingsField.ContactShadowsAsync,
+                (uint)FrameSettingsField.VolumeVoxelizationsAsync,
+                (uint)FrameSettingsField.DeferredTile,
+                (uint)FrameSettingsField.ComputeLightEvaluation,
+                (uint)FrameSettingsField.ComputeLightVariants,
+                (uint)FrameSettingsField.ComputeMaterialVariants,
+                (uint)FrameSettingsField.FPTLForForwardOpaque,
+                (uint)FrameSettingsField.BigTilePrepass,
+            })
         };
-
-        public FrameSettingsOverrides overrides;
-
-        // Lighting
-        // Setup by users
-        public bool enableShadow = true;
-        public bool enableContactShadows = true;
-        public bool enableShadowMask = true;
-        public bool enableSSR = false;
-        public bool enableSSAO = true;
-        public bool enableSubsurfaceScattering = true;
-        public bool enableTransmission = true;  // Caution: this is only for debug, it doesn't save the cost of Transmission execution
-        public bool enableAtmosphericScattering = true;
-        public bool enableVolumetrics = true;
-        public bool enableReprojectionForVolumetrics = true;
-        public bool enableLightLayers = true;
-
-        // Setup by system
-        public float diffuseGlobalDimmer = 1.0f;
-        public float specularGlobalDimmer = 1.0f;
-
-        // View
-        public LitShaderMode shaderLitMode = LitShaderMode.Deferred;
-        public bool enableDepthPrepassWithDeferredRendering = false;
-
-        public bool enableTransparentPrepass = true;
-        public bool enableMotionVectors = true; // Enable/disable whole motion vectors pass (Camera + Object).
-        public bool enableObjectMotionVectors = true;
-        [FormerlySerializedAs("enableDBuffer")]
-        public bool enableDecals = true;
-        public bool enableRoughRefraction = true; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
-        public bool enableTransparentPostpass = true;
-        public bool enableDistortion = true;
-        public bool enablePostprocess = true;
-
-        public bool enableOpaqueObjects = true;
-        public bool enableTransparentObjects = true;
-        public bool enableRealtimePlanarReflection = true;
-
-        public bool enableMSAA = false;
-
-        // Async Compute
-        public bool enableAsyncCompute = true;
-        public bool runLightListAsync = true;
-        public bool runSSRAsync = true;
-        public bool runSSAOAsync = true;
-        public bool runContactShadowsAsync = true;
-        public bool runVolumeVoxelizationAsync = true;
-
-        // GC.Alloc
-        // FrameSettings..ctor() 
-        public LightLoopSettings lightLoopSettings = new LightLoopSettings();
-        
-        //saved enum fields for when repainting Debug Menu
-        int m_LitShaderModeEnumIndex = 1;   //match Deferred index
-
-        public FrameSettings() {
-        }
-        public FrameSettings(FrameSettings toCopy)
+        /// <summary>Default FrameSettings for realtime ReflectionProbe/PlanarReflectionProbe renderer.</summary>
+        public static readonly FrameSettings defaultRealtimeReflectionProbe = new FrameSettings()
         {
-            toCopy.CopyTo(this);
-        }
-        
-        public void CopyTo(FrameSettings frameSettings)
+            bitDatas = new BitArray128(new uint[] {
+                (uint)FrameSettingsField.Shadow,
+                //(uint)FrameSettingsField.ContactShadow,
+                //(uint)FrameSettingsField.ShadowMask,
+                //(uint)FrameSettingsField.SSAO,
+                (uint)FrameSettingsField.SubsurfaceScattering,
+                (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
+                //(uint)FrameSettingsField.AtmosphericScaterring,
+                (uint)FrameSettingsField.Volumetrics,
+                (uint)FrameSettingsField.ReprojectionForVolumetrics,
+                (uint)FrameSettingsField.LightLayers,
+                (uint)FrameSettingsField.ExposureControl,
+                (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
+                (uint)FrameSettingsField.TransparentPrepass,
+                (uint)FrameSettingsField.TransparentPostpass,
+                (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
+                (uint)FrameSettingsField.ObjectMotionVectors,
+                (uint)FrameSettingsField.Decals,
+                //(uint)FrameSettingsField.RoughRefraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
+                //(uint)FrameSettingsField.Distortion,
+                //(uint)FrameSettingsField.Postprocess,
+                (uint)FrameSettingsField.OpaqueObjects,
+                (uint)FrameSettingsField.TransparentObjects,
+                (uint)FrameSettingsField.RealtimePlanarReflection,
+                (uint)FrameSettingsField.AsyncCompute,
+                (uint)FrameSettingsField.LightListAsync,
+                (uint)FrameSettingsField.SSRAsync,
+                (uint)FrameSettingsField.SSRAsync,
+                (uint)FrameSettingsField.SSAOAsync,
+                (uint)FrameSettingsField.ContactShadowsAsync,
+                (uint)FrameSettingsField.VolumeVoxelizationsAsync,
+                (uint)FrameSettingsField.DeferredTile,
+                (uint)FrameSettingsField.ComputeLightEvaluation,
+                (uint)FrameSettingsField.ComputeLightVariants,
+                (uint)FrameSettingsField.ComputeMaterialVariants,
+                (uint)FrameSettingsField.FPTLForForwardOpaque,
+                (uint)FrameSettingsField.BigTilePrepass,
+            })
+        };
+        /// <summary>Default FrameSettings for baked or custom ReflectionProbe/PlanarReflectionProbe renderer.</summary>
+        public static readonly FrameSettings defaultCustomOrBakeReflectionProbe = defaultCamera;
+
+        // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
+        // BitArray is quick in computation and take not a lot of space. It can contains only boolean value.
+        // If anyone wants more than 128 bit, the BitArray256 already exist. Just replace this one with it should be enough.
+        // For more, you should write one using previous as exemple.
+        [SerializeField]
+        BitArray128 bitDatas;
+
+        /// <summary>Helper to see binary saved data on LitShaderMode as a LitShaderMode enum.</summary>
+        public LitShaderMode litShaderMode
         {
-            frameSettings.enableShadow = this.enableShadow;
-            frameSettings.enableContactShadows = this.enableContactShadows;
-            frameSettings.enableShadowMask = this.enableShadowMask;
-            frameSettings.enableSSR = this.enableSSR;
-            frameSettings.enableSSAO = this.enableSSAO;
-            frameSettings.enableSubsurfaceScattering = this.enableSubsurfaceScattering;
-            frameSettings.enableTransmission = this.enableTransmission;
-            frameSettings.enableAtmosphericScattering = this.enableAtmosphericScattering;
-            frameSettings.enableVolumetrics = this.enableVolumetrics;
-            frameSettings.enableReprojectionForVolumetrics = this.enableReprojectionForVolumetrics;
-            frameSettings.enableLightLayers = this.enableLightLayers;
-
-            frameSettings.diffuseGlobalDimmer = this.diffuseGlobalDimmer;
-            frameSettings.specularGlobalDimmer = this.specularGlobalDimmer;
-
-            frameSettings.shaderLitMode = this.shaderLitMode;
-            frameSettings.enableDepthPrepassWithDeferredRendering = this.enableDepthPrepassWithDeferredRendering;
-
-            frameSettings.enableTransparentPrepass = this.enableTransparentPrepass;
-            frameSettings.enableMotionVectors = this.enableMotionVectors;
-            frameSettings.enableObjectMotionVectors = this.enableObjectMotionVectors;
-            frameSettings.enableDecals = this.enableDecals;
-            frameSettings.enableRoughRefraction = this.enableRoughRefraction;
-            frameSettings.enableTransparentPostpass = this.enableTransparentPostpass;
-            frameSettings.enableDistortion = this.enableDistortion;
-            frameSettings.enablePostprocess = this.enablePostprocess;
-            
-            frameSettings.enableOpaqueObjects = this.enableOpaqueObjects;
-            frameSettings.enableTransparentObjects = this.enableTransparentObjects;
-            frameSettings.enableRealtimePlanarReflection = this.enableRealtimePlanarReflection;            
-
-            frameSettings.enableAsyncCompute = this.enableAsyncCompute;
-            frameSettings.runLightListAsync = this.runLightListAsync;
-            frameSettings.runSSAOAsync = this.runSSAOAsync;
-            frameSettings.runSSRAsync = this.runSSRAsync;
-            frameSettings.runContactShadowsAsync = this.runContactShadowsAsync;
-            frameSettings.runVolumeVoxelizationAsync = this.runVolumeVoxelizationAsync;
-
-            frameSettings.enableMSAA = this.enableMSAA;
-
-            frameSettings.overrides = this.overrides;
-
-            this.lightLoopSettings.CopyTo(frameSettings.lightLoopSettings);
-
-            frameSettings.Refresh();
+            get => bitDatas[(uint)FrameSettingsField.LitShaderMode] ? LitShaderMode.Deferred : LitShaderMode.Forward;
+            set => bitDatas[(uint)FrameSettingsField.LitShaderMode] = value == LitShaderMode.Deferred;
         }
 
-        public void ApplyOverrideOn(FrameSettings overridedFrameSettings)
+        /// <summary>Get stored data for this field.</summary>
+        public bool IsEnabled(FrameSettingsField field) => bitDatas[(uint)field];
+        /// <summary>Set stored data for this field.</summary>
+        public void SetEnabled(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
+
+        // followings are helper for engine.
+        internal bool fptl => litShaderMode == LitShaderMode.Deferred || bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque];
+        internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.Reflection] ? 1f : 0f;
+
+        internal bool BuildLightListRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.LightListAsync];
+        internal bool SSRRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSRAsync];
+        internal bool SSAORunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSAOAsync];
+        internal bool ContactShadowsRunAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
+        internal bool VolumeVoxelizationRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
+
+        /// <summary>Override a frameSettings according to a mask.</summary>
+        /// <param name="overriddenFrameSettings">Overrided FrameSettings. Must contains default data before attempting the override.</param>
+        /// <param name="overridingFrameSettings">The FrameSettings data we will use for overriding.</param>
+        /// <param name="frameSettingsOverideMask">The mask to use for overriding (1 means override this field).</param>
+        public static void Override(ref FrameSettings overriddenFrameSettings, FrameSettings overridingFrameSettings, FrameSettingsOverrideMask frameSettingsOverideMask)
         {
-            if(overrides == 0)
-                return;
+            //quick override of all booleans
+            overriddenFrameSettings.bitDatas = (overridingFrameSettings.bitDatas & frameSettingsOverideMask.mask) | (~frameSettingsOverideMask.mask & overriddenFrameSettings.bitDatas);
 
-            Array values = Enum.GetValues(typeof(FrameSettingsOverrides));
-            foreach(FrameSettingsOverrides val in values)
-            {
-                if((val & overrides) > 0)
-                {
-                    s_Overrides[val](overridedFrameSettings, this);
-                }
-            }
-
-            lightLoopSettings.ApplyOverrideOn(overridedFrameSettings.lightLoopSettings);
-
-            //propagate override to be chained
-            overridedFrameSettings.overrides = overrides | overridedFrameSettings.overrides;
-
-            //refresh enums for DebugMenu
-            overridedFrameSettings.Refresh();
+            //override remaining values here if needed
         }
 
-        // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
-        // This will aggregate the various option
-        public static void InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings srcFrameSettings, ref FrameSettings aggregate)
+        /// <summary>Check FrameSettings with what is supported in RenderPipelineSettings and change value in order to be compatible.</summary>
+        /// <param name="sanitazedFrameSettings">The FrameSettings being cleaned.</param>
+        /// <param name="camera">Camera contais some necessary information to check how to sanitize.</param>
+        /// <param name="renderPipelineSettings">Contains what is supported by the engine.</param>
+        public static void Sanitize(ref FrameSettings sanitazedFrameSettings, Camera camera, RenderPipelineSettings renderPipelineSettings)
         {
-            if (aggregate == null)
-                aggregate = new FrameSettings();
+            bool reflection = camera.cameraType == CameraType.Reflection;
+            bool preview = HDUtils.IsRegularPreviewCamera(camera);
+            bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
+            bool stereo = camera.stereoEnabled;
 
             // When rendering reflection probe we disable specular as it is view dependent
-            if (camera.cameraType == CameraType.Reflection)
-            {
-                aggregate.diffuseGlobalDimmer = 1.0f;
-                aggregate.specularGlobalDimmer = 0.0f;
-            }
-            else
-            {
-                aggregate.diffuseGlobalDimmer = 1.0f;
-                aggregate.specularGlobalDimmer = 1.0f;
-            }
-
-            aggregate.enableShadow = srcFrameSettings.enableShadow;
-            aggregate.enableContactShadows = srcFrameSettings.enableContactShadows;
-            aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
-            aggregate.enableSSR = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR; // No recursive reflections
-            aggregate.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
-            aggregate.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
-            aggregate.enableTransmission = srcFrameSettings.enableTransmission;
-            aggregate.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
-            // We must take care of the scene view fog flags in the editor
-            if (!CoreUtils.IsSceneViewFogEnabled(camera))
-                aggregate.enableAtmosphericScattering = false;
-            // Volumetric are disabled if there is no atmospheric scattering
-            aggregate.enableVolumetrics = srcFrameSettings.enableVolumetrics && renderPipelineSettings.supportVolumetrics && aggregate.enableAtmosphericScattering;
-            aggregate.enableReprojectionForVolumetrics = srcFrameSettings.enableReprojectionForVolumetrics;
-
-            aggregate.enableLightLayers = srcFrameSettings.enableLightLayers && renderPipelineSettings.supportLightLayers;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Reflection] = !reflection;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
-            if (GL.wireframe) //force forward mode for wireframe
+            if (GL.wireframe || stereo) //force forward mode for wireframe
             {
-                aggregate.shaderLitMode = LitShaderMode.Forward;
+                // Stereo deferred rendering still has the following problems:
+                // XRTODO: Dispatch tile light-list compute per-eye
+                // XRTODO: Update compute lighting shaders for stereo
+                sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
             }
             else
             {
                 switch (renderPipelineSettings.supportedLitShaderMode)
                 {
                     case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
-                        aggregate.shaderLitMode = LitShaderMode.Forward;
+                        sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
                         break;
                     case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
-                        aggregate.shaderLitMode = LitShaderMode.Deferred;
+                        sanitazedFrameSettings.litShaderMode = LitShaderMode.Deferred;
                         break;
                     case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                        aggregate.shaderLitMode = srcFrameSettings.shaderLitMode;
+                        //nothing to do: keep previous value
                         break;
                 }
             }
 
-            aggregate.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
-
-            aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass && renderPipelineSettings.supportTransparentDepthPrepass;
-            aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors && renderPipelineSettings.supportMotionVectors;
-            // Object motion vector are disabled if motion vector are disabled
-            aggregate.enableObjectMotionVectors = srcFrameSettings.enableObjectMotionVectors && aggregate.enableMotionVectors;
-            aggregate.enableDecals = srcFrameSettings.enableDecals && renderPipelineSettings.supportDecals;
-            aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
-            aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass && renderPipelineSettings.supportTransparentDepthPostpass;
-            aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion && renderPipelineSettings.supportDistortion;
-
-            // Planar and real time cubemap doesn't need post process and render in FP16
-            aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
-                        
-            aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
-            aggregate.runLightListAsync = aggregate.enableAsyncCompute && srcFrameSettings.runLightListAsync;
-            aggregate.runSSRAsync = aggregate.enableAsyncCompute && srcFrameSettings.runSSRAsync;
-            aggregate.runSSAOAsync = aggregate.enableAsyncCompute && srcFrameSettings.runSSAOAsync;
-            aggregate.runContactShadowsAsync = aggregate.enableAsyncCompute && srcFrameSettings.runContactShadowsAsync;
-            aggregate.runVolumeVoxelizationAsync = aggregate.enableAsyncCompute && srcFrameSettings.runVolumeVoxelizationAsync;
-
-            aggregate.enableOpaqueObjects = srcFrameSettings.enableOpaqueObjects;
-            aggregate.enableTransparentObjects = srcFrameSettings.enableTransparentObjects;
-            aggregate.enableRealtimePlanarReflection = srcFrameSettings.enableRealtimePlanarReflection;       
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Shadow] &= !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMask] &= renderPipelineSettings.supportShadowMask && !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
 
             //MSAA only supported in forward
-            aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA && aggregate.shaderLitMode == LitShaderMode.Forward;
+            // TODO: The work will be implemented piecemeal to support all passes
+            bool msaa = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.MSAA] &= renderPipelineSettings.supportMSAA && sanitazedFrameSettings.litShaderMode == LitShaderMode.Forward;
 
-            aggregate.ConfigureMSAADependentSettings();
-            aggregate.ConfigureStereoDependentSettings(camera);
+            // VR TODO: The work will be implemented piecemeal to support all passes
+            // No recursive reflections
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= !reflection && renderPipelineSettings.supportSSR && !msaa && !preview && !stereo;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= !reflection && renderPipelineSettings.supportSubsurfaceScattering;
 
-            // Disable various option for the preview except if we are a Camera Editor preview
-            if (HDUtils.IsRegularPreviewCamera(camera))
-            {
-                aggregate.enableShadow = false;
-                aggregate.enableContactShadows = false;
-                aggregate.enableShadowMask = false;
-                aggregate.enableSSR = false;
-                aggregate.enableSSAO = false;
-                aggregate.enableAtmosphericScattering = false;
-                aggregate.enableVolumetrics = false;
-                aggregate.enableReprojectionForVolumetrics = false;
-                aggregate.enableLightLayers = false;
-                aggregate.enableTransparentPrepass = false;
-                aggregate.enableMotionVectors = false;
-                aggregate.enableObjectMotionVectors = false;
-                aggregate.enableDecals = false;
-                aggregate.enableTransparentPostpass = false;
-                aggregate.enableDistortion = false;
-                aggregate.enablePostprocess = false;
-            }
+            // We must take care of the scene view fog flags in the editor
+            bool atmosphericScattering = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
 
-            LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
+            // Volumetric are disabled if there is no atmospheric scattering
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& !preview induced by atmospheric scattering
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview;
+            
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= !reflection;
 
-            aggregate.Refresh();
+            // Planar and real time cubemap doesn't need post process and render in FP16
+            // XRTODO: re-enable once Single-Pass-Instancing is working
+            bool postprocess = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Postprocess] &= !reflection && !preview && !stereo;
+
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPrepass] &= renderPipelineSettings.supportTransparentDepthPrepass && !preview;
+
+            // XRTODO: The work will be implemented piecemeal to support all passes
+            // XRTODO: check why '=' and not '&=' and if we can merge these lines
+            bool motionVector;
+            if (stereo)
+                motionVector = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.MotionVectors] = postprocess && !msaa;
+            else
+                motionVector = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.MotionVectors] &= !reflection && renderPipelineSettings.supportMotionVectors && !preview;
+
+            // Object motion vector are disabled if motion vector are disabled
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ObjectMotionVectors] &= motionVector && !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= !reflection && renderPipelineSettings.supportDistortion && !msaa && !preview;
+
+            bool async = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= async;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= async;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= async;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
+
+            // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
+            // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
+            // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
+            // Disable FPTL for stereo for now
+            bool fptlForwardOpaque = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa && !XRGraphics.enabled;
         }
 
-        void Refresh()
+        /// <summary>Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset.</summary>
+        /// <param name="aggregatedFrameSettings">The aggregated FrameSettings result.</param>
+        /// <param name="camera">The camera rendering.</param>
+        /// <param name="additionalData">Additional data of the camera rendering.</param>
+        /// <param name="hdrpAsset">HDRenderPipelineAsset contening default FrameSettings.</param>
+        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset)
+            => AggregateFrameSettings(
+                ref aggregatedFrameSettings,
+                camera,
+                additionalData,
+                ref hdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
+                hdrpAsset.GetRenderPipelineSettings()
+                );
+
+        // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
+        /// <summary>Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset.</summary>
+        /// <param name="aggregatedFrameSettings">The aggregated FrameSettings result.</param>
+        /// <param name="camera">The camera rendering.</param>
+        /// <param name="additionalData">Additional data of the camera rendering.</param>
+        /// <param name="defaultFrameSettings">Base framesettings to copy prior any override.</param>
+        /// <param name="supportedFeatures">Currently supported feature for the sanitazation pass.</param>
+        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, ref FrameSettings defaultFrameSettings, RenderPipelineSettings supportedFeatures)
         {
-            // actually, we need to sync up changes done in the debug menu too
-            switch(shaderLitMode)
-            {
-                case LitShaderMode.Forward:
-                    m_LitShaderModeEnumIndex = 0;
-                    break;
-                case LitShaderMode.Deferred:
-                    m_LitShaderModeEnumIndex = 1;
-                    break;
-                default:
-                    throw new ArgumentException("Unknown LitShaderMode");
-            }
+            aggregatedFrameSettings = defaultFrameSettings; //fallback on Camera for SceneCamera and PreviewCamera
+            if (additionalData && additionalData.customRenderingSettings)
+                Override(ref aggregatedFrameSettings, additionalData.renderingPathCustomFrameSettings, additionalData.renderingPathCustomFrameSettingsOverrideMask);
+            Sanitize(ref aggregatedFrameSettings, camera, supportedFeatures);
         }
 
-        public bool BuildLightListRunsAsync()
-        {
-            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runLightListAsync;
-        }
-
-        public bool SSRRunsAsync()
-        {
-            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runSSRAsync;
-        }
-
-        public bool SSAORunsAsync()
-        {
-            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runSSAOAsync;
-        }
-
-        public bool ContactShadowsRunAsync()
-        {
-            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runContactShadowsAsync;
-        }
-
-        public bool VolumeVoxelizationRunsAsync()
-        {
-            return SystemInfo.supportsAsyncCompute && enableAsyncCompute && runVolumeVoxelizationAsync;
-        }
-
-
-        public void ConfigureMSAADependentSettings()
-        {
-            if (enableMSAA)
-            {
-                // Initially, MSAA will only support forward
-                shaderLitMode = LitShaderMode.Forward;
-
-                // TODO: The work will be implemented piecemeal to support all passes
-                enableDistortion = false; // no gaussian final color
-                enableSSR = false;
-            }
-        }
-
-        public void ConfigureStereoDependentSettings(Camera cam)
-        {
-            if (cam.stereoEnabled)
-            {
-                // Stereo deferred rendering still has the following problems:
-                // VR TODO: Dispatch tile light-list compute per-eye
-                // VR TODO: Update compute lighting shaders for stereo
-                shaderLitMode = LitShaderMode.Forward;
-
-                // TODO: The work will be implemented piecemeal to support all passes
-                enableMotionVectors = enablePostprocess && !enableMSAA;
-                enableSSR = false;
-            }
-        }
-
-
-        public static void RegisterDebug(string menuName, FrameSettings frameSettings)
-        {
-            List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
-            widgets.AddRange(
-            new DebugUI.Widget[]
-            {
-                new DebugUI.Foldout
-                {
-                    displayName = "Rendering Passes",
-                    children =
-                    {
-                        new DebugUI.BoolField { displayName = "Enable Transparent Prepass", getter = () => frameSettings.enableTransparentPrepass, setter = value => frameSettings.enableTransparentPrepass = value },
-                        new DebugUI.BoolField { displayName = "Enable Transparent Postpass", getter = () => frameSettings.enableTransparentPostpass, setter = value => frameSettings.enableTransparentPostpass = value },
-                        new DebugUI.BoolField { displayName = "Enable Motion Vectors", getter = () => frameSettings.enableMotionVectors, setter = value => frameSettings.enableMotionVectors = value },
-                        new DebugUI.BoolField { displayName = "  Enable Object Motion Vectors", getter = () => frameSettings.enableObjectMotionVectors, setter = value => frameSettings.enableObjectMotionVectors = value },
-                        new DebugUI.BoolField { displayName = "Enable DBuffer", getter = () => frameSettings.enableDecals, setter = value => frameSettings.enableDecals = value },
-                        new DebugUI.BoolField { displayName = "Enable Rough Refraction", getter = () => frameSettings.enableRoughRefraction, setter = value => frameSettings.enableRoughRefraction = value },
-                        new DebugUI.BoolField { displayName = "Enable Distortion", getter = () => frameSettings.enableDistortion, setter = value => frameSettings.enableDistortion = value },
-                        new DebugUI.BoolField { displayName = "Enable Postprocess", getter = () => frameSettings.enablePostprocess, setter = value => frameSettings.enablePostprocess = value },
-                    }
-                },
-                new DebugUI.Foldout
-                {
-                    displayName = "Rendering",
-                    children =
-                    {
-                        new DebugUI.EnumField { displayName = "Lit Shader Mode", getter = () => (int)frameSettings.shaderLitMode, setter = value => frameSettings.shaderLitMode = (LitShaderMode)value, autoEnum = typeof(LitShaderMode), getIndex = () => frameSettings.m_LitShaderModeEnumIndex, setIndex = value => frameSettings.m_LitShaderModeEnumIndex = value },
-                        new DebugUI.BoolField { displayName = "Deferred Depth Prepass", getter = () => frameSettings.enableDepthPrepassWithDeferredRendering, setter = value => frameSettings.enableDepthPrepassWithDeferredRendering = value },
-                        new DebugUI.BoolField { displayName = "Enable Opaque Objects", getter = () => frameSettings.enableOpaqueObjects, setter = value => frameSettings.enableOpaqueObjects = value },
-                        new DebugUI.BoolField { displayName = "Enable Transparent Objects", getter = () => frameSettings.enableTransparentObjects, setter = value => frameSettings.enableTransparentObjects = value },
-                        new DebugUI.BoolField { displayName = "Enable Realtime Planar Reflection", getter = () => frameSettings.enableRealtimePlanarReflection, setter = value => frameSettings.enableRealtimePlanarReflection = value },                        
-                        new DebugUI.BoolField { displayName = "Enable MSAA", getter = () => frameSettings.enableMSAA, setter = value => frameSettings.enableMSAA = value },
-                    }
-                },
-                new DebugUI.Foldout
-                {
-                    displayName = "Lighting",
-                    children =
-                    {
-                        new DebugUI.BoolField { displayName = "Enable SSR", getter = () => frameSettings.enableSSR, setter = value => frameSettings.enableSSR = value },
-                        new DebugUI.BoolField { displayName = "Enable SSAO", getter = () => frameSettings.enableSSAO, setter = value => frameSettings.enableSSAO = value },
-                        new DebugUI.BoolField { displayName = "Enable SubsurfaceScattering", getter = () => frameSettings.enableSubsurfaceScattering, setter = value => frameSettings.enableSubsurfaceScattering = value },
-                        new DebugUI.BoolField { displayName = "Enable Transmission", getter = () => frameSettings.enableTransmission, setter = value => frameSettings.enableTransmission = value },
-                        new DebugUI.BoolField { displayName = "Enable Shadows", getter = () => frameSettings.enableShadow, setter = value => frameSettings.enableShadow = value },
-                        new DebugUI.BoolField { displayName = "Enable Contact Shadows", getter = () => frameSettings.enableContactShadows, setter = value => frameSettings.enableContactShadows = value },
-                        new DebugUI.BoolField { displayName = "Enable ShadowMask", getter = () => frameSettings.enableShadowMask, setter = value => frameSettings.enableShadowMask = value },
-                        new DebugUI.BoolField { displayName = "Enable Atmospheric Scattering", getter = () => frameSettings.enableAtmosphericScattering, setter = value => frameSettings.enableAtmosphericScattering = value },
-                        new DebugUI.BoolField { displayName = "Enable Volumetrics", getter = () => frameSettings.enableVolumetrics, setter = value => frameSettings.enableVolumetrics = value },
-                        new DebugUI.BoolField { displayName = "Enable Reprojection For Volumetrics", getter = () => frameSettings.enableReprojectionForVolumetrics, setter = value => frameSettings.enableReprojectionForVolumetrics = value },
-                        new DebugUI.BoolField { displayName = "Enable LightLayers", getter = () => frameSettings.enableLightLayers, setter = value => frameSettings.enableLightLayers = value },
-                    }
-                },
-                new DebugUI.Foldout
-                {
-                    displayName = "Async Compute",
-                    children =
-                    {
-                        new DebugUI.BoolField { displayName = "Enable Async Compute", getter = () => frameSettings.enableAsyncCompute, setter = value => frameSettings.enableAsyncCompute = value },
-                        new DebugUI.BoolField { displayName = "Run Build Light List Async", getter = () => frameSettings.runLightListAsync, setter = value => frameSettings.runLightListAsync = value },
-                        new DebugUI.BoolField { displayName = "Run SSR Async", getter = () => frameSettings.runSSRAsync, setter = value => frameSettings.runSSRAsync = value },
-                        new DebugUI.BoolField { displayName = "Run SSAO Async", getter = () => frameSettings.runSSAOAsync, setter = value => frameSettings.runSSAOAsync = value },
-                        new DebugUI.BoolField { displayName = "Run Contact Shadows Async", getter = () => frameSettings.runContactShadowsAsync, setter = value => frameSettings.runContactShadowsAsync = value },
-                        new DebugUI.BoolField { displayName = "Run Volume Voxelization Async", getter = () => frameSettings.runVolumeVoxelizationAsync, setter = value => frameSettings.runVolumeVoxelizationAsync = value },
-                    }
-                }
-            });
-
-            LightLoopSettings.RegisterDebug(frameSettings.lightLoopSettings, widgets);
-
-            var panel = DebugManager.instance.GetPanel(menuName, true);
-            panel.children.Add(widgets.ToArray());
-        }
-
-        public static void UnRegisterDebug(string menuName)
-        {
-            DebugManager.instance.RemovePanel(menuName);
-        }
+        public static bool operator ==(FrameSettings a, FrameSettings b) => a.bitDatas == b.bitDatas;
+        public static bool operator !=(FrameSettings a, FrameSettings b) => a.bitDatas != b.bitDatas;
+        public override bool Equals(object obj) => (obj is FrameSettings) && bitDatas.Equals(((FrameSettings)obj).bitDatas);
+        public override int GetHashCode() => -1690259335 + bitDatas.GetHashCode();
     }
 }

@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.UI
     {
         bool expanded { get; }
         bool expandable { get; }
+        bool expandableIfShowsEverything { get; }
         object value { get; set; }
         bool spaceableAndMasterOfSpace { get; }
         VFXCoordinateSpace space { get; set; }
@@ -53,6 +54,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expanded { get { return false; } }
         bool IPropertyRMProvider.expandable { get { return false; } }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
         object IPropertyRMProvider.value
         {
             get
@@ -172,6 +174,11 @@ namespace UnityEditor.VFX.UI
             UpdateGUI(true);
         }
 
+        public IPropertyRMProvider provider
+        {
+            get { return m_Provider; }
+        }
+
         public abstract void UpdateGUI(bool force);
 
 
@@ -229,7 +236,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdateExpandable()
         {
-            if (m_Provider.expandable)
+            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || ! showsEverything))
             {
                 if (!m_IconClickableAdded)
                 {
@@ -684,6 +691,6 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override bool showsEverything { get { return true; } }
+        public override bool showsEverything { get { return false; } }
     }
 }

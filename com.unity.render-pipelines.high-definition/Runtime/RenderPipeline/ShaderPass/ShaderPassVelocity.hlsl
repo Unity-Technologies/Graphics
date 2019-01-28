@@ -223,8 +223,11 @@ void Frag(  PackedVaryingsToPS packedInput
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
+
+    // Setting the velocity to a value more than 2 set as a flag for "force no motion". This is valid because, given that the velocities are in NDC,
+    // a value of >1 can never happen naturally, unless explicitely set. 
     if (forceNoMotion)
-        outVelocity = float4(0.0, 0.0, 0.0, 0.0);
+        outVelocity = float4(2.0, 0.0, 0.0, 0.0);
 
 // Normal Buffer Processing
 #ifdef WRITE_NORMAL_BUFFER

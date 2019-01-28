@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering
 
                 using (var hscope = new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button(CoreEditorUtils.GetContent("Add component overrides..."), EditorStyles.miniButton))
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add component overrides..."), EditorStyles.miniButton))
                     {
                         var r = hscope.rect;
                         var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
@@ -192,29 +192,29 @@ namespace UnityEditor.Rendering
             var menu = new GenericMenu();
 
             if (id == 0)
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Up"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Up"));
             else
-                menu.AddItem(CoreEditorUtils.GetContent("Move Up"), false, () => MoveComponent(id, -1));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, -1));
 
             if (id == m_Editors.Count - 1)
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Down"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Down"));
             else
-                menu.AddItem(CoreEditorUtils.GetContent("Move Down"), false, () => MoveComponent(id, 1));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
-            menu.AddItem(CoreEditorUtils.GetContent("Remove"), false, () => RemoveComponent(id));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
             menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Copy Settings"), false, () => CopySettings(targetComponent));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));
 
             if (CanPaste(targetComponent))
-                menu.AddItem(CoreEditorUtils.GetContent("Paste Settings"), false, () => PasteSettings(targetComponent));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Paste Settings"), false, () => PasteSettings(targetComponent));
             else
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Paste Settings"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Paste Settings"));
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Toggle All"), false, () => m_Editors[id].SetAllOverridesTo(true));
-            menu.AddItem(CoreEditorUtils.GetContent("Toggle None"), false, () => m_Editors[id].SetAllOverridesTo(false));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Toggle All"), false, () => m_Editors[id].SetAllOverridesTo(true));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Toggle None"), false, () => m_Editors[id].SetAllOverridesTo(false));
 
             menu.DropDown(new Rect(position, Vector2.zero));
         }

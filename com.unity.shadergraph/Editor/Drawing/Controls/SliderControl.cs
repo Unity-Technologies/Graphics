@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    class SliderControlView : VisualElement, INodeModificationListener
+    class SliderControlView : VisualElement, AbstractMaterialNodeModificationListener
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

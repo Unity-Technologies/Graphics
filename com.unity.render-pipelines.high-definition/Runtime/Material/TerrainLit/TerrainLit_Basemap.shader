@@ -48,7 +48,6 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
     // Define
     //-------------------------------------------------------------------------------------
 
-    #define SURFACE_GRADIENT
     #define HAVE_MESH_MODIFICATION
 
     //-------------------------------------------------------------------------------------
@@ -83,7 +82,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
         {
-            Name "GBuffer"  // Name is not used
+            Name "GBuffer"
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
@@ -127,7 +126,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
         Pass
         {
             Name "META"
-            Tags{ "LightMode" = "Meta" }
+            Tags{ "LightMode" = "META" }
 
             Cull Off
 
@@ -219,7 +218,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
 
         Pass
         {
-            Name "Forward" // Name is not used
+            Name "Forward"
             Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
             Stencil
@@ -248,9 +247,6 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
-            // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Lighting/Forward.hlsl"
-            //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define SHADERPASS SHADERPASS_FORWARD

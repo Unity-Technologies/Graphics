@@ -118,7 +118,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 // Single Pass and Tile Pass
 // ----------------------------------------------------------------------------
 
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
 // Calculate the offset in global light index light for current light category
 int GetTileOffset(PositionInputs posInput, uint lightCategory)
@@ -227,6 +227,12 @@ uint FetchIndex(uint lightStart, uint lightOffset)
     return g_vBigTileLightList[lightStart + lightOffset];
 }
 
+#else
+// Fallback case (mainly for raytracing right now)
+uint FetchIndex(uint lightStart, uint lightOffset)
+{
+    return 0;
+}
 #endif // USE_FPTL_LIGHTLIST
 
 #else
@@ -241,7 +247,7 @@ uint FetchIndex(uint lightStart, uint lightOffset)
     return lightStart + lightOffset;
 }
 
-#endif // LIGHTLOOP_TILE_PASS
+#endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
 uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
 {
@@ -257,7 +263,7 @@ uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
 
 LightData FetchLight(uint start, uint i)
 {
-    int j = FetchIndex(start, i);
+    uint j = FetchIndex(start, i);
 
     return _LightDatas[j];
 }
@@ -266,7 +272,6 @@ LightData FetchLight(uint index)
 {
     return _LightDatas[index];
 }
-
 
 EnvLightData FetchEnvLight(uint start, uint i)
 {

@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_IsNaN(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(0, Binding.None)] Vector1 In,
             [Slot(1, Binding.None)] out Boolean Out)
         {
             return

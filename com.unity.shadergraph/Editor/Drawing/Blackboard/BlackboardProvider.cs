@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardProvider
     {
-        readonly AbstractMaterialGraph m_Graph;
+        readonly GraphData m_Graph;
         public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
         readonly Dictionary<Guid, BlackboardRow> m_PropertyRows;
         readonly BlackboardSection m_Section;
@@ -34,6 +34,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         //    set { m_ResizeBorderFrame.OnResizeFinished = value; }
         //}
 
+        Dictionary<AbstractShaderProperty, bool> m_ExpandedProperties = new Dictionary<AbstractShaderProperty, bool>();
+
+        public Dictionary<AbstractShaderProperty, bool> expandedProperties
+        {
+            get { return m_ExpandedProperties; }
+        }
+
         public string assetName
         {
             get { return blackboard.title; }
@@ -43,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardProvider(AbstractMaterialGraph graph)
+        public BlackboardProvider(GraphData graph)
         {
             m_Graph = graph;
             m_PropertyRows = new Dictionary<Guid, BlackboardRow>();
@@ -178,7 +185,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void MoveItemRequested(Blackboard blackboard, int newIndex, VisualElement visualElement)
         {
-            var property = visualElement.userData as IShaderProperty;
+            var property = visualElement.userData as AbstractShaderProperty;
             if (property == null)
                 return;
             m_Graph.owner.RegisterCompleteObjectUndo("Move Property");
@@ -204,7 +211,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
         {
             var field = (BlackboardField)visualElement;
-            var property = (IShaderProperty)field.userData;
+            var property = (AbstractShaderProperty)field.userData;
             if (!string.IsNullOrEmpty(newText) && newText != property.displayName)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Edit Property Name");
@@ -230,6 +237,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in m_Graph.addedProperties)
                 AddProperty(property, index: m_Graph.GetShaderPropertyIndex(property));
 
+            foreach (var propertyDict in expandedProperties)
+            {
+                SessionState.SetBool(propertyDict.Key.guid.ToString(), propertyDict.Value);
+            }
+
             if (m_Graph.movedProperties.Any())
             {
                 foreach (var row in m_PropertyRows.Values)
@@ -238,9 +250,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var property in m_Graph.properties)
                     m_Section.Add(m_PropertyRows[property.guid]);
             }
+            m_ExpandedProperties.Clear();
         }
 
-        void AddProperty(IShaderProperty property, bool create = false, int index = -1)
+        void AddProperty(AbstractShaderProperty property, bool create = false, int index = -1)
         {
             if (m_PropertyRows.ContainsKey(property.guid))
                 return;
@@ -258,6 +271,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, property));
             pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 
+            var expandButton = row.Q<Button>("expandButton");
+            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, property), TrickleDown.TrickleDown);
+
             row.userData = property;
             if (index < 0)
                 index = m_PropertyRows.Count;
@@ -267,6 +283,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Section.Insert(index, row);
             m_PropertyRows[property.guid] = row;
 
+            m_PropertyRows[property.guid].expanded = SessionState.GetBool(property.guid.ToString(), true);
+
             if (create)
             {
                 row.expanded = true;
@@ -274,6 +292,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.AddShaderProperty(property);
                 field.OpenTextEditor();
             }
+        }
+
+        void OnExpanded(MouseDownEvent evt, AbstractShaderProperty property)
+        {
+            m_ExpandedProperties[property] = !m_PropertyRows[property.guid].expanded;
         }
 
         void DirtyNodes()
@@ -290,7 +313,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return m_PropertyRows[guid];
         }
 
-        void OnMouseHover(EventBase evt, IShaderProperty property)
+        void OnMouseHover(EventBase evt, AbstractShaderProperty property)
         {
             var graphView = blackboard.GetFirstAncestorOfType<MaterialGraphView>();
             if (evt.eventTypeId == MouseEnterEvent.TypeId())

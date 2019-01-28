@@ -8,20 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
     public class CameraSettingsUtilitiesTests
     {
         Object m_ToClean;
-
-        [Test]
-        public void ApplySettingsThrowIfFrameSettingsIsNull()
-        {
-            var settings = new CameraSettings();
-            var go = new GameObject();
-            m_ToClean = go;
-            var cam = go.AddComponent<Camera>();
-
-            Assert.Throws<InvalidOperationException>(() => cam.ApplySettings(settings));
-
-            Object.DestroyImmediate(go);
-        }
-
+        
         [Test]
         public void ApplySettings()
         {
@@ -43,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     bufferClearing = new CameraSettings.BufferClearing
                     {
                         backgroundColorHDR = RandomUtilities.RandomColor(i),
-                        clearColorMode = RandomUtilities.RandomEnum<HDAdditionalCameraData.ClearColorMode>(i),
+                        clearColorMode = RandomUtilities.RandomEnumIndex<HDAdditionalCameraData.ClearColorMode>(i),
                         clearDepth = RandomUtilities.RandomBool(i)
                     },
                     culling = new CameraSettings.Culling
@@ -51,14 +38,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                         cullingMask = RandomUtilities.RandomInt(i),
                         useOcclusionCulling = RandomUtilities.RandomBool(i + 0.5f),
                     },
-                    frameSettings = new FrameSettings(),
+                    renderingPathCustomFrameSettings = default,
+                    renderingPathCustomFrameSettingsOverrideMask = default,
                     frustum = new CameraSettings.Frustum
                     {
                         aspect = RandomUtilities.RandomFloat(i, 6724.2745f) * 0.5f + 1,
                         nearClipPlane = RandomUtilities.RandomFloat(i, 7634.7235f) * 10.0f + 10f,
                         farClipPlane = RandomUtilities.RandomFloat(i, 1935.3234f) * 100.0f + 1000.0f,
                         fieldOfView = RandomUtilities.RandomFloat(i, 9364.2534f) * 30.0f + 75.0f,
-                        mode = RandomUtilities.RandomEnum<CameraSettings.Frustum.Mode>(i * 2.5f),
+                        mode = RandomUtilities.RandomEnumIndex<CameraSettings.Frustum.Mode>(i * 2.5f),
                         projectionMatrix = perspectiveMatrix
                     },
                     volumes = new CameraSettings.Volumes
@@ -68,9 +56,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                     },
                     customRenderingSettings = RandomUtilities.RandomBool(i * 4.5f)
                 };
+                FrameSettingsField field = RandomUtilities.RandomEnumIndex<FrameSettingsField>(i * 5.25f);
+                settings.renderingPathCustomFrameSettingsOverrideMask.mask[(uint)field] = true;
+                settings.renderingPathCustomFrameSettings.SetEnabled(field, RandomUtilities.RandomBool(i));
                 var position = new CameraPositionSettings
                 {
-                    mode = RandomUtilities.RandomEnum<CameraPositionSettings.Mode>(i),
+                    mode = RandomUtilities.RandomEnumIndex<CameraPositionSettings.Mode>(i),
                     position = RandomUtilities.RandomVector3(i * 5.5f),
                     rotation = RandomUtilities.RandomQuaternion(i * 6.5f),
                     worldToCameraMatrix = worldToCameraMatrix
@@ -122,6 +113,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                 // Volumes
                 Assert.AreEqual(settings.volumes.layerMask, add.volumeLayerMask);
                 Assert.AreEqual(settings.volumes.anchorOverride, add.volumeAnchorOverride);
+                //FrameSettings
+                Assert.AreEqual(settings.renderingPathCustomFrameSettings, add.renderingPathCustomFrameSettings);
+                Assert.AreEqual(settings.renderingPathCustomFrameSettingsOverrideMask, add.renderingPathCustomFrameSettingsOverrideMask);
                 // HD Specific
                 Assert.AreEqual(settings.customRenderingSettings, add.customRenderingSettings);
 

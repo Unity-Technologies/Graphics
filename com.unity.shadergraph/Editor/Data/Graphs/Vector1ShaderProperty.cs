@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
             {
                 case FloatType.Slider:
                     result.Append("\", Range(");
-                    result.Append(m_RangeValues.x + ", " + m_RangeValues.y);
+                    result.Append(NodeUtils.FloatToShaderValue(m_RangeValues.x) + ", " + NodeUtils.FloatToShaderValue(m_RangeValues.y));
                     result.Append(")) = ");
                     break;
                 case FloatType.Integer:
@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)
             {
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new Vector1ShaderProperty();
             copied.displayName = displayName;

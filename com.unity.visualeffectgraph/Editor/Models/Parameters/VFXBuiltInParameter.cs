@@ -6,9 +6,9 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    class BuiltInVariant : IVariantProvider
+    class BuiltInVariant : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {
@@ -27,32 +27,6 @@ namespace UnityEditor.VFX
         protected VFXExpressionOperation m_expressionOp;
 
         override public string name { get { return m_expressionOp.ToString(); } }
-
-        public override void Sanitize(int version)
-        {
-            if (VFXBuiltInExpression.Find(m_expressionOp) == null)
-            {
-                switch (m_expressionOp)
-                {
-                    // Due to reorganization, some indices have changed
-                    case VFXExpressionOperation.Tan:         m_expressionOp = VFXExpressionOperation.DeltaTime; break;
-                    case VFXExpressionOperation.ASin:        m_expressionOp = VFXExpressionOperation.TotalTime; break;
-                    case VFXExpressionOperation.ACos:        m_expressionOp = VFXExpressionOperation.SystemSeed; break;
-                    case VFXExpressionOperation.RGBtoHSV:    m_expressionOp = VFXExpressionOperation.LocalToWorld; break;
-                    case VFXExpressionOperation.HSVtoRGB:    m_expressionOp = VFXExpressionOperation.WorldToLocal; break;
-
-                    default:
-                        Debug.LogWarning(string.Format("Expression operator for the BuiltInParameter is invalid ({0}). Reset to none", m_expressionOp));
-                        m_expressionOp = VFXExpressionOperation.None;
-                        break;
-                }
-            }
-
-            if (outputSlots.Count > 0 && outputSlots[0].GetType() == typeof(Matrix4x4))
-                outputSlots[0].Detach(); // In order not to have a bad conversion
-
-            base.Sanitize(version); // Will call ResyncSlots
-        }
 
         private Type GetOutputType()
         {

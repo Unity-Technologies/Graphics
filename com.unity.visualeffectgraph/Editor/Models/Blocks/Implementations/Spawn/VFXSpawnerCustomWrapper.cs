@@ -6,9 +6,9 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    class CustomSpawnerVariant : IVariantProvider
+    class CustomSpawnerVariant : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {

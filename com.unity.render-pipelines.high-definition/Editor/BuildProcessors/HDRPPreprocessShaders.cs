@@ -24,6 +24,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         return true;
             }
 
+            // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
+            // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
+
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             if (isSceneSelectionPass)
@@ -35,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Only our Lit (and inherited) shader use _SURFACE_TYPE_TRANSPARENT, so the specific stripping based on this keyword is in LitShadePreprocessor.
             // Here we can't strip based on opaque or transparent but we will strip based on HDRP Asset configuration.
 
-            bool isMotionPass = snippet.passName == "Motion Vectors";
+            bool isMotionPass = snippet.passName == "MotionVectors";
             bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
             bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
             bool isTransparentBackface = snippet.passName == "TransparentBackface";
@@ -63,8 +66,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.renderPipelineSettings.supportDitheringCrossFade)
                 return true;
+           
+            if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && !hdrpAsset.renderPipelineSettings.supportMSAA)
+                return true;
 
-            // Decal case
+            // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
+            if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.renderPipelineSettings.supportSubsurfaceScattering)
+                return true;
+
+            // DECAL
+
+            // Identify when we compile a decal shader
+            bool isDecal3RTPass = false;
+            bool isDecal4RTPass = false;
+            bool isDecalPass = false;
+
+            if (snippet.passName.Contains("DBufferMesh") || snippet.passName.Contains("DBufferProjector"))
+            {
+                isDecalPass = true;
+
+                // All decal pass name:
+                // "ShaderGraph_DBufferMesh3RT" "ShaderGraph_DBufferProjector3RT" "DBufferMesh_3RT"
+                // "DBufferProjector_M" "DBufferProjector_AO" "DBufferProjector_MAO" "DBufferProjector_S" "DBufferProjector_MS" "DBufferProjector_AOS" "DBufferProjector_MAOS"
+                // "DBufferMesh_M" "DBufferMesh_AO" "DBufferMesh_MAO" "DBufferMesh_S" "DBufferMesh_MS" "DBufferMesh_AOS""DBufferMesh_MAOS"
+
+                // Caution: As mention in Decal.shader DBufferProjector_S is also DBufferProjector_3RT so this pass is both 4RT and 3RT
+                // there is a multi-compile to handle this pass, so it will be correctly removed by testing m_Decals3RT or m_Decals4RT
+                if (snippet.passName != "DBufferProjector_S")
+                {
+                    isDecal3RTPass = snippet.passName.Contains("3RT");
+                    isDecal4RTPass = !isDecal3RTPass;
+                }
+            }
 
             // If decal support, remove unused variant
             if (hdrpAsset.renderPipelineSettings.supportDecals)
@@ -74,25 +107,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     return true;
 
                 // If decal but with 4RT remove 3RT variant and vice versa
-                if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) && hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
+                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || isDecal3RTPass) && hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
                     return true;
 
-                if (inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) && !hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
+                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) || isDecal4RTPass) && !hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
                     return true;
             }
             else
             {
+                if (isDecalPass)
+                    return true;
+
                 // If no decal support, remove decal variant
                 if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || inputData.shaderKeywordSet.IsEnabled(m_Decals4RT))
                     return true;
             }
-           
-            if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && !hdrpAsset.renderPipelineSettings.supportMSAA)
-                return true;
-
-            // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
-            if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.renderPipelineSettings.supportSubsurfaceScattering)
-                return true;
 
             return false;
         }
@@ -117,9 +146,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             materialList = HDEditorUtils.GetBaseShaderPreprocessorList();
         }
 
-        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, uint prevVariantsCount, uint currVariantsCount)
+        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, ShaderVariantLogLevel logLevel, uint prevVariantsCount, uint currVariantsCount)
         {
-            if (shader.name.Contains("HDRenderPipeline"))
+            if (logLevel == ShaderVariantLogLevel.AllShaders ||
+                (logLevel == ShaderVariantLogLevel.OnlyHDRPShaders && shader.name.Contains("HDRP")))
             {
                 float percentageCurrent = ((float)currVariantsCount / prevVariantsCount) * 100.0f;
                 float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
@@ -170,11 +200,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if(hdPipelineAsset.enableVariantStrippingLog)
+            if (hdPipelineAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
             {
                 m_TotalVariantsInputCount += preStrippingCount;
                 m_TotalVariantsOutputCount += (uint)inputData.Count;
-                LogShaderVariants(shader, snippet, preStrippingCount, (uint)inputData.Count);
+                LogShaderVariants(shader, snippet, hdPipelineAsset.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
             }
         }
     }

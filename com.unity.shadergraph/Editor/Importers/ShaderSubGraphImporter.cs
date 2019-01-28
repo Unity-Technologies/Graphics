@@ -14,10 +14,12 @@ class ShaderSubGraphImporter : ScriptedImporter
     public override void OnImportAsset(AssetImportContext ctx)
     {
         var textGraph = File.ReadAllText(ctx.assetPath, Encoding.UTF8);
-        var graph = JsonUtility.FromJson<SubGraph>(textGraph);
+        var graph = JsonUtility.FromJson<GraphData>(textGraph);
 
         if (graph == null)
             return;
+        
+        graph.isSubGraph = true;
 
         var sourceAssetDependencyPaths = new List<string>();
         foreach (var node in graph.GetNodes<AbstractMaterialNode>())

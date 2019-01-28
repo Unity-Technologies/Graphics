@@ -25,12 +25,12 @@ Pass
     //#pragma enable_d3d11_debug_symbols
 
     #pragma multi_compile_instancing
-    // No need to teset for DECALS_3RT we are in decal shader, so there is no OFF state
-	#pragma multi_compile _ DECALS_4RT
 
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
+    $Material.AffectsAlbedo:     #define _MATERIAL_AFFECTS_ALBEDO 1
+    $Material.AffectsNormal:     #define _MATERIAL_AFFECTS_NORMAL 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -40,7 +40,6 @@ Pass
     #pragma fragment Frag
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
@@ -113,13 +112,17 @@ $include("SharedCode.template.hlsl")
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 
         // copy across graph values, if defined
+#if _MATERIAL_AFFECTS_ALBEDO
         $SurfaceDescription.Albedo:                     surfaceData.baseColor.xyz = surfaceDescription.Albedo;
+#endif
+#if _MATERIAL_AFFECTS_NORMAL
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
-        $SurfaceDescription.Normal:                     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(matrix, _NormalToWorld);
+        $SurfaceDescription.Normal:                     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
         // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.worldToTangent));
+#endif
 #endif
 
         $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;
@@ -127,8 +130,12 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Metallic:                   surfaceData.mask.x = surfaceDescription.Metallic;
         $SurfaceDescription.Occlusion:                  surfaceData.mask.y = surfaceDescription.Occlusion;
 #endif
+#if _MATERIAL_AFFECTS_ALBEDO
         $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo;
+#endif
+#if _MATERIAL_AFFECTS_NORMAL
         $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal;
+#endif
         $SurfaceDescription.MAOSOpacity:                surfaceData.mask.w = surfaceDescription.MAOSOpacity;
 #ifdef DECALS_4RT
         $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.x = surfaceDescription.MAOSOpacity;

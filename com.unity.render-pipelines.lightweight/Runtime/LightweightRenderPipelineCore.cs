@@ -97,8 +97,8 @@ namespace UnityEngine.Rendering.LWRP
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-            bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRGraphics.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            bool isGameCamera = camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR;
+            return XRGraphics.enabled && isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         void SortCameras(Camera[] cameras)

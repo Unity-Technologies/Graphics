@@ -150,7 +150,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     alpha *= input.color.a;
 
     half3 emission = 0;
-    half4 specularGloss = 0.1;// SampleSpecularGloss(uv, diffuseAlpha.a, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
+    half4 specularGloss = 0.1;// SampleSpecularSmoothness(uv, diffuseAlpha.a, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
     half shininess = input.posWSShininess.w;
 
     InputData inputData;

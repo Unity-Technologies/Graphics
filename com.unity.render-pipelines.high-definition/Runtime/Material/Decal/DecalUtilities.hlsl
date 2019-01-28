@@ -1,25 +1,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 
 #ifndef SCALARIZE_LIGHT_LOOP
-#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && defined(LIGHTLOOP_TILE_PASS) && SHADERPASS == SHADERPASS_FORWARD)
+#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 #endif
 
 DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
-
-DecalData FetchDecal(uint start, uint i)
-{
-#ifdef LIGHTLOOP_TILE_PASS
-    int j = FetchIndex(start, i);
-#else
-    int j = start + i;
-#endif
-    return _DecalDatas[j];
-}
-
-DecalData FetchDecal(uint index)
-{
-    return _DecalDatas[index];
-}
 
 // Caution: We can't compute LOD inside a dynamic loop. The gradient are not accessible.
 // we need to find a way to calculate mips. For now just fetch first mip of the decals
@@ -198,13 +183,30 @@ void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positi
     }
 }
 
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP) // forward transparent using clustered decals
+DecalData FetchDecal(uint start, uint i)
+{
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+    int j = FetchIndex(start, i);
+#else
+    int j = start + i;
+#endif
+    return _DecalDatas[j];
+}
+
+DecalData FetchDecal(uint index)
+{
+    return _DecalDatas[index];
+}
+#endif
+
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
     int mask = 0;
     // the code in the macros, gets moved inside the conditionals by the compiler
     FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
 
-#ifdef _SURFACE_TYPE_TRANSPARENT    // forward transparent using clustered decals
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)  // forward transparent using clustered decals
     uint decalCount, decalStart;
     DBuffer0 = float4(0.0f, 0.0f, 0.0f, 1.0f);
     DBuffer1 = float4(0.5f, 0.5f, 0.5f, 1.0f);
@@ -215,7 +217,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     float2 DBuffer3 = float2(1.0f, 1.0f);
 #endif
 
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
 
     #if SCALARIZE_LIGHT_LOOP
@@ -224,7 +226,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     bool fastPath = WaveActiveAllTrue(decalStart == decalStartLane0);
     #endif
 
-#else // LIGHTLOOP_TILE_PASS
+#else // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     decalCount = _DecalCount;
     decalStart = 0;
 #endif
@@ -244,11 +246,11 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     uint v_decalIdx = decalStart;
     while (v_decalListOffset < decalCount)
     {
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         v_decalIdx = FetchIndex(decalStart, v_decalListOffset);
 #else
         v_decalIdx = decalStart + v_decalListOffset;
-#endif // LIGHTLOOP_TILE_PASS
+#endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
         uint s_decalIdx = v_decalIdx;
 

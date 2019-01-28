@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
@@ -264,27 +264,31 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Camera camera = cameraData.camera;
             RenderTextureDescriptor desc;
             float renderScale = cameraData.renderScale;
+            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
 
             if (cameraData.isStereoEnabled)
             {
-                return XRGraphics.eyeTextureDesc;
+                desc = XRGraphics.eyeTextureDesc;
+                renderTextureFormatDefault = desc.colorFormat;
             }
             else
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                desc.width = (int)((float)desc.width * renderScale * scaler);
+                desc.height = (int)((float)desc.height * renderScale * scaler);
+                desc.depthBufferBits = 32;
             }
-            
-            bool useRGB10A2 = Application.isMobilePlatform &&
-             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010);
-            RenderTextureFormat hdrFormat = (useRGB10A2) ? RenderTextureFormat.ARGB2101010 : RenderTextureFormat.DefaultHDR;
-            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : RenderTextureFormat.Default;
-            desc.width = (int)((float)desc.width * renderScale * scaler);
-            desc.height = (int)((float)desc.height * renderScale * scaler);
+
+            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format. 
+            bool useRGB111110 = Application.isMobilePlatform &&
+             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+            RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
+            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
             desc.enableRandomWrite = false;
-            desc.sRGB = true;
+            desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             desc.msaaSamples = cameraData.msaaSamples;
-            desc.depthBufferBits = 32;
             desc.bindMS = false;
+            desc.useDynamicScale = cameraData.camera.allowDynamicResolution;
             return desc;
         }
 
@@ -302,15 +306,33 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cameraClearFlags = CameraClearFlags.SolidColor;
 #endif
 
-            // LWRP doesn't support CameraClearFlags.DepthOnly.
-            // In case of skybox we know all pixels will be rendered to screen so
-            // we don't clear color. In Vulkan/Metal this becomes DontCare load action
+            // LWRP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
+            // CameraClearFlags.DepthOnly has the same effect of CameraClearFlags.SolidColor
+            // CameraClearFlags.Nothing clears Depth on PC/Desktop and in mobile it clears both
+            // depth and color.
+            // CameraClearFlags.Skybox clears depth only.
+
+            // Implementation details:
+            // Camera clear flags are used to initialize the attachments on the first render pass.
+            // ClearFlag is used together with Tile Load action to figure out how to clear the camera render target.
+            // In Tile Based GPUs ClearFlag.Depth + RenderBufferLoadAction.DontCare becomes DontCare load action.
+            // While ClearFlag.All + RenderBufferLoadAction.DontCare become Clear load action.
+            // In mobile we force ClearFlag.All as DontCare doesn't have noticeable perf. difference from Clear
+            // and this avoid tile clearing issue when not rendering all pixels in some GPUs.
+            // In desktop/consoles there's actually performance difference between DontCare and Clear.
+            
+            // RenderBufferLoadAction.DontCare in PC/Desktop behaves as not clearing screen
+            // RenderBufferLoadAction.DontCare in Vulkan/Metal behaves as DontCare load action
+            // RenderBufferLoadAction.DontCare in GLES behaves as glInvalidateBuffer
+
+            // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
+            if (Application.isMobilePlatform)
+                return ClearFlag.All;
+
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
                 return ClearFlag.Depth;
 
-            // Otherwise we clear color + depth. This becomes either a clear load action or glInvalidateBuffer call
-            // on mobile devices. On PC/Desktop a clear is performed by blitting a full screen quad.
             return ClearFlag.All;
         }
 

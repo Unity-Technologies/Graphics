@@ -161,7 +161,8 @@ namespace UnityEditor.VFX
             if (!HasLink() || direction == Direction.kOutput)
                 return false;
 
-            return m_LinkedSlots.First().spaceable;
+            var linkedSlot = m_LinkedSlots.First();
+            return linkedSlot.spaceable && linkedSlot.space != (VFXCoordinateSpace)int.MaxValue;
         }
 
         public SpaceableType GetSpaceTransformationType()
@@ -1037,7 +1038,7 @@ namespace UnityEditor.VFX
                 if (IsMasterSlot() && direction == Direction.kInput && spaceable && HasLink())
                 {
                     var linkedSlot = m_LinkedSlots.First();
-                    if (linkedSlot.spaceable)
+                    if (linkedSlot.spaceable && linkedSlot.space != (VFXCoordinateSpace)int.MaxValue)
                     {
                         space = linkedSlot.space;
                     }

@@ -151,7 +151,7 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
     // When vlayered and iridescence is on, iridescence is also automatically recomputed per light too,
     // so the following gives the recompute option for iridescence when NOT vlayered:
 #ifdef VLAYERED_RECOMPUTE_PERLIGHT
-#    if _MATERIAL_FEATURE_IRIDESCENCE
+#    ifdef _MATERIAL_FEATURE_IRIDESCENCE
 #    define IRIDESCENCE_RECOMPUTE_PERLIGHT
 #    endif
 #endif
@@ -420,6 +420,22 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
     if (overrideNormal)
     {
         surfaceData.normalWS = worldToTangent[2];
+    }
+
+    // There is no metallic with SSS and specular color mode
+    float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
+   
+    float3 diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
+    bool specularWorkflow = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR);
+    float3 specularColor = specularWorkflow ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, IorToFresnel0(surfaceData.dielectricIor));
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
+    {
+        surfaceData.baseColor = pbrDiffuseColorValidate(diffuseColor, specularColor, surfaceData.metallic > 0.0, !specularWorkflow).xyz;
+    }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    {
+        surfaceData.baseColor = pbrSpecularColorValidate(diffuseColor, specularColor, surfaceData.metallic > 0.0, !specularWorkflow).xyz;
     }
 #endif
 }
@@ -751,6 +767,11 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
             result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
             break;
     }
+}
+
+void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
+{
+    result = surfaceData.baseColor;
 }
 
 

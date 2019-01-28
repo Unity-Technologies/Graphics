@@ -38,6 +38,11 @@ namespace UnityEditor.VFX.UI
         void OnAttachToPanel(AttachToPanelEvent e)
         {
             m_View = GetFirstAncestorOfType<VFXView>();
+            if( m_View == null)
+            {
+                //This can happen with asynchnous events.
+                return;
+            }
             m_View.allDataAnchors.Add(this);
         }
 

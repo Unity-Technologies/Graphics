@@ -16,12 +16,12 @@ namespace UnityEditor.Rendering.LWRP
         {
             Skybox = 0,
             SolidColor,
-            DontInitialize,
+            DontCare,
         }
 
         internal class Styles
         {
-            public static GUIContent backgroundType = EditorGUIUtility.TrTextContent("Background Type", "Controls how to initialize the Camera's background.\n\nSkybox initializes camera with Skybox, defaulting to a background color if no skybox is found.\n\nSolid Color initializes background with the background color.\n\nDon't initialize have undefined values for camera background. Use this only if you are rendering all pixels in the Camera's view.");
+            public static GUIContent backgroundType = EditorGUIUtility.TrTextContent("Background Type", "Controls how to initialize the Camera's background.\n\nSkybox initializes camera with Skybox, defaulting to a background color if no skybox is found.\n\nSolid Color initializes background with the background color.\n\nDon't care have undefined values for camera background. Use this only if you are rendering all pixels in the Camera's view.");
             public static GUIContent renderingShadows = EditorGUIUtility.TrTextContent("Render Shadows", "Enable this to make this camera render shadows.");
             public static GUIContent requireDepthTexture = EditorGUIUtility.TrTextContent("Depth Texture", "On makes this camera create a _CameraDepthTexture, which is a copy of the rendered depth values.\nOff makes the camera not create a depth texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
             public static GUIContent requireOpaqueTexture = EditorGUIUtility.TrTextContent("Opaque Texture", "On makes this camera create a _CameraOpaqueTexture, which is a copy of the rendered view.\nOff makes the camera does not create an opaque texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.LWRP
             {
                 new GUIContent("Skybox"),
                 new GUIContent("Solid Color"),
-                new GUIContent("Don't Initialize"),
+                new GUIContent("Don't Care"),
             };
 
             public static int[] cameraBackgroundValues = { 0, 1, 2};
@@ -176,6 +176,7 @@ namespace UnityEditor.Rendering.LWRP
             settings.DrawOcclusionCulling();
             DrawHDR();
             DrawMSAA();
+            settings.DrawDynamicResolution();
             DrawAdditionalData();
             settings.DrawVR();
             settings.DrawMultiDisplay();
@@ -195,7 +196,7 @@ namespace UnityEditor.Rendering.LWRP
                 case CameraClearFlags.Skybox:
                     return BackgroundType.Skybox;
                 case CameraClearFlags.Nothing:
-                    return BackgroundType.DontInitialize;
+                    return BackgroundType.DontCare;
 
                 // DepthOnly is not supported by design in LWRP. We upgrade it to SolidColor
                 default:
@@ -221,7 +222,7 @@ namespace UnityEditor.Rendering.LWRP
                         selectedClearFlags = CameraClearFlags.Skybox;
                         break;
 
-                    case BackgroundType.DontInitialize:
+                    case BackgroundType.DontCare:
                         selectedClearFlags = CameraClearFlags.Nothing;
                         break;
 

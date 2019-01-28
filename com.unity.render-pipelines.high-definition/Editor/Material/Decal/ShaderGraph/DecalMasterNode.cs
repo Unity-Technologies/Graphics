@@ -137,7 +137,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Metal
             if (MaterialTypeUsesSlotMask(SlotMask.Metallic))
             {
-                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(MetallicSlotId);
             }
 
@@ -152,7 +152,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Smoothness
             if (MaterialTypeUsesSlotMask(SlotMask.Smoothness))
             {
-                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(SmoothnessSlotId);
             }
 
@@ -280,6 +280,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (m_AffectsSmoothness == value.isOn)
                     return;
                 m_AffectsSmoothness = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_AffectsAlbedo = true;
+
+        public ToggleData affectsAlbedo
+        {
+            get { return new ToggleData(m_AffectsAlbedo); }
+            set
+            {
+                if (m_AffectsAlbedo == value.isOn)
+                    return;
+                m_AffectsAlbedo = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_AffectsNormal = true;
+
+        public ToggleData affectsNormal
+        {
+            get { return new ToggleData(m_AffectsNormal); }
+            set
+            {
+                if (m_AffectsNormal == value.isOn)
+                    return;
+                m_AffectsNormal = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
         }

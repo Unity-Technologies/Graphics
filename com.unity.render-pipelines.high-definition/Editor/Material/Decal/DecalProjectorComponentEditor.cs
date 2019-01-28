@@ -22,10 +22,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         private DecalProjectorComponentHandle m_Handle = new DecalProjectorComponentHandle();
 
+        private int m_LayerMask;
+
         private void OnEnable()
         {
             // Create an instance of the MaterialEditor
             m_DecalProjectorComponent = (DecalProjectorComponent)target;
+            m_LayerMask = m_DecalProjectorComponent.gameObject.layer;
             m_MaterialEditor = (MaterialEditor)CreateEditor(m_DecalProjectorComponent.Mat);
             m_DecalProjectorComponent.OnMaterialChange += OnMaterialChange;
             m_MaterialProperty = serializedObject.FindProperty("m_Material");
@@ -125,11 +128,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Slider(m_FadeScaleProperty, 0.0f, 1.0f, new GUIContent("Fade scale"));
             EditorGUILayout.PropertyField(m_UVScaleProperty);
             EditorGUILayout.PropertyField(m_UVBiasProperty);
-            EditorGUILayout.PropertyField(m_AffectsTransparencyProperty);
+
+            // only display the affects transparent property if material is HDRP/decal
+            if (DecalSystem.IsHDRenderPipelineDecal(m_DecalProjectorComponent.Mat.shader.name))
+            {
+                EditorGUILayout.PropertyField(m_AffectsTransparencyProperty);
+            }
 
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
+            }
+
+            if(m_LayerMask != m_DecalProjectorComponent.gameObject.layer)
+            {
+                m_DecalProjectorComponent.OnValidate();
             }
 
             if (m_MaterialEditor != null)

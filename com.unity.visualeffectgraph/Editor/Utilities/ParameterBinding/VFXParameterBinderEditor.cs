@@ -23,8 +23,8 @@ namespace UnityEditor.VFX.Utils
         GenericMenu m_Menu;
         Editor m_ElementEditor;
 
-        static Color validColor = new Color(0.5f, 1.0f, 0.2f);
-        static Color invalidColor = new Color(1.0f, 0.5f, 0.2f);
+        static readonly Color validColor = new Color(0.5f, 1.0f, 0.2f);
+        static readonly Color invalidColor = new Color(1.0f, 0.5f, 0.2f);
 
         static class Styles
         {
@@ -100,7 +100,7 @@ namespace UnityEditor.VFX.Utils
                         }
                         else
                         {
-                            EditorGUILayout.PropertyField(property);
+                            EditorGUILayout.PropertyField(property, true);
                         }
                     }
                 }
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.Utils
             {
                 foreach (Type t in assembly.GetTypes())
                 {
-                    if (t.BaseType == typeof(VFXBinderBase))
+                    if (typeof(VFXBinderBase).IsAssignableFrom(t) && !t.IsAbstract)
                         relevantTypes.Add(t);
                 }
             }

@@ -67,11 +67,12 @@
 
 #define UNITY_SINGLE_PASS_STEREO 1
 
-#define LIGHTLOOP_TILE_PASS 1
 // deferred opaque always use FPTL
 #define USE_FPTL_LIGHTLIST 1
 
 //#pragma enable_d3d11_debug_symbols
+
+//#define ENABLE_RAYTRACING
 
 //-------------------------------------------------------------------------------------
 // Include
@@ -86,6 +87,14 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+CBUFFER_START(UnityDeferredCompute)
+    uint g_TileListOffset;
+    #ifdef ENABLE_RAYTRACING
+    // Uniform variables that defines if we shall be using the shadow area texture or not
+    int _RaytracedAreaShadow;
+    #endif
+CBUFFER_END
 
 #ifdef DEBUG_DISPLAY
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
@@ -117,9 +126,7 @@
 RWTexture2D<float3> diffuseLightingUAV;
 RWTexture2D<float4> specularLightingUAV;
 
-CBUFFER_START(UnityDeferredCompute)
-    uint g_TileListOffset;
-CBUFFER_END
+
 
 #ifdef USE_INDIRECT
 
@@ -129,7 +136,7 @@ StructuredBuffer<uint> g_TileList;
 void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
 {
     uint  tileIndex   = g_TileList[g_TileListOffset + groupId];
-    uint2 tileCoord   = uint2(tileIndex & ((1 << TILE_SIZE_FPTL) - 1), tileIndex >> TILE_SIZE_FPTL);
+    uint2 tileCoord   = uint2(tileIndex & 0x0000FFFF, tileIndex >> 16); // see builddispatchindirect.compute
     uint2 pixelCoord  = tileCoord * GetTileSize() + groupThreadId;
 
     uint screenWidth  = (uint)_ScreenSize.x;
@@ -154,7 +161,6 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
     // Can't rely on stencil as we are in compute shader
-    // TODO : if we have depth bounds test we could remove such a test ?
     if (depth == UNITY_RAW_FAR_CLIP_VALUE)
     {
         return;
@@ -171,6 +177,9 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     float3 diffuseLighting;
     float3 specularLighting;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+
+    diffuseLighting *= GetCurrentExposureMultiplier();
+    specularLighting *= GetCurrentExposureMultiplier();
 
     if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
     {

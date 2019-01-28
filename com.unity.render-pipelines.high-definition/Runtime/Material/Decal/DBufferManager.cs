@@ -1,5 +1,4 @@
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -23,19 +22,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void CreateBuffers()
         {
-            RenderTextureFormat[] rtFormat;
-            bool[] sRGBFlags;
-            Decal.GetMaterialDBufferDescription(out rtFormat, out sRGBFlags);
+            GraphicsFormat[] rtFormat;
+            Decal.GetMaterialDBufferDescription(out rtFormat);
 
             for (int dbufferIndex = 0; dbufferIndex < m_BufferCount; ++dbufferIndex)
             {
-                m_RTs[dbufferIndex] = RTHandles.Alloc(Vector2.one, colorFormat: rtFormat[dbufferIndex], sRGB: sRGBFlags[dbufferIndex], filterMode: FilterMode.Point, name: string.Format("DBuffer{0}", dbufferIndex));
+                m_RTs[dbufferIndex] = RTHandles.Alloc(Vector2.one, colorFormat: rtFormat[dbufferIndex], filterMode: FilterMode.Point, xrInstancing: true, name: string.Format("DBuffer{0}", dbufferIndex));
                 m_RTIDs[dbufferIndex] = m_RTs[dbufferIndex].nameID;
                 m_TextureShaderIDs[dbufferIndex] = HDShaderIDs._DBufferTexture[dbufferIndex];
             }
 
             // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-            m_HTile = RTHandles.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true, name: "DBufferHTile"); // Enable UAV
+            m_HTile = RTHandles.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8_UNorm, enableRandomWrite: true, xrInstancing: true, name: "DBufferHTile"); // Enable UAV
         }
 
         override public void DestroyBuffers()
@@ -51,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // to avoid temporary allocations, because number of render targets is not passed explicitly to SetRenderTarget, but rather deduces it from array size
             RenderTargetIdentifier[] RTIDs = rtCount4 ? m_RTIDs4 : m_RTIDs3;
-            
+
             // this clears the targets
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
             Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
@@ -88,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (hdCamera.frameSettings.enableDecals)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
                 cmd.SetGlobalInt(HDShaderIDs._EnableDecals, enableDecals ? 1 : 0);
                 cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight));
@@ -100,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 for (int i = 0; i < m_BufferCount; ++i)
                 {
-                    cmd.SetGlobalTexture(m_TextureShaderIDs[i], RuntimeUtilities.blackTexture);
+                    cmd.SetGlobalTexture(m_TextureShaderIDs[i], Texture2D.blackTexture);
                 }
             }
         }

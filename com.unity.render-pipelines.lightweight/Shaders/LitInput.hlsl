@@ -6,13 +6,12 @@
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
-float4 _MainTex_ST;
-half4 _Color;
+float4 _BaseMap_ST;
+half4 _BaseColor;
 half4 _SpecColor;
 half4 _EmissionColor;
 half _Cutoff;
-half _Glossiness;
-half _GlossMapScale;
+half _Smoothness;
 half _Metallic;
 half _BumpScale;
 half _OcclusionStrength;
@@ -35,9 +34,9 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 #ifdef _METALLICSPECGLOSSMAP
     specGloss = SAMPLE_METALLICSPECULAR(uv);
     #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-        specGloss.a = albedoAlpha * _GlossMapScale;
+        specGloss.a = albedoAlpha * _Smoothness;
     #else
-        specGloss.a *= _GlossMapScale;
+        specGloss.a *= _Smoothness;
     #endif
 #else // _METALLICSPECGLOSSMAP
     #if _SPECULAR_SETUP
@@ -47,9 +46,9 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
     #endif
 
     #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-        specGloss.a = albedoAlpha * _GlossMapScale;
+        specGloss.a = albedoAlpha * _Smoothness;
     #else
-        specGloss.a = _Glossiness;
+        specGloss.a = _Smoothness;
     #endif
 #endif
 
@@ -73,11 +72,11 @@ half SampleOcclusion(float2 uv)
 
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
-    half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
-    outSurfaceData.alpha = Alpha(albedoAlpha.a, _Color, _Cutoff);
+    half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_PARAM(_BaseMap, sampler_BaseMap));
+    outSurfaceData.alpha = Alpha(albedoAlpha.a, _BaseColor, _Cutoff);
 
     half4 specGloss = SampleMetallicSpecGloss(uv, albedoAlpha.a);
-    outSurfaceData.albedo = albedoAlpha.rgb * _Color.rgb;
+    outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
 
 #if _SPECULAR_SETUP
     outSurfaceData.metallic = 1.0h;

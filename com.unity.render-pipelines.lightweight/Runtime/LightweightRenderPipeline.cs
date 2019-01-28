@@ -71,7 +71,8 @@ namespace UnityEngine.Rendering.LWRP
 
             SetSupportedRenderingFeatures();
 
-            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
+            // Unity engine introduced a bug that breaks SRP batcher on metal :( disabling it for now.
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
@@ -210,6 +211,16 @@ namespace UnityEngine.Rendering.LWRP
             else
                 cameraData.msaaSamples = 1;
 
+            if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
+            {
+                // There's no exposed API to control how a backbuffer is created with MSAA
+                // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
+                // We only do this for the main camera and this only takes effect in the beginning of next frame.
+                // This settings should not be changed on a frame basis so that's fine.
+                QualitySettings.antiAliasing = cameraData.msaaSamples;
+            }
+
+
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
 
@@ -217,6 +228,10 @@ namespace UnityEngine.Rendering.LWRP
 
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
+
+            // Disables postprocessing in mobile VR. It's stable on mobile yet.
+            if (cameraData.isStereoEnabled && Application.isMobilePlatform)
+                cameraData.postProcessEnabled = false;
 
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
@@ -455,7 +470,7 @@ namespace UnityEngine.Rendering.LWRP
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
         }
 
-        public static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
+        static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
         {
             LightDataGI lightData = new LightDataGI();
 

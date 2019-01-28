@@ -65,7 +65,6 @@ namespace UnityEditor.VFX.UIElements
                 {
                     m_Slider.lowValue = m_Range.x;
                     m_Slider.highValue = m_Range.y;
-                    m_Slider.pageSize = (m_Slider.highValue - m_Slider.lowValue) * 0.1f;
 
                     //TODO ask fix in Slider
 
@@ -124,7 +123,7 @@ namespace UnityEditor.VFX.UIElements
     {
         public VFXFloatSliderField()
         {
-            m_Slider = new Slider(0, 1, SliderDirection.Horizontal, (range.y - range.x) * 0.1f);
+            m_Slider = new Slider(0, 1, SliderDirection.Horizontal);
             m_Slider.AddToClassList("textfield");
             m_Slider.RegisterValueChangedCallback(evt => ValueChanged(evt.newValue));
 
@@ -191,7 +190,7 @@ namespace UnityEditor.VFX.UIElements
     {
         public VFXIntSliderField()
         {
-            m_Slider = new Slider(0, 1, SliderDirection.Horizontal, 0.1f);
+            m_Slider = new Slider(0, 1, SliderDirection.Horizontal);
             m_Slider.AddToClassList("textfield");
             m_Slider.RegisterValueChangedCallback(evt => ValueChanged(evt.newValue));
 
@@ -224,7 +223,7 @@ namespace UnityEditor.VFX.UIElements
     {
         public VFXLongSliderField()
         {
-            m_Slider = new Slider(0, 1, SliderDirection.Horizontal, 0.1f);
+            m_Slider = new Slider(0, 1, SliderDirection.Horizontal);
             m_Slider.AddToClassList("textfield");
             m_Slider.RegisterValueChangedCallback(evt => ValueChanged(evt.newValue));
 

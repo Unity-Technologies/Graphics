@@ -14,7 +14,7 @@ MonoBehaviour:
   m_Name: LightweightRenderPipelineAsset
   m_EditorClassIdentifier: 
   k_AssetVersion: 4
-  m_RendererType: 0
+  m_RendererType: 1
   m_RendererData: {fileID: 11400000, guid: 618d298269e66c542b306de85db1faea, type: 2}
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 1
@@ -36,8 +36,8 @@ MonoBehaviour:
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 1
-  m_UseSRPBatcher: 0
-  m_SupportsDynamicBatching: 1
+  m_UseSRPBatcher: 1
+  m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 1
   m_ShadowType: 0
   m_LocalShadowsSupported: 1

@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ClampedFloatParameter    rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         [Tooltip("Sky intensity mode")]
         public SkyIntensityParameter    skyIntensityMode = new SkyIntensityParameter(SkyIntensityMode.Exposure);
-        [Tooltip("Exposure of the sky in EV.")]
+        [Tooltip("Exposure of the sky in EV100.")]
         public FloatParameter           exposure = new FloatParameter(0.0f);
         [Tooltip("Intensity multiplier for the sky.")]
         public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MinFloatParameter        upperHemisphereLuxValue = new MinFloatParameter(1.0f, 0.0f);
         [Tooltip("Lux intensity multiplier for the sky")]
         public FloatParameter           desiredLuxValue = new FloatParameter(20000);
-        [Tooltip("Specify how the environment lighting should be updated.")]
+        [Tooltip("Specify how the environment lighting should be updated. When set to OnDemand, use HDRenderPipeline.RequestSkyEnvironmentUpdate() to request an update.")]
         public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
         [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
         public MinFloatParameter        updatePeriod = new MinFloatParameter(0.0f, 0.0f);

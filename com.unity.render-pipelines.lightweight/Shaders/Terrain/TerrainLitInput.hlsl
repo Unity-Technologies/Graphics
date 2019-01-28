@@ -26,11 +26,12 @@ TEXTURE2D(_Normal2);
 TEXTURE2D(_Normal3);
 #endif
 
+TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
 CBUFFER_START(UnityPerMaterial)
 float4 _MainTex_ST;
-half4 _Color;
+half4 _BaseColor;
 half _Cutoff;
 CBUFFER_END
 

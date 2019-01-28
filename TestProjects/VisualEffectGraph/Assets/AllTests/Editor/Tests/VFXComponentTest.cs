@@ -143,18 +143,15 @@ namespace UnityEditor.VFX.Test
                 AssetDatabase.DeleteAsset(tempFilePath);
             }
             var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
-
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
-
             graph.visualEffectResource = resource;
-
             return graph;
         }
 
         [UnityTest]
-        public IEnumerator CreateComponentAndCheckDimensionConstraint()
+        public IEnumerator CreateComponent_And_CheckDimension_Constraint()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = MakeTemporaryGraph();
@@ -233,6 +230,108 @@ namespace UnityEditor.VFX.Test
             yield return null;
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("3D"));
             */
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponent_Switch_Asset_Keep_Override()
+        {
+            var graph_A = MakeTemporaryGraph();
+            var graph_B = MakeTemporaryGraph();
+            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
+
+            var commonExposedName = "vorfji";
+            var parameter_A = parametersVector3Desc.CreateInstance();
+            parameter_A.SetSettingValue("m_exposedName", commonExposedName);
+            parameter_A.SetSettingValue("m_exposed", true);
+            parameter_A.value = new Vector3(0, 0, 0);
+            graph_A.AddChild(parameter_A);
+            graph_A.RecompileIfNeeded();
+
+            var parameter_B = parametersVector3Desc.CreateInstance();
+            parameter_B.SetSettingValue("m_exposedName", commonExposedName);
+            parameter_B.SetSettingValue("m_exposed", true);
+            parameter_B.value = new Vector3(0, 0, 0);
+            graph_B.AddChild(parameter_B);
+            graph_B.RecompileIfNeeded();
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph_A.visualEffectResource.asset;
+            Assert.IsTrue(vfx.HasVector3(commonExposedName));
+            var expectedOverriden = new Vector3(1, 2, 3);
+            vfx.SetVector3(commonExposedName, expectedOverriden);
+            yield return null;
+
+            var actualOverriden = vfx.GetVector3(commonExposedName);
+            Assert.AreEqual(actualOverriden.x, expectedOverriden.x); Assert.AreEqual(actualOverriden.y, expectedOverriden.y); Assert.AreEqual(actualOverriden.z, expectedOverriden.z);
+
+            vfx.visualEffectAsset = graph_B.visualEffectResource.asset;
+            yield return null;
+
+            actualOverriden = vfx.GetVector3(commonExposedName);
+            Assert.AreEqual(actualOverriden.x, expectedOverriden.x); Assert.AreEqual(actualOverriden.y, expectedOverriden.y); Assert.AreEqual(actualOverriden.z, expectedOverriden.z);
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponent_Modify_Asset_Keep_Override()
+        {
+            var graph = MakeTemporaryGraph();
+
+            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
+
+            var exposedName = "poiuyt";
+            var parameter = parametersVector3Desc.CreateInstance();
+            parameter.SetSettingValue("m_exposedName", exposedName);
+            parameter.SetSettingValue("m_exposed", true);
+            parameter.value = new Vector3(0, 0, 0);
+            graph.AddChild(parameter);
+            graph.RecompileIfNeeded();
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            Assert.IsTrue(vfx.HasVector3(exposedName));
+            var expectedOverriden = new Vector3(1, 2, 3);
+            vfx.SetVector3(exposedName, expectedOverriden);
+
+            yield return null;
+
+            var actualOverriden = vfx.GetVector3(exposedName);
+            Assert.AreEqual(actualOverriden.x, expectedOverriden.x); Assert.AreEqual(actualOverriden.y, expectedOverriden.y); Assert.AreEqual(actualOverriden.z, expectedOverriden.z);
+
+            /* Add system & another exposed */
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var allType = ScriptableObject.CreateInstance<AllType>();
+
+            contextInitialize.AddChild(allType);
+            graph.AddChild(contextInitialize);
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            spawner.LinkTo(contextInitialize);
+            graph.AddChild(spawner);
+
+            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+            output.LinkFrom(contextInitialize);
+            graph.AddChild(output);
+
+            var parameter_Other = parametersVector3Desc.CreateInstance();
+            var exposedName_Other = "tyuiop";
+            parameter_Other.SetSettingValue("m_exposedName", exposedName_Other);
+            parameter_Other.SetSettingValue("m_exposed", true);
+            parameter_Other.value = new Vector3(6, 6, 6);
+            graph.AddChild(parameter_Other);
+            parameter.value = new Vector3(5, 5, 5);
+            graph.RecompileIfNeeded();
+
+            yield return null;
+
+            Assert.IsTrue(vfx.HasVector3(exposedName));
+            Assert.IsTrue(vfx.HasVector3(exposedName_Other));
+            actualOverriden = vfx.GetVector3(exposedName);
+
+            Assert.AreEqual(actualOverriden.x, expectedOverriden.x); Assert.AreEqual(actualOverriden.y, expectedOverriden.y); Assert.AreEqual(actualOverriden.z, expectedOverriden.z);
         }
 
         #pragma warning disable 0414
