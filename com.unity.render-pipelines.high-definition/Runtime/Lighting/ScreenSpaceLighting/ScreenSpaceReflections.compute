@@ -298,7 +298,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
     float2 velocityNDC;
-    DecodeVelocity(SAMPLE_TEXTURE2D_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, hitPositionNDC * _ScreenToTargetScale.zw, 0), velocityNDC);
+    DecodeVelocity(SAMPLE_TEXTURE2D_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.zw, 0), velocityNDC);
     float2 prevFrameNDC = hitPositionNDC - velocityNDC;
     float2 prevFrameUV  = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 

@@ -58,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Keep track of the shared rt manager
             m_SharedRTManager = sharedRTManager;
 
-            m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "IntermediateReflectionBuffer");
+            m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "IntermediateReflectionBuffer");
 
             // Allocate the light cluster
             m_LightCluster = new HDRaytracingLightCluster();

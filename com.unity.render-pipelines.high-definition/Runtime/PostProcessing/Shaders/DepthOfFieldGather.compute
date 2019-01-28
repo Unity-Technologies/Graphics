@@ -93,8 +93,12 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
     // Avoid bleeding with the RTHandle autosize system
-    float2 maxCoord = _ScreenToTargetScale.xy - _TexelSize.zw;
-
+#if FAR
+        // A bit more generous maxCoord because of trilinear being involved.
+    float texelsToClamp = 2.0f;
+#else
+    float texelsToClamp = 1.0f;
+#endif
     float4 acc = 0.0;
     float nearWeightAcc = 0.0;
 
@@ -110,7 +114,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
         // low clipping values
         float clipping = 1.0 - abs(dot(sampTap, barrelUV));
         sampTap = sampTap * sampDist * clipping + uv;
-        sampTap = min(sampTap * _ScreenToTargetScale.xy, maxCoord);
+        sampTap = ClampAndScaleUV(sampTap, _TexelSize.zw, texelsToClamp);
 
         float3 sampColor = SAMPLE_TEXTURE2D_LOD(_InputTexture, SamplerTap, sampTap, mip).xyz;
         float sampCoC = SAMPLE_TEXTURE2D_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;

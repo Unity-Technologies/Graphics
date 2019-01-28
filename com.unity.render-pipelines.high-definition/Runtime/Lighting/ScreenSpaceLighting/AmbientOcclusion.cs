@@ -106,6 +106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 colorFormat: GraphicsFormat.R8_UNorm,
                 enableRandomWrite: true,
                 xrInstancing: true,
+                useDynamicScale: true,
                 name: "Ambient Occlusion"
             );
 
@@ -116,6 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     colorFormat: GraphicsFormat.R8G8_UNorm,
                     enableRandomWrite: true,
                     xrInstancing: true,
+                    useDynamicScale: true,
                     name: "Ambient Occlusion MSAA"
                 );
 
@@ -325,6 +327,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 depthBufferBits: DepthBits.None,
                 autoGenerateMips: false,
                 enableMSAA: false,
+                useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
                 xrInstancing: true,
@@ -342,6 +345,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 slices: 16, // XRTODO: multiply by eyeCount and handle indexing in shader
                 autoGenerateMips: false,
                 enableMSAA: false,
+                useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
                 xrInstancing: true,

@@ -41,11 +41,11 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     float2 uv = posInputs.positionNDC * _ScreenToTargetScale.xy;
 
     float3 outColor = LOAD_TEXTURE2D(_InputTexture, posInputs.positionSS).xyz;
-    float4 bicubicWnd = float4(_ScreenSize.xy * _TargetScale.y, 1.0 / (_ScreenSize.xy * _TargetScale.y));
+    float4 bicubicWnd = float4(_ScreenSize.xy * _TargetScale.y * rcp(_ScreenToTargetScale.xy), 1.0 / (_ScreenSize.xy * _TargetScale.y* rcp(_ScreenToTargetScale.xy)));
 
     // Avoid bleeding with the RTHandle autosize system
-    float2 maxCoord = _ScreenToTargetScale.xy - _ScreenSize.zw;
-
+    float2 maxCoord = (_ScreenToTargetScale.xy - bicubicWnd.zw);
+    uv = min(uv, maxCoord);
     // Blend the far layer first
     #if FAR
     {
@@ -60,9 +60,9 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
             #if FULL_RES
             float3 farColor = LOAD_TEXTURE2D(_InputFarTexture, posInputs.positionSS).xyz;
             #elif HIGH_QUALITY
-            float3 farColor = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputFarTexture, sampler_LinearClamp), min(uv, maxCoord), bicubicWnd).xyz;
+            float3 farColor = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputFarTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).xyz;
             #else
-            float3 farColor = SAMPLE_TEXTURE2D_LOD(_InputFarTexture, sampler_LinearClamp, min(uv, maxCoord), 0.0).xyz;
+            float3 farColor = SAMPLE_TEXTURE2D_LOD(_InputFarTexture, sampler_LinearClamp, uv, 0.0).xyz;
             #endif
 
             // Non-linear blend
@@ -83,11 +83,11 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
         float3 nearColor = LOAD_TEXTURE2D(_InputNearTexture, posInputs.positionSS).xyz;
         float alpha = LOAD_TEXTURE2D(_InputNearAlphaTexture, posInputs.positionSS).x;
         #elif HIGH_QUALITY
-        float3 nearColor = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputNearTexture, sampler_LinearClamp), min(uv, maxCoord), bicubicWnd).xyz;
-        float alpha = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputNearAlphaTexture, sampler_LinearClamp), min(uv, maxCoord), bicubicWnd).x;
+        float3 nearColor = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputNearTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).xyz;
+        float alpha = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputNearAlphaTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).x;
         #else
-        float3 nearColor = SAMPLE_TEXTURE2D_LOD(_InputNearTexture, sampler_LinearClamp, min(uv, maxCoord), 0.0).xyz;
-        float alpha = SAMPLE_TEXTURE2D_LOD(_InputNearAlphaTexture, sampler_LinearClamp, min(uv, maxCoord), 0.0).x;
+        float3 nearColor = SAMPLE_TEXTURE2D_LOD(_InputNearTexture, sampler_LinearClamp, uv, 0.0).xyz;
+        float alpha = SAMPLE_TEXTURE2D_LOD(_InputNearAlphaTexture, sampler_LinearClamp, uv, 0.0).x;
         #endif
 
         outColor = lerp(outColor, nearColor, alpha);

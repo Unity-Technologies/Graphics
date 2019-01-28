@@ -245,6 +245,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle lightingBuffer)
         {
+            HDDynamicResolutionHandler dynResHandler = HDDynamicResolutionHandler.instance;
+
+            // We cleanup the pool at the beginning of the render function as resource deletion is immediate while
+            // graphics command are deferred. If we delete at the end of the frame, the gfx commands will try to access
+            // dead resources.
+            if (dynResHandler.HardwareDynamicResIsEnabled() && dynResHandler.hasSwitchedResolution)
+                m_Pool.Cleanup();
+
             void PoolSource(ref RTHandle src, RTHandle dst)
             {
                 // Special case to handle the source buffer, we only want to send it back to our
@@ -384,6 +392,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // TODO: User effects go here
+
+                if(dynResHandler.SoftwareDynamicResIsEnabled() &&     // Dynamic resolution is on.
+                    camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
+                {
+                    using (new ProfilingSample(cmd, "FXAA", CustomSamplerId.FXAA.GetSampler()))
+                    {
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        DoFXAA(cmd, camera, source, destination);
+                        PoolSource(ref source, destination);
+                    }
+                }
 
                 // Final pass
                 using (new ProfilingSample(cmd, "Final Pass", CustomSamplerId.FinalPost.GetSampler()))
@@ -1875,6 +1894,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         #endregion
 
+        #region FXAA
+        void DoFXAA(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        {
+            var cs = m_Resources.shaders.FXAACS;
+            int kernel = cs.FindKernel("FXAA");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+        }
+        #endregion
+
         #region Final Pass
 
         void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source)
@@ -1885,7 +1915,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FinalPassMaterial.shaderKeywords = null;
             m_FinalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
-            if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
+            var dynResHandler = HDDynamicResolutionHandler.instance;
+            float dynamicResScale = dynResHandler.GetCurrentScale();
+            bool swDynamicResIsOn = camera.isMainGameView && dynResHandler.SoftwareDynamicResIsEnabled();
+            if (swDynamicResIsOn)
+            {
+                switch(dynResHandler.filter)
+                {
+                    case DynamicResUpscaleFilter.Bilinear:
+                        m_FinalPassMaterial.EnableKeyword("BILINEAR");
+                        break;
+                    case DynamicResUpscaleFilter.CatmullRom:
+                        m_FinalPassMaterial.EnableKeyword("CATMULL_ROM_4");
+                        break;
+                    case DynamicResUpscaleFilter.Lanczos:
+                        m_FinalPassMaterial.EnableKeyword("LANCZOS");
+                        break;
+                }
+            }
+
+            if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !swDynamicResIsOn)
                 m_FinalPassMaterial.EnableKeyword("FXAA");
 
             if (m_FilmGrain.IsActive())
@@ -1939,7 +1988,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             );
 
             // Blit to backbuffer
-            HDUtils.DrawFullScreen(cmd, camera.viewport, m_FinalPassMaterial, BuiltinRenderTextureType.CameraTarget, null, pass);
+            Rect backBufferRect = camera.viewport;
+            if(swDynamicResIsOn)
+            {
+                backBufferRect.width = dynResHandler.cachedOriginalSize.x;
+                backBufferRect.height = dynResHandler.cachedOriginalSize.y;
+            }
+
+            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, BuiltinRenderTextureType.CameraTarget, null, pass);
         }
 
         #endregion
@@ -1985,7 +2041,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var rt = RTHandles.Alloc(
                     scaleFactor, depthBufferBits: DepthBits.None,
                     filterMode: FilterMode.Point, colorFormat: format, useMipMap: mipmap,
-                    enableRandomWrite: true, name: "Post-processing Target Pool " + m_Tracker
+                    enableRandomWrite: true, useDynamicScale: true, name: "Post-processing Target Pool " + m_Tracker
                 );
 
                 m_Tracker++;
