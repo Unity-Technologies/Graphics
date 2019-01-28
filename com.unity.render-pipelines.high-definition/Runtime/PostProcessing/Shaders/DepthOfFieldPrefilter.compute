@@ -74,15 +74,14 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     float nearCoCAcc = 0.0;
 
     // Avoid bleeding with the RTHandle autosize system
-    float2 maxCoordColor = _ScreenToTargetScale.xy - texelSize;
-    float2 maxCoordCoC = _CoCTargetScale.xy - texelSize;
+    float2 maxCoordCoC = (1.0f - 0.5f*texelSize) * _CoCTargetScale.xy;
 
     UNITY_UNROLL
     for (uint i = 0; i < kTapCount; i++)
     {
         float2 tapCoord = texelSize * kTaps[i] + uv;
 
-        float3 tapColor = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min(tapCoord * _ScreenToTargetScale.xy, maxCoordColor), 0.0).xyz;
+        float3 tapColor = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(tapCoord, texelSize), 0.0).xyz;
         float tapCoC = SAMPLE_TEXTURE2D_LOD(_InputCoCTexture, sampler_LinearClamp, min(tapCoord * _CoCTargetScale.xy, maxCoordCoC), 0.0).x;
 
         float nearCoC = saturate(abs(min(tapCoC, 0.0)));

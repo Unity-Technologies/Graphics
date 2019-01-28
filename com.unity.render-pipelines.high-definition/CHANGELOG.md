@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for overriding terrain detail rendering shaders, via the render pipeline editor resources asset
 - Added xrInstancing flag support to RTHandle
 - Added support for cullmask for decal projectors
+- Added software dynamic resolution support
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering

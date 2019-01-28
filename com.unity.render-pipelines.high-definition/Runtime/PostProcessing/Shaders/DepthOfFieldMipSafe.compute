@@ -21,6 +21,6 @@ CBUFFER_END
 void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
-    float2 uv = posInputs.positionNDC * _ScreenToTargetScale.xy;
+    float2 uv =ClampAndScaleUVForBilinear(posInputs.positionNDC);
     _OutputTexture[posInputs.positionSS] = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, uv, 0.0).xyz;
 }

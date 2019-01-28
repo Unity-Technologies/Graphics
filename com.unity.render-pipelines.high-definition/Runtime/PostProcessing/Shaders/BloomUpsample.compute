@@ -28,14 +28,14 @@ CBUFFER_END
 void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
-    float2 uv = posInputs.positionNDC * _ScreenToTargetScale.xy;
-
+    float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC, _TexelSize.zw) ;
     float3 highRes = LOAD_TEXTURE2D(_InputHighTexture, posInputs.positionSS).xyz;
 
 #if LOW_QUALITY
     float3 lowRes = SAMPLE_TEXTURE2D_LOD(_InputLowTexture, sampler_LinearClamp, uv, 0.0).xyz;
 #else // HIGH_QUALITY
-    float3 lowRes = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputLowTexture, sampler_LinearClamp), uv, _BloomBicubicParams).xyz;
+    float2 maxCoord = (1.0f - _TexelSize.zw) * _ScreenToTargetScale.xy;
+    float3 lowRes = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputLowTexture, sampler_LinearClamp), uv, _BloomBicubicParams, maxCoord).xyz;
 #endif
 
     float3 output = lerp(highRes, lowRes, Scatter);

@@ -45,7 +45,7 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
     // Dejittered center sample
-    float coc0 = SAMPLE_TEXTURE2D_LOD(_InputCoCTexture, sampler_LinearClamp, (uv - _TaaJitterStrength.zw) * _ScreenToTargetScale.xy, 0.0).x;
+    float coc0 = SAMPLE_TEXTURE2D_LOD(_InputCoCTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uv - _TaaJitterStrength.zw), 0.0).x;
 
     // CoC dilation: determine the closest point in the four neighbors
     float3 closest = float3(0.0, 0.0, coc0);
