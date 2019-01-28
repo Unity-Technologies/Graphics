@@ -1,4 +1,4 @@
-﻿#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
@@ -26,7 +26,10 @@ float3 CatmullRomFourSamples(TEXTURE2D(_InputTexture), float2 UV)
     float2 TexSize = _ScreenSize.xy * rcp(_ScreenToTargetScale.xy);
     float4 bicubicWnd = float4(TexSize, 1.0 / (TexSize));
 
-    return SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputTexture, s_linear_clamp_sampler), UV * _ScreenToTargetScale.xy, bicubicWnd, (1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.xy);
+    return SampleTexture2DBicubic(  TEXTURE2D_PARAM(_InputTexture, s_linear_clamp_sampler),
+                                    UV * _ScreenToTargetScale.xy,
+                                    bicubicWnd,
+                                    (1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.xy).xyz;
 }
 
 
