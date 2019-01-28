@@ -58,6 +58,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     CED.Select(
                         (serialized, owner) => serialized.postProcessSettings,
                         GlobalPostProcessSettingsUI.Inspector
+                        ),
+                    CED.Select(
+                        (serialized, owner) => serialized.dynamicResolutionSettings,
+                        GlobalDynamicResolutionSettingsUI.Inspector
                         )
                     );
         }

@@ -123,6 +123,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader bloomPrefilterCS;
             public ComputeShader bloomBlurCS;
             public ComputeShader bloomUpsampleCS;
+            public ComputeShader FXAACS;
             public Shader finalPassPS;
 
 #if ENABLE_RAYTRACING
@@ -305,7 +306,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bloomPrefilterCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomPrefilter.compute"),
                 bloomBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomBlur.compute"),
                 bloomUpsampleCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomUpsample.compute"),
-                finalPassPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/FinalPass.shader")
+                FXAACS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/FXAA.compute"),
+                finalPassPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/FinalPass.shader"),
+
             
 #if ENABLE_RAYTRACING
                 ,

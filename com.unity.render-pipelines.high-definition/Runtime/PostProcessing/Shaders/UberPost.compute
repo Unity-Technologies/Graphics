@@ -125,7 +125,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
         for (int i = 0; i < samples; i++)
         {
             float t = (i + 0.5) / samples;
-            float3 s = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, DistortUV(pos) * _ScreenToTargetScale.xy, 0.0).xyz;
+            float3 s = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
             float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
 
             sum += s * filter;
@@ -137,7 +137,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     }
     else
     {
-        color = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, uvDistorted * _ScreenToTargetScale.xy, 0.0).xyz;
+        color = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
     }
 
     // Bloom
@@ -145,9 +145,9 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     if (BloomEnabled)
     {
         #if 0 // Bilinear
-        float3 bloom = SAMPLE_TEXTURE2D_LOD(_BloomTexture, sampler_LinearClamp, uvDistorted * _ScreenToTargetScale.xy, 0.0).xyz;
+        float3 bloom = SAMPLE_TEXTURE2D_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
         #else
-        float3 bloom = SampleTexture2DBicubic(TEXTURE2D_PARAM(_BloomTexture, sampler_LinearClamp), uvDistorted * _ScreenToTargetScale.xy, _BloomBicubicParams).xyz;
+        float3 bloom = SampleTexture2DBicubic(TEXTURE2D_PARAM(_BloomTexture, sampler_LinearClamp), uvDistorted * _ScreenToTargetScale.xy, _BloomBicubicParams, _ScreenToTargetScale.xy).xyz;
         #endif
 
         color = lerp(color, bloom * BloomTint, BloomIntensity);

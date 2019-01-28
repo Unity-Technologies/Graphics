@@ -75,9 +75,9 @@ float2 GetTileUV(uint2 pixCoord, float2 randomVals)
     randomVals = 0;
 #endif
     float2 tileLocation = (0.5f + pixCoord) / TILE_SIZE;
-    float2 UV = (tileLocation + randomVals) * _TileTargetSize.zw * _ScreenToTargetScale.xy;
+    float2 UV = (tileLocation + randomVals) * _TileTargetSize.zw;
 
-    return min(UV, _ScreenToTargetScale.xy - _TileTargetSize.zw);
+    return  ClampAndScaleUVForBilinear(UV, _TileTargetSize.zw);
 }
 
 
@@ -127,7 +127,7 @@ float3 ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount
     float2 currDir = dirSign * dir;
 
     float  offsetLength = (sampleNumber + 0.5) + (dirSign * (randomVal - 0.5));
-    float2 sampleUV = min(centralUV + (offsetLength*invSampleCount) * currDir, 1.0f) * _ScreenToTargetScale.xy;
+    float2 sampleUV = ClampAndScaleUVForBilinear(centralUV + (offsetLength*invSampleCount) * currDir);
 
     float3 sampleColor    = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
 
@@ -139,7 +139,7 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
     float2 currDir = dirSign * dir;
 
     float  offsetLength = (sampleNumber + 0.5) + (dirSign * (randomVal - 0.5));
-    float2 sampleUV = min(centralUV + (offsetLength*invSampleCount) * currDir, 1.0f) * _ScreenToTargetScale.xy;
+    float2 sampleUV = ClampAndScaleUVForBilinear(centralUV + (offsetLength*invSampleCount) * currDir);
 
     float3 sampleVelDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, sampleUV, 0).xyz;
     float3 sampleColor    = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
@@ -247,7 +247,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         else
         {
             // Slow path.
-            float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, centerSampleUV * _ScreenToTargetScale.xy, 0).xyz;
+            float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, ClampAndScaleUVForPoint(centerSampleUV), 0).xyz;
 
             float pixelToSampleScale = _SampleCount * 0.5 * maxVelLength;
             float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);

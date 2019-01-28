@@ -37,6 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedHDShadowInitParameters hdShadowInitParams;
         public SerializedGlobalDecalSettings decalSettings;
         public SerializedGlobalPostProcessSettings postProcessSettings;
+        public SerializedDynamicResolutionSettings dynamicResolutionSettings;
 
         public SerializedRenderPipelineSettings(SerializedProperty root)
         {
@@ -70,6 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));
             decalSettings     = new SerializedGlobalDecalSettings(root.Find((RenderPipelineSettings s) => s.decalSettings));
             postProcessSettings = new SerializedGlobalPostProcessSettings(root.Find((RenderPipelineSettings s) => s.postProcessSettings));
+            dynamicResolutionSettings = new SerializedDynamicResolutionSettings(root.Find((RenderPipelineSettings s) => s.dynamicResolutionSettings));
         }
     }
 }
