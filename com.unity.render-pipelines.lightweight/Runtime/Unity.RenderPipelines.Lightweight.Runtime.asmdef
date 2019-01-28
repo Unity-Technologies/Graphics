@@ -15,8 +15,8 @@
     "versionDefines": [
         {
             "name": "com.unity.render-pipelines.lightweight",
-            "expression": "5.4.0",
-            "define": "LWRP_5_4_0_OR_NEWER"
+            "expression": "5.3.1",
+            "define": "LWRP_5_3_1_OR_NEWER"
         }
     ]
 }
