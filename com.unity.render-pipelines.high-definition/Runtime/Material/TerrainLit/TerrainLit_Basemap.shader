@@ -83,7 +83,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
         {
-            Name "GBuffer"  // Name is not used
+            Name "GBuffer"
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
@@ -127,7 +127,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
         Pass
         {
             Name "META"
-            Tags{ "LightMode" = "Meta" }
+            Tags{ "LightMode" = "META" }
 
             Cull Off
 
@@ -219,7 +219,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
 
         Pass
         {
-            Name "Forward" // Name is not used
+            Name "Forward"
             Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
             Stencil

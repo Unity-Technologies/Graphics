@@ -82,7 +82,7 @@ Shader "HDRP/Decal"
 		// pass 0 is mesh 3RT mode
 		Pass
 		{
-			Name "DBufferMesh_3RT"  // Name is not used
+			Name "DBufferMesh_3RT"
 			Tags{"LightMode" = "DBufferMesh_3RT"} // Smoothness
 
             Stencil
@@ -134,7 +134,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferProjector_M"  // Name is not used
+			Name "DBufferProjector_M"
 			Tags{"LightMode" = "DBufferProjector_M"} // Metalness
 
             Stencil
@@ -172,7 +172,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferProjector_AO"  // Name is not used
+			Name "DBufferProjector_AO"
 			Tags{"LightMode" = "DBufferProjector_AO"} // AO only
 													  // back faces with zfail, for cases when camera is inside the decal volume
             Stencil
@@ -209,7 +209,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferProjector_MAO"  // Name is not used
+			Name "DBufferProjector_MAO"
 			Tags{"LightMode" = "DBufferProjector_MAO"} // AO + Metalness
 													   // back faces with zfail, for cases when camera is inside the decal volume
             Stencil
@@ -246,7 +246,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferProjector_S"  // Name is not used
+			Name "DBufferProjector_S"
 			Tags{"LightMode" = "DBufferProjector_S"} // Smoothness - also use as DBufferProjector_3RT
 
             Stencil
@@ -285,7 +285,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferProjector_MS"  // Name is not used
+			Name "DBufferProjector_MS"
 			Tags{"LightMode" = "DBufferProjector_MS"} // Smoothness and Metalness
 
             Stencil
@@ -324,7 +324,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferProjector_AOS"  // Name is not used
+			Name "DBufferProjector_AOS"
 			Tags{"LightMode" = "DBufferProjector_AOS"} // AO + Smoothness
 
             Stencil
@@ -362,7 +362,7 @@ Shader "HDRP/Decal"
 
         Pass
         {
-            Name "DBufferProjector_MAOS"  // Name is not used
+            Name "DBufferProjector_MAOS"
             Tags { "LightMode" = "DBufferProjector_MAOS" } // Metalness AO and Smoothness
 
             Stencil
@@ -406,7 +406,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh_M"  // Name is not used
+			Name "DBufferMesh_M"
 			Tags{"LightMode" = "DBufferMesh_M"} // Metalness
 
             Stencil
@@ -442,7 +442,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh_AO"  // Name is not used
+			Name "DBufferMesh_AO"
 			Tags{"LightMode" = "DBufferMesh_AO"} // AO only
 
             Stencil
@@ -478,7 +478,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh_MAO"  // Name is not used
+			Name "DBufferMesh_MAO"
 			Tags{"LightMode" = "DBufferMesh_MAO"} // AO + Metalness
 
             Stencil
@@ -514,7 +514,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh_S"  // Name is not used
+			Name "DBufferMesh_S"
 			Tags{"LightMode" = "DBufferMesh_S"} // Smoothness
 
             Stencil
@@ -550,7 +550,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh_MS"  // Name is not used
+			Name "DBufferMesh_MS"
 			Tags{"LightMode" = "DBufferMesh_MS"} // Smoothness and Metalness
 
             Stencil
@@ -586,7 +586,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh_AOS"  // Name is not used
+			Name "DBufferMesh_AOS"
 			Tags{"LightMode" = "DBufferMesh_AOS"} // AO + Smoothness
 
             Stencil
@@ -622,7 +622,7 @@ Shader "HDRP/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh_MAOS"  // Name is not used
+			Name "DBufferMesh_MAOS"
 			Tags{"LightMode" = "DBufferMesh_MAOS"} // Metalness AO and Smoothness
 
             Stencil
