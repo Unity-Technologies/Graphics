@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.LWRP
         [FormerlySerializedAs("BlitShader"), SerializeField] Shader m_BlitShader = null;
         [FormerlySerializedAs("CopyDepthShader"), SerializeField] Shader m_CopyDepthShader = null;
         [FormerlySerializedAs("ScreenSpaceShadowShader"), SerializeField] Shader m_ScreenSpaceShadowShader = null;
+        [FormerlySerializedAs("ScreenSpaceShadowCompute"), SerializeField] ComputeShader m_ScreenSpaceShadowComputeShader = null; //seongdae;vxsm
         [FormerlySerializedAs("SamplingShader"), SerializeField] Shader m_SamplingShader = null;
 
         public Shader blitShader
@@ -23,6 +24,13 @@ namespace UnityEngine.Rendering.LWRP
         {
             get { return m_ScreenSpaceShadowShader; }
         }
+
+        //seongdae;vxsm
+        public ComputeShader screenSpaceShadowComputeShader
+        {
+            get { return m_ScreenSpaceShadowComputeShader; }
+        }
+        //seongdae;vxsm
 
         public Shader samplingShader
         {

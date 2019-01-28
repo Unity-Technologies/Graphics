@@ -1,10 +1,6 @@
 {
-    "name": "Unity.RenderPipelines.Lightweight.Runtime",
-    "references": [
-        "Unity.Postprocessing.Runtime",
-        "Unity.RenderPipelines.Core.Runtime",
-        "Unity.VoxelizedShadowMaps.Runtime"
-    ],
+    "name": "Unity.VoxelizedShadowMaps.Runtime",
+    "references": [],
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],

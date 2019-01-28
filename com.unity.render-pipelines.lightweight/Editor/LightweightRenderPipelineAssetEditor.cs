@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering.LWRP
             public static GUIContent shadowDepthBias = EditorGUIUtility.TrTextContent("Depth Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent shadowNormalBias = EditorGUIUtility.TrTextContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
+            public static GUIContent supportsVxShadows = EditorGUIUtility.TrTextContent("Vx Shadows (Experimental)", "Renders scene with voxelized shadow maps from directional light set with VxShadowMap Component. it needs APIs level Dx11, Vulkan, Metal."); //seongdae;vxsm
+            public static GUIContent vxShadowMapsQualityText = EditorGUIUtility.TrTextContent("Vx Shadow Maps Quality (Experimental)", "Controls the qualities of Vx Shadow Maps.."); //seongdae;vxsm
 
             // Advanced settings
             public static GUIContent dynamicBatching = EditorGUIUtility.TrTextContent("Dynamic Batching", "If enabled the pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
@@ -55,6 +57,7 @@ namespace UnityEngine.Rendering.LWRP
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
 
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
+            public static string[] vxShadowMapsQualityOptions = { "Nearest", "Bilinear", "Trilinear" }; //seongdae;vxsm
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
 
         }
@@ -90,6 +93,8 @@ namespace UnityEngine.Rendering.LWRP
         SerializedProperty m_ShadowNormalBiasProp;
 
         SerializedProperty m_SoftShadowsSupportedProp;
+        SerializedProperty m_VxShadowsSupportedProp; //seongdae;vxsm
+        SerializedProperty m_VxShadowMapsQualityProp; //seongdae;vxsm
 
         SerializedProperty m_SupportsDynamicBatching;
         SerializedProperty m_MixedLightingSupportedProp;
@@ -137,6 +142,8 @@ namespace UnityEngine.Rendering.LWRP
             m_ShadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
             m_ShadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
+            m_VxShadowsSupportedProp = serializedObject.FindProperty("m_VxShadowsSupported"); //seongdae;vxsm
+            m_VxShadowMapsQualityProp = serializedObject.FindProperty("m_VxShadowMapsQuality"); //seongdae;vxsm
 
             m_SupportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
             m_MixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
@@ -258,6 +265,9 @@ namespace UnityEngine.Rendering.LWRP
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
+                EditorGUILayout.PropertyField(m_VxShadowsSupportedProp, Styles.supportsVxShadows); //seongdae;vxsm
+                CoreEditorUtils.DrawPopup(Styles.vxShadowMapsQualityText, m_VxShadowMapsQualityProp, Styles.vxShadowMapsQualityOptions); //seongdae;vxsm
+                VxShadowMapsQuality vxShadowMapsQuality = (VxShadowMapsQuality)m_VxShadowMapsQualityProp.intValue; //seongdae;vxsm
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
