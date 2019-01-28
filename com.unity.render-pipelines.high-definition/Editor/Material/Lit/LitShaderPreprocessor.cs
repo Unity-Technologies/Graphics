@@ -10,10 +10,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
+            // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
             bool isGBufferPass = snippet.passName == "GBuffer";
             bool isForwardPass = snippet.passName == "Forward";
             bool isDepthOnlyPass = snippet.passName == "DepthOnly";
-            bool isMotionPass = snippet.passName == "Motion Vectors";
+            bool isMotionPass = snippet.passName == "MotionVectors";
             bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
             bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
             bool isTransparentBackface = snippet.passName == "TransparentBackface";
@@ -34,7 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // This test include all Lit variant from Shader Graph (Because we check "DepthOnly" pass)
             // Other forward material ("DepthForwardOnly") don't use keyword for WriteNormalBuffer but #define
-            if (isDepthOnlyPass || isMotionPass)
+            if (isDepthOnlyPass)
             {
                 // When we are full forward, we don't have depth prepass or motion vectors pass without writeNormalBuffer
                 if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
@@ -49,6 +51,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Apply following set of rules only to inspector version of shader as we don't have Transparent keyword with shader graph
             if (isBuiltInLit)
             {
+                // TODO: Currently there is no way to detect that Motion vector pass is from any ShaderGraph or from Lit.shader
+                // Forward material don't use keyword for WriteNormalBuffer but #define so we can't test for the keyword outside of isBuiltInLit
+                // otherwise the pass will be remove for non-lit shader graph version (like StackLit)
+                if (isMotionPass)
+                {
+                    // When we are full forward, we don't have depth prepass or motion vectors pass without writeNormalBuffer
+                    if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                        return true;
+
+                    // When we are deferred, we don't have depth prepass or motion vectors pass with writeNormalBuffer
+                    // Note: This rule is safe with Forward Material because WRITE_NORMAL_BUFFER is not a keyword for them, so it will not be removed
+                    if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                        return true;
+                }
+
                 if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
                 {
                     // If transparent, we never need GBuffer pass.

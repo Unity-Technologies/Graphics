@@ -91,7 +91,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         Pass m_PassMETA = new Pass()
         {
             Name = "META",
-            LightMode = "Meta",
+            LightMode = "META",
             TemplateName = "HDPBRPass.template",
             MaterialName = "PBR",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
@@ -238,7 +238,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassMotionVectors = new Pass()
         {
-            Name = "Motion Vectors",
+            Name = "MotionVectors",
             LightMode = "MotionVectors",
             TemplateName = "HDPBRPass.template",
             MaterialName = "PBR",

@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         Pass m_PassMETA = new Pass()
         {
             Name = "META",
-            LightMode = "Meta",
+            LightMode = "META",
             TemplateName = "HairPass.template",
             MaterialName = "Hair",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
@@ -120,7 +120,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassDepthForwardOnly = new Pass()
         {
-            Name = "DepthOnly",
+            Name = "DepthForwardOnly",
             LightMode = "DepthForwardOnly",
             TemplateName = "HairPass.template",
             MaterialName = "Hair",
@@ -194,7 +194,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassMotionVectors = new Pass()
         {
-            Name = "Motion Vectors",
+            Name = "MotionVectors",
             LightMode = "MotionVectors",
             TemplateName = "HairPass.template",
             MaterialName = "Hair",
@@ -338,7 +338,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassForwardOnly = new Pass()
         {
-            Name = "Forward",
+            Name = "ForwardOnly",
             LightMode = "ForwardOnly",
             TemplateName = "HairPass.template",
             MaterialName = "Hair",
