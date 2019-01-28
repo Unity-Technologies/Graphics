@@ -109,10 +109,11 @@ void MAIN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, ui
 
 #if DOWNSAMPLE
     float2 offset = float2(threadUL);
-    float3 p00 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min((offset                    + 0.5) * _TexelSize.zw, 1.0) * _ScreenToTargetScale.xy, 0.0).xyz;
-    float3 p10 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min((offset + float2(1.0, 0.0) + 0.5) * _TexelSize.zw, 1.0) * _ScreenToTargetScale.xy, 0.0).xyz;
-    float3 p01 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min((offset + float2(0.0, 1.0) + 0.5) * _TexelSize.zw, 1.0) * _ScreenToTargetScale.xy, 0.0).xyz;
-    float3 p11 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min((offset + float2(1.0, 1.0) + 0.5) * _TexelSize.zw, 1.0) * _ScreenToTargetScale.xy, 0.0).xyz;
+    float2 maxCoord = 1.0 - 0.5f *_TexelSize.zw;
+    float3 p00 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear((offset                    + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
+    float3 p10 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear((offset + float2(1.0, 0.0) + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
+    float3 p01 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear((offset + float2(0.0, 1.0) + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
+    float3 p11 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear((offset + float2(1.0, 1.0) + 0.5) * _TexelSize.zw, _TexelSize.zw), 0.0).xyz;
 #else
     uint2 uthreadUL = uint2(max(0, threadUL));
     uint2 size = uint2(_TexelSize.xy) - 1u;

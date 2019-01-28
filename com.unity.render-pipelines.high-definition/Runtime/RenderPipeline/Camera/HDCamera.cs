@@ -76,7 +76,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int actualHeight { get { return m_ActualHeight; } }
         public Vector2 viewportScale { get { return m_ViewportScaleCurrentFrame; } }
         public Vector2Int viewportSizePrevFrame { get { return m_ViewportSizePrevFrame; } }
-        public Vector4 doubleBufferedViewportScale { get { return new Vector4(m_ViewportScaleCurrentFrame.x, m_ViewportScaleCurrentFrame.y, m_ViewportScalePreviousFrame.x, m_ViewportScalePreviousFrame.y); } }
+        public Vector4 doubleBufferedViewportScale {
+            get
+            {
+                if (HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                {
+                    return new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                }
+
+                return new Vector4(m_ViewportScaleCurrentFrame.x, m_ViewportScaleCurrentFrame.y, m_ViewportScalePreviousFrame.x, m_ViewportScalePreviousFrame.y);
+            }
+        }
         public MSAASamples msaaSamples { get { return m_msaaSamples; } }
 
         public FrameSettings frameSettings { get { return m_frameSettings; } }
@@ -301,6 +311,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ActualWidth = Math.Max(camera.pixelWidth, 1);
             m_ActualHeight = Math.Max(camera.pixelHeight, 1);
 
+            if(isMainGameView)
+            {
+                Vector2Int scaledSize = HDDynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(camera.pixelWidth, camera.pixelHeight));
+                m_ActualWidth = scaledSize.x;
+                m_ActualHeight = scaledSize.y;
+            }
+
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
             textureWidthScaling = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
@@ -515,7 +532,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ViewportScalePreviousFrame = m_ViewportSizePrevFrame * rcpTextureSize;
             m_ViewportScaleCurrentFrame  = new Vector2Int(m_ActualWidth, m_ActualHeight) * rcpTextureSize;
 
-            screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
+            screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
             viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, actualWidth, actualHeight);

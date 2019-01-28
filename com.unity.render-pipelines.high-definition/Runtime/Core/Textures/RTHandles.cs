@@ -180,6 +180,11 @@ namespace UnityEngine.Experimental.Rendering
                 );
         }
 
+        public static void SetHardwareDynamicResolutionState(bool hwDynamicResRequested)
+        {
+            s_DefaultInstance.SetHardwareDynamicResolutionState(hwDynamicResRequested);
+        }
+
         public static void SetReferenceSize(
             int width,
             int height,

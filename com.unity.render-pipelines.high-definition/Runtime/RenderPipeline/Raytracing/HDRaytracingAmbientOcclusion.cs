@@ -47,13 +47,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SharedRTManager = sharedRTManager;
 
             // Intermediate buffer that holds the pre-denoised texture
-            m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "IntermediateAOBuffer");
+            m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "IntermediateAOBuffer");
 
             // Buffer that holds the average distance of the rays
-            m_HitDistanceBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat,  enableRandomWrite: true, useMipMap: false, name: "HitDistanceBuffer");
+            m_HitDistanceBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "HitDistanceBuffer");
 
             // Buffer that holds the uncompressed normal buffer
-            m_ViewSpaceNormalBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat,  enableRandomWrite: true, useMipMap: false, name: "ViewSpaceNormalBuffer");
+            m_ViewSpaceNormalBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "ViewSpaceNormalBuffer");
         }
 
         public void Release()

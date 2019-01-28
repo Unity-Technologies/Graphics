@@ -121,7 +121,7 @@ void KManualCameraExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), 1.0 / 1024.0, uint2(8u, 8u));
-    float2 uv = posInputs.positionNDC * _ScreenToTargetScale.xy;
+    float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC);
     float luma;
 
     UNITY_BRANCH
