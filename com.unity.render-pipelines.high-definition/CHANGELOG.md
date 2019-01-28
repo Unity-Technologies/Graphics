@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with alpha shadow clip (was incorrectly clipping object shadow)
 - Fixed double sided flip mode
 - Fixed issue with incorrect reset of RenderQueue when switching shader in inspector GUI
+- Fixed issue with variant stripper stripping incorrectly some variants
 
 ## [4.8.0-preview] - 2019-01-16
 

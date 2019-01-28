@@ -146,7 +146,7 @@ Shader "HDRP/Unlit"
 
         Pass
         {
-            Name "Depth prepass"
+            Name "DepthForwardOnly"
             Tags{ "LightMode" = "DepthForwardOnly" }
 
             Cull[_CullMode]
@@ -171,7 +171,7 @@ Shader "HDRP/Unlit"
 
         Pass
         {
-            Name "Motion Vectors"
+            Name "MotionVectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
 
             // If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity
@@ -204,7 +204,7 @@ Shader "HDRP/Unlit"
         // Unlit shader always render in forward
         Pass
         {
-            Name "Forward Unlit"
+            Name "ForwardOnly"
             Tags { "LightMode" = "ForwardOnly" }
 
             Blend [_SrcBlend] [_DstBlend]
@@ -234,7 +234,7 @@ Shader "HDRP/Unlit"
         Pass
         {
             Name "META"
-            Tags{ "LightMode" = "Meta" }
+            Tags{ "LightMode" = "META" }
 
             Cull Off
 
@@ -256,7 +256,7 @@ Shader "HDRP/Unlit"
 
         Pass
         {
-            Name "Distortion" // Name is not used
+            Name "DistortionVectors"
             Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
 
             Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
@@ -277,6 +277,8 @@ Shader "HDRP/Unlit"
             ENDHLSL
         }
     }
+
+
 
     CustomEditor "Experimental.Rendering.HDPipeline.UnlitGUI"
 }

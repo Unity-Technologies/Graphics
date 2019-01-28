@@ -169,7 +169,7 @@ Shader "HDRP/AxF"
 
         Pass
         {
-            Name "SceneSelectionPass" // Name is not used
+            Name "SceneSelectionPass"
             Tags { "LightMode" = "SceneSelectionPass" }
 
             Cull Off
@@ -193,7 +193,7 @@ Shader "HDRP/AxF"
 
         Pass
         {
-            Name "Depth prepass"
+            Name "DepthForwardOnly"
             Tags{ "LightMode" = "DepthForwardOnly" }
 
             Cull[_CullMode]
@@ -226,7 +226,7 @@ Shader "HDRP/AxF"
 
         Pass
         {
-            Name "Motion Vectors"
+            Name "MotionVectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
 
             // If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity
@@ -263,7 +263,7 @@ Shader "HDRP/AxF"
         Pass
         {
             Name "META"
-            Tags{ "LightMode" = "Meta" }
+            Tags{ "LightMode" = "META" }
 
             Cull Off
 
@@ -314,7 +314,7 @@ Shader "HDRP/AxF"
         // AxF shader always render in forward
         Pass
         {
-            Name "Forward" // Name is not used
+            Name "ForwardOnly"
             Tags { "LightMode" = "ForwardOnly" }
 
             Stencil

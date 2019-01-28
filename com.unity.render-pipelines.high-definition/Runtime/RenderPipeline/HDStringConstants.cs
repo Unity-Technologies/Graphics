@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_TransparentDepthPrepassStr = "TransparentDepthPrepass";
         public static readonly string s_TransparentBackfaceStr = "TransparentBackface";
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
-        public static readonly string s_MetaStr = "Meta";
+        public static readonly string s_MetaStr = "META";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
         public static readonly string s_MeshDecalsMStr = "DBufferMesh_M";
         public static readonly string s_MeshDecalsSStr = "DBufferMesh_S";
