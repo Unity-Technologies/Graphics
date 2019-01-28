@@ -4,7 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.4.0-preview] - 2019-XX-XX
+## [5.3.1-preview] - 2019-01-28
+
+### Added
+- Added software dynamic resolution support
+
+### Fixed
+- Fixed a case of ambient lighting flickering because of previews
 
 ## [5.3.0-preview] - 2019-01-28
 
@@ -44,7 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Lighting and BackLighting slots in Lit, StackLit, Fabric and Hair master nodes
 - Added xrInstancing flag support to RTHandle
 - Added support for cullmask for decal projectors
-- Added software dynamic resolution support
+
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -100,7 +106,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a typo in Static Lighting Sky component UI
 - Fixed issue with incorrect reset of RenderQueue when switching shader in inspector GUI
 - Fixed issue with variant stripper stripping incorrectly some variants
-- Fixed a case of ambient lighting flickering because of previews
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
