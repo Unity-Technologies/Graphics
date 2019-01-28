@@ -146,11 +146,12 @@ namespace UnityEngine.Rendering.LWRP
                 InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
                 SetupPerCameraShaderConstants(cameraData);
 
-                if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
-                    asset.maxAdditionalLightsCount == 0)
-                {
-                    cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
-                }
+                // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
+                // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
+                //     asset.maxAdditionalLightsCount == 0)
+                // {
+                //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+                // }
 
                 cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
 
