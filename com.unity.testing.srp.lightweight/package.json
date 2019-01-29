@@ -1,13 +1,13 @@
 {
 	"name": "com.unity.testing.srp.lightweight",
 	"displayName":"Lightweight Graphics Tests",
-	"version": "5.3.1",
+	"version": "5.4.0",
 	"unity": "2019.1",
 	"unityRelease": "0a14",
 	"description": "Test package containing lightweight graphics tests",
 	"keywords": ["qa", "test", "testing", "tests", "graphics"],
 	"dependencies": {		
-        "com.unity.render-pipelines.lightweight" : "5.3.1",
-        "com.unity.testframework.graphics" : "5.3.1"
+        "com.unity.render-pipelines.lightweight" : "5.4.0",
+        "com.unity.testframework.graphics" : "5.4.0"
 	}
 }
