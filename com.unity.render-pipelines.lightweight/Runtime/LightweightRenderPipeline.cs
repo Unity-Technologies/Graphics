@@ -72,8 +72,7 @@ namespace UnityEngine.Rendering.LWRP
 
             SetSupportedRenderingFeatures();
 
-            // Unity engine introduced a bug that breaks SRP batcher on metal :( disabling it for now.
-            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
