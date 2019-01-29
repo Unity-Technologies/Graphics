@@ -98,8 +98,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 if (light != null && light.GetLightProjectionType() == lightProjectionType && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
-                    RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
-
                     Material shapeLightMaterial = light.GetMaterial();
                     if (shapeLightMaterial != null)
                     {
@@ -115,6 +113,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             }
                             else
                             {
+                                RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
                                 //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
                                 Vector3 scale = new Vector3(light.m_PointLightOuterRadius, light.m_PointLightOuterRadius, light.m_PointLightOuterRadius);
                                 Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
@@ -150,6 +149,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                 }
                                 else
                                 {
+                                    RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
                                     //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
                                     Vector3 scale = new Vector3(light.m_PointLightOuterRadius, light.m_PointLightOuterRadius, light.m_PointLightOuterRadius);
                                     Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
