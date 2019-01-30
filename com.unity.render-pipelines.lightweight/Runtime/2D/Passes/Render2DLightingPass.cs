@@ -6,29 +6,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public class Render2DLightingPass : ScriptableRenderPass
     {
-        public RenderTexture m_NormalMapRT;
-        public RenderTexture m_PointLightingRT;
-
-        static CommandBuffer m_CommandBuffer;
-        static SortingLayer[] m_SortingLayers;
-        static SortingLayerRange m_SortingLayerRange;
-
-        static ShaderTagId m_CombinedShapeLightPassName = new ShaderTagId("CombinedShapeLight");
+        static SortingLayer[] s_SortingLayers;
+        float m_LightIntensityScale;
 
         public Render2DLightingPass()
         {
-            m_CommandBuffer = new CommandBuffer();
-            m_CommandBuffer.name = "Lights and Shadows Command Buffer";
-            m_SortingLayers = SortingLayer.layers;
+            if (s_SortingLayers == null)
+                s_SortingLayers = SortingLayer.layers;
+
+            RegisterShaderPassName("CombinedShapeLight");
         }
 
         public void Setup(float lightIntensityScale, _2DLightOperationDescription[] lightOperations, Camera camera)
         {
-            float inverseLightIntensityScale = 1 / lightIntensityScale;
-
-            Shader.SetGlobalFloat("_LightIntensityScale", lightIntensityScale);
-            Shader.SetGlobalFloat("_InverseLightIntensityScale", inverseLightIntensityScale);
-
+            m_LightIntensityScale = lightIntensityScale;
             RendererLighting.Setup(lightOperations, camera);
         }
 
@@ -36,15 +27,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
 #if UNITY_EDITOR
             if (!Application.isPlaying)
-                m_SortingLayers = SortingLayer.layers;
+                s_SortingLayers = SortingLayer.layers;
 #endif
             Camera camera = renderingData.cameraData.camera;
 
-            SortingSettings sortingSettings = new SortingSettings(camera);
-            sortingSettings.criteria = SortingCriteria.CommonTransparent;
-
             Profiler.BeginSample("RenderSpritesWithLighting - Prepare");
-            DrawingSettings drawSettings = new DrawingSettings(new ShaderTagId("SRPDefaultUnlit"), sortingSettings);
+            DrawingSettings drawSettings = CreateDrawingSettings(camera, SortingCriteria.CommonTransparent, PerObjectData.None, true);
             FilteringSettings filterSettings = new FilteringSettings();
             filterSettings.renderQueueRange = RenderQueueRange.all;
             filterSettings.layerMask = -1;
@@ -56,45 +44,44 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RendererLighting.CreateRenderTextures(context);
             Profiler.EndSample();
 
-            m_CommandBuffer.Clear();
-            RendererLighting.SetShapeLightShaderGlobals(m_CommandBuffer);
-            context.ExecuteCommandBuffer(m_CommandBuffer);
+            CommandBuffer cmd = CommandBufferPool.Get("Lights and Shadows Command Buffer");
+            cmd.SetGlobalFloat("_LightIntensityScale", m_LightIntensityScale);
+            cmd.SetGlobalFloat("_InverseLightIntensityScale", 1.0f / m_LightIntensityScale);
+            RendererLighting.SetShapeLightShaderGlobals(cmd);
+            context.ExecuteCommandBuffer(cmd);
 
             bool cleared = false;
-            for (int i = 0; i < m_SortingLayers.Length; i++)
+            for (int i = 0; i < s_SortingLayers.Length; i++)
             {
-                m_CommandBuffer.Clear();
-                int layerToRender = m_SortingLayers[i].id;
-                short layerValue = (short)m_SortingLayers[i].value;
-
-                m_SortingLayerRange = new SortingLayerRange(layerValue, layerValue);
-                filterSettings.sortingLayerRange = m_SortingLayerRange;
+                short layerValue = (short)s_SortingLayers[i].value;
+                filterSettings.sortingLayerRange = new SortingLayerRange(layerValue, layerValue);
 
                 RendererLighting.RenderNormals(context, renderingData.cullResults, drawSettings, filterSettings);
-                RendererLighting.RenderLights(camera, m_CommandBuffer, layerToRender);
 
-                // This should have an optimization where I can determine if this needs to be called
-                m_CommandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                cmd.Clear();
+                int layerToRender = s_SortingLayers[i].id;
+                RendererLighting.RenderLights(camera, cmd, layerToRender);
 
-                // This is only needed if no previous pass has cleared the camera RT yet.
-                if (!cleared)
-                {
-                    m_CommandBuffer.ClearRenderTarget(true, true, renderingData.cameraData.camera.backgroundColor);
-                    cleared = true;
-                }
-
-                context.ExecuteCommandBuffer(m_CommandBuffer);
+                // This should have an optimization where I can determine if this needs to be called.
+                // And the clear is only needed if no previous pass has cleared the camera RT yet.
+                var clearFlag = cleared ? ClearFlag.None : ClearFlag.All;
+                var clearColor = renderingData.cameraData.camera.backgroundColor;
+                cleared = true;
+                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, clearFlag, clearColor, TextureDimension.Tex2D);
+                
+                context.ExecuteCommandBuffer(cmd);
 
                 Profiler.BeginSample("RenderSpritesWithLighting - Draw Renderers");
-                drawSettings.SetShaderPassName(0, m_CombinedShapeLightPassName);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
                 Profiler.EndSample();
 
-                m_CommandBuffer.Clear();
-                RendererLighting.RenderLightVolumes(camera, m_CommandBuffer, layerToRender, Light2D.LightProjectionTypes.Shape);
-                RendererLighting.RenderLightVolumes(camera, m_CommandBuffer, layerToRender, Light2D.LightProjectionTypes.Point);
-                context.ExecuteCommandBuffer(m_CommandBuffer);
+                cmd.Clear();
+                RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, Light2D.LightProjectionTypes.Shape);
+                RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, Light2D.LightProjectionTypes.Point);
+                context.ExecuteCommandBuffer(cmd);
             }
+
+            CommandBufferPool.Release(cmd);
 
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
             RendererLighting.ReleaseRenderTextures(context);
