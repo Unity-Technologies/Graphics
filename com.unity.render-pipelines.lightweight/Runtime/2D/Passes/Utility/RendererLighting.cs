@@ -52,9 +52,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_RenderTargetsDirty = new bool[m_LightTypes.Length];
         }
 
-        static public void CreateRenderTextures(ScriptableRenderContext context)
+        static public void CreateRenderTextures(CommandBuffer cmd)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("Create Shape Light Textures");
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor();
             descriptor.colorFormat = m_RenderTextureFormatToUse;
             descriptor.sRGB = false;
@@ -76,18 +75,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cmd.GetTemporaryRT(m_RenderTargets[i].id, descriptor, FilterMode.Bilinear);
                 m_RenderTargetsDirty[i] = true;
             });
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
-        static public void ReleaseRenderTextures(ScriptableRenderContext context)
+        static public void ReleaseRenderTextures(CommandBuffer cmd)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("Release Shape Light Textures");
             DoPerLightTypeActions(i => { cmd.ReleaseTemporaryRT(m_RenderTargets[i].id); });
             cmd.ReleaseTemporaryRT(m_NormalsTarget.id);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         static private bool RenderShapeLightSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights, Light2D.LightProjectionTypes lightProjectionType)

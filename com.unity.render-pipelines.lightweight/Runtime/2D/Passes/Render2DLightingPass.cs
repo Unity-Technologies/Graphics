@@ -29,6 +29,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (!Application.isPlaying)
                 s_SortingLayers = SortingLayer.layers;
 #endif
+            CommandBuffer cmd = CommandBufferPool.Get("Render 2D Lighting");
+
+            Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
+            RendererLighting.CreateRenderTextures(cmd);
+            Profiler.EndSample();
+
+            cmd.SetGlobalFloat("_LightIntensityScale", m_LightIntensityScale);
+            cmd.SetGlobalFloat("_InverseLightIntensityScale", 1.0f / m_LightIntensityScale);
+            RendererLighting.SetShapeLightShaderGlobals(cmd);
+
+            context.ExecuteCommandBuffer(cmd);
+
             Camera camera = renderingData.cameraData.camera;
 
             Profiler.BeginSample("RenderSpritesWithLighting - Prepare");
@@ -39,16 +51,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
             filterSettings.sortingLayerRange = SortingLayerRange.all;
             Profiler.EndSample();
-
-            Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
-            RendererLighting.CreateRenderTextures(context);
-            Profiler.EndSample();
-
-            CommandBuffer cmd = CommandBufferPool.Get("Lights and Shadows Command Buffer");
-            cmd.SetGlobalFloat("_LightIntensityScale", m_LightIntensityScale);
-            cmd.SetGlobalFloat("_InverseLightIntensityScale", 1.0f / m_LightIntensityScale);
-            RendererLighting.SetShapeLightShaderGlobals(cmd);
-            context.ExecuteCommandBuffer(cmd);
 
             bool cleared = false;
             for (int i = 0; i < s_SortingLayers.Length; i++)
@@ -81,11 +83,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 context.ExecuteCommandBuffer(cmd);
             }
 
-            CommandBufferPool.Release(cmd);
-
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
-            RendererLighting.ReleaseRenderTextures(context);
+            RendererLighting.ReleaseRenderTextures(cmd);
             Profiler.EndSample();
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
     }
 }
