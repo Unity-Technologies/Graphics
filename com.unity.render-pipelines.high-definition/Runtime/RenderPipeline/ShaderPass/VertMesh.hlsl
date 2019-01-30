@@ -94,6 +94,93 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
 // Make it inout so that VelocityPass can get the modified input values later.
+#ifdef _INDIRECT_ON
+float4x4 world;
+StructuredBuffer<float3> instancePositions;
+StructuredBuffer<uint> visibleInstances;
+uint remapIndices;
+uint offsetIndices;
+
+VaryingsMeshType VertMesh(AttributesMesh input, uint instanceID)
+{
+    VaryingsMeshType output;
+
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+#if defined(HAVE_MESH_MODIFICATION)
+    input = ApplyMeshModification(input);
+#endif
+
+    if (remapIndices == 1)
+    {
+        instanceID = visibleInstances[instanceID];
+    }
+    else
+    {
+        instanceID += offsetIndices;
+    }
+
+    float3 inPos = input.positionOS;
+    float3 instancePos = instancePositions[instanceID];
+    instancePos = mul(world, float4(instancePos, 1.0f)); // If relocatable, otherwise we don't need to do this.
+    float3 positionRWS = instancePos + inPos;
+
+    positionRWS = GetCameraRelativePositionWS(positionRWS);
+
+    // This return the camera relative position (if enable)
+    //float3 positionRWS = TransformObjectToWorld(input.positionOS);
+#ifdef ATTRIBUTES_NEED_NORMAL
+    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+#else
+    float3 normalWS = float3(0.0, 0.0, 0.0); // We need this case to be able to compile ApplyVertexModification that doesn't use normal.
+#endif
+
+#ifdef ATTRIBUTES_NEED_TANGENT
+    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+#endif
+
+    // Do vertex modification in camera relative space (if enable)
+#if defined(HAVE_VERTEX_MODIFICATION)
+    ApplyVertexModification(input, normalWS, positionRWS, _Time);
+#endif
+
+#ifdef TESSELLATION_ON
+    output.positionRWS = positionRWS;
+    output.normalWS = normalWS;
+#if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
+    output.tangentWS = tangentWS;
+#endif
+#else
+#ifdef VARYINGS_NEED_POSITION_WS
+    output.positionRWS = positionRWS;
+#endif
+    output.positionCS = TransformWorldToHClip(positionRWS);
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    output.normalWS = normalWS;
+    output.tangentWS = tangentWS;
+#endif
+#endif
+
+#if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
+    output.texCoord0 = input.uv0;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD1) || defined(VARYINGS_DS_NEED_TEXCOORD1)
+    output.texCoord1 = input.uv1;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD2) || defined(VARYINGS_DS_NEED_TEXCOORD2)
+    output.texCoord2 = input.uv2;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD3) || defined(VARYINGS_DS_NEED_TEXCOORD3)
+    output.texCoord3 = input.uv3;
+#endif
+#if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
+    output.color = input.color;
+#endif
+
+    return output;
+}
+#else
 VaryingsMeshType VertMesh(AttributesMesh input)
 {
     VaryingsMeshType output;
@@ -157,6 +244,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 
     return output;
 }
+#endif
 
 #ifdef TESSELLATION_ON
 

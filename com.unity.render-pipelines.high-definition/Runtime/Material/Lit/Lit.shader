@@ -273,6 +273,8 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _MATERIAL_FEATURE_IRIDESCENCE
     #pragma shader_feature_local _MATERIAL_FEATURE_SPECULAR_COLOR
 
+    #pragma shader_feature _ _INDIRECT_ON
+
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
