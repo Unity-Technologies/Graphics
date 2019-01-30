@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             renderer.EnqueuePass(m_SetupForwardRenderingPass);
 
-            m_Render2DLightingPass.Setup(m_RendererData.LightIntensityScale, m_RendererData.lightOperations, renderingData.cameraData.camera);
+            m_Render2DLightingPass.Setup(m_RendererData.lightIntensityScale, m_RendererData.lightOperations, renderingData.cameraData.camera);
             renderer.EnqueuePass(m_Render2DLightingPass);
 
 #if UNITY_EDITOR

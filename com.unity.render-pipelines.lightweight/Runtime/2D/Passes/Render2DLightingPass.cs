@@ -6,15 +6,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public class Render2DLightingPass : ScriptableRenderPass
     {
-        private class Light2DCullingComponent : MonoBehaviour, IBeforeCameraRender
-        {
-            public void ExecuteBeforeCameraRender(LightweightRenderPipeline pipelineInstance, ScriptableRenderContext context, Camera camera)
-            {
-                Light2D.SetCullingEnabled(true);
-                Light2D.SetupCulling(camera);
-            }
-        }
-
         public RenderTexture m_NormalMapRT;
         public RenderTexture m_PointLightingRT;
 
@@ -48,14 +39,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_SortingLayers = SortingLayer.layers;
 #endif
             Camera camera = renderingData.cameraData.camera;
-
-            Light2DCullingComponent light2DCuller = camera.GetComponent<Light2DCullingComponent>();
-            if (light2DCuller == null)
-            {
-                light2DCuller = camera.gameObject.AddComponent<Light2DCullingComponent>();
-                Light2D.SetCullingEnabled(false);
-                light2DCuller.hideFlags = HideFlags.HideInInspector | HideFlags.HideAndDontSave;
-            }
 
             SortingSettings sortingSettings = new SortingSettings(camera);
             sortingSettings.criteria = SortingCriteria.CommonTransparent;

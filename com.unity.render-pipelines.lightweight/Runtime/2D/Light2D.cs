@@ -143,7 +143,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private int m_LightCullingIndex = -1;
         private Bounds m_LocalBounds;
-        static private bool m_LightCullingEnabled = false;
         static CullingGroup m_CullingGroup;
 
         static List<Light2D>[] m_Lights = SetupLightArray();
@@ -184,16 +183,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return boundingSphere;
         }
 
-        // This won't be needed if we have a better way to setup culling
-        static public void SetCullingEnabled(bool enabled)
-        {
-            m_LightCullingEnabled = enabled;
-        }
-
-        static public CullingGroup SetupCulling(Camera camera)
+        static public void SetupCulling(Camera camera)
         {
             if (m_CullingGroup == null)
-                m_CullingGroup = new CullingGroup();
+                return;
 
             m_CullingGroup.targetCamera = camera;
 
@@ -218,7 +211,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             m_CullingGroup.SetBoundingSpheres(boundingSpheres);
-            return m_CullingGroup;
         }
 
         public void InsertLight(Light2D light)
@@ -588,11 +580,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private void OnDisable()
         {
-            if (m_CullingGroup != null)
-            {
-                m_CullingGroup.Dispose();
-                m_CullingGroup = null;
-            }
+            bool anyLightLeft = false;
 
             if (m_Lights != null)
             {
@@ -600,7 +588,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     if (m_Lights[i].Contains(this))
                         m_Lights[i].Remove(this);
+
+                    if (m_Lights[i].Count > 0)
+                        anyLightLeft = true;
                 }
+            }
+
+            if (!anyLightLeft && m_CullingGroup != null)
+            {
+                m_CullingGroup.Dispose();
+                m_CullingGroup = null;
+                RenderPipeline.beginCameraRendering -= SetupCulling;
             }
         }
 
@@ -639,6 +637,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         void OnEnable()
         {
+            if (m_CullingGroup == null)
+            {
+                m_CullingGroup = new CullingGroup();
+                RenderPipeline.beginCameraRendering += SetupCulling;
+            }
+
             RegisterLight();
         }
 
@@ -727,13 +731,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public bool IsLightVisible(Camera camera)
         {
-            // If we remove the lwrp injection method, we should remove the m_LightCullingEnabled flag.
-            bool isVisible = (m_CullingGroup == null || !m_LightCullingEnabled || m_CullingGroup.IsVisible(m_LightCullingIndex)) && isActiveAndEnabled;
+            bool isVisible = (m_CullingGroup == null || m_CullingGroup.IsVisible(m_LightCullingIndex)) && isActiveAndEnabled;
 
 #if UNITY_EDITOR
             isVisible = isVisible && UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(gameObject, camera);
 #endif
-
             return isVisible;
         }
 
