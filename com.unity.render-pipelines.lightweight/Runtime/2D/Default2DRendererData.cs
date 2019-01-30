@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             get => m_LightOperations;
         }
 
-        public float LightIntensityScale
+        public float lightIntensityScale
         {
             get => m_LightIntensityScale;
             set => m_LightIntensityScale = value;
