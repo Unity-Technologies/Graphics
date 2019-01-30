@@ -4,7 +4,7 @@ using UnityEngine.Rendering.LWRP;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class Render2DLightingPass : ScriptableRenderPass
+    internal class Render2DLightingPass : ScriptableRenderPass
     {
         static SortingLayer[] s_SortingLayers;
         float m_LightIntensityScale;
