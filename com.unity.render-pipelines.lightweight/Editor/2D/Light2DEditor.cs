@@ -567,13 +567,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         public override void OnInspectorGUI()
         {
             bool updateMesh = false;
-            EditorGUI.BeginChangeCheck();
+            
 
             EditorGUILayout.Space();
 
             serializedObject.Update();
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_LightProjectionType, EditorGUIUtility.TrTextContent("Light Type", "Specify the light type"));
+            updateMesh |= EditorGUI.EndChangeCheck();
+
             switch (m_LightProjectionType.intValue)
             {
                 case (int)Light2D.LightProjectionTypes.Point:
@@ -583,7 +586,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     break;
                 case (int)Light2D.LightProjectionTypes.Shape:
                     {
-                        updateMesh = OnShapeLight(serializedObject);
+                        
+                        updateMesh |= OnShapeLight(serializedObject);
                     }
                     break;
             }
