@@ -124,19 +124,7 @@ namespace UnityEditor.VFX.UI
         {
             m_View = GetFirstAncestorOfType<VFXView>();
             if( m_View == null)
-            {
-                VisualElement current = this;
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                sb.AppendLine("Send tristan this error");
-                while( current != null)
-                {
-                    sb.AppendLine(current.GetType().Name + " " + current.name);
-                    current = current.parent;
-                }
-
-                Debug.LogError(sb.ToString());
                 return;
-            }
             m_View.allDataAnchors.Add(this);
         }
 
