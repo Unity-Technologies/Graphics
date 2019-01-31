@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "com.unity.postprocessing": "2.1.2",
+        "com.unity.postprocessing": "2.1.3",
         "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
         "com.unity.modules.animation": "1.0.0",
         "com.unity.modules.assetbundle": "1.0.0",
