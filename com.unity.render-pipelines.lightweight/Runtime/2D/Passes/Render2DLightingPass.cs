@@ -7,20 +7,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     internal class Render2DLightingPass : ScriptableRenderPass
     {
         static SortingLayer[] s_SortingLayers;
-        float m_LightIntensityScale;
+        static Default2DRendererData s_RendererData;
 
-        public Render2DLightingPass()
+        public Render2DLightingPass(Default2DRendererData rendererData)
         {
             if (s_SortingLayers == null)
                 s_SortingLayers = SortingLayer.layers;
 
-            RegisterShaderPassName("CombinedShapeLight");
-        }
+            if (s_RendererData == null)
+                s_RendererData = rendererData;
 
-        public void Setup(float lightIntensityScale, _2DLightOperationDescription[] lightOperations, Camera camera)
-        {
-            m_LightIntensityScale = lightIntensityScale;
-            RendererLighting.Setup(lightOperations, camera);
+            RegisterShaderPassName("CombinedShapeLight");
         }
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
@@ -29,19 +26,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (!Application.isPlaying)
                 s_SortingLayers = SortingLayer.layers;
 #endif
+            Camera camera = renderingData.cameraData.camera;
+            RendererLighting.Setup(s_RendererData.lightOperations, camera);
+
             CommandBuffer cmd = CommandBufferPool.Get("Render 2D Lighting");
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
             RendererLighting.CreateRenderTextures(cmd);
             Profiler.EndSample();
 
-            cmd.SetGlobalFloat("_LightIntensityScale", m_LightIntensityScale);
-            cmd.SetGlobalFloat("_InverseLightIntensityScale", 1.0f / m_LightIntensityScale);
+            cmd.SetGlobalFloat("_LightIntensityScale", s_RendererData.lightIntensityScale);
+            cmd.SetGlobalFloat("_InverseLightIntensityScale", 1.0f / s_RendererData.lightIntensityScale);
             RendererLighting.SetShapeLightShaderGlobals(cmd);
 
             context.ExecuteCommandBuffer(cmd);
-
-            Camera camera = renderingData.cameraData.camera;
 
             Profiler.BeginSample("RenderSpritesWithLighting - Prepare");
             DrawingSettings drawSettings = CreateDrawingSettings(camera, SortingCriteria.CommonTransparent, PerObjectData.None, true);

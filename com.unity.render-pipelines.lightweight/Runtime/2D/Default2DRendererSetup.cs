@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             m_RendererData = data;
 
-            m_Render2DLightingPass = new Render2DLightingPass();
+            m_Render2DLightingPass = new Render2DLightingPass(data);
             m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
 
 #if UNITY_EDITOR
@@ -32,8 +32,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             renderer.EnqueuePass(m_SetupForwardRenderingPass);
-
-            m_Render2DLightingPass.Setup(m_RendererData.lightIntensityScale, m_RendererData.lightOperations, renderingData.cameraData.camera);
             renderer.EnqueuePass(m_Render2DLightingPass);
 
 #if UNITY_EDITOR
