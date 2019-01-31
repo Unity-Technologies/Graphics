@@ -1,0 +1,11 @@
+{
+    "name": "com.unity.voxelized-shadowmaps",
+    "description": "Voxelized ShadowMaps is able to render scene with high-quality and many-lights shadow.",
+    "version": "0.2.0-preview",
+    "unity": "2019.1",
+    "displayName": "Voxelized ShadowMaps",
+    "dependencies": {
+        "com.unity.render-pipelines.lightweight": "5.1.0-preview",
+        "com.unity.render-pipelines.high-definition": "5.1.0-preview"
+    }
+}

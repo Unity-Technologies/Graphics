@@ -8,6 +8,7 @@ using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering.LWRP;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
+using UnityEngine.Experimental.VoxelizedShadowMaps;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -188,8 +189,10 @@ namespace UnityEngine.Rendering.LWRP
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
             {
                 reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.None,
-                defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
-                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
+                //seongdae;vxsm
+                defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly,
+                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
+                //seongdae;vxsm
                 lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed,
                 lightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
                 lightProbeProxyVolumes = false,
@@ -341,7 +344,16 @@ namespace UnityEngine.Rendering.LWRP
             // Until we can have keyword stripping forcing single cascade hard shadows on gles2
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
+            //seongdae;vxsm
+            // compute shader for screen space shadows.
+            // todo : need to fix retransform for world space in screen space on OpenGLES3.1
+            bool supportsComputeScreenSpaceShadows =
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2 &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3;
+            //seongdae;vxsm
+
             shadowData.supportsMainLightShadows = settings.supportsMainLightShadows && mainLightCastShadows;
+            shadowData.supportsMainLightVxShadows = settings.supportsVxShadows && mainLightCastShadows; //seongdae;vxsm
 
             // we resolve shadows in screenspace when cascades are enabled to save ALU as computing cascade index + shadowCoord on fragment is expensive
             shadowData.requiresScreenSpaceShadowResolve = shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
@@ -381,6 +393,25 @@ namespace UnityEngine.Rendering.LWRP
                     break;
             }
 
+            //seongdae;vxsm
+            if (shadowData.supportsMainLightShadows && settings.supportsVxShadows)
+            {
+                int mainLightIndex = GetMainLightIndex(settings, visibleLights);
+                var mainLight = visibleLights[mainLightIndex].light;
+                var dirVxShadowMap = mainLight.GetComponent<DirectionalVxShadowMap>();
+
+                bool dirVxShadowMapIsValid = dirVxShadowMap != null && dirVxShadowMap.IsValid();
+
+                shadowData.requiresScreenSpaceShadowCompute = dirVxShadowMapIsValid;
+                shadowData.mainLightVxShadowQuality = (int)settings.vxShadowMapsQuality;
+            }
+            else
+            {
+                shadowData.requiresScreenSpaceShadowCompute = false;
+                shadowData.mainLightVxShadowQuality = 0;
+            }
+            //seongdae;vxsm
+
             shadowData.supportsAdditionalLightShadows = settings.supportsAdditionalLightShadows && additionalLightsCastShadows;
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
@@ -400,7 +431,7 @@ namespace UnityEngine.Rendering.LWRP
                 lightData.maxPerObjectAdditionalLightsCount = Math.Min(settings.maxAdditionalLightsCount, maxPerObjectAdditionalLights);
             }
             else
-        {
+            {
                 lightData.additionalLightsCount = 0;
                 lightData.maxPerObjectAdditionalLightsCount = 0;
             }

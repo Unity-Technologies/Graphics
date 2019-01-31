@@ -22,6 +22,15 @@ namespace UnityEngine.Rendering.LWRP
         SoftShadows,
     }
 
+    //seongdae;vxsm
+    public enum VxShadowMapsQuality
+    {
+        Nearest = 0,
+        Bilinear = 1,
+        Trilinear = 2,
+    }
+    //seongdae;vxsm
+
     public enum ShadowResolution
     {
         _256 = 256,
@@ -107,6 +116,8 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_VxShadowsSupported = false; //seongdae;vxsm
+        [SerializeField] VxShadowMapsQuality m_VxShadowMapsQuality = VxShadowMapsQuality.Bilinear; //seongdae;vxsm
 
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
@@ -359,6 +370,19 @@ namespace UnityEngine.Rendering.LWRP
             get { return m_SoftShadowsSupported; }
         }
 
+        //seongdae;vxsm
+        public bool supportsVxShadows
+        {
+            get { return m_VxShadowsSupported; }
+        }
+
+        public VxShadowMapsQuality vxShadowMapsQuality
+        {
+            get { return m_VxShadowMapsQuality; }
+            set { m_VxShadowMapsQuality = value; }
+        }
+        //seongdae;vxsm
+
         public bool supportsDynamicBatching
         {
             get { return m_SupportsDynamicBatching; }
@@ -469,6 +493,12 @@ namespace UnityEngine.Rendering.LWRP
             get { return resources != null ? resources.samplingShader : null; }
         }
 
+        //seongdae;vxsm
+        public ComputeShader screenSpaceShadowComputeShader
+        {
+            get { return resources != null ? resources.screenSpaceShadowComputeShader : null; }
+        }
+        //seongdae;vxsm
 
         public void OnBeforeSerialize()
         {

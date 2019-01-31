@@ -1,0 +1,597 @@
+
+#pragma kernel BlendDynamicShadowsNoFilter  CSMain=BlendDynamicShadowsNoFilter  WITH_DYNAMIC_SHADOWS NO_FILTERING
+#pragma kernel BlendDynamicShadowsBilinear  CSMain=BlendDynamicShadowsBilinear  WITH_DYNAMIC_SHADOWS BILINEAR_FILTERING
+#pragma kernel BlendDynamicShadowsTrilinear CSMain=BlendDynamicShadowsTrilinear WITH_DYNAMIC_SHADOWS TRILINEAR_FILTERING
+
+#pragma kernel NoBlendNoFilter              CSMain=NoBlendNoFilter              NO_FILTERING
+#pragma kernel NoBlendBilinear              CSMain=NoBlendBilinear              BILINEAR_FILTERING
+#pragma kernel NoBlendTrilinear             CSMain=NoBlendTrilinear             TRILINEAR_FILTERING
+
+#define TILE_SIZE 8
+
+#define _SHADOWS_ENABLED
+#define _MAIN_LIGHT_SHADOWS_CASCADE
+
+#define USE_EMULATE_CLZ
+//#define USE_IMITATED_CLZ
+
+#define DO_RETRAVERSAL
+//#define VISUALIZE_TRAVERSAL
+
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Input.hlsl"
+#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
+
+#ifdef UNITY_MATRIX_I_VP
+#undef UNITY_MATRIX_I_VP
+#endif
+
+
+#define UNITY_MATRIX_I_VP _InvViewProjMatrix
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
+#else
+TEXTURE2D_FLOAT(_CameraDepthTexture);
+#endif
+
+SAMPLER(sampler_CameraDepthTexture);
+
+CBUFFER_START(_DirectionalVxShadowMap)
+uint _VoxelResolution;
+int _VoxelZBias;
+float _VoxelUpBias;
+uint _MaxScale;
+float4x4 _WorldToShadowMatrix;
+CBUFFER_END
+
+StructuredBuffer<uint> _VxShadowMapBuffer;
+RW_TEXTURE2D(float, _ScreenSpaceShadowOutput);
+
+
+uint emulateCLZ(uint x)
+{
+    // emulate it similar to count leading zero.
+    // count leading 1bit.
+
+    uint n = 32;
+    uint y;
+
+    y = x >> 16; if (y != 0) { n = n - 16; x = y; }
+    y = x >>  8; if (y != 0) { n = n -  8; x = y; }
+    y = x >>  4; if (y != 0) { n = n -  4; x = y; }
+    y = x >>  2; if (y != 0) { n = n -  2; x = y; }
+    y = x >>  1; if (y != 0) return n - 2;
+
+    return n - x;
+}
+
+
+uint imitateCLZ(uint srcPosbit, uint dstPosbit)
+{
+    int i = _MaxScale;
+    for (; i > 1; --i)
+    {
+        uint shift = i - 1;
+
+        uint a = (srcPosbit >> shift) & 0x00000001;
+        uint b = (dstPosbit >> shift) & 0x00000001;
+
+        if (a != b)
+            break;
+    }
+
+    return i;
+}
+
+
+// todo : calculate uint2 and uint2
+uint CalculateRescale(uint srcPosbit, uint dstPosbit)
+{
+#if defined USE_EMULATE_CLZ
+    uint disparity = 32 - emulateCLZ(srcPosbit ^ dstPosbit);
+#elif defined USE_IMITATED_CLZ
+    uint disparity = imitateCLZ(srcPosbit, dstPosbit);
+#else
+    uint disparity = _MaxScale;
+#endif
+
+    return disparity;
+}
+
+
+uint4 TraverseVxShadowMapPosQ(uint3 posQ)
+{
+    uint nodeIndex = 0;
+    uint scale = _MaxScale;
+
+    bool lit = false;
+    bool shadowed = false;
+    bool intersected = true;
+
+    for (; scale > 3 && intersected; --scale)
+    {
+        // calculate where to go to child
+        uint3 childDet = (posQ >> (scale - 1)) & 0x00000001;
+        uint cellShift = (childDet.x << 1) + (childDet.y << 2) + (childDet.z << 3);
+        uint cellbit   = 0x00000003 << cellShift;
+
+        // calculate bit
+        uint header = _VxShadowMapBuffer[nodeIndex];
+        uint childmask = header >> 16;
+        uint shadowbit = (childmask & cellbit) >> cellShift;
+
+        // determine whether it is lit or shadowed.
+        lit      = shadowbit & 0x00000001;
+        shadowed = shadowbit & 0x00000002;
+
+        // if it has lit and shadowed, it is not decided yet(need to traverse more)
+        intersected = lit && shadowed;
+
+        // find next child node
+        uint mask = ~(0xFFFFFFFF << cellShift);
+        uint childrenbit = childmask & ((childmask & 0x0000AAAA) >> 1);
+        uint childIndex = countbits(childrenbit & mask);
+
+        // go down to the next node
+        nodeIndex = _VxShadowMapBuffer[nodeIndex + 1 + childIndex];
+    }
+
+    return uint4(nodeIndex, lit, shadowed, intersected);
+}
+
+
+uint4 TraverseVxShadowMapPosQ(uint3 posQ, out uint scale, out uint nodeTracer[16])
+{
+    uint nodeIndex = 0;
+
+    scale = _MaxScale;
+
+    bool lit = false;
+    bool shadowed = false;
+    bool intersected = true;
+
+    for (; scale > 3 && intersected; --scale)
+    {
+        // push node index
+        uint tracerIndex = scale - 4;
+        nodeTracer[tracerIndex] = nodeIndex;
+
+        // calculate where to go to child
+        uint3 childDet = (posQ >> (scale - 1)) & 0x00000001;
+        uint cellShift = (childDet.x << 1) + (childDet.y << 2) + (childDet.z << 3);
+        uint cellbit   = 0x00000003 << cellShift;
+
+        // calculate bit
+        uint header = _VxShadowMapBuffer[nodeIndex];
+        uint childmask = header >> 16;
+        uint shadowbit = (childmask & cellbit) >> cellShift;
+
+        // determine whether it is lit or shadowed.
+        lit      = shadowbit & 0x00000001;
+        shadowed = shadowbit & 0x00000002;
+
+        // if it has lit and shadowed, it is not decided yet(need to traverse more)
+        intersected = lit && shadowed;
+
+        // find next child node
+        uint mask = ~(0xFFFFFFFF << cellShift);
+        uint childrenbit = childmask & ((childmask & 0x0000AAAA) >> 1);
+        uint childIndex = countbits(childrenbit & mask);
+
+        // go down to the next node
+        nodeIndex = _VxShadowMapBuffer[nodeIndex + 1 + childIndex];
+    }
+
+    return uint4(nodeIndex, lit, shadowed, intersected);
+}
+
+
+uint4 RetraverseVxShadowMapPosQ(uint3 posQ, uint scale, uint nodeIndex)
+{
+    bool lit = false;
+    bool shadowed = false;
+    bool intersected = true;
+
+    for (; scale > 3 && intersected; --scale)
+    {
+        // calculate where to go to child
+        uint3 childDet = (posQ >> (scale - 1)) & 0x00000001;
+        uint cellShift = (childDet.x << 1) + (childDet.y << 2) + (childDet.z << 3);
+        uint cellbit   = 0x00000003 << cellShift;
+
+        // calculate bit
+        uint header = _VxShadowMapBuffer[nodeIndex];
+        uint childmask = header >> 16;
+        uint shadowbit = (childmask & cellbit) >> cellShift;
+
+        // determine whether it is lit or shadowed.
+        lit      = shadowbit & 0x00000001;
+        shadowed = shadowbit & 0x00000002;
+
+        // if it has lit and shadowed, it is not decided yet(need to traverse more)
+        intersected = lit && shadowed;
+
+        // find next child node
+        uint mask = ~(0xFFFFFFFF << cellShift);
+        uint childrenbit = childmask & ((childmask & 0x0000AAAA) >> 1);
+        uint childIndex = countbits(childrenbit & mask);
+
+        // go down to the next node
+        nodeIndex = _VxShadowMapBuffer[nodeIndex + 1 + childIndex];
+    }
+
+    return uint4(nodeIndex, lit, shadowed, intersected);
+}
+
+
+uint2 TraverseVxShadowMapLeaf(uint posQ_z, uint4 innerResult)
+{
+    uint nodeIndex   = innerResult.x;
+
+    bool lit         = innerResult.y;
+    bool intersected = innerResult.w;
+
+    uint bitmask0 = lit ? 0x00000000 : 0xFFFFFFFF;
+    uint bitmask1 = lit ? 0x00000000 : 0xFFFFFFFF;
+
+    if (intersected)
+    {
+        int childIndex = posQ_z % 8;
+        int leafIndex = _VxShadowMapBuffer[nodeIndex + childIndex];
+
+        bitmask0 = _VxShadowMapBuffer[leafIndex];
+        bitmask1 = _VxShadowMapBuffer[leafIndex + 1];
+    }
+
+    return uint2(bitmask0, bitmask1);
+}
+
+
+// for one x-y-z-step
+uint2 RetraversalVxShadowMapLeaf(uint3 posQ, uint3 offset, uint rescale, uint scale, uint2 bitmask2, uint nodeTracer[16])
+{
+#ifdef DO_RETRAVERSAL
+    if (rescale <= scale)
+        return bitmask2;
+
+    uint nodeIndex = nodeTracer[rescale - 4];
+    uint4 result = RetraverseVxShadowMapPosQ(posQ + offset, rescale, nodeIndex);
+    bitmask2 = TraverseVxShadowMapLeaf(posQ.z + offset.z, result);
+#endif
+
+    return bitmask2;
+}
+
+
+// only for one z-step
+uint2 RetraversalVxShadowMapLeafOneZStep(uint3 posQ, uint rescale, uint scale, uint4 result, uint nodeTracer[16])
+{
+#ifdef DO_RETRAVERSAL
+    if (rescale <= scale)
+        return TraverseVxShadowMapLeaf(posQ.z + 1, result);
+
+    uint nodeIndex = nodeTracer[rescale - 4];
+    result = RetraverseVxShadowMapPosQ(posQ + uint3(0, 0, 1), rescale, nodeIndex);
+#endif
+
+    return TraverseVxShadowMapLeaf(posQ.z + 1, result);
+}
+
+
+float PointSampleShadowBitmask(uint2 bitmask2, uint3 posQ)
+{
+    uint2 posLeaf = posQ.xy % uint2(8, 8);
+    uint bitmask = posLeaf.y < 4 ? bitmask2.x : bitmask2.y;
+
+    uint shift = posLeaf.x + 8 * (posLeaf.y % 4);
+    uint mask = 0x00000001 << shift;
+
+    float litRate = (bitmask & mask) == 0 ? 1.0 : 0.0;
+
+    return litRate;
+}
+
+
+float PointSampleShadowBitmask(uint2 bitmask2, uint3 posQ, uint2 offset)
+{
+    uint2 posLeaf = (posQ.xy + offset) % uint2(8, 8);
+    uint bitmask = posLeaf.y < 4 ? bitmask2.x : bitmask2.y;
+
+    uint shift = posLeaf.x + 8 * (posLeaf.y % 4);
+    uint mask = 0x00000001 << shift;
+
+    float litRate = (bitmask & mask) == 0 ? 1.0 : 0.0;
+
+    return litRate;
+}
+
+
+float BilinearSampleShadowBitmask(uint3 posQ, uint2 bitmask2_00, uint2 bitmask2_10, uint2 bitmask2_01, uint2 bitmask2_11, float2 lerpWeight)
+{
+#if 1 // second opt
+    uint4 posLeaf_x = (posQ.xxxx + uint4(0, 1, 0, 1)) % 8;
+    uint4 posLeaf_y = (posQ.yyyy + uint4(0, 0, 1, 1)) % 8;
+
+    uint4 bitmask_x = uint4(bitmask2_00.x, bitmask2_10.x, bitmask2_01.x, bitmask2_11.x);
+    uint4 bitmask_y = uint4(bitmask2_00.y, bitmask2_10.y, bitmask2_01.y, bitmask2_11.y);
+
+    uint4 bitmask = posLeaf_y < 4 ? bitmask_x : bitmask_y;
+    uint4 shift = posLeaf_x + 8 * (posLeaf_y % 4);
+
+    uint4 mask = 0x00000001 << shift;
+
+    float4 attenuation = (bitmask & mask) == 0 ? float4(1.0, 1.0, 1.0, 1.0) : float4(0.0, 0.0, 0.0, 0.0);
+
+    attenuation.x = lerp(attenuation.x, attenuation.y, lerpWeight.x);
+    attenuation.y = lerp(attenuation.z, attenuation.w, lerpWeight.x);
+
+    return lerp(attenuation.x, attenuation.y, lerpWeight.y);
+
+#elif 0 // first opt
+    uint2 posLeaf_00 = posQ.xy % uint2(8, 8);
+    uint2 posLeaf_10 = uint2(posQ.x + 1, posQ.y) % uint2(8, 8);
+    uint2 posLeaf_01 = uint2(posQ.x, posQ.y + 1) % uint2(8, 8);
+    uint2 posLeaf_11 = (posQ.xy + 1) % uint2(8, 8);
+
+    uint4 bitmask = uint4(
+        posLeaf_00.y < 4 ? bitmask2_00.x : bitmask2_00.y,
+        posLeaf_10.y < 4 ? bitmask2_10.x : bitmask2_10.y,
+        posLeaf_01.y < 4 ? bitmask2_01.x : bitmask2_01.y,
+        posLeaf_11.y < 4 ? bitmask2_11.x : bitmask2_11.y);
+
+    uint4 shift = uint4(
+        posLeaf_00.x + 8 * (posLeaf_00.y % 4),
+        posLeaf_10.x + 8 * (posLeaf_10.y % 4),
+        posLeaf_01.x + 8 * (posLeaf_01.y % 4),
+        posLeaf_11.x + 8 * (posLeaf_11.y % 4));
+
+    uint4 mask = 0x00000001 << shift;
+
+    float4 attenuation = (bitmask & mask) == 0 ? float4(1.0, 1.0, 1.0, 1.0) : float4(0.0, 0.0, 0.0, 0.0);
+
+    attenuation.x = lerp(attenuation.x, attenuation.y, lerpWeight.x);
+    attenuation.y = lerp(attenuation.z, attenuation.w, lerpWeight.x);
+
+    return lerp(attenuation.x, attenuation.y, lerpWeight.y);
+#else // origin
+    float attenuation0 = PointSampleShadowBitmask(bitmask2_00, posQ);
+    float attenuation1 = PointSampleShadowBitmask(bitmask2_10, posQ, uint2(1, 0));
+    float attenuation2 = PointSampleShadowBitmask(bitmask2_01, posQ, uint2(0, 1));
+    float attenuation3 = PointSampleShadowBitmask(bitmask2_11, posQ, uint2(1, 1));
+
+    attenuation0 = lerp(attenuation0, attenuation1, lerpWeight.x);
+    attenuation1 = lerp(attenuation2, attenuation3, lerpWeight.x);
+
+    return lerp(attenuation0, attenuation1, lerpWeight.y);
+#endif
+}
+
+
+float ComputeVxShadowMapAttenuationNoFiltering(float3 positionWS)
+{
+    positionWS.y += _VoxelUpBias;
+    float3 posNDC = mul(_WorldToShadowMatrix, float4(positionWS, 1.0)).xyz;
+    float3 posP = posNDC * (float)_VoxelResolution;
+
+    uint3 posQ = (uint3)posP;
+    posQ.z -= _VoxelZBias;
+
+    if (any(posQ >= (_VoxelResolution.xxx - 1)))
+        return 1.0;
+
+    uint4 result = TraverseVxShadowMapPosQ(posQ);
+    if (result.w == 0)
+#ifdef VISUALIZE_TRAVERSAL
+        return result.y ? 0.75 : 0.25;
+#else
+        return result.y ? 1.0 : 0.0;
+#endif
+
+    uint2 bitmask2 = TraverseVxShadowMapLeaf(posQ.z, result);
+    float attenuation = PointSampleShadowBitmask(bitmask2, posQ);
+
+    return attenuation;
+}
+
+
+float ComputeVxShadowMapAttenuationBiFiltering(float3 positionWS)
+{
+    positionWS.y += _VoxelUpBias;
+    float3 posNDC = mul(_WorldToShadowMatrix, float4(positionWS, 1.0)).xyz;
+
+    float3 posP = posNDC * (float)_VoxelResolution - 0.5;
+    float3 posF = floor(posP);
+    float2 lerpWeight = posP.xy - posF.xy;
+
+    uint3 posQ = (uint3)posP;
+    posQ.z -= _VoxelZBias;
+
+    if (any(posQ >= (_VoxelResolution.xxx - 1)))
+        return 1.0;
+
+    uint scale = 0;
+    uint nodeTracer[16];
+
+    uint4 result = TraverseVxShadowMapPosQ(posQ, scale, nodeTracer);
+
+    uint2 edgeQ = uint2(1, 1) << scale;
+    bool2 inner = (posQ.xy % edgeQ) < (edgeQ - 1);
+
+    if (all(inner) && result.w == 0)
+#ifdef VISUALIZE_TRAVERSAL
+        return result.y ? 0.75 : 0.25;
+#else
+        return result.y ? 1.0 : 0.0;
+#endif
+
+    uint2 rescale = uint2(
+        CalculateRescale(posQ.x, posQ.x + 1),
+        CalculateRescale(posQ.y, posQ.y + 1));
+
+    uint maxRescale = max(rescale.x, rescale.y);
+
+    // todo : reduce traversal count by storing node tracer at each retraversal function
+    uint2 bitmask2_00 = TraverseVxShadowMapLeaf(posQ.z, result);
+    uint2 bitmask2_10 = RetraversalVxShadowMapLeaf(posQ, uint3(1, 0, 0), rescale.x, scale, bitmask2_00, nodeTracer);
+    uint2 bitmask2_01 = RetraversalVxShadowMapLeaf(posQ, uint3(0, 1, 0), rescale.y, scale, bitmask2_00, nodeTracer);
+    uint2 bitmask2_11 = RetraversalVxShadowMapLeaf(posQ, uint3(1, 1, 0), maxRescale, scale, bitmask2_00, nodeTracer);
+
+    return BilinearSampleShadowBitmask(posQ, bitmask2_00, bitmask2_10, bitmask2_01, bitmask2_11, lerpWeight.xy);
+}
+
+
+float ComputeVxShadowMapAttenuationTriFiltering(float3 positionWS)
+{
+    positionWS.y += _VoxelUpBias;
+    float3 posNDC = mul(_WorldToShadowMatrix, float4(positionWS, 1.0)).xyz;
+
+    float3 posP = posNDC * _VoxelResolution - 0.5;
+    float3 posF = floor(posP);
+    float3 lerpWeight = posP - posF;
+
+    uint3 posQ = (uint3)posP;
+    posQ.z -= _VoxelZBias;
+
+    if (any(posQ >= (_VoxelResolution.xxx - 1)))
+        return 1.0;
+
+    uint scale = 0;
+    uint nodeTracer[16];
+
+    uint4 result = TraverseVxShadowMapPosQ(posQ, scale, nodeTracer);
+
+    uint3 edgeQ = uint3(1, 1, 1) << scale;
+    bool3 inner = (posQ % edgeQ) < (edgeQ - 1);
+
+    if (all(inner) && result.w == 0)
+#ifdef VISUALIZE_TRAVERSAL
+        return result.y ? 0.75 : 0.25;
+#else
+        return result.y ? 1.0 : 0.0;
+#endif
+
+    uint3 rescale = uint3(
+        CalculateRescale(posQ.x, posQ.x + 1),
+        CalculateRescale(posQ.y, posQ.y + 1),
+        CalculateRescale(posQ.z, posQ.z + 1));
+
+    uint maxRescale = max(rescale.x, rescale.y);
+
+    // todo : reduce traversal count by storing node tracer at each retraversal function
+    uint2 bitmask2_00 = TraverseVxShadowMapLeaf(posQ.z, result);
+    uint2 bitmask2_10 = RetraversalVxShadowMapLeaf(posQ, uint3(1, 0, 0), rescale.x, scale, bitmask2_00, nodeTracer);
+    uint2 bitmask2_01 = RetraversalVxShadowMapLeaf(posQ, uint3(0, 1, 0), rescale.y, scale, bitmask2_00, nodeTracer);
+    uint2 bitmask2_11 = RetraversalVxShadowMapLeaf(posQ, uint3(1, 1, 0), maxRescale, scale, bitmask2_00, nodeTracer);
+
+    float attenuation_z0 = BilinearSampleShadowBitmask(posQ, bitmask2_00, bitmask2_10, bitmask2_01, bitmask2_11, lerpWeight.xy);
+
+    uint maxRescale1 = max(rescale.z, rescale.x);
+    uint maxRescale2 = max(rescale.z, rescale.y);
+    uint maxRescale3 = max(rescale.z, maxRescale);
+
+    // todo : reduce traversal count by storing node tracer at each retraversal function
+    bitmask2_00 = RetraversalVxShadowMapLeafOneZStep(posQ, rescale.z, scale, result, nodeTracer);
+    bitmask2_10 = RetraversalVxShadowMapLeaf(posQ, uint3(1, 0, 1), maxRescale1, scale, bitmask2_00, nodeTracer);
+    bitmask2_01 = RetraversalVxShadowMapLeaf(posQ, uint3(0, 1, 1), maxRescale2, scale, bitmask2_00, nodeTracer);
+    bitmask2_11 = RetraversalVxShadowMapLeaf(posQ, uint3(1, 1, 1), maxRescale3, scale, bitmask2_00, nodeTracer);
+
+    float attenuation_z1 = BilinearSampleShadowBitmask(posQ, bitmask2_00, bitmask2_10, bitmask2_01, bitmask2_11, lerpWeight.xy);
+
+    return lerp(attenuation_z0, attenuation_z1, lerpWeight.z);
+}
+
+
+float ComputeVxShadowMapAttenuationPCF9x9iltering(float3 positionWS)
+{
+    positionWS.y += _VoxelUpBias;
+    float3 posNDC = mul(_WorldToShadowMatrix, float4(positionWS, 1.0)).xyz;
+    float3 posP = posNDC * (float)_VoxelResolution;
+
+    uint3 posQ = (uint3)posP;
+    posQ.z -= _VoxelZBias;
+
+    if (any(posQ >= (_VoxelResolution.xxx - 1)))
+        return 1.0;
+
+    uint4 result = TraverseVxShadowMapPosQ(posQ);
+    if (result.w == 0)
+        return result.y ? 1.0 : 0.0;
+
+    uint2 bitmask2 = TraverseVxShadowMapLeaf(posQ.z, result);
+    float attenuation = PointSampleShadowBitmask(bitmask2, posQ);
+
+    return attenuation;
+}
+
+float SampleVxShadowMap(float3 positionWS)
+{
+    float attenuation = 1.0;
+
+#if NO_FILTERING
+    attenuation = ComputeVxShadowMapAttenuationNoFiltering(positionWS);
+#elif BILINEAR_FILTERING
+    attenuation = ComputeVxShadowMapAttenuationBiFiltering(positionWS);
+#elif TRILINEAR_FILTERING
+    attenuation = ComputeVxShadowMapAttenuationTriFiltering(positionWS);
+#elif PCF9X9_FILTERING
+    //attenuation = ComputeVxShadowMapAttenuationPCF9x9iltering(positionWS);
+#endif
+
+    return attenuation;
+}
+
+
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+void CSMain(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    uint2 pixelCoord = groupId * TILE_SIZE + groupThreadId;
+    uint2 tileCoord = groupId;
+
+    if (any(pixelCoord.xy >= (uint2)_ScreenSize.xy))
+        return;
+
+    float depth = LOAD_TEXTURE2D(_CameraDepthTexture, pixelCoord).x;
+
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _ScreenSpaceShadowOutput[pixelCoord] = 1.0;
+        return;
+    }
+
+    // if depth is not reversed
+#if !UNITY_REVERSED_Z
+    // todo : find the way to work on OpenGLES 3.1+ on mobile
+    //depth = depth * 2.0 - 1.0; OpenGLCore
+#endif
+
+#if 0
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
+    float3 positionWS = posInput.positionWS;
+#else
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, tileCoord);
+    float3 positionWS = ComputeWorldSpacePosition(posInput.positionNDC, depth, UNITY_MATRIX_I_VP);
+#endif
+
+    float shadowStrength = GetMainLightShadowStrength();
+    float attenuation = 1.0;
+
+#if WITH_DYNAMIC_SHADOWS
+    float4 shadowMapCoords = TransformWorldToShadowCoord(positionWS);
+
+    ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
+    attenuation = SampleShadowmap(shadowMapCoords, TEXTURE2D_PARAM(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowSamplingData, 1.0, false);
+
+    if (attenuation == 0.0)
+    {
+        _ScreenSpaceShadowOutput[pixelCoord] = LerpWhiteTo(attenuation, shadowStrength);
+        return;
+    }
+#endif
+
+    attenuation = min(attenuation, SampleVxShadowMap(positionWS));
+
+    _ScreenSpaceShadowOutput[pixelCoord] = LerpWhiteTo(attenuation, shadowStrength);
+}
