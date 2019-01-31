@@ -27,12 +27,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 s_SortingLayers = SortingLayer.layers;
 #endif
             Camera camera = renderingData.cameraData.camera;
-            RendererLighting.Setup(s_RendererData.lightOperations, camera);
+            RendererLighting.Setup(s_RendererData.lightOperations);
 
             CommandBuffer cmd = CommandBufferPool.Get("Render 2D Lighting");
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
-            RendererLighting.CreateRenderTextures(cmd);
+            RendererLighting.CreateRenderTextures(cmd, camera);
             Profiler.EndSample();
 
             cmd.SetGlobalFloat("_LightIntensityScale", s_RendererData.lightIntensityScale);
