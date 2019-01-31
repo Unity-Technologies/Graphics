@@ -156,6 +156,7 @@ namespace UnityEditor.VFX
 
             var toggleRect = rect;
             toggleRect.yMin += 3.0f;
+            toggleRect.width = 18;
             overridenProperty.boolValue = EditorGUI.Toggle(toggleRect, overridenProperty.hasMultipleDifferentValues ? false : overridenProperty.boolValue, overridenProperty.hasMultipleDifferentValues ? Styles.toggleMixedStyle : Styles.toggleStyle);
             rect.xMin += overrideWidth;
 
