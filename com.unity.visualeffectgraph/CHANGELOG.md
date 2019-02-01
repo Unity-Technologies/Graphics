@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix fog on decals
 - Saturate alpha component in outputs
 - Fixed scaleY in ConnectTarget
+- Incorrect toggle rectangle in VisualEffect inspector
 
 ## [5.2.0-preview] - 2018-11-27
 ### Added
