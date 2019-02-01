@@ -37,6 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent useColorTemperature = new GUIContent("Color Temperature", "Choose between RGB and temperature mode for light's color.");
             public readonly GUIContent colorFilter = new GUIContent("Filter", "A colored gel can be put in front of the light source to tint the light.");
             public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Also known as CCT (Correlated color temperature). The color temperature of the electromagnetic radiation emitted from an ideal black body is defined as its surface temperature in Kelvin. White is 6500K");
+            public readonly GUIContent areaLightCookie = new GUIContent("Cookie", "Cookie mask currently assigned to the area light.");
 
             // Additional light data
             public readonly GUIContent directionalIntensity = new GUIContent("Intensity (Lux)", "Illuminance of the directional light at ground level in lux.");

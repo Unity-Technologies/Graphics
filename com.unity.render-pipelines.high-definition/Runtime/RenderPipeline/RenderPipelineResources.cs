@@ -80,7 +80,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader encodeBC6HCS;
             public Shader cubeToPanoPS;
             public Shader blitCubeTextureFacePS;
-
+            public Shader filterAreaLightCookiesPS;
+            
             // Shadow
             public Shader shadowClearPS;
             public ComputeShader shadowBlurMomentsCS;
@@ -263,6 +264,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute"),
                 cubeToPanoPS = Load<Shader>(CorePath + "CoreResources/CubeToPano.shader"),
                 blitCubeTextureFacePS = Load<Shader>(CorePath + "CoreResources/BlitCubeTextureFace.shader"),
+                filterAreaLightCookiesPS = Load<Shader>(CorePath + "CoreResources/FilterAreaLightCookies.shader"),
 
                 // Shadow
                 shadowClearPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowClear.shader"),

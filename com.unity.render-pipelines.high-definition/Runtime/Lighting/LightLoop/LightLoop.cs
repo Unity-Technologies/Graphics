@@ -193,9 +193,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         PlanarReflectionProbeCache m_ReflectionPlanarProbeCache;
         ReflectionProbeCache m_ReflectionProbeCache;
+
+        // Structure for cookies used by directional and spotlights
         TextureCache2D m_CookieTexArray;
+
+        // Structure for cookies used by point lights
         TextureCacheCubemap m_CubeCookieTexArray;
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
+
+        // Structure for cookies used by area lights
+        LTCAreaLightCookieManager m_AreaLightCookieManager;
 
         // For now we don't use shadow cascade borders.
         static public readonly bool s_UseCascadeBorders = false;
@@ -513,6 +520,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 coockieCubeSize = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, coockieCubeResolution, 1);
             m_CubeCookieTexArray.AllocTextureArray(coockieCubeSize, coockieCubeResolution, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
 
+            // Create the cookie manager
+            m_AreaLightCookieManager = new LTCAreaLightCookieManager(hdAsset, k_MaxCacheSize);
+
             // For regular reflection probes, we need to convolve with all the BSDF functions
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             int reflectionCubeSize = gLightLoopSettings.reflectionProbeCacheSize;
@@ -688,6 +698,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_CubeCookieTexArray.Release();
                 m_CubeCookieTexArray = null;
+            }
+            
+            if (m_AreaLightCookieManager != null)
+            {
+                m_AreaLightCookieManager.ReleaseResources();
+                m_AreaLightCookieManager = null;
             }
 
             ReleaseResolutionDependentBuffers();
@@ -1185,6 +1201,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Projectors lights must always have a cookie texture.
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
                 lightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
+            }
+            else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
+            {
+                lightData.cookieIndex = m_AreaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
             }
 
             if (additionalShadowData)
@@ -2525,9 +2545,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowManager.BindResources(cmd);
 
                 cmd.SetGlobalTexture(HDShaderIDs._CookieTextures, m_CookieTexArray.GetTexCache());
+                cmd.SetGlobalTexture(HDShaderIDs._AreaCookieTextures, m_AreaLightCookieManager.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
                 cmd.SetGlobalInt(HDShaderIDs._EnvSliceSize, m_ReflectionProbeCache.GetEnvSliceSize());
+                // Compute the power of 2 size of the texture
+                int pot = Mathf.RoundToInt( 1.4426950408889634073599246810019f * Mathf.Log( m_CookieTexArray.GetTexCache().width ) );
+                cmd.SetGlobalInt(HDShaderIDs._CookieSizePOT, pot);
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
                 cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
 
