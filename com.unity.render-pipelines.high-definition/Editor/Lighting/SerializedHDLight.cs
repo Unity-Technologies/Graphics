@@ -38,6 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty minFilterSize;
             public SerializedProperty sunDiskSize;
             public SerializedProperty sunHaloSize;
+            public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
 
             // Improved moment shadows data
             public SerializedProperty lightAngle;
@@ -123,7 +124,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     minFilterSize = o.Find(x => x.minFilterSize),
                     sunDiskSize = o.Find(x => x.sunDiskSize),
                     sunHaloSize = o.Find(x => x.sunHaloSize),
-
+                    areaLightCookie = o.Find(x => x.areaLightCookie),
+                    
                     // Moment light
                     lightAngle = o.Find(x => x.lightAngle),
                     kernelSize = o.Find(x => x.kernelSize),

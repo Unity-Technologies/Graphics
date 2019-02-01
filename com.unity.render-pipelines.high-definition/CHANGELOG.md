@@ -45,9 +45,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for cullmask for decal projectors
 - Added software dynamic resolution support
 - Added support for "After Post-Process" render pass for unlit shader
+- Added support for textured rectangular area lights
 
 ### Fixed
-- Fixed Decals when rendering multiple camera in a single frame
 - Fixed logic to disable FPTL with stereo rendering
 - Fixed stacklit transmission and sun highlight
 - Fixed decals with stereo rendering
@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with incorrect reset of RenderQueue when switching shader in inspector GUI
 - Fixed issue with variant stripper stripping incorrectly some variants
 - Fixed a case of ambient lighting flickering because of previews
+- Fixed Decals when rendering multiple camera in a single frame
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
