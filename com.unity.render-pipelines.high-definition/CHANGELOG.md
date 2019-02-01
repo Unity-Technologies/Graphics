@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ### Fixed
+- Fixed Decals when rendering multiple camera in a single frame
 - Fixed logic to disable FPTL with stereo rendering
 - Fixed stacklit transmission and sun highlight
 - Fixed decals with stereo rendering
