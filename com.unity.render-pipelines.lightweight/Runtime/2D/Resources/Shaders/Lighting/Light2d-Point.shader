@@ -48,7 +48,6 @@
 			#pragma fragment frag
 			#pragma enable_d3d11_debug_symbols
 
-			#pragma multi_compile LIGHT_QUALITY_FAST __
 			#pragma multi_compile USE_POINT_LIGHT_COOKIES __ 
 
 			#if USE_POINT_LIGHT_COOKIES

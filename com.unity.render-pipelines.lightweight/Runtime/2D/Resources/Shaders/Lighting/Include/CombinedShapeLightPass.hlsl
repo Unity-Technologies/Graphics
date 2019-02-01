@@ -44,7 +44,7 @@ Varyings CombinedShapeLightVertex(Attributes v)
 #endif
 
 	float4 worldVertex;
-	worldVertex.xyz = TransformObjectToWorld(v.positionOS);
+	worldVertex.xyz = TransformObjectToWorld(v.positionOS.xyz);
 	worldVertex.w = 1;
 	o.pixelScreenPos = ComputeScreenPos(worldVertex);
 	o.color = v.color;
