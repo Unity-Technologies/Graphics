@@ -4,12 +4,21 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
+#ifdef _INDIRECT_ON
+PackedVaryingsType Vert(AttributesMesh inputMesh, uint instanceID : SV_InstanceID)
+{
+    VaryingsType varyingsType;
+    varyingsType.vmesh = VertMesh(inputMesh, instanceID);
+    return PackVaryingsType(varyingsType);
+}
+#else
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
     return PackVaryingsType(varyingsType);
 }
+#endif
 
 #ifdef TESSELLATION_ON
 
