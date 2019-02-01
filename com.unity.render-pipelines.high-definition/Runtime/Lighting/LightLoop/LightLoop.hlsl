@@ -235,6 +235,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             while (i <= last && lightData.lightType == GPULIGHTTYPE_TUBE)
             {
                 lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
+                lightData.cookieIndex = -1;              // Enforce constant propagation
 
                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
                 {

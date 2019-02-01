@@ -23,11 +23,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public enum LightUnit
     {
-        Lumen,
-        Candela,
-        Lux,
-        Luminance,
-        Ev100,
+        Lumen,      // lm = total power/flux emitted by the light
+        Candela,    // lm/sr = flux per steradian
+        Lux,        // lm/m² = flux per unit area
+        Luminance,  // lm/m²/sr = flux per unit area and per steradian
+        Ev100,      // ISO 100 Exposure Value (https://en.wikipedia.org/wiki/Exposure_value)
     }
 
     // Light layering
@@ -173,6 +173,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
         public bool displayAreaLightEmissiveMesh = false;
 
+        // Optional cookie for rectangular area lights
+        public Texture2D areaLightCookie = null;
+        
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
@@ -678,8 +681,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
             }
 
-            if (emissiveMeshRenderer.sharedMaterial == null)
-                emissiveMeshRenderer.material = new Material(Shader.Find("HDRP/Unlit"));
+            // NOTE: When the user duplicates a light in the editor, the material is not duplicated and when changing the properties of one of them (source or duplication)
+            // It either overrides both or is overriden. Given that when we duplicate an object the name changes, this approach works. When the name of the game object is then changed again
+            // the material is not re-created until one of the light properties is changed again.
+            if (emissiveMeshRenderer.sharedMaterial == null || emissiveMeshRenderer.sharedMaterial.name != gameObject.name)
+            {
+                emissiveMeshRenderer.sharedMaterial = new Material(Shader.Find("HDRP/Unlit"));
+                emissiveMeshRenderer.sharedMaterial.name = gameObject.name;
+            }
 
             // Update Mesh emissive properties
             emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
@@ -688,14 +697,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Color value = m_Light.color.linear * m_Light.intensity;
             if (useColorTemperature)
                 value *= Mathf.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature);
-            value.r = Mathf.Clamp01(value.r);
-            value.g = Mathf.Clamp01(value.g);
-            value.b = Mathf.Clamp01(value.b);
-            value.a = Mathf.Clamp01(value.a);
 
             value *= lightDimmer;
 
             emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", value);
+
+            // Set the cookie (if there is one) and raise or remove the shader feature
+            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
+            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
         }
 
 #endif
