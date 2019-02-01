@@ -311,4 +311,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GraphicTests/Scenes/9x_Other/9602_MotionBlur_PerObject.unity
     guid: 74db5310e2f20b340b2efb3b4c4d9edf
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9701_AfterPostProcess.unity
+    guid: 2bb5d28daf3968e40aad1ae3211c2e9d
   m_configObjects: {}

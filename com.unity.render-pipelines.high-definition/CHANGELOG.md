@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added xrInstancing flag support to RTHandle
 - Added support for cullmask for decal projectors
 - Added software dynamic resolution support
+- Added support for "After Post-Process" render pass for unlit shader
 
 ### Fixed
 - Fixed Decals when rendering multiple camera in a single frame

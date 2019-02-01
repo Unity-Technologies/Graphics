@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Atlas != null)
                 m_Atlas.Release();
-            
+
             m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, isShadowMap: true, name: m_Name);
 
             if (m_SupportMomentShadows)
@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_ShadowResolutionRequests.Add(shadowRequest);
         }
-        
+
         public void AddShadowRequest(HDShadowRequest shadowRequest)
         {
             m_ShadowRequests.Add(shadowRequest);
@@ -232,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             cmd.SetRenderTarget(identifier);
             cmd.SetGlobalVector(m_AtlasSizeShaderID, new Vector4(width, height, 1.0f / width, 1.0f / height));
-            
+
             if (m_LightingDebugSettings.clearShadowAtlas)
                 CoreUtils.DrawFullScreen(cmd, m_ClearMaterial, null, 0);
 
@@ -311,11 +311,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void DisplayAtlas(CommandBuffer cmd, Material debugMaterial, Rect atlasViewport, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
+        public void DisplayAtlas(CommandBuffer cmd, Material debugMaterial, Rect atlasViewport, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if (m_Atlas == null)
                 return;
-            
+
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
             float rWidth = 1.0f / width;
             float rHeight = 1.0f / height;
@@ -353,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_IntermediateSummedAreaTexture = null;
 
             }
-            
+
             if (m_SummedAreaTexture != null)
             {
                 RTHandles.Release(m_SummedAreaTexture);

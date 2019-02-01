@@ -39,6 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
+        AfterPostProcessing,
         RenderDebug,
         ClearBuffers,
         ClearDepthStencil,
@@ -55,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         UpdateStencilCopyForSSRExclusion,
         GizmosPrePostprocess,
         Gizmos,
-        
+
         RaytracingBuildCluster,
         RaytracingCullLights,
         RaytracingIntegrateReflection,

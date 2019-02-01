@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         High = 2,
         VeryHigh = 3,
     }
-    
+
     public enum DirectionalShadowAlgorithm
     {
         PCF5x5,
@@ -212,10 +212,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 atlasResolution.x *= 2;
             if (cascadeCount > 2)
                 atlasResolution.y *= 2;
-            
+
             m_CascadeAtlas.UpdateSize(atlasResolution);
         }
-        
+
         public int ReserveShadowResolutions(Vector2 resolution, bool allowResize)
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
@@ -232,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Atlas.ReserveResolution(resolutionRequest);
             else
                 m_CascadeAtlas.ReserveResolution(resolutionRequest);
-            
+
             m_ShadowResolutionRequests.Add(resolutionRequest);
             m_ShadowRequestCount = m_ShadowResolutionRequests.Count;
 
@@ -243,7 +243,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (index < 0 || index >= m_ShadowRequestCount)
                 return Vector2.zero;
-            
+
             return m_ShadowResolutionRequests[index].resolution;
         }
 
@@ -448,19 +448,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
-        public void DisplayShadowAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
+        public void DisplayShadowAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
-            m_Atlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_Atlas.width, m_Atlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, flipY);
+            m_Atlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_Atlas.width, m_Atlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
-        public void DisplayShadowCascadeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
+        public void DisplayShadowCascadeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
-            m_CascadeAtlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_CascadeAtlas.width, m_CascadeAtlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, flipY);
+            m_CascadeAtlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_CascadeAtlas.width, m_CascadeAtlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
-        public void DisplayShadowMap(int shadowIndex, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
+        public void DisplayShadowMap(int shadowIndex, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if (shadowIndex >= m_ShadowRequestCount)
                 return;
@@ -468,9 +468,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDShadowRequest   shadowRequest = m_ShadowRequests[shadowIndex];
 
             if (shadowRequest.allowResize)
-                m_Atlas.DisplayAtlas(cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, flipY);
+                m_Atlas.DisplayAtlas(cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
             else
-                m_CascadeAtlas.DisplayAtlas(cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, flipY);
+                m_CascadeAtlas.DisplayAtlas(cmd, debugMaterial, shadowRequest.atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
 
         public void Dispose()
