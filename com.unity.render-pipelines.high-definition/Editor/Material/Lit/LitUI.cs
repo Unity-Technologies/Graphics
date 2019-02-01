@@ -311,6 +311,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             get { return refractionModel == null || refractionModel.floatValue == 0f; }
         }
+        protected override bool showAfterPostProcessPass { get { return false; } }
+        protected override bool showLowResolutionPass { get { return false; } }
 
         protected void FindMaterialLayerProperties(MaterialProperty[] props)
         {
@@ -877,7 +879,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUI.BeginChangeCheck();
                     m_MaterialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissiveIntensityText);
                     bool updateEmissiveColor = EditorGUI.EndChangeCheck();
-                        
+
                     if (useEmissiveIntensity.floatValue == 0)
                     {
                         EditorGUI.BeginChangeCheck();

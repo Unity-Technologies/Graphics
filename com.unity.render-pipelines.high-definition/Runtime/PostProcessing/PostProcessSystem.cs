@@ -243,7 +243,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle lightingBuffer)
+        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, bool flipY)
         {
             HDDynamicResolutionHandler dynResHandler = HDDynamicResolutionHandler.instance;
 
@@ -265,149 +265,152 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var source = colorBuffer;
 
-                // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
-                // content into smaller viewports with some effects like Bloom that rely on bilinear
-                // filtering and can't use clamp sampler and the likes
+                if (camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess))
                 {
-                    int w = camera.actualWidth;
-                    int h = camera.actualHeight;
-                    cmd.SetRenderTarget(source);
-                    cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
-                    cmd.ClearRenderTarget(false, true, Color.black);
-                    cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
-                    cmd.ClearRenderTarget(false, true, Color.black);
-                }
-
-                // TODO: Do we want user effects before post?
-
-                // Start with exposure - will be applied in the next frame
-                if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
-                {
-                    using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
+                    // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
+                    // content into smaller viewports with some effects like Bloom that rely on bilinear
+                    // filtering and can't use clamp sampler and the likes
                     {
-                        DoDynamicExposure(cmd, camera, colorBuffer, lightingBuffer);
+                        int w = camera.actualWidth;
+                        int h = camera.actualHeight;
+                        cmd.SetRenderTarget(source);
+                        cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
+                        cmd.ClearRenderTarget(false, true, Color.black);
+                        cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
+                        cmd.ClearRenderTarget(false, true, Color.black);
                     }
-                }
 
-                // Temporal anti-aliasing goes first
-                bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing
-                    && camera.camera.cameraType == CameraType.Game;
+                    // TODO: Do we want user effects before post?
 
-                if (taaEnabled)
-                {
-                    using (new ProfilingSample(cmd, "Temporal Anti-aliasing", CustomSamplerId.TemporalAntialiasing.GetSampler()))
+                    // Start with exposure - will be applied in the next frame
+                    if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
                     {
-                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                        DoTemporalAntialiasing(cmd, camera, source, destination);
-                        PoolSource(ref source, destination);
-                    }
-                }
-
-                // Depth of Field is done right after TAA as it's easier to just re-project the CoC
-                // map rather than having to deal with all the implications of doing it before TAA
-                if (m_DepthOfField.IsActive())
-                {
-                    using (new ProfilingSample(cmd, "Depth of Field", CustomSamplerId.DepthOfField.GetSampler()))
-                    {
-                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                        DoDepthOfField(cmd, camera, source, destination, taaEnabled);
-                        PoolSource(ref source, destination);
-                    }
-                }
-
-                // Motion blur after depth of field for aesthetic reasons (better to see motion
-                // blurred bokeh rather than out of focus motion blur)
-                if (m_MotionBlur.IsActive() && camera.camera.cameraType == CameraType.Game && !m_ResetHistory)
-                {
-                    using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
-                    {
-                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                        DoMotionBlur(cmd, camera, source, destination);
-                        PoolSource(ref source, destination);
-                    }
-                }
-
-                // Panini projection is done as a fullscreen pass after all depth-based effects are
-                // done and before bloom kicks in
-                // This is one effect that would benefit from an overscan mode or supersampling in
-                // HDRP to reduce the amount of resolution lost at the center of the screen
-                if (m_PaniniProjection.IsActive())
-                {
-                    using (new ProfilingSample(cmd, "Panini Projection", CustomSamplerId.PaniniProjection.GetSampler()))
-                    {
-                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                        DoPaniniProjection(cmd, camera, source, destination);
-                        PoolSource(ref source, destination);
-                    }
-                }
-
-                // Combined post-processing stack - always runs if postfx is enabled
-                using (new ProfilingSample(cmd, "Uber", CustomSamplerId.UberPost.GetSampler()))
-                {
-                    // Feature flags are passed to all effects and it's their responsibility to check
-                    // if they are used or not so they can set default values if needed
-                    var cs = m_Resources.shaders.uberPostCS;
-                    var featureFlags = GetUberFeatureFlags();
-                    int kernel = GetUberKernel(cs, featureFlags);
-
-                    // Generate the bloom texture
-                    bool bloomActive = m_Bloom.IsActive();
-
-                    if (bloomActive)
-                    {
-                        using (new ProfilingSample(cmd, "Bloom", CustomSamplerId.Bloom.GetSampler()))
+                        using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
                         {
-                            DoBloom(cmd, camera, source, cs, kernel);
+                            DoDynamicExposure(cmd, camera, colorBuffer, lightingBuffer);
                         }
                     }
-                    else
+
+                    // Temporal anti-aliasing goes first
+                    bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing
+                        && camera.camera.cameraType == CameraType.Game;
+
+                    if (taaEnabled)
                     {
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomTexture, Texture2D.blackTexture);
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
-                        cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomParams, Vector4.zero);
+                        using (new ProfilingSample(cmd, "Temporal Anti-aliasing", CustomSamplerId.TemporalAntialiasing.GetSampler()))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            DoTemporalAntialiasing(cmd, camera, source, destination);
+                            PoolSource(ref source, destination);
+                        }
                     }
 
-                    // Build the color grading lut
-                    using (new ProfilingSample(cmd, "Color Grading LUT Builder", CustomSamplerId.ColorGradingLUTBuilder.GetSampler()))
+                    // Depth of Field is done right after TAA as it's easier to just re-project the CoC
+                    // map rather than having to deal with all the implications of doing it before TAA
+                    if (m_DepthOfField.IsActive())
                     {
-                        DoColorGrading(cmd, cs, kernel);
+                        using (new ProfilingSample(cmd, "Depth of Field", CustomSamplerId.DepthOfField.GetSampler()))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            DoDepthOfField(cmd, camera, source, destination, taaEnabled);
+                            PoolSource(ref source, destination);
+                        }
                     }
 
-                    // Setup the rest of the effects
-                    DoLensDistortion(cmd, cs, kernel, featureFlags);
-                    DoChromaticAberration(cmd, cs, kernel, featureFlags);
-                    DoVignette(cmd, cs, kernel, featureFlags);
-
-                    // Run
-                    var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-                    cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
-
-                    // Cleanup
-                    if (bloomActive) m_Pool.Recycle(m_BloomTexture);
-                    m_BloomTexture = null;
-
-                    PoolSource(ref source, destination);
-                }
-
-                // TODO: User effects go here
-
-                if(dynResHandler.SoftwareDynamicResIsEnabled() &&     // Dynamic resolution is on.
-                    camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
-                {
-                    using (new ProfilingSample(cmd, "FXAA", CustomSamplerId.FXAA.GetSampler()))
+                    // Motion blur after depth of field for aesthetic reasons (better to see motion
+                    // blurred bokeh rather than out of focus motion blur)
+                    if (m_MotionBlur.IsActive() && camera.camera.cameraType == CameraType.Game && !m_ResetHistory)
                     {
+                        using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            DoMotionBlur(cmd, camera, source, destination);
+                            PoolSource(ref source, destination);
+                        }
+                    }
+
+                    // Panini projection is done as a fullscreen pass after all depth-based effects are
+                    // done and before bloom kicks in
+                    // This is one effect that would benefit from an overscan mode or supersampling in
+                    // HDRP to reduce the amount of resolution lost at the center of the screen
+                    if (m_PaniniProjection.IsActive())
+                    {
+                        using (new ProfilingSample(cmd, "Panini Projection", CustomSamplerId.PaniniProjection.GetSampler()))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            DoPaniniProjection(cmd, camera, source, destination);
+                            PoolSource(ref source, destination);
+                        }
+                    }
+
+                    // Combined post-processing stack - always runs if postfx is enabled
+                    using (new ProfilingSample(cmd, "Uber", CustomSamplerId.UberPost.GetSampler()))
+                    {
+                        // Feature flags are passed to all effects and it's their responsibility to check
+                        // if they are used or not so they can set default values if needed
+                        var cs = m_Resources.shaders.uberPostCS;
+                        var featureFlags = GetUberFeatureFlags();
+                        int kernel = GetUberKernel(cs, featureFlags);
+
+                        // Generate the bloom texture
+                        bool bloomActive = m_Bloom.IsActive();
+
+                        if (bloomActive)
+                        {
+                            using (new ProfilingSample(cmd, "Bloom", CustomSamplerId.Bloom.GetSampler()))
+                            {
+                                DoBloom(cmd, camera, source, cs, kernel);
+                            }
+                        }
+                        else
+                        {
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomTexture, Texture2D.blackTexture);
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
+                            cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomParams, Vector4.zero);
+                        }
+
+                        // Build the color grading lut
+                        using (new ProfilingSample(cmd, "Color Grading LUT Builder", CustomSamplerId.ColorGradingLUTBuilder.GetSampler()))
+                        {
+                            DoColorGrading(cmd, cs, kernel);
+                        }
+
+                        // Setup the rest of the effects
+                        DoLensDistortion(cmd, cs, kernel, featureFlags);
+                        DoChromaticAberration(cmd, cs, kernel, featureFlags);
+                        DoVignette(cmd, cs, kernel, featureFlags);
+
+                        // Run
                         var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                        DoFXAA(cmd, camera, source, destination);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                        cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+
+                        // Cleanup
+                        if (bloomActive) m_Pool.Recycle(m_BloomTexture);
+                        m_BloomTexture = null;
+
                         PoolSource(ref source, destination);
+                    }
+
+                    // TODO: User effects go here
+
+                    if (dynResHandler.SoftwareDynamicResIsEnabled() &&     // Dynamic resolution is on.
+                        camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
+                    {
+                        using (new ProfilingSample(cmd, "FXAA", CustomSamplerId.FXAA.GetSampler()))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            DoFXAA(cmd, camera, source, destination);
+                            PoolSource(ref source, destination);
+                        }
                     }
                 }
 
                 // Final pass
                 using (new ProfilingSample(cmd, "Final Pass", CustomSamplerId.FinalPost.GetSampler()))
                 {
-                    DoFinalPass(cmd, camera, blueNoise, source);
+                    DoFinalPass(cmd, camera, blueNoise, source, afterPostProcessTexture, finalRT, flipY);
                     PoolSource(ref source, null);
                 }
             }
@@ -1224,7 +1227,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // -----------------------------------------------------------------------------
 
-            const int tileSize = 32; 
+            const int tileSize = 32;
             int tileTexWidth = Mathf.CeilToInt(camera.actualWidth / tileSize);
             int tileTexHeight = Mathf.CeilToInt(camera.actualHeight / tileSize);
             Vector2 tileTexScale = new Vector2((float)tileTexWidth / camera.actualWidth, (float)tileTexHeight / camera.actualHeight);
@@ -1911,8 +1914,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         #region Final Pass
 
-        void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source)
+        void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RenderTargetIdentifier destination, bool flipY)
         {
+            bool postProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess);
+
             // Final pass has to be done in a pixel shader as it will be the one writing straight
             // to the backbuffer eventually
 
@@ -1938,68 +1943,87 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !swDynamicResIsOn)
-                m_FinalPassMaterial.EnableKeyword("FXAA");
-
-            if (m_FilmGrain.IsActive())
+            if (postProcessEnabled)
             {
-                var texture = m_FilmGrain.texture.value;
+                if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !swDynamicResIsOn)
+                    m_FinalPassMaterial.EnableKeyword("FXAA");
 
-                if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
-                    texture = m_Resources.textures.filmGrainTex[(int)m_FilmGrain.type.value];
-
-                if (texture != null) // Fail safe if the resources asset breaks :/
+                if (m_FilmGrain.IsActive())
                 {
+                    var texture = m_FilmGrain.texture.value;
+
+                    if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
+                        texture = m_Resources.textures.filmGrainTex[(int)m_FilmGrain.type.value];
+
+                    if (texture != null) // Fail safe if the resources asset breaks :/
+                    {
+                        #if HDRP_DEBUG_STATIC_POSTFX
+                        int offsetX = 0;
+                        int offsetY = 0;
+                        #else
+                        int offsetX = (int)(Random.value * texture.width);
+                        int offsetY = (int)(Random.value * texture.height);
+                        #endif
+
+                        m_FinalPassMaterial.EnableKeyword("GRAIN");
+                        m_FinalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, texture);
+                        m_FinalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(m_FilmGrain.intensity.value * 4f, m_FilmGrain.response.value));
+                        m_FinalPassMaterial.SetVector(HDShaderIDs._GrainTextureParams, new Vector4(texture.width, texture.height, offsetX, offsetY));
+                    }
+                }
+
+                if (camera.dithering)
+                {
+                    var blueNoiseTexture = blueNoise.textureArray16L;
+
                     #if HDRP_DEBUG_STATIC_POSTFX
-                    int offsetX = 0;
-                    int offsetY = 0;
+                    int textureId = 0;
                     #else
-                    int offsetX = (int)(Random.value * texture.width);
-                    int offsetY = (int)(Random.value * texture.height);
+                    int textureId = Time.frameCount % blueNoiseTexture.depth;
                     #endif
 
-                    m_FinalPassMaterial.EnableKeyword("GRAIN");
-                    m_FinalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, texture);
-                    m_FinalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(m_FilmGrain.intensity.value * 4f, m_FilmGrain.response.value));
-                    m_FinalPassMaterial.SetVector(HDShaderIDs._GrainTextureParams, new Vector4(texture.width, texture.height, offsetX, offsetY));
+                    m_FinalPassMaterial.EnableKeyword("DITHER");
+                    m_FinalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
+                    m_FinalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(blueNoiseTexture.width, blueNoiseTexture.height, textureId));
                 }
             }
 
-            int pass = 0;
-
-            if (camera.dithering)
-            {
-                var blueNoiseTexture = blueNoise.textureArray16L;
-
-                #if HDRP_DEBUG_STATIC_POSTFX
-                int textureId = 0;
-                #else
-                int textureId = Time.frameCount % blueNoiseTexture.depth;
-                #endif
-
-                m_FinalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
-                m_FinalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(blueNoiseTexture.width, blueNoiseTexture.height, textureId));
-                pass = 1;
-            }
-
-            // Flip logic
-            bool flip = SystemInfo.graphicsUVStartsAtTop && camera.isMainGameView;
 
             m_FinalPassMaterial.SetVector(HDShaderIDs._UVTransform,
-                flip
+                flipY
                 ? new Vector4(1.0f, -1.0f, 0.0f, 1.0f)
                 : new Vector4(1.0f,  1.0f, 0.0f, 0.0f)
             );
 
             // Blit to backbuffer
-            Rect backBufferRect = camera.viewport;
-            if(swDynamicResIsOn)
+            Rect backBufferRect = camera.finalViewport;
+
+            // When post process is not the final pass, we render at (0,0) so that subsequent rendering does not have to bother about viewports.
+            // Final viewport is handled in the final blit in this case
+            if (!HDUtils.PostProcessIsFinalPass())
             {
-                backBufferRect.width = dynResHandler.cachedOriginalSize.x;
-                backBufferRect.height = dynResHandler.cachedOriginalSize.y;
+                backBufferRect.x = backBufferRect.y = 0;
             }
 
-            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, BuiltinRenderTextureType.CameraTarget, null, pass);
+            if (camera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
+            {
+                m_FinalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, afterPostProcessTexture);
+            }
+            else
+            {
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, Texture2D.blackTexture);
+            }
+
+            // This assumes that for now, posts are always off when double wide is enabled
+            if (camera.camera.stereoEnabled && (XRGraphics.eyeTextureDesc.dimension == TextureDimension.Tex2D))
+            {
+                HDUtils.BlitCameraTextureStereoDoubleWide(cmd, source, destination);
+            }
+            else
+            {
+                HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
+            }
         }
 
         #endregion

@@ -952,7 +952,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     return "Default";
                 case HDRenderQueue.RenderQueueType.AfterPostProcessOpaque:
                     return "After Post-process";
-
                 case HDRenderQueue.RenderQueueType.PreRefraction:
                     return "Before Refraction";
                 case HDRenderQueue.RenderQueueType.Transparent:
@@ -971,32 +970,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque)
+        public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess)
         {
+            var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
             if (opaque)
             {
-                return new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>()
-                {
-                    HDRenderQueue.RenderQueueType.Opaque
-                  //  , HDRenderQueue.RenderQueueType.AfterPostProcessOpaque
+                result.Add(HDRenderQueue.RenderQueueType.Opaque);
+                if (needAfterPostProcess)
+                    result.Add(HDRenderQueue.RenderQueueType.AfterPostProcessOpaque);
 #if ENABLE_RAYTRACING
-                    , HDRenderQueue.RenderQueueType.RaytracingOpaque
+                result.Add(HDRenderQueue.RenderQueueType.RaytracingOpaque);
 #endif
-                };
             }
             else
             {
-                return new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>()
-                {
-                    HDRenderQueue.RenderQueueType.PreRefraction
-                    , HDRenderQueue.RenderQueueType.Transparent
-                 //   , HDRenderQueue.RenderQueueType.LowTransparent
-                 //   , HDRenderQueue.RenderQueueType.AfterPostprocessTransparent
+                result.Add(HDRenderQueue.RenderQueueType.PreRefraction);
+                result.Add(HDRenderQueue.RenderQueueType.Transparent);
+                //result.AddHDRenderQueue.RenderQueueType.LowTransparent):
+                if (needAfterPostProcess)
+                    result.Add(HDRenderQueue.RenderQueueType.AfterPostprocessTransparent);
 #if ENABLE_RAYTRACING
-                    , HDRenderQueue.RenderQueueType.RaytracingTransparent
+                result.Add(HDRenderQueue.RenderQueueType.RaytracingTransparent);
 #endif
-                };
             }
+
+            return result;
         }
     }
 }
