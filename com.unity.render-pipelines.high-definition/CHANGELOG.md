@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.4.0-preview] - 2019-XX-XX
 
+### Fixed
+- Fixed Decals when rendering multiple camera in a single frame
+
+### Changed
+- Temporal Antialiasing optimization for Xbox One X
+
 ## [5.3.1-preview] - 2019-01-28
 
 ### Added
@@ -55,7 +61,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ### Fixed
-- Fixed Decals when rendering multiple camera in a single frame
 - Fixed logic to disable FPTL with stereo rendering
 - Fixed stacklit transmission and sun highlight
 - Fixed decals with stereo rendering
@@ -131,7 +136,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update build light list shader code to support 32 threads in wavefronts on Switch
 - LayeredLit layers' foldout are now grouped in one main foldout per layer
 - Shadow alpha clip can now be enabled on lit shader and haor shader enven for opaque
-- Temporal Antialiasing optimization for Xbox One X
 
 ## [5.2.0-preview] - 2018-11-27
 
