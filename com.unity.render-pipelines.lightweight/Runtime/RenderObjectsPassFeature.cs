@@ -13,6 +13,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         Transparent,
     }
 
+    [CreateAssetMenu]
     public class RenderObjectsPassFeature : RenderPassFeature
     {
         public enum InjectionCallback

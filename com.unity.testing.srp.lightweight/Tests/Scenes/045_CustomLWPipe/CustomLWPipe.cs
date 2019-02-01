@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
+using System.Linq;
+
 public class CustomLWPipe : RendererSetup
 {  
     private SetupForwardRenderingPass m_SetupForwardRenderingPass;
@@ -20,6 +22,7 @@ public class CustomLWPipe : RendererSetup
         m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
         m_SetupLightweightConstants = new SetupLightweightConstanstPass();
         m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
+        m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
     }
 
     public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -39,12 +42,20 @@ public class CustomLWPipe : RendererSetup
         renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
 
         Camera camera = renderingData.cameraData.camera;
-        var perObjectFlags = ScriptableRenderer.GetPerObjectLightFlags(renderingData.lightData.mainLightIndex, renderingData.lightData.additionalLightsCount);
+
+        RenderPassFeature.InjectionPoint injectionPoints = 0;
+        foreach (var pass in m_RenderPassFeatures)
+        {
+            injectionPoints |= pass.injectionPoints;
+        }
 
         m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
         renderer.EnqueuePass(m_SetupLightweightConstants);
 
-        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, perObjectFlags);
+        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor);
         renderer.EnqueuePass(m_RenderOpaqueForwardPass);
+        
+        EnqueuePasses(RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses, injectionPoints, renderer,
+            baseDescriptor, colorHandle, depthHandle);
     }
 }

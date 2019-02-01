@@ -44,8 +44,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private RenderTargetHandle m_AdditionalLightsShadowmap;
         private RenderTargetHandle m_ScreenSpaceShadowmap;
         
-        private List<RenderPassFeature> m_RenderPassFeatures = new List<RenderPassFeature>(10);
-       
         public ForwardRendererSetup(ForwardRendererData data)
         {
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
@@ -316,20 +314,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 renderer.EnqueuePass(m_SceneViewDepthCopyPass);
             }
 #endif
-        }
-
-        void EnqueuePasses(RenderPassFeature.InjectionPoint injectionCallback, RenderPassFeature.InjectionPoint injectionCallbackMask,
-            ScriptableRenderer renderer, RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
-        {
-            if (CoreUtils.HasFlag(injectionCallbackMask, injectionCallback))
-            {
-                foreach (var renderPassFeature in m_RenderPassFeatures)
-                {
-                    var renderPass = renderPassFeature.GetPassToEnqueue(injectionCallback, baseDescriptor, colorHandle, depthHandle);
-                    if (renderPass != null)
-                        renderer.EnqueuePass(renderPass);
-                }
-            }
         }
 
         bool CanCopyDepth(ref CameraData cameraData)

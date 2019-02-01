@@ -96,7 +96,7 @@ public class CameraCallbackTests : RenderPassFeature
 			case InjectionPoint.AfterRenderPasses:
 				return new BlitPass(colorAttachmentHandle, depthAttachmentHandle);
 			default:
-				throw new ArgumentOutOfRangeException(nameof(injection), injection, null);
+			    return null;
 		}
     }
 

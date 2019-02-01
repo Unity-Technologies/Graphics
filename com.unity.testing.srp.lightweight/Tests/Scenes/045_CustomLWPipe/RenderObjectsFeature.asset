@@ -10,6 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_GeneratorAsset: {fileID: 0}
-  m_Script: {fileID: 11500000, guid: 1922bf90be6ebc54da38e96e30f9339a, type: 3}
-  m_Name: RenderPassFeature
+  m_Script: {fileID: 11500000, guid: 4621d1f0d19720d42a8884910fa9012c, type: 3}
+  m_Name: RenderObjectsFeature
   m_EditorClassIdentifier: 
+  callback: 1
+  renderQueueType: 0
+  layerMask: 0
+  passNames:
+  - LightweightForward
+  - SRPDefaultUnlit
+  - Outline

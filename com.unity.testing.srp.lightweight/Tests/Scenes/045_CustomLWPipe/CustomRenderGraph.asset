@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19dda12d58f1fbb4e9ef172721391ff2, type: 3}
   m_Name: CustomRenderGraph
   m_EditorClassIdentifier: 
+  m_RenderPassFeatures:
+  - {fileID: 11400000, guid: ae1c45fc939aa3a4ea0a2f34767b9486, type: 2}
