@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added support for "After Post-Process" render pass for unlit shader
+- Added support for textured rectangular area lights
 
 ## [5.3.1-preview] - 2019-01-28
 
@@ -116,6 +117,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a typo in Static Lighting Sky component UI
 - Fixed issue with incorrect reset of RenderQueue when switching shader in inspector GUI
 - Fixed issue with variant stripper stripping incorrectly some variants
+- Fixed Decals when rendering multiple camera in a single frame
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).

@@ -533,7 +533,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUI.indentLevel--;
                 }
             }
-
+            else if ((LightTypeExtent)serialized.serializedLightData.lightTypeExtent.enumValueIndex == LightTypeExtent.Rectangle)
+            {
+                EditorGUILayout.ObjectField( serialized.serializedLightData.areaLightCookie, s_Styles.areaLightCookie );
+            }
+            
             if (EditorGUI.EndChangeCheck())
             {
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
