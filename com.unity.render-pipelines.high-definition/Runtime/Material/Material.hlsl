@@ -28,8 +28,15 @@
 
 float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opacity)
 {
+
+#ifndef _SURFACE_TYPE_TRANSPARENT
+    // When doing off screen rendering (low-res transparency or after post process pass) and rendering opaque objects, opacity needs to be set to zero for proper compositing.
+    if (_OffScreenRendering != 0)
+        opacity = 0;
+#endif
+
     // ref: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
-    // Lit transparent object should have reflection and tramission.
+    // Lit transparent object should have reflection and transmission.
     // Transmission when not using "rough refraction mode" (with fetch in preblured background) is handled with blend mode.
     // However reflection should not be affected by blend mode. For example a glass should still display reflection and not lose the highlight when blend
     // This is the purpose of following function, "Cancel" the blend mode effect on the specular lighting but not on the diffuse lighting

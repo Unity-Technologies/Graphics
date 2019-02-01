@@ -48,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 case SurfaceType.Opaque:
                     ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
                     {
-                        var valueList = HDSubShaderUtilities.GetRenderingPassList(true);
+                        var valueList = HDSubShaderUtilities.GetRenderingPassList(true, true);
 
                         row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Opaque, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
                         {
@@ -72,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                                 break;
                         }
 
-                        var valueList = HDSubShaderUtilities.GetRenderingPassList(false);
+                        var valueList = HDSubShaderUtilities.GetRenderingPassList(false, true);
 
                         row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Transparent, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
                         {

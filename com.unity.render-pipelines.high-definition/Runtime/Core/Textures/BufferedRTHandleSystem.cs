@@ -139,6 +139,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if (disposing)
                 {
+                    ReleaseAll();
                     m_RTHandleSystem.Dispose();
                     m_RTHandleSystem = null;
                 }

@@ -36,7 +36,7 @@ Shader "Hidden/HDRP/DebugLightVolumes"
             float3 _Offset;
             float4 _Color;
 
-            VaryingsDefault vert(AttributesDefault att) 
+            VaryingsDefault vert(AttributesDefault att)
             {
                 VaryingsDefault output;
 
@@ -47,7 +47,7 @@ Shader "Hidden/HDRP/DebugLightVolumes"
             }
 
             void frag(VaryingsDefault varying, out float outLightCount : SV_Target0, out float4 outColorAccumulation : SV_Target1)
-            {                
+            {
                 outLightCount = 1.0f;
                 outColorAccumulation = _Color;
             }
@@ -85,16 +85,12 @@ Shader "Hidden/HDRP/DebugLightVolumes"
             {
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID);
+                output.texcoord   = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
                 return output;
             }
 
             float4 frag(Varyings input) : SV_Target
             {
-                if (ShouldFlipDebugTexture())
-                {
-                    input.texcoord.y = 1.0 - input.texcoord.y;
-                }
                 return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_PointClamp, input.texcoord, 0);
             }
             ENDHLSL

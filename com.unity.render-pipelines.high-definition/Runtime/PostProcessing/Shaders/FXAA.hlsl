@@ -1,4 +1,4 @@
-﻿#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 #define FXAA_HDR_MAPUNMAP   0
 #define FXAA_SPAN_MAX       (8.0)
@@ -15,8 +15,6 @@ float3 Load(TEXTURE2D(_InputTexture), int2 icoords, int idx, int idy)
 {
     return LOAD_TEXTURE2D(_InputTexture, min(icoords + int2(idx, idy), _ScreenSize.xy - 1.0)).xyz;
 }
-
-
 
 void RunFXAA(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), inout float3 outColor, uint2 positionSS, float2 positionNDC)
 {

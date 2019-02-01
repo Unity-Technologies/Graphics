@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Temporal Antialiasing optimization for Xbox One X
 
+### Added
+- Added support for "After Post-Process" render pass for unlit shader
+
 ## [5.3.1-preview] - 2019-01-28
 
 ### Added
@@ -58,7 +61,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Lighting and BackLighting slots in Lit, StackLit, Fabric and Hair master nodes
 - Added xrInstancing flag support to RTHandle
 - Added support for cullmask for decal projectors
-
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering

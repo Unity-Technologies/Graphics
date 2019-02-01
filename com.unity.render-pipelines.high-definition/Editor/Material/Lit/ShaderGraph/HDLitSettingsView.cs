@@ -48,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 case SurfaceType.Opaque:
                     ps.Add(new PropertyRow(CreateLabel("Rendering Pass", indentLevel)), (row) =>
                     {
-                        var valueList = HDSubShaderUtilities.GetRenderingPassList(true);
+                        var valueList = HDSubShaderUtilities.GetRenderingPassList(true, false);
 
                         row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Opaque, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
                         {
@@ -72,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                                 break;
                         }
 
-                        var valueList = HDSubShaderUtilities.GetRenderingPassList(false);
+                        var valueList = HDSubShaderUtilities.GetRenderingPassList(false, false);
 
                         row.Add(new PopupField<HDRenderQueue.RenderQueueType>(valueList, HDRenderQueue.RenderQueueType.Transparent, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName), (field) =>
                         {
@@ -307,7 +307,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     field.RegisterValueChangedCallback(ChangeSpecularOcclusionMode);
                 });
             });
-            
+
             ps.Add(new PropertyRow(CreateLabel("Override Baked GI", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -369,7 +369,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
             m_Node.alphaMode = alphaMode;
         }
-        
+
         void ChangeRenderingPass(ChangeEvent<HDRenderQueue.RenderQueueType> evt)
         {
             switch (evt.newValue)
