@@ -31,6 +31,31 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_ShaderTagIDs.Add(new ShaderTagId(passName));
         }
 
+        protected void RenderObjects(ScriptableRenderContext context, ref RenderingData renderingData,
+            ShaderTagId[] passNames, ref FilteringSettings filterSettings, SortingCriteria sortingCriteria)
+        {
+            RenderObjects(context, ref renderingData, passNames, ref filterSettings, sortingCriteria, renderingData.perObjectData);
+        }
+
+        protected void RenderObjects(ScriptableRenderContext context, ref RenderingData renderingData,
+            ShaderTagId[] passNames, ref FilteringSettings filterSettings, SortingCriteria sortingCriteria, PerObjectData perObjectData)
+        {
+            if (passNames.Length == 0)
+                return;
+
+            SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
+            DrawingSettings drawingSettings = new DrawingSettings(passNames[0], sortingSettings)
+            {
+                perObjectData = renderingData.perObjectData,
+                enableInstancing = true,
+                mainLightIndex = renderingData.lightData.mainLightIndex,
+                enableDynamicBatching = renderingData.supportsDynamicBatching,
+            };
+            for (int i = 1; i < m_ShaderTagIDs.Count; ++i)
+                drawingSettings.SetShaderPassName(i, m_ShaderTagIDs[i]);
+            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filterSettings);
+        }
+
         protected DrawingSettings CreateDrawingSettings(Camera camera, SortingCriteria sortingCriteria, PerObjectData perObjectData, bool supportsDynamicBatching, int mainLightIndex = -1)
         {
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };

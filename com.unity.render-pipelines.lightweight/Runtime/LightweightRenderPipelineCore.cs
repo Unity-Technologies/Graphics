@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.LWRP
         public LightData lightData;
         public ShadowData shadowData;
         public bool supportsDynamicBatching;
+        public PerObjectData perObjectData;
         public bool killAlphaInFinalBlit;
     }
 

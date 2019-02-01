@@ -20,7 +20,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         RenderTargetHandle colorAttachmentHandle { get; set; }
         RenderTargetHandle depthAttachmentHandle { get; set; }
         RenderTextureDescriptor descriptor { get; set; }
-        PerObjectData rendererConfiguration;
 
         public RenderTransparentForwardPass()
         {
@@ -40,13 +39,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle colorAttachmentHandle,
-            RenderTargetHandle depthAttachmentHandle,
-            PerObjectData configuration)
+            RenderTargetHandle depthAttachmentHandle)
         {
             this.colorAttachmentHandle = colorAttachmentHandle;
             this.depthAttachmentHandle = depthAttachmentHandle;
             descriptor = baseDescriptor;
-            rendererConfiguration = configuration;
         }
 
         /// <inheritdoc/>
@@ -67,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                var drawSettings = CreateDrawingSettings(camera, SortingCriteria.CommonTransparent, rendererConfiguration, renderingData.supportsDynamicBatching, renderingData.lightData.mainLightIndex);
+                var drawSettings = CreateDrawingSettings(camera, SortingCriteria.CommonTransparent, renderingData.perObjectData, renderingData.supportsDynamicBatching, renderingData.lightData.mainLightIndex);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_TransparentFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader

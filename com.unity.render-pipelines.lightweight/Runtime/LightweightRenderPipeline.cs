@@ -311,6 +311,7 @@ namespace UnityEngine.Rendering.LWRP
             InitializeLightData(settings, visibleLights, mainLightIndex, maxVisibleAdditionalLights, maxPerObjectAdditionalLights, out renderingData.lightData);
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
+            renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
 
             bool platformNeedsToKillAlpha = Application.platform == RuntimePlatform.IPhonePlayer ||
                 Application.platform == RuntimePlatform.Android ||
@@ -398,7 +399,7 @@ namespace UnityEngine.Rendering.LWRP
                 lightData.maxPerObjectAdditionalLightsCount = Math.Min(settings.maxAdditionalLightsCount, maxPerObjectAdditionalLights);
             }
             else
-        {
+            {
                 lightData.additionalLightsCount = 0;
                 lightData.maxPerObjectAdditionalLightsCount = 0;
             }
@@ -406,6 +407,16 @@ namespace UnityEngine.Rendering.LWRP
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
+        }
+
+        static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
+        {
+            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData;
+
+            if (additionalLightsCount > 0)
+                configuration |= PerObjectData.LightIndices;
+
+            return configuration;
         }
 
         // Main Light is always a directional light

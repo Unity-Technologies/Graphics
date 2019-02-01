@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Collections;
@@ -335,17 +335,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 return ClearFlag.Depth;
 
             return ClearFlag.All;
-        }
-
-        public static PerObjectData GetPerObjectLightFlags(int mainLightIndex, int additionalLightsCount)
-        {
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData;
-            if (additionalLightsCount > 0 && !useStructuredBufferForLights)
-            {
-                configuration |= PerObjectData.LightIndices;
-            }
-
-            return configuration;
         }
 
         public static void RenderFullscreenQuad(CommandBuffer cmd, Material material, MaterialPropertyBlock properties = null, int shaderPassId = 0)

@@ -179,11 +179,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 injectionPoints |= pass.injectionPoints;
             }
 
-            if ((injectionPoints & RenderPassFeature.InjectionPoint.BeforeRenderPasses) > 0)
-                foreach (var pass in m_RenderPassFeatures)
-                    renderer.EnqueuePass(pass.GetPassToEnqueue(RenderPassFeature.InjectionPoint.BeforeRenderPasses,
-                        baseDescriptor, colorHandle, depthHandle));
-
+            EnqueuePasses(RenderPassFeature.InjectionPoint.BeforeRenderPasses, injectionPoints, renderer,
+                baseDescriptor, colorHandle, depthHandle);
+            
             if (requiresDepthPrepass)
             {
                 m_DepthOnlyPass.Setup(baseDescriptor, m_DepthTexture);
@@ -199,27 +197,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (renderingData.cameraData.isStereoEnabled)
                 renderer.EnqueuePass(m_BeginXrRenderingPass);
 
-            var perObjectFlags = ScriptableRenderer.GetPerObjectLightFlags(renderingData.lightData.mainLightIndex,
-                renderingData.lightData.additionalLightsCount);
-
             m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
             renderer.EnqueuePass(m_SetupLightweightConstants);
 
             // If a before all render pass executed we expect it to clear the color render target
-
-            if ((injectionPoints & RenderPassFeature.InjectionPoint.BeforeRenderPasses) > 0)
+            if (CoreUtils.HasFlag(injectionPoints, RenderPassFeature.InjectionPoint.BeforeRenderPasses))
                 clearFlag = ClearFlag.None;
 
-            m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, clearFlag, camera.backgroundColor,
-                perObjectFlags);
+            m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, clearFlag, camera.backgroundColor);
             renderer.EnqueuePass(m_RenderOpaqueForwardPass);
 
-            if ((injectionPoints & RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses) > 0)
-            {
-                foreach (var pass in m_RenderPassFeatures)
-                    renderer.EnqueuePass(pass.GetPassToEnqueue(RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses,
-                        baseDescriptor, colorHandle, depthHandle));
-            }
+            EnqueuePasses(RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses, injectionPoints, renderer,
+                baseDescriptor, colorHandle, depthHandle);
 
             if (renderingData.cameraData.postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessingContext))
@@ -227,11 +216,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle, colorHandle, true, false);
                 renderer.EnqueuePass(m_OpaquePostProcessPass);
 
-                if ((injectionPoints & RenderPassFeature.InjectionPoint.AfterOpaquePostProcessPasses) > 0)
-                {
-                    foreach (var pass in m_RenderPassFeatures)
-                        renderer.EnqueuePass(pass.GetPassToEnqueue(RenderPassFeature.InjectionPoint.AfterOpaquePostProcessPasses, baseDescriptor, colorHandle, depthHandle));
-                }
+                EnqueuePasses(RenderPassFeature.InjectionPoint.AfterOpaquePostProcessPasses, injectionPoints, renderer,
+                    baseDescriptor, colorHandle, depthHandle);
             }
 
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
@@ -240,17 +226,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 // them. Ideally we need a render graph here that each render pass declares inputs and output
                 // attachments and their Load/Store action so we figure out properly if we can combine passes
                 // and move to interleaved rendering with RenderPass API. 
-                bool combineWithRenderOpaquesPass =
-                    (injectionPoints & RenderPassFeature.InjectionPoint.AfterOpaquePostProcessPasses) == 0;
+                bool combineWithRenderOpaquesPass = !CoreUtils.HasFlag(injectionPoints, RenderPassFeature.InjectionPoint.AfterOpaquePostProcessPasses);
                 m_DrawSkyboxPass.Setup(baseDescriptor, colorHandle, depthHandle, combineWithRenderOpaquesPass);
                 renderer.EnqueuePass(m_DrawSkyboxPass);
             }
 
-            if ((injectionPoints & RenderPassFeature.InjectionPoint.AfterSkyboxPasses) > 0)
-            {
-                foreach (var pass in m_RenderPassFeatures)
-                    renderer.EnqueuePass(pass.GetPassToEnqueue(RenderPassFeature.InjectionPoint.AfterSkyboxPasses, baseDescriptor, colorHandle, depthHandle));
-            }
+            EnqueuePasses(RenderPassFeature.InjectionPoint.AfterSkyboxPasses, injectionPoints, renderer,
+                baseDescriptor, colorHandle, depthHandle);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (createDepthTexture)
@@ -265,21 +247,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 renderer.EnqueuePass(m_CopyColorPass);
             }
 
-            m_RenderTransparentForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, perObjectFlags);
+            m_RenderTransparentForwardPass.Setup(baseDescriptor, colorHandle, depthHandle);
             renderer.EnqueuePass(m_RenderTransparentForwardPass);
 
-            if ((injectionPoints & RenderPassFeature.InjectionPoint.AfterTransparentPasses) > 0)
-            {
-                foreach (var pass in m_RenderPassFeatures)
-                    renderer.EnqueuePass(pass.GetPassToEnqueue(RenderPassFeature.InjectionPoint.AfterTransparentPasses, baseDescriptor, colorHandle, depthHandle));
-            }
+            EnqueuePasses(RenderPassFeature.InjectionPoint.AfterTransparentPasses, injectionPoints, renderer,
+                baseDescriptor, colorHandle, depthHandle);
             
 #if UNITY_EDITOR
             m_LitGizmoRenderingPass.Setup(true);
             renderer.EnqueuePass(m_LitGizmoRenderingPass);
 #endif
 
-            bool afterRenderExists = (injectionPoints & RenderPassFeature.InjectionPoint.AfterRenderPasses) > 0;
+            bool afterRenderExists = CoreUtils.HasFlag(injectionPoints, RenderPassFeature.InjectionPoint.AfterRenderPasses);
 
             // if we have additional filters
             // we need to stay in a RT
@@ -292,9 +271,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     renderer.EnqueuePass(m_PostProcessPass);
                 }
 
-                //execute after passes
-                foreach (var pass in m_RenderPassFeatures)
-                    renderer.EnqueuePass(pass.GetPassToEnqueue(RenderPassFeature.InjectionPoint.AfterRenderPasses, baseDescriptor, colorHandle, depthHandle));
+                EnqueuePasses(RenderPassFeature.InjectionPoint.AfterRenderPasses, injectionPoints, renderer,
+                    baseDescriptor, colorHandle, depthHandle);
 
                 //now blit into the final target
                 if (colorHandle != RenderTargetHandle.CameraTarget)
@@ -338,6 +316,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 renderer.EnqueuePass(m_SceneViewDepthCopyPass);
             }
 #endif
+        }
+
+        void EnqueuePasses(RenderPassFeature.InjectionPoint injectionCallback, RenderPassFeature.InjectionPoint injectionCallbackMask,
+            ScriptableRenderer renderer, RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
+        {
+            if (CoreUtils.HasFlag(injectionCallbackMask, injectionCallback))
+            {
+                foreach (var renderPassFeature in m_RenderPassFeatures)
+                {
+                    var renderPass = renderPassFeature.GetPassToEnqueue(injectionCallback, baseDescriptor, colorHandle, depthHandle);
+                    if (renderPass != null)
+                        renderer.EnqueuePass(renderPass);
+                }
+            }
         }
 
         bool CanCopyDepth(ref CameraData cameraData)
