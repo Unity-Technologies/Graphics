@@ -15,7 +15,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   callback: 1
   renderQueueType: 0
-  layerMask: 0
+  layerName: Outline
   passNames:
   - LightweightForward
   - SRPDefaultUnlit

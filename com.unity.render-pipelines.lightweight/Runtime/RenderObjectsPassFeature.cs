@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         // TODO: expose opaque, transparent, all ranges as drop down
         public InjectionCallback callback;
         public RenderQueueType renderQueueType;
-        public int layerMask;
+        public string layerName = "Default";
         public string[] passNames = {"LightweightForward", "SRPDefaultUnlit"};
 
         RenderObjectsPass renderObjectsPass;
@@ -37,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         void OnEnable()
         {
             ShaderTagId[] shaderTags = passNames.Select(x => new ShaderTagId(x)).ToArray();
+            int layerMask = (layerName.Equals("Default")) ? -1 : LayerMask.GetMask(layerName);
             renderObjectsPass = new RenderObjectsPass(shaderTags, renderQueueType, layerMask);
         }
 
