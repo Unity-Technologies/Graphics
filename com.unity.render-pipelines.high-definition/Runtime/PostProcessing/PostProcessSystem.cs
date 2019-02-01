@@ -648,7 +648,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryTexture, prevHistory);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputHistoryTexture, nextHistory);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+
+            // On Scorpio, a group size of 16x16 is faster by around 20%, on Durango the cost is the same.
+            int groupSize = SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ? 16 : 8;
+
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + (groupSize - 1)) / groupSize, (camera.actualHeight + (groupSize - 1)) / groupSize, 1);
         }
 
         static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
