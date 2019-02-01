@@ -97,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(height + 1, 1, colorFormat: GraphicsFormat.R32_SFloat, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
 
                     // TODO: switch the format to R16 (once it's available) to save some bandwidth.
-                    m_SkyboxMarginalRowCdfRT = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R32_SFloat, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxMarginalRowCdf");
+                    m_SkyboxConditionalCdfRT = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R32_SFloat, useMipMap: false, enableRandomWrite: true, filterMode: FilterMode.Point, name: "SkyboxConditionalRowCdf");
                 }
             }
 
@@ -127,6 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Cleanup()
         {
             RTHandles.Release(m_SkyboxCubemapRT);
+            RTHandles.Release(m_SkyboxBSDFCubemapIntermediate);
             if (m_SkyboxBSDFCubemapArray != null)
             {
                 CoreUtils.Destroy(m_SkyboxBSDFCubemapArray);

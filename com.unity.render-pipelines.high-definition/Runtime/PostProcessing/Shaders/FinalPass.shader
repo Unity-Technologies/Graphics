@@ -7,8 +7,10 @@ Shader "Hidden/HDRP/FinalPass"
 
         #pragma multi_compile_local _ FXAA
         #pragma multi_compile_local _ GRAIN
+        #pragma multi_compile_local _ DITHER
+        #pragma multi_compile_local _ APPLY_AFTER_POST
 
-        #pragma multi_compile _ BILINEAR CATMULL_ROM_4 LANCZOS
+        #pragma multi_compile_local _ BILINEAR CATMULL_ROM_4 LANCZOS
         #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -17,13 +19,9 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
 
-        #define FXAA_HDR_MAPUNMAP   0
-        #define FXAA_SPAN_MAX       (8.0)
-        #define FXAA_REDUCE_MUL     (1.0 / 8.0)
-        #define FXAA_REDUCE_MIN     (1.0 / 128.0)
-
         TEXTURE2D(_InputTexture);
         TEXTURE2D(_GrainTexture);
+        TEXTURE2D(_AfterPostProcessTexture);
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
 
         SAMPLER(sampler_LinearClamp);
@@ -57,7 +55,7 @@ Shader "Hidden/HDRP/FinalPass"
         {
         #if DEBUG_UPSCALE_POINT
             return Nearest(_InputTexture, UV);
-        #else 
+        #else
             #if BILINEAR
                 return Bilinear(_InputTexture, UV);
             #elif CATMULL_ROM_4
@@ -70,37 +68,35 @@ Shader "Hidden/HDRP/FinalPass"
         #endif
         }
 
-        float3 Load(int2 icoords, int idx, int idy)
-        {
-            return LOAD_TEXTURE2D(_InputTexture, min(icoords + int2(idx, idy), _ScreenSize.xy - 1.0)).xyz;
-        }
-
-        float3 GetColor(Varyings input, out uint2 positionSS)
+        float4 Frag(Varyings input) : SV_Target0
         {
             float2 positionNDC = input.texcoord;
-            positionSS = input.texcoord * _ScreenSize.xy;
+            uint2 positionSS = input.texcoord * _ScreenSize.xy;
 
-        #if UNITY_SINGLE_PASS_STEREO
+            #if UNITY_SINGLE_PASS_STEREO
             // TODO: This is wrong, fix me
             positionNDC.x = positionNDC.x / 2.0 + unity_StereoEyeIndex * 0.5;
             positionSS.x = positionSS.x / 2;
-        #endif
+            #endif
 
             // Flip logic
             positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
             positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
 
-        #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
+            #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
             float3 outColor = UpscaledResult(positionNDC.xy);
-        #else
-            float3 outColor = Load(positionSS, 0, 0);
-        #endif
+            #else
+            float3 outColor = LOAD_TEXTURE2D(_InputTexture, positionSS).xyz;
+            #endif
 
             #if FXAA
             RunFXAA(_InputTexture, sampler_LinearClamp, outColor, positionSS, positionNDC);
             #endif
 
+            // Saturate is only needed for dither or grain to work. Otherwise we don't saturate because output might be HDR
+#if defined(GRAIN) || defined(DITHER)
             outColor = saturate(outColor);
+#endif
 
             #if GRAIN
             {
@@ -119,20 +115,7 @@ Shader "Hidden/HDRP/FinalPass"
             }
             #endif
 
-            return outColor;
-        }
-
-        float4 FragNoDither(Varyings input) : SV_Target0
-        {
-            uint2 positionSS;
-            return float4(GetColor(input, positionSS), 1.0);
-        }
-
-        float4 FragDither(Varyings input) : SV_Target0
-        {
-            uint2 positionSS;
-            float3 outColor = GetColor(input, positionSS);
-
+            #if DITHER
             // sRGB 8-bit dithering
             {
                 float3 ditherParams = _DitherParams;
@@ -145,6 +128,14 @@ Shader "Hidden/HDRP/FinalPass"
                 //outColor += noise / 255.0;
                 outColor = SRGBToLinear(LinearToSRGB(outColor) + noise / 255.0);
             }
+            #endif
+
+            // Apply AfterPostProcess target
+            #if APPLY_AFTER_POST
+            float4 afterPostColor = SAMPLE_TEXTURE2D_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _ScreenToTargetScale.xy, 0);
+            // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+            outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
+            #endif
 
             return float4(outColor, 1.0);
         }
@@ -162,19 +153,7 @@ Shader "Hidden/HDRP/FinalPass"
             HLSLPROGRAM
 
                 #pragma vertex Vert
-                #pragma fragment FragNoDither
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Cull Off ZWrite Off ZTest Always
-
-            HLSLPROGRAM
-
-                #pragma vertex Vert
-                #pragma fragment FragDither
+                #pragma fragment Frag
 
             ENDHLSL
         }

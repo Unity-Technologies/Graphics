@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TransparentObjects = 3,
         [FrameSettingsField(0, autoName: RealtimePlanarReflection)]
         RealtimePlanarReflection = 4,
-        
+
         [FrameSettingsField(0, autoName: TransparentPrepass)]
         TransparentPrepass = 8,
         [FrameSettingsField(0, autoName: TransparentPostpass)]
@@ -50,6 +50,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Distortion = 14,
         [FrameSettingsField(0, autoName: Postprocess)]
         Postprocess = 15,
+        [FrameSettingsField(0, autoName: AfterPostprocess)]
+        AfterPostprocess = 16,
 
         //lighting settings from 20 to 39
         [FrameSettingsField(1, autoName: Shadow)]
@@ -76,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LightLayers = 30,
         [FrameSettingsField(1, autoName: ExposureControl, customOrderInGroup: 32)]
         ExposureControl = 32,
-        
+
         //async settings from 40 to 59
         [FrameSettingsField(2, autoName: AsyncCompute)]
         AsyncCompute = 40,
@@ -119,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         public BitArray128 mask;
     }
-    
+
     /// <summary>Per renderer and per frame settings.</summary>
     [Serializable]
     [System.Diagnostics.DebuggerDisplay("{bitDatas.humanizedData}")]
@@ -149,6 +151,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.RoughRefraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
                 (uint)FrameSettingsField.Distortion,
                 (uint)FrameSettingsField.Postprocess,
+                (uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
                 (uint)FrameSettingsField.RealtimePlanarReflection,
@@ -191,6 +194,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 //(uint)FrameSettingsField.RoughRefraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
                 //(uint)FrameSettingsField.Distortion,
                 //(uint)FrameSettingsField.Postprocess,
+                //(uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
                 (uint)FrameSettingsField.RealtimePlanarReflection,
@@ -312,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Volumetric are disabled if there is no atmospheric scattering
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& !preview induced by atmospheric scattering
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview;
-            
+
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= !reflection;
 

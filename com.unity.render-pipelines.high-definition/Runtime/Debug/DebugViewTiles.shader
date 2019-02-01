@@ -81,20 +81,14 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 uint2 pixelCoord = (tileCoord + uint2((quadVertex+1) & 1, (quadVertex >> 1) & 1)) * tileSize;
 
                 float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
-                if (!ShouldFlipDebugTexture()) // Need to do this negative test to have it work correctly on windows in scene view and game view
-                {
-                    clipCoord.y *= -1;
-                }
+                clipCoord.y *= -1;
 
                 Varyings output;
                 output.positionCS = float4(clipCoord, 0, 1.0);
                 output.variant = variant;
 
                 output.texcoord = clipCoord * 0.5 + 0.5;
-                if (!ShouldFlipDebugTexture())
-                {
-                    output.texcoord.y = 1.0 - output.texcoord.y;
-                }
+                output.texcoord.y = 1.0 - output.texcoord.y;
                 return output;
             }
 #else
@@ -103,10 +97,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 Varyings output;
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
-                if (ShouldFlipDebugTexture())
-                {
-                    output.texcoord.y = 1.0 - output.texcoord.y;
-                }
                 output.variant = 0; // unused
                 return output;
             }
