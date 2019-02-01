@@ -1,11 +1,4 @@
 using UnityEngine;
-using UnityEngine.U2D;
-using UnityEngine.U2D.Shape;
-using UnityEditor;
-using UnityEditor.Sprites;
-using UnityEditor.U2D.Shape;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace UnityEditor.U2D
 {

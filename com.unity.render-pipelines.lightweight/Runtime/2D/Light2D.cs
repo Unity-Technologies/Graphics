@@ -268,6 +268,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         [SerializeField]
         Spline m_Spline = new Spline() { isExtensionsSupported = false };
+        int m_SplineHash;
 
         public Spline spline
         {
@@ -710,11 +711,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             rebuildMesh |= CheckForChange<int>(m_ParametricSides, ref m_PreviousParametricSides);
             rebuildMesh |= CheckForChange<float>(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
 
+            int splineHash = m_Spline.GetHashCode();
+            rebuildMesh |= m_SplineHash != splineHash;
+            m_SplineHash = splineHash;
+
             //rebuildMesh |= CheckForChange<>
             if (rebuildMesh)
             {
                 UpdateMesh();
-                rebuildMesh = false;
             }
 
             bool rebuildMaterial = false;

@@ -1,18 +1,19 @@
 using UnityEngine;
-using UnityEditor.U2D.Shape;
-using UnityEditorInternal;
-using System.Reflection;
-using UnityEditor.Experimental.U2D.Common;
 using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering.LWRP;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.EditorTools;
+using Unity.Path2D;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
+    [EditorTool("Edit Light Shape", typeof(Light2D))]
+    public class ShapeLightTool : ShapeEditorTool<DefaultShapeEditor, Light2DEditor> { }
+
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]
-    public class Light2DEditor : Editor
+    public class Light2DEditor : ShapeProviderEditor
     {
         static string k_TexturePath = "Textures/";
 
@@ -60,9 +61,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricAlpha;
         SerializedProperty m_LightOperation;
-
-        SplineEditor m_SplineEditor;
-        SplineSceneEditor m_SplineSceneEditor;
 
         bool m_ModifiedMesh = false;
 
@@ -133,9 +131,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_LightOperation = serializedObject.FindProperty("m_LightOperation");
 
             var light = target as Light2D;
-            m_SplineEditor = new SplineEditor(this);
-            m_SplineSceneEditor = new SplineSceneEditor(light.spline, this, light);
-            //m_SplineSceneEditor.SplineEditMode = SplineSceneEditor.SplineEditModes.Buttonless;
 
             m_AnyLightOperationEnabled = false;
             var lightOperationIndices = new List<int>();
@@ -181,16 +176,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 if (SortingLayer.IsValid(layerID))
                     m_ApplyToSortingLayersList.Add(layerID);
             }
-        }
-
-        private void OnDestroy()
-        {
-            if (m_SplineEditor != null)
-                m_SplineEditor.OnDisable();
-            if (m_SplineSceneEditor != null)
-                m_SplineSceneEditor.OnDisable();
-
-            ShapeEditorCache.ClearSelection();
         }
 
         private void OnPointLight(SerializedObject serializedObject)
@@ -515,25 +500,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     float sides = lt.m_ParametricSides;
                     float angleOffset = Mathf.PI / 2.0f;
 
-                    if (lt.m_ParametricShape == Light2D.ParametricShapes.Freeform)
-                    {
-                        m_SplineSceneEditor.CalculateBounds();
-
-                        EditorGUI.BeginChangeCheck();
-
-                        if (EditMode.IsOwner(this))
-                        {
-                            m_SplineSceneEditor.OnSceneGUI();
-                            m_SplineEditor.HandleHotKeys();
-                        }
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            EditorUtility.SetDirty(lightObject);
-                            m_ModifiedMesh = true;
-                            //lightObject.UpdateShapeLightMesh();
-                        }
-                    }
-                    else
+                    if (lt.m_ParametricShape == Light2D.ParametricShapes.Circle)
                     {
                         if (sides < 2)
                         {
@@ -601,8 +568,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             if (lightObject.m_ParametricShape == Light2D.ParametricShapes.Freeform && lightObject.LightProjectionType == Light2D.LightProjectionTypes.Shape && lightObject.m_ShapeLightStyle != Light2D.CookieStyles.Sprite)
             {
-                m_SplineSceneEditor.OnInspectorGUI();
-                m_SplineEditor.OnInspectorGUI(lightObject.spline);
+                // Draw the edit shape tool button here.
             }
 
             serializedObject.ApplyModifiedProperties();
@@ -637,6 +603,25 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 }
                 Handles.matrix = oldMatrix;
             }
+        }
+
+        protected override IShape GetShape(Object target)
+        {
+            var component = target as Light2D;
+            return new Polygon() { controlPoints = component.spline.m_ControlPoints.Select(x => x.position).ToArray() };
+        }
+
+        protected override void SetShape(IShapeEditor shapeEditor, SerializedObject serializedObject)
+        {
+            serializedObject.Update();
+
+            var pointsProperty = serializedObject.FindProperty("m_Spline.m_ControlPoints");
+            pointsProperty.arraySize = shapeEditor.pointCount;
+
+            for (var i = 0; i < shapeEditor.pointCount; ++i)
+                pointsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("position").vector3Value = shapeEditor.GetPoint(i).position;
+
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
