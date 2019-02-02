@@ -9,6 +9,7 @@ TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
 uniform half4 _MainTex_ST;
 uniform half4 _NormalMap_ST;
+uniform half _LightIntensityScale;
 
 #if USE_SHAPE_LIGHT_TYPE_0
     TEXTURE2D(_ShapeLightTexture0);
@@ -103,6 +104,6 @@ half4 CombinedShapeLightFragment(Varyings i) : SV_Target
     finalOutput = main * finalModulate + finalAdditve;
 
     finalOutput.a = main.a;
-    return finalOutput;
+    return finalOutput * _LightIntensityScale;
 }
 #endif
