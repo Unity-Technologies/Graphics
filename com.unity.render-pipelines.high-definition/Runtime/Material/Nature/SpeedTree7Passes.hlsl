@@ -1,7 +1,7 @@
 #ifndef HDRP_SPEEDTREE7_PASSES_INCLUDED
 #define HDRP_SPEEDTREE7_PASSES_INCLUDED
 
-#include "SpeedTree7CommonPasses.hlsl"
+
 
 void InitializeCommonData(inout SpeedTreeVertexInput input, float lodValue)
 {
@@ -96,6 +96,126 @@ void InitializeCommonData(inout SpeedTreeVertexInput input, float lodValue)
     input.vertex.xyz = finalPosition;
 }
 
+/*
+PackedVaryingsType Vert(AttributesMesh inputMesh)
+{
+    VaryingsType varyingsType;
+    varyingsType.vmesh = VertMesh(inputMesh);
+    return PackVaryingsType(varyingsType);
+}
+
+VaryingsMeshType VertMesh(AttributesMesh input)
+{
+    VaryingsMeshType output;
+
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+#if defined(HAVE_MESH_MODIFICATION)
+    input = ApplyMeshModification(input);
+#endif
+
+    // This return the camera relative position (if enable)
+    float3 positionRWS = TransformObjectToWorld(input.positionOS);
+#ifdef ATTRIBUTES_NEED_NORMAL
+    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+#else
+    float3 normalWS = float3(0.0, 0.0, 0.0); // We need this case to be able to compile ApplyVertexModification that doesn't use normal.
+#endif
+
+#ifdef ATTRIBUTES_NEED_TANGENT
+    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+#endif
+
+     // Do vertex modification in camera relative space (if enable)
+#if defined(HAVE_VERTEX_MODIFICATION)
+    ApplyVertexModification(input, normalWS, positionRWS, _Time);
+#endif
+
+#ifdef TESSELLATION_ON
+    output.positionRWS = positionRWS;
+    output.normalWS = normalWS;
+    #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
+    output.tangentWS = tangentWS;
+    #endif
+#else
+    #ifdef VARYINGS_NEED_POSITION_WS
+    output.positionRWS = positionRWS;
+    #endif
+    output.positionCS = TransformWorldToHClip(positionRWS);
+    #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    output.normalWS = normalWS;
+    output.tangentWS = tangentWS;
+    #endif
+#endif
+
+#if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
+    output.texCoord0 = input.uv0;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD1) || defined(VARYINGS_DS_NEED_TEXCOORD1)
+    output.texCoord1 = input.uv1;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD2) || defined(VARYINGS_DS_NEED_TEXCOORD2)
+    output.texCoord2 = input.uv2;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD3) || defined(VARYINGS_DS_NEED_TEXCOORD3)
+    output.texCoord3 = input.uv3;
+#endif
+#if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
+    output.color = input.color;
+#endif
+
+    return output;
+}
+*/
+
+PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
+{
+    VaryingsType output;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    // handle speedtree wind and lod
+    InitializeCommonData(input, unity_LODFade.x);
+
+    // uvHueVariation.xy
+    output.interpolators3.xy = input.texcoord.xy;
+
+    // Vertex Color
+#ifdef VARYINGS_NEED_COLOR
+    output.interpolators5 = _Color;
+    output.interpolators5.rgb *= input.color.r; // ambient occlusion factor
+#endif
+
+    // Z component of uvHueVariation
+#ifdef EFFECT_HUE_VARIATION
+    float hueVariationAmount = frac(UNITY_MATRIX_M[0].w + UNITY_MATRIX_M[1].w + UNITY_MATRIX_M[2].w);
+    hueVariationAmount += frac(input.vertex.x + input.normal.y + input.normal.x) * 0.5 - 0.3;
+    output.interpolators3.z = saturate(hueVariationAmount * _HueVariation.a);
+#endif
+
+#ifdef GEOM_TYPE_BRANCH_DETAIL
+    // The two types are always in different sub-range of the mesh so no interpolation (between detail and blend) problem.
+    output.interpolators4.xy = input.texcoord2.xy;
+    if (input.color.a == 0) // Blend
+        output.interpolators4.z = input.texcoord2.z;
+    else // Detail texture
+        output.interpolators4.z = 2.5f; // stay out of Blend's .z range
+#endif
+
+    float3 positionWS = TransformObjectToWorld(input.vertex.xyz);
+    float3 positionVS = TransformWorldToView(positionWS);
+    float3 positionCS = TransformWorldToHClip(positionWS);
+
+
+    output.interpolators0 = positionWS;
+    output.positionCS = positionCS;
+
+    return output;
+}
+
+/*
 SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
 {
     SpeedTreeVertexOutput output = (SpeedTreeVertexOutput)0;
@@ -107,7 +227,7 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     InitializeCommonData(input, unity_LODFade.x);
     output.uvHueVariation.xy = input.texcoord.xy;
     
-    #ifdef VERTEX_COLOR
+    #ifdef VARYINGS_NEED_COLOR
         output.color = _Color;
         output.color.rgb *= input.color.r; // ambient occlusion factor
     #endif
@@ -183,6 +303,6 @@ SpeedTreeVertexDepthOutput SpeedTree7VertDepth(SpeedTreeVertexInput input)
 #endif
     return output;
 }
-
+*/
 
 #endif
