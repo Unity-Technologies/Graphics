@@ -67,18 +67,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return m_LightLookupTexture;
         }
 
-#if UNITY_EDITOR
-        [MenuItem("Light2D Debugging/Write Light Texture")]
-        static public void WriteLightTexture()
-        {
-            var path = EditorUtility.SaveFilePanel("Save texture as EXR", "", "LightLookupTexture.exr", "exr");
+//#if UNITY_EDITOR
+//        [MenuItem("Light2D Debugging/Write Light Texture")]
+//        static public void WriteLightTexture()
+//        {
+//            var path = EditorUtility.SaveFilePanel("Save texture as EXR", "", "LightLookupTexture.exr", "exr");
 
-            CreateLightLookupTexture();
+//            CreateLightLookupTexture();
 
-            byte[] imgData = m_LightLookupTexture.EncodeToEXR(Texture2D.EXRFlags.CompressRLE);
-            if (imgData != null)
-                File.WriteAllBytes(path, imgData);
-        }
-#endif
+//            byte[] imgData = m_LightLookupTexture.EncodeToEXR(Texture2D.EXRFlags.CompressRLE);
+//            if (imgData != null)
+//                File.WriteAllBytes(path, imgData);
+//        }
+//#endif
     }
 }

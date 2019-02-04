@@ -13,6 +13,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [Serialization.FormerlySerializedAs("m_ShapeLightTypes")]
         private _2DLightOperationDescription[] m_LightOperations = new _2DLightOperationDescription[4];
 
+        public override Material default2DMaterial
+        {
+            get
+            {
+                Shader shader = Shader.Find("Lightweight Render Pipeline/2D/Sprite-Lit-Default");
+                return new Material(shader);
+            }
+        }
+
         public _2DLightOperationDescription[] lightOperations
         {
             get => m_LightOperations;
