@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct FrameSettingsHistory : IDebugData
     {
         static readonly string[] foldoutNames = { "Rendering", "Lighting", "Async Compute", "Light Loop" };
-        static readonly string[] columnNames = { "", "Sanitazed", "Overridden", "Default" };
+        static readonly string[] columnNames = { "Debug", "Sanitized", "Overridden", "Default" };
         static readonly Dictionary<FrameSettingsField, FrameSettingsFieldAttribute> attributes;
         static Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>> attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
 
@@ -112,7 +112,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool dirty = noHistory || updatedComponent;
 
             history.sanitazed = aggregatedFrameSettings;
-            history.debug = dirty ? history.sanitazed : frameSettingsHistory[camera].debug;
+            if (dirty)
+                history.debug = history.sanitazed;
+            else
+            {
+                history.debug = frameSettingsHistory[camera].debug;
+
+                // Ensure user is not trying to activate unsupported settings in DebugMenu
+                FrameSettings.Sanitize(ref history.debug, camera, supportedFeatures);
+            }
 
             aggregatedFrameSettings = history.debug;
             frameSettingsHistory[camera] = history;
