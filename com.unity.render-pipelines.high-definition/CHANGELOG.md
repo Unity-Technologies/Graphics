@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added software dynamic resolution support
 - Added support for "After Post-Process" render pass for unlit shader
 - Added support for textured rectangular area lights
+- Added stereo instancing macros to MSAA shaders
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
