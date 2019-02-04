@@ -69,15 +69,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 var drawSettings = CreateDrawingSettings(renderingData.cameraData.camera, sortFlags, PerObjectData.None, renderingData.supportsDynamicBatching);
                 var filteringSettings = opaqueFilterSettings;
                 
-                if (renderingData.cameraData.isStereoEnabled)
-                {
-                    Camera camera = renderingData.cameraData.camera;
-                    context.StartMultiEye(camera);
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
-                    context.StopMultiEye(camera);
-                }
-                else
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

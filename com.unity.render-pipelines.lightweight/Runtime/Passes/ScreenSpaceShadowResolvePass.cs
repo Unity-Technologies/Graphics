@@ -64,16 +64,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
             // We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP. 
             cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
-
-            if (renderingData.cameraData.isStereoEnabled)
-            {
-                Camera camera = renderingData.cameraData.camera;
-                context.StartMultiEye(camera);
-                context.ExecuteCommandBuffer(cmd);
-                context.StopMultiEye(camera);
-            }
-            else
-                context.ExecuteCommandBuffer(cmd);
+            context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
