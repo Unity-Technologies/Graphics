@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed Decals when rendering multiple camera in a single frame
 - Fixed cascade shadow count in shader
+- Fixed issue with Stacklit shader with Haze effect
 
 ### Changed
 - Temporal Antialiasing optimization for Xbox One X
