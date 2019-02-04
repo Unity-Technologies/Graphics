@@ -227,7 +227,7 @@ Shader "Hidden/HDRP/DeferredTile"
                 uint2 tileCoord = input.tileIndexAndCoord.yz;
                 uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileIndex);
 
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
+                float depth = LoadCameraDepth(input.positionCS.xy).x;
                 PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord, unity_StereoEyeIndex);
 
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
@@ -385,7 +385,7 @@ Shader "Hidden/HDRP/DeferredTile"
                 // This need to stay in sync with deferred.compute
 
                 // input.positionCS is SV_Position
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
+                float depth = LoadCameraDepth(input.positionCS.xy).x;
                 PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize(), unity_StereoEyeIndex);
 
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);

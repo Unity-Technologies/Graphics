@@ -30,7 +30,7 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
         void Frag(Varyings input, out float4 outColor : SV_Target0)
         {
-            float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
+            float depth = LoadCameraDepth(input.positionCS.xy);
 
             PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 

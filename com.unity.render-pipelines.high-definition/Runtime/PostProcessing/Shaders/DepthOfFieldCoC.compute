@@ -43,7 +43,7 @@ float GetFixedNearBlend(float linearEyeDepth)
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void KMainPhysical(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    float depth = SampleCameraDepth(dispatchThreadId);
+    float depth = LoadCameraDepth(dispatchThreadId);
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
     float coc = (1.0 - FocusDist / linearEyeDepth) * MaxCoC;
 
@@ -60,7 +60,7 @@ void KMainPhysical(uint2 dispatchThreadId : SV_DispatchThreadID)
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void KMainManual(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    float depth = SampleCameraDepth(dispatchThreadId);
+    float depth = LoadCameraDepth(dispatchThreadId);
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
     float nearBlend = GetFixedNearBlend(linearEyeDepth);
