@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HDUtils.SetRenderTarget(cmd, camera, m_RTs[3], ClearFlag.Color, clearColorAOSBlend);
                 RTIDs[3] = m_RTs[3].nameID;
             }
-            HDUtils.SetRenderTarget(cmd, camera, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+            HDUtils.SetRenderTarget(cmd, camera, m_HTile, ClearFlag.Color, Color.clear);
 
             // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
             HDUtils.SetRenderTarget(cmd, camera, RTIDs, cameraDepthStencilBuffer); // do not clear anymore
