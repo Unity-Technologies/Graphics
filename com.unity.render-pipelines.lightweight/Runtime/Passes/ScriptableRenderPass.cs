@@ -31,14 +31,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_ShaderTagIDs.Add(new ShaderTagId(passName));
         }
 
-        protected void RenderObjects(ScriptableRenderContext context, ref RenderingData renderingData,
-            ShaderTagId[] passNames, ref FilteringSettings filterSettings, SortingCriteria sortingCriteria)
-        {
-            RenderObjects(context, ref renderingData, passNames, ref filterSettings, sortingCriteria, renderingData.perObjectData);
-        }
-
-        protected void RenderObjects(ScriptableRenderContext context, ref RenderingData renderingData,
-            ShaderTagId[] passNames, ref FilteringSettings filterSettings, SortingCriteria sortingCriteria, PerObjectData perObjectData)
+        protected void RenderObjects(ScriptableRenderContext context, ref RenderingData renderingData, ref FilteringSettings filterSettings,
+            ShaderTagId[] passNames,  SortingCriteria sortingCriteria)
         {
             if (passNames.Length == 0)
                 return;
@@ -51,8 +45,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 mainLightIndex = renderingData.lightData.mainLightIndex,
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
             };
-            for (int i = 1; i < m_ShaderTagIDs.Count; ++i)
-                drawingSettings.SetShaderPassName(i, m_ShaderTagIDs[i]);
+            for (int i = 1; i < passNames.Length; ++i)
+                drawingSettings.SetShaderPassName(i, passNames[i]);
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filterSettings);
         }
 

@@ -30,15 +30,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public InjectionCallback callback;
         public RenderQueueType renderQueueType;
         public string layerName = "Default";
-        public string[] passNames = {"LightweightForward", "SRPDefaultUnlit"};
+        public string[] passNames = {"LightweightForward"};
 
         RenderObjectsPass renderObjectsPass;
 
         void OnEnable()
         {
-            ShaderTagId[] shaderTags = passNames.Select(x => new ShaderTagId(x)).ToArray();
+            Initialize();
+        }
+
+        void OnValidate()
+        {
+            Initialize();
+        }
+
+        void Initialize()
+        {
             int layerMask = (layerName.Equals("Default")) ? -1 : LayerMask.GetMask(layerName);
-            renderObjectsPass = new RenderObjectsPass(shaderTags, renderQueueType, layerMask);
+            renderObjectsPass = new RenderObjectsPass(passNames, renderQueueType, layerMask);
         }
 
         public override InjectionPoint injectionPoints => (InjectionPoint)(1 << (int)callback);
@@ -54,18 +63,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
     public class RenderObjectsPass : ScriptableRenderPass
     {
-        ShaderTagId[] shaderTags;
         FilteringSettings filteringSettings;
         RenderQueueType renderQueueType;
 
-        public RenderObjectsPass(ShaderTagId[] shaderTags, RenderQueueType renderQueueType, int layerMask)
+        public RenderObjectsPass(string[] shaderTags, RenderQueueType renderQueueType, int layerMask)
         {
-            this.shaderTags = shaderTags;
             this.renderQueueType = renderQueueType;
             RenderQueueRange renderQueueRange = (renderQueueType == RenderQueueType.Transparent)
                 ? RenderQueueRange.transparent
                 : RenderQueueRange.opaque;
             filteringSettings = new FilteringSettings(renderQueueRange, layerMask);
+            foreach (var passName in shaderTags)
+                RegisterShaderPassName(passName);
         }
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
@@ -74,7 +83,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 ? SortingCriteria.CommonTransparent
                 : renderingData.cameraData.defaultOpaqueSortFlags;
 
-            RenderObjects(context, ref renderingData, shaderTags, ref filteringSettings, sortingCriteria);
+            Camera camera = renderingData.cameraData.camera;
+            DrawingSettings drawingSettings = CreateDrawingSettings(camera, sortingCriteria, renderingData.perObjectData, renderingData.supportsDynamicBatching);
+            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings);
         }
     }
 }

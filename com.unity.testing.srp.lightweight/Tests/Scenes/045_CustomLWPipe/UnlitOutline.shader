@@ -13,7 +13,6 @@ Shader "Lightweight Render Pipeline/Examples/UnlitOutline"
         Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "LightweightPipeline"}
         LOD 100
 
-
         Pass
         {
             Name "Unlit"
@@ -70,7 +69,7 @@ Shader "Lightweight Render Pipeline/Examples/UnlitOutline"
         Pass
         {
             Tags{"LightMode" = "Outline"}
-
+            Cull Front
 
             HLSLPROGRAM
 

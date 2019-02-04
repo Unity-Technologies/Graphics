@@ -17,6 +17,4 @@ MonoBehaviour:
   renderQueueType: 0
   layerName: Outline
   passNames:
-  - LightweightForward
-  - SRPDefaultUnlit
   - Outline
