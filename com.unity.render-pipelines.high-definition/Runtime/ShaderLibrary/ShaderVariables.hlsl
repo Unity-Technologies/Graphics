@@ -346,24 +346,24 @@ CBUFFER_END
 
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
-float SampleCameraDepth(uint2 pixelCoords)
+float LoadCameraDepth(uint2 pixelCoords)
 {
     return LOAD_TEXTURE2D_LOD(_CameraDepthTexture, pixelCoords, 0).r;
 }
 
 float SampleCameraDepth(float2 uv)
 {
-    return SampleCameraDepth(uint2(uv * _ScreenSize.xy));
+    return LoadCameraDepth(uint2(uv * _ScreenSize.xy));
 }
 
-float3 SampleCameraColor(uint2 pixelCoords)
+float3 LoadCameraColor(uint2 pixelCoords)
 {
     return LOAD_TEXTURE2D_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
 }
 
 float3 SampleCameraColor(float2 uv)
 {
-    return SampleCameraColor(uint2(uv * _ScreenSize.xy));
+    return LoadCameraColor(uint2(uv * _ScreenSize.xy));
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
@@ -468,7 +468,7 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
 #define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
 
-// To get instanding working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
+// To get instancing working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 
