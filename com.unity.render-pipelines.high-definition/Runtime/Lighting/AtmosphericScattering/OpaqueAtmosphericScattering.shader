@@ -61,7 +61,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS = input.positionCS.xy;
             float3 V          = GetSkyViewDirWS(positionSS, (float3x3)_PixelCoordToViewDirWS);
-            float  depth      = LOAD_TEXTURE2D(_CameraDepthTexture, (int2)positionSS).x;
+            float  depth      = LoadCameraDepth(positionSS);
 
             return AtmosphericScatteringCompute(input, V, depth);
         }
