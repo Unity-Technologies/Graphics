@@ -47,8 +47,7 @@
 			Varyings vert (Attributes attributes)
 			{
 				Varyings o;
-				o.positionCS.xyz = TransformObjectToHClip(attributes.positionOS.xyz);
-				o.positionCS.w = 1;
+				o.positionCS = TransformObjectToHClip(attributes.positionOS);
 				o.color = attributes.color;
 				o.uv = attributes.uv;
 				return o;

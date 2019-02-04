@@ -9,7 +9,6 @@ TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
 uniform half4 _MainTex_ST;
 uniform half4 _NormalMap_ST;
-uniform half _LightIntensityScale;
 
 #if USE_SHAPE_LIGHT_TYPE_0
     TEXTURE2D(_ShapeLightTexture0);
@@ -45,7 +44,7 @@ Varyings CombinedShapeLightVertex(Attributes v)
 #endif
 
 	float4 worldVertex;
-	worldVertex.xyz = TransformObjectToWorld(v.positionOS.xyz);
+	worldVertex.xyz = TransformObjectToWorld(v.positionOS);
 	worldVertex.w = 1;
 	o.pixelScreenPos = ComputeScreenPos(worldVertex);
 	o.color = v.color;
@@ -104,6 +103,6 @@ half4 CombinedShapeLightFragment(Varyings i) : SV_Target
     finalOutput = main * finalModulate + finalAdditve;
 
     finalOutput.a = main.a;
-    return finalOutput * _LightIntensityScale;
+    return finalOutput;
 }
 #endif
