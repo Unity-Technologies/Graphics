@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Saturate alpha component in outputs
 - Fixed scaleY in ConnectTarget
 - Incorrect toggle rectangle in VisualEffect inspector
+- Shader compilation with SimpleLit and debug display
 
 ## [5.2.0-preview] - 2018-11-27
 ### Added
