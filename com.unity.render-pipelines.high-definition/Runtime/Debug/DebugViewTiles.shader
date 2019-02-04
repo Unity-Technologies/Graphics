@@ -151,7 +151,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 // To solve that, we compute pixel coordinates from full screen quad texture coordinates which start correctly at (0,0)
                 uint2 pixelCoord = uint2(input.texcoord.xy * _ScreenSize.xy);
 
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, pixelCoord).x;
+                float depth = LoadCameraDepth(pixelCoord);
                 PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
 
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
@@ -198,7 +198,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 int maxLights = 32;
                 if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
-                    float depthMouse = LOAD_TEXTURE2D(_CameraDepthTexture, _MousePixelCoord.xy).x;
+                    float depthMouse = LoadCameraDepth(_MousePixelCoord.xy);
                     PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
 
                     uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
