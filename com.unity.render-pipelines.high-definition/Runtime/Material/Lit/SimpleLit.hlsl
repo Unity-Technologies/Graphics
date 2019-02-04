@@ -65,6 +65,16 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
+void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
+{
+    GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
+}
+
+void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
+{
+    GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
