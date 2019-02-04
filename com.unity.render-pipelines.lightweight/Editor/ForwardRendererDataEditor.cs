@@ -44,21 +44,28 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_passesList = new ReorderableList(serializedObject, m_renderPasses, true, true, true, true);
 
             m_passesList.drawElementCallback =
-                (Rect rect, int index, bool isActive, bool isFocused) =>
-                {
-                    var element = m_passesList.serializedProperty.GetArrayElementAtIndex(index);
-                    var newRect = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
-                    var labelWidth = EditorGUIUtility.labelWidth;
-                    EditorGUIUtility.labelWidth = 0.1f;
-                    EditorGUI.ObjectField(newRect, element);
-                    EditorGUIUtility.labelWidth = labelWidth;
-                };
+            (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                var element = m_passesList.serializedProperty.GetArrayElementAtIndex(index);
+                var newRect = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
+                var labelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 0.1f;
+                EditorGUI.ObjectField(newRect, element);
+                EditorGUIUtility.labelWidth = labelWidth;
+            };
+
+            m_passesList.onAddCallback += AddPass;
 		    
             m_passesList.drawHeaderCallback = (Rect testHeaderRect) => {
                 EditorGUI.LabelField(testHeaderRect, "Render Pass Features");
             };
         }
-        
+
+        private void OnDisable()
+        {
+            m_passesList.onAddCallback -= AddPass;
+        }
+
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
@@ -72,11 +79,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             serializedObject.Update();
             
             m_passesList.DoLayoutList();
-            
-            m_ShadersFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadersFoldout.value, Styles.shaderFoldout);
-            
+
             EditorGUILayout.Space();
-            
+
+            m_ShadersFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadersFoldout.value, Styles.shaderFoldout);
             if (m_ShadersFoldout.value)
             {
                 EditorGUILayout.PropertyField(m_blitShader, Styles.blitShader);
@@ -87,6 +93,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             EditorGUILayout.EndFoldoutHeaderGroup();
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void AddPass(ReorderableList list)
+        {
+            if (list.serializedProperty != null)
+            {
+                ++list.serializedProperty.arraySize;
+                list.index = list.serializedProperty.arraySize - 1;
+            }
+ 
+            EditorUtility.SetDirty(target);
         }
     }
 }
