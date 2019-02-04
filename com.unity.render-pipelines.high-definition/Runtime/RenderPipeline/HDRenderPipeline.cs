@@ -1811,7 +1811,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Pushes to XR headset and/or display mirror
             if (camera.stereoEnabled)
+            {
+                // XRTODO: why is this needed?
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
                 renderContext.StereoEndRender(camera);
+            }
 
             // Due to our RT handle system we don't write into the backbuffer depth buffer (as our depth buffer can be bigger than the one provided)
             // So we need to do a copy of the corresponding part of RT depth buffer in the target depth buffer in various situation:

@@ -363,15 +363,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         isFirstFrame = false;
                     }
                 }
+
+                // XRTODO: fix this
                 isFirstFrame = true; // So that mono vars can still update when stereo active
 
-                screenWidth = XRGraphics.eyeTextureWidth;
-                screenHeight = XRGraphics.eyeTextureHeight;
+                // XRTODO: remove once SPI is working
+                if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
+                {
+                    Debug.Assert(HDDynamicResolutionHandler.instance.SoftwareDynamicResIsEnabled() == false);
 
-                var xrDesc = XRGraphics.eyeTextureDesc;
-                m_ActualWidth = xrDesc.width;
-                m_ActualHeight = xrDesc.height;
-
+                    var xrDesc = XRGraphics.eyeTextureDesc;
+                    nonScaledSize.x = screenWidth  = m_ActualWidth  = xrDesc.width;
+                    nonScaledSize.y = screenHeight = m_ActualHeight = xrDesc.height;
+                }
             }
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
