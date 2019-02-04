@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         // TODO: expose opaque, transparent, all ranges as drop down
         public InjectionCallback callback;
         public RenderQueueType renderQueueType;
-        public string layerName = "Default";
+        public LayerMask layerMask = -1;
         public string[] passNames = {"LightweightForward"};
 
         RenderObjectsPass renderObjectsPass;
@@ -46,7 +46,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         void Initialize()
         {
-            int layerMask = (layerName.Equals("Default")) ? -1 : LayerMask.GetMask(layerName);
             renderObjectsPass = new RenderObjectsPass(passNames, renderQueueType, layerMask);
         }
 
