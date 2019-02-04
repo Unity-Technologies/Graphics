@@ -30,9 +30,6 @@ namespace UnityEngine.Rendering
             new Vector3(0.0f, 1.0f, 0.0f),
         };
 
-        // Note: Color.Black have alpha channel set to 1. Most of the time we want alpha channel set to 0 as we use black to clear render target
-        public static Color clearColorAllBlack { get { return new Color(0f, 0f, 0f, 0f); } }
-
         public const int editMenuPriority1 = 320;
         public const int editMenuPriority2 = 331;
         public const int editMenuPriority3 = 342;
@@ -139,17 +136,17 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
-            SetRenderTarget(cmd, buffer, clearFlag, clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
-            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
-            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
@@ -160,12 +157,12 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
         {
-            SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, clearColorAllBlack);
+            SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, Color.clear);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
-            SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, clearColorAllBlack);
+            SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, Color.clear);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
@@ -183,7 +180,7 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag)
         {
-            SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, clearColorAllBlack);
+            SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, Color.clear);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
@@ -198,7 +195,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
             ClearFlag clearFlag)
         {
-            SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, clearColorAllBlack);
+            SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, Color.clear);
         }
 
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
