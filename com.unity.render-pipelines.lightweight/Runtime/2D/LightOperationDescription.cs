@@ -14,8 +14,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             Additive = 0,
             Modulate = 1,
-            Modulate2X = 2,
-            Subtractive = 3,
+            Subtractive = 2,
             Custom = 99
         }
 
@@ -28,6 +27,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public bool enabled;
         public string name;
+        [ColorUsageAttribute(false, true)]
         [SerializeField] internal Color globalColor;
         [SerializeField] internal TextureChannel maskTextureChannel;
         [SerializeField] internal BlendMode blendMode;
@@ -48,10 +48,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                         break;
                     case BlendMode.Modulate:
                         result.x = 1.0f;
-                        result.y = 0.0f;
-                        break;
-                    case BlendMode.Modulate2X:
-                        result.x = 2.0f;
                         result.y = 0.0f;
                         break;
                     case BlendMode.Subtractive:
