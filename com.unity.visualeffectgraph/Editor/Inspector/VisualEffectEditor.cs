@@ -440,7 +440,6 @@ namespace UnityEditor.VFX
 
         protected virtual void AssetField()
         {
-            var component = (VisualEffect)target;
             EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
         }
 
@@ -451,13 +450,20 @@ namespace UnityEditor.VFX
             EditorGUI.BeginChangeCheck();
             using (new GUILayout.HorizontalScope())
             {
-                using (new EditorGUI.DisabledGroupScope(m_ReseedOnPlay.boolValue))
+                using (new EditorGUI.DisabledGroupScope(m_ReseedOnPlay.boolValue || m_ReseedOnPlay.hasMultipleDifferentValues))
                 {
                     EditorGUILayout.PropertyField(m_RandomSeed, Contents.randomSeed);
                     if (GUILayout.Button(Contents.setRandomSeed, EditorStyles.miniButton, Styles.MiniButtonWidth))
                     {
-                        m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
-                        component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
+                        foreach( VisualEffect ve in targets)
+                        {
+                            var singleSerializedObject = new SerializedObject(ve);
+                            var singleProperty = singleSerializedObject.FindProperty("m_StartSeed");
+                            singleProperty.intValue = UnityEngine.Random.Range(0, int.MaxValue);
+                            singleSerializedObject.ApplyModifiedProperties();
+                            ve.startSeed = (uint)singleProperty.intValue;
+                        }
+                        serializedObject.Update();
                     }
                 }
             }
@@ -470,29 +476,18 @@ namespace UnityEditor.VFX
             AssetField();
             bool reinit = SeedField();
 
-
-            var component = (VisualEffect)target;
-            //Display properties only if all the VisualEffects share the same graph
-            VisualEffectAsset asset = component.visualEffectAsset;
-            if (targets.Length > 1)
+            if (! m_VisualEffectAsset.hasMultipleDifferentValues)
             {
-                foreach (VisualEffect effect in targets)
-                {
-                    if (effect.visualEffectAsset != asset)
-                    {
-                        return;
-                    }
-                }
+                EditorModeInspectorButton();
+
+                DrawRendererProperties();
+                DrawParameters();
             }
-
-            EditorModeInspectorButton();
-
-            DrawRendererProperties();
-            DrawParameters();
 
             serializedObject.ApplyModifiedProperties();
             if (reinit)
             {
+                foreach( VisualEffect component in targets)
                 component.Reinit();
             }
 
