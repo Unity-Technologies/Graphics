@@ -209,7 +209,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 baseDescriptor, colorHandle, depthHandle);
 
             if (renderingData.cameraData.postProcessEnabled &&
-                renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessingContext))
+                renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(ScriptableRenderPass.postProcessRenderContext))
             {
                 m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle, colorHandle, true, false);
                 renderer.EnqueuePass(m_OpaquePostProcessPass);

@@ -47,11 +47,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-            
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderTransparentsTag);
             using (new ProfilingSample(cmd, k_RenderTransparentsTag))
             {
@@ -68,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_TransparentFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                renderer.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_TransparentFilterSettings, SortingCriteria.None);
+                RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_TransparentFilterSettings, SortingCriteria.None);
             }
 
             context.ExecuteCommandBuffer(cmd);

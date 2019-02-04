@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Unity.Collections;
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
 
@@ -60,64 +58,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        public PostProcessRenderContext postProcessingContext { get; private set; }
-
         public ComputeBuffer perObjectLightIndices { get; private set; }
-
-        static Mesh s_FullscreenMesh = null;
-        static Mesh fullscreenMesh
-        {
-            get
-            {
-                if (s_FullscreenMesh != null)
-                    return s_FullscreenMesh;
-
-                float topV = 1.0f;
-                float bottomV = 0.0f;
-
-                s_FullscreenMesh = new Mesh { name = "Fullscreen Quad" };
-                s_FullscreenMesh.SetVertices(new List<Vector3>
-                {
-                    new Vector3(-1.0f, -1.0f, 0.0f),
-                    new Vector3(-1.0f,  1.0f, 0.0f),
-                    new Vector3(1.0f, -1.0f, 0.0f),
-                    new Vector3(1.0f,  1.0f, 0.0f)
-                });
-
-                s_FullscreenMesh.SetUVs(0, new List<Vector2>
-                {
-                    new Vector2(0.0f, bottomV),
-                    new Vector2(0.0f, topV),
-                    new Vector2(1.0f, bottomV),
-                    new Vector2(1.0f, topV)
-                });
-
-                s_FullscreenMesh.SetIndices(new[] { 0, 1, 2, 2, 1, 3 }, MeshTopology.Triangles, 0, false);
-                s_FullscreenMesh.UploadMeshData(true);
-                return s_FullscreenMesh;
-            }
-        }
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>();
 
-        List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
-        {
-            new ShaderTagId("Always"),
-            new ShaderTagId("ForwardBase"),
-            new ShaderTagId("PrepassBase"),
-            new ShaderTagId("Vertex"),
-            new ShaderTagId("VertexLMRGBM"),
-            new ShaderTagId("VertexLM"),
-        };
-
         const string k_ReleaseResourcesTag = "Release Resources";
-        Material m_ErrorMaterial = null;
-
-        public ScriptableRenderer()
-        {
-            m_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
-            postProcessingContext = new PostProcessRenderContext();
-        }
 
         public void Dispose()
         {
@@ -143,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             CommandBufferPool.Release(cmd);
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].Execute(this, context, ref renderingData);
+                m_ActiveRenderPassQueue[i].Execute(context, ref renderingData);
 
             DisposePasses(ref context);
         }
@@ -216,47 +161,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                     cullResults.FillLightAndReflectionProbeIndices(perObjectLightIndices);
                 }
-            }
-        }
-
-        public void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
-        {
-            RenderPostProcess(cmd, ref cameraData, colorFormat, source, dest, opaqueOnly, !cameraData.isStereoEnabled && cameraData.camera.targetTexture == null);
-        }
-
-        public void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly, bool flip)
-        {
-            Camera camera = cameraData.camera;
-            postProcessingContext.Reset();
-            postProcessingContext.camera = camera;
-            postProcessingContext.source = source;
-            postProcessingContext.sourceFormat = colorFormat;
-            postProcessingContext.destination = dest;
-            postProcessingContext.command = cmd;
-            postProcessingContext.flip = flip;
-
-            if (opaqueOnly)
-                cameraData.postProcessLayer.RenderOpaqueOnly(postProcessingContext);
-            else
-                cameraData.postProcessLayer.Render(postProcessingContext);
-        }
-
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        public void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
-        {
-            if (m_ErrorMaterial != null)
-            {
-                SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
-                DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
-                {
-                    perObjectData = PerObjectData.None,
-                    overrideMaterial = m_ErrorMaterial,
-                    overrideMaterialPassIndex = 0
-                };
-                for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
-                    errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
-
-                context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
             }
         }
 
@@ -335,14 +239,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 return ClearFlag.Depth;
 
             return ClearFlag.All;
-        }
-
-        public static void RenderFullscreenQuad(CommandBuffer cmd, Material material, MaterialPropertyBlock properties = null, int shaderPassId = 0)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
         }
 
         public static void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)

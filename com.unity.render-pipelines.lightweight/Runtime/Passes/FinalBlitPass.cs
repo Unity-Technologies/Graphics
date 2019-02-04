@@ -40,16 +40,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (m_BlitMaterial == null)
             {
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_BlitMaterial, GetType().Name);
                 return;
             }
-
-            if (renderer == null)
-                throw new ArgumentNullException(nameof(renderer));
 
             CommandBuffer cmd = CommandBufferPool.Get(k_FinalBlitTag);
 
@@ -82,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
-                ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
+                RenderFullscreenQuad(cmd, m_BlitMaterial);
             }
 
             context.ExecuteCommandBuffer(cmd);

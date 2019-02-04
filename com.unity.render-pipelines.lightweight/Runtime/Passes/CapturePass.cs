@@ -30,11 +30,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-
             CommandBuffer cmdBuf = CommandBufferPool.Get(k_CaptureTag);
             var colorAttachmentIdentifier = colorAttachmentHandle.Identifier();
             for (captureActions.Reset(); captureActions.MoveNext();)

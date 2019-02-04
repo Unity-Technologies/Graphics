@@ -14,11 +14,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     internal class EndXRRenderingPass : ScriptableRenderPass
     {
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-            
             Camera camera = renderingData.cameraData.camera;
             context.StopMultiEye(camera);
             context.StereoEndRender(camera);

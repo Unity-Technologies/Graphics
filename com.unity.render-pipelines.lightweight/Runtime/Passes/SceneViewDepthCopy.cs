@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
         
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (m_CopyDepthMaterial == null)
             {
@@ -31,9 +31,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 return;
             }
 
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-            
             // Restore Render target for additional editor rendering.
             // Note: Scene view camera always perform depth prepass
             CommandBuffer cmd = CommandBufferPool.Get(k_CopyDepthToCameraTag);

@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 RegisterShaderPassName(passName);
         }
 
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             SortingCriteria sortingCriteria = (renderQueueType == RenderQueueType.Transparent)
                 ? SortingCriteria.CommonTransparent

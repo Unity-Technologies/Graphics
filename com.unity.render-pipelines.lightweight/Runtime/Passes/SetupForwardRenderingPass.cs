@@ -19,11 +19,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     internal class SetupForwardRenderingPass : ScriptableRenderPass
     {
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-            
             context.SetupCameraProperties(renderingData.cameraData.camera, renderingData.cameraData.isStereoEnabled);
         }
     }

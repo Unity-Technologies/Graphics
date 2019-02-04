@@ -31,11 +31,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-
             // For now, we can't combine Skybox and Opaques into a single render pass if there's a custom render pass injected
             // between them.
             if (!m_CombineWithRenderOpaquesPass)

@@ -44,7 +44,7 @@ public class CameraCallbackTests : RenderPassFeature
             m_ClearFlag = clearFlag;
         }
 
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get("Clear Color");
             cmd.SetRenderTarget(m_ColorHandle.Identifier());
@@ -113,14 +113,11 @@ public class CameraCallbackTests : RenderPassFeature
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Blit"));
         }
 
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
 		{
-			if (renderer == null)
-				throw new ArgumentNullException("renderer");
-
 		    var pass = new CopyColorPass(CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling")));
 		    pass.Setup(colorHandle, afterAll);
-            pass.Execute(renderer, context, ref renderingData);
+            pass.Execute(context, ref renderingData);
 
 			CommandBuffer cmd = CommandBufferPool.Get("Blit Pass");
 			cmd.SetRenderTarget(colorHandle.id, depthHandle.id);
@@ -128,27 +125,27 @@ public class CameraCallbackTests : RenderPassFeature
 			
 			cmd.SetViewport(new Rect(0, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", beforeAll.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
 			
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterOpaque.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
 			
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f * 2.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterOpaquePost.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);			
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);			
 						
 			cmd.SetViewport(new Rect(0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterSkybox.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
 			
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterTransparent.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
 			
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f * 2.0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterAll.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
 
             context.ExecuteCommandBuffer(cmd);
 			CommandBufferPool.Release(cmd);

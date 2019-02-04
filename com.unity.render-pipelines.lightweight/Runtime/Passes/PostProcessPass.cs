@@ -48,11 +48,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException(nameof(renderer));
-
             CommandBuffer cmd = CommandBufferPool.Get(k_PostProcessingTag);
 
             var layer = renderingData.cameraData.postProcessLayer;
@@ -74,12 +71,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 m_ReleaseTemporaryRenderTexture = true;
                 cmd.GetTemporaryRT(m_TemporaryColorTexture.id, descriptor, FilterMode.Point);
-                renderer.RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), m_TemporaryColorTexture.Identifier(), opaquePost, flip);
+                RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), m_TemporaryColorTexture.Identifier(), opaquePost, flip);
                 cmd.Blit(m_TemporaryColorTexture.Identifier(), source.Identifier());
             }
             else
             {
-                renderer.RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), destination.Identifier(), opaquePost, flip);
+                RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), destination.Identifier(), opaquePost, flip);
             }
 
             context.ExecuteCommandBuffer(cmd);
