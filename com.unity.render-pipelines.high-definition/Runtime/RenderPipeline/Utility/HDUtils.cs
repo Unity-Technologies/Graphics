@@ -191,18 +191,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // This set of RenderTarget management methods is supposed to be used when rendering into a camera dependent render texture.
         // This will automatically set the viewport based on the camera size and the RTHandle scaling info.
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
             SetViewportAndClear(cmd, camera, buffer, clearFlag, clearColor);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             SetRenderTarget(cmd, camera, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
             int ch = colorBuffer.rt.height;
@@ -214,7 +214,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetRenderTarget(cmd, camera, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
             int ch = colorBuffer.rt.height;
@@ -226,7 +226,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetRenderTarget(cmd, camera, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
-        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
+        public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
             int ch = colorBuffer.rt.height;
@@ -366,7 +366,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            CoreUtils.SetRenderTarget(commandBuffer, destination);
+            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, -1);
             commandBuffer.SetViewport(viewport);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
