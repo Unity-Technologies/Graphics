@@ -502,6 +502,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
+                    buildTarget == UnityEditor.BuildTarget.iOS ||
                     buildTarget == UnityEditor.BuildTarget.Switch);
         }
 
