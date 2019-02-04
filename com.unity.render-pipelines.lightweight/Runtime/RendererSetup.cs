@@ -40,6 +40,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // Before Render Block
             // In this block inputs passes should execute. e.g, shadowmaps
             ExecuteBlock(RenderPassBlock.BeforeMainRender, context, ref renderingData);
+            context.Submit();
 
             // TODO:
             // CreateRenderTargets()
@@ -63,6 +64,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             
             // In this block the bulk of render passes execute. 
             ExecuteBlock(RenderPassBlock.MainRender, context, ref renderingData);
+            context.Submit();
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
@@ -82,7 +84,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             int blockIndex = (int)renderStateBlock;
             for (int i = 0; i < m_ActiveRenderPassQueue[blockIndex].Count; ++i)
                 m_ActiveRenderPassQueue[blockIndex][i].Execute(context, ref renderingData);
-            context.Submit();
         }
 
         public void Clear()
