@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RenderTargetIdentifier depthSurface = source.Identifier();
             RenderTargetIdentifier copyDepthSurface = destination.Identifier();
 
-            RenderTextureDescriptor descriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
+            RenderTextureDescriptor descriptor = CreateRenderTextureDescriptor(ref renderingData.cameraData);
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: fix this ;
             descriptor.msaaSamples = 1;
@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                ScriptableRenderer.CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

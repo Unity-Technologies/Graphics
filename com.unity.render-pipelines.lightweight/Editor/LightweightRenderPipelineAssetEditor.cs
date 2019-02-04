@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                m_AdditionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, m_AdditionalLightsPerObjectLimitProp.intValue, 0, LightweightRenderPipeline.maxPerObjectLightCount);
+                m_AdditionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, m_AdditionalLightsPerObjectLimitProp.intValue, 0, LightweightRenderPipeline.maxPerObjectLights);
                 EditorGUI.EndDisabledGroup();
 
                 disableGroup |= (m_AdditionalLightsPerObjectLimitProp.intValue == 0 || m_AdditionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);

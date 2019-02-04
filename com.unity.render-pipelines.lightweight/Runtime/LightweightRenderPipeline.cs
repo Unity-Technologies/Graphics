@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.LWRP
 {
     public interface IBeforeCameraRender
     {
-        void ExecuteBeforeCameraRender(LightweightRenderPipeline pipelineInstance, ScriptableRenderContext context, Camera camera);
+        void ExecuteBeforeCameraRender(ScriptableRenderContext context, Camera camera);
     }
 
     public sealed partial class LightweightRenderPipeline : RenderPipeline
@@ -35,26 +35,33 @@ namespace UnityEngine.Rendering.LWRP
 
         const string k_RenderCameraTag = "Render Camera";
 
-        public ScriptableRenderer renderer { get; private set; }
-
         public static float maxShadowBias
         {
-            get { return 10.0f; }
+            get => 10.0f;
         }
 
         public static float minRenderScale
         {
-            get { return 0.1f; }
+            get => 0.1f;
         }
 
         public static float maxRenderScale
         {
-            get { return 4.0f; }
+            get => 4.0f;
         }
 
-        public static int maxPerObjectLightCount
+        // Amount of Lights that can be shaded per object (in the for loop in the shader)
+        // This uses unity_4LightIndices to store an array of 4 light indices
+        public static int maxPerObjectLights
         {
-            get { return 4; }
+            get => 4;
+        }
+
+        // Light data is stored in a constant buffer (uniform array)
+        // This value has to match MAX_VISIBLE_LIGHTS in Input.hlsl
+        public static int maxVisibleAdditionalLights
+        {
+            get => 16;
         }
 
         public static LightweightRenderPipelineAsset asset
@@ -67,8 +74,6 @@ namespace UnityEngine.Rendering.LWRP
 
         public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
         {
-            renderer = new ScriptableRenderer();
-
             SetSupportedRenderingFeatures();
 
             // Unity engine introduced a bug that breaks SRP batcher on metal :( disabling it for now.
@@ -101,8 +106,6 @@ namespace UnityEngine.Rendering.LWRP
             SceneViewDrawMode.ResetDrawMode();
 #endif
 
-            renderer.Dispose();
-
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
         }
@@ -120,27 +123,20 @@ namespace UnityEngine.Rendering.LWRP
                 BeginCameraRendering(camera);
 
                 foreach (var beforeCamera in camera.GetComponents<IBeforeCameraRender>())
-                    beforeCamera.ExecuteBeforeCameraRender(this, renderContext, camera);
+                    beforeCamera.ExecuteBeforeCameraRender(renderContext, camera);
 
-                RenderSingleCamera(this, renderContext, camera);
+                RenderSingleCamera(renderContext, camera);
             }
         }
 
-        public static void RenderSingleCamera(LightweightRenderPipeline pipelineInstance, ScriptableRenderContext context, Camera camera)
+        public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
         {
-            if (pipelineInstance == null)
-            {
-                Debug.LogError("Trying to render a camera with an invalid render pipeline instance.");
-                return;
-            }
-
             if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
             using (new ProfilingSample(cmd, k_RenderCameraTag))
             {
-                ScriptableRenderer renderer = pipelineInstance.renderer;
                 var settings = asset;
                 LWRPAdditionalCameraData additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
                 InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
@@ -166,13 +162,11 @@ namespace UnityEngine.Rendering.LWRP
 
                 var cullResults = context.Cull(ref cullingParameters);
 
-                InitializeRenderingData(settings, ref cameraData, ref cullResults,
-                    renderer.maxVisibleAdditionalLights, renderer.maxPerObjectAdditionalLights, out var renderingData);
+                RendererSetup renderer = (additionalCameraData != null) ? additionalCameraData.rendererSetup : settings.rendererSetup;
+                InitializeRenderingData(settings, ref cameraData, ref cullResults, out var renderingData);
 
                 renderer.Clear();
-
-                RendererSetup rendererSetup = (additionalCameraData != null) ? additionalCameraData.rendererSetup : settings.rendererSetup;
-                rendererSetup.Setup(renderer, ref renderingData);
+                renderer.Setup(ref renderingData);
                 renderer.Execute(context, ref renderingData);
             }
 
@@ -273,7 +267,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         static void InitializeRenderingData(LightweightRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
-            int maxVisibleAdditionalLights, int maxPerObjectAdditionalLights, out RenderingData renderingData)
+            out RenderingData renderingData)
         {
             var visibleLights = cullResults.visibleLights;
 
@@ -308,7 +302,7 @@ namespace UnityEngine.Rendering.LWRP
 
             renderingData.cullResults = cullResults;
             renderingData.cameraData = cameraData;
-            InitializeLightData(settings, visibleLights, mainLightIndex, maxVisibleAdditionalLights, maxPerObjectAdditionalLights, out renderingData.lightData);
+            InitializeLightData(settings, visibleLights, mainLightIndex, out renderingData.lightData);
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
@@ -386,16 +380,18 @@ namespace UnityEngine.Rendering.LWRP
             shadowData.shadowmapDepthBufferBits = 16;
         }
 
-        static void InitializeLightData(LightweightRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, int maxAdditionalLights,
-            int maxPerObjectAdditionalLights, out LightData lightData)
+        static void InitializeLightData(LightweightRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
         {
-            lightData.mainLightIndex = mainLightIndex;
+            int maxPerObjectAdditionalLights = LightweightRenderPipeline.maxPerObjectLights;
+            int maxVisibleAdditionalLights = LightweightRenderPipeline.maxVisibleAdditionalLights;
 
+            lightData.mainLightIndex = mainLightIndex;
+            
             if (settings.additionalLightsRenderingMode != LightRenderingMode.Disabled)
             {
                 lightData.additionalLightsCount =
                     Math.Min((mainLightIndex != -1) ? visibleLights.Length - 1 : visibleLights.Length,
-                        maxAdditionalLights);
+                        maxVisibleAdditionalLights);
                 lightData.maxPerObjectAdditionalLightsCount = Math.Min(settings.maxAdditionalLightsCount, maxPerObjectAdditionalLights);
             }
             else

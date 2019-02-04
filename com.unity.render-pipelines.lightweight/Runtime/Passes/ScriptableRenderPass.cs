@@ -167,6 +167,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cameraData.postProcessLayer.Render(postProcessRenderContext);
         }
 
+        protected static void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
+        {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+
+            // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
+            //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
+            //    cmd.CopyTexture(source, dest);
+            //else
+            cmd.Blit(source, dest, material);
+        }
+
         protected DrawingSettings CreateDrawingSettings(Camera camera, SortingCriteria sortingCriteria, PerObjectData perObjectData, bool supportsDynamicBatching, int mainLightIndex = -1)
         {
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
@@ -181,7 +193,40 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 settings.SetShaderPassName(i, m_ShaderTagIDs[i]);
             return settings;
         }
-        
+
+        public static RenderTextureDescriptor CreateRenderTextureDescriptor(ref CameraData cameraData, float scaler = 1.0f)
+        {
+            Camera camera = cameraData.camera;
+            RenderTextureDescriptor desc;
+            float renderScale = cameraData.renderScale;
+            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
+
+            if (cameraData.isStereoEnabled)
+            {
+                desc = XRGraphics.eyeTextureDesc;
+                renderTextureFormatDefault = desc.colorFormat;
+            }
+            else
+            {
+                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                desc.width = (int)((float)desc.width * renderScale * scaler);
+                desc.height = (int)((float)desc.height * renderScale * scaler);
+                desc.depthBufferBits = 32;
+            }
+
+            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format. 
+            bool useRGB111110 = Application.isMobilePlatform &&
+             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+            RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
+            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
+            desc.enableRandomWrite = false;
+            desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            desc.msaaSamples = cameraData.msaaSamples;
+            desc.bindMS = false;
+            desc.useDynamicScale = cameraData.camera.allowDynamicResolution;
+            return desc;
+        }
+
         protected static void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,

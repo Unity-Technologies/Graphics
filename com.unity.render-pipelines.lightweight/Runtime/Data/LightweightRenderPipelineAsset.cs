@@ -514,7 +514,7 @@ namespace UnityEngine.Rendering.LWRP
 
         int ValidatePerObjectLights(int value)
         {
-            return System.Math.Max(0, System.Math.Min(value, LightweightRenderPipeline.maxPerObjectLightCount));
+            return System.Math.Max(0, System.Math.Min(value, LightweightRenderPipeline.maxPerObjectLights));
         }
 
         float ValidateRenderScale(float value)

@@ -25,21 +25,21 @@ public class CustomLWPipe : RendererSetup
         m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
     }
 
-    public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
+    public override void Setup(ref RenderingData renderingData)
     {
-        renderer.SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
-        RenderTextureDescriptor baseDescriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
+        SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
+        RenderTextureDescriptor baseDescriptor = ScriptableRenderPass.CreateRenderTextureDescriptor(ref renderingData.cameraData);
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;
         shadowDescriptor.dimension = TextureDimension.Tex2D;
 
-        renderer.EnqueuePass(m_SetupForwardRenderingPass);
+        EnqueuePass(m_SetupForwardRenderingPass);
 
         RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
         RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
         
         var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
         m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
-        renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
+        EnqueuePass(m_CreateLightweightRenderTexturesPass);
 
         Camera camera = renderingData.cameraData.camera;
 
@@ -49,13 +49,12 @@ public class CustomLWPipe : RendererSetup
             injectionPoints |= pass.injectionPoints;
         }
 
-        m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
-        renderer.EnqueuePass(m_SetupLightweightConstants);
+        EnqueuePass(m_SetupLightweightConstants);
 
-        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor);
-        renderer.EnqueuePass(m_RenderOpaqueForwardPass);
+        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, GetCameraClearFlag(camera), camera.backgroundColor);
+        EnqueuePass(m_RenderOpaqueForwardPass);
         
-        EnqueuePasses(RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses, injectionPoints, renderer,
+        EnqueuePasses(RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses, injectionPoints,
             baseDescriptor, colorHandle, depthHandle);
     }
 }
