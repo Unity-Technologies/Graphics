@@ -50,7 +50,7 @@ public class CameraCallbackTests : RenderPassFeature
             cmd.SetRenderTarget(m_ColorHandle.Identifier());
             cmd.ClearRenderTarget(CoreUtils.HasFlag(m_ClearFlag, ClearFlag.Color), CoreUtils.HasFlag(m_ClearFlag, ClearFlag.Depth), Color.yellow);
 
-            RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
+            RenderTextureDescriptor opaqueDesc = CreateRenderTextureDescriptor(ref renderingData.cameraData);
             cmd.GetTemporaryRT(beforeAll.id, opaqueDesc, FilterMode.Point);
             cmd.Blit(m_ColorHandle.Identifier(), beforeAll.Identifier());
             context.ExecuteCommandBuffer(cmd);

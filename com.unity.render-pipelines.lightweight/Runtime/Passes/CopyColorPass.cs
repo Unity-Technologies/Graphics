@@ -54,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Downsampling downsampling = renderingData.cameraData.opaqueTextureDownsampling;
             float opaqueScaler = m_OpaqueScalerValues[(int)downsampling];
 
-            RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData, opaqueScaler);
+            RenderTextureDescriptor opaqueDesc = CreateRenderTextureDescriptor(ref renderingData.cameraData, opaqueScaler);
             opaqueDesc.msaaSamples = 1;
             opaqueDesc.depthBufferBits = 0;
 

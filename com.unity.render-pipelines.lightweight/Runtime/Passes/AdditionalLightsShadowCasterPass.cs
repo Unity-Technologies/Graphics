@@ -35,9 +35,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             RegisterShaderPassName("ShadowCaster");
 
-            m_AdditionalLightShadowMatrices = new Matrix4x4[0];
-            m_AdditionalLightSlices = new ShadowSliceData[0];
-            m_AdditionalLightsShadowStrength = new float[0];
+            int maxLights = LightweightRenderPipeline.maxVisibleAdditionalLights;
+            m_AdditionalLightShadowMatrices = new Matrix4x4[maxLights];
+            m_AdditionalLightSlices = new ShadowSliceData[maxLights];
+            m_AdditionalLightsShadowStrength = new float[maxLights];
 
             AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow = Shader.PropertyToID("_AdditionalLightsWorldToShadow");
             AdditionalShadowsConstantBuffer._AdditionalShadowStrength = Shader.PropertyToID("_AdditionalShadowStrength");
@@ -48,17 +49,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
         }
 
-        public bool Setup(RenderTargetHandle destination, ref RenderingData renderingData, int maxVisibleAdditinalLights)
+        public bool Setup(RenderTargetHandle destination, ref RenderingData renderingData)
         {
             Clear();
             this.destination = destination;
 
-            if (m_AdditionalLightShadowMatrices.Length != maxVisibleAdditinalLights)
-            {
-                m_AdditionalLightShadowMatrices = new Matrix4x4[maxVisibleAdditinalLights];
-                m_AdditionalLightSlices = new ShadowSliceData[maxVisibleAdditinalLights];
-                m_AdditionalLightsShadowStrength = new float[maxVisibleAdditinalLights];
-            }
             m_AdditionalShadowCastingLightIndices.Clear();
 
             Bounds bounds;
