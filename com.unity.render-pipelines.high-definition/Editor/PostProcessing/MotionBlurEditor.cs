@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
-            m_MinVelInPixels = Unpack(o.Find(x => x.minVelInPixels));
+            m_MinVelInPixels = Unpack(o.Find(x => x.minVel));
             m_MaxVelocityInPixels = Unpack(o.Find(x => x.maxVelocity));
             m_CameraRotClamp = Unpack(o.Find(x => x.cameraRotationVelocityClamp));
         }
