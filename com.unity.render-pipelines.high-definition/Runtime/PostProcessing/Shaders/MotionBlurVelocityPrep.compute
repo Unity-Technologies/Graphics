@@ -24,10 +24,10 @@ float2 EncodeVelocity(float2 velocity)
     }
 }
 
-float2 ClampVelocity(float2 velocity)
+float2 ClampVelocity(float2 velocity, float maxVelocity)
 {
     float len = length(velocity);
-    return (len > 0.0) ? min(len, _MotionBlurMaxVelocity) * (velocity * rcp(len)) : 0.0;
+    return (len > 0.0) ? min(len, maxVelocity) * (velocity * rcp(len)) : 0.0;
 }
 
 // Prep velocity so that the velocity due to rotation is clamped more lightly
@@ -42,17 +42,19 @@ float2 ComputeVelocity(PositionInputs posInput, float2 sampledVelocity)
     float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
     float2 positionCS = curClipPos.xy / curClipPos.w;
 
-    float2 velCameraRot = (positionCS - previousPositionCS) * _MotionBlurIntensity;
+    float2 velCameraRot = ((positionCS - previousPositionCS).xy);
 #if UNITY_UV_STARTS_AT_TOP
     velCameraRot.y = -velCameraRot.y;
 #endif
 
     velCameraRot.x = velCameraRot.x * _TextureWidthScaling.y;
+    velCameraRot *= 0.5f;
+    float2 velWithoutRot = sampledVelocity - velCameraRot;
+    velCameraRot *= _MotionBlurIntensity;
 
-    float velCameraRotLength = length(velCameraRot);
-    float2 clampVelRot = min(_CameraRotationClampNDC, velCameraRotLength) * (velCameraRot * rcp(velCameraRotLength));
+    float2 clampVelRot = ClampVelocity(velCameraRot, _CameraRotationClampNDC);
 
-    return ClampVelocity((sampledVelocity - velCameraRot) * _MotionBlurIntensity) + clampVelRot;
+    return ClampVelocity(velWithoutRot* _MotionBlurIntensity, _MotionBlurMaxVelocity) + clampVelRot;
 }
 
 [numthreads(8, 8,1)]
