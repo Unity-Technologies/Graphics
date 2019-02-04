@@ -14,12 +14,14 @@ Shader "Hidden/HDRP/DepthValues"
         struct Attributes
         {
             uint vertexID : SV_VertexID;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
             float2 texcoord   : TEXCOORD0;
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         struct FragOut
@@ -32,6 +34,8 @@ Shader "Hidden/HDRP/DepthValues"
         Varyings Vert(Attributes input)
         {
             Varyings output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord   = TexCoordStereoOffset(GetFullScreenTriangleTexCoord(input.vertexID) * _ScreenSize.xy);
             return output;
@@ -39,6 +43,7 @@ Shader "Hidden/HDRP/DepthValues"
 
         FragOut Frag1X(Varyings input)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             FragOut fragO;
             int2 pixelCoords = int2(input.texcoord);
             float depthVal = _DepthTextureMS.Load(pixelCoords, 0).x;
@@ -50,6 +55,7 @@ Shader "Hidden/HDRP/DepthValues"
 
         FragOut Frag2X(Varyings input)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             FragOut fragO;
             fragO.depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
             int2 pixelCoords = int2(input.texcoord);
@@ -68,6 +74,7 @@ Shader "Hidden/HDRP/DepthValues"
 
         FragOut Frag4X(Varyings input)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             FragOut fragO;
             fragO.depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
             int2 pixelCoords = int2(input.texcoord);
@@ -86,6 +93,7 @@ Shader "Hidden/HDRP/DepthValues"
 
         FragOut Frag8X(Varyings input)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             FragOut fragO;
             fragO.depthValues = float4(0.0f, 100000.0f, 0.0f, 0.0f);
             int2 pixelCoords = int2(input.texcoord);

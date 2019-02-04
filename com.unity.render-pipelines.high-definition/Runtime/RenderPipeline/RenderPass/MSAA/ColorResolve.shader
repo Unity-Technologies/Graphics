@@ -13,17 +13,21 @@ Shader "Hidden/HDRP/ColorResolve"
         struct Attributes
         {
             uint vertexID : SV_VertexID;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
             float2 texcoord   : TEXCOORD0;
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         Varyings Vert(Attributes input)
         {
             Varyings output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord   = GetFullScreenTriangleTexCoord(input.vertexID) * _ScreenSize.xy;
             return output;
@@ -31,18 +35,21 @@ Shader "Hidden/HDRP/ColorResolve"
 
         float4 Frag1X(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
             return _ColorTextureMS.Load(pixelCoords, 0);
         }
 
         float4 Frag2X(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
             return FastTonemapInvert((FastTonemap(_ColorTextureMS.Load(pixelCoords, 0)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 1))) * 0.5f);
         }
 
         float4 Frag4X(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
             return FastTonemapInvert((FastTonemap(_ColorTextureMS.Load(pixelCoords, 0)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 1))
                             + FastTonemap(_ColorTextureMS.Load(pixelCoords, 2)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 3))) * 0.25f);
@@ -50,6 +57,7 @@ Shader "Hidden/HDRP/ColorResolve"
 
         float4 Frag8X(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
             return FastTonemapInvert((FastTonemap(_ColorTextureMS.Load(pixelCoords, 0)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 1))
                             + FastTonemap(_ColorTextureMS.Load(pixelCoords, 2)) + FastTonemap(_ColorTextureMS.Load(pixelCoords, 3))
