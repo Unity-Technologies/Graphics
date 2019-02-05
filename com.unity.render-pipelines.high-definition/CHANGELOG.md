@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Stacklit shader with Haze effect
 - Fixed an issue with the max sample count for the TAA
 - Fixed post-process guard band for XR
+- Fixed exposure of emissive of Unlit
+- Fixed depth only and motion vector pass for Unlit not working correctly with MSAA
 
 ### Changed
 - Temporal Antialiasing optimization for Xbox One X
