@@ -23,6 +23,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
         }
 
+        public virtual void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
+            ref CameraData cameraData)
+        {
+            
+        }
+
         protected List<ScriptableRenderPass>[] m_ActiveRenderPassQueue = 
         {
             new List<ScriptableRenderPass>(),

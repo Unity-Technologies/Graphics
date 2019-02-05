@@ -286,6 +286,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_ForwardLights.Setup(context, ref renderingData);
         }
 
+        public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
+            ref CameraData cameraData)
+        {
+            Camera camera = cameraData.camera;
+            // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
+            // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
+            //     asset.maxAdditionalLightsCount == 0)
+            // {
+            //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+            // }
+
+            cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
+        }
+        
         bool CanCopyDepth(ref CameraData cameraData)
         {
             bool msaaEnabledForCamera = (int)cameraData.msaaSamples > 1;
