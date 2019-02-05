@@ -56,11 +56,6 @@ CBUFFER_END
 // g_fClustBase, g_fNearPlane, g_fFarPlane, g_iLog2NumClusters
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClusteredUtils.hlsl"
 
-#ifdef MSAA_ENABLED
-Texture2DMS<float> g_depth_tex : register( t0 );
-#else
-Texture2D g_depth_tex : register( t0 );
-#endif
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
@@ -263,10 +258,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #ifdef MSAA_ENABLED
         for(int i=0; i<g_iNumSamplesMSAA; i++)
         {
-        const float fDpth = FetchDepthMSAA(g_depth_tex, uPixCrd, i);
+        const float fDpth = FetchDepthMSAA(uPixCrd, i);
 		const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(i).xy;		// this is optimized away when USE_OBLIQUE_MODE is NOT set.
 #else
-        const float fDpth = FetchDepth(g_depth_tex, uPixCrd);
+        const float fDpth = FetchDepth(uPixCrd);
 		const float2 fracSampleCoord = float2(0.5,0.5);
 #endif
 
