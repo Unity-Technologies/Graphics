@@ -27,12 +27,14 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
         struct Attributes
         {
             uint vertexID : SV_VertexID;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
             float2 texcoord   : TEXCOORD0;
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
@@ -40,6 +42,8 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
         Varyings Vert(Attributes input)
         {
             Varyings output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
             return output;
@@ -49,6 +53,7 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
         [earlydepthstencil]
         void FragNearest(Varyings input)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             FETCH_DBUFFER(DBuffer, _DBufferTexture, input.texcoord * _ScreenSize.xy);
             DecalSurfaceData decalSurfaceData;
             DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
