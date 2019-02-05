@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
@@ -11,7 +9,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private DepthOnlyPass m_DepthOnlyPass;
         private MainLightShadowCasterPass m_MainLightShadowCasterPass;
         private AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
-        private SetupLightweightConstanstPass m_SetupLightweightConstants;
         private ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
         private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
         private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
@@ -38,6 +35,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private RenderTargetHandle m_MainLightShadowmap;
         private RenderTargetHandle m_AdditionalLightsShadowmap;
         private RenderTargetHandle m_ScreenSpaceShadowmap;
+
+        ForwardLights m_ForwardLights;
         
         public ForwardRendererSetup(ForwardRendererData data)
         {
@@ -53,7 +52,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass();
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(screenspaceShadowsMaterial);
             m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
-            m_SetupLightweightConstants = new SetupLightweightConstanstPass();
             m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
             m_OpaquePostProcessPass = new PostProcessPass();
             m_DrawSkyboxPass = new DrawSkyboxPass();
@@ -79,6 +77,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_MainLightShadowmap.Init("_MainLightShadowmapTexture");
             m_AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
             m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
+
+            m_ForwardLights = new ForwardLights();
         }
 
         public static bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
@@ -103,7 +103,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             Camera camera = renderingData.cameraData.camera;
 
-            SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
             RenderTextureDescriptor baseDescriptor = ScriptableRenderPass.CreateRenderTextureDescriptor(ref renderingData.cameraData);
             ClearFlag clearFlag = GetCameraClearFlag(renderingData.cameraData.camera);
             RenderTextureDescriptor shadowDescriptor = baseDescriptor;
@@ -177,8 +176,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_ScreenSpaceShadowResolvePass.Setup(baseDescriptor, m_ScreenSpaceShadowmap);
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
-
-            EnqueuePass(m_SetupLightweightConstants);
 
             // If a before all render pass executed we expect it to clear the color render target
             if (CoreUtils.HasFlag(injectionPoints, RenderPassFeature.InjectionPoint.BeforeRenderPasses))
@@ -282,6 +279,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 EnqueuePass(m_SceneViewDepthCopyPass, RenderPassBlock.AfterMainRender);
             }
 #endif
+        }
+
+        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            m_ForwardLights.Setup(context, ref renderingData);
         }
 
         bool CanCopyDepth(ref CameraData cameraData)

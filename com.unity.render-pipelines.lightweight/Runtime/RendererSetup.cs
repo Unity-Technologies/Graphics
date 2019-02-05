@@ -19,6 +19,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public abstract void Setup(ref RenderingData renderingData);
 
+        public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+        }
+
         protected List<ScriptableRenderPass>[] m_ActiveRenderPassQueue = 
         {
             new List<ScriptableRenderPass>(),
@@ -58,6 +62,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled);
+            SetupLights(context, ref renderingData);
 
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
@@ -111,44 +116,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (pass != null)
                 m_ActiveRenderPassQueue[(int)renderPassBlock].Add(pass);
-        }
-
-        public void SetupPerObjectLightIndices(ref CullingResults cullResults, ref LightData lightData)
-        {
-            if (lightData.additionalLightsCount == 0)
-                return;
-
-            var visibleLights = lightData.visibleLights;
-            var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
-            int directionalLightsCount = 0;
-            int additionalLightsCount = 0;
-
-            // Disable all directional lights from the perobject light indices
-            // Pipeline handles them globally.
-            for (int i = 0; i < visibleLights.Length; ++i)
-            {
-                if (additionalLightsCount >= LightweightRenderPipeline.maxVisibleAdditionalLights)
-                    break;
-
-                VisibleLight light = visibleLights[i];
-                if (light.lightType == LightType.Directional)
-                {
-                    perObjectLightIndexMap[i] = -1;
-                    ++directionalLightsCount;
-                }
-                else
-                {
-                    perObjectLightIndexMap[i] -= directionalLightsCount;
-                    ++additionalLightsCount;
-                }
-            }
-
-            // Disable all remaining lights we cannot fit into the global light buffer.
-            for (int i = directionalLightsCount + additionalLightsCount; i < visibleLights.Length; ++i)
-                perObjectLightIndexMap[i] = -1;
-
-            cullResults.SetLightIndexMap(perObjectLightIndexMap);
-            perObjectLightIndexMap.Dispose();
         }
 
         public static ClearFlag GetCameraClearFlag(Camera camera)
