@@ -11,10 +11,14 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 4621d1f0d19720d42a8884910fa9012c, type: 3}
-  m_Name: RenderObjectsFeature
+  m_Name: RenderWithOverride
   m_EditorClassIdentifier: 
   callback: 1
   renderQueueType: 0
-  layerName: Outline
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 512
   passNames:
-  - Outline
+  - LightweightPipeline
+  overrideMaterial: {fileID: 2100000, guid: 3bca41fe8b851ec44846af4f5686915e, type: 2}
+  overrideMaterialPassIndex: 0

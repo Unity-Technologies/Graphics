@@ -11,7 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 19dda12d58f1fbb4e9ef172721391ff2, type: 3}
-  m_Name: CustomRenderGraph
+  m_Name: CustomRenderer
   m_EditorClassIdentifier: 
   m_RenderPassFeatures:
   - {fileID: 11400000, guid: ae1c45fc939aa3a4ea0a2f34767b9486, type: 2}
+  - {fileID: 11400000, guid: 7f3aa5d8058e5ff4f9a6a2b7c6b44e36, type: 2}
