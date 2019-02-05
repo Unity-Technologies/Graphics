@@ -472,6 +472,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingLightCluster          = Shader.PropertyToID("_RaytracingLightCluster");
         public static readonly int _RaytracingAreaWorldToLocal      = Shader.PropertyToID("_RaytracingAreaWorldToLocal");
         public static readonly int _RaytracingTargetAreaLight       = Shader.PropertyToID("_RaytracingTargetAreaLight");
+        public static readonly int _RaytracingShadowSlot            = Shader.PropertyToID("_RaytracingShadowSlot");
         public static readonly int _AreaShadowTexture               = Shader.PropertyToID("_AreaShadowTexture");
 
         public static readonly int _MinClusterPos                   = Shader.PropertyToID("_MinClusterPos");
@@ -482,7 +483,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AreaLightCountRT                = Shader.PropertyToID("_AreaLightCountRT");
         public static readonly int _PixelSpreadAngle                = Shader.PropertyToID("_PixelSpreadAngle");
         public static readonly int _RaytracingFlagMask              = Shader.PropertyToID("_RaytracingFlagMask");
-        public static readonly string _RaytracingAccelerationStructureName           = "_RaytracingAccelerationStructure";
+        public static readonly int _RaytracingIntensityClamp        = Shader.PropertyToID("_RaytracingIntensityClamp");
+        public static readonly int _RaytracingFrameIndex            = Shader.PropertyToID("_RaytracingFrameIndex");
+        public static readonly int _RaytracingPixelSpreadAngle      = Shader.PropertyToID("_RaytracingPixelSpreadAngle");
+        public static readonly int _RaytracingReflectionMinSmoothness               = Shader.PropertyToID("_RaytracingReflectionMinSmoothness");
+        public static readonly int _RaytracingReflectionMaxDistance                 = Shader.PropertyToID("_RaytracingReflectionMaxDistance");
+        public static readonly string _RaytracingAccelerationStructureName          = "_RaytracingAccelerationStructure";
+
+        public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
+        public static readonly int _AccumulatedFrameTexture         = Shader.PropertyToID("_AccumulatedFrameTexture");
+        public static readonly int _TemporalAccumuationWeight       = Shader.PropertyToID("_TemporalAccumuationWeight");
+
 #else
         public static readonly int _RaytracedAreaShadow             = Shader.PropertyToID("_RaytracedAreaShadow");
 #endif
