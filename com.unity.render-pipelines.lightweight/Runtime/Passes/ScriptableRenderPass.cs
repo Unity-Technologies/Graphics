@@ -82,6 +82,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
+        public FilteringSettings filteringSettings;
+
+        public DrawGroups drawGroupsMask
+        {
+            get => m_DrawGroupsMask;
+            set => m_DrawGroupsMask = value;
+        }
+
+        DrawGroups m_DrawGroupsMask = DrawGroups.Background;
+        
+        public ScriptableRenderPass()
+        {
+            filteringSettings = new FilteringSettings(RenderQueueRange.all);
+        }
+        
         /// <summary>
         /// Cleanup any allocated data that was created during the execution of the pass.
         /// </summary>

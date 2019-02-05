@@ -14,7 +14,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     internal class RenderOpaqueForwardPass : ScriptableRenderPass
     {
         const string k_RenderOpaquesTag = "Render Opaques";
-        FilteringSettings m_OpaqueFilterSettings;
 
         RenderTargetHandle colorAttachmentHandle { get; set; }
         RenderTargetHandle depthAttachmentHandle { get; set; }
@@ -22,12 +21,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         ClearFlag clearFlag { get; set; }
         Color clearColor { get; set; }
 
-        public RenderOpaqueForwardPass()
+        public RenderOpaqueForwardPass(RenderQueueRange renderQueueRange)
         {
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
 
-            m_OpaqueFilterSettings = new FilteringSettings(RenderQueueRange.opaque);
+            filteringSettings = new FilteringSettings(renderQueueRange);
         }
 
         /// <summary>
@@ -76,13 +75,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                XRUtils.DrawOcclusionMesh(cmd, camera, renderingData.cameraData.isStereoEnabled);
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(camera, sortFlags, renderingData.perObjectData, renderingData.supportsDynamicBatching, renderingData.lightData.mainLightIndex);
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_OpaqueFilterSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_OpaqueFilterSettings, SortingCriteria.None);
+                RenderObjectsWithError(context, ref renderingData.cullResults, camera, filteringSettings, SortingCriteria.None);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

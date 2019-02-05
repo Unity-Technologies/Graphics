@@ -15,18 +15,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         const string k_RenderTransparentsTag = "Render Transparents";
 
-        FilteringSettings m_TransparentFilterSettings;
-
         RenderTargetHandle colorAttachmentHandle { get; set; }
         RenderTargetHandle depthAttachmentHandle { get; set; }
         RenderTextureDescriptor descriptor { get; set; }
 
-        public RenderTransparentForwardPass()
+        public RenderTransparentForwardPass(RenderQueueRange renderQueueRange)
         {
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
 
-            m_TransparentFilterSettings = new FilteringSettings(RenderQueueRange.transparent);
+            filteringSettings = new FilteringSettings(renderQueueRange);
         }
 
         /// <summary>
@@ -62,10 +60,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 Camera camera = renderingData.cameraData.camera;
                 var drawSettings = CreateDrawingSettings(camera, SortingCriteria.CommonTransparent, renderingData.perObjectData, renderingData.supportsDynamicBatching, renderingData.lightData.mainLightIndex);
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_TransparentFilterSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_TransparentFilterSettings, SortingCriteria.None);
+                RenderObjectsWithError(context, ref renderingData.cullResults, camera, filteringSettings, SortingCriteria.None);
             }
 
             context.ExecuteCommandBuffer(cmd);

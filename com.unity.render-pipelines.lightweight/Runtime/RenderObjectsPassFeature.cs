@@ -64,7 +64,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
     public class RenderObjectsPass : ScriptableRenderPass
     {
-        FilteringSettings filteringSettings;
         RenderQueueType renderQueueType;
         Material overrideMaterial;
         int overrideMaterialPassIndex;

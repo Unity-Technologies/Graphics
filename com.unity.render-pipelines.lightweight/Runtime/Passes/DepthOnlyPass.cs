@@ -18,15 +18,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private RenderTargetHandle depthAttachmentHandle { get; set; }
         internal RenderTextureDescriptor descriptor { get; private set; }
-        private FilteringSettings opaqueFilterSettings { get; set; }
 
         /// <summary>
         /// Create the DepthOnlyPass
         /// </summary>
-        public DepthOnlyPass()
+        public DepthOnlyPass(RenderQueueRange renderQueueRange)
         {
             RegisterShaderPassName("DepthOnly");
-            opaqueFilterSettings = new FilteringSettings(RenderQueueRange.opaque);
+            filteringSettings = new FilteringSettings(renderQueueRange);
         }
         
         /// <summary>
@@ -67,7 +66,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(renderingData.cameraData.camera, sortFlags, PerObjectData.None, renderingData.supportsDynamicBatching);
-                var filteringSettings = opaqueFilterSettings;
                 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
             }
