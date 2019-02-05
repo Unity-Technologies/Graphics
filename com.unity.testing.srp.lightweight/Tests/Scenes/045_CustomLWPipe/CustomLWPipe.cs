@@ -35,7 +35,7 @@ public class CustomLWPipe : RendererSetup
         
         var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
         m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
-        EnqueuePass(RenderPassBlock.MainRender, m_CreateLightweightRenderTexturesPass);
+        EnqueuePass(m_CreateLightweightRenderTexturesPass);
 
         Camera camera = renderingData.cameraData.camera;
 
@@ -45,12 +45,12 @@ public class CustomLWPipe : RendererSetup
             injectionPoints |= pass.injectionPoints;
         }
 
-        EnqueuePass(RenderPassBlock.MainRender, m_SetupLightweightConstants);
+        EnqueuePass(m_SetupLightweightConstants);
 
         m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, GetCameraClearFlag(camera), camera.backgroundColor);
-        EnqueuePass(RenderPassBlock.MainRender, m_RenderOpaqueForwardPass);
+        EnqueuePass(m_RenderOpaqueForwardPass);
         
-        EnqueuePasses(RenderPassBlock.MainRender, RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses, injectionPoints,
+        EnqueuePasses(RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses, injectionPoints,
             baseDescriptor, colorHandle, depthHandle);
     }
 }

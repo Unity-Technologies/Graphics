@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             CommandBufferPool.Release(cmd);
         }
 
-        public void EnqueuePass(RenderPassBlock renderPassBlock, ScriptableRenderPass pass)
+        public void EnqueuePass(ScriptableRenderPass pass, RenderPassBlock renderPassBlock = RenderPassBlock.MainRender)
         {
             if (pass != null)
                 m_ActiveRenderPassQueue[(int)renderPassBlock].Add(pass);
@@ -231,8 +231,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             CommandBufferPool.Release(cmd);
         }
 
-        protected void EnqueuePasses(RenderPassBlock renderPassBlock, RenderPassFeature.InjectionPoint injectionCallback, RenderPassFeature.InjectionPoint injectionCallbackMask,
-            RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
+        protected void EnqueuePasses(RenderPassFeature.InjectionPoint injectionCallback, RenderPassFeature.InjectionPoint injectionCallbackMask,
+            RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthHandle,
+            RenderPassBlock renderPassBlock = RenderPassBlock.MainRender)
         {
             if (CoreUtils.HasFlag(injectionCallbackMask, injectionCallback))
             {
@@ -240,7 +241,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     var renderPass = renderPassFeature.GetPassToEnqueue(injectionCallback, baseDescriptor, colorHandle, depthHandle);
                     if (renderPass != null)
-                        EnqueuePass(renderPassBlock, renderPass);
+                        EnqueuePass(renderPass, renderPassBlock);
                 }
             }
         }
