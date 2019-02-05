@@ -16,6 +16,7 @@
   * [HDRI Sky](HDRI-Sky)
   * [Procedural Sky](Procedural-Sky)
   * [HD Shadow Settings](HD-Shadow-Settings)
+  * [Contact Shadows](Contact-Shadows)
   * [Volumetric Fog](Volumetric-Fog)
   * [Indirect Lighting Controller](Indirect-Lighting-Controller)
   * [Volumetric Lighting Controller](Volumetric-Lighting-Controller)

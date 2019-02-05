@@ -28,12 +28,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_ScreenFadeDistance, EditorGUIUtility.TrTextContent("Screen Edge Fade Distance"));
-            PropertyField(m_RayMaxIterations, EditorGUIUtility.TrTextContent("Max Number of Ray Steps", "Affects both correctness and performance."));
-            PropertyField(m_DepthBufferThickness, EditorGUIUtility.TrTextContent("Object Thickness"));
-            PropertyField(m_MinSmoothness, EditorGUIUtility.TrTextContent("Min Smoothness", "Smoothness value at which SSR is activated and the smoothness-controlled fade out stops."));
-            PropertyField(m_SmoothnessFadeStart, EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start], e.g. [0.8, 0.9]."));
-            PropertyField(m_ReflectSky, EditorGUIUtility.TrTextContent("Reflect sky", "If disabled, sky reflection is never handled by SSR, and relies only on reflection probes."));
+            PropertyField(m_ScreenFadeDistance,   EditorGUIUtility.TrTextContent("Screen Edge Fade Distance", "Controls the distance at which HDRP fades out SSR near the edge of the screen."));
+            PropertyField(m_RayMaxIterations,     EditorGUIUtility.TrTextContent("Max Number of Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance."));
+            PropertyField(m_DepthBufferThickness, EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind."));
+            PropertyField(m_MinSmoothness,        EditorGUIUtility.TrTextContent("Min Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops."));
+            PropertyField(m_SmoothnessFadeStart,  EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start]."));
+            PropertyField(m_ReflectSky,           EditorGUIUtility.TrTextContent("Reflect sky", "When enabled, SSR handles sky reflection."));
+
 
             m_RayMaxIterations.value.intValue       = Mathf.Max(0, m_RayMaxIterations.value.intValue);
             m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);

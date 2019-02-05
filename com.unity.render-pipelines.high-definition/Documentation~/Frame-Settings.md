@@ -63,18 +63,18 @@ These settings control lighting features for your rendering components. Here you
 | **Transmission** | Tick this checkbox to enable Transmission. This allows subsurface scattering Materials to use transmission, for example, light transmits through a leaf with a subsurface scattering Material. |
 | **Atmospheric Scattering** | Tick this checkbox to enable Atmospheric Scattering. |
 | **Volumetrics** | Tick this checkbox to enable Volumetrics. Enabling this setting allows your rendering component to render volumetric fog and lighting. |
-| **Reprojection For Volumetrics** | Tick this checkbox to improve the quality of volumetrics at runtime. Enabling this feature causes HDRP to use several previous frames to calculate the volumetric effects. Using these previous frames helps to reduce noise and smooth out the effects.  |
+| **Reprojection For Volumetrics** | Tick this checkbox to improve the quality of volumetrics at run time. Enabling this feature causes HDRP to use several previous frames to calculate the volumetric effects. Using these previous frames helps to reduce noise and smooth out the effects. |
 | **LightLayers** | Tick this checkbox to enable LightLayers.  |
 
 
 
 ## Async Compute Settings
 
-These settings control which effects, if any, can make use execute compute Shader commands in parallel. 
+These settings control which effects, if any, can make use of parallel compute Shader command execution.
 
 | Property| Description |
 |:---|:---|
-| **Async Compute** | Tick this checkbox to allow HDRP to execute certain compute Shader commands in parallel. |
+| **Async Compute** | Tick this checkbox to allow HDRP to execute certain compute Shader commands in parallel. This only has an effect if the target platform supports async compute. |
 | **Build Light List in Async** | Tick this checkbox to allow HDRP to build the Light List asynchronously. |
 | **SSR in Async** | Tick this checkbox to allow HDRP to calculate screen space reflection asynchronously. |
 | **SSAO in Async** | Tick this checkbox to allow HDRP to calculate screen space ambient occlusion asynchronously. |
@@ -91,7 +91,7 @@ Note: These settings are for debugging purposes only so do not alter these value
 
 | Property| Description |
 |:---|:---|
-| **FPTL For Forward Opaque** | Tick this checkbox to enable FPTL For Forward Opaque.  |
+| **FPTL For Forward Opaque** | Tick this checkbox to enable Fine Pruned Tiled Lighting for Forward rendered opaque GameObjects. |
 | **Big Tile Prepass** | Tick this checkbox to enable Big Tile Prepass. |
 | **Compute Light Evaluation** | Tick this checkbox to enable Compute Light Evaluation. |
 | **Compute Light Variants** | Enable **Compute Light Evaluation** to access this property. Tick this checkbox to enable Compute Light Variants. |

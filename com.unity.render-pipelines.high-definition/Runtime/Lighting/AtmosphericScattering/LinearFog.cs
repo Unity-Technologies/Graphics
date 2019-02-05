@@ -10,10 +10,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         private readonly static int m_LinearFogParam = Shader.PropertyToID("_LinearFogParameters");
 
+        [Tooltip("Sets the distance from the Camera at which the density of the fog starts to increase from 0.")]
         public MinFloatParameter    fogStart = new MinFloatParameter(500.0f, 0.0f);
+        [Tooltip("Sets the distance from the Camera at which the density of the fog reaches its maximum value.")]
         public MinFloatParameter    fogEnd = new MinFloatParameter(1000.0f, 0.0f);
 
+        [Tooltip("Sets the height at which the density of the fog starts to decrease.")]
         public FloatParameter fogHeightStart = new FloatParameter(0.0f);
+        [Tooltip("Sets the height at which the density of the fog reaches 0.")]
         public FloatParameter fogHeightEnd = new FloatParameter(10.0f);
 
         public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)

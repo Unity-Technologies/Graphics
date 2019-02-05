@@ -17,10 +17,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly GUIContent k_HeaderContent = EditorGUIUtility.TrTextContent("Decals");
 
-        static readonly GUIContent k_DrawDistanceContent = EditorGUIUtility.TrTextContent("Draw Distance");
-        static readonly GUIContent k_AtlasWidthContent = EditorGUIUtility.TrTextContent("Atlas Width");
-        static readonly GUIContent k_AtlasHeightContent = EditorGUIUtility.TrTextContent("Atlas Height");
-        static readonly GUIContent k_MetalAndAOContent = EditorGUIUtility.TrTextContent("Metal and AO properties");
+        static readonly GUIContent k_DrawDistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the maximum distance from the Camera at ehich HDRP draws Decals.");
+        static readonly GUIContent k_AtlasWidthContent = EditorGUIUtility.TrTextContent("Atlas Width", "Sets the width of the Decal Atlas.");
+        static readonly GUIContent k_AtlasHeightContent = EditorGUIUtility.TrTextContent("Atlas Height", "Sets the height of the Decal Atlas.");
+        static readonly GUIContent k_MetalAndAOContent = EditorGUIUtility.TrTextContent("Metal and AO properties", "When enabled, Decals affect metal and ambient occlusion properties.");
+
 
         static GlobalDecalSettingsUI()
         {
