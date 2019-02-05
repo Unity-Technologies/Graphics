@@ -628,8 +628,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected override void Dispose(bool disposing)
         {
-            while (m_ProbeCameraPool.Count > 0)
-                CoreUtils.Destroy(m_ProbeCameraPool.Pop().gameObject);
+            DisposeProbeCameraPool();
 
             UnsetRenderingFeatures();
 
@@ -715,6 +714,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Also, at the moment, applying change to hdrpAsset cause the SRP to be Disposed and Constructed again.
             // Not always in that order.
 #endif
+
+            // Dispose m_ProbeCameraPool properly
+            void DisposeProbeCameraPool()
+            {
+                // Special case here: when the HDRP asset is modified in the Editor,
+                //   it is disposed during an `OnValidate` call.
+                //   But during `OnValidate` call, game object must not be destroyed.
+                //   So, only when this method was called during an `OnValidate` call, the destruction of the 
+                //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtiles.Destroy`
+                var isInOnValidate = false;
+#if UNITY_EDITOR
+                isInOnValidate = new StackTrace().ToString().Contains("OnValidate");
+                if (isInOnValidate)
+                {
+                    var pool = m_ProbeCameraPool;
+                    UnityEditor.EditorApplication.delayCall += () =>
+                    {
+                        while (pool.Count > 0)
+                            CoreUtils.Destroy(pool.Pop().gameObject);
+                    };
+                    m_ProbeCameraPool = null;
+                }
+                else
+                {
+#endif
+                    while (m_ProbeCameraPool.Count > 0)
+                        CoreUtils.Destroy(m_ProbeCameraPool.Pop().gameObject);
+#if UNITY_EDITOR
+                }
+#endif
+            }
         }
 
 
