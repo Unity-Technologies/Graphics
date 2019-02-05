@@ -23,66 +23,67 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent lowShadowQualitySubHeader = new GUIContent("Low Quality Settings");
 
             // Base (copy from LightEditor.cs)
-            public readonly GUIContent outterAngle = new GUIContent("Outter Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
-            public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Controls the size of the cookie mask currently assigned to the light.");
-            public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Controls the size of the cookie mask currently assigned to the light.");
-            public readonly GUIContent shadowBias = new GUIContent("Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
-            public readonly GUIContent shadowNormalBias = new GUIContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
-            public readonly GUIContent shadowNearPlane = new GUIContent("Near Plane", "Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
-            public readonly GUIContent bakedShadowRadius = new GUIContent("Radius", "Controls the amount of artificial softening applied to the edges of shadows cast by the Point or Spot light.");
-            public readonly GUIContent bakedShadowAngle = new GUIContent("Angle", "Controls the amount of artificial softening applied to the edges of shadows cast by directional lights.");
-            public readonly GUIContent lightBounceIntensity = new GUIContent("Indirect Multiplier", "Controls the intensity of indirect light being contributed to the scene. A value of 0 will cause Realtime lights to be removed from realtime global illumination and Baked and Mixed lights to no longer emit indirect lighting. Has no effect when both Realtime and Baked Global Illumination are disabled.");
-            public readonly GUIContent indirectBounceShadowWarning = new GUIContent("Realtime indirect bounce shadowing is not supported for Spot and Point lights.");
-            public readonly GUIContent color = new GUIContent("Color", "Controls the color being emitted by the light.");
-            public readonly GUIContent useColorTemperature = new GUIContent("Color Temperature", "Choose between RGB and temperature mode for light's color.");
-            public readonly GUIContent colorFilter = new GUIContent("Filter", "A colored gel can be put in front of the light source to tint the light.");
-            public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Also known as CCT (Correlated color temperature). The color temperature of the electromagnetic radiation emitted from an ideal black body is defined as its surface temperature in Kelvin. White is 6500K");
+            public readonly GUIContent outterAngle = new GUIContent("Outter Angle", "Controls the angle, in degrees, at the base of a Spot Light's cone.");
+            public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Controls the width of the Cookie mask currently assigned to the Light.");
+            public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Controls the height of the Cookie mask currently assigned to the Light.");
+            public readonly GUIContent shadowBias = new GUIContent("Bias", "Controls the distance at which HDRP pushes shadows away from the Light. Useful for avoiding false self-shadowing artifacts.");
+            public readonly GUIContent shadowNormalBias = new GUIContent("Normal Bias", "Controls distance at which HDRP shrinks the shadow casting surfaces along the surface normal. Useful for avoiding false self-shadowing artifacts.");
+            public readonly GUIContent shadowNearPlane = new GUIContent("Near Plane", "Controls the value for the active Camera's Near clipping Plane for rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
+            public readonly GUIContent bakedShadowRadius = new GUIContent("Radius", "Sets the amount of artificial softening the baking process applies to the edges of shadows cast by this Point or Spot Light.");
+            public readonly GUIContent bakedShadowAngle = new GUIContent("Angle", "Controls the amount of artificial softening the baking process applies to the edges of shadows cast by Directional Lights.");
+            public readonly GUIContent lightBounceIntensity = new GUIContent("Indirect Multiplier", "Controls the intensity of the indirect light this Light contributes to the Scene. A value of 0 with a Realtime Light causes HDRP to remove it from realtime global illumination. A value of 0 for Baked and Mixed Lights cause them to no longer emit indirect lighting. This has no effect if you disable both Realtime and Baked global illumination.");
+            public readonly GUIContent indirectBounceShadowWarning = new GUIContent("HDRP does not support real-time indirect bounce shadowing for Spot and Point lights.");
+            public readonly GUIContent color = new GUIContent("Color", "Specifies the color this Light emits.");
+            public readonly GUIContent useColorTemperature = new GUIContent("Color Temperature", "When enabled, HDRP uses Temperature mode for this Light's color.");
+            public readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
+            public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Specifies a temperature (in Kelvin) HDRP uses to correlate a color for the Light. For reference, White is 6500K.");
             public readonly GUIContent areaLightCookie = new GUIContent("Cookie", "Cookie mask currently assigned to the area light.");
 
+
             // Additional light data
-            public readonly GUIContent directionalIntensity = new GUIContent("Intensity (Lux)", "Illuminance of the directional light at ground level in lux.");
-            public readonly GUIContent punctualIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the light in lumen. Spotlight are considered as point light with barndoor so match intensity of a point light.");
-            public readonly GUIContent areaIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the light in lumen.");
+            public readonly GUIContent directionalIntensity = new GUIContent("Intensity (Lux)", "Illuminance of the Directional Light, at ground level, in lux.");
+            public readonly GUIContent punctualIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the Light in lumen.");
+            public readonly GUIContent areaIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the Light in Lumen.");
             public readonly GUIContent lightIntensity = new GUIContent("Intensity", "");
 
-            public readonly GUIContent maxSmoothness = new GUIContent("Max Smoothness", "Very low cost way of faking spherical area lighting. This will modify the roughness of the material lit. This is useful when the specular highlight is too small or too sharp.");
-            public readonly GUIContent lightRadius = new GUIContent("Emission Radius", "Can be used to soften the core of the punctual light to create fill lighting.");
-            public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "This will disable diffuse lighting for this light. Doesn't save performance, diffuse lighting is still computed.");
-            public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "This will disable specular lighting for this light. Doesn't save performance, specular lighting is still computed.");
-            public readonly GUIContent nonLightmappedOnly = new GUIContent("Shadowmask Mode", "Sets the shadowmask behaviour when using Shadowmask Mixed Lighting mode. Distance Shadowmask: Realtime shadows are used up to Shadow Distance, baked shadows after. Shadowmask: Static shadow casters always use baked shadows. Refer to documentation for further details.");
-            public readonly GUIContent lightDimmer = new GUIContent("Dimmer", "Aim to be used with script, timeline or animation. It allows dimming one or multiple lights of heterogeneous intensity easily (without needing to know the intensity of each light).");
-            public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "The distance at which the light will smoothly fade before being culled to minimize popping.");
-            public readonly GUIContent spotInnerPercent = new GUIContent("Inner Angle (%)", "Controls size of the angular attenuation in percent of the base angle of the Spot light's cone.");
-            public readonly GUIContent spotLightShape = new GUIContent("Shape", "The shape use for the spotlight. Has an impact on the cookie transformation and light angular attenuation.");
-            public readonly GUIContent shapeWidthTube = new GUIContent("Length", "Length of the tube light");
-            public readonly GUIContent shapeWidthRect = new GUIContent("Size X", "SizeX of the rectangle light");
-            public readonly GUIContent shapeHeightRect = new GUIContent("Size Y", "SizeY of the rectangle light");
-            public readonly GUIContent aspectRatioPyramid = new GUIContent("Aspect ratio", "");
-            public readonly GUIContent shapeWidthBox = new GUIContent("Size X", "");
-            public readonly GUIContent shapeHeightBox = new GUIContent("Size Y", "");
-            public readonly GUIContent applyRangeAttenuation = new GUIContent("Range Attenuation", "Allows disabling range attenuation. This is useful indoor (like a room) to avoid having to setup a large range for a light to get correct inverse square attenuation that may leak out of the indoor");
-            public readonly GUIContent displayAreaLightEmissiveMesh = new GUIContent("Display Emissive Mesh", "Generate an emissive mesh using the size, color and intensity of the area light");
-            public readonly GUIContent lightLayer = new GUIContent("Light Layer", "Specifies the current light layers that the light affect. Corresponding renderer with the same flags will be lit by this light.");
+            public readonly GUIContent maxSmoothness = new GUIContent("Max Smoothness", "Controls the roughness of the Material and is useful when the specular highlight is either too small or too sharp. Very low cost way of faking spherical area lighting.");
+            public readonly GUIContent lightRadius = new GUIContent("Emission Radius", "Sets the softness of the core of the Punctual Light to create fill lighting.");
+            public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "When disabled, HDRP does not calculate diffuse lighting for this Light. Does not increase performance as HDRP still calculates the diffuse lighting.");
+            public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "When disabled, HDRP does not calculate specular lighting for this Light. Does not increase performance as HDRP still calculates the specular lighting.");
+            public readonly GUIContent nonLightmappedOnly = new GUIContent("Shadowmask Mode", "Species the behavior of  the shadowmask when using Mixed lighting. Distance Shadowmask: HDRP uses real-time shadows to Shadow Distance and baked shadows after. Shadowmask: Static shadow casters always use baked shadows.");
+            public readonly GUIContent lightDimmer = new GUIContent("Dimmer", "Controls a dimming effect of the Light as a percentage of its intensity. This is useful for reducing the intensity of multiple Lights simultaneously without needing know the intensity of each Light.");
+            public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "The distance at which light smoothly fades out before HDRP culls it completely. This minimizes popping.");
+            public readonly GUIContent spotInnerPercent = new GUIContent("Inner Angle (%)", "Controls size of the angular attenuation, in percent, of the base angle of the Spot Light's cone.");
+            public readonly GUIContent spotLightShape = new GUIContent("Shape", "The shape of the Spot Light. Impacts the the cookie transformation and the Light's angular attenuation.");
+            public readonly GUIContent shapeWidthTube = new GUIContent("Length", "Length of the Tube Light.");
+            public readonly GUIContent shapeWidthRect = new GUIContent("Size X", "Sets the width of the Rectangle Light.");
+            public readonly GUIContent shapeHeightRect = new GUIContent("Size Y", "Sets the height of the Rectangle Light.");
+            public readonly GUIContent aspectRatioPyramid = new GUIContent("Aspect ratio", "Controls the aspect ration of the Pyramid Light's projection. A value of 1 results in a square.");
+            public readonly GUIContent shapeWidthBox = new GUIContent("Size X", "Sets the width of the Box Light.");
+            public readonly GUIContent shapeHeightBox = new GUIContent("Size Y", "Sets the height of the Box Light.");
+            public readonly GUIContent applyRangeAttenuation = new GUIContent("Range Attenuation", "Allows you to enable or disable range attenuation. Range attenuation is useful for indoor environments because you can avoid having to set up a large range for a Light to get correct inverse square attenuation that may leak out of the indoor environment.");
+            public readonly GUIContent displayAreaLightEmissiveMesh = new GUIContent("Display Emissive Mesh", "Generate an emissive mesh using the size, Color and Intensity of the Area Light.");
+            public readonly GUIContent lightLayer = new GUIContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
 
-            public readonly GUIContent sunDiskSize = new GUIContent("Sun Highlight Disk Size", "Controls the size of the highlight of the sun disk. It's the angle of the sun cone in degrees.");
+            public readonly GUIContent sunDiskSize = new GUIContent("Sun Highlight Disk Size", "Controls the size of the highlight of the sun disk which is the angle of the sun cone in degrees.");
             public readonly GUIContent sunHaloSize = new GUIContent("Sun Highlight Halo Size", "Controls the size of the halo around the highlight of the sun disk.");
 
-            public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of light. Possible types are Directional, Spot, Point, Rectangle and Tube lights.");
+            public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, Rectangle, and Tube.");
             public readonly GUIContent[] shapeNames;
-            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When true it simulate a spot light with reflector (mean the intensity of the light will be more focus with narrower angle), otherwise light outside of the cone is simply absorbed (mean intensity is constent whatever the size of the cone).");
-            public readonly GUIContent luxAtDistance = new GUIContent("At", "Distance in meter where a surface receive an amount of lighting equivalent to the provided number of lux");
+            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a Spot Light with a reflector making the intensity of the Light more focused with a narrower angle. When disabled, the intensity is constent whatever the size of the cone.");
+            public readonly GUIContent luxAtDistance = new GUIContent("At", "Sets the distance, in meters, where a surface receives the amount of light equivalent to the provided number of Lux.");
 
             // Volumetric Additional light data
-            public readonly GUIContent volumetricEnable = new GUIContent("Enable", "Enable volumetric for this light");
-            public readonly GUIContent volumetricDimmer = new GUIContent("Dimmer", "Allows to reduce the intensity of the scattered volumetric lighting.");
+            public readonly GUIContent volumetricEnable = new GUIContent("Enable", "When enabled, this Light uses Volumetrics.");
+            public readonly GUIContent volumetricDimmer = new GUIContent("Dimmer", "Controls the intensity of the scattered Volumetric lighting.");
             // Volumetric Additional shadow data
-            public readonly GUIContent volumetricShadowDimmer = new GUIContent("Shadow Dimmer", "Aim to be use with script, timeline or animation. It allows dimming one or multiple shadows. This can also be used as an optimization to fit in shadow budget manually and minimize popping.");
+            public readonly GUIContent volumetricShadowDimmer = new GUIContent("Shadow Dimmer", "Dims the volumetric shadows this Light casts.");
 
             // Additional shadow data
-            public readonly GUIContent shadowResolution = new GUIContent("Resolution", "Controls the rendered resolution of the shadow maps. A higher resolution will increase the fidelity of shadows at the cost of GPU performance and memory usage.");
-            public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "The shadow will fade at distance ShadowFadeDistance before being culled to minimize popping.");
-            public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Aim to be use with script, timeline or animation. It allows dimming one or multiple shadows. This can also be used as an optimization to fit in shadow budget manually and minimize popping.");
-            public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for contact shadows on this light. Better for lights with a lot of visible shadows.");
+            public readonly GUIContent shadowResolution = new GUIContent("Resolution", "Sets the rendered resolution of the shadow maps. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage.");
+            public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "Sets the distance at which Shadows fade before HDRP culls them completely. This minimizes popping.");
+            public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
+            public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
 
             // Bias control
             public readonly GUIContent viewBiasMin = new GUIContent("View Bias");
@@ -97,8 +98,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent edgeTolerance = new GUIContent("Edge Tolerance");
 
             // Shadow filter settings
-            public readonly GUIContent shadowSoftness = new GUIContent("Shadow Softness", "Size of the penumbra");
-            public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Sample count used to determine the size of the blocker");
+            public readonly GUIContent shadowSoftness = new GUIContent("Shadow Softness", "Size of the penumbra.");
+            public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Sample count HDRP uses to determine the size of the blocker.");
             public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count");
             public readonly GUIContent minFilterSize = new GUIContent("Minimal size of the filter");
 

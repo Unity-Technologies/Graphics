@@ -47,23 +47,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public abstract class SkySettings : VolumeComponent
     {
-        [Tooltip("Rotation of the sky.")]
+        [Tooltip("Sets the rotation of the sky.")]
         public ClampedFloatParameter    rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
-        [Tooltip("Sky intensity mode")]
+        [Tooltip("Specifies the intensity mode HDRP uses for the sky.")]
         public SkyIntensityParameter    skyIntensityMode = new SkyIntensityParameter(SkyIntensityMode.Exposure);
-        [Tooltip("Exposure of the sky in EV100.")]
+        [Tooltip("Sets the exposure of the sky in EV.")]
         public FloatParameter           exposure = new FloatParameter(0.0f);
-        [Tooltip("Intensity multiplier for the sky.")]
+        [Tooltip("Sets the intensity multiplier for the sky.")]
         public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
-        [Tooltip("Auto multiplier from the HDRI sky")]
+        [Tooltip("Informative helper that displays the relative intensity (in Lux) for the current HDR texture set in HDRI Sky.")]
         public MinFloatParameter        upperHemisphereLuxValue = new MinFloatParameter(1.0f, 0.0f);
-        [Tooltip("Lux intensity multiplier for the sky")]
+        [Tooltip("Sets the absolute intensity (in Lux) of the current HDR texture set in HDRI Sky. Functions as a Lux intensity multiplier for the sky.")]
         public FloatParameter           desiredLuxValue = new FloatParameter(20000);
-        [Tooltip("Specify how the environment lighting should be updated. When set to OnDemand, use HDRenderPipeline.RequestSkyEnvironmentUpdate() to request an update.")]
+        [Tooltip("Specifies when HDRP updates the environment lighting. When set to OnDemand, use HDRenderPipeline.RequestSkyEnvironmentUpdate() to request an update.")]
         public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
-        [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
+        [Tooltip("Sets the period, in seconds, at which HDRP updates the environment ligting (0 means HDRP updates it every frame).")]
         public MinFloatParameter        updatePeriod = new MinFloatParameter(0.0f, 0.0f);
-        [Tooltip("If set to true, the sun disk will be used in baked lighting (ambient and reflection probes).")]
+        [Tooltip("When enabled, HDRP uses the Sun Disk in baked lighting.")]
         public BoolParameter            includeSunInBaking = new BoolParameter(false);
 
         // Unused for now. In the future we might want to expose this option for very high range skies.

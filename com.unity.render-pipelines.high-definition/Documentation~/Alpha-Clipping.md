@@ -2,13 +2,13 @@
 
 The **Alpha Clipping** option controls whether your Material acts as a [Cutout Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html) or not.
 
-Enable **Alpha Clipping** to create a transparent effect with hard edges between the opaque and transparent areas. HDRP achieves this effect by not rendering pixels with alpha values below the value you specify in the **Threshold** field.
+Enable **Alpha Clipping** to create a transparent effect with hard edges between the opaque and transparent areas. HDRP achieves this effect by not rendering pixels with alpha values below the value you specify in the **Threshold** field. For example, a **Threshold** of 0.1 means that HDRP doesn't render alpha values below 0.1.
 
 If you enable this feature, HDRP exposes the following properties for you to use to customize the Alpha Cutoff effect:
 
 | Property      | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
-| **Threshold** | The alpha value limit that HDRP uses to determine whether it should render each pixel. If the alpha value of the pixel is equal to or higher than the limit then HDRP renders the pixel. If the value is lower than the limit then HDRP does not render the pixel. |
+| **Threshold** | The alpha value limit that HDRP uses to determine whether it should render each pixel. If the alpha value of the pixel is equal to or higher than the limit then HDRP renders the pixel. If the value is lower than the limit then HDRP does not render the pixel. The default value is 0.5. |
 
 If you set your [Surface Type](Surface-Type.html) to **Transparent**, HDRP exposes the following properties:
 

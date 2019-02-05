@@ -11,14 +11,14 @@ This sky is similar to the procedural sky in Unity’s built-in render pipeline.
 | Property                  | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |
 | **Enable Sun Disk**       | Makes HDRP display the sun disk defined by the **Sky Size**, **Sun Size Convergence**, **Exposure**, and **Multiplier** . |
-| **Sun Size**              | Sets the size modifier of the sun disk.                      |
-| **Sun Size Convergence**  | Controls the size convergence of the sun, smaller values make the sun appear larger. |
-| **Atmospheric Thickness** | Controls the density of the atmosphere, an atmosphere of higher density absorbs more light. |
-| **Sky Tint**              | Sets the color of the sky.                                   |
-| **Ground Color**          | Sets the color of the ground (the area below the horizon).   |
-| **Exposure**              | Controls the exposure HDRP applies to the Scene as environmental light. HDRP calculates the environment light in your Scene using 2 to the power of your **Exposure** value. |
-| **Multiplier**            | Controls the multiplier HDRP applies to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value. |
-| **Update Mode**           | Controls the rate at which HDRP updates the sky environment (using Ambient and Reflection Probes). |
+| **Sun Size**              | The size modifier of the sun disk.                           |
+| **Sun Size Convergence**  | The size convergence of the sun, smaller values make the sun appear larger. |
+| **Atmospheric Thickness** | The density of the atmosphere, an atmosphere of higher density absorbs more light. |
+| **Sky Tint**              | The color of the sky.                                        |
+| **Ground Color**          | The color of the ground (the area below the horizon).        |
+| **Exposure**              | The exposure HDRP applies to the Scene as environmental light. HDRP calculates the environment light in your Scene using 2 to the power of your **Exposure** value. |
+| **Multiplier**            | The multiplier HDRP applies to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value. |
+| **Update Mode**           | The rate at which HDRP updates the sky environment (using Ambient and Reflection Probes). |
 | - **On Changed**          | HDRP updates the sky environment when one of its properties change. |
 | - **On Demand**           | HDPR waits for you to manually call for a sky environment update from a script. |
 | - **Realtime**            | HDRP updates the sky environment at regular intervals defined by the **Update Period**. |
