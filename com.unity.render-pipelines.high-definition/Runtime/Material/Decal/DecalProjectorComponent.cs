@@ -22,6 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private Material m_OldMaterial = null;
         private DecalSystem.DecalHandle m_Handle = null;
         public bool m_IsCropModeEnabled = false;
+        public float m_FadeFactor = 1.0f;
 
         public DecalSystem.DecalHandle Handle
         {
@@ -60,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
             Matrix4x4 sizeOffset = Matrix4x4.Translate(m_Offset) * Matrix4x4.Scale(m_Size);
-            m_Handle = DecalSystem.instance.AddDecal(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer);
+            m_Handle = DecalSystem.instance.AddDecal(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
         }
 
         public void OnDisable()
@@ -88,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_OldMaterial != m_Material)
                 {
                     DecalSystem.instance.RemoveDecal(m_Handle);
-                    m_Handle = DecalSystem.instance.AddDecal(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer);
+                    m_Handle = DecalSystem.instance.AddDecal(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
                     m_OldMaterial = m_Material;
 
                     if(!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader.name)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
@@ -104,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else // no material change, just update whatever else changed
                 {
-                    DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer);
+                    DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor);
                 }
             }
         }
@@ -117,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
                     Matrix4x4 sizeOffset = Matrix4x4.Translate(m_Offset) * Matrix4x4.Scale(m_Size);
-                    DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer);
+                    DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor);
                     transform.hasChanged = false;
                 }
             }
@@ -128,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // if this object is selected there is a chance the transform was changed so update culling info
             Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
             Matrix4x4 sizeOffset = Matrix4x4.Translate(m_Offset) * Matrix4x4.Scale(m_Size);
-            DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer);
+            DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor);
         }
 
         public void OnDrawGizmos()
