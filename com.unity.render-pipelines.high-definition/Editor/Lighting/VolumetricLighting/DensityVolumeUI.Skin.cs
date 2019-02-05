@@ -15,16 +15,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)")
             };
 
-            public static readonly GUIContent s_Size = new GUIContent("Size", "The size of this density volume which is transform's scale independent.");
-            public static readonly GUIContent s_AlbedoLabel = new GUIContent("Single Scattering Albedo", "Hue and saturation control the color of the fog (the wavelength of in-scattered light). Value controls scattering (0 = max absorption & no scattering, 1 = no absorption & max scattering).");
-            public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Controls the density, which determines how far you can see through the fog. A.k.a. \"mean free path length\". At this distance, 63% of background light is lost in the fog (due to absorption and out-scattering).");
-            public static readonly GUIContent s_VolumeTextureLabel = new GUIContent("Texture");
-            public static readonly GUIContent s_TextureScrollLabel = new GUIContent("Scroll Speed");
-            public static readonly GUIContent s_TextureTileLabel = new GUIContent("Tiling");
-            public static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Distance from size where the linear fade is done.");
-            public static readonly GUIContent s_InvertFadeLabel = new GUIContent("Invert Blend", "Inverts blend values in such a way that (0 -> Max), (half max -> half max) and (Max -> 0).");
-            public static readonly GUIContent s_NormalModeContent = new GUIContent("Normal", "Normal parameters mode.");
-            public static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Advanced parameters mode.");
+            public static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Density Volume. This is independent of the Transform's Scale.");
+            public static readonly GUIContent s_AlbedoLabel = new GUIContent("Single Scattering Albedo", "The color this fog scatteres light to.");
+            public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Density at the base of the fog. Determines how far you can see through the fog in meters.");
+            public static readonly GUIContent s_VolumeTextureLabel = new GUIContent("Texture", "The fog Texture for the Density Mask. Generate this Texture type using the Density Volume Texture Tool.");
+            public static readonly GUIContent s_TextureScrollLabel = new GUIContent("Scroll Speed", "Modify the speed for each axis at which HDRP scrolls the fog Texture.");
+            public static readonly GUIContent s_TextureTileLabel = new GUIContent("Tiling", "Modify the tiling of the fog Texture on each axis individually.");
+            public static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the fog fades in completely.");
+            public static readonly GUIContent s_InvertFadeLabel = new GUIContent("Invert Blend", "Inverts blend values so 0 becomes the new maximum value and the original maximum value becomes 0.");
+            public static readonly GUIContent s_NormalModeContent = new GUIContent("Normal", "Exposes standard parameters.");
+            public static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Exposes advanced parameters.");
 
             public static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start");
             public static readonly GUIContent s_DistanceFadeEndLabel   = new GUIContent("Distance Fade End");
