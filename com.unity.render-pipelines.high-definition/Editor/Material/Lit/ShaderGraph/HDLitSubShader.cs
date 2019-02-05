@@ -666,8 +666,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassRaytracingVisibility = new Pass()
         {
-            Name = "ShadowsDXR",
-            LightMode = "ShadowsDXR",
+            Name = "VisibilityDXR",
+            LightMode = "VisibilityDXR",
             TemplateName = "HDLitRaytracingPass.template",
             MaterialName = "Lit",
             ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",

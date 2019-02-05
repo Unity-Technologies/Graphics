@@ -19,7 +19,7 @@ int                 _DenoiseRadius;
 float               _GaussianSigma;
 
 // Output texture data
-int                             _ShadowSlot;
+int                             _RaytracingShadowSlot;
 RWTexture2DArray<float4>        _AreaShadowTexture;
 
 float square(float value)
@@ -82,5 +82,5 @@ void AreaBilateralShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     }
 
     // Return the right color
-    _AreaShadowTexture[uint3(currentPixelCoordinate, _ShadowSlot)] = float4(clamp(denoisedSN / denoisedUN, 0.0, 1.0), 1.0f);
+    _AreaShadowTexture[uint3(currentPixelCoordinate, _RaytracingShadowSlot)] = float4(clamp(denoisedSN / denoisedUN, 0.0, 1.0), 1.0f);
 }
