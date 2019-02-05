@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for textured rectangular area lights
 - Added stereo instancing macros to MSAA shaders
 - Added support for Quarter Res Raytraced Reflections (not enabled)
+- Added fade factor for decal projectors.
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
