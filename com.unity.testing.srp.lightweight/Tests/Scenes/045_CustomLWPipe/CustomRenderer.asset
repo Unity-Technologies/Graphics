@@ -16,3 +16,10 @@ MonoBehaviour:
   m_RenderPassFeatures:
   - {fileID: 11400000, guid: ae1c45fc939aa3a4ea0a2f34767b9486, type: 2}
   - {fileID: 11400000, guid: 7f3aa5d8058e5ff4f9a6a2b7c6b44e36, type: 2}
+  m_DrawGroups:
+  - m_Mask: 1
+    m_OverrideCamera: 0
+    m_FOV: 90
+    m_LayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295

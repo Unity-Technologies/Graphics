@@ -38,15 +38,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         ForwardLights m_ForwardLights;
         
-        public ForwardRendererSetup(ForwardRendererData data)
+        public ForwardRendererSetup(ForwardRendererData data) : base(data)
         {
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.copyDepthShader);
             Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
             Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.screenSpaceShadowShader);
-            
-            m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
-            m_DrawGroups.AddRange(data.drawGroups.Where(x => x != null));
             
             m_DepthOnlyPass = new DepthOnlyPass(RenderQueueRange.opaque);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass();

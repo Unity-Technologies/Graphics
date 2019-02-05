@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
-using Unity.Collections;
+using System.Linq;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
 
@@ -42,6 +42,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         const string k_RenderOcclusionMesh = "Render Occlusion Mesh";
         const string k_ReleaseResourcesTag = "Release Resources";
 
+        public RendererSetup(RendererData data)
+        {
+            m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
+            m_DrawGroups.AddRange(data.drawGroups.Where(x => x != null));
+        }
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
