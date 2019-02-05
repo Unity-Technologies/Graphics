@@ -12,20 +12,20 @@ using System.Linq;
 public class CustomLWPipe : RendererSetup
 {  
     private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
-    private SetupLightweightConstanstPass m_SetupLightweightConstants;
     private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
+
+    ForwardLights m_ForwardLights;
 
     public CustomLWPipe(CustomRenderGraphData data)
     {
         m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
-        m_SetupLightweightConstants = new SetupLightweightConstanstPass();
         m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
         m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
+        m_ForwardLights = new ForwardLights();
     }
 
     public override void Setup(ref RenderingData renderingData)
     {
-        SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
         RenderTextureDescriptor baseDescriptor = ScriptableRenderPass.CreateRenderTextureDescriptor(ref renderingData.cameraData);
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;
         shadowDescriptor.dimension = TextureDimension.Tex2D;
@@ -45,12 +45,15 @@ public class CustomLWPipe : RendererSetup
             injectionPoints |= pass.injectionPoints;
         }
 
-        EnqueuePass(m_SetupLightweightConstants);
-
         m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, GetCameraClearFlag(camera), camera.backgroundColor);
         EnqueuePass(m_RenderOpaqueForwardPass);
         
         EnqueuePasses(RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses, injectionPoints,
             baseDescriptor, colorHandle, depthHandle);
+    }
+
+    public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+    {
+        m_ForwardLights.Setup(context, ref renderingData);
     }
 }
