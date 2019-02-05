@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for "After Post-Process" render pass for unlit shader
 - Added support for textured rectangular area lights
 - Added stereo instancing macros to MSAA shaders
+- Added support for Quarter Res Raytraced Reflections (not enabled)
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -106,6 +107,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Decals when rendering multiple camera in a single frame
 - Fixed cascade shadow count in shader
 - Fixed issue with Stacklit shader with Haze effect
+- Fixed an issue with the max sample count for the TAA
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).

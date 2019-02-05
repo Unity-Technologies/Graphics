@@ -357,8 +357,8 @@ Shader "HDRP/Unlit"
 
         Pass
         {
-            Name "ShadowsDXR"
-            Tags{ "LightMode" = "ShadowsDXR" }
+            Name "VisibilityDXR"
+            Tags{ "LightMode" = "VisibilityDXR" }
 
             HLSLPROGRAM
 

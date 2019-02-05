@@ -36,6 +36,11 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
     return (1.0 - perceptualSmoothness);
 }
 
+real PerceptualRoughnessToPerceptualSmoothness(real perceptualRoughness)
+{
+    return (1.0 - perceptualRoughness);
+}
+
 // WARNING: this has been deprecated, and should not be used!
 // Using roughness values of 0 leads to INFs and NANs. The only sensible place to use the roughness
 // value of 0 is IBL, so we do not modify the perceptual roughness which is used to select the MIP map level.
