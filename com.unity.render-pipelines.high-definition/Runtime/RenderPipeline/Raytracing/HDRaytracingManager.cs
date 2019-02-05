@@ -79,8 +79,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderPipelineResources m_Resources = null;
         RenderPipelineSettings m_Settings = null;
 
-        // Noise texture used for screen space sampling
-        public Texture2DArray m_RGNoiseTexture = null;
+        // Noise texture manager
+        BlueNoise m_BlueNoise = null;
 
         public void RegisterFilter(HDRayTracingFilter targetFilter)
         {
@@ -146,6 +146,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Keep track of the settings
             m_Settings = settings;
 
+            // Keep track of the blue noise manager
+            m_BlueNoise = blueNoise;
+
             // Create the list of environments
             m_Environments = new List<HDRaytracingEnvironment>();
 
@@ -179,9 +182,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 RegisterFilter(filterArray[filterIdx]);
             }
-
-            // Keep track of the noise texture to use
-            m_RGNoiseTexture = blueNoise.textureArray128RGCoherent;
 
 #if UNITY_EDITOR
             // We need to invalidate the acceleration structures in case the hierarchy changed
@@ -568,6 +568,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDRaytracingEnvironment CurrentEnvironment()
         {
             return m_Environments.Count != 0 ? m_Environments[m_Environments.Count - 1] : null;
+        }
+
+        public BlueNoise GetBlueNoiseManager()
+        {
+            return m_BlueNoise;
         }
     }
 #endif

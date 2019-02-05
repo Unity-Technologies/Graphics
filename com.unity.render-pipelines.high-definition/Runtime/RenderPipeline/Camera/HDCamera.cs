@@ -241,6 +241,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
+        public bool IsTAAEnabled()
+        {
+            return m_frameSettings.IsEnabled(FrameSettingsField.Postprocess)
+                && antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing
+                && camera.cameraType == CameraType.Game;
+        }
+
         // Pass all the systems that may want to update per-camera data here.
         // That way you will never update an HDCamera and forget to update the dependent system.
         public void Update(FrameSettings currentFrameSettings, VolumetricLightingSystem vlSys, MSAASamples msaaSamples)
@@ -286,9 +293,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
-            bool taaEnabled = m_frameSettings.IsEnabled(FrameSettingsField.Postprocess)
-                && antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing
-                && camera.cameraType == CameraType.Game;
+            bool taaEnabled = IsTAAEnabled();
 
             if (!taaEnabled)
             {
@@ -645,7 +650,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
             taaJitter = new Vector4(jitterX, jitterY, jitterX / camera.pixelWidth, jitterY / camera.pixelHeight);
 
-            const int kMaxSampleCount = 256;
+            const int kMaxSampleCount = 8;
             if (++taaFrameIndex >= kMaxSampleCount)
                 taaFrameIndex = 0;
 
