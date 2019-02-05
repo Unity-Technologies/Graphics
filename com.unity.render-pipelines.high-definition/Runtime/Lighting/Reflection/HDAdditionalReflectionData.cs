@@ -60,16 +60,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ReflectionSystem.RegisterProbe(this);
         }
 
+#if UNITY_EDITOR
         void Update()
         {
-#if UNITY_EDITOR
-            if (!Application.isPlaying && autoGenerateBake)
+            if (!Application.isPlaying)
                 UpdateCubemapSize();
-#endif
         }
-
-#if UNITY_EDITOR
-        bool autoGenerateBake { get { return UnityEditor.Lightmapping.giWorkflowMode == (int)Lightmapping.GIWorkflowMode.Iterative; } }
 
         void UpdateCubemapSize()
         {

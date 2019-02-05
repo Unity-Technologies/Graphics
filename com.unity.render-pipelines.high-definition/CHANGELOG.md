@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed cascade shadow count in shader
+- Fixed issue on reflection probe baked resolution when using Generate Lighting button
 
 ## [4.9.0-preview] - 2019-01-28
 
