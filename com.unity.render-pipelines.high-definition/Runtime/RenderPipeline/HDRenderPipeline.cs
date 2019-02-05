@@ -2273,38 +2273,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
-        // Forward only renderer: We always render everything
-        // Deferred renderer: We always render depth prepass for alpha tested (optimization), other object are render based on engine configuration.
-        // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render everything
+        // Lit Forward only: We always render all materials
+        // Lit Deferred: We always render depth prepass for alpha tested (optimization), other deferred material are render based on engine configuration.
+        // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render all materials
         // True is return if motion vector must be render after GBuffer pass
         bool RenderDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            // In case of deferred renderer, we can have forward opaque material. These materials need to be render in the depth buffer to correctly build the light list.
-            // And they will tag the stencil to not be lit during the deferred lighting pass.
+            // Guidelines:
+            // Lit shader can be in deferred or forward mode. In this case we use "DepthOnly" pass with "GBuffer" or "Forward" pass name
+            // Other shader, including unlit are always forward and use "DepthForwardOnly" with "ForwardOnly" pass.
+            // Those pass are exclusive so use only "DepthOnly" or "DepthForwardOnly" but not both at the same time, same for "Forward" and "DepthForwardOnly"
+            // Any opaque material rendered in forward should have a depth prepass. If there is no depth prepass the lighting will be incorrect (deferred shadowing, contact shadow, SSAO), this may be acceptable depends on usage
 
-            // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
-            // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
-            // It must also have a "DepthForwardOnly" and no "DepthOnly" pass as forward material (either deferred or forward only rendering) have always a depth pass.
-            // If a forward material have no depth prepass, then lighting can be incorrect (deferred shadowing, SSAO), this may be acceptable depends on usage
+            // Whatever the configuration we always render first opaque object then opaque alpha tested as they are more costly to render and could be reject by early-z
+            // (but no Hi-z as it is disable with clip instruction). This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
 
-            // Whatever the configuration we always render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z
-            // (but not Hi-z as it is disable with clip instruction). This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
+            // Forward material always output normal buffer.
+            // Deferred material never output normal buffer.
+            // Caution: Unlit material let normal buffer untouch. Caution as if people try to filter normal buffer, it can result in weird result.
+            // TODO: Do we need a stencil bit to identify normal buffer not fill by unlit? So don't execute SSAO / SRR ?
 
-            // Forward material always output normal buffer (unless they don't participate to shading)
-            // Deferred material never output normal buffer
+            // Additional guidelines for motion vector:
+            // We render object motion vector at the same time than depth prepass with MRT to save drawcall. Depth buffer is then fill with combination of depth prepass + motion vector.
+            // For this we render first all objects that render depth only, then object that require object motion vector.
+            // We use the excludeMotion filter option of DrawRenderer to gather object without object motion vector (only C++ can know if an object have object motion vector).
+            // Caution: if there is no depth prepass we must render object motion vector after GBuffer pass otherwise some depth only objects can hide objects with motion vector and overwrite depth buffer but not update
+            // the motion vector buffer resulting in artifacts
 
-            // Note: Unlit object use a ForwardOnly pass and don't have normal, they will write 0 in the normal buffer. This should be safe
-            // as they will not use the result of lighting anyway. However take care of effect that will try to filter normal buffer.
-            // TODO: maybe we can use a stencil to tag when Forward unlit touch normal buffer
-
-            // Additional guidelines when motion vector are enabled
-            // To save drawcall we don't render in prepass the object that have object motion vector. We use the excludeMotion filter option of DrawRenderer to know that (only C++ can know if an object have object motion vector).
-            // Thus during this prepass we will exclude all object that have object motion vector, mean that during the velocity pass they will also output normal buffer (like a regular prepass) if needed.
-            // Combination of both depth prepass + motion vector pass provide the full depth buffer
-            // Caution: When there is no depth prepass we must render the object motion vector after the GBuffer pass, otherwise it mean some object that hide the object with motion vector will overwrite depth buffer but not the
-            // velocity buffer and we will get artifacts
-
-            // In order to avoid rendering objects twice (once in the depth pre-pass and once in the motion vector pass, when the motion vector pass is enabled). We exclude the objects that have motion vectors.
+            // To avoid rendering objects twice (once in the depth pre-pass and once in the motion vector pass when the motion vector pass is enabled) we exclude the objects that have motion vectors.
             bool excludeMotion = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors);
             bool shouldRenderMotionVectorAfterGBuffer = false;
 
