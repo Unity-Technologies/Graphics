@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for "After Post-Process" render pass for unlit shader
 - Added support for textured rectangular area lights
 - Added stereo instancing macros to MSAA shaders
+- Added fade factor for decal projectors.
 
 ### Fixed
 - Fixed Decals when rendering multiple camera in a single frame
