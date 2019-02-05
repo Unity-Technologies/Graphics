@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ###Added
 - Added decal master node for shader graph
+- Added fade factor for decal projectors.
 
 ## [4.8.0-preview] - 2019-01-16
 
