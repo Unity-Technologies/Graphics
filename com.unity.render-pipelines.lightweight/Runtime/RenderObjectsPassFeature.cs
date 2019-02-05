@@ -31,6 +31,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public RenderQueueType renderQueueType;
         public LayerMask layerMask = -1;
         public string[] passNames = {"LightweightForward"};
+        public Material overrideMaterial;
+        public int overrideMaterialPassIndex;
 
         RenderObjectsPass renderObjectsPass;
 
@@ -46,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         void Initialize()
         {
-            renderObjectsPass = new RenderObjectsPass(passNames, renderQueueType, layerMask);
+            renderObjectsPass = new RenderObjectsPass(passNames, renderQueueType, overrideMaterial, overrideMaterialPassIndex, layerMask);
         }
 
         public override InjectionPoint injectionPoints => (InjectionPoint)(1 << (int)callback);
@@ -64,10 +66,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         FilteringSettings filteringSettings;
         RenderQueueType renderQueueType;
+        Material overrideMaterial;
+        int overrideMaterialPassIndex;
 
-        public RenderObjectsPass(string[] shaderTags, RenderQueueType renderQueueType, int layerMask)
+        public RenderObjectsPass(string[] shaderTags, RenderQueueType renderQueueType, Material overrideMaterial, int overrideMaterialPassIndex, int layerMask)
         {
             this.renderQueueType = renderQueueType;
+            this.overrideMaterial = overrideMaterial;
+            this.overrideMaterialPassIndex = overrideMaterialPassIndex;
             RenderQueueRange renderQueueRange = (renderQueueType == RenderQueueType.Transparent)
                 ? RenderQueueRange.transparent
                 : RenderQueueRange.opaque;
@@ -84,6 +90,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             Camera camera = renderingData.cameraData.camera;
             DrawingSettings drawingSettings = CreateDrawingSettings(camera, sortingCriteria, renderingData.perObjectData, renderingData.supportsDynamicBatching);
+            drawingSettings.overrideMaterial = overrideMaterial;
+            drawingSettings.overrideMaterialPassIndex = overrideMaterialPassIndex; 
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings);
         }
     }
