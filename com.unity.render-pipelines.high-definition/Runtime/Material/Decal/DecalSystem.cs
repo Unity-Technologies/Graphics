@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
@@ -7,6 +9,154 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class DecalSystem
     {
+        public class CullResult : IDisposable, IEnumerable<KeyValuePair<int, CullResult.Set>>
+        {
+            public class Set : IDisposable
+            {
+                int m_NumResults;
+                int[] m_ResultIndices;
+
+                public int numResults => m_NumResults;
+                public int[] resultIndices => m_ResultIndices;
+
+                public void Dispose() => Dispose(true);
+
+                void Dispose(bool disposing)
+                {
+                    if (disposing)
+                    {
+                        Clear();
+                        m_ResultIndices = null;
+                    }
+                }
+
+                public void Clear() => m_NumResults = 0;
+
+                public int QueryIndices(int maxLength, CullingGroup cullingGroup)
+                {
+                    if (m_ResultIndices == null || m_ResultIndices.Length < maxLength)
+                        Array.Resize(ref m_ResultIndices, maxLength);
+                    m_NumResults = cullingGroup.QueryIndices(true, m_ResultIndices, 0);
+                    return m_NumResults;
+                }
+            }
+
+            Dictionary<int, Set> m_Requests = new Dictionary<int, Set>();
+
+            public Set this[int index]
+            {
+                get
+                {
+                    if (!m_Requests.TryGetValue(index, out var v))
+                    {
+                        v = GenericPool<Set>.Get();
+                        m_Requests.Add(index, v);
+                    }
+                    return v;
+                }
+            }
+
+            public void Clear()
+            {
+                Assert.IsNotNull(m_Requests);
+
+                foreach (var pair in m_Requests)
+                {
+                    pair.Value.Clear();
+                    GenericPool<Set>.Release(pair.Value);
+                }
+                m_Requests.Clear();
+            }
+
+            public void Dispose() => Dispose(true);
+
+            void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    m_Requests.Clear();
+                    m_Requests = null;
+                }
+            }
+
+            public IEnumerator<KeyValuePair<int, Set>> GetEnumerator() => m_Requests.GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        public class CullRequest : IDisposable
+        {
+            public class Set : IDisposable
+            {
+                int m_NumRequest;
+                CullingGroup m_CullingGroup;
+
+                public CullingGroup cullingGroup => m_CullingGroup;
+
+                public void Dispose() => Dispose(true);
+
+                void Dispose(bool disposing)
+                {
+                    if (disposing)
+                        Clear();
+                }
+
+                public void Clear()
+                {
+                    m_NumRequest = 0;
+                    if (m_CullingGroup != null)
+                        CullingGroupManager.instance.Free(m_CullingGroup);
+                    m_CullingGroup = null;
+                }
+
+                public void Initialize(int numRequests, CullingGroup cullingGroup)
+                {
+                    Assert.IsNull(m_CullingGroup);
+
+                    m_NumRequest = numRequests;
+                    m_CullingGroup = cullingGroup;
+                }
+            }
+
+            Dictionary<int, Set> m_Requests = new Dictionary<int, Set>();
+
+            public Set this[int index]
+            {
+                get
+                {
+                    if (!m_Requests.TryGetValue(index, out var v))
+                    {
+                        v = GenericPool<Set>.Get();
+                        m_Requests.Add(index, v);
+                    }
+                    return v;
+                }
+            }
+
+            public void Clear()
+            {
+                Assert.IsNotNull(m_Requests);
+
+                foreach (var pair in m_Requests)
+                {
+                    pair.Value.Clear();
+                    GenericPool<Set>.Release(pair.Value);
+                }
+                m_Requests.Clear();
+            }
+
+            public void Dispose() => Dispose(true);
+
+            void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    m_Requests.Clear();
+                    m_Requests = null;
+                }
+            }
+        }
+
         public const int kInvalidIndex = -1;
         public const int kNullMaterialIndex = int.MaxValue;
         public class DecalHandle
@@ -309,32 +459,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 handle.m_Index = kInvalidIndex;
             }
 
-            public void BeginCull()
+            public void BeginCull(CullRequest.Set cullRequest)
             {
+                Assert.IsNotNull(cullRequest);
+
+                cullRequest.Clear();
+
                 if (m_Material == null)
                     return;
-                if (m_CullingGroup != null)
-                {
+                if (cullRequest.cullingGroup != null)
                     Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");
-                }
 
                 // let the culling group code do some of the heavy lifting for global draw distance
                 m_BoundingDistances[0] = DecalSystem.instance.DrawDistance;
                 m_NumResults = 0;
-                m_CullingGroup = CullingGroupManager.instance.Alloc();
-                m_CullingGroup.targetCamera = instance.CurrentCamera;
-                m_CullingGroup.SetDistanceReferencePoint(m_CullingGroup.targetCamera.transform.position);
-                m_CullingGroup.SetBoundingDistances(m_BoundingDistances);
-                m_CullingGroup.SetBoundingSpheres(m_BoundingSpheres);
-                m_CullingGroup.SetBoundingSphereCount(m_DecalsCount);
+                var cullingGroup = CullingGroupManager.instance.Alloc();
+                cullingGroup.targetCamera = instance.CurrentCamera;
+                cullingGroup.SetDistanceReferencePoint(cullingGroup.targetCamera.transform.position);
+                cullingGroup.SetBoundingDistances(m_BoundingDistances);
+                cullingGroup.SetBoundingSpheres(m_BoundingSpheres);
+                cullingGroup.SetBoundingSphereCount(m_DecalsCount);
+
+                cullRequest.Initialize(0, cullingGroup);
             }
 
-            public int QueryCullResults()
+            public int QueryCullResults(CullRequest.Set cullRequest, CullResult.Set cullResult)
             {
-                if (m_Material == null)
+                if (m_Material == null || cullRequest.cullingGroup == null)
                     return 0;
-                m_NumResults = m_CullingGroup.QueryIndices(true, m_ResultIndices, 0);
-                return m_NumResults;
+                return cullResult.QueryIndices(m_Handles.Length, cullRequest.cullingGroup);
             }
 
             private void GetDecalVolumeDataAndBound(Matrix4x4 decalToWorld, Matrix4x4 worldToView)
@@ -456,7 +609,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
 
                             instanceCount++;
-                            m_InstanceCount++; // total not culled by distance or cull mask
+                                m_InstanceCount++; // total not culled by distance or cull mask
                             if (instanceCount == kDrawIndexedBatchSize)
                             {
                                 instanceCount = 0;
@@ -474,19 +627,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            public void EndCull()
+            public void EndCull(CullRequest.Set request)
             {
                 if (m_Material == null)
                     return;
-                if (m_CullingGroup == null)
-                {
+                if (request.cullingGroup == null)
                     Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");
-                }
                 else
-                {
-                    CullingGroupManager.instance.Free(m_CullingGroup);
-                    m_CullingGroup = null;
-                }
+                    request.Clear();
             }
 
             public void AddToTextureList(ref List<TextureScaleBias> textureList)
@@ -540,14 +688,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            public void Cleanup()
-            {
-                if (m_CullingGroup != null)
-                {
-                    CullingGroupManager.instance.Free(m_CullingGroup);
-                }
-            }
-
             public Material KeyMaterial
             {
                 get
@@ -590,7 +730,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
             private List<Matrix4x4[]> m_NormalToWorld = new List<Matrix4x4[]>();
 
-            private CullingGroup m_CullingGroup = null;
             private BoundingSphere[] m_BoundingSpheres = new BoundingSphere[kDecalBlockSize];
             private DecalHandle[] m_Handles = new DecalHandle[kDecalBlockSize];
             private int[] m_ResultIndices = new int[kDecalBlockSize];
@@ -616,6 +755,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             TextureScaleBias m_Diffuse = new TextureScaleBias();
             TextureScaleBias m_Normal = new TextureScaleBias();
             TextureScaleBias m_Mask = new TextureScaleBias();
+
+            internal void SetCullResult(CullResult.Set value)
+            {
+                m_NumResults = value.numResults;
+                if (m_ResultIndices.Length < m_NumResults)
+                    Array.Resize(ref m_ResultIndices, m_NumResults);
+                Array.Copy(value.resultIndices, m_ResultIndices, m_NumResults);
+        }
         }
 
         DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material, int layerMask)
@@ -680,32 +827,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             UpdateCachedData(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle, layerMask);
         }
-
-        public void BeginCull()
+        public void BeginCull(CullRequest request)
         {
+            Assert.IsNotNull(request);
+
+            request.Clear();
             foreach (var pair in m_DecalSets)
-            {
-                pair.Value.BeginCull();
-            }
+                pair.Value.BeginCull(request[pair.Key]);
         }
 
-        private int QueryCullResults()
+        private int QueryCullResults(CullRequest decalCullRequest, CullResult cullResults)
         {
-            int totalVisibleDecals = 0;
+            var totalVisibleDecals = 0;
             foreach (var pair in m_DecalSets)
-            {
-                totalVisibleDecals += pair.Value.QueryCullResults();
-            }
+                totalVisibleDecals += pair.Value.QueryCullResults(decalCullRequest[pair.Key], cullResults[pair.Key]);
             return totalVisibleDecals;
         }
 
-        public void EndCull()
+        public void EndCull(CullRequest cullRequest, CullResult cullResults)
         {
-            m_DecalsVisibleThisFrame = QueryCullResults();
+            m_DecalsVisibleThisFrame = QueryCullResults(cullRequest, cullResults);
             foreach (var pair in m_DecalSets)
-            {
-                pair.Value.EndCull();
-            }
+                pair.Value.EndCull(cullRequest[pair.Key]);
         }
 
         public void RenderIntoDBuffer(CommandBuffer cmd)
@@ -821,19 +964,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             foreach (var decalSet in m_DecalSetsRenderList)
-            {
                 decalSet.CreateDrawData();
             }
-        }
 
         public void Cleanup()
         {
             if (m_Atlas != null)
                 m_Atlas.Release();
-            foreach (var pair in m_DecalSets)
-            {
-                pair.Value.Cleanup();
-            }
             CoreUtils.Destroy(m_DecalMesh);
             // set to null so that they get recreated
             m_DecalMesh = null;
@@ -850,6 +987,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel, true);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                 }
+            }
+        }
+
+        public void LoadCullResults(CullResult cullResult)
+        {
+            foreach (var pair in cullResult)
+            {
+                if (!m_DecalSets.TryGetValue(pair.Key, out var decalSet))
+                    continue;
+
+                decalSet.SetCullResult(pair.Value);
             }
         }
     }

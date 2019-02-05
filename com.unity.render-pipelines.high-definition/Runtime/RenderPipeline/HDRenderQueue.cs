@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly RenderQueueRange k_RenderQueue_AllOpaqueRaytracing = new RenderQueueRange { lowerBound = (int)Priority.RaytracingOpaque, upperBound = (int)Priority.RaytracingOpaque };
         public static readonly RenderQueueRange k_RenderQueue_AllOpaque = new RenderQueueRange { lowerBound = (int)Priority.Opaque, upperBound = (int)Priority.OpaqueLast };
 
-        public static readonly RenderQueueRange k_RenderQueue_OpaqueAfterPostProcessing = new RenderQueueRange { lowerBound = (int)Priority.AfterPostprocessOpaque, upperBound = (int)Priority.AfterPostprocessOpaqueAlphaTest };
+        public static readonly RenderQueueRange k_RenderQueue_AfterPostProcessOpaque = new RenderQueueRange { lowerBound = (int)Priority.AfterPostprocessOpaque, upperBound = (int)Priority.AfterPostprocessOpaqueAlphaTest };
 
         public static readonly RenderQueueRange k_RenderQueue_PreRefraction = new RenderQueueRange { lowerBound = (int)Priority.PreRefractionFirst, upperBound = (int)Priority.PreRefractionLast };
         public static readonly RenderQueueRange k_RenderQueue_Transparent = new RenderQueueRange { lowerBound = (int)Priority.TransparentFirst, upperBound = (int)Priority.TransparentLast };
@@ -100,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return RenderQueueType.Background;
             if (k_RenderQueue_AllOpaque.Contains(renderQueue))
                 return RenderQueueType.Opaque;
-            if (k_RenderQueue_OpaqueAfterPostProcessing.Contains(renderQueue))
+            if (k_RenderQueue_AfterPostProcessOpaque.Contains(renderQueue))
                 return RenderQueueType.AfterPostProcessOpaque;
             if (k_RenderQueue_PreRefraction.Contains(renderQueue))
                 return RenderQueueType.PreRefraction;

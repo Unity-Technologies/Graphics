@@ -150,14 +150,13 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
 // color is current screen color
 // color of the font to use
 // direction is 1 or -1 and indicate fixedUnormCoord block shift
-void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color, int direction)
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction)
 {
     // Are we inside a font display block on the screen ?
     uint2 localCharCoord = currentUnormCoord - fixedUnormCoord;
     if (localCharCoord.x >= 0 && localCharCoord.x < DEBUG_FONT_TEXT_WIDTH && localCharCoord.y >= 0 && localCharCoord.y < DEBUG_FONT_TEXT_HEIGHT)
     {
-        if (!flipY)
-            localCharCoord.y = DEBUG_FONT_TEXT_HEIGHT - localCharCoord.y;
+        localCharCoord.y = DEBUG_FONT_TEXT_HEIGHT - localCharCoord.y;
 
         asciiValue -= DEBUG_FONT_TEXT_ASCII_START; // Our font start at ASCII table 32;
         uint2 asciiCoord = uint2(asciiValue % DEBUG_FONT_TEXT_COUNT_X, asciiValue / DEBUG_FONT_TEXT_COUNT_X);
@@ -178,9 +177,9 @@ void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, i
 }
 
 // Shortcut to not have to file direction
-void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
 {
-    DrawCharacter(asciiValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, 1);
+    DrawCharacter(asciiValue, fontColor, currentUnormCoord, fixedUnormCoord, color, 1);
 }
 
 // Draw a signed integer
@@ -188,7 +187,7 @@ void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, i
 // The two following parameter are for float representation
 // leading0 is used when drawing frac part of a float to draw the leading 0 (call is in charge of it)
 // forceNegativeSign is used to force to display a negative sign as -0 is not recognize
-void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color, int leading0, bool forceNegativeSign)
+void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int leading0, bool forceNegativeSign)
 {
     const uint maxStringSize = 16;
 
@@ -204,7 +203,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     for (uint j = 0; j < maxStringSize; ++j)
     {
         // Numeric value incurrent font start on the second row at 0
-        DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
+        DrawCharacter((absIntValue % 10) + '0', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
         if (absIntValue  < 10)
             break;
         absIntValue /= 10;
@@ -215,42 +214,42 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     {
         for (int i = 0; i < leading0; ++i)
         {
-            DrawCharacter('0', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
+            DrawCharacter('0', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
         }
     }
 
     // 5. Display sign
     if (intValue < 0 || forceNegativeSign)
     {
-        DrawCharacter('-', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, -1);
+        DrawCharacter('-', fontColor, currentUnormCoord, fixedUnormCoord, color, -1);
     }
 
     // 6. Reset cursor at end location
     fixedUnormCoord.x += (numEntries + 2) * DEBUG_FONT_TEXT_SCALE_WIDTH;
 }
 
-void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
+void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
 {
-    DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, 0, false);
+    DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, color, 0, false);
 }
 
-void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, bool flipY, inout float3 color)
+void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
 {
     if (IsNan(floatValue))
     {
-        DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
-        DrawCharacter('a', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
-        DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, color);
+        DrawCharacter('a', fontColor, currentUnormCoord, fixedUnormCoord, color);
+        DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, color);
     }
     else
     {
         int intValue = int(floatValue);
         bool forceNegativeSign = floatValue >= 0.0f ? false : true;
-        DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, 0, forceNegativeSign);
-        DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, flipY, color);
+        DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, color, 0, forceNegativeSign);
+        DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, color);
         int fracValue = int(frac(abs(floatValue)) * 1e6); // 6 digit
         int leading0 = 6 - (int(log10(fracValue)) + 1); // Counting leading0 to add in front of the float
-        DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, flipY, color, leading0, false);
+        DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, color, leading0, false);
     }
 }
 

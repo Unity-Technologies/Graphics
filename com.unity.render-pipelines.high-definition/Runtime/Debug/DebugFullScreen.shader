@@ -125,12 +125,6 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                if (ShouldFlipDebugTexture())
-                {
-                    // Texcoord are already scaled by _ScreenToTargetScale but we need to account for the flip here anyway.
-                    input.texcoord.y = 1.0 * _ScreenToTargetScale.y - input.texcoord.y;
-                }
-
                 // Note: If the single shadow debug mode is enabled, we don't render other full screen debug modes
                 // and the value of _FullScreenDebugMode is forced to 0
                 if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW)
@@ -194,10 +188,6 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float2 size = _ScreenSize.xy / float2(cols, rows);
                     float body = min(size.x, size.y) / sqrt(2.0);
                     float2 positionSS = input.texcoord.xy / _ScreenToTargetScale.xy;
-                    if (ShouldFlipDebugTexture())
-                    {
-                        positionSS.y = 1.0 - positionSS.y;
-                    }
                     positionSS *= _ScreenSize.xy;
                     float2 center = (floor(positionSS / size) + 0.5) * size;
                     positionSS -= center;
@@ -205,18 +195,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     // Sample the center of the cell to get the current arrow vector
                     float2 arrow_coord = center * _ScreenSize.zw;
 
-                    if (ShouldFlipDebugTexture())
-                    {
-                        arrow_coord.y = 1.0 - arrow_coord.y;
-                    }
                     arrow_coord *= _ScreenToTargetScale.xy;
 
                     float2 mv_arrow = SampleMotionVectors(arrow_coord);
-
-                    if (!ShouldFlipDebugTexture())
-                    {
-                        mv_arrow.y *= -1;
-                    }
+                    mv_arrow.y *= -1;
 
                     // Skip empty motion
                     float d = 0.0;
