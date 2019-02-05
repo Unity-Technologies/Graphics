@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cascade shadow count in shader
 - Fixed issue with Stacklit shader with Haze effect
 - Fixed an issue with the max sample count for the TAA
+- Fixed post-process guard band for XR
 
 ### Changed
 - Temporal Antialiasing optimization for Xbox One X
