@@ -59,6 +59,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_PostProcessPass = new PostProcessPass();
             m_FinalBlitPass = new FinalBlitPass(blitMaterial);
             m_CapturePass = new CapturePass();
+
+            m_RenderOpaqueForwardPass.drawGroupsMask = DrawGroups.Background | DrawGroups.Foreground;
+            m_RenderTransparentForwardPass.drawGroupsMask = DrawGroups.Background | DrawGroups.Foreground;
             
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(copyDepthMaterial);
@@ -103,9 +106,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             RenderTextureDescriptor baseDescriptor = ScriptableRenderPass.CreateRenderTextureDescriptor(ref renderingData.cameraData);
             ClearFlag clearFlag = GetCameraClearFlag(renderingData.cameraData.camera);
-            RenderTextureDescriptor shadowDescriptor = baseDescriptor;
-            shadowDescriptor.dimension = TextureDimension.Tex2D;
-
+            
             bool mainLightShadows = false;
             if (renderingData.shadowData.supportsMainLightShadows)
             {

@@ -114,8 +114,29 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 if (drawGroup.overrideCamera)
                 {
-                    // TODO: Setup camera matrices
+                    Camera camera = renderingData.cameraData.camera;
                     renderPass.filteringSettings.layerMask = drawGroup.layerMask;
+
+                    var cmd = CommandBufferPool.Get();
+
+                    if (!camera.orthographic)
+                    {
+                        Matrix4x4 prevProjectionMatrix = camera.projectionMatrix;
+                        Matrix4x4 projectionMatrix = Matrix4x4.Perspective(drawGroup.fov,
+                            camera.pixelWidth / camera.pixelHeight, camera.nearClipPlane, camera.farClipPlane);
+                    
+                        cmd.SetProjectionMatrix(projectionMatrix);
+                        context.ExecuteCommandBuffer(cmd);
+                        renderPass.Execute(context, ref renderingData);
+                        cmd.Clear();
+                        cmd.SetProjectionMatrix(prevProjectionMatrix);
+                        context.ExecuteCommandBuffer(cmd);
+                        CommandBufferPool.Release(cmd);
+                    }
+                    else
+                    {
+                        renderPass.Execute(context, ref renderingData);
+                    }
                 }
                 renderPass.Execute(context, ref renderingData);
             }
