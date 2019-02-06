@@ -1067,10 +1067,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         // Don't add it if it has already been updated this frame or not a real time probe
                         // TODO: discard probes that are baked once per frame and already baked this frame
-                        if (probe.mode != ProbeSettings.Mode.Realtime)
+                        if (!probe.requiresRealtimeUpdate)
                             return;
 
-                        if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out List<int> visibleInIndices))
+                        // Notify that we render the probe at this frame
+                        probe.SetIsRendered(Time.frameCount);
+
+                        if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
                         {
                             visibleInIndices = ListPool<int>.Get();
                             renderRequestIndicesWhereTheProbeIsVisible.Add(probe, visibleInIndices);

@@ -34,32 +34,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     
         public static void RegisterProbe(HDProbe probe) => s_Instance.RegisterProbe(probe);
         public static void UnregisterProbe(HDProbe probe) => s_Instance.UnregisterProbe(probe);
-         
-        public static void RenderAndUpdateRealtimeRenderDataIfRequired(
-            IList<HDProbe> probes,
-            Transform viewerTransform
-        )
-        {
-            for (int i = 0; i < probes.Count; ++i)
-            {
-                var probe = probes[i];
-                if (DoesRealtimeProbeNeedToBeUpdated(probe))
-                {
-                    RenderAndUpdateRealtimeRenderData(probe, viewerTransform);
-                    probe.wasRenderedAfterOnEnable = true;
-                    probe.lastRenderedFrame = Time.frameCount;
-                }
-            }
-        }
-
-        public static void RenderAndUpdateRealtimeRenderData(
-            HDProbe probe, Transform viewerTransform
-        )
-        {
-            var target = CreateAndSetRenderTargetIfRequired(probe, ProbeSettings.Mode.Realtime);
-            Render(probe, viewerTransform, target, out HDProbe.RenderData renderData);
-            AssignRenderData(probe, renderData, ProbeSettings.Mode.Realtime);
-        }
 
         public static void Render(
             HDProbe probe, Transform viewerTransform,
