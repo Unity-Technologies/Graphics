@@ -358,11 +358,20 @@ float3 ShiftTangent(float3 T, float3 N, float shift)
 float3 D_KajiyaKay(float3 T, float3 H, float specularExponent)
 {
     float TdotH = dot(T, H);
-    float sinTHSq = saturate(1.0 - (TdotH * TdotH));
+    float sinTHSq = saturate(1.0 - TdotH * TdotH);
 
     float dirAttn = saturate(TdotH + 1.0); // Evgenii: this seems like a hack? Do we really need this?
 
-    return dirAttn * PositivePow(sinTHSq, specularExponent);
+    // Note: Kajiya-Kay is not energy conserving.
+    // I attempt at least some energy conservation by approximately normalizing Blinn-Phong.
+    // This is not the exact normalization factor.
+    // The exact one is (n + 2) * (n + 4) / (8 * Pi * (n + pow(2, -0.5 * n))).
+    float nHalf = specularExponent;
+    float n     = 2 * nHalf;
+    float norm  = (n + 7) * rcp(8 * PI);
+
+    // Note: this is dot(N, H)^(n/2), so the specular exponent here is effectively halved.
+    return dirAttn * norm * PositivePow(sinTHSq, nHalf);
 }
 
 // This function apply BSDF. Assumes that NdotL is positive.
@@ -380,6 +389,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 
         float3 H = (L + V) * invLenLV;
 
+        // Balancing energy between lobes, as well as between diffuse and specular is left to artists.
         float3 hairSpec1 = bsdfData.specularTint * D_KajiyaKay(t1, H, bsdfData.specularExponent);
         float3 hairSpec2 = bsdfData.secondarySpecularTint * D_KajiyaKay(t2, H, bsdfData.secondarySpecularExponent);
 
