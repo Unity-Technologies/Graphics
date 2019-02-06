@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     [CreateAssetMenu]
     public class ForwardRendererData : RendererData

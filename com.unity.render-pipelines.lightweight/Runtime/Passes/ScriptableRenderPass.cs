@@ -1,11 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Inherit from this class to perform custom rendering in the Lightweight Render Pipeline. 
@@ -80,21 +78,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 return m_PostProcessRenderContext;
             }
-        }
-
-        public FilteringSettings filteringSettings;
-
-        public DrawGroups drawGroupsMask
-        {
-            get => m_DrawGroupsMask;
-            set => m_DrawGroupsMask = value;
-        }
-
-        DrawGroups m_DrawGroupsMask = DrawGroups.Background;
-        
-        public ScriptableRenderPass()
-        {
-            filteringSettings = new FilteringSettings(RenderQueueRange.all);
         }
         
         /// <summary>

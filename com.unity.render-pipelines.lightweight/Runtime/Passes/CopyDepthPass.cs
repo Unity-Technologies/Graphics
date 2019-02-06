@@ -1,8 +1,6 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Copy the given depth buffer into the given destination depth buffer.

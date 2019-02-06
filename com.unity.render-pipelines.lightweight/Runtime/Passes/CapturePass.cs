@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Let customizable actions inject commands to capture the camera output.

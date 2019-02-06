@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEditor.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LWRP 
+namespace UnityEngine.Rendering.LWRP 
 {
 	[CustomEditor(typeof(RenderObjectsPassFeature))]
     public class RenderObjectsPassFeatureEditor : Editor

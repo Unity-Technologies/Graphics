@@ -4,10 +4,8 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.LWRP;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
-using System.Linq;
+using UnityEngine.Rendering;
 
 public class CustomLWPipe : RendererSetup
 {  

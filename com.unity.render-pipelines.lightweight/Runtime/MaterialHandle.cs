@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     public enum MaterialHandle
     {

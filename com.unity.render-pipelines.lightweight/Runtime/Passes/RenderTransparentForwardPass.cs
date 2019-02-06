@@ -1,8 +1,4 @@
-using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
-
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Render all transparent forward objects into the given color and depth target 
@@ -18,13 +14,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         RenderTargetHandle colorAttachmentHandle { get; set; }
         RenderTargetHandle depthAttachmentHandle { get; set; }
         RenderTextureDescriptor descriptor { get; set; }
+        
+        FilteringSettings m_FilteringSettings;
 
         public RenderTransparentForwardPass(RenderQueueRange renderQueueRange)
         {
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
 
-            filteringSettings = new FilteringSettings(renderQueueRange);
+            m_FilteringSettings = new FilteringSettings(renderQueueRange);
         }
 
         /// <summary>
@@ -60,10 +58,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 Camera camera = renderingData.cameraData.camera;
                 var drawSettings = CreateDrawingSettings(camera, SortingCriteria.CommonTransparent, renderingData.perObjectData, renderingData.supportsDynamicBatching, renderingData.lightData.mainLightIndex);
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                RenderObjectsWithError(context, ref renderingData.cullResults, camera, filteringSettings, SortingCriteria.None);
+                RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
             }
 
             context.ExecuteCommandBuffer(cmd);

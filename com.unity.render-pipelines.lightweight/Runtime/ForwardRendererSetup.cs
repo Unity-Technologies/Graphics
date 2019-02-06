@@ -1,8 +1,4 @@
-using System.Linq;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
-
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     internal class ForwardRendererSetup : RendererSetup
     {
@@ -60,9 +56,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_FinalBlitPass = new FinalBlitPass(blitMaterial);
             m_CapturePass = new CapturePass();
 
-            m_RenderOpaqueForwardPass.drawGroupsMask = DrawGroups.Background | DrawGroups.Foreground;
-            m_RenderTransparentForwardPass.drawGroupsMask = DrawGroups.Background | DrawGroups.Foreground;
-            
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(copyDepthMaterial);
 #endif

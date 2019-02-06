@@ -1,8 +1,6 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Render all objects that have a 'DepthOnly' pass into the given depth buffer.
@@ -19,13 +17,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private RenderTargetHandle depthAttachmentHandle { get; set; }
         internal RenderTextureDescriptor descriptor { get; private set; }
 
+        FilteringSettings m_FilteringSettings;
+
         /// <summary>
         /// Create the DepthOnlyPass
         /// </summary>
         public DepthOnlyPass(RenderQueueRange renderQueueRange)
         {
             RegisterShaderPassName("DepthOnly");
-            filteringSettings = new FilteringSettings(renderQueueRange);
+            m_FilteringSettings = new FilteringSettings(renderQueueRange);
         }
         
         /// <summary>
@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(renderingData.cameraData.camera, sortFlags, PerObjectData.None, renderingData.supportsDynamicBatching);
                 
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

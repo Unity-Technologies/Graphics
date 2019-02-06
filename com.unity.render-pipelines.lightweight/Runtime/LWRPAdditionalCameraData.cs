@@ -1,4 +1,3 @@
-using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.LWRP

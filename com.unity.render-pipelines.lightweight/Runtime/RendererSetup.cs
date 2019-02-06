@@ -2,10 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     public abstract class RendererSetup
     {
@@ -35,7 +33,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             new List<ScriptableRenderPass>(),
         };
 
-        protected List<DrawGroup> m_DrawGroups = new List<DrawGroup>(3);
         protected List<RenderPassFeature> m_RenderPassFeatures = new List<RenderPassFeature>(10);
 
         const string k_ClearRenderStateTag = "Clear Render State";
@@ -45,7 +42,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public RendererSetup(RendererData data)
         {
             m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
-            m_DrawGroups.AddRange(data.drawGroups.Where(x => x != null));
         }
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -54,10 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             // Before Render Block
             // In this block inputs passes should execute. e.g, shadowmaps
-            var secondaryGroupMasks = new List<DrawGroup>(1);
-            secondaryGroupMasks.Add(m_DrawGroups[0]);
-            
-            ExecuteBlock(secondaryGroupMasks, RenderPassBlock.BeforeMainRender, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.BeforeMainRender, context, ref renderingData);
 
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
@@ -75,12 +68,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 BeginXRRendering(context, camera);
             
             // In this block the bulk of render passes execute.
-            ExecuteBlock(m_DrawGroups, RenderPassBlock.MainRender, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.MainRender, context, ref renderingData);
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock(secondaryGroupMasks, RenderPassBlock.AfterMainRender, context, ref renderingData, false);
+            ExecuteBlock(RenderPassBlock.AfterMainRender, context, ref renderingData, false);
 
             if (stereoEnabled)
                 EndXRRendering(context, camera);
@@ -90,56 +83,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             DisposePasses(context);
         }
 
-        void ExecuteBlock(List<DrawGroup> drawGroups, RenderPassBlock renderPassBlock,
+        void ExecuteBlock(RenderPassBlock renderPassBlock,
             ScriptableRenderContext context, ref RenderingData renderingData, bool submit = true)
         {
             int blockIndex = (int)renderPassBlock;
             for (int i = 0; i < m_ActiveRenderPassQueue[blockIndex].Count; ++i)
             {
-                for (int currGroupIndex = 0; currGroupIndex < drawGroups.Count; ++currGroupIndex)
-                {
-                    var renderPass = m_ActiveRenderPassQueue[blockIndex][i];
-                    ExecuteRenderPass(drawGroups[currGroupIndex], renderPass, context, ref renderingData);
-                }
+                var renderPass = m_ActiveRenderPassQueue[blockIndex][i];
+                renderPass.Execute(context, ref renderingData);
             }
             
             if (submit)
                 context.Submit();
-        }
-
-        void ExecuteRenderPass(DrawGroup drawGroup, ScriptableRenderPass renderPass,
-            ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            if (CoreUtils.HasFlag(renderPass.drawGroupsMask, drawGroup.mask))
-            {
-                if (drawGroup.overrideCamera)
-                {
-                    Camera camera = renderingData.cameraData.camera;
-                    renderPass.filteringSettings.layerMask = drawGroup.layerMask;
-
-                    var cmd = CommandBufferPool.Get();
-
-                    if (!camera.orthographic)
-                    {
-                        Matrix4x4 prevProjectionMatrix = camera.projectionMatrix;
-                        Matrix4x4 projectionMatrix = Matrix4x4.Perspective(drawGroup.fov,
-                            camera.pixelWidth / camera.pixelHeight, camera.nearClipPlane, camera.farClipPlane);
-                    
-                        cmd.SetProjectionMatrix(projectionMatrix);
-                        context.ExecuteCommandBuffer(cmd);
-                        renderPass.Execute(context, ref renderingData);
-                        cmd.Clear();
-                        cmd.SetProjectionMatrix(prevProjectionMatrix);
-                        context.ExecuteCommandBuffer(cmd);
-                        CommandBufferPool.Release(cmd);
-                    }
-                    else
-                    {
-                        renderPass.Execute(context, ref renderingData);
-                    }
-                }
-                renderPass.Execute(context, ref renderingData);
-            }
         }
 
         public void Clear()

@@ -4,8 +4,6 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
-using UnityEngine.Experimental.Rendering.LWRP;
-
 namespace UnityEngine.Rendering.LWRP
 {
     public enum ShadowCascadesOption
