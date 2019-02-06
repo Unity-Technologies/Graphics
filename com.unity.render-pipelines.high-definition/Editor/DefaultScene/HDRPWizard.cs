@@ -20,9 +20,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static class Style
         {
-            public static readonly GUIContent hdrpProjectSettingsPath = EditorGUIUtility.TrTextContent("Default Resources Folder"); 
-            public static readonly GUIContent firstTimeInit = EditorGUIUtility.TrTextContent("Populate / Reset");
-            public static readonly GUIContent defaultScene = EditorGUIUtility.TrTextContent("Default Scene Prefab", "Shared Volume Profile assigned on new created Volumes.");
+            public static readonly GUIContent hdrpProjectSettingsPath = EditorGUIUtility.TrTextContent("Default Resources Folder", "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings."); 
+            public static readonly GUIContent firstTimeInit = EditorGUIUtility.TrTextContent("Populate / Reset", "Populate or override Default Resources Folder content with required assets.");
+            public static readonly GUIContent defaultScene = EditorGUIUtility.TrTextContent("Default Scene Prefab", "This prefab contains scene elements that are used when creating a new scene in HDRP.");
             public static readonly GUIContent haveStartPopup = EditorGUIUtility.TrTextContent("Show on start");
 
             //configuration debugger
