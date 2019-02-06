@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.0.0] - 2019-xx-xx
 ### Added
 - When you hover your cursor over a property in the blackboard, this now highlights the corresponding property elements in your Shader Graph. Similarly, if you hover over a property in the Shader Graph itself, this highlights the corresponding property in the blackboard.
+- Property nodes in your Shader Graph now have a similar look and styling as the properties in the blackboard.
 
 ### Changed
 - Errors in the compiled shader are now displayed as badges on the appropriate node.
