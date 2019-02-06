@@ -354,12 +354,13 @@ float3 ShiftTangent(float3 T, float3 N, float shift)
     return normalize(T + N * shift);
 }
 
+// Note: this is Blinn-Phong, the original paper uses Phong.
 float3 D_KajiyaKay(float3 T, float3 H, float specularExponent)
 {
     float TdotH = dot(T, H);
     float sinTHSq = saturate(1.0 - (TdotH * TdotH));
 
-    float dirAttn = saturate(TdotH + 1.0);
+    float dirAttn = saturate(TdotH + 1.0); // Evgenii: this seems like a hack? Do we really need this?
 
     return dirAttn * PositivePow(sinTHSq, specularExponent);
 }
@@ -415,8 +416,53 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
+    /*
     return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
                                     bsdfData, bsdfData.normalWS, V);
+    */
+
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
+    float3 L = -lightData.forward;
+
+    // The Kajiya-Kay model has a "built-in" transmission, and the 'NdotL' is always positive.
+    float cosTL = dot(bsdfData.hairStrandDirectionWS, L);
+    float sinTL = sqrt(saturate(1 - cosTL * cosTL));
+    float NdotL = sinTL; // Corresponds to the cosine w.r.t. the light-facing normal
+
+    float shadowBiasNormal = bsdfData.normalWS;
+
+    float3 color; float attenuation;
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, NdotL,
+                              color, attenuation);
+
+    // TODO: transmittance contributes to attenuation, how can we use it for early-out?
+    if (attenuation > 0)
+    {
+        float3 diffuseBsdf, specularBsdf;
+        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
+
+        attenuation    *= ComputeMicroShadowing(bsdfData, NdotL);
+        float intensity = attenuation * NdotL;
+
+        lighting.diffuse  = diffuseBsdf  * (intensity * lightData.diffuseDimmer);
+        lighting.specular = specularBsdf * (intensity * lightData.specularDimmer);
+
+        // Save ALU by applying light and cookie colors only once.
+        lighting.diffuse  *= color;
+        lighting.specular *= color;
+    }
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        lighting.diffuse = color * attenuation * saturate(NdotL);
+    }
+#endif
+
+    return lighting;
 }
 
 //-----------------------------------------------------------------------------
@@ -427,8 +473,54 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
                                      PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
+    /*
     return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
                                  bsdfData, bsdfData.normalWS, V);
+    */
+
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
+    float3 L;
+    float3 lightToSample;
+    float4 distances; // {d, d^2, 1/d, d_proj}
+    GetPunctualLightVectors(posInput.positionWS, lightData, L, lightToSample, distances);
+
+    // The Kajiya-Kay model has a "built-in" transmission, and the 'NdotL' is always positive.
+    float cosTL = dot(bsdfData.hairStrandDirectionWS, L);
+    float sinTL = sqrt(saturate(1 - cosTL * cosTL));
+    float NdotL = sinTL; // Corresponds to the cosine w.r.t. the light-facing normal
+
+    float shadowBiasNormal = bsdfData.normalWS;
+
+    float3 color; float attenuation;
+    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, NdotL, lightToSample, distances,
+                           color, attenuation);
+
+    if (attenuation > 0)
+    {
+        float3 diffuseBsdf, specularBsdf;
+        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
+
+        float intensity = attenuation * NdotL;
+
+        lighting.diffuse  = diffuseBsdf  * (intensity * lightData.diffuseDimmer);
+        lighting.specular = specularBsdf * (intensity * lightData.specularDimmer);
+
+        // Save ALU by applying light and cookie colors only once.
+        lighting.diffuse  *= color;
+        lighting.specular *= color;
+    }
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // Only lighting, not BSDF
+        lighting.diffuse = color * attenuation * saturate(NdotL);
+    }
+#endif
+
+    return lighting;
 }
 
 //-----------------------------------------------------------------------------
