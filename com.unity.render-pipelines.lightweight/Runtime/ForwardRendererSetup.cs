@@ -227,7 +227,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             EnqueuePasses(RenderPassFeature.InjectionPoint.AfterTransparentPasses, injectionPoints,
                 baseDescriptor, colorHandle, depthHandle);
 
-            bool afterRenderExists = CoreUtils.HasFlag(injectionPoints, RenderPassFeature.InjectionPoint.AfterRenderPasses);
+            bool afterRenderExists = CoreUtils.HasFlag(injectionPoints, RenderPassFeature.InjectionPoint.AfterRenderPasses) ||
+                                     renderingData.cameraData.captureActions != null;
 
             // if we have additional filters
             // we need to stay in a RT
@@ -262,9 +263,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
                 else if (colorHandle != RenderTargetHandle.CameraTarget)
                 {
-                    if (m_CapturePass.Setup(colorHandle, renderingData.cameraData.captureActions))
-                        EnqueuePass(m_CapturePass, RenderPassBlock.AfterMainRender);
-
                     m_FinalBlitPass.Setup(baseDescriptor, colorHandle, Display.main.requiresSrgbBlitToBackbuffer, renderingData.killAlphaInFinalBlit);
                     EnqueuePass(m_FinalBlitPass, RenderPassBlock.AfterMainRender);
                 }
