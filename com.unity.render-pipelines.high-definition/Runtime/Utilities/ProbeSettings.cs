@@ -69,7 +69,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             /// <summary>The real time probe will be rendered when a camera see its influence, once per frame.</summary>
             EveryFrame,
             /// <summary>The real time probe will be rendered when a camera see its influence, once after OnEnable.</summary>
-            OnEnable
+            OnEnable,
+            /// <summary>The real time probe will be rendered when a camera see its influence and the udpate was requested by a script. <see cref="HDProbe.RequestRenderNextUpdate"/>.</summary>
+            OnDemand
         }
 
         /// <summary>Lighting parameters for the probe.</summary>
