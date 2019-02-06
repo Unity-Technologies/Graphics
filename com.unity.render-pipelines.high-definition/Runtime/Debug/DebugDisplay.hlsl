@@ -235,7 +235,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
 
 void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
 {
-    if (IsNan(floatValue))
+    if (IsNaN(floatValue))
     {
         DrawCharacter('N', fontColor, currentUnormCoord, fixedUnormCoord, color);
         DrawCharacter('a', fontColor, currentUnormCoord, fixedUnormCoord, color);
