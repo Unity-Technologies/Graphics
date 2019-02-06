@@ -68,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static event Action<HDCamera, CommandBuffer, ComputeShader, int> OnCameraPreRenderVolumetrics;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier> OnCameraPostRenderDeferredLighting;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPostRenderForward;
-        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnCameraPreRenderPostProcess;
+        public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPreRenderPostProcess;
 
         private void InitializeExternalCallbacks()
         {
@@ -1563,7 +1563,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         StartStereoRendering(cmd, renderContext, camera);
 
                         if (OnCameraPreRenderPostProcess != null)
-                            OnCameraPreRenderPostProcess(renderContext, hdCamera, cmd);
+                            OnCameraPreRenderPostProcess(renderContext, hdCamera, cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
 
 
                         // Final blit
