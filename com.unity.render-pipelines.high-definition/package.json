@@ -6,6 +6,7 @@
     "displayName": "High Definition RP",
     "dependencies": {
         "com.unity.render-pipelines.core": "6.0.0",
-        "com.unity.shadergraph": "6.0.0"
+        "com.unity.shadergraph": "6.0.0",
+		"com.unity.ugui" : "1.0.0"
     }
 }
