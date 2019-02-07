@@ -6,10 +6,11 @@ namespace UnityEngine.Experimental.Rendering
     {
         // Root panel class - we don't want to extend Container here because we need a clear
         // separation between debug panels and actual widgets
-        public class Panel : IContainer
+        public class Panel : IContainer, IComparable<Panel>
         {
             public Flags flags { get; set; }
             public string displayName { get; set; }
+            public int groupIndex { get; set; }
             public string queryPath { get { return displayName; } }
 
             public bool isEditorOnly { get { return (flags & Flags.EditorOnly) != 0; } }
@@ -67,6 +68,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 return hash;
             }
+
+            int IComparable<Panel>.CompareTo(Panel other) => other == null ? 1 : groupIndex.CompareTo(other.groupIndex);
         }
     }
 }
