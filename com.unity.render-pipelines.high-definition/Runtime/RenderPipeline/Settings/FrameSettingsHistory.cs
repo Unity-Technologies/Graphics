@@ -232,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var camera = frameSettings.camera;
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
             widgets.AddRange(GenerateFrameSettingsPanelContent(hdrpAsset, ref frameSettings));
-            var panel = DebugManager.instance.GetPanel(menuName, true);
+            var panel = DebugManager.instance.GetPanel(menuName, true, 1);
             panel.children.Add(widgets.ToArray());
         }
 
