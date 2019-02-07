@@ -33,7 +33,7 @@ Pass
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
     $Material.KajiyaKay:                #define _MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1
-    $Material.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
+    /* Always on */                     #define _MATERIAL_FEATURE_TRANSMISSION 1
     $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
     $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
     $BlendMode.Alpha:                   #define _BLENDMODE_ALPHA 1
@@ -212,18 +212,6 @@ $include("SharedCode.template.hlsl")
         $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
         $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
 
-        // tangent-space normal
-        float3 normalTS = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
-
-        // compute world space normal
-        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
-
-        bentNormalWS = surfaceData.normalWS;
-        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
-
-        surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
-
         // For a typical Unity quad, you have tangent vectors pointing to the right (X axis),
         // and bitangent vectors pointing up (Y axis).
         // The current hair setup uses mesh cards (e.g. quads).
@@ -244,6 +232,33 @@ $include("SharedCode.template.hlsl")
         // The tangent should still be a unit vector, though.
         surfaceData.hairStrandDirectionWS = normalize(surfaceData.hairStrandDirectionWS);
 
+        // Small digression about hair and normals [NOTE-HAIR-NORMALS].
+        // Since a hair strand is (approximately) a cylinder,
+        // there is a whole "circle" of normals corresponding to any given tangent vector.
+        // Since we use the Kajiya-Kay shading model,
+        // the way we compute and use normals is a bit complicated.
+        // We need 4 separate sets of normals.
+        // For shadow bias, we use the geometric normal.
+        // For direct lighting, we (conceptually) use the "light-facing" normal.
+        // For reflected GI (light probes and reflection probes), we use the normal most aligned
+        // with the view vector (the "view-facing" normal).
+        // We reflect this normal for transmitted GI.
+        // For the highlight shift hack (along the tangent), we use the user-provided normal.
+
+        surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
+
+        // tangent-space normal
+        float3 normalTS = float3(0.0f, 0.0f, 1.0f);
+        $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
+
+        // compute world space (user-provided) normal
+        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
+
+        float3 viewFacingNormalWS = ComputeViewFacingNormal(V, surfaceData.hairStrandDirectionWS);
+
+        bentNormalWS = viewFacingNormalWS;
+        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
+
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
         // If user provide bent normal then we process a better term
         surfaceData.specularOcclusion = 1.0;
@@ -252,9 +267,9 @@ $include("SharedCode.template.hlsl")
         // Just use the value passed through via the slot (not active otherwise)
 #elif defined(_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL)
         // If we have bent normal and ambient occlusion, process a specular occlusion
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, viewFacingNormalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
 #elif defined(_AMBIENT_OCCLUSION) && defined(_SPECULAR_OCCLUSION_FROM_AO)
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(viewFacingNormalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #else
         surfaceData.specularOcclusion = 1.0;
 #endif
@@ -270,9 +285,6 @@ $include("SharedCode.template.hlsl")
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
         surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.worldToTangent[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
 #endif
-
-        // Propagate the geometry normal
-        surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
 
 #ifdef DEBUG_DISPLAY
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
@@ -312,9 +324,16 @@ $include("SharedCode.template.hlsl")
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
     
+        // For diffuse GI, we should compute the integral around the entire hair strand (0 to 2 * Pi).
+        // For performance reasons, we use a (poor) double-tap approximation, one at the front and
+        // one at the back of the hair strand. The motivation is that frontal and back
+        // lighting makes the most significant visual contribution.
+        // We also don't perform any normalization for energy conservation (since it's all a big hack).
+
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
-        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        // For back lighting we use the reversed view-facing normal.
+        float3 viewFacingNormalWS = ComputeViewFacingNormal(V, surfaceData.hairStrandDirectionWS);
+        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -viewFacingNormalWS, fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;

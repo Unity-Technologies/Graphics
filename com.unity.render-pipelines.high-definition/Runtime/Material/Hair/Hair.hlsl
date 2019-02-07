@@ -23,6 +23,12 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+// T is the fiber axis (hair strand direction, root to tip).
+float3 ComputeViewFacingNormal(float3 V, float3 T)
+{
+    return Orthonormalize(V, T);
+}
+
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
