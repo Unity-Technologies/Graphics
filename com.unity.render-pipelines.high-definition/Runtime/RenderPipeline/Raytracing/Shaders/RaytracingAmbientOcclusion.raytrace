@@ -71,6 +71,11 @@ void RayGenAmbientOcclusion()
 	// the number of samples based on the roughness
 	int numSamples = _RaytracingNumSamples;
 
+    if (_RayCountEnabled > 0)
+    {
+        _RayCountTexture[currentPixelCoord].x = _RayCountTexture[currentPixelCoord].x + (uint)numSamples;
+    }
+
 	// Variable that accumulate the radiance
 	float3 completeColor = float3(0.0, 0.0, 0.0);
 
