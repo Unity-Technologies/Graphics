@@ -443,7 +443,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float sinTL = sqrt(saturate(1 - cosTL * cosTL));
     float NdotL = sinTL; // Corresponds to the cosine w.r.t. the light-facing normal
 
-    float shadowBiasNormal = bsdfData.normalWS;
+    float shadowBiasNormal  = GetNormalForShadowBias(bsdfData);
+          shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
 
     float3 color; float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, NdotL,
@@ -503,7 +504,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float sinTL = sqrt(saturate(1 - cosTL * cosTL));
     float NdotL = sinTL; // Corresponds to the cosine w.r.t. the light-facing normal
 
-    float shadowBiasNormal = bsdfData.normalWS;
+    float shadowBiasNormal  = GetNormalForShadowBias(bsdfData);
+          shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
 
     float3 color; float attenuation;
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, NdotL, lightToSample, distances,
