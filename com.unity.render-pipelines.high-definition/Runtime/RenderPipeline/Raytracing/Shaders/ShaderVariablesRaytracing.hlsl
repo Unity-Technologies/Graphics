@@ -9,3 +9,5 @@ float                                   _RaytracingReflectionMaxDistance;
 float                                   _RaytracingReflectionMinSmoothness;
 int                                     _RaytracingFrameIndex;
 float                                   _RaytracingPixelSpreadAngle;
+int                                     _RayCountEnabled;
+RWTexture2D<uint4>                      _RayCountTexture;
