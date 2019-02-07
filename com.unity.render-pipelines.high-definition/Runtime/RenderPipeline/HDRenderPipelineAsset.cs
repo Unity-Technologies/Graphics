@@ -256,7 +256,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             needUpdate |= UpdateDefineList(renderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
 
             // Only set if it changed
-            if(needUpdate)
+            if (needUpdate)
             {
                 UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
             }
