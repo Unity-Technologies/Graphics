@@ -199,7 +199,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 if (hdrp != null)
                 {
-                    return hdrp.renderPipelineSettings.decalSettings.drawDistance;
+                    return hdrp.currentPlatformRenderPipelineSettings.decalSettings.drawDistance;
                 }
                 return kDefaultDrawDistance;
             }
@@ -212,7 +212,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 if (hdrp != null)
                 {
-                    return hdrp.renderPipelineSettings.decalSettings.perChannelMask;
+                    return hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
                 }
                 return false;
             }
@@ -666,7 +666,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_NumResults == 0)
                     return;
                 HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-                bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
+                bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
                 int batchIndex = 0;
                 int totalToDraw = m_InstanceCount;

@@ -25,7 +25,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly Dictionary<ToolBar, GUIContent> k_ToolbarContents = new Dictionary<ToolBar, GUIContent>
         {
-
             { ToolBar.InfluenceShape,  EditorGUIUtility.TrIconContent("EditCollider", "Modify the base shape. (SHIFT+1)") },
             { ToolBar.Blend,  EditorGUIUtility.TrIconContent("PreMatCube", "Modify the influence volume. (SHIFT+2)") },
             { ToolBar.NormalBlend,  EditorGUIUtility.TrIconContent("SceneViewOrtho", "Modify the influence normal volume. (SHIFT+3)") },

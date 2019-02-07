@@ -27,11 +27,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // When using forward only, we never need GBuffer pass (only Forward)
             // Gbuffer Pass is suppose to exist only for Lit shader thus why we test the condition here in case another shader generate a GBuffer pass (like VFX)
-            if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && isGBufferPass)
+            if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && isGBufferPass)
                 return true;
 
             // Variant of light layer only exist in GBuffer pass, so we test it here
-            if (inputData.shaderKeywordSet.IsEnabled(m_LightLayers) && isGBufferPass && !hdrpAsset.renderPipelineSettings.supportLightLayers)
+            if (inputData.shaderKeywordSet.IsEnabled(m_LightLayers) && isGBufferPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportLightLayers)
                 return true;
 
             // This test include all Lit variant from Shader Graph (Because we check "DepthOnly" pass)
@@ -39,12 +39,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (isDepthOnlyPass)
             {
                 // When we are full forward, we don't have depth prepass or motion vectors pass without writeNormalBuffer
-                if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
                     return true;
 
                 // When we are deferred, we don't have depth prepass or motion vectors pass with writeNormalBuffer
                 // Note: This rule is safe with Forward Material because WRITE_NORMAL_BUFFER is not a keyword for them, so it will not be removed
-                if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
                     return true;
             }
 
@@ -57,12 +57,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (isMotionPass)
                 {
                     // When we are full forward, we don't have depth prepass or motion vectors pass without writeNormalBuffer
-                    if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
                         return true;
 
                     // When we are deferred, we don't have depth prepass or motion vectors pass with writeNormalBuffer
                     // Note: This rule is safe with Forward Material because WRITE_NORMAL_BUFFER is not a keyword for them, so it will not be removed
-                    if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
                         return true;
                 }
 
@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     // Note: We can't apply following rules to Shader Graph as we don't know if we are transparent or opaque.
                     // TODO: Find a way to be able to apply these rules to Shader Graph lit shader
-                    if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
                     {
                         // When we are in deferred, we only support tile lighting
                         if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
@@ -104,7 +104,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     // TODO: Should we remove Cluster version if we know MSAA is disabled ? This prevent to manipulate LightLoop Settings (useFPTL option)
                     // For now comment following code
-                    // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.renderPipelineSettings.supportMSAA)
+                    // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
                     //    return true;
                 }
             }

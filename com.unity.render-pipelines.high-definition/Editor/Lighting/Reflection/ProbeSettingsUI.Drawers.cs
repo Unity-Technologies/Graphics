@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if ((displayedFields.probe & lighting) != 0)
             {
-                GUI.enabled = hd.renderPipelineSettings.supportLightLayers;
+                GUI.enabled = hd.currentPlatformRenderPipelineSettings.supportLightLayers;
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, EditorGUIUtility.TrTextContent("Light Layer"), @override.probe, displayedFields.probe, overridableFields.probe);
                 GUI.enabled = true;
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingMultiplier, serialized.lightingMultiplier, EditorGUIUtility.TrTextContent("Multiplier"), @override.probe, displayedFields.probe, overridableFields.probe);

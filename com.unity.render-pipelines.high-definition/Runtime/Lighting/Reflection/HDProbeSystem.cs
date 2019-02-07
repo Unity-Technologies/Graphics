@@ -86,12 +86,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)hd.renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                                    (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:
                                 target = HDRenderUtilities.CreateReflectionProbeRenderTarget(
-                                    (int)hd.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize
+                                    (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize
                                 );
                                 break;
                         }
@@ -104,12 +104,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
                                 target = HDRenderUtilities.CreatePlanarProbeRenderTarget(
-                                    (int)hd.renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                                    (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
                                 );
                                 break;
                             case ProbeSettings.ProbeType.ReflectionProbe:
                                 target = HDRenderUtilities.CreateReflectionProbeTarget(
-                                    (int)hd.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize
+                                    (int)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize
                                 );
                                 break;
                         }

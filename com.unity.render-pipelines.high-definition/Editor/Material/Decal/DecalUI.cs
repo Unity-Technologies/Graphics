@@ -218,7 +218,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Decal.MaskBlendFlags maskBlendFlags = (Decal.MaskBlendFlags)maskBlendMode.floatValue;              
 
             HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
+            bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
             using (var header = new HeaderScope(Styles.InputsText, (uint)Expandable.Input, this))
             {

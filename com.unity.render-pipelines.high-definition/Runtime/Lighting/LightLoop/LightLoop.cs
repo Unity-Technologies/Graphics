@@ -434,7 +434,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitShadowSystem(HDRenderPipelineAsset hdAsset)
         {
-            m_ShadowInitParameters = hdAsset.GetRenderPipelineSettings().hdShadowInitParams;
+            m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             m_ShadowManager = new HDShadowManager(
                 hdAsset.renderPipelineResources,
                 m_ShadowInitParameters.shadowAtlasResolution,
@@ -486,7 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Build(HDRenderPipelineAsset hdAsset, IBLFilterBSDF[] iBLFilterBSDFArray)
         {
             m_Resources = hdAsset.renderPipelineResources;
-            var lightLoopSettings = hdAsset.renderPipelineSettings.lightLoopSettings;
+            var lightLoopSettings = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.debugHDShadowMapPS);
@@ -506,7 +506,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Env2DCaptureVP.Add(Matrix4x4.identity);
 
 
-            GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
+            GlobalLightLoopSettings gLightLoopSettings = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
             m_CookieTexArray = new TextureCache2D("Cookie");
             int coockieSize = gLightLoopSettings.cookieTexArraySize;
             int coockieResolution = (int)gLightLoopSettings.cookieSize;
@@ -653,7 +653,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DefaultTextureCube.Apply();
 
             // Setup shadow algorithms
-            var shadowParams = hdAsset.renderPipelineSettings.hdShadowInitParams;
+            var shadowParams = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             var shadowKeywords = new[]{"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH", "SHADOW_VERY_HIGH"};
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);

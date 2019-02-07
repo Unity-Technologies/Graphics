@@ -92,13 +92,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset)
         {
-            m_Settings = hdAsset.renderPipelineSettings;
+            m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
             m_Resources = hdAsset.renderPipelineResources;
 
-            if (!hdAsset.renderPipelineSettings.supportSSAO)
+            if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
 
-            bool supportMSAA = hdAsset.renderPipelineSettings.supportMSAA;
+            bool supportMSAA = hdAsset.currentPlatformRenderPipelineSettings.supportMSAA;
 
             // Destination targets
             m_AmbientOcclusionTex = RTHandles.Alloc(Vector2.one,

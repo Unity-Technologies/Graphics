@@ -93,7 +93,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         static bool EvaluateBoolWithOverride(FrameSettingsField field, FrameSettings defaultFrameSettings, SerializedFrameSettings serializedFrameSettings, bool negative)
-            => (serializedFrameSettings.GetOverrides(field) ? serializedFrameSettings.IsEnabled(field) : defaultFrameSettings.IsEnabled(field)) ^ negative;
+            => (serializedFrameSettings.GetOverrides(field) ? serializedFrameSettings.IsEnabled(field) ?? false : defaultFrameSettings.IsEnabled(field)) ^ negative;
 
         /// <summary>Add an overrideable field to be draw when Draw(bool) will be called.</summary>
         /// <param name="serializedFrameSettings">The overrideable property to draw in inspector</param>
@@ -180,7 +180,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             switch (attributes[field.field].type)
                             {
                                 case FrameSettingsFieldAttribute.DisplayType.BoolAsCheckbox:
-                                    bool oldBool = serializedFrameSettings.IsEnabled(field.field);
+                                    bool oldBool = serializedFrameSettings.IsEnabled(field.field) ?? false;
                                     bool newBool = (bool)DrawFieldShape(field.label, oldBool);
                                     if (oldBool ^ newBool)
                                     {
@@ -190,10 +190,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                     break;
                                 case FrameSettingsFieldAttribute.DisplayType.BoolAsEnumPopup:
                                     //shame but it is not possible to use Convert.ChangeType to convert int into enum in current C#
-                                    //rely on string parsing for the moment
-                                    var oldEnumValue = Enum.Parse(attributes[field.field].targetType, serializedFrameSettings.IsEnabled(field.field) ? "1" : "0"); 
-                                    var newEnumValue = (Enum)DrawFieldShape(field.label, oldEnumValue);
-                                    if (oldEnumValue != newEnumValue)
+                                    //Also, Enum.Equals and Enum operator!= always send true here. As it seams to compare object reference instead of value.
+                                    var oldBoolValue = serializedFrameSettings.IsEnabled(field.field);
+                                    int oldEnumIntValue = -1;
+                                    int newEnumIntValue;
+                                    object newEnumValue;
+                                    if (oldBoolValue.HasValue)
+                                    {
+                                        var oldEnumValue = Enum.GetValues(attributes[field.field].targetType).GetValue(oldBoolValue.Value ? 1 : 0);
+                                        newEnumValue = Convert.ChangeType(DrawFieldShape(field.label, oldEnumValue), attributes[field.field].targetType);
+                                        oldEnumIntValue = ((IConvertible)oldEnumValue).ToInt32(System.Globalization.CultureInfo.CurrentCulture);
+                                        newEnumIntValue = ((IConvertible)newEnumValue).ToInt32(System.Globalization.CultureInfo.CurrentCulture);
+                                    }
+                                    else //in multi edition, do not assume any previous value
+                                    {
+                                        newEnumIntValue = EditorGUILayout.Popup(field.label, -1, Enum.GetNames(attributes[field.field].targetType));
+                                        newEnumValue = newEnumIntValue < 0 ? null : Enum.GetValues(attributes[field.field].targetType).GetValue(newEnumIntValue);
+                                    }
+                                    if (oldEnumIntValue != newEnumIntValue)
                                     {
                                         Undo.RecordObject(serializedFrameSettings.serializedObject.targetObject, "Changed FrameSettings " + field.field);
                                         serializedFrameSettings.SetEnabled(field.field, Convert.ToInt32(newEnumValue) == 1);
