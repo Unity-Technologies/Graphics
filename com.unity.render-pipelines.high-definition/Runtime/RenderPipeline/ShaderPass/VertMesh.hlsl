@@ -95,11 +95,40 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
 // Make it inout so that VelocityPass can get the modified input values later.
 #ifdef _INDIRECT_ON
-float4x4 world;
+float4x4 objectWorld;
+float4x4 instanceWorld;
 StructuredBuffer<float3> instancePositions;
+StructuredBuffer<float2> instanceVariations;
 StructuredBuffer<uint> visibleInstances;
-uint remapIndices;
 uint offsetIndices;
+
+float3x3 AngleAxis3x3(float angle, float3 axis)
+{
+    float c, s;
+    sincos(angle, s, c);
+
+    float t = 1 - c;
+    float x = axis.x;
+    float y = axis.y;
+    float z = axis.z;
+
+    return float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+                    t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+                    t * x * z - s * y, t * y * z + s * x, t * z * z + c);
+}
+
+real3 TransformObjectToWorldDirIndirect(real3 dirOS)
+{
+    // Normalize to support uniform scaling
+    return normalize(mul((real3x3)objectWorld, dirOS));
+}
+
+// Transforms normal from object to world space
+real3 TransformObjectToWorldNormalIndirect(real3 normalOS)
+{
+    // This is uniform scaling only right now.
+    return TransformObjectToWorldDirIndirect(normalOS);
+}
 
 VaryingsMeshType VertMesh(AttributesMesh input, uint instanceID)
 {
@@ -112,32 +141,34 @@ VaryingsMeshType VertMesh(AttributesMesh input, uint instanceID)
     input = ApplyMeshModification(input);
 #endif
 
-    if (remapIndices == 1)
-    {
-        instanceID = visibleInstances[instanceID];
-    }
-    else
-    {
-        instanceID += offsetIndices;
-    }
+#ifdef _INDICES_REMAP_ON
+    instanceID = visibleInstances[instanceID];
+#else
+    instanceID += offsetIndices;
+#endif
 
-    float3 inPos = input.positionOS;
-    float3 instancePos = instancePositions[instanceID];
-    instancePos = mul(world, float4(instancePos, 1.0f)); // If relocatable, otherwise we don't need to do this.
-    float3 positionRWS = instancePos + inPos;
+    float3 inputPositionOS = input.positionOS;
 
-    positionRWS = GetCameraRelativePositionWS(positionRWS);
+    float3 positionOS = mul(objectWorld, float4(input.positionOS, 1.0f));
+    positionOS.xyz *= instanceVariations[instanceID].y;
 
-    // This return the camera relative position (if enable)
-    //float3 positionRWS = TransformObjectToWorld(input.positionOS);
+    float3x3 rotation = AngleAxis3x3(instanceVariations[instanceID].x, float3(0.0f, 1.0f, 0.0f));
+    positionOS.xyz = mul(rotation, positionOS.xyz);
+
+    float3 instancePositionWS = mul(instanceWorld, float4(instancePositions[instanceID], 1.0f));
+
+    float3 positionRWS = GetCameraRelativePositionWS(positionOS + instancePositionWS);
+
 #ifdef ATTRIBUTES_NEED_NORMAL
-    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+    float3 normalWS = TransformObjectToWorldNormalIndirect(input.normalOS);
+    normalWS = mul(rotation, normalWS);
 #else
     float3 normalWS = float3(0.0, 0.0, 0.0); // We need this case to be able to compile ApplyVertexModification that doesn't use normal.
 #endif
 
 #ifdef ATTRIBUTES_NEED_TANGENT
-    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+    float4 tangentWS = float4(TransformObjectToWorldDirIndirect(input.tangentOS.xyz), input.tangentOS.w);
+    tangentWS.xyz = mul(rotation, tangentWS.xyz);
 #endif
 
     // Do vertex modification in camera relative space (if enable)

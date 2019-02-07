@@ -274,6 +274,7 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _MATERIAL_FEATURE_SPECULAR_COLOR
 
     #pragma shader_feature _ _INDIRECT_ON
+    #pragma shader_feature _ _INDICES_REMAP_ON
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
