@@ -303,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var         shadowRequest = shadowRequests[index];
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex);
+                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex, m_Light.type != LightType.Directional);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -822,27 +822,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //
         [HideInInspector, SerializeField]
         private HDLightFlag[] m_LightFlags; 
-        public HDLightFlag[]  LightFlags { get { ValidateLightFlags(); return m_LightFlags; } }
+        public HDLightFlag[]  LightFlags 
+        {
+            get 
+            {
+                #if UNITY_EDITOR
+                ValidateLightFlags();
+                #endif
+                return m_LightFlags; 
+            } 
+        }
 
         void InvalidateLightFlags() { m_LightFlags = null; }
         void ValidateLightFlags()
         {
-            List<HDLightFlag> flags = new List<HDLightFlag>();
-            GetComponentsInChildren(flags);
-            if (flags.Count == 0)
+            if (m_LightFlags == null)
             {
-                m_LightFlags = new HDLightFlag[0];
+                List<HDLightFlag> flags = new List<HDLightFlag>();
+                GetComponentsInChildren(flags);
+                if (flags.Count == 0)
+                {
+                    m_LightFlags = new HDLightFlag[0];
+                    return;
+                }
+
+                for (int i = flags.Count - 1; i >= 0; --i)
+                    if (flags[i].transform.parent != transform)
+                        flags.RemoveAt(i);
+
+                if (flags.Count != 0)
+                {
+                    m_LightFlags = flags.ToArray();
+                }
+                else
+                {
+                    m_LightFlags = new HDLightFlag[0];
+                }
             }
-
-            for (int i = flags.Count - 1; i >= 0; --i)
-                if (flags[i].transform.parent != transform)
-                    flags.RemoveAt(i);
-
-            foreach (var f in flags)
-                m_LightFlags = flags.ToArray();
-
-           if (m_LightFlags == null)
-                m_LightFlags = new HDLightFlag[0];
         }
 
         public HDLightFlag AddLightFlag(HDLightFlag copyFrom = null)

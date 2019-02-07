@@ -115,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDShadowQuality  shadowQuality;
     }
 
-    public class HDShadowResolutionRequest
+    public struct HDShadowResolutionRequest
     {
         public Rect        atlasViewport;
         public Vector2     resolution;
@@ -198,12 +198,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_ShadowResolutionRequests.Count - 1;
         }
 
-        public Vector2 GetReservedResolution(int index)
+        public Vector2 GetReservedResolution(int index, bool allowResize)
         {
             if (index < 0 || index >= m_ShadowRequestCount)
                 return Vector2.zero;
             
-            return m_ShadowResolutionRequests[index].resolution;
+            if (allowResize)
+            {
+                return m_Atlas.GetHDShadowResolutionRequest(index).resolution;
+            }
+
+            return m_CascadeAtlas.GetHDShadowResolutionRequest(index).resolution;
         }
 
         public void UpdateShadowRequest(int index, HDShadowRequest shadowRequest)
@@ -211,7 +216,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (index >= m_ShadowRequestCount)
                 return;
 
-            shadowRequest.atlasViewport = m_ShadowResolutionRequests[index].atlasViewport;
+            if (shadowRequest != null && shadowRequest.allowResize)
+            {
+                shadowRequest.atlasViewport = m_Atlas.GetHD+ShadowResolutionRequest(index).atlasViewport;
+            }
+            else
+            {
+                shadowRequest.atlasViewport = m_CascadeAtlas.GetHDShadowResolutionRequest(index).atlasViewport;
+            }
+
             m_ShadowRequests[index] = shadowRequest;
 
             if (shadowRequest.allowResize)
@@ -293,8 +306,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (lightingDebugSettings.shadowResolutionScaleFactor != 1.0f)
             {
-                foreach (var shadowResolutionRequest in m_ShadowResolutionRequests)
+                for (int i = 0; i < m_ShadowResolutionRequests.Count; i++)
+                {
+                    HDShadowResolutionRequest shadowResolutionRequest = m_ShadowResolutionRequests[i];
                     shadowResolutionRequest.resolution *= lightingDebugSettings.shadowResolutionScaleFactor;
+                    m_ShadowResolutionRequests[i] = shadowResolutionRequest;
+                }
             }
 
             // Assign a position to all the shadows in the atlas, and scale shadows if needed

@@ -1151,13 +1151,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.shadowIndex = shadowIndex;
 
             //Punctual light flags
-            for (int i = 0; i < additionalLightData.LightFlags.Length; i++)
+            HDLightFlag[] flags = additionalLightData.LightFlags;
+            int flagCount = (flags != null) ? flags.Length : 0;
+            int numFlags = flagCount;
+
+            for (int i = 0; i < flagCount; i++)
             {
-                m_lightList.lightFlags.Add(additionalLightData.LightFlags[i].ClipParams);
+                HDLightFlag hdFlag = flags[i];
+                if (hdFlag == null)
+                {
+                    numFlags--;
+                }
+                else
+                {
+                    m_lightList.lightFlags.Add(hdFlag.ClipParams);
+                }
             }
             
             lightData.flagIndex = lightFlagOffset;
-            lightData.flagCount = additionalLightData.LightFlags.Length;
+            lightData.flagCount = numFlags;
             lightFlagOffset += lightData.flagCount;
 
 
