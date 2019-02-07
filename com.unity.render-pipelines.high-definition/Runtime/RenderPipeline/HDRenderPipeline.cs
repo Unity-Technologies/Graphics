@@ -1119,17 +1119,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     throw new ArgumentOutOfRangeException("Unknown ShaderLitMode");
                             }
 
-                            m_CopyStencil.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.DoesntReceiveSSR);
-                            m_CopyStencil.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.DoesntReceiveSSR);
-                            m_CopyStencilForSSR.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.DoesntReceiveSSR);
-                            m_CopyStencilForSSR.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.DoesntReceiveSSR);
                             m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, stencilMask);
                             m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, stencilRef);
 
-                            // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes.
-                            CoreUtils.DrawFullScreen(cmd, m_CopyStencil, null, 4);
-                            // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes.
-                            CoreUtils.DrawFullScreen(cmd, m_CopyStencilForSSR, null, 4);
                             HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
                             cmd.SetRandomWriteTarget(1, m_SharedRTManager.GetNormalBuffer());
                             cmd.DrawProcedural(Matrix4x4.identity, m_DecalNormalBufferMaterial, 0, MeshTopology.Triangles, 3, 1);
@@ -1210,11 +1202,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
                                     cmd.SetRandomWriteTarget(1, m_SharedRTManager.GetStencilBufferCopy());
 
-                                    m_CopyStencil.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.DoesntReceiveSSR);
-                                    m_CopyStencil.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.DoesntReceiveSSR);
+                                    m_CopyStencilForSSR.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.DoesntReceiveSSR);
+                                    m_CopyStencilForSSR.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.DoesntReceiveSSR);
 
                                     // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes.
-                                    CoreUtils.DrawFullScreen(cmd, m_CopyStencil, null, 4);
+                                    CoreUtils.DrawFullScreen(cmd, m_CopyStencilForSSR, null, 4);
                                     cmd.ClearRandomWriteTargets();
                                 }
                             }
