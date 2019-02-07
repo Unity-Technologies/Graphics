@@ -445,7 +445,17 @@ namespace UnityEngine.Rendering.LWRP
 
         public override Material default2DMaterial
         {
-            get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
+            get {
+                //Material dataMaterial; 
+                //if (m_RendererData != null)
+                //    dataMaterial = m_RendererData.default2DMaterial;
+                //else
+                //    dataMaterial = GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
+
+                //return dataMaterial;
+
+                return GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
+            }
         }
 
         public override Shader defaultShader
