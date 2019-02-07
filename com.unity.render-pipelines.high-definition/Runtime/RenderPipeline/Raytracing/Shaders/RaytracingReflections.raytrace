@@ -134,6 +134,10 @@ void RayGenHalfRes()
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
+    if (_RayCountEnabled > 0)
+    {
+        _RayCountTexture[outputCoord].y = _RayCountTexture[outputCoord].y + 1;
+    }
 
     // Evaluate the ray intersection
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayIntersection);
@@ -210,6 +214,11 @@ void RayGenIntegration()
 
     // Variable that accumulate the radiance
     float3 finalColor = float3(0.0, 0.0, 0.0);
+    
+    if (_RayCountEnabled > 0)
+    {
+        _RayCountTexture[currentCoord].y = _RayCountTexture[currentCoord].y + (uint)_RaytracingNumSamples;
+    }
 
     // Loop through the samples and add their contribution
     for (int sampleIndex = 0; sampleIndex < _RaytracingNumSamples; ++sampleIndex)
