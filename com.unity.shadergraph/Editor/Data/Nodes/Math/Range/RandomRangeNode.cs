@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Random Range";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Random-Range-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

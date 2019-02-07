@@ -657,7 +657,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override string documentationURL
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/StackLit-Master-Node"; }
+            get { return null; }
         }
 
         public bool HasDistortion()

@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Arccosine";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Arccosine-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

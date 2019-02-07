@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Gradient Noise";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Gradient-Noise-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

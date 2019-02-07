@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Rectangle";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rectangle-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

@@ -16,10 +16,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Swizzle-Node"; }
-        }
 
         const int InputSlotId = 0;
         const int OutputSlotId = 1;

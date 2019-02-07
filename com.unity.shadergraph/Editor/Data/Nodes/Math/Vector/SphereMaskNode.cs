@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Sphere Mask";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sphere-Mask-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

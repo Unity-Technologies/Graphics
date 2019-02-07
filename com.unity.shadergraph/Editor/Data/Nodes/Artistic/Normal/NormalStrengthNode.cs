@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Normal Strength";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Normal-Strength-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

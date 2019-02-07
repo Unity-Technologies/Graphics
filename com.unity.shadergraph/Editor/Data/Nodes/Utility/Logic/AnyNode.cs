@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Any";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Any-Node"; }
-        }
 
         public override bool hasPreview
         {
