@@ -447,8 +447,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override string documentationURL
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Fabric-Master-Node"; }
+            get { return null; }
         }
+
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

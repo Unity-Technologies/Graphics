@@ -34,10 +34,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Matrix-Split-Node"; }
-        }
 
         [SerializeField]
         MatrixAxis m_Axis;

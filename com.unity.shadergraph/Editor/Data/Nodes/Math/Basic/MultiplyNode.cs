@@ -16,10 +16,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Multiply-Node"; }
-        }
 
         const int Input1SlotId = 0;
         const int Input2SlotId = 1;

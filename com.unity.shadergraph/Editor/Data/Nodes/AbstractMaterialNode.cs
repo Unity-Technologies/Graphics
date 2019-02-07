@@ -87,10 +87,7 @@ namespace UnityEditor.ShaderGraph
             set { m_Name = value; }
         }
 
-        public virtual string documentationURL
-        {
-            get { return null; }
-        }
+        public virtual string documentationURL => NodeUtils.GetDocumentationString(this);
 
         public virtual bool canDeleteNode
         {

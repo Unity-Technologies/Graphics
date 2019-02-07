@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Posterize";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Posterize-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

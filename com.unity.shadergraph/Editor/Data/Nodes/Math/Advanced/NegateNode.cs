@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Negate";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Negate-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

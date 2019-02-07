@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Noise Sine Wave";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Noise-Sine-Wave-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
