@@ -265,15 +265,30 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set { UpdateLightProjectionType(value); }
         }
 
-
         [SerializeField]
         Spline m_Spline = new Spline() { isExtensionsSupported = false };
         int m_SplineHash;
 
-        public Spline spline
+        [SerializeField]
+        Vector3[] m_ShapePath;
+        public Vector3[] shapePath => m_ShapePath;
+
+#if UNITY_EDITOR
+        int GetShapePathHash()
         {
-            get { return m_Spline; }
+            unchecked
+            {
+                int hashCode = (int)2166136261;
+
+                foreach (var point in m_ShapePath)
+                    hashCode = hashCode * 16777619 ^ point.GetHashCode();
+
+                return hashCode;
+            }
         }
+
+        int m_PrevShapePathHash;
+#endif
 
         private List<Vector2> UpdateFeatheredShapeLightMesh(ContourVertex[] contourPoints, int contourPointCount)
         {
@@ -322,10 +337,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Color meshInteriorColor = color;
             Color meshFeatherColor = new Color(color.r, color.g, color.b, 0);
 
-            int pointCount = spline.GetPointCount();
+            int pointCount = m_ShapePath.Length;
             var inputs = new ContourVertex[pointCount];
             for (int i = 0; i < pointCount; ++i)
-                inputs[i] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i).x, Y = spline.GetPosition(i).y }, Data = meshInteriorColor };
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = m_ShapePath[i].x, Y = m_ShapePath[i].y }, Data = meshInteriorColor };
             
             var feathered = UpdateFeatheredShapeLightMesh(inputs, pointCount);
             int featheredPointCount = feathered.Count + pointCount;
@@ -337,20 +352,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             for (int i = 0; i < pointCount - 1; ++i)
             {
                 var inputsF = new ContourVertex[4];
-                inputsF[0] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i).x, Y = spline.GetPosition(i).y }, Data = meshFeatherColor };
+                inputsF[0] = new ContourVertex() { Position = new Vec3() { X = m_ShapePath[i].x, Y = m_ShapePath[i].y }, Data = meshFeatherColor };
                 inputsF[1] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = meshInteriorColor };
                 inputsF[2] = new ContourVertex() { Position = new Vec3() { X = feathered[i + 1].x, Y = feathered[i + 1].y },  Data = meshInteriorColor };
-                inputsF[3] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(i + 1).x, Y = spline.GetPosition(i + 1).y },  Data = meshFeatherColor };
+                inputsF[3] = new ContourVertex() { Position = new Vec3() { X = m_ShapePath[i + 1].x, Y = m_ShapePath[i + 1].y },  Data = meshFeatherColor };
                 tessF.AddContour(inputsF, ContourOrientation.Original);
 
                 inputsI[i] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = meshInteriorColor };
             }
 
             var inputsL = new ContourVertex[4];
-            inputsL[0] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(pointCount - 1).x, Y = spline.GetPosition(pointCount - 1).y }, Data = meshFeatherColor };
+            inputsL[0] = new ContourVertex() { Position = new Vec3() { X = m_ShapePath[pointCount - 1].x, Y = m_ShapePath[pointCount - 1].y }, Data = meshFeatherColor };
             inputsL[1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = meshInteriorColor };
             inputsL[2] = new ContourVertex() { Position = new Vec3() { X = feathered[0].x, Y = feathered[0].y }, Data = meshInteriorColor };
-            inputsL[3] = new ContourVertex() { Position = new Vec3() { X = spline.GetPosition(0).x, Y = spline.GetPosition(0).y }, Data = meshFeatherColor };
+            inputsL[3] = new ContourVertex() { Position = new Vec3() { X = m_ShapePath[0].x, Y = m_ShapePath[0].y }, Data = meshFeatherColor };
             tessF.AddContour(inputsL, ContourOrientation.Original);
 
             inputsI[pointCount-1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = meshInteriorColor };
@@ -625,15 +640,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         void Awake()
         {
-            GetMesh();
+            if (m_ShapePath == null)
+                m_ShapePath = m_Spline.m_ControlPoints.Select(x => x.position).ToArray();
 
-            if (spline.GetPointCount() == 0)
-            {
-                spline.InsertPointAt(0, new Vector3(-0.5f, -0.5f));
-                spline.InsertPointAt(1, new Vector3(0.5f, -0.5f));
-                spline.InsertPointAt(2, new Vector3(0.5f, 0.5f));
-                spline.InsertPointAt(3, new Vector3(-0.5f, 0.5f));
-            }
+            if (m_ShapePath.Length == 0)
+                m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
+
+            GetMesh();
         }
 
         void OnEnable()
@@ -711,11 +724,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             rebuildMesh |= CheckForChange<int>(m_ParametricSides, ref m_PreviousParametricSides);
             rebuildMesh |= CheckForChange<float>(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
 
-            int splineHash = m_Spline.GetHashCode();
-            rebuildMesh |= m_SplineHash != splineHash;
-            m_SplineHash = splineHash;
+#if UNITY_EDITOR
+            var shapePathHash = GetShapePathHash();
+            rebuildMesh |= m_PrevShapePathHash != shapePathHash;
+            m_PrevShapePathHash = shapePathHash;
+#endif
 
-            //rebuildMesh |= CheckForChange<>
             if (rebuildMesh)
             {
                 UpdateMesh();

@@ -589,17 +589,15 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             if (light.m_ParametricShape == Light2D.ParametricShapes.Freeform && light.LightProjectionType == Light2D.LightProjectionTypes.Shape && light.m_ShapeLightStyle != Light2D.CookieStyles.Sprite)
             {
-                UnityEngine.U2D.Shape.Spline m_Spline = light.spline;
+                Vector3[] shapePath = light.shapePath;
                 Matrix4x4 oldMatrix = Handles.matrix;
                 Handles.matrix = light.transform.localToWorldMatrix;
-                int points = m_Spline.GetPointCount();
-                for (int i = 0; i < (m_Spline.isOpenEnded ? points - 1 : points); i++)
+                int points = shapePath.Length;
+                for (int i = 0; i < points; i++)
                 {
-                    Vector3 p1 = m_Spline.GetPosition(i);
-                    Vector3 p2 = m_Spline.GetPosition((i + 1) % points);
-                    var t1 = p1 + m_Spline.GetRightTangent(i);
-                    var t2 = p2 + m_Spline.GetLeftTangent((i + 1) % points);
-                    Handles.DrawBezier(p1, p2, t1, t2, Color.gray, null, 2f);
+                    Vector3 p1 = shapePath[i];
+                    Vector3 p2 = shapePath[(i + 1) % points];
+                    Handles.DrawBezier(p1, p2, p1, p2, Color.gray, null, 2f);
                 }
                 Handles.matrix = oldMatrix;
             }
@@ -608,18 +606,18 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         protected override IShape GetShape(Object target)
         {
             var component = target as Light2D;
-            return new Polygon() { controlPoints = component.spline.m_ControlPoints.Select(x => x.position).ToArray() };
+            return new Polygon() { points = component.shapePath };
         }
 
         protected override void SetShape(IShapeEditor shapeEditor, SerializedObject serializedObject)
         {
             serializedObject.Update();
 
-            var pointsProperty = serializedObject.FindProperty("m_Spline.m_ControlPoints");
+            var pointsProperty = serializedObject.FindProperty("m_ShapePath");
             pointsProperty.arraySize = shapeEditor.pointCount;
 
             for (var i = 0; i < shapeEditor.pointCount; ++i)
-                pointsProperty.GetArrayElementAtIndex(i).FindPropertyRelative("position").vector3Value = shapeEditor.GetPoint(i).position;
+                pointsProperty.GetArrayElementAtIndex(i).vector3Value = shapeEditor.GetPoint(i).position;
 
             serializedObject.ApplyModifiedProperties();
         }
