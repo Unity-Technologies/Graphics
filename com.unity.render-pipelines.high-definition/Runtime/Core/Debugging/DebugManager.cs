@@ -25,13 +25,18 @@ namespace UnityEngine.Experimental.Rendering
         ReadOnlyCollection<DebugUI.Panel> m_ReadOnlyPanels;
         readonly List<DebugUI.Panel> m_Panels = new List<DebugUI.Panel>();
 
+        void UpdateReadOnlyCollection()
+        {
+            m_Panels.Sort();
+            m_ReadOnlyPanels = m_Panels.AsReadOnly();
+        }
+
         public ReadOnlyCollection<DebugUI.Panel> panels
         {
             get
             {
                 if (m_ReadOnlyPanels == null)
-                    m_ReadOnlyPanels = m_Panels.AsReadOnly();
-
+                    UpdateReadOnlyCollection();
                 return m_ReadOnlyPanels;
             }
         }
@@ -192,7 +197,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // TODO: Optimally we should use a query path here instead of a display name
-        public DebugUI.Panel GetPanel(string displayName, bool createIfNull = false)
+        public DebugUI.Panel GetPanel(string displayName, bool createIfNull = false, int groupIndex = 0)
         {
             foreach (var panel in m_Panels)
             {
@@ -204,10 +209,10 @@ namespace UnityEngine.Experimental.Rendering
 
             if (createIfNull)
             {
-                p = new DebugUI.Panel { displayName = displayName };
+                p = new DebugUI.Panel { displayName = displayName, groupIndex = groupIndex };
                 p.onSetDirty += OnPanelDirty;
                 m_Panels.Add(p);
-                m_ReadOnlyPanels = m_Panels.AsReadOnly();
+                UpdateReadOnlyCollection();
             }
 
             return p;
@@ -237,7 +242,7 @@ namespace UnityEngine.Experimental.Rendering
                 return;
 
             m_Panels.Remove(panel);
-            m_ReadOnlyPanels = m_Panels.AsReadOnly();
+            UpdateReadOnlyCollection();
         }
 
         public DebugUI.Widget GetItem(string queryPath)
