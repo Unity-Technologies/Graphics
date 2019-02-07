@@ -170,8 +170,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
         {
             // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in 
-            supportShadowMask = asset.renderPipelineSettings.supportShadowMask;
-            supportLightLayers = asset.renderPipelineSettings.supportLightLayers;
+            supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
+            supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
             gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
         }
 

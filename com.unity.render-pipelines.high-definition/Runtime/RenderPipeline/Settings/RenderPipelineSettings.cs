@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // RenderPipelineSettings represents settings that are immutable at runtime.
     // There is a dedicated RenderPipelineSettings for each platform
     [Serializable]
-    public class RenderPipelineSettings
+    public struct RenderPipelineSettings
     {
         public enum SupportedLitShaderMode
         {
@@ -27,44 +27,69 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Both = ForwardOnly | DeferredOnly
         }
 
+        /// <summary>Default RenderPipelineSettings</summary>
+        public static readonly RenderPipelineSettings @default = new RenderPipelineSettings()
+        {
+            supportShadowMask = true,
+            supportSSAO = true,
+            supportSubsurfaceScattering = true,
+            supportVolumetrics = true,
+            supportDistortion = true,
+            supportTransparentBackface = true,
+            supportTransparentDepthPrepass = true,
+            supportTransparentDepthPostpass = true,
+            supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
+            supportDecals = true,
+            msaaSampleCount = MSAASamples.None,
+            supportMotionVectors = true,
+            supportRuntimeDebugDisplay = true,
+            supportDitheringCrossFade = true,
+            editorRaytracingFilterLayerMask = -1,
+            lightLoopSettings = GlobalLightLoopSettings.@default,
+            hdShadowInitParams = HDShadowInitParameters.@default,
+            decalSettings = GlobalDecalSettings.@default,
+            postProcessSettings = GlobalPostProcessSettings.@default,
+            dynamicResolutionSettings = GlobalDynamicResolutionSettings.@default
+        };
+
         // Lighting
-        public bool supportShadowMask = true;
-        public bool supportSSR = false;
-        public bool supportSSAO = true;
-        public bool supportSubsurfaceScattering = true;
-        public bool increaseSssSampleCount = false;
-        public bool supportVolumetrics = true;
-        public bool increaseResolutionOfVolumetrics = false;
-        public bool supportLightLayers = false;
-        public bool supportDistortion = true;
-        public bool supportTransparentBackface = true;
-        public bool supportTransparentDepthPrepass = true;
-        public bool supportTransparentDepthPostpass = true;
-        public SupportedLitShaderMode supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly;
+        public bool supportShadowMask;
+        public bool supportSSR;
+        public bool supportSSAO;
+        public bool supportSubsurfaceScattering;
+        public bool increaseSssSampleCount;
+        public bool supportVolumetrics;
+        public bool increaseResolutionOfVolumetrics;
+        public bool supportLightLayers;
+        public bool supportDistortion;
+        public bool supportTransparentBackface;
+        public bool supportTransparentDepthPrepass;
+        public bool supportTransparentDepthPostpass;
+        public SupportedLitShaderMode supportedLitShaderMode;
 
         // Engine
-        public bool supportDecals = true;
+        public bool supportDecals;
 
-        public MSAASamples msaaSampleCount = MSAASamples.None;
+        public MSAASamples msaaSampleCount;
         public bool supportMSAA
         {
             get
             {
-                return this.msaaSampleCount != MSAASamples.None;
+                return msaaSampleCount != MSAASamples.None;
             }
 
         }
 
-        public bool supportMotionVectors = true;
-        public bool supportRuntimeDebugDisplay = true;
-        public bool supportDitheringCrossFade = true;
-        public bool supportRayTracing =  false;
-        public LayerMask editorRaytracingFilterLayerMask = -1;
+        public bool supportMotionVectors;
+        public bool supportRuntimeDebugDisplay;
+        public bool supportDitheringCrossFade;
+        public bool supportRayTracing;
+        public LayerMask editorRaytracingFilterLayerMask;
 
-        public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
-        public HDShadowInitParameters   hdShadowInitParams = new HDShadowInitParameters();
-        public GlobalDecalSettings      decalSettings = new GlobalDecalSettings();
-        public GlobalPostProcessSettings postProcessSettings = new GlobalPostProcessSettings();
-        public GlobalDynamicResolutionSettings dynamicResolutionSettings = new GlobalDynamicResolutionSettings();
+        public GlobalLightLoopSettings lightLoopSettings;
+        public HDShadowInitParameters hdShadowInitParams;
+        public GlobalDecalSettings decalSettings;
+        public GlobalPostProcessSettings postProcessSettings;
+        public GlobalDynamicResolutionSettings dynamicResolutionSettings;
     }
 }
