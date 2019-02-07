@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Project-wise LUT size for all grading operations - meaning that internal LUTs and
             // user-provided LUTs will have to be this size
-            var settings = hdAsset.renderPipelineSettings.postProcessSettings;
+            var settings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
             m_LutSize = settings.lutSize;
             var lutFormat = (GraphicsFormat)settings.lutFormat;
 

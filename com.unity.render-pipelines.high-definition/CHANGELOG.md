@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added stereo instancing macros to MSAA shaders
 - Added fade factor for decal projectors.
 - Added stereo instancing macros to most shaders used in VR
+- Added multi edition support for HDRenderPipelineAsset
 
 ### Fixed
 - Fixed Decals when rendering multiple camera in a single frame
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed exposure of emissive of Unlit
 - Fixed depth only and motion vector pass for Unlit not working correctly with MSAA
 - Fixed an issue with stencil buffer copy causing unnecessary compute dispatches for lighting
+- Fixed multi edition issue in FrameSettings
 
 ### Changed
 - Temporal Antialiasing optimization for Xbox One X
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update stereo frame settings values for single-pass instancing and double-wide
 - Rearrange FetchDepth functions to prepare for stereo-instancing
 - Remove unused _ComputeEyeIndex
+- Updated HDRenderPipelineAsset inspector
 
 ## [5.3.1-preview] - 2019-01-28
 
