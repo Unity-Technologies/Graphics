@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.LWRP
 
             // Before Render Block
             // In this block inputs passes should execute. e.g, shadowmaps
-            ExecuteBlock(RenderPassBlock.BeforeMainRender, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.BeforeMainRender, context, ref renderingData, true);
 
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
@@ -73,18 +73,18 @@ namespace UnityEngine.Rendering.LWRP
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock(RenderPassBlock.AfterMainRender, context, ref renderingData, false);
+            ExecuteBlock(RenderPassBlock.AfterMainRender, context, ref renderingData);
 
             if (stereoEnabled)
                 EndXRRendering(context, camera);
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
-            
+
             DisposePasses(context);
         }
 
         void ExecuteBlock(RenderPassBlock renderPassBlock,
-            ScriptableRenderContext context, ref RenderingData renderingData, bool submit = true)
+            ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
         {
             int blockIndex = (int)renderPassBlock;
             for (int i = 0; i < m_ActiveRenderPassQueue[blockIndex].Count; ++i)
