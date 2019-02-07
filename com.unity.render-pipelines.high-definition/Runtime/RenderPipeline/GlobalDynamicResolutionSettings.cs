@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -21,25 +21,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class GlobalDynamicResolutionSettings
     {
-        [SerializeField]
-        public bool enabled = false;
-
-        [SerializeField]
-        public float maxPercentage = 100.0f;
-
-        [SerializeField]
-        public float minPercentage = 100.0f;
-
-        [SerializeField]
-        public DynamicResolutionType dynResType = DynamicResolutionType.Software;
-
-        [SerializeField]
-        public DynamicResUpscaleFilter upsampleFilter = DynamicResUpscaleFilter.CatmullRom;
-
-        [SerializeField]
-        public bool forceResolution = false;
-
-        [SerializeField]
-        public float forcedPercentage = 100.0f;
+        /// <summary>Default GlobalDynamicResolutionSettings</summary>
+        public static readonly GlobalDynamicResolutionSettings @default = new GlobalDynamicResolutionSettings()
+        {
+            maxPercentage = 100.0f,
+            minPercentage = 100.0f,
+            dynResType = DynamicResolutionType.Software,
+            upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
+            forcedPercentage = 100.0f
+        };
+        
+        public bool enabled;
+        
+        public float maxPercentage;
+        public float minPercentage;
+        
+        public DynamicResolutionType dynResType;
+        public DynamicResUpscaleFilter upsampleFilter;
+        
+        public bool forceResolution;
+        public float forcedPercentage;
     }
 }

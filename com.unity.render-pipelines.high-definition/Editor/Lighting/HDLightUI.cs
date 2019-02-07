@@ -605,7 +605,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (serialized.settings.isMixed)
                 {
-                    using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineSettings.supportShadowMask))
+                    using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
                     {
                         EditorGUI.BeginChangeCheck();
                         ShadowmaskMode shadowmask = serialized.serializedLightData.nonLightmappedOnly.boolValue ? ShadowmaskMode.ShadowMask : ShadowmaskMode.DistanceShadowmask;
@@ -685,7 +685,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return false;
 
             // Draw shadow settings using the current shadow algorithm
-            HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineSettings.hdShadowInitParams;
+            HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams;
             return hdShadowInitParameters.shadowQuality == quality;
         }
 

@@ -114,20 +114,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public class HDShadowInitParameters
+    public struct HDShadowInitParameters
     {
-        public const int        k_DefaultShadowAtlasResolution = 4096;
-        public const int        k_DefaultMaxShadowRequests = 128;
+        /// <summary>Default GlobalDynamicResolutionSettings</summary>
+        public static readonly HDShadowInitParameters @default = new HDShadowInitParameters()
+        {
+            shadowAtlasResolution = k_DefaultShadowAtlasResolution,
+            maxShadowRequests = k_DefaultMaxShadowRequests,
+            shadowMapsDepthBits = k_DefaultShadowMapDepthBits,
+            useDynamicViewportRescale = true,
+        };
+
+        public const int k_DefaultShadowAtlasResolution = 4096;
+        public const int k_DefaultMaxShadowRequests = 128;
         // TODO: 32 bit shadowmap are not supported by RThandle currently, when they will, change Depth24 to Depth32
-        public const DepthBits  k_DefaultShadowMapDepthBits = DepthBits.Depth24;
+        public const DepthBits k_DefaultShadowMapDepthBits = DepthBits.Depth24;
 
         [FormerlySerializedAs("shadowAtlasWidth")]
-        public int              shadowAtlasResolution = k_DefaultShadowAtlasResolution;
-        public int              maxShadowRequests = k_DefaultMaxShadowRequests;
-        public DepthBits        shadowMapsDepthBits = k_DefaultShadowMapDepthBits;
-        public bool             useDynamicViewportRescale = true;
+        public int shadowAtlasResolution;
+        public int maxShadowRequests;
+        public DepthBits shadowMapsDepthBits;
+        public bool useDynamicViewportRescale;
 
-        public HDShadowQuality  shadowQuality;
+        public HDShadowQuality shadowQuality;
     }
 
     public class HDShadowResolutionRequest
@@ -182,7 +191,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static DirectionalShadowAlgorithm GetDirectionaShadowAlgorithm()
         {
             var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
-            switch (hdAsset.renderPipelineSettings.hdShadowInitParams.shadowQuality)
+            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowQuality)
             {
                 case HDShadowQuality.Low:
                 {
@@ -311,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
             var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
-            if (hdAsset.renderPipelineSettings.hdShadowInitParams.shadowQuality == HDShadowQuality.VeryHigh && shadowRequest.lightType == (int)LightType.Directional)
+            if (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowQuality == HDShadowQuality.VeryHigh && shadowRequest.lightType == (int)LightType.Directional)
             {
                 data.shadowFilterParams0.x = shadowRequest.kernelSize;
                 data.shadowFilterParams0.y = shadowRequest.lightAngle;

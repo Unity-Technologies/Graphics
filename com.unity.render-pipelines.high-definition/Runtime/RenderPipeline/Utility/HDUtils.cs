@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
 
-                return hdPipelineAsset.renderPipelineSettings;
+                return hdPipelineAsset.currentPlatformRenderPipelineSettings;
             }
         }
         public static int debugStep { get { return MousePositionDebug.instance.debugStep; } }

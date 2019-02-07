@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
             // Strip every useless shadow configs
-            var shadowInitParams = hdrpAsset.renderPipelineSettings.hdShadowInitParams;
+            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
 
             foreach (var shadowVariant in m_ShadowVariants)
             {
@@ -44,34 +44,34 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool isTransparentBackface = snippet.passName == "TransparentBackface";
             bool isDistortionPass = snippet.passName == "DistortionVectors";
 
-            if (isMotionPass && !hdrpAsset.renderPipelineSettings.supportMotionVectors)
+            if (isMotionPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMotionVectors)
                 return true;
 
-            if (isDistortionPass && !hdrpAsset.renderPipelineSettings.supportDistortion)
+            if (isDistortionPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDistortion)
                 return true;
 
-            if (isTransparentBackface && !hdrpAsset.renderPipelineSettings.supportTransparentBackface)
+            if (isTransparentBackface && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentBackface)
                 return true;
 
-            if (isTransparentPrepass && !hdrpAsset.renderPipelineSettings.supportTransparentDepthPrepass)
+            if (isTransparentPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPrepass)
                 return true;
 
-            if (isTransparentPostpass && !hdrpAsset.renderPipelineSettings.supportTransparentDepthPostpass)
+            if (isTransparentPostpass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPostpass)
                 return true;
 
             // If we are in a release build, don't compile debug display variant
             // Also don't compile it if not requested by the render pipeline settings
-            if ((/*!Debug.isDebugBuild || */ !hdrpAsset.renderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+            if ((/*!Debug.isDebugBuild || */ !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                 return true;
 
-            if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.renderPipelineSettings.supportDitheringCrossFade)
+            if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
                 return true;
            
-            if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && !hdrpAsset.renderPipelineSettings.supportMSAA)
+            if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
                 return true;
 
             // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
-            if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.renderPipelineSettings.supportSubsurfaceScattering)
+            if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
                 return true;
 
             // DECAL
@@ -100,17 +100,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             // If decal support, remove unused variant
-            if (hdrpAsset.renderPipelineSettings.supportDecals)
+            if (hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)
             {
                 // Remove the no decal case
                 if (inputData.shaderKeywordSet.IsEnabled(m_DecalsOFF))
                     return true;
 
                 // If decal but with 4RT remove 3RT variant and vice versa
-                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || isDecal3RTPass) && hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
+                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || isDecal3RTPass) && hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
                     return true;
 
-                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) || isDecal4RTPass) && !hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
+                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) || isDecal4RTPass) && !hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
                     return true;
             }
             else
