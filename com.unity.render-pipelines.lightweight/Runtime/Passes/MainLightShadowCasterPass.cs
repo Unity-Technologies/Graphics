@@ -58,11 +58,12 @@ namespace UnityEngine.Rendering.LWRP
             MainLightShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
         }
 
-        public bool Setup(RenderTargetHandle destination, ref RenderingData renderingData)
+        public override bool ShouldExecute(ref RenderingData renderingData)
         {
-            Clear();
-            this.destination = destination;
+            if (!renderingData.shadowData.supportsMainLightShadows)
+                return false;
 
+            Clear();
             int shadowLightIndex = renderingData.lightData.mainLightIndex;
             if (shadowLightIndex == -1)
                 return false;
@@ -86,9 +87,9 @@ namespace UnityEngine.Rendering.LWRP
             int shadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(renderingData.shadowData.mainLightShadowmapWidth,
                 renderingData.shadowData.mainLightShadowmapHeight, m_ShadowCasterCascadesCount);
             m_ShadowmapWidth = renderingData.shadowData.mainLightShadowmapWidth;
-            m_ShadowmapHeight = (m_ShadowCasterCascadesCount == 2) ? 
-                 renderingData.shadowData.mainLightShadowmapHeight >> 1 :
-                 renderingData.shadowData.mainLightShadowmapHeight;
+            m_ShadowmapHeight = (m_ShadowCasterCascadesCount == 2) ?
+                renderingData.shadowData.mainLightShadowmapHeight >> 1 :
+                renderingData.shadowData.mainLightShadowmapHeight;
 
             for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
             {
@@ -103,11 +104,15 @@ namespace UnityEngine.Rendering.LWRP
             return true;
         }
 
+        public void Setup(RenderTargetHandle destination, ref RenderingData renderingData)
+        {
+            this.destination = destination;
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderingData.shadowData.supportsMainLightShadows)
-                RenderMainLightCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
+            RenderMainLightCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
         }
 
         /// <inheritdoc/>

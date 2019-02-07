@@ -16,12 +16,16 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle source { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
         private RenderTargetHandle destination { get; set; }
-        private bool flip { get; set; }
-        bool opaquePost { get; set; }
-
         bool m_ReleaseTemporaryRenderTexture;
 
         RenderTargetHandle m_TemporaryColorTexture;
+        bool m_IsOpaquePostProcessing;
+        bool m_IsLastRenderPass;
+
+        public PostProcessPass(bool renderOpaques = false)
+        {
+            m_IsOpaquePostProcessing = renderOpaques;
+        }
 
         /// <summary>
         /// Setup the pass
@@ -33,16 +37,20 @@ namespace UnityEngine.Rendering.LWRP
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle sourceHandle,
             RenderTargetHandle destinationHandle,
-            bool opaquePost,
-            bool flip)
+            bool isLastRenderPass)
         {
             source = sourceHandle;
             destination = destinationHandle;
             descriptor = baseDescriptor;
-            this.flip = flip;
-            this.opaquePost = opaquePost;
             m_TemporaryColorTexture.Init("_TemporaryColorTexture");
             m_ReleaseTemporaryRenderTexture = false;
+            m_IsLastRenderPass = isLastRenderPass;
+        }
+
+        public override bool ShouldExecute(ref RenderingData renderingData)
+        {
+            return renderingData.cameraData.postProcessEnabled &&
+                   (!m_IsOpaquePostProcessing || renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(postProcessRenderContext));
         }
 
         /// <inheritdoc/>
@@ -52,7 +60,7 @@ namespace UnityEngine.Rendering.LWRP
 
             var layer = renderingData.cameraData.postProcessLayer;
             int effectsCount;
-            if (opaquePost)
+            if (m_IsOpaquePostProcessing)
             {
                 effectsCount = layer.sortedBundles[PostProcessEvent.BeforeTransparent].Count;
             }
@@ -69,12 +77,14 @@ namespace UnityEngine.Rendering.LWRP
             {
                 m_ReleaseTemporaryRenderTexture = true;
                 cmd.GetTemporaryRT(m_TemporaryColorTexture.id, descriptor, FilterMode.Point);
-                RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), m_TemporaryColorTexture.Identifier(), opaquePost, flip);
+                RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(),
+                    m_TemporaryColorTexture.Identifier(), m_IsOpaquePostProcessing, m_IsLastRenderPass);
                 cmd.Blit(m_TemporaryColorTexture.Identifier(), source.Identifier());
             }
             else
             {
-                RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), destination.Identifier(), opaquePost, flip);
+                RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(),
+                    destination.Identifier(), m_IsOpaquePostProcessing, m_IsLastRenderPass);
             }
 
             context.ExecuteCommandBuffer(cmd);

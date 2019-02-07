@@ -6,7 +6,7 @@ using UnityEngine.Rendering.PostProcessing;
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
-    /// Inherit from this class to perform custom rendering in the Lightweight Render Pipeline. 
+    /// Inherit from this class to perform custom rendering in the Lightweight Render Pipeline.
     /// </summary>
     public abstract class ScriptableRenderPass
     {
@@ -79,13 +79,18 @@ namespace UnityEngine.Rendering.LWRP
                 return m_PostProcessRenderContext;
             }
         }
-        
+
         /// <summary>
         /// Cleanup any allocated data that was created during the execution of the pass.
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void FrameCleanup(CommandBuffer cmd)
         {}
+
+        public virtual bool ShouldExecute(ref RenderingData renderingData)
+        {
+            return true;
+        }
 
         /// <summary>
         /// Execute the pass. This is where custom rendering occurs. Specific details are left to the implementation
@@ -126,7 +131,7 @@ namespace UnityEngine.Rendering.LWRP
                 drawingSettings.SetShaderPassName(i, passNames[i]);
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filterSettings);
         }
-        
+
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         protected void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
         {
@@ -212,7 +217,7 @@ namespace UnityEngine.Rendering.LWRP
                 desc.depthBufferBits = 32;
             }
 
-            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format. 
+            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format.
             bool useRGB111110 = Application.isMobilePlatform &&
              SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
             RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;

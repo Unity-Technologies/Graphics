@@ -47,12 +47,12 @@ namespace UnityEngine.Rendering.LWRP
             AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
         }
 
-        public bool Setup(RenderTargetHandle destination, ref RenderingData renderingData)
+        public override bool ShouldExecute(ref RenderingData renderingData)
         {
-            Clear();
-            this.destination = destination;
+            if (!renderingData.shadowData.supportsAdditionalLightShadows)
+                return false;
 
-            m_AdditionalShadowCastingLightIndices.Clear();
+            Clear();
 
             Bounds bounds;
             var visibleLights = renderingData.lightData.visibleLights;
@@ -116,6 +116,11 @@ namespace UnityEngine.Rendering.LWRP
             return anyShadows;
         }
 
+        public void Setup(RenderTargetHandle destination, ref RenderingData renderingData)
+        {
+            this.destination = destination;
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -137,6 +142,7 @@ namespace UnityEngine.Rendering.LWRP
 
         void Clear()
         {
+            m_AdditionalShadowCastingLightIndices.Clear();
             m_AdditionalLightsShadowmapTexture = null;
 
             for (int i = 0; i < m_AdditionalLightShadowMatrices.Length; ++i)

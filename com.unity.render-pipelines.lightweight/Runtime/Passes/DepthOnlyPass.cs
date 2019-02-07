@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.LWRP
             RegisterShaderPassName("DepthOnly");
             m_FilteringSettings = new FilteringSettings(renderQueueRange);
         }
-        
+
         /// <summary>
         /// Configure the pass
         /// </summary>
@@ -41,8 +41,18 @@ namespace UnityEngine.Rendering.LWRP
 
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;
-            
+
             descriptor = baseDescriptor;
+        }
+
+        public override bool ShouldExecute(ref RenderingData renderingData)
+        {
+            // Depth prepass is generated in the following cases:
+            // - We resolve shadows in screen space
+            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
+            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
+            return renderingData.cameraData.isSceneViewCamera ||
+                (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
         }
 
         /// <inheritdoc/>
@@ -66,7 +76,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(renderingData.cameraData.camera, sortFlags, PerObjectData.None, renderingData.supportsDynamicBatching);
-                
+
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
             }
             context.ExecuteCommandBuffer(cmd);
@@ -78,12 +88,26 @@ namespace UnityEngine.Rendering.LWRP
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
+
             if (depthAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(depthAttachmentHandle.id);
                 depthAttachmentHandle = RenderTargetHandle.CameraTarget;
             }
+        }
+
+        bool CanCopyDepth(ref CameraData cameraData)
+        {
+            bool msaaEnabledForCamera = (int)cameraData.msaaSamples > 1;
+            bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
+            bool supportsDepthTarget = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
+            bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
+
+            // TODO:  We don't have support to highp Texture2DMS currently and this breaks depth precision.
+            // currently disabling it until shader changes kick in.
+            //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
+            bool msaaDepthResolve = false;
+            return supportsDepthCopy || msaaDepthResolve;
         }
     }
 }

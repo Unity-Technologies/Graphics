@@ -20,11 +20,15 @@ namespace UnityEngine.Rendering.LWRP
         /// Configure the pass
         /// </summary>
         /// <param name="actions"></param>
-        public bool Setup(RenderTargetHandle colorAttachmentHandle, IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > actions)
+        public void Setup(RenderTargetHandle colorAttachmentHandle, IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > actions)
         {
             this.colorAttachmentHandle = colorAttachmentHandle;
             captureActions = actions;
-            return captureActions != null;
+        }
+
+        public override bool ShouldExecute(ref RenderingData renderingData)
+        {
+            return renderingData.cameraData.captureActions != null;
         }
 
         /// <inheritdoc/>

@@ -26,6 +26,11 @@ namespace UnityEngine.Rendering.LWRP
             this.m_CombineWithRenderOpaquesPass = combineWithRenderOpaquesPass;
         }
 
+        public override bool ShouldExecute(ref RenderingData renderingData)
+        {
+            return renderingData.cameraData.camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null;
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

@@ -39,6 +39,11 @@ namespace UnityEngine.Rendering.LWRP
             this.destination = destination;
         }
 
+        public override bool ShouldExecute(ref RenderingData renderingData)
+        {
+            return renderingData.cameraData.requiresOpaqueTexture;
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -86,7 +91,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
+
             if (destination != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(destination.id);

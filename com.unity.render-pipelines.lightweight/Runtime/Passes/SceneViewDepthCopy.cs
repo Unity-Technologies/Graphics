@@ -17,7 +17,12 @@ namespace UnityEngine.Rendering.LWRP
         {
             this.source = source;
         }
-        
+
+        public override bool ShouldExecute(ref RenderingData renderingData)
+        {
+            return renderingData.cameraData.isSceneViewCamera;
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

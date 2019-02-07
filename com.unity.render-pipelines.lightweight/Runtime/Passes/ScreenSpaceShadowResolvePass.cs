@@ -30,7 +30,12 @@ namespace UnityEngine.Rendering.LWRP
             baseDescriptor.colorFormat = m_ColorFormat;
             descriptor = baseDescriptor;
         }
-        
+
+        public override bool ShouldExecute(ref RenderingData renderingData)
+        {
+            return renderingData.shadowData.requiresScreenSpaceShadowResolve;
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -60,7 +65,7 @@ namespace UnityEngine.Rendering.LWRP
             // This consumes about 10MB of extra unnecessary bandwidth on boat attack.
             // In order to avoid it we can do a cmd.DrawMesh instead, however because LWRP doesn't setup camera matrices itself,
             // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
-            // We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP. 
+            // We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP.
             cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -71,7 +76,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
+
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(colorAttachmentHandle.id);
