@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.4.0] - 2019-XX-XX
 ### Fixed
-- The SRP Batcher now works with MacOS and iOS.
+- Fixed the SRP Batcher, so it now works with MacOS and iOS.
 
 ## [5.3.1] - 2019-01-28
 ### Fixed
