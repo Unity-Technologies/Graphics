@@ -285,7 +285,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     }
 
     // Stretch hack... Copy-pasted from GGX, ALU-optimized for hair.
-    float3 iblN = normalize(lerp(bsdfData.normalWS, N, bsdfData.anisotropy));
+    // float3 iblN = normalize(lerp(bsdfData.normalWS, N, bsdfData.anisotropy));
+    float3 iblN = N;
     preLightData.iblR = reflect(-V, iblN);
     preLightData.iblPerceptualRoughness *= saturate(1.2 - abs(bsdfData.anisotropy));
 
