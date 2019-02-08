@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with stencil buffer copy causing unnecessary compute dispatches for lighting
 - Fixed multi edition issue in FrameSettings
 - Fixed issue with SRP batcher and DebugDisplay variant of lit shader
+- Fixed issue with debug material mode not doing alpha test
 
 ### Changed
 - Temporal Antialiasing optimization for Xbox One X
