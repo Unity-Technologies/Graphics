@@ -21,29 +21,23 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static RenderTargetHandle s_NormalsTarget;
         static Texture s_LightLookupTexture;
 
-        private delegate void PerLightTypeAction(int lightTypeIndex);
-        static private void DoPerLightTypeActions(PerLightTypeAction action)
-        {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
-            {
-                if (!s_LightOperations[i].enabled)
-                    continue;
-
-                action(i);
-            }
-        }
-
         static public void Setup(_2DLightOperationDescription[] lightTypes)
         {
             s_LightOperations = lightTypes;
 
             s_RenderTargets = new RenderTargetHandle[s_LightOperations.Length];
-            DoPerLightTypeActions(i => { s_RenderTargets[i].Init("_ShapeLightTexture" + i); });
+            s_RenderTargetsDirty = new bool[s_LightOperations.Length];
+
+            for (int i = 0; i < s_LightOperations.Length; ++i)
+            {
+                if (!s_LightOperations[i].enabled)
+                    continue;
+
+                s_RenderTargets[i].Init("_ShapeLightTexture" + i);
+            }
 
             s_NormalsTarget = new RenderTargetHandle();
             s_NormalsTarget.Init("_NormalMap");
-
-            s_RenderTargetsDirty = new bool[s_LightOperations.Length];
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
@@ -67,19 +61,29 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             descriptor.height = (int)(camera.pixelHeight);
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
 
-            DoPerLightTypeActions(i =>
+            for (int i = 0; i < s_LightOperations.Length; ++i)
             {
+                if (!s_LightOperations[i].enabled)
+                    continue;
+
                 float renderTextureScale = Mathf.Clamp(s_LightOperations[i].renderTextureScale, 0.01f, 1.0f);
                 descriptor.width = (int)(camera.pixelWidth * renderTextureScale);
                 descriptor.height = (int)(camera.pixelHeight * renderTextureScale);
                 cmd.GetTemporaryRT(s_RenderTargets[i].id, descriptor, FilterMode.Bilinear);
                 s_RenderTargetsDirty[i] = true;
-            });
+            }
         }
 
         static public void ReleaseRenderTextures(CommandBuffer cmd)
         {
-            DoPerLightTypeActions(i => { cmd.ReleaseTemporaryRT(s_RenderTargets[i].id); });
+            for (int i = 0; i < s_LightOperations.Length; ++i)
+            {
+                if (!s_LightOperations[i].enabled)
+                    continue;
+
+                cmd.ReleaseTemporaryRT(s_RenderTargets[i].id);
+            }
+
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
         }
 
@@ -157,11 +161,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void SetShapeLightShaderGlobals(CommandBuffer cmdBuffer)
         {
-            DoPerLightTypeActions(i =>
+            for (int i = 0; i < s_LightOperations.Length; ++i)
             {
+                if (!s_LightOperations[i].enabled)
+                    continue;
+
                 cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, s_LightOperations[i].blendFactors);
                 cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_LightOperations[i].maskTextureChannelFilter);
-            });
+            }
         }
 
         static Texture GetLightLookupTexture()
@@ -270,15 +277,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     break;
 
                 string keyword = k_UseLightOperationKeywords[i];
-
                 if (s_LightOperations[i].enabled)
                     cmdBuffer.EnableShaderKeyword(keyword);
                 else
+                {
                     cmdBuffer.DisableShaderKeyword(keyword);
-            }
+                    continue;
+                }
 
-            DoPerLightTypeActions(i =>
-            {
                 string sampleName = "2D Point Lights - " + s_LightOperations[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
@@ -310,13 +316,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 s_RenderTargetsDirty[i] = rtDirty;
 
                 cmdBuffer.EndSample(sampleName);
-            });
+            }
         }
 
         static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, Light2D.LightProjectionTypes lightProjectionType)
         {
-            DoPerLightTypeActions(i =>
+            for (int i = 0; i < s_LightOperations.Length; ++i)
             {
+                if (!s_LightOperations[i].enabled)
+                    continue;
+
                 string sampleName = "2D Shape Light Volumes - " + s_LightOperations[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
@@ -332,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 );
 
                 cmdBuffer.EndSample(sampleName);
-            });
+            }
         }
     }
 }
