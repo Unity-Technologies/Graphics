@@ -197,6 +197,22 @@ namespace UnityEngine.Rendering.LWRP
             return settings;
         }
 
+        protected DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, SortingCriteria sortingCriteria)
+        {
+            Camera camera = renderingData.cameraData.camera;
+            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
+            DrawingSettings settings = new DrawingSettings(m_ShaderTagIDs[0], sortingSettings)
+            {
+                perObjectData = renderingData.perObjectData,
+                enableInstancing = true,
+                mainLightIndex = renderingData.lightData.mainLightIndex,
+                enableDynamicBatching = renderingData.supportsDynamicBatching,
+            };
+            for (int i = 1; i < m_ShaderTagIDs.Count; ++i)
+                settings.SetShaderPassName(i, m_ShaderTagIDs[i]);
+            return settings;
+        }
+
         public static RenderTextureDescriptor CreateRenderTextureDescriptor(ref CameraData cameraData, float scaler = 1.0f)
         {
             Camera camera = cameraData.camera;

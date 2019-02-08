@@ -9,7 +9,10 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] Shader m_CopyDepthShader = null;
         [SerializeField] Shader m_ScreenSpaceShadowShader = null;
         [SerializeField] Shader m_SamplingShader = null;
-        
+
+        [SerializeField] LayerMask m_OpaqueLayerMask = -1;
+        [SerializeField] LayerMask m_TransparentLayerMask = -1;
+
         public override RendererSetup Create()
         {
             return new ForwardRendererSetup(this);
@@ -37,6 +40,16 @@ namespace UnityEngine.Rendering.LWRP
         {
             get => m_SamplingShader;
             set => m_SamplingShader = value;
+        }
+
+        public LayerMask opaqueLayerMask
+        {
+            get => m_OpaqueLayerMask;
+        }
+
+        public LayerMask transparentLayerMask
+        {
+            get => m_TransparentLayerMask;
         }
     }
 }

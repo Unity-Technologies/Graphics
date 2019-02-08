@@ -19,12 +19,12 @@ namespace UnityEngine.Rendering.LWRP
 
         FilteringSettings m_FilteringSettings;
 
-        public RenderOpaqueForwardPass(RenderQueueRange renderQueueRange)
+        public RenderOpaqueForwardPass(RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
 
-            m_FilteringSettings = new FilteringSettings(renderQueueRange);
+            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
         }
 
         /// <summary>

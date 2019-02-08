@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.LWRP 
+namespace UnityEngine.Rendering.LWRP
 {
     public enum RenderQueueType
     {
@@ -27,6 +27,17 @@ namespace UnityEngine.Rendering.LWRP
         public Material overrideMaterial;
         public int overrideMaterialPassIndex;
 
+        public bool overrideDepthState = false;
+        public CompareFunction depthCompareFunction = CompareFunction.Less;
+        public bool enableWrite = true;
+
+        public bool overrideStencilState = false;
+        public int stencilReference = 1;
+        public CompareFunction stencilCompareFunction = CompareFunction.Always;
+        public StencilOp passOperation = StencilOp.Keep;
+        public StencilOp failOperation = StencilOp.Keep;
+        public StencilOp zFailOperation = StencilOp.Keep;
+
         RenderObjectsPass renderObjectsPass;
 
         void OnEnable()
@@ -41,7 +52,15 @@ namespace UnityEngine.Rendering.LWRP
 
         void Initialize()
         {
-            renderObjectsPass = new RenderObjectsPass(passNames, renderQueueType, overrideMaterial, overrideMaterialPassIndex, layerMask);
+            renderObjectsPass = new RenderObjectsPass(passNames, renderQueueType, layerMask);
+            renderObjectsPass.overrideMaterial = overrideMaterial;
+            renderObjectsPass.overrideMaterialPassIndex = overrideMaterialPassIndex;
+
+            if (overrideDepthState)
+                renderObjectsPass.SetDetphState(enableWrite, depthCompareFunction);
+
+            if (overrideStencilState)
+                renderObjectsPass.SetStencilState(stencilReference, stencilCompareFunction, passOperation, failOperation, zFailOperation);
         }
 
         public override InjectionPoint injectionPoints => (InjectionPoint)(1 << (int)callback);

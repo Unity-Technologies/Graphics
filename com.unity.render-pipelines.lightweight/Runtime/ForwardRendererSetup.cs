@@ -43,12 +43,12 @@ namespace UnityEngine.Rendering.LWRP
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass();
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(screenspaceShadowsMaterial);
             m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
-            m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderQueueRange.opaque);
+            m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderQueueRange.opaque, data.opaqueLayerMask);
             m_OpaquePostProcessPass = new PostProcessPass(true);
             m_DrawSkyboxPass = new DrawSkyboxPass();
             m_CopyDepthPass = new CopyDepthPass(copyDepthMaterial);
             m_CopyColorPass = new CopyColorPass(samplingMaterial);
-            m_RenderTransparentForwardPass = new RenderTransparentForwardPass(RenderQueueRange.transparent);
+            m_RenderTransparentForwardPass = new RenderTransparentForwardPass(RenderQueueRange.transparent, data.transparentLayerMask);
             m_PostProcessPass = new PostProcessPass();
             m_FinalBlitPass = new FinalBlitPass(blitMaterial);
             m_CapturePass = new CapturePass();
