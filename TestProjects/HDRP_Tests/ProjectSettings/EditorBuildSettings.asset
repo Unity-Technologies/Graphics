@@ -68,13 +68,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1401_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/1x_Materials/1402_StackLitSG_Testers.unity
     guid: 23d1a6dbc0bbc7d4abf6ce5e9cd0e132
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1402_StackLitSG_PLM.unity
     guid: baf6b66103b82f74e95a5ce4e8051db7
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/1x_Materials/1501_Fabric.unity
     guid: ce2b258da0df8d245b659390b6c2ac51
   - enabled: 1
@@ -86,7 +86,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1602_TerrainLit_Normal.unity
     guid: 493570d0c7a7cd0449d5ceb578701b5e
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/1x_Materials/1701_HairGraph/1701_HairGraph.unity
     guid: 7c0b384fd32894841954edea3211d084
   - enabled: 1
