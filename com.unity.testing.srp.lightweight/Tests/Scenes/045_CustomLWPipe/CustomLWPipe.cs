@@ -17,7 +17,7 @@ public class CustomLWPipe : RendererSetup
     public CustomLWPipe(CustomRenderGraphData data) : base(data)
     {
         m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
-        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderQueueRange.opaque);
+        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderQueueRange.opaque, -1);
         m_ForwardLights = new ForwardLights();
     }
 
