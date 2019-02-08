@@ -36,12 +36,12 @@ namespace UnityEditor.ShaderGraph
             return default(PreviewProperty);
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new SamplerStateNode();
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new SamplerStateShaderProperty();
             copied.displayName = displayName;

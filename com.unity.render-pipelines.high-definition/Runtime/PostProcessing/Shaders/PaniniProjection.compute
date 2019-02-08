@@ -122,7 +122,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     }
     else
     {
-        float3 smp = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, coords * _ScreenToTargetScale.xy, 0.0).xyz;
+        float3 smp = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(coords), 0.0).xyz;
         _OutputTexture[posInputs.positionSS] = smp;
     }
 }

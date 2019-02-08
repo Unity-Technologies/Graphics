@@ -22,7 +22,7 @@ CBUFFER_END
 void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
-    float2 uv = posInputs.positionNDC * _ScreenToTargetScale.xy;
+    float2 uv = posInputs.positionNDC;
 
     // Use a rotated grid to minimize artifacts coming from horizontal and vertical boundaries
     // "High Quality Antialiasing" [Lorach07]
@@ -34,14 +34,11 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
         float2(-0.4, -0.9)
     };
 
-    // Avoid bleeding with the RTHandle autosize system
-    float2 maxCoord = _ScreenToTargetScale.xy - _TexelSize.zw;
-
-    float3 color0 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min(_TexelSize.zw * kTaps[0] + uv, maxCoord), 0.0).xyz;
-    float3 color1 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min(_TexelSize.zw * kTaps[1] + uv, maxCoord), 0.0).xyz;
-    float3 color2 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min(_TexelSize.zw * kTaps[2] + uv, maxCoord), 0.0).xyz;
-    float3 color3 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min(_TexelSize.zw * kTaps[3] + uv, maxCoord), 0.0).xyz;
-    float3 color4 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, min(_TexelSize.zw * kTaps[4] + uv, maxCoord), 0.0).xyz;
+    float3 color0 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[0] + uv, _TexelSize.zw), 0.0).xyz;
+    float3 color1 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[1] + uv, _TexelSize.zw), 0.0).xyz;
+    float3 color2 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[2] + uv, _TexelSize.zw), 0.0).xyz;
+    float3 color3 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[3] + uv, _TexelSize.zw), 0.0).xyz;
+    float3 color4 = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(_TexelSize.zw * kTaps[4] + uv, _TexelSize.zw), 0.0).xyz;
 
     // Luma weighted average [Karis13]
     float w0 = 1.0 / (Luminance(color0) + 1.0);

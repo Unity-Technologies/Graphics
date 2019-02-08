@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         Pass m_PassMETA = new Pass()
         {
             Name = "META",
-            LightMode = "Meta",
+            LightMode = "META",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
@@ -103,17 +103,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassDepthForwardOnly = new Pass()
         {
-            Name = "DepthOnly",
+            Name = "DepthForwardOnly",
             LightMode = "DepthForwardOnly",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ZWriteOverride = "ZWrite On",
-            ColorMaskOverride = "ColorMask 0",
+            // Caution: When using MSAA we have normal and depth buffer bind.
+            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
+            // This is not a problem in no MSAA mode as there is no buffer bind
+            ColorMaskOverride = "ColorMask 0 0",
 
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+                // Note we don't need to define WRITE_NORMAL_BUFFER
             },            
 
             Includes = new List<string>()
@@ -135,14 +139,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassMotionVectors = new Pass()
         {
-            Name = "Motion Vectors",
+            Name = "MotionVectors",
             LightMode = "MotionVectors",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_VELOCITY",
+
+            // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
+            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
+            // This is not a problem in no MSAA mode as there is no buffer bind
+            ColorMaskOverride = "ColorMask 0 1",
+
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+                // Note we don't need to define WRITE_NORMAL_BUFFER
             },
             Includes = new List<string>()
             {
@@ -186,7 +197,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassDistortion = new Pass()
         {
-            Name = "Distortion",
+            Name = "DistortionVectors",
             LightMode = "DistortionVectors",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
@@ -240,7 +251,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassForwardOnly = new Pass()
         {
-            Name = "Forward Unlit",
+            Name = "ForwardOnly",
             LightMode = "ForwardOnly",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
@@ -267,7 +278,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = true
         };
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(INode iMasterNode, Pass pass)
+        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
 

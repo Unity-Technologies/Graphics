@@ -16,6 +16,10 @@ namespace UnityEngine.Rendering.LWRP
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
+            // Renderer
+            public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Renderer Type", "Controls the default renderer LWRP uses for all cameras.");
+            public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Renderer Data", "Required when using a custom Renderer. If none is assigned LWRP uses the Forward Renderer as default.");
+
             // General
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
             public static GUIContent requireOpaqueTextureText = EditorGUIUtility.TrTextContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
@@ -63,6 +67,9 @@ namespace UnityEngine.Rendering.LWRP
         SavedBool m_ShadowSettingsFoldout;
         SavedBool m_AdvancedSettingsFoldout;
 
+        SerializedProperty m_RendererTypeProp;
+        SerializedProperty m_RendererDataProp;
+
         SerializedProperty m_RequireDepthTextureProp;
         SerializedProperty m_RequireOpaqueTextureProp;
         SerializedProperty m_OpaqueDownsamplingProp;
@@ -101,6 +108,25 @@ namespace UnityEngine.Rendering.LWRP
         {
             serializedObject.Update();
 
+            EditorGUILayout.Space();
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_RendererTypeProp, Styles.rendererTypeText);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (m_RendererTypeProp.intValue != (int) RendererType.Custom)
+                    m_RendererDataProp.objectReferenceValue = LightweightRenderPipeline.asset.LoadBuiltinRendererData();
+            }
+
+            if (m_RendererTypeProp.intValue == (int) RendererType.Custom)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_RendererDataProp, Styles.rendererDataText);
+                EditorGUI.indentLevel--;
+            }
+            
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+
             DrawGeneralSettings();
             DrawQualitySettings();
             DrawLightingSettings();
@@ -117,6 +143,9 @@ namespace UnityEngine.Rendering.LWRP
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
             m_ShadowSettingsFoldout = new SavedBool($"{target.GetType()}.ShadowSettingsFoldout", false);
             m_AdvancedSettingsFoldout = new SavedBool($"{target.GetType()}.AdvancedSettingsFoldout", false);
+
+            m_RendererTypeProp = serializedObject.FindProperty("m_RendererType");
+            m_RendererDataProp = serializedObject.FindProperty("m_RendererData");
 
             m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");

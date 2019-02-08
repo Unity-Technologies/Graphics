@@ -1,5 +1,5 @@
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
-Shader "Hidden/TerrainEngine/Details/BillboardWavingDoublePass" // Has to override the internal shaders so named like this
+Shader "Hidden/TerrainEngine/Details/LightweightPipeline/BillboardWavingDoublePass"
 {
     Properties
     {

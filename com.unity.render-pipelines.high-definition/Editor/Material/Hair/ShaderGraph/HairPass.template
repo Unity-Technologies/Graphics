@@ -224,9 +224,25 @@ $include("SharedCode.template.hlsl")
 
         surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
 
-        surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);    // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.worldToTangent);
-        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+        // For a typical Unity quad, you have tangent vectors pointing to the right (X axis),
+        // and bitangent vectors pointing up (Y axis).
+        // The current hair setup uses mesh cards (e.g. quads).
+        // Hair is usually painted top-down, from the root to the tip.
+        // Therefore, DefaultHairStrandTangent = -MeshCardBitangent.
+        // Both the SurfaceData and the BSDFData store the hair tangent
+        // (which represents the hair strand direction, root to tip).
+        surfaceData.hairStrandDirectionWS = -fragInputs.worldToTangent[1].xyz;
+        // The hair strand direction texture contains tangent-space vectors.
+        // We use the same convention for the texture, which means that
+        // to get the default behavior (DefaultHairStrandTangent = -MeshCardBitangent),
+        // the artist has to paint (0, -1, 0).
+        // TODO: pending artist feedback...
+        $HairStrandDirection: surfaceData.hairStrandDirectionWS = TransformTangentToWorld(surfaceDescription.HairStrandDirection, fragInputs.worldToTangent);
+        // The original Kajiya-Kay BRDF model expects an orthonormal TN frame.
+        // Since we use the tangent shift hack (http://web.engr.oregonstate.edu/~mjb/cs519/Projects/Papers/HairRendering.pdf),
+        // we may as well not bother to orthonormalize anymore.
+        // The tangent should still be a unit vector, though.
+        surfaceData.hairStrandDirectionWS = normalize(surfaceData.hairStrandDirectionWS);
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
         // If user provide bent normal then we process a better term
@@ -299,6 +315,10 @@ $include("SharedCode.template.hlsl")
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
         InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+
+        // override sampleBakedGI:
+        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
+        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 

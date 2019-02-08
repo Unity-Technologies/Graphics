@@ -16,7 +16,9 @@ namespace UnityEditor.Graphing
 
     static class NodeUtils
     {
-        public static void SlotConfigurationExceptionIfBadConfiguration(INode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
+        public static string docURL = "https://github.com/Unity-Technologies/ScriptableRenderPipeline/tree/master/com.unity.shadergraph/Documentation%7E/";
+
+        public static void SlotConfigurationExceptionIfBadConfiguration(AbstractMaterialNode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
         {
             var missingSlots = new List<int>();
 
@@ -34,7 +36,7 @@ namespace UnityEditor.Graphing
             throw new SlotConfigurationException(string.Format("Missing slots {0} on node {1}", string.Join(", ", toPrint.ToArray()), node));
         }
 
-        public static IEnumerable<IEdge> GetAllEdges(INode node)
+        public static IEnumerable<IEdge> GetAllEdges(AbstractMaterialNode node)
         {
             var result = new List<IEdge>();
             var validSlots = ListPool<ISlot>.Get();
@@ -69,7 +71,7 @@ namespace UnityEditor.Graphing
         }
 
         public static void DepthFirstCollectNodesFromNode<T>(List<T> nodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
-            where T : class, INode
+            where T : AbstractMaterialNode
         {
             // no where to start
             if (node == null)
@@ -99,7 +101,7 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
-        public static void CollectNodesNodeFeedsInto(List<INode> nodeList, INode node, IncludeSelf includeSelf = IncludeSelf.Include)
+        public static void CollectNodesNodeFeedsInto(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, IncludeSelf includeSelf = IncludeSelf.Include)
         {
             if (node == null)
                 return;
@@ -117,6 +119,11 @@ namespace UnityEditor.Graphing
             }
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
+        }
+
+        public static string GetDocumentationString(AbstractMaterialNode node)
+        {
+            return $"{docURL}{node.name.Replace(" ", "-")}"+"-Node.md";
         }
 
         static Stack<MaterialSlot> s_SlotStack = new Stack<MaterialSlot>();

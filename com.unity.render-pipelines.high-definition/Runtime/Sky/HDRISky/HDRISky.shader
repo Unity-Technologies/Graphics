@@ -22,6 +22,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     struct Attributes
     {
         uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     struct Varyings
@@ -33,7 +34,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     Varyings Vert(Attributes input)
     {
         Varyings output;
-
+        UNITY_SETUP_INSTANCE_ID(input);
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
         return output;
@@ -41,7 +42,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float4 RenderSky(Varyings input, float exposure)
     {
-        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy, (float3x3)_PixelCoordToViewDirWS);
 
         // Reverse it to point into the scene
@@ -66,6 +66,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float4 FragRender(Varyings input) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         return RenderSky(input, GetCurrentExposureMultiplier());
     }
 

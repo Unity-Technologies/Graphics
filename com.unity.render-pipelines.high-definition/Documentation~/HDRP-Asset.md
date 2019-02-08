@@ -79,7 +79,7 @@ Use the Cookie settings to configure the maximum resolution of individual cookie
 | **Cookie Size** | The maximum individual cookie size for the 2D cookies that HDRP uses for Directional and Spot Lights.  |
 | **Texture Array Size** | The maximum Texture Array size for the 2D cookies that HDRP uses for Directional and Spot Lights. Increase this to increase the amount of 2D cookies HDRP can use concurrently on screen. |
 | **Point Cookie Size** | The maximum [Point Cookie](https://docs.unity3d.com/Manual/Cookies.html) size for the Cube cookies that HDRP uses for Point Lights. |
-| **Cubemap Array Size** | The maximum Cubemap Array size for the Cube cookies that HDRP uses for Point Lights. Increase this to increase the amount of cubemap cookies HDRP can use concurrently on screen.  |
+| **Cubemap Array Size** | The maximum cube map Array size for the Cube cookies that HDRP uses for Point Lights. Increase this to increase the amount of cube map cookies HDRP can use concurrently on screen. |
 
 
 
@@ -90,8 +90,8 @@ Use the Reflection settings to configure the resolution of your reflections and 
 | Property| Description |
 |:---|:---|
 | **Compress Reflection Probe Cache** | Compresses the Reflection Probe Cache to save space on disk. |
-| **Reflection Cubemap Size** | The maximum resolution of the individual Reflection Probe [Cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
-| **Probe Cache Size** | The maximum resolution of the Probe Cache. Defines how many Probe Caches HDRP can save in cache. |
+| **Reflection Cubemap Size** | The maximum resolution of the individual Reflection Probe [cube maps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
+| **Probe Cache Size** | The maximum resolution of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
 | **Compress Planar Reflection Probe Cache** | Compresses the Planar Reflection Probe Cache. |
 | **Planar Reflection Texture Size** | The maximum resolution of the Planar Reflection texture. |
 | **Planar Probe Cache Size** | The maximum size of the Planer Reflection Probe cache. |
@@ -105,7 +105,7 @@ These settings control skybox reflections and skybox lighting.
 
 | Property| Description |
 |:---|:---|
-| **Reflection Size** | The maximum resolution of the cubemap HDRP uses to represent the sky. |
+| **Reflection Size** | The maximum resolution of the cube map HDRP uses to represent the sky. |
 | **Lighting Override Mask** | The [Volume](Volumes.html) layer mask HDRP uses to override sky lighting. Use this to decouple the display sky and lighting. |
 
 

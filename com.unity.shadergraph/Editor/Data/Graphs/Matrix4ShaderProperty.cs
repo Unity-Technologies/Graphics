@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new Matrix4Node
             {
@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new Matrix4ShaderProperty();
             copied.displayName = displayName;

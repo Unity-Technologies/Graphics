@@ -75,7 +75,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-        transmittedIntersection.cone.spreadAngle = _PixelSpreadAngle;
+        transmittedIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
         transmittedIntersection.cone.width = rayIntersection.cone.width;
         
         // Evaluate the ray intersection
@@ -109,7 +109,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-        reflectedIntersection.cone.spreadAngle = _PixelSpreadAngle;
+        reflectedIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
         reflectedIntersection.cone.width = rayIntersection.cone.width;
         
         // Evaluate the ray intersection

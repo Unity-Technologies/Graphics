@@ -10,8 +10,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public class GlobalPostProcessSettings
+    public struct GlobalPostProcessSettings
     {
+        /// <summary>Default GlobalPostProcessSettings</summary>
+        public static readonly GlobalPostProcessSettings @default = new GlobalPostProcessSettings()
+        {
+            m_LutSize = 32,
+            m_LutFormat = GradingLutFormat.ARGBHalf
+        };
+
         // Note: A lut size of 16^3 is barely usable (noticeable color banding in highly contrasted
         // areas and harsh tonemappers like ACES'). 32 should be the minimum, the lut being encoded
         // in log. Lower sizes would work better with an additional 1D shaper lut but for now we'll
@@ -20,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxLutSize = 65;
 
         [SerializeField]
-        int m_LutSize = 32;
+        int m_LutSize;
 
         public int lutSize
         {
@@ -29,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        GradingLutFormat m_LutFormat = GradingLutFormat.ARGBHalf;
+        GradingLutFormat m_LutFormat;
 
         public GradingLutFormat lutFormat
         {

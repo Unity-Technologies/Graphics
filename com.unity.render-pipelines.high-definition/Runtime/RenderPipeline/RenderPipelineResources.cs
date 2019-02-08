@@ -45,6 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader screenSpaceShadowCS;
             public ComputeShader volumeVoxelizationCS;
             public ComputeShader volumetricLightingCS;
+            public Shader deferredTilePS;
 
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
             public Shader combineLightingPS;
@@ -79,7 +80,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader encodeBC6HCS;
             public Shader cubeToPanoPS;
             public Shader blitCubeTextureFacePS;
-
+            public Shader filterAreaLightCookiesPS;
+            
             // Shadow
             public Shader shadowClearPS;
             public ComputeShader shadowBlurMomentsCS;
@@ -122,6 +124,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader bloomPrefilterCS;
             public ComputeShader bloomBlurCS;
             public ComputeShader bloomUpsampleCS;
+            public ComputeShader FXAACS;
             public Shader finalPassPS;
 
 #if ENABLE_RAYTRACING
@@ -132,9 +135,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader           raytracingFlagMask;
             public RaytracingShader forwardRaytracing;
             public ComputeShader areaBillateralFilterCS;
+            public ComputeShader jointBilateralFilterCS;
             public ComputeShader reflectionBilateralFilterCS;
             public ComputeShader lightClusterBuildCS;
             public ComputeShader lightClusterDebugCS;
+            public ComputeShader countTracedRays;
+            public Shader debugViewRayCountPS;
 #endif
         }
 
@@ -224,9 +230,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 volumeVoxelizationCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/VolumetricLighting/VolumeVoxelization.compute"),
                 volumetricLightingCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/VolumetricLighting/VolumetricLighting.compute"),
 
+                deferredTilePS = Load<Shader>(HDRenderPipelinePath + "Lighting/LightLoop/DeferredTile.shader"),
+
                 subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.compute"),
                 combineLightingPS = Load<Shader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/CombineLighting.shader"),
-
+                
                 // General
                 cameraMotionVectorsPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader"),
                 copyStencilBufferPS = Load<Shader>(HDRenderPipelinePath + "ShaderLibrary/CopyStencilBuffer.shader"),
@@ -259,6 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute"),
                 cubeToPanoPS = Load<Shader>(CorePath + "CoreResources/CubeToPano.shader"),
                 blitCubeTextureFacePS = Load<Shader>(CorePath + "CoreResources/BlitCubeTextureFace.shader"),
+                filterAreaLightCookiesPS = Load<Shader>(CorePath + "CoreResources/FilterAreaLightCookies.shader"),
 
                 // Shadow
                 shadowClearPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowClear.shader"),
@@ -302,17 +311,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bloomPrefilterCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomPrefilter.compute"),
                 bloomBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomBlur.compute"),
                 bloomUpsampleCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomUpsample.compute"),
-                finalPassPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/FinalPass.shader")
-            
+                FXAACS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/FXAA.compute"),
+                finalPassPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/FinalPass.shader"),
+
 #if ENABLE_RAYTRACING
-                ,
                 aoRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace"),
                 reflectionRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace"),
                 shadowsRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAreaShadows.raytrace"),
                 areaBillateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/AreaBilateralShadow.compute"),
-                reflectionBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/GaussianBilateral.compute"),
+                jointBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/JointBilateralFilter.compute"),
+                reflectionBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflectionFilter.compute"),
                 lightClusterBuildCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute"),
-                lightClusterDebugCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute")
+                lightClusterDebugCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute"),
+				countTracedRays = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/CountTracedRays.compute"),
+				debugViewRayCountPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugViewRayCount.shader")
 #endif
         };
 

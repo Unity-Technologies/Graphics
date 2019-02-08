@@ -10,6 +10,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 
@@ -55,7 +57,7 @@ void RayGenAmbientOcclusion()
 
 	// Read the depth value
 	float depthValue  = _DepthTexture[currentPixelCoord];
-	if(depthValue == 0.0f)
+	if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
 		return;
 
 	// Convert this to a world space position
@@ -69,6 +71,11 @@ void RayGenAmbientOcclusion()
 	// the number of samples based on the roughness
 	int numSamples = _RaytracingNumSamples;
 
+    if (_RayCountEnabled > 0)
+    {
+        _RayCountTexture[currentPixelCoord].x = _RayCountTexture[currentPixelCoord].x + (uint)numSamples;
+    }
+
 	// Variable that accumulate the radiance
 	float3 completeColor = float3(0.0, 0.0, 0.0);
 
@@ -76,7 +83,7 @@ void RayGenAmbientOcclusion()
 	float minDistance = _RaytracingRayMaxLength;
 
 	// Let's loop through th e samples
-	for(int i = 0; i < numSamples; ++i)
+	for (int i = 0; i < numSamples; ++i)
 	{
 		// Get the following noise value
     	float2 noiseValue = GetRaytracingNoiseSample(currentPixelCoord, i);
@@ -102,7 +109,7 @@ void RayGenAmbientOcclusion()
 		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayIntersection);
 		
 		// combine
-		if(rayIntersection.t > 0.0f)
+		if (rayIntersection.t > 0.0f)
 		{
 			minDistance = min(minDistance, rayIntersection.t);
 		}

@@ -44,6 +44,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Runtime Data
         RenderTexture m_RealtimeTexture;
         RenderData m_RealtimeRenderData;
+        bool m_WasRenderedSinceLastOnDemandRequest;
+
+        internal bool requiresRealtimeUpdate
+        {
+            get
+            {
+                if (mode != ProbeSettings.Mode.Realtime)
+                    return false;
+                switch (realtimeMode)
+                {
+                    case ProbeSettings.RealtimeMode.EveryFrame: return true;
+                    case ProbeSettings.RealtimeMode.OnEnable: return !wasRenderedAfterOnEnable;
+                    case ProbeSettings.RealtimeMode.OnDemand: return !m_WasRenderedSinceLastOnDemandRequest;
+                    default: throw new ArgumentOutOfRangeException(nameof(realtimeMode));
+                }
+            }
+        }
 
         // Public API
         // Texture asset
@@ -140,7 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Camera
         /// <summary>Frame settings in use with this probe.</summary>
-        public FrameSettings frameSettings => m_ProbeSettings.camera.renderingPathCustomFrameSettings;
+        public ref FrameSettings frameSettings => ref m_ProbeSettings.camera.renderingPathCustomFrameSettings;
         public FrameSettingsOverrideMask frameSettingsOverrideMask => m_ProbeSettings.camera.renderingPathCustomFrameSettingsOverrideMask;
         internal Vector3 influenceExtents => influenceVolume.extents;
         internal Matrix4x4 proxyToWorld
@@ -166,8 +183,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        internal bool wasRenderedAfterOnEnable { get; set; } = false;
-        internal int lastRenderedFrame { get; set; } = int.MinValue;
+        internal bool wasRenderedAfterOnEnable { get; private set; } = false;
+        internal int lastRenderedFrame { get; private set; } = int.MinValue;
+
+        internal void SetIsRendered(int frame)
+        {
+            m_WasRenderedSinceLastOnDemandRequest = true;
+            wasRenderedAfterOnEnable = true;
+            lastRenderedFrame = frame;
+        }
 
         // API
         /// <summary>
@@ -175,6 +199,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// You should call this method when you update the <see cref="influenceVolume"/> parameters during runtime.
         /// </summary>
         public virtual void PrepareCulling() { }
+
+        /// <summary>
+        /// Request to render this probe next update.
+        ///
+        /// Call this method with the mode <see cref="ProbeSettings.RealtimeMode.OnDemand"/> and the probe will
+        /// be rendered the next time it will influence a camera rendering.
+        /// </summary>
+        public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
         void OnEnable()
         {

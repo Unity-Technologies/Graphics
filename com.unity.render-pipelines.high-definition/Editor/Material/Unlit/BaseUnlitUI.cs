@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
-{ 
+{
     // A Material can be authored from the shader graph or by hand. When written by hand we need to provide an inspector.
     // Such a Material will share some properties between it various variant (shader graph variant or hand authored variant).
     // This is the purpose of BaseLitGUI. It contain all properties that are common to all Material based on Lit template.
@@ -26,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Advance = 1<<7,
             Other = 1 << 8
         }
-        
+
         protected static class StylesBaseUnlit
         {
             public static string TransparencyInputsText = "Transparency Inputs";
@@ -36,44 +37,45 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string blendModeText = "Blending Mode";
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
-#if ENABLE_RAYTRACING
-            public static readonly string[] opaqueRenderingPassNames = new[] { "Default", "After post-process", "Raytracing" };
-            public static readonly string[] transparentRenderingPassNames = new[] { "Before refraction", "Default", "Low resolution", "After post-process", "Raytracing" };
-#else
-            // TEMP: Disable extra pass until supported
-            //public static readonly string[] opaqueRenderingPassNames = new[] { "Default", "After post-process" };
-            public static readonly string[] opaqueRenderingPassNames = new[] { "Default" };
-            //public static readonly string[] transparentRenderingPassNames = new[] { "Before refraction", "Default", "Low resolution", "After post-process" };
-            // TEMP: Disable extra pass until supported
-            public static readonly string[] transparentRenderingPassNames = new[] { "Before refraction", "Default" };
-#endif
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly int[] blendModeValues = Enum.GetValues(typeof(BlendMode)) as int[];
 
-            public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Clipping", "Enable Alpha Clipping");
-            public static GUIContent alphaCutoffText = new GUIContent("Threshold", "Threshold for Alpha Clipping");
-            public static GUIContent alphaCutoffShadowText = new GUIContent("Shadow Threshold", "Threshold for Alpha Clipping in case of shadow pass");
-            public static GUIContent alphaCutoffPrepassText = new GUIContent("Prepass Threshold", "Threshold for Alpha Clipping in case of transparent depth prepass");
-            public static GUIContent alphaCutoffPostpassText = new GUIContent("Postpass Threshold", "Threshold for Alpha Clipping in case of transparent depth postpass");
-            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Transparent Depth Prepass", "Render a depth prepass for transparent object - Improve sorting");
-            public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Transparent Depth Postpass", "Render a depth postpass for transparent object - Improve PostProcess effect like DOF");
-            public static GUIContent transparentBackfaceEnableText = new GUIContent("Back Then Front Rendering", "It allow to better sort transparent mesh by first rendering back faces then front faces in two separate drawcall");
 
-            public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Allow manually define sorting order based on priority (from -100 to +100) to solve sorting issue with transparent");
-            public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "Receive fog on transparent material");
-            public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Preserve specular lighting", "Blend mode will only affect diffuse lighting, allowing correct specular lighting (reflection) on transparent object");
+            
 
-            public static GUIContent doubleSidedEnableText = new GUIContent("Double-Sided", "This will render the two face of the objects (disable backface culling) and flip/mirror normal");
-            public static GUIContent distortionEnableText = new GUIContent("Distortion", "Enable distortion on this shader");
-            public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "This shader will only be use to render distortion");
-            public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "Enable the depth test for distortion");
-            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map (RGB)", "Vector Map for the distortion\nDistortion 2D vector in (RG) and Blur amount in (B)\nScale and Bias apply to distortion vector only, not blur amount.");
-            public static GUIContent distortionBlendModeText = new GUIContent("Distortion Blend Mode", "Distortion Blend Mode");
-            public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Distortion Scale");
-            public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Distortion Blur Scale");
-            public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Distortion Blur Remapping");
+            
 
-            public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("MotionVector For Vertex Animation", "This will enable an object motion vector pass for this material. Useful if wind animation is enabled or if displacement map is animated");
+    
+
+            public static GUIContent transparentPrepassText = new GUIContent("Appear in Refraction", "When enabled, HDRP handles objects with this Material before the refraction pass.");
+
+
+            public static GUIContent useShadowThresholdText = new GUIContent("Use Shadow Threshold", "Enable separate threshold for shadow pass");
+            public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Clipping", "When enabled, HDRP processes Alpha Clipping for this Material.");
+            public static GUIContent alphaCutoffText = new GUIContent("Threshold", "Controls the threshold for the Alpha Clipping effect.");
+            public static GUIContent alphaCutoffShadowText = new GUIContent("Shadow Threshold", "Contols the threshold for shadow pass alpha clipping.");
+            public static GUIContent alphaCutoffPrepassText = new GUIContent("Prepass Threshold", "Controls the threshold for transparent depth prepass alpha clipping.");
+            public static GUIContent alphaCutoffPostpassText = new GUIContent("Postpass Threshold", "Controls the threshold for transparent depth postpass alpha clipping.");
+            public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Transparent Depth Postpass", "When enabled, HDRP renders a depth postpass for transparent objects. This improves post-processing effects like depth of field.");
+            public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Transparent Depth Prepass", "When enabled, HDRP renders a depth prepass for transparent GameObjects. This improves sorting.");
+            public static GUIContent transparentBackfaceEnableText = new GUIContent("Back Then Front Rendering", "When enabled, HDRP renders the back face and then the front face, in two separate draw calls, to better sort transparent meshes.");
+
+            public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
+            public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog.");
+            public static GUIContent enableBlendModePreserveSpecularLightingText = new GUIContent("Preserve specular lighting", "When enabled, blending only affects diffuse lighting, allowing for correct specular lighting on transparent meshes that use this Material.");
+
+            public static GUIContent doubleSidedEnableText = new GUIContent("Double-Sided", "When enabled, HDRP renders both faces of the polygons that make up meshes using this Material. Disables backface culling.");
+            public static GUIContent distortionEnableText = new GUIContent("Distortion", "When enabled, HDRP processes distortion for this Material.");
+            public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "When enabled, HDRP only uses this Material to render distortion.");
+            public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "When enabled, HDRP calculates a depth test for distortion.");
+            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map (RGB)", "Specifies the Vector Map HDRP uses for the distortion effect\nDistortion 2D vector (RG) and Blur amount (B)\nHDRP applies the scale and bias to the distortion vector only, not the blur amount.");
+            public static GUIContent distortionBlendModeText = new GUIContent("Distortion Blend Mode", "Specifies the mode HDRP uses to calculate distortion.");
+            public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Sets the scale HDRP applies to the Distortion Vector Map.");
+            public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Sets the scale HDRP applies to the distortion blur effect.");
+            public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Controls a remap for the Distortion Blur effect.");
+
+            public static GUIContent enableMotionVectorForVertexAnimationText = new GUIContent("MotionVector For Vertex Animation", "When enabled, HDRP processes an object motion vector pass for this material.");
+
 
             public static string advancedText = "Advanced Options";
         }
@@ -99,6 +101,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty surfaceType = null;
         protected const string kSurfaceType = "_SurfaceType";
         protected MaterialProperty alphaCutoffEnable = null;
+
+        protected const string kUseShadowThreshold = "_UseShadowThreshold";
+        protected MaterialProperty useShadowThreshold = null;
         protected const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         protected MaterialProperty alphaCutoff = null;
         protected const string kAlphaCutoff = "_AlphaCutoff";
@@ -161,6 +166,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected virtual bool showBlendModePopup { get { return true; } }
         protected virtual bool showPreRefractionPass { get { return true; } }
+        protected virtual bool showLowResolutionPass { get { return false; } } // Not implemented yet
+        protected virtual bool showAfterPostProcessPass { get { return true; } }
+
+        List<string> m_RenderingPassNames = new List<string>();
+        List<int> m_RenderingPassValues = new List<int>();
 
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
@@ -176,6 +186,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             // Everything is optional (except surface type) so users that derive from this class can decide what they expose or not
             surfaceType = FindProperty(kSurfaceType, props, false);
+            useShadowThreshold = FindProperty(kUseShadowThreshold, props, false);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props, false);
             alphaCutoff = FindProperty(kAlphaCutoff, props, false);
 
@@ -215,6 +226,64 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             get { return surfaceType != null ? (SurfaceType)surfaceType.floatValue : defaultSurfaceType; }
         }
 
+        int DoOpaqueRenderingPassPopup(string text, int inputValue, bool afterPost)
+        {
+            // Build UI enums
+            m_RenderingPassNames.Clear();
+            m_RenderingPassValues.Clear();
+
+            m_RenderingPassNames.Add("Default");
+            m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Default);
+
+            if (afterPost)
+            {
+                m_RenderingPassNames.Add("After post-process");
+                m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.AfterPostProcessing);
+            }
+
+#if ENABLE_RAYTRACING
+            m_RenderingPassNames.Add("Raytracing");
+            m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
+#endif
+
+            return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
+        }
+
+        int DoTransparentRenderingPassPopup(string text, int inputValue, bool refraction, bool lowRes, bool afterPost)
+        {
+            // Build UI enums
+            m_RenderingPassNames.Clear();
+            m_RenderingPassValues.Clear();
+
+            if (refraction)
+            {
+                m_RenderingPassNames.Add("Before refraction");
+                m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.BeforeRefraction);
+            }
+
+            m_RenderingPassNames.Add("Default");
+            m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Default);
+
+            if (lowRes)
+            {
+                m_RenderingPassNames.Add("Low resolution");
+                m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.LowResolution);
+            }
+
+            if (afterPost)
+            {
+                m_RenderingPassNames.Add("After post-process");
+                m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.AfterPostProcessing);
+            }
+
+#if ENABLE_RAYTRACING
+            m_RenderingPassNames.Add("Raytracing");
+            m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
+#endif
+
+            return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
+        }
+
         void SurfaceTypePopup()
         {
             if (surfaceType == null)
@@ -246,7 +315,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest);
             }
             EditorGUI.showMixedValue = false;
-            
+
             bool isMixedRenderQueue = surfaceType.hasMixedValue || m_MaterialEditor.targets.Select(m => HDRenderQueue.GetTypeByRenderQueueValue(((Material)m).renderQueue)).Distinct().Count() > 1;
             EditorGUI.showMixedValue = isMixedRenderQueue;
             ++EditorGUI.indentLevel;
@@ -255,7 +324,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case SurfaceType.Opaque:
                     //GetOpaqueEquivalent: prevent issue when switching surface type
                     HDRenderQueue.OpaqueRenderQueue renderQueueOpaqueType = HDRenderQueue.ConvertToOpaqueRenderQueue(HDRenderQueue.GetOpaqueEquivalent(renderQueueType));
-                    var newRenderQueueOpaqueType = (HDRenderQueue.OpaqueRenderQueue)EditorGUILayout.Popup(StylesBaseUnlit.renderingPassText, (int)renderQueueOpaqueType, StylesBaseUnlit.opaqueRenderingPassNames);
+                    var newRenderQueueOpaqueType = (HDRenderQueue.OpaqueRenderQueue)DoOpaqueRenderingPassPopup(StylesBaseUnlit.renderingPassText, (int)renderQueueOpaqueType, showAfterPostProcessPass);
                     if (newRenderQueueOpaqueType != renderQueueOpaqueType) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
                     {
                         m_MaterialEditor.RegisterPropertyChangeUndo("Rendering Pass");
@@ -266,17 +335,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case SurfaceType.Transparent:
                     //GetTransparentEquivalent: prevent issue when switching surface type
                     HDRenderQueue.TransparentRenderQueue renderQueueTransparentType = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(renderQueueType));
-                    var names = StylesBaseUnlit.transparentRenderingPassNames;
-                    if (!showPreRefractionPass)
-                    {
-                        names = names.Skip(1).ToArray();
-                        --renderQueueTransparentType;     //keep index sync with displayed value
-                    }
-                    var newRenderQueueTransparentType = (HDRenderQueue.TransparentRenderQueue)EditorGUILayout.Popup(StylesBaseUnlit.renderingPassText, (int)renderQueueTransparentType, names);
+                    var newRenderQueueTransparentType = (HDRenderQueue.TransparentRenderQueue)DoTransparentRenderingPassPopup(StylesBaseUnlit.renderingPassText, (int)renderQueueTransparentType, showPreRefractionPass, showLowResolutionPass, showAfterPostProcessPass);
                     if (newRenderQueueTransparentType != renderQueueTransparentType) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
                     {
-                        if (!showPreRefractionPass)
-                            ++newRenderQueueTransparentType;    //keep index sync with displayed value
                         m_MaterialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(newRenderQueueTransparentType);
                         material.renderQueue = HDRenderQueue.ChangeType(renderQueueType, offset: (int)transparentSortPriority.floatValue);
@@ -359,15 +420,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(alphaCutoff, StylesBaseUnlit.alphaCutoffText);
 
+                if (useShadowThreshold != null)
+                    m_MaterialEditor.ShaderProperty(useShadowThreshold, StylesBaseUnlit.useShadowThresholdText);
+
+                if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(alphaCutoffShadow, StylesBaseUnlit.alphaCutoffShadowText);
+                    EditorGUI.indentLevel--;
+                }
+
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
                 // This allow to get a better sorting (with prepass), better shadow (better silhouettes fidelity) etc...
                 if (surfaceTypeValue == SurfaceType.Transparent)
                 {
-                    if (alphaCutoffShadow != null)
-                    {
-                        m_MaterialEditor.ShaderProperty(alphaCutoffShadow, StylesBaseUnlit.alphaCutoffShadowText);
-                    }
-
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
                     {
                         m_MaterialEditor.ShaderProperty(alphaCutoffPrepass, StylesBaseUnlit.alphaCutoffPrepassText);
@@ -436,6 +502,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", false);
             CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", false);
 
+            HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
+            bool needOffScreenBlendFactor = renderQueueType == HDRenderQueue.RenderQueueType.AfterPostprocessTransparent || renderQueueType == HDRenderQueue.RenderQueueType.LowTransparent;
+
             // Alpha tested materials always have a prepass where we perform the clip.
             // Then during Gbuffer pass we don't perform the clip test, so we need to use depth equal in this case.
             if (alphaTestEnable)
@@ -476,6 +545,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     CoreUtils.SetKeyword(material, "_BLENDMODE_ADD", BlendMode.Additive == blendMode);
                     CoreUtils.SetKeyword(material, "_BLENDMODE_PRE_MULTIPLY", BlendMode.Premultiply == blendMode);
 
+                    // When doing off-screen transparency accumulation, we change blend factors as described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
                     switch (blendMode)
                     {
                         // Alpha
@@ -484,6 +554,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         case BlendMode.Alpha:
                             material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            if (needOffScreenBlendFactor)
+                            {
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            }
+                            else
+                            {
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            }
                             break;
 
                         // Additive
@@ -492,6 +572,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         case BlendMode.Additive:
                             material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                            if (needOffScreenBlendFactor)
+                            {
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                            }
+                            else
+                            {
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                            }
                             break;
 
                         // PremultipliedAlpha
@@ -500,6 +590,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         case BlendMode.Premultiply:
                             material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            if (needOffScreenBlendFactor)
+                            {
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            }
+                            else
+                            {
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            }
                             break;
                     }
                 }
@@ -725,7 +825,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
+            // When switching shader, the custom RenderQueue is reset due to shader assignment
+            // To keep the correct render queue we need to save it here, do the change and re-assign it
+            int currentRenderQueue = material.renderQueue;
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
+            material.renderQueue = currentRenderQueue;
 
             SetupMaterialKeywordsAndPassInternal(material);
         }

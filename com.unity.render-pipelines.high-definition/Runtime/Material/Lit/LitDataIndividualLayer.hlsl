@@ -112,7 +112,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
         // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
-        normalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], TransformObjectToWorldDir(normalOS));
+        normalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], TransformObjectToWorldNormal(normalOS));
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_NormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
         normalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
@@ -153,7 +153,7 @@ float3 ADD_IDX(GetBentNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, f
         // /We need to decompress the normal ourselve here as UnpackNormalRGB will return a surface gradient
         float3 normalOS = SAMPLE_TEXTURE2D(ADD_IDX(_BentNormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv).xyz * 2.0 - 1.0;
         // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
-        bentNormalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], TransformObjectToWorldDir(normalOS));
+        bentNormalTS = SurfaceGradientFromPerturbedNormal(input.worldToTangent[2], TransformObjectToWorldNormal(normalOS));
         #else
         float3 normalOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(ADD_IDX(_BentNormalMapOS), SAMPLER_NORMALMAP_IDX, ADD_IDX(layerTexCoord.base).uv), 1.0);
         bentNormalTS = TransformObjectToTangent(normalOS, input.worldToTangent);
@@ -187,10 +187,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     alphaCutoff = _AlphaCutoffPrepass;
     #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
     alphaCutoff = _AlphaCutoffPostpass;
-    #elif defined(CUTOFF_TRANSPARENT_DEPTH_SHADOWS)
-    alphaCutoff = _AlphaCutoffShadow;
     #endif
+
+#if SHADERPASS == SHADERPASS_SHADOWS 
+    DoAlphaTest(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
+#else
     DoAlphaTest(alpha, alphaCutoff);
+#endif
 #endif
 
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
@@ -303,7 +306,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     #else // Object space
     // Note: There is no such a thing like triplanar with object space normal, so we call directly 2D function
     float3 tangentOS = UnpackNormalRGB(SAMPLE_TEXTURE2D(_TangentMapOS, sampler_TangentMapOS,  layerTexCoord.base.uv), 1.0);
-    surfaceData.tangentWS = TransformObjectToWorldDir(tangentOS);
+    surfaceData.tangentWS = TransformObjectToWorldNormal(tangentOS);
     #endif
 #else
     // Note we don't normalize tangentWS either with a tangentmap above or using the interpolated tangent from the TBN frame

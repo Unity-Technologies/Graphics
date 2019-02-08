@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Ellipse";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Ellipse-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

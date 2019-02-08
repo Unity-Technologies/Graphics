@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            var lutSize = hdAsset.renderPipelineSettings.postProcessSettings.lutSize;
+            var lutSize = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.lutSize;
 
             bool success = ParseCubeData(ctx, lutSize, out var pixels);
             if (!success)

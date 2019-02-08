@@ -69,6 +69,12 @@ namespace UnityEngine.Rendering.LWRP
         AllShaders,
     }
 
+    public enum RendererType
+    {
+        Custom,
+        ForwardRenderer,
+    }
+
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
@@ -77,6 +83,9 @@ namespace UnityEngine.Rendering.LWRP
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
 
+        [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
+        [SerializeField] internal IRendererData m_RendererData = null;
+        
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
         [SerializeField] bool m_RequireOpaqueTexture = false;
@@ -120,12 +129,11 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] int m_MaxPixelLights = 0;
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
-        [SerializeField] LightweightRenderPipelineResources m_ResourcesAsset = null;
         [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
 #if UNITY_EDITOR
         [NonSerialized]
-        LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
+        internal LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
 
         static readonly string s_SearchPathProject = "Assets";
         static readonly string s_SearchPathPackage = "Packages/com.unity.render-pipelines.lightweight";
@@ -133,11 +141,25 @@ namespace UnityEngine.Rendering.LWRP
         public static LightweightRenderPipelineAsset Create()
         {
             var instance = CreateInstance<LightweightRenderPipelineAsset>();
+
+            instance.LoadBuiltinRendererData();
             instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
-            instance.m_ResourcesAsset = LoadResourceFile<LightweightRenderPipelineResources>();
             return instance;
         }
- 
+
+        public IRendererData LoadBuiltinRendererData()
+        {
+            switch (m_RendererType)
+            {
+                // Forward Renderer is the fallback renderer that works on all platforms
+                default:
+                    m_RendererData = LoadResourceFile<ForwardRendererData>();
+                    break;
+            }
+
+            return m_RendererData;
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
         internal class CreateLightweightPipelineAsset : EndNameEditAction
         {
@@ -152,13 +174,6 @@ namespace UnityEngine.Rendering.LWRP
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateLightweightPipelineAsset>(),
                 "LightweightRenderPipelineAsset.asset", null, null);
-        }
-
-        //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Resources", priority = CoreUtils.assetCreateMenuPriority1)]
-        static void CreateLightweightPipelineResources()
-        {
-            var instance = CreateInstance<LightweightRenderPipelineResources>();
-            AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightRenderPipelineResources).Name));
         }
 
         //[MenuItem("Assets/Create/Rendering/Lightweight Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
@@ -200,21 +215,21 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 #endif
-        LightweightRenderPipelineResources resources
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (m_ResourcesAsset == null)
-                    m_ResourcesAsset = LoadResourceFile<LightweightRenderPipelineResources>();
-#endif
-                return m_ResourcesAsset;
-            }
-        }
-
+ 
         protected override RenderPipeline CreatePipeline()
         {
+            CreateRendererSetup();
             return new LightweightRenderPipeline(this);
+        }
+
+        void CreateRendererSetup()
+        {
+#if UNITY_EDITOR
+            if (m_RendererData == null)
+                LoadBuiltinRendererData();
+#endif
+
+            m_RendererSetup = m_RendererData.Create();
         }
 
         Material GetMaterial(DefaultMaterialType materialType)
@@ -245,7 +260,13 @@ namespace UnityEngine.Rendering.LWRP
 
         public IRendererSetup rendererSetup
         {
-            get { return m_RendererSetup; }
+            get
+            {
+                if (m_RendererSetup == null && m_RendererData != null)
+                    m_RendererSetup = m_RendererData.Create();
+
+                return m_RendererSetup;
+            }
         }
 
         public bool supportsCameraDepthTexture
@@ -447,28 +468,22 @@ namespace UnityEngine.Rendering.LWRP
         {
             get { return editorResources.autodeskInteractiveMaskedShader; }
         }
+
+        public override Shader terrainDetailLitShader
+        {
+            get { return editorResources.terrainDetailLitShader; }
+        }
+
+        public override Shader terrainDetailGrassShader
+        {
+            get { return editorResources.terrainDetailGrassShader; }
+        }
+
+        public override Shader terrainDetailGrassBillboardShader
+        {
+            get { return editorResources.terrainDetailGrassBillboardShader; }
+        }
 #endif
-
-        public Shader blitShader
-        {
-            get { return resources != null ? resources.blitShader : null; }
-        }
-
-        public Shader copyDepthShader
-        {
-            get { return resources != null ? resources.copyDepthShader : null; }
-        }
-
-        public Shader screenSpaceShadowShader
-        {
-            get { return resources != null ? resources.screenSpaceShadowShader : null; }
-        }
-
-        public Shader samplingShader
-        {
-            get { return resources != null ? resources.samplingShader : null; }
-        }
-
 
         public void OnBeforeSerialize()
         {

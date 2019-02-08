@@ -27,8 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string InputsText = "Surface Inputs";
             public static string SortingText = "Sorting Inputs";
 
-            public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "Allow to adjust depth to prevents z-fighting with decal mesh");
-            public static GUIContent drawOrderText = new GUIContent("Draw order", "Controls draw order of decal projectors");
+            public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "Adjust this to prevents z-fighting with the decal mesh.");
+            public static GUIContent drawOrderText = new GUIContent("Draw order", "Controls the draw order of Decal Projectors.");
         }
 
         void FindMaterialProperties(MaterialProperty[] props)

@@ -117,7 +117,7 @@ $include("SharedCode.template.hlsl")
 #endif
 #if _MATERIAL_AFFECTS_NORMAL
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
-        $SurfaceDescription.Normal:                     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(matrix, _NormalToWorld);
+        $SurfaceDescription.Normal:                     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
         // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)

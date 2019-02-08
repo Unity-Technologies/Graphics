@@ -195,7 +195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (oldFrameSettingsFormat.lightLoopSettings != null)
             {
-                newFrameSettingsFormat.SetEnabled(FrameSettingsField.DeferredTileAndCluster, oldFrameSettingsFormat.lightLoopSettings.enableDeferredTileAndCluster);
+                newFrameSettingsFormat.SetEnabled(FrameSettingsField.DeferredTile, oldFrameSettingsFormat.lightLoopSettings.enableDeferredTileAndCluster);
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.ComputeLightEvaluation, oldFrameSettingsFormat.lightLoopSettings.enableComputeLightEvaluation);
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.ComputeLightVariants, oldFrameSettingsFormat.lightLoopSettings.enableComputeLightVariants);
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.ComputeMaterialVariants, oldFrameSettingsFormat.lightLoopSettings.enableComputeMaterialVariants);
@@ -324,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         switch (val)
                         {
                             case ObsoleteLightLoopSettingsOverrides.TileAndCluster:
-                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.DeferredTileAndCluster] = true;
+                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.DeferredTile] = true;
                                 break;
                             case ObsoleteLightLoopSettingsOverrides.BigTilePrepass:
                                 newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.BigTilePrepass] = true;

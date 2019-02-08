@@ -12,10 +12,6 @@ namespace UnityEditor.ShaderGraph
             name = "Combine";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Combine-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

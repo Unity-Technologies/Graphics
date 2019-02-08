@@ -9,12 +9,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
     class MultiFloatSlotControlView : VisualElement
     {
-        readonly INode m_Node;
+        readonly AbstractMaterialNode m_Node;
         readonly Func<Vector4> m_Get;
         readonly Action<Vector4> m_Set;
         int m_UndoGroup = -1;
 
-        public MultiFloatSlotControlView(INode node, string[] labels, Func<Vector4> get, Action<Vector4> set)
+        public MultiFloatSlotControlView(AbstractMaterialNode node, string[] labels, Func<Vector4> get, Action<Vector4> set)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/MultiFloatSlotControlView"));
             m_Node = node;

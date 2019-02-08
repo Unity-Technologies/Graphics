@@ -20,10 +20,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Slider-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -83,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             return new Vector1ShaderProperty
             {

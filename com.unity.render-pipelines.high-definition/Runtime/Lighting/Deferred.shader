@@ -2,10 +2,6 @@ Shader "Hidden/HDRP/Deferred"
 {
     Properties
     {
-        // We need to be able to control the blend mode for deferred shader in case we do multiple pass
-        [HideInInspector] _SrcBlend("", Float) = 1
-        [HideInInspector] _DstBlend("", Float) = 1
-
         [HideInInspector] _StencilMask("_StencilMask", Int) = 7
         [HideInInspector] _StencilRef("", Int) = 0
         [HideInInspector] _StencilCmp("", Int) = 3
@@ -26,7 +22,7 @@ Shader "Hidden/HDRP/Deferred"
 
             ZWrite Off
             ZTest  Always
-            Blend [_SrcBlend] [_DstBlend], One Zero
+            Blend Off
             Cull Off
 
             HLSLPROGRAM
@@ -123,7 +119,7 @@ Shader "Hidden/HDRP/Deferred"
                 // This need to stay in sync with deferred.compute
 
                 // input.positionCS is SV_Position
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
+                float depth = LoadCameraDepth(input.positionCS.xy);
 
                 PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize(), unity_StereoEyeIndex);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);

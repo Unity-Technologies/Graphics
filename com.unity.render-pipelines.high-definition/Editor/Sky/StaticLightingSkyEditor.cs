@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_VolumeProfile);
             using (new EditorGUI.DisabledScope(m_SkyClassNames.Count == 1)) // Only "None"
             {
-                EditorGUILayout.IntPopup(m_SkyUniqueID, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Sky|Specify which kind of sky you want to use for static ambient in the referenced profile."));
+                EditorGUILayout.IntPopup(m_SkyUniqueID, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Sky", "Specify which kind of sky you want to use for static ambient in the referenced profile."));
             }
 
             serializedObject.ApplyModifiedProperties();

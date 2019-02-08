@@ -35,10 +35,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Triplanar-Node"; }
-        }
 
         [SerializeField]
         private TextureType m_TextureType = TextureType.Default;

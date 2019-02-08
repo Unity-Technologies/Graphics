@@ -10,6 +10,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private RenderTargetHandle source { get; set; }
 
+        Material m_CopyDepthMaterial;
+
+        public SceneViewDepthCopyPass(Material copyDepthMaterial)
+        {
+            m_CopyDepthMaterial = copyDepthMaterial;
+        }
+
         public void Setup(RenderTargetHandle source)
         {
             this.source = source;
@@ -18,6 +25,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (m_CopyDepthMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_CopyDepthMaterial, GetType().Name);
+                return;
+            }
+
             if (renderer == null)
                 throw new ArgumentNullException("renderer");
             
@@ -29,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, renderer.GetMaterial(MaterialHandle.CopyDepth));
+            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     // TODO: Should we remove Cluster version if we know MSAA is disabled ? This prevent to manipulate LightLoop Settings (useFPTL option)
                     // For now comment following code
-                    // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.renderPipelineSettings.supportMSAA)
+                    // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
                     //    return true;
                 }
             }

@@ -133,13 +133,19 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             var opaque = ((BaseShaderGUI.SurfaceType) material.GetFloat("_Surface") ==
                           BaseShaderGUI.SurfaceType.Opaque);
             EditorGUI.indentLevel++;
-            properties.smoothness.floatValue = EditorGUILayout.Slider(Styles.smoothnessText, properties.smoothness.floatValue, 0f, 1f);
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = properties.smoothness.hasMixedValue;
+            var smoothness = EditorGUILayout.Slider(Styles.smoothnessText, properties.smoothness.floatValue, 0f, 1f);
+            if (EditorGUI.EndChangeCheck())
+                properties.smoothness.floatValue = smoothness;
+            EditorGUI.showMixedValue = false;
 
             if (properties.smoothnessMapChannel != null) // smoothness channel
             {
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginDisabledGroup(!opaque);
                 EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
                 var smoothnessSource = (int) properties.smoothnessMapChannel.floatValue;
                 if (opaque)
                     smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource,
@@ -148,7 +154,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                     EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, smoothnessChannelNames);
                 if (EditorGUI.EndChangeCheck())
                     properties.smoothnessMapChannel.floatValue = smoothnessSource;
-
+                EditorGUI.showMixedValue = false;
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
             }

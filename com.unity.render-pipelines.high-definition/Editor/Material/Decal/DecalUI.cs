@@ -20,17 +20,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string InputsText = "Surface Inputs";
             public static string SortingText = "Sorting Inputs";
 
-            public static GUIContent baseColorText = new GUIContent("Base Map", "BaseColor (RGB) and Opacity (A)");
-            public static GUIContent baseColorText2 = new GUIContent("Opacity", "Opacity (A)");
-            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
-            public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Whole decal Opacity");
-            public static GUIContent albedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
- 			public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "Allow to adjust depth to prevents z-fighting with decal mesh");
-	 		public static GUIContent drawOrderText = new GUIContent("Draw order", "Controls draw order of decal projectors");
-            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
-            public static GUIContent metallicText = new GUIContent("Metallic Scale", "Metallic Scale");
-            public static GUIContent aoRemappingText = new GUIContent("AO Remapping", "AO remapping");
-            public static GUIContent maskMapBlueScaleText = new GUIContent("Scale Mask Map Blue Channel", "Scale the Mask Map Blue channel which can be used as Opacity depends on blend source chosen");
+            public static GUIContent baseColorText = new GUIContent("Base Map", "BaseColor (RGB) and Opacity (A).");
+            public static GUIContent baseColorText2 = new GUIContent("Opacity", "Opacity (A).");
+            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm)).");
+            public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Opacity of the entire decal.");
+            public static GUIContent albedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only.");
+ 			public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "Adjust this to prevents z-fighting with the decal mesh.");
+	 		public static GUIContent drawOrderText = new GUIContent("Draw order", "Controls the draw order of Decal Projectors.");
+            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Remaps the Material's Smoothness.");
+            public static GUIContent metallicText = new GUIContent("Metallic Scale", "Scale factor the Material's Metallic  effect.");
+            public static GUIContent aoRemappingText = new GUIContent("AO Remapping", "Remaps the Material's Ambient Occlusion effect.");
+            public static GUIContent maskMapBlueScaleText = new GUIContent("Scale Mask Map Blue Channel", "Scale the blue channel of the Mask Map. You can use this as opacity depending on the blend source you choose.");
 
             public static GUIContent[] maskMapText =
             {
@@ -218,7 +218,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Decal.MaskBlendFlags maskBlendFlags = (Decal.MaskBlendFlags)maskBlendMode.floatValue;              
 
             HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
+            bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
             using (var header = new HeaderScope(Styles.InputsText, (uint)Expandable.Input, this))
             {

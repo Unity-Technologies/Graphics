@@ -5,15 +5,6 @@ MaterialNodeView.graphElement.node.MaterialNode {
     margin-right: 0;
 }
 
-MaterialNodeView.graphElement.node.MaterialNode.hovered > #selection-border{
-    background-color:rgba(68,192,255,0.4);
-    border-color:rgba(68,192,255,1);
-    border-left-width:2;
-    border-right-width:2;
-    border-top-width:2;
-    border-bottom-width:2;
-}
-
 MaterialNodeView.master {
     min-width: 200;
 }

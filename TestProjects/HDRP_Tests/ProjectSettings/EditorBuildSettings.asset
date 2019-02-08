@@ -68,7 +68,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1401_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
-  - enabled: 0
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1402_StackLitSG_Testers.unity
+    guid: 23d1a6dbc0bbc7d4abf6ce5e9cd0e132
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1402_StackLitSG_PLM.unity
+    guid: baf6b66103b82f74e95a5ce4e8051db7
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1501_Fabric.unity
     guid: ce2b258da0df8d245b659390b6c2ac51
   - enabled: 1
@@ -80,7 +86,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1602_TerrainLit_Normal.unity
     guid: 493570d0c7a7cd0449d5ceb578701b5e
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1701_HairGraph/1701_HairGraph.unity
     guid: 7c0b384fd32894841954edea3211d084
   - enabled: 1
@@ -119,18 +125,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2202_ReflectionProbes_Volume.unity
     guid: 9b3132db666b3ae48aa17349ab100118
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2203_PlanarProbes.unity
     guid: b8fa5b1235e91884799163adaf34e5d6
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2204_ReflectionProbes_Lights.unity
     guid: 21d198bbbf9143d40b227ad2fe71706f
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2205_ReflectionProbes_influence.unity
-    guid: 423802799a6e57644a5d581a894f4646
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2206_LightLoopCullWOblique.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2205_LightLoopCullWOblique.unity
+    guid: 2fb467d07511ad0498c47a86eb170d71
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2206_PlanarReflectionVFace.unity
     guid: d4d352e2cbfbfac4686e77b69fe84ec0
@@ -176,6 +179,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2602_BakedSpotShape.unity
     guid: c034386e3fb58f44783743edf9b0f4a4
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2701_TexturedAreaLights.unity
+    guid: 3b6ce72f472558240a2a8d61a932c6d0
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2307_ShadowVeryHigh.unity
     guid: c110cc3f909bb664b82eb554f0494597
@@ -311,4 +317,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GraphicTests/Scenes/9x_Other/9602_MotionBlur_PerObject.unity
     guid: 74db5310e2f20b340b2efb3b4c4d9edf
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9701_AfterPostProcess.unity
+    guid: 2bb5d28daf3968e40aad1ae3211c2e9d
   m_configObjects: {}

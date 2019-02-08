@@ -7,10 +7,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class EdgeConnectorListener : IEdgeConnectorListener
     {
-        readonly AbstractMaterialGraph m_Graph;
+        readonly GraphData m_Graph;
         readonly SearchWindowProvider m_SearchWindowProvider;
 
-        public EdgeConnectorListener(AbstractMaterialGraph graph, SearchWindowProvider searchWindowProvider)
+        public EdgeConnectorListener(GraphData graph, SearchWindowProvider searchWindowProvider)
         {
             m_Graph = graph;
             m_SearchWindowProvider = searchWindowProvider;

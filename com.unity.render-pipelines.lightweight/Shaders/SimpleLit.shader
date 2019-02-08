@@ -33,6 +33,7 @@ Shader "Lightweight Render Pipeline/Simple Lit"
         
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        [HideInInspector] _Smoothness("SMoothness", Float) = 0.5
         
         // ObsoleteProperties
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}

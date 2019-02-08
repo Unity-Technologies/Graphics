@@ -89,7 +89,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override string documentationURL
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Decal-Master-Node"; }
+            get { return null; }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -137,7 +137,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Metal
             if (MaterialTypeUsesSlotMask(SlotMask.Metallic))
             {
-                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(MetallicSlotId);
             }
 
@@ -152,7 +152,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Smoothness
             if (MaterialTypeUsesSlotMask(SlotMask.Smoothness))
             {
-                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(SmoothnessSlotId);
             }
 

@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "DDX";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/DDX-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

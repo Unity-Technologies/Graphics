@@ -28,10 +28,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Vector-3-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -58,7 +54,7 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(s, false);
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             var slotX = FindInputSlot<Vector1MaterialSlot>(InputSlotXId);
             var slotY = FindInputSlot<Vector1MaterialSlot>(InputSlotYId);

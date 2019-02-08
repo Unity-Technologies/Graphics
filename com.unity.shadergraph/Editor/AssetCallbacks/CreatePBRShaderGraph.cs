@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            var graph = new MaterialGraph();
+            var graph = new GraphData();
             graph.AddNode(new PBRMasterNode());
             graph.path = "Shader Graphs";
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));

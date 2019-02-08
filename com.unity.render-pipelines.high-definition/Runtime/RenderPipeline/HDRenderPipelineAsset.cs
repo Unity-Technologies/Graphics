@@ -89,23 +89,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return new ReflectionSystemParameters
                 {
-                    maxPlanarReflectionProbePerCamera = renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize,
+                    maxPlanarReflectionProbePerCamera = currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize,
                     maxActivePlanarReflectionProbe = 512,
-                    planarReflectionProbeSize = (int)renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize,
+                    planarReflectionProbeSize = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize,
                     maxActiveReflectionProbe = 512,
-                    reflectionProbeSize = (int)renderPipelineSettings.lightLoopSettings.reflectionCubemapSize
+                    reflectionProbeSize = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize
                 };
             }
         }
 
+        // Note: having m_RenderPipelineSettings serializable allows it to be modified in editor.
+        // And having it private with a getter property force a copy.
+        // As there is no setter, it thus cannot be modified by code.
+        // This ensure immutability at runtime.
+
         // Store the various RenderPipelineSettings for each platform (for now only one)
-        public RenderPipelineSettings renderPipelineSettings = new RenderPipelineSettings();
+        [SerializeField, FormerlySerializedAs("renderPipelineSettings")]
+        RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.@default;
 
         // Return the current use RenderPipelineSettings (i.e for the current platform)
-        public RenderPipelineSettings GetRenderPipelineSettings()
-        {
-            return renderPipelineSettings;
-        }
+        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
         public bool allowShaderVariantStripping = true;
         public bool enableSRPBatcher = true;
@@ -197,6 +200,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public override Shader terrainDetailLitShader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailLitShader;
+            }
+        }
+
+        public override Shader terrainDetailGrassShader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailGrassShader;
+            }
+        }
+
+        public override Shader terrainDetailGrassBillboardShader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailGrassBillboardShader;
+            }
+        }
+
         // Note: This function is HD specific
         public Material GetDefaultDecalMaterial()
         {
@@ -253,10 +280,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Update all the individual defines
             bool needUpdate = false;
-            needUpdate |= UpdateDefineList(renderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
+            needUpdate |= UpdateDefineList(currentPlatformRenderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
 
             // Only set if it changed
-            if(needUpdate)
+            if (needUpdate)
             {
                 UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
             }

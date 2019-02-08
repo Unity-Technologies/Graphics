@@ -19,10 +19,6 @@ namespace UnityEditor.ShaderGraph
             name = "Reciprocal";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Reciprocal-Node"; }
-        }
 
         [SerializeField]
         private ReciprocalMethod m_ReciprocalMethod = ReciprocalMethod.Default;

@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Projection";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Projection-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
