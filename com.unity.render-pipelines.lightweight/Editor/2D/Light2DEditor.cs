@@ -500,6 +500,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         protected virtual void OnSceneGUI()
         {
             var lt = target as Light2D;
+            if (lt == null)
+                return;
 
             if (lt.LightProjectionType == Light2D.LightProjectionTypes.Point)
             {
