@@ -3,18 +3,52 @@ using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering.LWRP;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor.EditorTools;
 using Unity.Path2D;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
-    [EditorTool("Edit Light Shape", typeof(Light2D))]
-    public class ShapeLightTool : ShapeEditorTool<DefaultShapeEditor, Light2DEditor> { }
-
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]
-    public class Light2DEditor : ShapeProviderEditor
+    internal class Light2DEditor : Editor
     {
+        internal class ShapeEditor : PolygonEditor
+        {
+            const string k_ShapePath = "m_ShapePath";
+
+            protected override int GetPointCount(SerializedObject serializedObject)
+            {
+                return (serializedObject.targetObject as Light2D).shapePath.Length;
+            }
+
+            protected override Vector3 GetPoint(SerializedObject serializedObject, int index)
+            {
+                return (serializedObject.targetObject as Light2D).shapePath[index];
+            }
+
+            protected override void SetPoint(SerializedObject serializedObject, int index, Vector3 position)
+            {
+                serializedObject.Update();
+                serializedObject.FindProperty(k_ShapePath).GetArrayElementAtIndex(index).vector3Value = position;
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            protected override void InsertPoint(SerializedObject serializedObject, int index, Vector3 position)
+            {
+                serializedObject.Update();
+                var shapePath = serializedObject.FindProperty(k_ShapePath);
+                shapePath.InsertArrayElementAtIndex(index);
+                shapePath.GetArrayElementAtIndex(index).vector3Value = position;
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            protected override void RemovePoint(SerializedObject serializedObject, int index)
+            {
+                serializedObject.Update();
+                serializedObject.FindProperty(k_ShapePath).DeleteArrayElementAtIndex(index);
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
+
         static string k_TexturePath = "Textures/";
 
         string[] m_LayerNames;
@@ -74,6 +108,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         private SortingLayer[] m_AllSortingLayers;
         private GUIContent[] m_AllSortingLayerNames;
         private List<int> m_ApplyToSortingLayersList;
+
+        ShapeEditor m_ShapeEditor = new ShapeEditor();
 
         #region Handle Utilities
 
@@ -493,40 +529,39 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     Handles.DrawLine(v2, v3);
                     Handles.DrawLine(v3, v0);
                 }
-                else
+                else if (lt.m_ParametricShape == Light2D.ParametricShapes.Circle)
                 {
                     float radius = 0.5f;
                     float sides = lt.m_ParametricSides;
                     float angleOffset = Mathf.PI / 2.0f;
 
-                    if (lt.m_ParametricShape == Light2D.ParametricShapes.Circle)
+                    if (sides < 2)
                     {
-                        if (sides < 2)
-                        {
-                            sides = 4;
-                            angleOffset = Mathf.PI / 4.0f;
-                            radius = radius * 0.70710678118654752440084436210485f;
+                        sides = 4;
+                        angleOffset = Mathf.PI / 4.0f;
+                        radius = radius * 0.70710678118654752440084436210485f;
 
-                        }
+                    }
 
-                        Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
-                        Vector3 featherStartPoint = (1 - lt.m_ShapeLightFeathering) * startPoint;
-                        float radiansPerSide = 2 * Mathf.PI / sides;
-                        for (int i = 0; i < sides; i++)
-                        {
-                            float endAngle = (i + 1) * radiansPerSide;
-                            Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
-                            Vector3 featherEndPoint = (1 - lt.m_ShapeLightFeathering) * endPoint;
+                    Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
+                    Vector3 featherStartPoint = (1 - lt.m_ShapeLightFeathering) * startPoint;
+                    float radiansPerSide = 2 * Mathf.PI / sides;
+                    for (int i = 0; i < sides; i++)
+                    {
+                        float endAngle = (i + 1) * radiansPerSide;
+                        Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
+                        Vector3 featherEndPoint = (1 - lt.m_ShapeLightFeathering) * endPoint;
 
 
-                            Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
-                            Handles.DrawLine(t.TransformPoint(featherStartPoint + posOffset), t.TransformPoint(featherEndPoint + posOffset));
+                        Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
+                        Handles.DrawLine(t.TransformPoint(featherStartPoint + posOffset), t.TransformPoint(featherEndPoint + posOffset));
 
-                            startPoint = endPoint;
-                            featherStartPoint = featherEndPoint;
-                        }
+                        startPoint = endPoint;
+                        featherStartPoint = featherEndPoint;
                     }
                 }
+                else  // Freeform light
+                    m_ShapeEditor.OnGUI(target);
             }
         }
 
@@ -581,44 +616,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     light.UpdateMaterial();
                 }
             }
-        }
-
-        [DrawGizmo(GizmoType.InSelectionHierarchy | GizmoType.Selected | GizmoType.Pickable)]
-        static void RenderSpline(Light2D light, GizmoType gizmoType)
-        {
-            if (light.m_ParametricShape == Light2D.ParametricShapes.Freeform && light.LightProjectionType == Light2D.LightProjectionTypes.Shape && light.m_ShapeLightStyle != Light2D.CookieStyles.Sprite)
-            {
-                Vector3[] shapePath = light.shapePath;
-                Matrix4x4 oldMatrix = Handles.matrix;
-                Handles.matrix = light.transform.localToWorldMatrix;
-                int points = shapePath.Length;
-                for (int i = 0; i < points; i++)
-                {
-                    Vector3 p1 = shapePath[i];
-                    Vector3 p2 = shapePath[(i + 1) % points];
-                    Handles.DrawBezier(p1, p2, p1, p2, Color.gray, null, 2f);
-                }
-                Handles.matrix = oldMatrix;
-            }
-        }
-
-        protected override IShape GetShape(Object target)
-        {
-            var component = target as Light2D;
-            return new Polygon() { points = component.shapePath };
-        }
-
-        protected override void SetShape(IShapeEditor shapeEditor, SerializedObject serializedObject)
-        {
-            serializedObject.Update();
-
-            var pointsProperty = serializedObject.FindProperty("m_ShapePath");
-            pointsProperty.arraySize = shapeEditor.pointCount;
-
-            for (var i = 0; i < shapeEditor.pointCount; ++i)
-                pointsProperty.GetArrayElementAtIndex(i).vector3Value = shapeEditor.GetPoint(i).position;
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }
