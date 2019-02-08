@@ -76,7 +76,8 @@ namespace UnityEngine.Rendering.LWRP
 
                 m_FilteringSettings.layerMask = renderingData.cameraData.camera.cullingMask;
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(renderingData.cameraData.camera, sortFlags, PerObjectData.None, renderingData.supportsDynamicBatching);
+                var drawSettings = CreateDrawingSettings(ref renderingData, sortFlags);
+                drawSettings.perObjectData = PerObjectData.None;
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
             }

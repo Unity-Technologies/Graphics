@@ -20,12 +20,12 @@ namespace UnityEngine.Rendering.LWRP
         };
 
         // TODO: expose opaque, transparent, all ranges as drop down
-        public InjectionCallback callback;
-        public RenderQueueType renderQueueType;
+        public InjectionCallback callback = InjectionCallback.AfterOpaqueRenderPasses;
+        public RenderQueueType renderQueueType = RenderQueueType.Opaque;
         public LayerMask layerMask = -1;
         public string[] passNames = {"LightweightForward"};
-        public Material overrideMaterial;
-        public int overrideMaterialPassIndex;
+        public Material overrideMaterial = null;
+        public int overrideMaterialPassIndex = 0;
 
         public bool overrideDepthState = false;
         public CompareFunction depthCompareFunction = CompareFunction.Less;

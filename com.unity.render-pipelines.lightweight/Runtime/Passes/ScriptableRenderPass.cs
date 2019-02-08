@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.LWRP
     {
         List<ShaderTagId> m_ShaderTagIDs = new List<ShaderTagId>();
 
-        List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
+        static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
         {
             new ShaderTagId("Always"),
             new ShaderTagId("ForwardBase"),
@@ -90,6 +90,11 @@ namespace UnityEngine.Rendering.LWRP
         public virtual bool ShouldExecute(ref RenderingData renderingData)
         {
             return true;
+        }
+
+        public virtual void Setup(ref RenderingData renderingData)
+        {
+
         }
 
         /// <summary>
@@ -180,21 +185,6 @@ namespace UnityEngine.Rendering.LWRP
             //    cmd.CopyTexture(source, dest);
             //else
             cmd.Blit(source, dest, material);
-        }
-
-        protected DrawingSettings CreateDrawingSettings(Camera camera, SortingCriteria sortingCriteria, PerObjectData perObjectData, bool supportsDynamicBatching, int mainLightIndex = -1)
-        {
-            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
-            DrawingSettings settings = new DrawingSettings(m_ShaderTagIDs[0], sortingSettings)
-            {
-                perObjectData = perObjectData,
-                enableInstancing = true,
-                mainLightIndex = mainLightIndex,
-                enableDynamicBatching = supportsDynamicBatching
-            };
-            for (int i = 1; i < m_ShaderTagIDs.Count; ++i)
-                settings.SetShaderPassName(i, m_ShaderTagIDs[i]);
-            return settings;
         }
 
         protected DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, SortingCriteria sortingCriteria)
