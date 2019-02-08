@@ -447,7 +447,7 @@ float FastSign(float s, bool ignoreNegZero = true)
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
 // We assume that the normal is normalized and that the two vectors
-// aren't colinear.
+// aren't collinear.
 // Returns the new tangent (the normal is unaffected).
 real3 Orthonormalize(real3 tangent, real3 normal)
 {
