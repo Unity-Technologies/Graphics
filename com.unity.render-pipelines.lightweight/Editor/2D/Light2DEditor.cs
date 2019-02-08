@@ -243,9 +243,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             int prevShapeLightStyle = shapeLightStyle.intValue;
 
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
             EditorGUILayout.PropertyField(shapeLightBlending, EditorGUIUtility.TrTextContent("Blending Mode", "Specify the lights blending mode"));
-
+            EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
             if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Sprite)
             {
                 EditorGUI.indentLevel++;

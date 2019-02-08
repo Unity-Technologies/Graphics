@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //------------------------------------------------------------------------------------------
         public float m_PointLightInnerAngle = 360;
         public float m_PointLightOuterAngle = 360;
-        public float m_PointLightInnerRadius = 1;
+        public float m_PointLightInnerRadius = 0;
         public float m_PointLightOuterRadius = 1;
         public float m_PointLightZDistance = 3;
         public LightQuality m_LightQuality = LightQuality.Fast;
