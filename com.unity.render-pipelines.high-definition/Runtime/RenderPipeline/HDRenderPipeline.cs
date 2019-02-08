@@ -998,85 +998,90 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 foreach (var material in m_MaterialList)
                     material.RenderInit(cmd);
 
+                // If we render a reflection view or a preview we should not display any debug information
+                // This need to be call before ApplyDebugDisplaySettings()
+                if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
+                {
+                    // Neutral allow to disable all debug settings
+                    m_CurrentDebugDisplaySettings = s_NeutralDebugDisplaySettings;
+                }
+                else
+                {
+                    m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
+
+                    // Make sure we are in sync with the debug menu for the msaa count
+                    m_MSAASamples = m_DebugDisplaySettings.msaaSamples;
+                    m_SharedRTManager.SetNumMSAASamples(m_MSAASamples);
+                }
+
+                // Caution: Component.GetComponent() generate 0.6KB of garbage at each frame here !
+                var postProcessLayer = camera.GetComponent<PostProcessLayer>();
+
+                // Disable post process if we enable debug mode or if the post process layer is disabled
+                if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess() || !HDUtils.IsPostProcessingActive(postProcessLayer))
+                {
+                    currentFrameSettings.enablePostprocess = false;
+                }
+
+                // Disable SSS if luxmeter is enabled
+                if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                {
+                    currentFrameSettings.enableSubsurfaceScattering = false;
+                }
+
+                var hdCamera = HDCamera.Get(camera);
+
+                if (hdCamera == null)
+                {
+                    hdCamera = HDCamera.Create(camera);
+                }
+
+                // From this point, we should only use frame settings from the camera
+                hdCamera.Update(currentFrameSettings, postProcessLayer, m_VolumetricLightingSystem, m_MSAASamples);
+
+                using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
+                {
+                    VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
+                }
+
+                m_DebugDisplaySettings.UpdateCameraFreezeOptions();
+
+                if (additionalCameraData != null && additionalCameraData.hasCustomRender)
+                {
+                    // Flush pending command buffer.
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                    renderContext.Submit();
+
+                    // Execute custom render
+                    additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
+                    continue;
+                }
+
+                // Do anything we need to do upon a new frame.
+                // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
+                m_LightLoop.NewFrame(currentFrameSettings);
+
+                Resize(hdCamera);
+
+                ApplyDebugDisplaySettings(hdCamera, cmd);
+                m_SkyManager.UpdateCurrentSkySettings(hdCamera);
+
+
+                ScriptableCullingParameters cullingParams;
+                if (!CullResults.GetCullingParameters(camera, camera.stereoEnabled, out cullingParams)) // Fixme remove stereo passdown?
+                {
+                    // Flush pending command buffer.
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                    renderContext.Submit();
+                    continue;
+                }
+
+                // Warning: Cannot early out within profiling brackets here, as calling CommandBufferPool.Release(cmd) breaks profiling sample.
+                // Starting profiling sample after all early out cases.
                 using (new ProfilingSample(cmd, "HDRenderPipeline::Render", CustomSamplerId.HDRenderPipelineRender.GetSampler()))
                 {
-                    // If we render a reflection view or a preview we should not display any debug information
-                    // This need to be call before ApplyDebugDisplaySettings()
-                    if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
-                    {
-                        // Neutral allow to disable all debug settings
-                        m_CurrentDebugDisplaySettings = s_NeutralDebugDisplaySettings;
-                    }
-                    else
-                    {
-                        m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
-
-                        // Make sure we are in sync with the debug menu for the msaa count
-                        m_MSAASamples = m_DebugDisplaySettings.msaaSamples;
-                        m_SharedRTManager.SetNumMSAASamples(m_MSAASamples);
-                    }
-
-                    // Caution: Component.GetComponent() generate 0.6KB of garbage at each frame here !
-                    var postProcessLayer = camera.GetComponent<PostProcessLayer>();
-
-                    // Disable post process if we enable debug mode or if the post process layer is disabled
-                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess() || !HDUtils.IsPostProcessingActive(postProcessLayer))
-                    {
-                        currentFrameSettings.enablePostprocess = false;
-                    }
-
-                    // Disable SSS if luxmeter is enabled
-                    if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
-                    {
-                        currentFrameSettings.enableSubsurfaceScattering = false;
-                    }
-
-                    var hdCamera = HDCamera.Get(camera);
-
-                    if (hdCamera == null)
-                    {
-                        hdCamera = HDCamera.Create(camera);
-                    }
-
-                    // From this point, we should only use frame settings from the camera
-                    hdCamera.Update(currentFrameSettings, postProcessLayer, m_VolumetricLightingSystem, m_MSAASamples);
-
-                    using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
-                    {
-                        VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
-                    }
-
-                    m_DebugDisplaySettings.UpdateCameraFreezeOptions();
-
-                    if (additionalCameraData != null && additionalCameraData.hasCustomRender)
-                    {
-                        // Flush pending command buffer.
-                        renderContext.ExecuteCommandBuffer(cmd);
-                        CommandBufferPool.Release(cmd);
-
-                        // Execute custom render
-                        additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
-
-                        renderContext.Submit();
-                        continue;
-                    }
-
-                    // Do anything we need to do upon a new frame.
-                    // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
-                    m_LightLoop.NewFrame(currentFrameSettings);
-
-                    Resize(hdCamera);
-
-                    ApplyDebugDisplaySettings(hdCamera, cmd);
-                    m_SkyManager.UpdateCurrentSkySettings(hdCamera);
-
-
-                    ScriptableCullingParameters cullingParams;
-                    if (!CullResults.GetCullingParameters(camera, camera.stereoEnabled, out cullingParams)) // Fixme remove stereo passdown?
-                    {
-                        renderContext.Submit();
-                        continue;
-                    }
 
                     if(m_DebugDisplaySettings.IsCameraFreezeEnabled())
                     {
