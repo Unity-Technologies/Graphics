@@ -20,6 +20,7 @@ Shader "HDRP/LayeredLitTessellation"
         _BaseColorMap1("BaseColorMap1", 2D) = "white" {}
         _BaseColorMap2("BaseColorMap2", 2D) = "white" {}
         _BaseColorMap3("BaseColorMap3", 2D) = "white" {}
+        [HideInInspector] _BaseColorMap0_MipInfo("_BaseColorMap0_MipInfo", Vector) = (0, 0, 0, 0)
 
         _Metallic0("Metallic0", Range(0.0, 1.0)) = 0
         _Metallic1("Metallic1", Range(0.0, 1.0)) = 0
