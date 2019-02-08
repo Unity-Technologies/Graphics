@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.Utils
         {
             GUILayout.Label("Mesh Volume Baking", EditorStyles.boldLabel);
             m_Mesh = EditorGUILayout.ObjectField("Target Mesh", m_Mesh, typeof(Mesh), false) as Mesh;
-            m_VoxelSize = EditorGUILayout.FloatField("Voxel Size", m_VoxelSize);
+            m_VoxelSize = Mathf.Max( EditorGUILayout.FloatField("Voxel Size", m_VoxelSize), 0.0000001f );
             
             m_Reorder = (Reorder)EditorGUILayout.EnumPopup("Reoroder", m_Reorder);
 
