@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cascade shadow count in shader
 - Fixed issue on reflection probe baked resolution when using Generate Lighting button
 - Fixed issue with SRP batcher and DebugDisplay variant of lit shader
+- Fixed issue with debug material mode not doing alpha test
 
 ## [4.9.0-preview] - 2019-01-28
 
