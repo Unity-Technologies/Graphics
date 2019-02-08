@@ -23,12 +23,6 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
-// T is the fiber axis (hair strand direction, root to tip).
-float3 ComputeViewFacingNormal(float3 V, float3 T)
-{
-    return Orthonormalize(V, T);
-}
-
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
@@ -267,13 +261,12 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     PreLightData preLightData;
     // Don't init to zero to allow to track warning about uninitialized data
 
-    float3 N = bsdfData.normalWS;
-    preLightData.NdotV = dot(N, V);
+    float3 N = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
 
-    float NdotV = ClampNdotV(preLightData.NdotV);
+    float NdotV = dot(N, V);
+    preLightData.NdotV = NdotV;
 
     float unused;
-    float3 iblN;
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
@@ -291,10 +284,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.diffuseFGD = 1.0;
     }
 
-    // perceptualRoughness is use as input and output here
-    GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.hairStrandDirectionWS, bsdfData.hairStrandDirectionWS, N, V, bsdfData.anisotropy, preLightData.iblPerceptualRoughness, iblN, preLightData.iblPerceptualRoughness);
-
+    // Stretch hack... Copy-pasted from GGX, ALU-optimized for hair.
+    float3 iblN = normalize(lerp(bsdfData.normalWS, N, bsdfData.anisotropy));
     preLightData.iblR = reflect(-V, iblN);
+    preLightData.iblPerceptualRoughness *= saturate(1.2 - abs(bsdfData.anisotropy));
 
     return preLightData;
 }
