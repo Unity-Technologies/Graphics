@@ -175,7 +175,7 @@ Unity Manual ToC
         * [Polygon](Polygon-Node)  
         * [Rectangle](Rectangle-Node)  
         * [Rounded Rectangle](Rounded-Rectangle-Node)  
-    * [Utility](Utility-Nodes)`
+    * [Utility](Utility-Nodes)
         * [Preview](Preview-Node)  
         * [Sub-graph](Sub-graph-Node)  
         * [All](All-Node)  
