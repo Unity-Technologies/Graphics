@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 r.atlasViewport = new Rect(reScaled.x, reScaled.y, reScaled.z, reScaled.w);
                 r.resolution = r.atlasViewport.size;
 
-                m_ShadowResolutionRequest[i] = r;
+                m_ShadowResolutionRequests[i] = r;
             }
         }
 

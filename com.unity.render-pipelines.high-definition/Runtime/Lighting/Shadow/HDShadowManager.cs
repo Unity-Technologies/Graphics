@@ -218,7 +218,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (shadowRequest != null && shadowRequest.allowResize)
             {
-                shadowRequest.atlasViewport = m_Atlas.GetHD+ShadowResolutionRequest(index).atlasViewport;
+                shadowRequest.atlasViewport = m_Atlas.GetHDShadowResolutionRequest(index).atlasViewport;
             }
             else
             {
