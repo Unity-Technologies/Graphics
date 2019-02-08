@@ -25,19 +25,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             s_LightOperations = lightTypes;
 
-            s_RenderTargets = new RenderTargetHandle[s_LightOperations.Length];
-            s_RenderTargetsDirty = new bool[s_LightOperations.Length];
-
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            if (s_RenderTargets == null)
             {
-                if (!s_LightOperations[i].enabled)
-                    continue;
+                s_RenderTargets = new RenderTargetHandle[s_LightOperations.Length];
+                s_RenderTargets[0].Init("_ShapeLightTexture0");
+                s_RenderTargets[1].Init("_ShapeLightTexture1");
+                s_RenderTargets[2].Init("_ShapeLightTexture2");
+                s_RenderTargets[3].Init("_ShapeLightTexture3");
 
-                s_RenderTargets[i].Init("_ShapeLightTexture" + i);
+                s_RenderTargetsDirty = new bool[s_LightOperations.Length];
             }
 
-            s_NormalsTarget = new RenderTargetHandle();
-            s_NormalsTarget.Init("_NormalMap");
+            if (s_NormalsTarget.id == 0)
+                s_NormalsTarget.Init("_NormalMap");
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
