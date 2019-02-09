@@ -56,10 +56,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Freeform,
         }
 
-        public enum BlendingModes
+        public enum LightOverlapMode
         {
             Additive,
-            Superimpose, // Overlay might be confusing because of the photoshop overlay blending mode
+            AlphaBlend
         }
 
         public enum LightQuality
@@ -105,11 +105,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static Material m_PointLightMaterial = null;
         static Material m_PointLightVolumeMaterial = null;
 
-        static Material m_ShapeCookieSpriteSuperimposeMaterial = null;
+        static Material m_ShapeCookieSpriteAlphaBlendMaterial = null;
         static Material m_ShapeCookieSpriteAdditiveMaterial = null;
         static Material m_ShapeCookieSpriteVolumeMaterial = null;
 
-        static Material m_ShapeVertexColoredSuperimposeMaterial = null;
+        static Material m_ShapeVertexColoredAlphaBlendMaterial = null;
         static Material m_ShapeVertexColoredAdditiveMaterial = null;
         static Material m_ShapeVertexColoredVolumeMaterial = null;
 
@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private int m_PreviousShapeLightOrder = 0;
 
         [SerializeField]
-        private BlendingModes m_ShapeLightBlending = BlendingModes.Additive;
+        private LightOverlapMode m_ShapeLightOverlapMode = LightOverlapMode.Additive;
         //private BlendingModes m_PreviousShapeLightBlending = BlendingModes.Additive;
 
         public float LightVolumeOpacity
@@ -280,8 +280,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 int hashCode = (int)2166136261;
 
-                foreach (var point in m_ShapePath)
-                    hashCode = hashCode * 16777619 ^ point.GetHashCode();
+                if (m_ShapePath != null)
+                {
+                    foreach (var point in m_ShapePath)
+                        hashCode = hashCode * 16777619 ^ point.GetHashCode();
+                }
+                else
+                {
+                    hashCode = 0;
+                }
 
                 return hashCode;
             }
@@ -478,24 +485,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             Debug.LogError("Missing shader Light2d-Sprite-Additive");
                     }
 
-                    if (m_ShapeCookieSpriteSuperimposeMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
+                    if (m_ShapeCookieSpriteAlphaBlendMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
                     {
                         Shader shader = Shader.Find("Hidden/Light2D-Sprite-Superimpose"); ;
 
                         if (shader != null)
                         {
-                            m_ShapeCookieSpriteSuperimposeMaterial = new Material(shader);
-                            m_ShapeCookieSpriteSuperimposeMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
+                            m_ShapeCookieSpriteAlphaBlendMaterial = new Material(shader);
+                            m_ShapeCookieSpriteAlphaBlendMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
                         }
                         else
                             Debug.LogError("Missing shader Light2d-Sprite-Superimpose");
                     }
 
 
-                    if (m_ShapeLightBlending == BlendingModes.Additive)
+                    if (m_ShapeLightOverlapMode == LightOverlapMode.Additive)
                         return m_ShapeCookieSpriteAdditiveMaterial;
                     else
-                        return m_ShapeCookieSpriteSuperimposeMaterial;
+                        return m_ShapeCookieSpriteAlphaBlendMaterial;
                 }
                 else
                 {
@@ -509,19 +516,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             Debug.LogError("Missing shader Light2d-Shape-Additive");
                     }
 
-                    if (m_ShapeVertexColoredSuperimposeMaterial == null)
+                    if (m_ShapeVertexColoredAlphaBlendMaterial == null)
                     {
                         Shader shader = Shader.Find("Hidden/Light2D-Shape-Superimpose"); ;
                         if (shader != null)
-                            m_ShapeVertexColoredSuperimposeMaterial = new Material(shader);
+                            m_ShapeVertexColoredAlphaBlendMaterial = new Material(shader);
                         else
                             Debug.LogError("Missing shader Light2d-Shape-Superimpose");
                     }
 
-                    if (m_ShapeLightBlending == BlendingModes.Additive)
+                    if (m_ShapeLightOverlapMode == LightOverlapMode.Additive)
                         return m_ShapeVertexColoredAdditiveMaterial;
                     else
-                        return m_ShapeVertexColoredSuperimposeMaterial;
+                        return m_ShapeVertexColoredAlphaBlendMaterial;
                 }
             }
             if(m_LightProjectionType == LightProjectionTypes.Point)
@@ -587,7 +594,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public void UpdateMaterial()
         {
             m_ShapeCookieSpriteAdditiveMaterial = null;
-            m_ShapeCookieSpriteSuperimposeMaterial = null;
+            m_ShapeCookieSpriteAlphaBlendMaterial = null;
             m_ShapeCookieSpriteVolumeMaterial = null;
             m_PointLightMaterial = null;
             m_PointLightVolumeMaterial = null;
@@ -709,7 +716,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             // If we changed blending modes then we need to clear our material
-            //if(CheckForChange<BlendingModes>(m_ShapeLightBlending, ref m_PreviousShapeLightBlending))
+            //if(CheckForChange<BlendingModes>(m_ShapeLightOverlapMode, ref m_PreviousShapeLightBlending))
             //{
             //    m_ShapeCookieSpriteMaterial = null;
             //    m_ShapeVertexColoredMaterial = null;

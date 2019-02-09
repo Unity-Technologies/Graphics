@@ -274,12 +274,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             SerializedProperty shapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
             SerializedProperty shapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             SerializedProperty shapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
-            SerializedProperty shapeLightBlending = serializedObject.FindProperty("m_ShapeLightBlending");
+            SerializedProperty shapeLightOverlapMode = serializedObject.FindProperty("m_ShapeLightOverlapMode");
 
             int prevShapeLightStyle = shapeLightStyle.intValue;
 
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(shapeLightBlending, EditorGUIUtility.TrTextContent("Blending Mode", "Specify the lights blending mode"));
             EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
             if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Sprite)
             {
@@ -318,6 +317,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 EditorGUI.indentLevel--;
             }
 
+            EditorGUILayout.PropertyField(shapeLightOverlapMode, EditorGUIUtility.TrTextContent("Light Overlap Mode", "Specify what should happen when this light overlaps other lights"));
             EditorGUILayout.PropertyField(shapeLightOrder, EditorGUIUtility.TrTextContent("Light Order", "Shape light order"));
 
             EditorGUI.indentLevel--;
