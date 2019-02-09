@@ -43,6 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader deferredCS;
             public ComputeShader screenSpaceShadowCS;
             public ComputeShader volumeVoxelizationCS;
+            public ComputeShader volumeVoxelizationBlurCS;
             public ComputeShader volumetricLightingCS;
 
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
@@ -167,6 +168,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 screenSpaceShadowCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/ScreenSpaceShadow.compute"),
                 volumeVoxelizationCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/VolumetricLighting/VolumeVoxelization.compute"),
+                volumeVoxelizationBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/VolumetricLighting/VolumeVoxelizationBlur.compute"),
                 volumetricLightingCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/VolumetricLighting/VolumetricLighting.compute"),
 
                 subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.compute"),
