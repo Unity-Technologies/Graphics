@@ -1,19 +1,54 @@
 using UnityEngine;
-using UnityEditor.U2D.Shape;
-using UnityEditorInternal;
-using System.Reflection;
-using UnityEditor.Experimental.U2D.Common;
 using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering.LWRP;
 using System.Linq;
 using System.Collections.Generic;
+using Unity.Path2D;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]
-    public class Light2DEditor : Editor
+    internal class Light2DEditor : Editor
     {
+        internal class ShapeEditor : PolygonEditor
+        {
+            const string k_ShapePath = "m_ShapePath";
+
+            protected override int GetPointCount(SerializedObject serializedObject)
+            {
+                return (serializedObject.targetObject as Light2D).shapePath.Length;
+            }
+
+            protected override Vector3 GetPoint(SerializedObject serializedObject, int index)
+            {
+                return (serializedObject.targetObject as Light2D).shapePath[index];
+            }
+
+            protected override void SetPoint(SerializedObject serializedObject, int index, Vector3 position)
+            {
+                serializedObject.Update();
+                serializedObject.FindProperty(k_ShapePath).GetArrayElementAtIndex(index).vector3Value = position;
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            protected override void InsertPoint(SerializedObject serializedObject, int index, Vector3 position)
+            {
+                serializedObject.Update();
+                var shapePath = serializedObject.FindProperty(k_ShapePath);
+                shapePath.InsertArrayElementAtIndex(index);
+                shapePath.GetArrayElementAtIndex(index).vector3Value = position;
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            protected override void RemovePoint(SerializedObject serializedObject, int index)
+            {
+                serializedObject.Update();
+                serializedObject.FindProperty(k_ShapePath).DeleteArrayElementAtIndex(index);
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
+
         static string k_TexturePath = "Textures/";
 
         string[] m_LayerNames;
@@ -61,9 +96,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_VolumetricAlpha;
         SerializedProperty m_LightOperation;
 
-        SplineEditor m_SplineEditor;
-        SplineSceneEditor m_SplineSceneEditor;
-
         bool m_ModifiedMesh = false;
 
         int[] m_LightOperationIndices;
@@ -76,6 +108,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         private SortingLayer[] m_AllSortingLayers;
         private GUIContent[] m_AllSortingLayerNames;
         private List<int> m_ApplyToSortingLayersList;
+
+        ShapeEditor m_ShapeEditor = new ShapeEditor();
 
         #region Handle Utilities
 
@@ -133,9 +167,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_LightOperation = serializedObject.FindProperty("m_LightOperation");
 
             var light = target as Light2D;
-            m_SplineEditor = new SplineEditor(this);
-            m_SplineSceneEditor = new SplineSceneEditor(light.spline, this, light);
-            //m_SplineSceneEditor.SplineEditMode = SplineSceneEditor.SplineEditModes.Buttonless;
 
             m_AnyLightOperationEnabled = false;
             var lightOperationIndices = new List<int>();
@@ -181,16 +212,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 if (SortingLayer.IsValid(layerID))
                     m_ApplyToSortingLayersList.Add(layerID);
             }
-        }
-
-        private void OnDestroy()
-        {
-            if (m_SplineEditor != null)
-                m_SplineEditor.OnDisable();
-            if (m_SplineSceneEditor != null)
-                m_SplineSceneEditor.OnDisable();
-
-            ShapeEditorCache.ClearSelection();
         }
 
         private void OnPointLight(SerializedObject serializedObject)
@@ -253,12 +274,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             SerializedProperty shapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
             SerializedProperty shapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             SerializedProperty shapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
-            SerializedProperty shapeLightBlending = serializedObject.FindProperty("m_ShapeLightBlending");
+            SerializedProperty shapeLightOverlapMode = serializedObject.FindProperty("m_ShapeLightOverlapMode");
 
             int prevShapeLightStyle = shapeLightStyle.intValue;
 
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(shapeLightBlending, EditorGUIUtility.TrTextContent("Blending Mode", "Specify the lights blending mode"));
             EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
             if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Sprite)
             {
@@ -291,12 +311,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 if (shapeLightParametricShape.enumValueIndex == (int)Light2D.ParametricShapes.Circle)
                     EditorGUILayout.IntSlider(shapeLightParametricSides, 3, 128, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
 
-                EditorGUILayout.Slider(shapeLightFeathering, 0, 1, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
+                EditorGUILayout.Slider(shapeLightFeathering, 0, 5, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
                 Vector2 lastOffset = shapeLightOffset.vector2Value;
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
                 EditorGUI.indentLevel--;
             }
 
+            EditorGUILayout.PropertyField(shapeLightOverlapMode, EditorGUIUtility.TrTextContent("Light Overlap Mode", "Specify what should happen when this light overlaps other lights"));
             EditorGUILayout.PropertyField(shapeLightOrder, EditorGUIUtility.TrTextContent("Light Order", "Shape light order"));
 
             EditorGUI.indentLevel--;
@@ -479,6 +500,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         protected virtual void OnSceneGUI()
         {
             var lt = target as Light2D;
+            if (lt == null)
+                return;
 
             if (lt.LightProjectionType == Light2D.LightProjectionTypes.Point)
             {
@@ -508,58 +531,39 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     Handles.DrawLine(v2, v3);
                     Handles.DrawLine(v3, v0);
                 }
-                else
+                else if (lt.m_ParametricShape == Light2D.ParametricShapes.Circle)
                 {
                     float radius = 0.5f;
                     float sides = lt.m_ParametricSides;
                     float angleOffset = Mathf.PI / 2.0f;
 
-                    if (lt.m_ParametricShape == Light2D.ParametricShapes.Freeform)
+                    if (sides < 2)
                     {
-                        m_SplineSceneEditor.CalculateBounds();
+                        sides = 4;
+                        angleOffset = Mathf.PI / 4.0f;
+                        radius = radius * 0.70710678118654752440084436210485f;
 
-                        EditorGUI.BeginChangeCheck();
-
-                        if (EditMode.IsOwner(this))
-                        {
-                            m_SplineSceneEditor.OnSceneGUI();
-                            m_SplineEditor.HandleHotKeys();
-                        }
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            EditorUtility.SetDirty(lightObject);
-                            m_ModifiedMesh = true;
-                            //lightObject.UpdateShapeLightMesh();
-                        }
                     }
-                    else
+
+                    Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
+                    Vector3 featherStartPoint = (1 - lt.m_ShapeLightFeathering) * startPoint;
+                    float radiansPerSide = 2 * Mathf.PI / sides;
+                    for (int i = 0; i < sides; i++)
                     {
-                        if (sides < 2)
-                        {
-                            sides = 4;
-                            angleOffset = Mathf.PI / 4.0f;
-                            radius = radius * 0.70710678118654752440084436210485f;
-
-                        }
-
-                        Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
-                        Vector3 featherStartPoint = (1 - lt.m_ShapeLightFeathering) * startPoint;
-                        float radiansPerSide = 2 * Mathf.PI / sides;
-                        for (int i = 0; i < sides; i++)
-                        {
-                            float endAngle = (i + 1) * radiansPerSide;
-                            Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
-                            Vector3 featherEndPoint = (1 - lt.m_ShapeLightFeathering) * endPoint;
+                        float endAngle = (i + 1) * radiansPerSide;
+                        Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
+                        Vector3 featherEndPoint = (1 - lt.m_ShapeLightFeathering) * endPoint;
 
 
-                            Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
-                            Handles.DrawLine(t.TransformPoint(featherStartPoint + posOffset), t.TransformPoint(featherEndPoint + posOffset));
+                        Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
+                        Handles.DrawLine(t.TransformPoint(featherStartPoint + posOffset), t.TransformPoint(featherEndPoint + posOffset));
 
-                            startPoint = endPoint;
-                            featherStartPoint = featherEndPoint;
-                        }
+                        startPoint = endPoint;
+                        featherStartPoint = featherEndPoint;
                     }
                 }
+                else  // Freeform light
+                    m_ShapeEditor.OnGUI(target);
             }
         }
 
@@ -600,8 +604,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             if (lightObject.m_ParametricShape == Light2D.ParametricShapes.Freeform && lightObject.LightProjectionType == Light2D.LightProjectionTypes.Shape && lightObject.m_ShapeLightStyle != Light2D.CookieStyles.Sprite)
             {
-                m_SplineSceneEditor.OnInspectorGUI();
-                m_SplineEditor.OnInspectorGUI(lightObject.spline);
+                // Draw the edit shape tool button here.
             }
 
             serializedObject.ApplyModifiedProperties();
@@ -614,27 +617,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     light.UpdateMesh();
                     light.UpdateMaterial();
                 }
-            }
-        }
-
-        [DrawGizmo(GizmoType.InSelectionHierarchy | GizmoType.Selected | GizmoType.Pickable)]
-        static void RenderSpline(Light2D light, GizmoType gizmoType)
-        {
-            if (light.m_ParametricShape == Light2D.ParametricShapes.Freeform && light.LightProjectionType == Light2D.LightProjectionTypes.Shape && light.m_ShapeLightStyle != Light2D.CookieStyles.Sprite)
-            {
-                UnityEngine.U2D.Shape.Spline m_Spline = light.spline;
-                Matrix4x4 oldMatrix = Handles.matrix;
-                Handles.matrix = light.transform.localToWorldMatrix;
-                int points = m_Spline.GetPointCount();
-                for (int i = 0; i < (m_Spline.isOpenEnded ? points - 1 : points); i++)
-                {
-                    Vector3 p1 = m_Spline.GetPosition(i);
-                    Vector3 p2 = m_Spline.GetPosition((i + 1) % points);
-                    var t1 = p1 + m_Spline.GetRightTangent(i);
-                    var t2 = p2 + m_Spline.GetLeftTangent((i + 1) % points);
-                    Handles.DrawBezier(p1, p2, t1, t2, Color.gray, null, 2f);
-                }
-                Handles.matrix = oldMatrix;
             }
         }
     }

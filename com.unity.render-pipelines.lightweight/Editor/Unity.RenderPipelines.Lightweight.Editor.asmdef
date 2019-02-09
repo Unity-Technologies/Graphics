@@ -7,11 +7,7 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Editor",
         "Unity.ShaderGraph.Editor",
-        "Unity.2D.Common.Editor",
-        "Unity.2D.Shape.Editor",
-        "Unity.2D.Shape.Runtime",
-        "Unity.InternalAPIEditorBridge.001",
-        "Unity.InternalAPIEngineBridge.001"
+        "Unity.2D.Shape.Editor"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [
