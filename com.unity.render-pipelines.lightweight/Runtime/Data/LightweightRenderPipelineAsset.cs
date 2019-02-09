@@ -462,6 +462,14 @@ namespace UnityEngine.Rendering.LWRP
             {
                 if (m_DefaultShader == null)
                     m_DefaultShader = Shader.Find(ShaderUtils.GetShaderPath(ShaderPathID.Lit));
+
+                if (m_RendererData != null)
+                {
+                    Shader rendererDefaultShader = m_RendererData.defaultShader;
+                    if (rendererDefaultShader != null)
+                        return rendererDefaultShader;
+                }
+
                 return m_DefaultShader;
             }
         }

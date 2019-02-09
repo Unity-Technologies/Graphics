@@ -9,6 +9,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField]
         private float m_LightIntensityScale = 1;
 
+        static Shader m_DefaultShader = null;
+        static Material m_Default2DMaterial = null;
+
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ShapeLightTypes")]
         private _2DLightOperationDescription[] m_LightOperations = new _2DLightOperationDescription[4];
@@ -17,8 +20,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             get
             {
-                Shader shader = Shader.Find("Lightweight Render Pipeline/2D/Sprite-Lit-Default");
-                return new Material(shader);
+                if (m_Default2DMaterial == null)
+                    m_Default2DMaterial = new Material(defaultShader);
+
+                return m_Default2DMaterial;
+            }
+        }
+
+        public override Shader defaultShader
+        {
+            get
+            {
+                if (m_DefaultShader == null)
+                    m_DefaultShader = Shader.Find("Lightweight Render Pipeline/2D/Sprite-Lit-Default");
+
+                return m_DefaultShader;
             }
         }
 

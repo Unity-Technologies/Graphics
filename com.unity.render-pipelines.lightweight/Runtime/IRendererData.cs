@@ -4,6 +4,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         public abstract IRendererSetup Create();
         public virtual Material default2DMaterial { get => null; }
+        public virtual Shader   defaultShader { get => null; }
     }
 }
 
