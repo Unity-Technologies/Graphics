@@ -410,6 +410,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferCoordToViewDirWS        = Shader.PropertyToID("_VBufferCoordToViewDirWS");
         public static readonly int _VBufferUnitDepthTexelSpacing   = Shader.PropertyToID("_VBufferUnitDepthTexelSpacing");
         public static readonly int _VBufferDensity                 = Shader.PropertyToID("_VBufferDensity");
+        public static readonly int _VBufferDensityBlur             = Shader.PropertyToID("_VBufferDensityBlur");
+        public static readonly int _VBufferDensityBlurAxis         = Shader.PropertyToID("_VBufferDensityBlurAxis");
         public static readonly int _VBufferLighting                = Shader.PropertyToID("_VBufferLighting");
         public static readonly int _VBufferLightingIntegral        = Shader.PropertyToID("_VBufferLightingIntegral");
         public static readonly int _VBufferLightingHistory         = Shader.PropertyToID("_VBufferLightingHistory");
