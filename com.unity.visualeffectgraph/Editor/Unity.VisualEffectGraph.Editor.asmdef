@@ -19,6 +19,11 @@
             "name": "com.unity.timeline",
             "expression": "[0.0.0-builtin]",
             "define": "VFX_HAS_TIMELINE"
+        },
+        {
+            "name": "com.unity.timeline",
+            "expression": "1.0.0",
+            "define": "VFX_HAS_TIMELINE"
         }
     ]
 }
