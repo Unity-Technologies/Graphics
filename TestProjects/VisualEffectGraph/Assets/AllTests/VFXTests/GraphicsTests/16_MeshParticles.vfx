@@ -529,6 +529,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114988927067353768}
   - {fileID: 114536471820266184}
@@ -1802,6 +1803,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114155846815806328}
   shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
@@ -2203,6 +2205,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114515421661568980}
   shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
@@ -5610,6 +5613,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114291945608062826}
   shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}

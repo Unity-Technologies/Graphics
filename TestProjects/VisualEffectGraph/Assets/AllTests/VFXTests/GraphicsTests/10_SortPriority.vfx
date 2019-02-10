@@ -975,6 +975,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114207965363388990}
   - {fileID: 114664836143208348}
@@ -1294,7 +1295,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
+  m_Name: 10_SortPriority
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
@@ -3928,6 +3929,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114411037450555758}
   - {fileID: 114976729503126856}
@@ -5126,6 +5128,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114826167990830044}
   - {fileID: 114976929173405708}
