@@ -374,7 +374,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(p.clearColorMode, clearModeContent);
             //if(p.clearColorMode.enumValueIndex == (int)HDAdditionalCameraData.ClearColorMode.BackgroundColor) or no sky in scene
             EditorGUILayout.PropertyField(p.backgroundColorHDR, backgroundColorContent);
-            EditorGUILayout.PropertyField(p.clearDepth, clearDepthContent);
+
+            if(p.clearDepth.boolValue == false)
+                p.clearDepth.boolValue = true;
         }
 
         static void Drawer_Antialiasing(SerializedHDCamera p, Editor owner)
