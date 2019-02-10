@@ -207,6 +207,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114391022796175754}
   shader: {fileID: 10750, guid: 0000000000000000f000000000000000, type: 0}

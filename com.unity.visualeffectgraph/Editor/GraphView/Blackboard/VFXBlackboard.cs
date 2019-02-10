@@ -41,6 +41,8 @@ namespace  UnityEditor.VFX.UI
                     {
                         m_Controller.RegisterHandler(this);
                     }
+
+                    m_AddButton.SetEnabled(m_Controller != null);
                 }
             }
         }
@@ -57,6 +59,8 @@ namespace  UnityEditor.VFX.UI
         }
 
         VFXView m_View;
+
+        Button m_AddButton;
 
         public VFXBlackboard(VFXView view)
         {
@@ -82,6 +86,7 @@ namespace  UnityEditor.VFX.UI
 
             focusable = true;
 
+            m_AddButton = this.Q<Button>(name: "addButton");
 
             m_DragIndicator = new VisualElement();
 
@@ -104,6 +109,8 @@ namespace  UnityEditor.VFX.UI
 
             if(s_LayoutManual != null)
                 s_LayoutManual.SetValue(this, false);
+
+            m_AddButton.SetEnabled(false);
         }
 
         static System.Reflection.PropertyInfo s_LayoutManual = typeof(VisualElement).GetProperty("isLayoutManual",System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
