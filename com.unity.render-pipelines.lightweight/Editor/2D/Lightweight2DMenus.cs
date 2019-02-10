@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
 
@@ -42,13 +43,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             light2D.LightProjectionType = Light2D.LightProjectionTypes.Point;
         }
 
-        [MenuItem("2D Lights/Convert to Lit Object")]
+
+        [MenuItem("2D Lights/Convert Object to Lit Object")]
         static void ConvertObjectToLitObject()
         {
             GameObject go = Selection.activeObject as GameObject;
             if(go != null)
             {
-                SpriteRenderer[] spriteRenderers = go.GetComponentsInChildren<SpriteRenderer>();
+                SpriteRenderer[] spriteRenderers = go.GetComponentsInChildren<SpriteRenderer>(true);
                 foreach(var spriteRenderer in spriteRenderers)
                 {
                     Shader shader = Shader.Find("Lightweight Render Pipeline/2D/Sprite-Lit-Default");
@@ -58,5 +60,21 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
         }
+
+        [MenuItem("2D Lights/Convert Scene to Lit Scene")]
+        static void ConvertSceneToLitScene()
+        {
+            GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+            foreach (GameObject go in rootObjects)
+            {
+                SpriteRenderer[] spriteRenderers = go.GetComponentsInChildren<SpriteRenderer>(true);
+                foreach (var spriteRenderer in spriteRenderers)
+                {
+                    Shader shader = Shader.Find("Lightweight Render Pipeline/2D/Sprite-Lit-Default");
+                    spriteRenderer.sharedMaterial = new Material(shader);
+                }
+            }
+        }
+
     }
 }
