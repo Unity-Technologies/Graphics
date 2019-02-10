@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue on reflection probe baked resolution when using Generate Lighting button
 - Fixed issue with SRP batcher and DebugDisplay variant of lit shader
 - Fixed issue with debug material mode not doing alpha test
+- Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan
 
 ## [4.9.0-preview] - 2019-01-28
 
