@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.4.0-preview] - 2019-XX-XX
+## [5.4.0-preview] - 2019-02-23
 
 ### Added
 - Added support for "After Post-Process" render pass for unlit shader
@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multi edition issue in FrameSettings
 - Fixed issue with SRP batcher and DebugDisplay variant of lit shader
 - Fixed issue with debug material mode not doing alpha test
+- Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan
+- Fixed pre-exposure incorrectly apply to preview
+- Fixed issue with duplicate 3D texture in 3D texture altas of volumetric
 
 ### Changed
 - Temporal Antialiasing optimization for Xbox One X
