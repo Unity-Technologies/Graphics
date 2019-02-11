@@ -17,8 +17,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_MaterialFilterAreaLights;
         MaterialPropertyBlock m_MPBFilterAreaLights;
 
-        RenderTexture m_TempRenderTexture0;
-        RenderTexture m_TempRenderTexture1;
+        RenderTexture m_TempRenderTexture0 = null;
+        RenderTexture m_TempRenderTexture1 = null;
 
         public LTCAreaLightCookieManager(HDRenderPipelineAsset hdAsset, int maxCacheSize)
         {
@@ -47,6 +47,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             CoreUtils.Destroy(m_MaterialFilterAreaLights);
+            if(m_TempRenderTexture0 != null)
+            {
+                m_TempRenderTexture0.Release();
+                m_TempRenderTexture0 = null;
+            }
+            if (m_TempRenderTexture1 != null)
+            {
+                m_TempRenderTexture1.Release();
+                m_TempRenderTexture1 = null;
+            }
         }
 
         public Texture GetTexCache()

@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // External structures
         RenderPipelineResources m_PipelineResources = null;
-        RenderPipelineSettings m_PipelineSettings = null;
+        RenderPipelineSettings m_PipelineSettings;
         HDRaytracingManager m_RaytracingManager = null;
         SharedRTManager m_SharedRTManager = null;
 
@@ -37,8 +37,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Init(RenderPipelineResources pipelineResources, RenderPipelineSettings pipelineSettings, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
         {
             // Keep track of the pipeline asset
-            m_PipelineResources = pipelineResources;
             m_PipelineSettings = pipelineSettings;
+            m_PipelineResources = pipelineResources;
 
             // keep track of the ray tracing manager
             m_RaytracingManager = raytracingManager;
@@ -69,14 +69,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
         }
 
-        public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext)
+        public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, uint frameCount)
         {
             // Let's check all the resources
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
             BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
             ComputeShader bilateralFilter = m_PipelineResources.shaders.jointBilateralFilterCS;
             RaytracingShader aoShader = m_PipelineResources.shaders.aoRaytracing;
-            bool missingResources = rtEnvironement == null || blueNoise == null || bilateralFilter == null || aoShader == null;
+            bool missingResources = rtEnvironement == null || blueNoise == null || bilateralFilter == null || aoShader == null 
+            || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // Try to grab the acceleration structure for the target camera
             RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
@@ -94,13 +95,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set the acceleration structure for the pass
             cmd.SetRaytracingAccelerationStructure(aoShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
-            // Fetch the screen space coherent noise texture array
-            Texture2DArray rgCoherentNoise = blueNoise.textureArray128RGCoherent;
-
-            // Inject the ray-tracing noise data
-            cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._RaytracingNoiseTexture, rgCoherentNoise);
-            cmd.SetRaytracingIntParams(aoShader, HDShaderIDs._RaytracingNoiseResolution, rgCoherentNoise.width);
-            cmd.SetRaytracingIntParams(aoShader, HDShaderIDs._RaytracingNumNoiseLayers, rgCoherentNoise.depth);
+            // Inject the ray-tracing sampling data
+            cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambledTex);
+            cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data
             cmd.SetRaytracingFloatParams(aoShader, HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
@@ -113,6 +110,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._AmbientOcclusionTextureRW, m_IntermediateBuffer);
             cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+
+            int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
             cmd.SetRaytracingIntParam(aoShader, HDShaderIDs._RayCountEnabled, m_RaytracingManager.rayCountManager.rayCountEnabled);
             cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._RayCountTexture, m_RaytracingManager.rayCountManager.rayCountTex);

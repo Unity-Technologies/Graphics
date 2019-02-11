@@ -1,4 +1,4 @@
-// We need 2 bounces given that we want to see the direct lighting of the reflected surfaces
+// We need only need 1 bounce for AO
 #pragma max_recursion_depth 1
 
 // HDRP include
@@ -41,20 +41,13 @@ void RayGenAmbientOcclusion()
 
 	// Pixel coordinate of the current pixel
     uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
+
+    // Get the scramblingValue of this pixel
+    uint2 scramblingValue = ScramblingValue(currentPixelCoord.x, currentPixelCoord.y);
+
+    // Reset the value of this pixel
     _AmbientOcclusionTextureRW[currentPixelCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	
-    /*
-    // Read the stencil value of the pixel
-    uint stencilVal = UnpackByte(LOAD_TEXTURE2D(_StencilTexture, currentPixelCoord).r);
-    
-    // Check if this pixel should not recieve ssr, for the moment we compute it for everyone
-    bool doesntReceiveSSR = (stencilVal & _SsrStencilExclusionValue) != 0;
-    if (doesntReceiveSSR)
-    {
-        return;
-    }
-	*/
-
 	// Read the depth value
 	float depthValue  = _DepthTexture[currentPixelCoord];
 	if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -85,8 +78,13 @@ void RayGenAmbientOcclusion()
 	// Let's loop through th e samples
 	for (int i = 0; i < numSamples; ++i)
 	{
-		// Get the following noise value
-    	float2 noiseValue = GetRaytracingNoiseSample(currentPixelCoord, i);
+        // Compute the current sample index
+        int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + i;
+
+    	// Generate the new sample (follwing values of the sequence)
+        float2 noiseValue = float2(0.0, 0.0);
+        noiseValue.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+        noiseValue.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
 
     	// Importance sample the direction
 	    float3 sampleDir = SampleHemisphereCosine(noiseValue.x, noiseValue.y, normalData.normalWS);

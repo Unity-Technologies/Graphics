@@ -1553,7 +1553,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 StartStereoRendering(cmd, renderContext, camera);
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
-                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, m_SharedRTManager, renderContext);
+                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, m_SharedRTManager, renderContext, m_FrameCount);
 
                 // Clear and copy the stencil texture needs to be moved to before we invoke the async light list build,
                 // otherwise the async compute queue can end up using that texture before the graphics queue is done with it.
@@ -1614,7 +1614,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
 #if ENABLE_RAYTRACING
                     // Let's render the screen space area light shadows
-                    bool areaShadowsRendered = m_RaytracingShadows.RenderAreaShadows(hdCamera, cmd, renderContext);
+                    bool areaShadowsRendered = m_RaytracingShadows.RenderAreaShadows(hdCamera, cmd, renderContext, m_FrameCount);
                     PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingShadows.GetShadowedIntegrationTexture(), FullScreenDebugMode.RaytracedAreaShadow);
                     if (areaShadowsRendered)
                     {
