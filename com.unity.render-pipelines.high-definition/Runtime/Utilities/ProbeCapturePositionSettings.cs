@@ -79,20 +79,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            return ComputeFrom(probe, referencePosition, referenceRotation);
-        }
+            var result = ComputeFrom(probe, referencePosition, referenceRotation);
 
-        public static ProbeCapturePositionSettings ComputeFrom(
-            HDProbe probe,
-            Vector3 referencePosition, Quaternion referenceRotation
-        )
-        {
-            var result = new ProbeCapturePositionSettings();
-            var proxyToWorld = probe.proxyToWorld;
-            result.proxyPosition = proxyToWorld.GetColumn(3);
-            result.proxyRotation = proxyToWorld.rotation;
-            result.referencePosition = referencePosition;
-            result.referenceRotation = referenceRotation;
+            // In case of probe baking, 99% of the time, orientation of the cubemap doesn't matters
+            //   so, we build one without any rotation, thus we don't have to change the basis
+            //   during sampling the cubemap.
+            if (probe.type == ProbeSettings.ProbeType.ReflectionProbe)
+                result.proxyRotation = Quaternion.identity;
+
             return result;
         }
 
@@ -129,6 +123,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HashUtilities.QuantisedVectorHash(ref euler, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
             return h;
+        }
+
+        static ProbeCapturePositionSettings ComputeFrom(
+            HDProbe probe,
+            Vector3 referencePosition, Quaternion referenceRotation
+        )
+        {
+            var result = new ProbeCapturePositionSettings();
+            var proxyToWorld = probe.proxyToWorld;
+            result.proxyPosition = proxyToWorld.GetColumn(3);
+            result.proxyRotation = proxyToWorld.rotation;
+            result.referencePosition = referencePosition;
+            result.referenceRotation = referenceRotation;
+            return result;
         }
     }
 }
