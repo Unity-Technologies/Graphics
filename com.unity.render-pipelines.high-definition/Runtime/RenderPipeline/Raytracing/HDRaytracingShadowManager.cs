@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDRaytracingShadowManager
     {
         HDRenderPipelineAsset m_PipelineAsset = null;
-
+        RenderPipelineResources m_PipelineResources = null;
         HDRaytracingManager m_RaytracingManager = null;
         SharedRTManager m_SharedRTManager = null;
         LightLoop m_LightLoop = null;
@@ -46,6 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Keep track of the pipeline asset
             m_PipelineAsset = asset;
+            m_PipelineResources = asset.renderPipelineResources;
 
             // keep track of the ray tracing manager
             m_RaytracingManager = raytracingManager;
@@ -89,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalTexture(HDShaderIDs._AreaShadowTexture, m_AreaShadowTextureArray);
         }
 
-        public bool RenderAreaShadows(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext)
+        public bool RenderAreaShadows(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, uint frameCount)
         {
             // NOTE: Here we cannot clear the area shadow texture because it is a texture array. So we need to bind it and make sure no material will try to read it in the shaders
             BindShadowTexture(cmd);
@@ -99,7 +100,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
             RaytracingShader shadowsShader = m_PipelineAsset.renderPipelineResources.shaders.shadowsRaytracing;
             ComputeShader bilateralFilter = m_PipelineAsset.renderPipelineResources.shaders.areaBillateralFilterCS;
-            bool invalidState = rtEnvironement == null || blueNoise == null || !rtEnvironement.raytracedShadows || shadowsShader  == null || bilateralFilter == null || hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred;
+            bool invalidState = rtEnvironement == null || blueNoise == null || !rtEnvironement.raytracedShadows || shadowsShader  == null || bilateralFilter == null || hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred
+            || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // Try to grab the acceleration structure for the target camera
             RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
@@ -117,13 +119,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set the acceleration structure for the pass
             cmd.SetRaytracingAccelerationStructure(shadowsShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
-            // Fetch the screen space coherent noise texture array
-            Texture2DArray rgCoherentNoise = blueNoise.textureArray128RGCoherent;
+            // Inject the ray-tracing sampling data
+            cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambledTex);
+            cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
 
-            // Inject the ray-tracing noise data
-            cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._RaytracingNoiseTexture, rgCoherentNoise);
-            cmd.SetRaytracingIntParams(shadowsShader, HDShaderIDs._RaytracingNoiseResolution, rgCoherentNoise.width);
-            cmd.SetRaytracingIntParams(shadowsShader, HDShaderIDs._RaytracingNumNoiseLayers, rgCoherentNoise.depth);
+            int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
             // Inject the ray generation data
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);

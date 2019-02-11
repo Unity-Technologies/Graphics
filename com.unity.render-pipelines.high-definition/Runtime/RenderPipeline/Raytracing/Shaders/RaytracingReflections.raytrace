@@ -36,7 +36,7 @@ RWTexture2D<float4>                     _SsrHitPointTexture;
 [shader("miss")]
 void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload)
 {
-    rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0);
+    rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0).xyz;
     rayIntersection.t = _RaytracingRayMaxLength;
 }
 
@@ -50,9 +50,12 @@ void RayGenHalfRes()
     // Compute the pixel coordinate (which matches the half res of the effect)
     uint2 halfResCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
 
+    // Get the scramblingValue of this pixel
+    uint2 scramblingValue = ScramblingValue(halfResCoord.x, halfResCoord.y);
+
     // Pick which subpixel we will be launching our effects from
-    const uint2 subPixelScramble = GetRaytracingNoiseSample(halfResCoord, _RaytracingFrameIndex + 4);
-    uint subPixel =  (uint)(subPixelScramble.x * 4.0);
+    float subPixelSample = GetRaytracingNoiseSample(_RaytracingFrameIndex, 3, scramblingValue.x);
+    int subPixel =  clamp((int)(subPixelSample * 4.0), 0, 3);
     uint2 shift = HalfResIndexToCoordinateShift[subPixel];
 
     // Pixel where we will store the result of the raytracing
@@ -97,8 +100,11 @@ void RayGenHalfRes()
     // Compute the actual roughness
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
-    const uint2 scramble = GetRaytracingNoiseSample(halfResCoord, 0) * 0xffffffff;
-    float2 sample = Sample02(_RaytracingFrameIndex, scramble);
+    int globalSampleIndex = _RaytracingFrameIndex;
+
+    float2 sample = float2(0.0, 0.0);
+    sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+    sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
@@ -108,12 +114,14 @@ void RayGenHalfRes()
 
     // If this direction is under the surface, let's generate a new one that won't be
     // TODO: use Eric's paper on visible normal distribution sampling
+    globalSampleIndex += 8;
     for (int i = 1; i < 8; ++i)
     {
         if (dot(sampleDir, normalData.normalWS) >= 0.00f && dot(normalData.normalWS, viewWS) >= 0.00f)
             break;
 
-        sample = Sample02(_RaytracingFrameIndex + i, scramble);
+        sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+        sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
         SampleGGXDir2(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH, LdotH, false);
     }
 
@@ -148,8 +156,6 @@ void RayGenHalfRes()
     // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
     if (roughness > 0.001)
     {
-        float H = normalize(sampleDir + viewWS);
-        float NdotV = (dot(normalData.normalWS, viewWS));
         samplePDF = D_GGX(NdotH, roughness) * NdotH / (4.0f * LdotH);
     }
 
@@ -157,7 +163,7 @@ void RayGenHalfRes()
     float3 exposedValue = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
 
     // We store the clamped, pre-exposed value and the index of the target pixel in the first texture
-    _SsrLightingTextureRW[outputCoord] = float4(exposedValue, subPixelScramble.x);
+    _SsrLightingTextureRW[outputCoord] = float4(exposedValue, subPixelSample);
     // In the second texture, we store the sampled direction and the invPDF of the sample
     _SsrHitPointTexture[outputCoord] = float4(sampleDir, 1.0f / samplePDF);
 }
@@ -172,11 +178,14 @@ void RayGenIntegration()
     // Compute the pixel coordinate to evaluate
     uint2 currentCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
 
+    // Get the scramblingValue of this pixel
+    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
+
     // Clear the output color texture
     _SsrLightingTextureRW[currentCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
     // Read the depth value
-    float depthValue  = _DepthTexture[currentCoord];
+    float depthValue = _DepthTexture[currentCoord];
 
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -209,22 +218,27 @@ void RayGenIntegration()
     // Compute the actual roughness
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
-    // Compute the scramble for the current pixel (must tbe the same across pixels)
-    const uint2 scramble = GetRaytracingNoiseSample(currentCoord, 0) * 0xffffffff;
+    // Clamp the sample count if the surface is a completely smooth
+    int realSampleCount = normalData.perceptualRoughness < 0.01 ? 1 : _RaytracingNumSamples;
 
     // Variable that accumulate the radiance
     float3 finalColor = float3(0.0, 0.0, 0.0);
     
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[currentCoord].y = _RayCountTexture[currentCoord].y + (uint)_RaytracingNumSamples;
+        _RayCountTexture[currentCoord].y = _RayCountTexture[currentCoord].y + (uint)realSampleCount;
     }
 
     // Loop through the samples and add their contribution
-    for (int sampleIndex = 0; sampleIndex < _RaytracingNumSamples; ++sampleIndex)
+    for (int sampleIndex = 0; sampleIndex < realSampleCount; ++sampleIndex)
     {
+        // Compute the current sample index
+        int globalSampleIndex = _RaytracingFrameIndex * realSampleCount + sampleIndex;
+
     	// Generate the new sample (follwing values of the sequence)
-	    float2 sample = Sample02(_RaytracingFrameIndex * _RaytracingNumSamples + sampleIndex, scramble);
+        float2 sample = float2(0.0, 0.0);
+        sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+        sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
 
         // Importance sample the direction using GGX
         float3 sampleDir = float3(0.0, 0.0, 0.0);
@@ -257,7 +271,7 @@ void RayGenIntegration()
     }
 
    	// Normalize the value
-    finalColor *= 1.0f / _RaytracingNumSamples;
+    finalColor *= 1.0f / realSampleCount;
 
     // Expose and clamp the final color
     finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);

@@ -44,6 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Reflections Quarter Res
             public static GUIContent reflTemporalAccumulationWeight = new GUIContent("Reflections Temporal Accumulation Weight");
+            public static GUIContent reflSpatialFilterRadius = new GUIContent("Spatial Filter Radius");
 
             // Relections Integration
             public static GUIContent reflNumMaxSamplesText = new GUIContent("Reflections Num Samples");
@@ -160,7 +161,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     case HDRaytracingEnvironment.ReflectionsQuality.QuarterRes:
                         {
                             EditorGUILayout.PropertyField(rtEnv.reflTemporalAccumulationWeight, Styles.reflTemporalAccumulationWeight);
-                            
+                            EditorGUILayout.PropertyField(rtEnv.reflSpatialFilterRadius, Styles.reflSpatialFilterRadius);
                         }
                     break;
                     case HDRaytracingEnvironment.ReflectionsQuality.Integration:
