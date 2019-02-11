@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public HDAdditionalCameraData.ClearColorMode clearColorMode;
             /// <summary>
             /// The color to use when
-            /// <c><see cref="clearColorMode"/> == <see cref="HDAdditionalCameraData.ClearColorMode.Color"/></c>.
+            /// <c><see cref="clearColorMode"/> == <see cref="HDAdditionalCameraData.ClearColorMode.BackgroundColor"/></c>.
             /// </summary>
             [ColorUsage(true, true)]
             public Color backgroundColorHDR;
