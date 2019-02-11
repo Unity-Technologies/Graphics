@@ -146,7 +146,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2209_ReflectionProbeCullingStencil.unity
     guid: b8090c44833d0a842bcd90e27dc43b6b
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2210_ReflectionProbes_CaptureAtVolumeAnchor.unity
     guid: 6abac8c2689f0ed48b18d05bc496d5c4
   - enabled: 1
