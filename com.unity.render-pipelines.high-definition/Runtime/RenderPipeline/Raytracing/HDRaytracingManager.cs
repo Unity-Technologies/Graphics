@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The HDRPAsset data that needs to be 
         RenderPipelineResources m_Resources = null;
-        RenderPipelineSettings m_Settings = null;
+        RenderPipelineSettings m_Settings;
 
         // Noise texture manager
         BlueNoise m_BlueNoise = null;

@@ -37,6 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty reflClampValue;
         public SerializedProperty reflQualityMode;
         public SerializedProperty reflTemporalAccumulationWeight;
+        public SerializedProperty reflSpatialFilterRadius;
         public SerializedProperty reflNumMaxSamples;
 
         // Primary visiblity raytracing
@@ -77,6 +78,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             reflClampValue = o.Find(x => x.reflClampValue);
             reflQualityMode = o.Find(x => x.reflQualityMode);
             reflTemporalAccumulationWeight = o.Find(x => x.reflTemporalAccumulationWeight);
+            reflSpatialFilterRadius = o.Find(x => x.reflSpatialFilterRadius);
             reflNumMaxSamples = o.Find(x => x.reflNumMaxSamples);
 
             // Shadows Attributes
