@@ -2021,15 +2021,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugDisplaySettings debugDisplaySettings = (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview) ? s_NeutralDebugDisplaySettings : m_DebugDisplaySettings;
 
             // Disable post process if we enable debug mode or if the post process layer is disabled
-            if (debugDisplaySettings.IsDebugDisplayRemovePostprocess())
+            if (debugDisplaySettings.IsDebugDisplayEnabled())
             {
-                currentFrameSettings.SetEnabled(FrameSettingsField.Postprocess, false);
-            }
+                if (debugDisplaySettings.IsDebugDisplayRemovePostprocess())
+                {
+                    currentFrameSettings.SetEnabled(FrameSettingsField.Postprocess, false);
+                }
 
-            // Disable SSS if luxmeter is enabled
-            if (debugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
-            {
-                currentFrameSettings.SetEnabled(FrameSettingsField.SubsurfaceScattering, false);
+                // Disable exposure if required
+                if (!debugDisplaySettings.DebugNeedsExposure())
+                {
+                    currentFrameSettings.SetEnabled(FrameSettingsField.ExposureControl, false);
+                }
+
+                // Disable SSS if luxmeter is enabled
+                if (debugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                {
+                    currentFrameSettings.SetEnabled(FrameSettingsField.SubsurfaceScattering, false);
+                }
             }
 
             hdCamera = HDCamera.Get(camera) ?? HDCamera.Create(camera);
