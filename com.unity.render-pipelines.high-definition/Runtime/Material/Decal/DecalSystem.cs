@@ -167,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static public bool IsHDRenderPipelineDecal(string name)
         {
-            return name == "HDRenderPipeline/Decal";
+            return name == "HDRP/Decal";
         }
 
 
