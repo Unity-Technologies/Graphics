@@ -1150,6 +1150,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             {
                                 visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize));
                             }
+                            // Set the viewer's camera as the default camera anchor
+                            for (var i = 0; i < cameraSettings.Count; ++i)
+                            {
+                                var v = cameraSettings[i];
+                                if (v.volumes.anchorOverride == null)
+                                {
+                                    v.volumes.anchorOverride = viewerTransform;
+                                    cameraSettings[i] = v;
+                                }
+                            }
                             break;
                     }
 
