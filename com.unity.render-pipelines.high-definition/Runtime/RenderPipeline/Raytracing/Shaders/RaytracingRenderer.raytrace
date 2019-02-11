@@ -1,4 +1,4 @@
-// We need 2 bounces given that we want to see the direct lighting of the reflected surfaces
+// We need N bounces given that we want to support complex light paths
 #pragma max_recursion_depth 10
 
 // WARNING: This define must be kept in sync with the c# code
