@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum ClearColorMode
         {
             Sky,
-            BackgroundColor,
+            Color,
             None
         };
 
@@ -278,7 +278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera.clearFlags == CameraClearFlags.Skybox)
                 cameraData.clearColorMode = ClearColorMode.Sky;
             else if (camera.clearFlags == CameraClearFlags.SolidColor)
-                cameraData.clearColorMode = ClearColorMode.BackgroundColor;
+                cameraData.clearColorMode = ClearColorMode.Color;
             else     // None
                 cameraData.clearColorMode = ClearColorMode.None;
         }
