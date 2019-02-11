@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan
 - Fixed pre-exposure incorrectly apply to preview
 - Fixed issue with duplicate 3D texture in 3D texture altas of volumetric
+- Fixed Camera rendering order (base on the depth parameter)
 
 ### Changed
 - Temporal Antialiasing optimization for Xbox One X

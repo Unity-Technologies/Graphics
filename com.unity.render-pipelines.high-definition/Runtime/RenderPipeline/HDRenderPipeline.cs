@@ -1309,7 +1309,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         using (GenericPool<Stack<int>>.Get(out Stack<int> stack))
                         {
                             stack.Clear();
-                            for (int i = 0; i < rootRenderRequestIndices.Count; ++i)
+                            for (int i = rootRenderRequestIndices.Count -1; i >= 0; --i)
                             {
                                 stack.Push(rootRenderRequestIndices[i]);
                                 while (stack.Count > 0)
@@ -3058,7 +3058,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
                 m_LightLoop.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth, cullResults, m_IntermediateAfterPostProcessBuffer);
-  
+
                 DecalSystem.instance.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
 
                 if (m_CurrentDebugDisplaySettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_CurrentDebugDisplaySettings.data.falseColorDebugSettings.falseColor || m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuminanceMeter)
