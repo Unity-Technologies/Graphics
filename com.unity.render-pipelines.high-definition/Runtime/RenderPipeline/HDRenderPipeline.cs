@@ -3094,7 +3094,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Clear the HDR target
                 using (new ProfilingSample(cmd, "Clear HDR target", CustomSamplerId.ClearHDRTarget.GetSampler()))
                 {
-                    if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Color ||
+                    if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.BackgroundColor ||
                         // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
                         m_DebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                         // If we want the sky but the sky don't exist, still clear with background color
