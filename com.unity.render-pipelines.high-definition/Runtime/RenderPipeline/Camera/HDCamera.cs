@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (camera.clearFlags == CameraClearFlags.Skybox)
                     return HDAdditionalCameraData.ClearColorMode.Sky;
                 else if (camera.clearFlags == CameraClearFlags.SolidColor)
-                    return HDAdditionalCameraData.ClearColorMode.Color;
+                    return HDAdditionalCameraData.ClearColorMode.BackgroundColor;
                 else // None
                     return HDAdditionalCameraData.ClearColorMode.None;
             }
