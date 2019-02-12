@@ -7,8 +7,8 @@ using UnityEditor.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.LWRP 
 {
-	[CustomEditor(typeof(RenderObjectsPassFeature))]
-    public class RenderObjectsPassFeatureEditor : Editor
+	[CustomPropertyDrawer(typeof(RenderObjectsPassFeature.RenderObjectsSettings), true)]
+    public class RenderObjectsPassFeatureEditor : PropertyDrawer
     {
 	    internal class Styles
 	    {
@@ -19,25 +19,26 @@ namespace UnityEngine.Rendering.LWRP
 		    public static GUIContent shaderPassFilter = new GUIContent("Shader Passes", "Chose the Callback position for this render pass object.");
 		}
 
-	    SavedBool m_FiltersFoldout;
+	    //SavedBool m_FiltersFoldout;
+	    private bool firstTime = true;
 	    
-	    private SerializedProperty m_callback;
-	    private SerializedProperty m_renderQueue;
-	    private SerializedProperty m_layerMask;
-	    private SerializedProperty m_shaderPasses;
+	    private SerializedProperty m_Callback;
+	    private SerializedProperty m_RenderQueue;
+	    private SerializedProperty m_LayerMask;
+	    private SerializedProperty m_ShaderPasses;
 
 	    private ReorderableList m_shaderPassesList;
 
-	    private void OnEnable()
+	    private void Init(SerializedProperty property)
 	    {
-		    m_FiltersFoldout = new SavedBool($"{target.GetType()}.FiltersFoldout", true);
+		    //m_FiltersFoldout = new SavedBool($"{target.GetType()}.FiltersFoldout", true);
 		    
-		    m_callback = serializedObject.FindProperty("callback");
-		    m_renderQueue = serializedObject.FindProperty("renderQueueType");
-		    m_layerMask = serializedObject.FindProperty("layerMask");
-		    m_shaderPasses = serializedObject.FindProperty("passNames");
+		    m_Callback = property.FindPropertyRelative("callback");
+		    m_RenderQueue = property.FindPropertyRelative("renderQueueType");
+		    m_LayerMask = property.FindPropertyRelative("layerMask");
+		    m_ShaderPasses = property.FindPropertyRelative("passNames");
 		    
-		    m_shaderPassesList = new ReorderableList(serializedObject, m_shaderPasses, true, true, true, true);
+		    m_shaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
 
 		    m_shaderPassesList.drawElementCallback =
 		    (Rect rect, int index, bool isActive, bool isFocused) =>
@@ -55,31 +56,46 @@ namespace UnityEngine.Rendering.LWRP
 		    };
 	    }
 
-	    public override void OnInspectorGUI()
+	    public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
 	    {
-		    DrawDefaultInspector();
+			rect.xMin -= EditorStyles.inspectorDefaultMargins.padding.left;
 		    
-		    // TODO:remove later
-		    EditorGUILayout.Space(); 
-		    EditorGUILayout.HelpBox("Testing Inspector Below", MessageType.Warning);
-		    EditorGUILayout.Space();
-			// End TODO
-			
-			serializedObject.Update();
-			
-		    EditorGUILayout.PropertyField(m_callback, Styles.callback);
+		    if(firstTime)
+			    Init(property);
+		    EditorGUI.BeginProperty(rect, label, property);
+
+		    //EditorGUIUtility.labelWidth = 80;
+		    rect.height = EditorGUIUtility.singleLineHeight;
+		    EditorGUI.PropertyField(rect, m_Callback, Styles.callback);
+		    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 		    
-		    m_FiltersFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_FiltersFoldout.value, Styles.filtersHeader);
-		    if (m_FiltersFoldout.value)
+		    //m_FiltersFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_FiltersFoldout.value, Styles.filtersHeader);
+		    //if (m_FiltersFoldout.value)
 		    {
-			    EditorGUILayout.PropertyField(m_renderQueue, Styles.renderQueueFilter);
-			    EditorGUILayout.PropertyField(m_layerMask, Styles.layerMask);
+			    EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
+			    
+			    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+			    EditorGUI.PropertyField(rect, m_LayerMask, Styles.layerMask);
 
-			    m_shaderPassesList.DoLayoutList();
+			    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+			    //rect.height = 10f;
+			    m_shaderPassesList.DoList(rect);
 		    }
-		    EditorGUILayout.EndFoldoutHeaderGroup();
+		    //EditorGUILayout.EndFoldoutHeaderGroup();
 
-		    serializedObject.ApplyModifiedProperties();
+		    property.serializedObject.ApplyModifiedProperties();
+		    EditorGUI.EndProperty();
+		    firstTime = false;
+	    }
+
+	    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+	    {
+		    var shaderPasses = property.FindPropertyRelative("passNames");
+		    float shaderPassListHeight = EditorGUIUtility.standardVerticalSpacing;
+		    if(m_shaderPassesList != null)
+				shaderPassListHeight += m_shaderPassesList.GetHeight();
+		    int lineCount = 4;
+		    return ((EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * lineCount) + shaderPassListHeight;
 	    }
     }
 }

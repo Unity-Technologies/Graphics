@@ -13,34 +13,15 @@ namespace UnityEngine.Rendering.LWRP
         private class Styles
         {
             public static GUIContent renderPasses = new GUIContent("Render Passes", "List of render passes");
-            
-            public static GUIContent shaderFoldout = new GUIContent("Shaders", "List of required shaders");
-            public static GUIContent blitShader = new GUIContent("Blit", "Shader used for all default blits");
-            public static GUIContent copyDepthShader = new GUIContent("Copy Depth", "Shader used when copying depth buffers");
-            public static GUIContent screenSpaceShadowShader = new GUIContent("Screen Space Shadows", "Shader for calculating screen space shadow map");
-            public static GUIContent samplingShader = new GUIContent("Sampling", "Shader used for various sampling features");
         }
         
-        SavedBool m_ShadersFoldout;
-
         private SerializedProperty m_renderPasses;
-        private SerializedProperty m_blitShader;
-        private SerializedProperty m_copyDepthShader;
-        private SerializedProperty m_screenSpaceShadowShader;
-        private SerializedProperty m_samplingShader;
         
         private ReorderableList m_passesList;
 
         private void OnEnable()
         {
-            m_ShadersFoldout = new SavedBool($"{target.GetType()}.ShadersFoldout", false);
-            
             m_renderPasses = serializedObject.FindProperty("m_RenderPassFeatures");
-            m_blitShader = serializedObject.FindProperty("m_BlitShader");
-            m_copyDepthShader = serializedObject.FindProperty("m_CopyDepthShader");
-            m_screenSpaceShadowShader = serializedObject.FindProperty("m_ScreenSpaceShadowShader");
-            m_samplingShader = serializedObject.FindProperty("m_SamplingShader");
-		    
             m_passesList = new ReorderableList(serializedObject, m_renderPasses, true, true, true, true);
 
             m_passesList.drawElementCallback =
@@ -52,6 +33,34 @@ namespace UnityEngine.Rendering.LWRP
                 EditorGUIUtility.labelWidth = 0.1f;
                 EditorGUI.ObjectField(newRect, element);
                 EditorGUIUtility.labelWidth = labelWidth;
+                if ((RenderPassFeature)element.objectReferenceValue)
+                {
+                    SerializedObject serializedObject = new SerializedObject(element.objectReferenceValue as RenderPassFeature);
+                    SerializedProperty propSP = serializedObject.FindProperty("settings");
+                    //Rect propRect = propSP.rectValue;
+                    if (propSP != null)
+                    {
+                        rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                        rect.xMin += EditorStyles.inspectorDefaultMargins.padding.left;
+                        EditorGUI.PropertyField(rect, propSP);
+                    }
+                }
+               
+            };
+            
+            m_passesList.elementHeightCallback = (index) =>
+            {
+                var element = m_passesList.serializedProperty.GetArrayElementAtIndex(index);
+                SerializedObject serializedObject = new SerializedObject(element.objectReferenceValue as RenderPassFeature);
+                var settingsProp = serializedObject.FindProperty("settings");
+                if (settingsProp != null)
+                {
+                    return EditorGUI.GetPropertyHeight(settingsProp, true);
+                }
+                else
+                {
+                    return 200f; //EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                }
             };
 
             m_passesList.onAddCallback += AddPass;
@@ -68,29 +77,11 @@ namespace UnityEngine.Rendering.LWRP
 
         public override void OnInspectorGUI()
         {
-            DrawDefaultInspector();
-            
-            // TODO:remove later
-            EditorGUILayout.Space(); 
-            EditorGUILayout.HelpBox("Testing Inspector Below", MessageType.Warning);
-            EditorGUILayout.Space();
-            // End TODO
-         
             serializedObject.Update();
             
-            m_passesList.DoLayoutList();
-
             EditorGUILayout.Space();
-
-            m_ShadersFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadersFoldout.value, Styles.shaderFoldout);
-            if (m_ShadersFoldout.value)
-            {
-                EditorGUILayout.PropertyField(m_blitShader, Styles.blitShader);
-                EditorGUILayout.PropertyField(m_copyDepthShader, Styles.copyDepthShader);
-                EditorGUILayout.PropertyField(m_screenSpaceShadowShader, Styles.screenSpaceShadowShader);
-                EditorGUILayout.PropertyField(m_samplingShader, Styles.samplingShader);
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
+            
+            m_passesList.DoLayoutList();
 
             serializedObject.ApplyModifiedProperties();
         }
