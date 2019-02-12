@@ -1,4 +1,4 @@
-#if (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH)
+#if (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_MESH)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -24,14 +24,19 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
     return PackVaryingsType(varyingsType);
 }
 
+
 void Frag(  PackedVaryingsToPS packedInput,
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
             OUTPUT_DBUFFER(outDBuffer)
-            )
+#else
+    out float4 outEmissive : SV_Target0
+#endif
+)
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
     DecalSurfaceData surfaceData;
 
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
 	float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionSS.xy).x;
 	PositionInputs posInput = GetPositionInput_Stereo(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
     // Transform from relative world space to decal space (DS) to clip the decal
@@ -65,14 +70,19 @@ void Frag(  PackedVaryingsToPS packedInput,
     GetSurfaceData(input, V, posInput, surfaceData);
 
 #endif        
-
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
         uint oldVal = UnpackByte(_DecalHTile[input.positionSS.xy / 8]);
         oldVal |= surfaceData.HTileMask;
         _DecalHTile[input.positionSS.xy / 8] = PackByte(oldVal);
+#endif
 
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
     }
 #endif
 
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
+#else
+    outEmissive = surfaceData.emissive;
+#endif
 }

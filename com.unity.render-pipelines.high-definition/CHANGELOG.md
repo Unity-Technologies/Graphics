@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added icons for assets.
 - Added new UI for decal material to allow remapping and scaling of some properties
 - Added first draft of documentation for HDRP
+- Added emissive property for decal material (non-shader graph)
 
 ### Fixed
 - Fixed normal map use for shadow bias with forward lit - now use geometric normal

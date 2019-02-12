@@ -19,6 +19,17 @@ Shader "HDRP/Decal"
 		[ToggleUI] _MaskmapSmoothness("_MaskmapSmoothness", Range(0.0, 1.0)) = 1.0
 		[HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0 
 		[HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
+        [ToggleUI] _Emissive("_Emissive", Range(0.0, 1.0)) = 0.0
+        [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
+        // Used only to serialize the LDR and HDR emissive color in the material UI,
+        // in the shader only the _EmissiveColor should be used
+        [HideInInspector] _EmissiveColorLDR("EmissiveColor LDR", Color) = (0, 0, 0)
+        [HDR][HideInInspector] _EmissiveColorHDR("EmissiveColor HDR", Color) = (0, 0, 0)
+        _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
+        [HideInInspector] _EmissiveIntensityUnit("Emissive Mode", Int) = 0
+        [ToggleUI] _UseEmissiveIntensity("Use Emissive Intensity", Int) = 0
+        _EmissiveIntensity("Emissive Intensity", Float) = 1
+
 
         // Stencil state
         [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 8 
@@ -44,10 +55,11 @@ Shader "HDRP/Decal"
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
-    #pragma shader_feature _COLORMAP
-    #pragma shader_feature _NORMALMAP
-    #pragma shader_feature _MASKMAP
-	#pragma shader_feature _ALBEDOCONTRIBUTION
+    #pragma shader_feature_local _COLORMAP
+    #pragma shader_feature_local _NORMALMAP
+    #pragma shader_feature_local _MASKMAP
+    #pragma shader_feature_local _EMISSIVEMAP
+	#pragma shader_feature_local _ALBEDOCONTRIBUTION
 
     #pragma multi_compile_instancing
 
@@ -110,7 +122,7 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
@@ -133,7 +145,7 @@ Shader "HDRP/Decal"
 		// 7 - Metal + AO + Smoothness
 		//
 
-		Pass
+		Pass // 1
 		{
 			Name "DBufferProjector_M"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_M"} // Metalness
@@ -166,12 +178,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-		Pass
+		Pass // 2
 		{
 			Name "DBufferProjector_AO"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_AO"} // AO only
@@ -203,12 +215,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-		Pass
+		Pass // 3
 		{
 			Name "DBufferProjector_MAO"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_MAO"} // AO + Metalness
@@ -240,12 +252,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-		Pass
+		Pass // 4
 		{
 			Name "DBufferProjector_S"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_S"} // Smoothness - also use as DBufferProjector_3RT
@@ -279,12 +291,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-		Pass
+		Pass // 5
 		{
 			Name "DBufferProjector_MS"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_MS"} // Smoothness and Metalness
@@ -317,13 +329,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-
-		Pass
+		Pass // 6
 		{
 			Name "DBufferProjector_AOS"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_AOS"} // AO + Smoothness
@@ -356,12 +367,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-        Pass
+        Pass // 7
         {
             Name "DBufferProjector_MAOS"  // Name is not used
             Tags { "LightMode" = "DBufferProjector_MAOS" } // Metalness AO and Smoothness
@@ -391,7 +402,7 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
             ENDHLSL
         }
@@ -405,7 +416,7 @@ Shader "HDRP/Decal"
 		// 13 - AO + Smoothness
 		// 14 - Metal + AO + Smoothness
 
-		Pass
+		Pass // 8
 		{
 			Name "DBufferMesh_M"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_M"} // Metalness
@@ -436,12 +447,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-		Pass
+		Pass // 9
 		{
 			Name "DBufferMesh_AO"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_AO"} // AO only
@@ -472,12 +483,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-		Pass
+		Pass // 10
 		{
 			Name "DBufferMesh_MAO"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_MAO"} // AO + Metalness
@@ -508,12 +519,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-		Pass
+		Pass // 11
 		{
 			Name "DBufferMesh_S"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_S"} // Smoothness
@@ -543,13 +554,13 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
 
-		Pass
+		Pass // 12
 		{
 			Name "DBufferMesh_MS"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_MS"} // Smoothness and Metalness
@@ -580,12 +591,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-		Pass
+		Pass // 13
 		{
 			Name "DBufferMesh_AOS"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_AOS"} // AO + Smoothness
@@ -616,12 +627,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
 
-		Pass
+		Pass // 14
 		{
 			Name "DBufferMesh_MAOS"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_MAOS"} // Metalness AO and Smoothness
@@ -649,10 +660,72 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
 			ENDHLSL
 		}
+            
+        Pass // 15
+        {
+            Name "Projector_Emissive"
+            Tags{ "LightMode" = "Projector_Emissive" } // Emissive
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+            // back faces with zfail, for cases when camera is inside the decal volume
+            Cull Front
+            ZWrite Off
+            ZTest Greater
+
+            // additive
+            Blend 0 SrcAlpha One
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_PROJECTOR
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass // 16
+        {
+            Name "Mesh_Emissive"
+            Tags{ "LightMode" = "Mesh_Emissive" } // Emissive
+
+            Stencil
+            {
+                WriteMask[_DecalStencilWriteMask]
+                Ref[_DecalStencilRef]
+                Comp Always
+                Pass Replace
+            }
+            // back faces with zfail, for cases when camera is inside the decal volume
+            ZWrite Off
+            ZTest LEqual
+
+            // additive
+            Blend 0 SrcAlpha One
+
+            HLSLPROGRAM      
+
+            #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_MESH
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+
+			ENDHLSL
+		}
+
 	}
     CustomEditor "Experimental.Rendering.HDPipeline.DecalUI"
 }
