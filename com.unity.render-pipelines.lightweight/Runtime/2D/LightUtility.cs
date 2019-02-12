@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Vector4[] volumeColors;
 
             int centerIndex;
-            if (feathering <= 0.0f || feathering >= 1.0f)
+            if (feathering <= 0.0f)
             {
                 vertices = new Vector3[1 + sides];
                 triangles = new int[3 * sides];
@@ -93,25 +93,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     triangles[triangleIndex + 1] = i;
                     triangles[triangleIndex + 2] = centerIndex;
                 }
-                else if (feathering >= 1.0f)
-                {
-                    vertexIndex = (i + 1) % sides;
-                    vertices[vertexIndex] = endPoint;
-                    colors[vertexIndex] = transparentColor;
-                    volumeColors[vertexIndex] = volumeColor;
-
-                    int triangleIndex = 3 * i;
-                    triangles[triangleIndex] = vertexIndex;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = centerIndex;
-                }
                 else
                 {
-                    Vector3 endSplitPoint = (1 - feathering) * endPoint;
+                    Vector3 endSplitPoint = (1.0f + feathering * 2.0f) * endPoint;
                     vertexIndex = (2 * i + 2) % (2 * sides);
 
-                    vertices[vertexIndex] = endPoint;
-                    vertices[vertexIndex + 1] = endSplitPoint;
+                    vertices[vertexIndex] = endSplitPoint;
+                    vertices[vertexIndex + 1] = endPoint;
 
                     colors[vertexIndex] = transparentColor;
                     colors[vertexIndex + 1] = color;
