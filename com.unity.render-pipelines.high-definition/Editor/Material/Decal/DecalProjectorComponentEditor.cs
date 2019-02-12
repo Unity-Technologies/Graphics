@@ -135,7 +135,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // only display the affects transparent property if material is HDRP/decal
             if (DecalSystem.IsHDRenderPipelineDecal(m_DecalProjectorComponent.Mat.shader.name))
             {
-                EditorGUILayout.PropertyField(m_AffectsTransparencyProperty);
+                EditorGUILayout.PropertyField(m_AffectsTransparencyProperty, new GUIContent("Affects Transparent Material"));
             }
 
             if (EditorGUI.EndChangeCheck())

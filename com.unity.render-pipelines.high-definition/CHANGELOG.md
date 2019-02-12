@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Quarter Res Raytraced Reflections (not enabled)
 - Added fade factor for decal projectors.
 - Added stereo instancing macros to most shaders used in VR
+- Added emissive property for decal material (non-shader graph)
 - Added multi edition support for HDRenderPipelineAsset
 
 ### Fixed
