@@ -81,6 +81,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Reflection Quarter Res Data
         [Range(0.01f, 1.0f)]
         public float reflTemporalAccumulationWeight = 0.1f;
+        [Range(1, 5)]
+        public int reflSpatialFilterRadius = 3;
 
         // Data for the integration modeJe su
         // Number of Samples for the integration

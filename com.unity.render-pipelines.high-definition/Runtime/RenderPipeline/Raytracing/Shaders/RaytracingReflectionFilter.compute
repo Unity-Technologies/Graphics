@@ -19,7 +19,7 @@
 
 // Input textures for the spatial filtering
 Texture2D<float>                    _DepthTexture;
-Texture2D<float4>                   _NoiseTexture;
+Texture2DArray<float>               _NoiseTexture;
 Texture2D<float4>                   _SsrLightingTextureRW;
 Texture2D<float4>                   _SsrHitPointTexture;
 
@@ -28,6 +28,7 @@ RWTexture2D<float4>                 _RaytracingReflectionTexture;
 RWTexture2D<float>                  _VarianceTexture;
 RWTexture2D<float4>                 _MaxColorRangeTexture;
 RWTexture2D<float4>                 _MinColorRangeTexture;
+int                                 _SpatialFilterRadius;
 
 // Input and Output data of the temporal accumulation pass
 RWTexture2D<float4>                 _CurrentFrameTexture;
@@ -40,6 +41,9 @@ void RaytracingReflectionFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     // Compute the half res coordinate that we shall be using for our effect
     uint2 halfResCoord = groupId * RAYTRACING_REFLECTION_TILE_SIZE + groupThreadId;
     halfResCoord.x = halfResCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    // Compute the index of the noise texture to use
+    int noiseIndex = (int)(clamp((int)(_ScramblingTexture[halfResCoord].y * 32.0f), 0, 31));
 
     // For all the pixels of the subcell, we shall compute the parameters that will be used for the spatial filter
     float depth[4];
@@ -98,13 +102,12 @@ void RaytracingReflectionFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
         }
     }
 
-    int radius = 4;
-    for(int y = -radius; y < radius; ++y)
+    for(int y = -_SpatialFilterRadius; y < _SpatialFilterRadius; ++y)
     {
-        for(int x = -radius; x < radius; ++x)
+        for(int x = -_SpatialFilterRadius; x < _SpatialFilterRadius; ++x)
         {
             float radiusDistance = sqrt(y*y + x*x);
-            if(radiusDistance > radius) continue;
+            if(radiusDistance > _SpatialFilterRadius) continue;
 
             // Compute the noise position that shall be used
             int2 relativeHRShift = uint2(8 + x, 8 + y);
@@ -125,7 +128,7 @@ void RaytracingReflectionFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
             float4 sampleColor = _SsrLightingTextureRW[sourceCoord];
 
             // Compute the position of the actual source pixel
-            uint subPixel =  (uint)(sampleColor.w * 4.0);
+            uint subPixel =  clamp(floor(sampleColor.w * 4.0f), 0, 3);
             uint2 shift = HalfResIndexToCoordinateShift[subPixel];
             uint2 actualSourceCoord = sourceCoord + shift;
 
@@ -135,8 +138,8 @@ void RaytracingReflectionFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
             if(sampleDepth == 0.0f) continue;
 
             // Compute the target pixel that it will impact
-            float sample = _NoiseTexture[relativeHRShift].x;
-            uint index = floor(sample * 4.0f);
+            float sample = _NoiseTexture[int3(relativeHRShift, noiseIndex)].x;
+            int index = clamp(floor(sample * 4.0f), 0, 3);
 
             // If this direction is under the candidate surface, then it is not valid
             if(dot(directionPDF.xyz, normalWS[index]) <= 0.0f) continue;

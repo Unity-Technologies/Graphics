@@ -164,7 +164,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Pre-baked noise
             public Texture2D[] blueNoise16LTex;
             public Texture2D[] blueNoise16RGBTex;
-            public Texture2D[] coherentRGNoise128;
+            public Texture2D owenScrambledTex;
+            public Texture2D scramblingTex;
 
             // Post-processing
             public Texture2D[] filmGrainTex;
@@ -357,7 +358,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 blueNoise16LTex = new Texture2D[32],
                 blueNoise16RGBTex = new Texture2D[32],
-                coherentRGNoise128 = new Texture2D[16]
             };
 
             // ShaderGraphs
@@ -372,11 +372,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 textures.blueNoise16RGBTex[i] = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/BlueNoise16/RGB/LDR_RGB1_" + i + ".png");
             }
 
-            // Fill-in coherent noise textures
-            for (int i = 0; i < 8; i++)
-            {
-                textures.coherentRGNoise128[i] = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/CoherentNoise128/sample_" + i + "_xy.bmp");
-            }
+            // Coherent noise textures
+            textures.owenScrambledTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise.png");
+            textures.scramblingTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/CoherentNoise/ScrambleNoise.png");
         }
 #endif
     }

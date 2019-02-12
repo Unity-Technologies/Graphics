@@ -14,10 +14,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         const string msaaWarningMessage = "Manual MSAA target set with deferred rendering. This will lead to undefined behavior.";
 
-
-       static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Clear Mode", "The Clear Mode HDRP Cameras use to clear the screen.");
-        static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "The color HDRP uses to clear the screen when you set Clear Mode to Background Color.");
-        static readonly GUIContent clearDepthContent = EditorGUIUtility.TrTextContent("Clear Depth", "The Camera clears the depth buffer before rendering.");
+        static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Background Type", "Specifies the type of background the Camera applies when it clears the screen before rendering a frame.");
+        static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "The Background Color used to clear the screen when selecting Background Color before rendering.");
         static readonly GUIContent cullingMaskContent = EditorGUIUtility.TrTextContent("Culling Mask");
         static readonly GUIContent volumeLayerMaskContent = EditorGUIUtility.TrTextContent("Volume Layer Mask");
         static readonly GUIContent volumeAnchorOverrideContent = EditorGUIUtility.TrTextContent("Volume Anchor Override");

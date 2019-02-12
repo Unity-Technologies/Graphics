@@ -1454,7 +1454,7 @@ MonoBehaviour:
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
-      capturePositionProxySpace: {x: 0, y: 1.2225673, z: -0.36176518}
+      capturePositionProxySpace: {x: 0, y: -0.15535285, z: 0.13902478}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
