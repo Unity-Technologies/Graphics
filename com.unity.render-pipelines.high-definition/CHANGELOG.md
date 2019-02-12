@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added fade factor for decal projectors.
 - Added stereo instancing macros to most shaders used in VR
 - Added multi edition support for HDRenderPipelineAsset
+- Added emissive property for decal material (non-shader graph)
 
 ### Fixed
 - Fixed Decals when rendering multiple camera in a single frame
@@ -90,6 +91,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Lighting and BackLighting slots in Lit, StackLit, Fabric and Hair master nodes
 - Added xrInstancing flag support to RTHandle
 - Added support for cullmask for decal projectors
+- Added software dynamic resolution support
+- Added support for "After Post-Process" render pass for unlit shader
+- Added support for textured rectangular area lights
+- Added stereo instancing macros to MSAA shaders
+- Added support for Quarter Res Raytraced Reflections (not enabled)
+- Added fade factor for decal projectors.
+- Added stereo instancing macros to most shaders used in VR
+- Added multi edition support for HDRenderPipelineAsset
+- Added software dynamic resolution support
+- Added support for "After Post-Process" render pass for unlit shader
+- Added support for textured rectangular area lights
+- Added stereo instancing macros to MSAA shaders
+- Added support for Quarter Res Raytraced Reflections (not enabled)
+- Added fade factor for decal projectors.
+- Added stereo instancing macros to most shaders used in VR
+- Added multi edition support for HDRenderPipelineAsset
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
