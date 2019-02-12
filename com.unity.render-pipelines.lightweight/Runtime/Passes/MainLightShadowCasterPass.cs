@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.LWRP
         int m_ShadowmapHeight;
         int m_ShadowCasterCascadesCount;
 
+        RenderTargetHandle m_MainLightShadowmap;
         RenderTexture m_MainLightShadowmapTexture;
 
         Matrix4x4[] m_MainLightShadowMatrices;
@@ -33,9 +34,6 @@ namespace UnityEngine.Rendering.LWRP
         Vector4[] m_CascadeSplitDistances;
 
         const string k_RenderMainLightShadowmapTag = "Render Main Shadowmap";
-
-        private RenderTargetHandle destination { get; set; }
-
         public MainLightShadowCasterPass()
         {
             RegisterShaderPassName("ShadowCaster");
@@ -56,6 +54,8 @@ namespace UnityEngine.Rendering.LWRP
             MainLightShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_MainLightShadowOffset2");
             MainLightShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_MainLightShadowOffset3");
             MainLightShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
+
+            m_MainLightShadowmap.Init("_MainLightShadowmapTexture");
         }
 
         public override bool ShouldExecute(ref RenderingData renderingData)
@@ -102,11 +102,6 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             return true;
-        }
-
-        public void Setup(RenderTargetHandle destination, ref RenderingData renderingData)
-        {
-            this.destination = destination;
         }
 
         /// <inheritdoc/>
@@ -201,7 +196,7 @@ namespace UnityEngine.Rendering.LWRP
             float invShadowAtlasHeight = 1.0f / m_ShadowmapHeight;
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
-            cmd.SetGlobalTexture(destination.id, m_MainLightShadowmapTexture);
+            cmd.SetGlobalTexture(m_MainLightShadowmap.id, m_MainLightShadowmapTexture);
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0, m_CascadeSplitDistances[0]);

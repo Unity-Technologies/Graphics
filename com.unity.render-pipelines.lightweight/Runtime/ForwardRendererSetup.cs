@@ -21,13 +21,10 @@ namespace UnityEngine.Rendering.LWRP
         private SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
 #endif
 
-        private RenderTargetHandle m_ColorAttachment;
-        private RenderTargetHandle m_DepthAttachment;
-        private RenderTargetHandle m_DepthTexture;
-        private RenderTargetHandle m_OpaqueColor;
-        private RenderTargetHandle m_MainLightShadowmap;
-        private RenderTargetHandle m_AdditionalLightsShadowmap;
-        private RenderTargetHandle m_ScreenSpaceShadowmap;
+        RenderTargetHandle m_ColorAttachment;
+        RenderTargetHandle m_DepthAttachment;
+        RenderTargetHandle m_DepthTexture;
+        RenderTargetHandle m_OpaqueColor;
 
         ForwardLights m_ForwardLights;
 
@@ -63,10 +60,6 @@ namespace UnityEngine.Rendering.LWRP
             m_DepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
             m_OpaqueColor.Init("_CameraOpaqueTexture");
-            m_MainLightShadowmap.Init("_MainLightShadowmapTexture");
-            m_AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
-            m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
-
             m_ForwardLights = new ForwardLights();
         }
 
@@ -97,16 +90,10 @@ namespace UnityEngine.Rendering.LWRP
 
             bool mainLightShadows = m_MainLightShadowCasterPass.ShouldExecute(ref renderingData);
             if (mainLightShadows)
-            {
-                m_MainLightShadowCasterPass.Setup(m_MainLightShadowmap, ref renderingData);
                 EnqueuePass(m_MainLightShadowCasterPass, RenderPassBlock.BeforeMainRender);
-            }
 
             if (m_MainLightShadowCasterPass.ShouldExecute(ref renderingData))
-            {
-                m_AdditionalLightsShadowCasterPass.Setup(m_AdditionalLightsShadowmap, ref renderingData);
                 EnqueuePass(m_AdditionalLightsShadowCasterPass, RenderPassBlock.BeforeMainRender);
-            }
 
             bool resolveShadowsInScreenSpace = mainLightShadows && m_ScreenSpaceShadowResolvePass.ShouldExecute(ref renderingData);
             bool requiresDepthPrepass = resolveShadowsInScreenSpace || m_DepthOnlyPass.ShouldExecute(ref renderingData);
@@ -149,7 +136,7 @@ namespace UnityEngine.Rendering.LWRP
 
             if (resolveShadowsInScreenSpace)
             {
-                m_ScreenSpaceShadowResolvePass.Setup(baseDescriptor, m_ScreenSpaceShadowmap);
+                m_ScreenSpaceShadowResolvePass.Setup(baseDescriptor);
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
@@ -165,7 +152,7 @@ namespace UnityEngine.Rendering.LWRP
 
             if (m_OpaquePostProcessPass.ShouldExecute(ref renderingData))
             {
-                m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle, colorHandle, false);
+                m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle, colorHandle);
 
                 EnqueuePasses(RenderPassFeature.InjectionPoint.AfterOpaquePostProcessPasses, injectionPoints,
                     baseDescriptor, colorHandle, depthHandle);
@@ -177,7 +164,9 @@ namespace UnityEngine.Rendering.LWRP
                 // them. Ideally we need a render graph here that each render pass declares inputs and output
                 // attachments and their Load/Store action so we figure out properly if we can combine passes
                 // and move to interleaved rendering with RenderPass API.
-                bool combineWithRenderOpaquesPass = !CoreUtils.HasFlag(injectionPoints, RenderPassFeature.InjectionPoint.AfterOpaquePostProcessPasses);
+                bool combineWithRenderOpaquesPass =
+                    !CoreUtils.HasFlag(injectionPoints, RenderPassFeature.InjectionPoint.AfterOpaqueRenderPasses) &&
+                    !CoreUtils.HasFlag(injectionPoints, RenderPassFeature.InjectionPoint.AfterOpaquePostProcessPasses);
                 m_DrawSkyboxPass.Setup(baseDescriptor, colorHandle, depthHandle, combineWithRenderOpaquesPass);
                 EnqueuePass(m_DrawSkyboxPass);
             }
@@ -214,7 +203,7 @@ namespace UnityEngine.Rendering.LWRP
                 // perform post with src / dest the same
                 if (m_PostProcessPass.ShouldExecute(ref renderingData))
                 {
-                    m_PostProcessPass.Setup(baseDescriptor, colorHandle, colorHandle, false);
+                    m_PostProcessPass.Setup(baseDescriptor, colorHandle, colorHandle);
                     EnqueuePass(m_PostProcessPass, RenderPassBlock.AfterMainRender);
                 }
 
@@ -226,11 +215,11 @@ namespace UnityEngine.Rendering.LWRP
                 {
                     if (m_CapturePass.ShouldExecute(ref renderingData))
                     {
-                        m_CapturePass.Setup(colorHandle, renderingData.cameraData.captureActions);
+                        m_CapturePass.Setup(colorHandle);
                         EnqueuePass(m_CapturePass, RenderPassBlock.AfterMainRender);
                     }
 
-                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle, Display.main.requiresSrgbBlitToBackbuffer, renderingData.killAlphaInFinalBlit);
+                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle);
                     EnqueuePass(m_FinalBlitPass, RenderPassBlock.AfterMainRender);
                 }
             }
@@ -238,12 +227,12 @@ namespace UnityEngine.Rendering.LWRP
             {
                 if (m_PostProcessPass.ShouldExecute(ref renderingData))
                 {
-                    m_PostProcessPass.Setup(baseDescriptor, colorHandle, RenderTargetHandle.CameraTarget, true);
+                    m_PostProcessPass.Setup(baseDescriptor, colorHandle, RenderTargetHandle.CameraTarget);
                     EnqueuePass(m_PostProcessPass, RenderPassBlock.AfterMainRender);
                 }
                 else if (colorHandle != RenderTargetHandle.CameraTarget)
                 {
-                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle, Display.main.requiresSrgbBlitToBackbuffer, renderingData.killAlphaInFinalBlit);
+                    m_FinalBlitPass.Setup(baseDescriptor, colorHandle);
                     EnqueuePass(m_FinalBlitPass, RenderPassBlock.AfterMainRender);
                 }
             }

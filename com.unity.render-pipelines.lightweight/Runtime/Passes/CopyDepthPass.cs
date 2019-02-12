@@ -82,18 +82,15 @@ namespace UnityEngine.Rendering.LWRP
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
-        
+
         /// <inheritdoc/>
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
-            if (destination != RenderTargetHandle.CameraTarget)
-            {
-                cmd.ReleaseTemporaryRT(destination.id);
-                destination = RenderTargetHandle.CameraTarget;
-            }
+
+            cmd.ReleaseTemporaryRT(destination.id);
+            destination = RenderTargetHandle.CameraTarget;
         }
     }
 }

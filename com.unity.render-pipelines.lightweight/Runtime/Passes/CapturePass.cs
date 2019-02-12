@@ -13,17 +13,15 @@ namespace UnityEngine.Rendering.LWRP
     {
         const string k_CaptureTag = "Capture Pass";
 
-        private RenderTargetHandle colorAttachmentHandle { get; set; }
-        private IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > captureActions { get; set; }
+        RenderTargetHandle m_CameraColorHandle;
 
         /// <summary>
         /// Configure the pass
         /// </summary>
         /// <param name="actions"></param>
-        public void Setup(RenderTargetHandle colorAttachmentHandle, IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > actions)
+        public void Setup(RenderTargetHandle colorHandle)
         {
-            this.colorAttachmentHandle = colorAttachmentHandle;
-            captureActions = actions;
+            m_CameraColorHandle = colorHandle;
         }
 
         public override bool ShouldExecute(ref RenderingData renderingData)
@@ -35,7 +33,8 @@ namespace UnityEngine.Rendering.LWRP
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmdBuf = CommandBufferPool.Get(k_CaptureTag);
-            var colorAttachmentIdentifier = colorAttachmentHandle.Identifier();
+            var colorAttachmentIdentifier = m_CameraColorHandle.Identifier();
+            var captureActions = renderingData.cameraData.captureActions;
             for (captureActions.Reset(); captureActions.MoveNext();)
                 captureActions.Current(colorAttachmentIdentifier, cmdBuf);
 

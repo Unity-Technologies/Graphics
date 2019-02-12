@@ -11,11 +11,9 @@ namespace UnityEngine.Rendering.LWRP
     {
         const string k_FinalBlitTag = "Final Blit Pass";
 
-        private RenderTargetHandle colorAttachmentHandle { get; set; }
-        private RenderTextureDescriptor descriptor { get; set; }
-        private bool requiresSRGConversion { get; set; }
-        private bool killAlpha { get; set; }
+        RenderTargetHandle m_Source;
         Material m_BlitMaterial;
+        TextureDimension m_TargetDimension;
 
         public FinalBlitPass(Material blitMaterial)
         {
@@ -26,13 +24,11 @@ namespace UnityEngine.Rendering.LWRP
         /// Configure the pass
         /// </summary>
         /// <param name="baseDescriptor"></param>
-        /// <param name="colorAttachmentHandle"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorAttachmentHandle, bool requiresSRGConversion, bool killAlpha)
+        /// <param name="colorHandle"></param>
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
-            this.colorAttachmentHandle = colorAttachmentHandle;
-            this.descriptor = baseDescriptor;
-            this.requiresSRGConversion = requiresSRGConversion;
-            this.killAlpha = killAlpha;
+            m_Source = colorHandle;
+            m_TargetDimension = baseDescriptor.dimension;
         }
 
         /// <inheritdoc/>
@@ -44,9 +40,12 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
+            bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
+            bool killAlpha = renderingData.killAlphaInFinalBlit;
+
             CommandBuffer cmd = CommandBufferPool.Get(k_FinalBlitTag);
 
-            if (requiresSRGConversion)
+            if (requiresSRGBConvertion)
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
@@ -58,11 +57,11 @@ namespace UnityEngine.Rendering.LWRP
 
             if (renderingData.cameraData.isStereoEnabled || renderingData.cameraData.isSceneViewCamera)
             {
-                cmd.Blit(colorAttachmentHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
+                cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget);
             }
             else
             {
-                cmd.SetGlobalTexture("_BlitTex", colorAttachmentHandle.Identifier());
+                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
                 SetRenderTarget(
                     cmd,
@@ -71,7 +70,7 @@ namespace UnityEngine.Rendering.LWRP
                     RenderBufferStoreAction.Store,
                     ClearFlag.None,
                     Color.black,
-                    descriptor.dimension);
+                    m_TargetDimension);
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(renderingData.cameraData.camera.pixelRect);

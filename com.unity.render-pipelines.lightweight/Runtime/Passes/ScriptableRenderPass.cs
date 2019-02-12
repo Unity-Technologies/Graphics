@@ -92,11 +92,6 @@ namespace UnityEngine.Rendering.LWRP
             return true;
         }
 
-        public virtual void Setup(ref RenderingData renderingData)
-        {
-
-        }
-
         /// <summary>
         /// Execute the pass. This is where custom rendering occurs. Specific details are left to the implementation
         /// </summary>

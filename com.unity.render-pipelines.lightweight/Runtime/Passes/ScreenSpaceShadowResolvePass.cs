@@ -5,30 +5,23 @@ namespace UnityEngine.Rendering.LWRP
     internal class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         const string k_CollectShadowsTag = "Collect Shadows";
-        RenderTextureFormat m_ColorFormat;
         Material m_ScreenSpaceShadowsMaterial;
+        RenderTargetHandle m_ScreenSpaceShadowmap;
+        RenderTextureDescriptor m_RenderTextureDescriptor;
 
         public ScreenSpaceShadowResolvePass(Material screenspaceShadowsMaterial)
         {
-            m_ColorFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
-                ? RenderTextureFormat.R8
-                : RenderTextureFormat.ARGB32;
-
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
+            m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
         }
 
-        private RenderTargetHandle colorAttachmentHandle { get; set; }
-        private RenderTextureDescriptor descriptor { get; set; }
-
-        public void Setup(
-            RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle colorAttachmentHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor)
         {
-            this.colorAttachmentHandle = colorAttachmentHandle;
-
-            baseDescriptor.depthBufferBits = 0;
-            baseDescriptor.colorFormat = m_ColorFormat;
-            descriptor = baseDescriptor;
+            m_RenderTextureDescriptor = baseDescriptor;
+            m_RenderTextureDescriptor.depthBufferBits = 0;
+            m_RenderTextureDescriptor.colorFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
+                ? RenderTextureFormat.R8
+                : RenderTextureFormat.ARGB32;
         }
 
         public override bool ShouldExecute(ref RenderingData renderingData)
@@ -50,16 +43,16 @@ namespace UnityEngine.Rendering.LWRP
 
             CommandBuffer cmd = CommandBufferPool.Get(k_CollectShadowsTag);
 
-            cmd.GetTemporaryRT(colorAttachmentHandle.id, descriptor, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
 
             // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that
             // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
             // stereo functionality, we use the screen-space shadow map as the source (until we have
             // a better solution).
             // An alternative would be DrawProcedural, but that would require further changes in the shader.
-            RenderTargetIdentifier screenSpaceOcclusionTexture = colorAttachmentHandle.Identifier();
+            RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
             SetRenderTarget(cmd, screenSpaceOcclusionTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                ClearFlag.Color | ClearFlag.Depth, Color.white, descriptor.dimension);
+                ClearFlag.Color | ClearFlag.Depth, Color.white, m_RenderTextureDescriptor.dimension);
 
             // This blit is troublesome. When MSAA is enabled it will render a fullscreen quad + store resolved MSAA + extra blit
             // This consumes about 10MB of extra unnecessary bandwidth on boat attack.
@@ -77,11 +70,7 @@ namespace UnityEngine.Rendering.LWRP
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
-            {
-                cmd.ReleaseTemporaryRT(colorAttachmentHandle.id);
-                colorAttachmentHandle = RenderTargetHandle.CameraTarget;
-            }
+            cmd.ReleaseTemporaryRT(m_ScreenSpaceShadowmap.id);
         }
     }
 }
