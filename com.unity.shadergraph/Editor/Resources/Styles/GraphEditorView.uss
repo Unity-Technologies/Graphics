@@ -2,19 +2,18 @@ BlackboardRow.hovered #pill #selection-border
 {
     background-color:rgba(68,192,255,0.4);
     border-color: #44C0FF;
-    border-left-width:2;
-    border-top-width:2;
-    border-right-width:2;
-    border-bottom-width:2;
-    position-left:1;
-    position-right:1;
-    position-top:1;
-    position-bottom:1;
+    border-left-width: 2px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    left: 1px;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
 }
 
 GraphEditorView {
     flex-direction: column;
-    background: #f00;
     flex: 1;
 }
 
@@ -32,7 +31,7 @@ GraphEditorView > #content > #GraphView {
 }
 
 GraphEditorView > #content > #inspector {
-    width: 400;
+    width: 400px;
 }
 
 .edge.fromMatrix4, .edge.fromMatrix3, .edge.fromMatrix2 {
@@ -91,9 +90,9 @@ GraphEditorView > #content > #inspector {
 
 #resizeBorderFrame > .resize.vertical {
     cursor: resize-vertical;
-    height: 10;
-    left: 10;
-    right: 10;
+    height: 10px;
+    left: 10px;
+    right: 10px;
     padding-top: 0;
     padding-bottom: 0;
     margin-top: 0;
@@ -102,9 +101,9 @@ GraphEditorView > #content > #inspector {
 
 #resizeBorderFrame > .resize.horizontal {
     cursor: resize-horizontal;
-    width: 10;
-    top: 10;
-    bottom: 10;
+    width: 10px;
+    top: 10px;
+    bottom: 10px;
     padding-left: 0;
     padding-right: 0;
     margin-left: 0;
@@ -112,8 +111,8 @@ GraphEditorView > #content > #inspector {
 }
 
 #resizeBorderFrame > .resize.diagonal {
-    width: 10;
-    height: 6;
+    width: 10px;
+    height: 6px;
 }
 
 #resizeBorderFrame > .resize.diagonal.top-left {
@@ -166,19 +165,19 @@ GraphEditorView > #content > #inspector {
 
 .nodeEditor {
     border-color: rgb(79, 79, 79);
-    border-bottom-width: 1;
-    padding-top: 10;
+    border-bottom-width: 1px;
+    padding-top: 10px;
 }
 
 NodeEditorHeaderView {
-    padding-left: 16;
-    padding-right: 16;
-    padding-bottom: 10;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 10px;
     flex-direction: row;
 }
 
 NodeEditorHeaderView > #preType {
-    margin-left: 10;
+    margin-left: 10px;
 }
 
 NodeEditorHeaderView > #preType,
@@ -189,11 +188,11 @@ NodeEditorHeaderView > #type {
 
 NodeEditorHeaderView > #title {
     color: rgb(180, 180, 180);
-    font-style: bold;
+    -unity-font-style: bold;
 }
 
 .nodeEditor > .section {
-    padding-bottom: 10;
+    padding-bottom: 10px;
 }
 
 .nodeEditor > .section.hidden {
@@ -203,26 +202,26 @@ NodeEditorHeaderView > #title {
 
 .nodeEditor > .section > .title {
     color: rgb(180, 180, 180);
-    font-style: bold;
-    padding-left: 16;
-    padding-right: 16;
-    padding-bottom: 2;
+    -unity-font-style: bold;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 2px;
 }
 
 .nodeEditor > .section > #slots {
     flex-direction: column;
-    padding-left: 15;
-    padding-right: 15;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 .nodeEditor > .section#surfaceOptions {
-    padding-left: 15;
-    padding-right: 15;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 IMGUISlotEditorView {
     flex-direction: column;
-    padding-bottom: 2;
+    padding-bottom: 2px;
 }
 
 ObjectControlView {
@@ -234,24 +233,24 @@ ObjectControlView > ObjectField {
 }
 
 PropertyControlView {
-    padding-left: 8;
-    padding-right: 8;
-    padding-top: 4;
-    padding-bottom: 4;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 /* TEMP STUFF THAT SHOULD ACTUALLY STAY IN GRAPHVIEW */
 
 .unity-Doublefield-input {
-    min-height: 15;
-    margin-left: 4;
-    margin-top: 2;
-    margin-right: 4;
-    margin-bottom: 2;
-    padding-left: 3;
-    padding-top: 1;
-    padding-right: 3;
-    padding-bottom: 2;
+    min-height: 15px;
+    margin-left: 4px;
+    margin-top: 2px;
+    margin-right: 4px;
+    margin-bottom: 2px;
+    padding-left: 3px;
+    padding-top: 1px;
+    padding-right: 3px;
+    padding-bottom: 2px;
     -unity-slice-left: 3;
     -unity-slice-top: 3;
     -unity-slice-right: 3;
