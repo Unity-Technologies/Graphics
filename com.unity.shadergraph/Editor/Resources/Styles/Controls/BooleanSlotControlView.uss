@@ -4,7 +4,7 @@ BooleanSlotControlView {
 }
 
 .unity-base-field {
-    width: 20;
-    margin-top: 1;
-    margin-bottom: 3;
+    width: 20px;
+    margin-top: 1px;
+    margin-bottom: 3px;
 }
