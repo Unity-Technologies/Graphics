@@ -7,8 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Tester_SLSG 2 (test 2lobe direct, coat, coatnormal, occC != occA != occB,
-    aniso enable but null effect)
+  m_Name: Tester_SLSG_2
   m_Shader: {fileID: -6465566751694194690, guid: fd5797f62b2b8174184adc54cc5ae401,
     type: 3}
   m_ShaderKeywords: _ANISOTROPY_FOR_AREA_LIGHTS _BENTNORMALMAP _ENABLESPECULAROCCLUSION
