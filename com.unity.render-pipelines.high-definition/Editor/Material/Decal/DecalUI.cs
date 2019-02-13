@@ -172,10 +172,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissive = FindProperty(kEmissive, props);
-            useEmissiveIntensity = FindProperty(kUseEmissiveIntensity, props);
-            emissiveIntensityUnit = FindProperty(kEmissiveIntensityUnit, props);
-            emissiveIntensity = FindProperty(kEmissiveIntensity, props);
-            emissiveColorLDR = FindProperty(kEmissiveColorLDR, props);
             emissiveColorHDR = FindProperty(kEmissiveColorHDR, props);
 
             // always instanced
@@ -340,30 +336,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.ShaderProperty(emissive, "Emissive");
                         if (emissive.floatValue == 1.0f)
                         {
-                            m_MaterialEditor.ShaderProperty(useEmissiveIntensity, "Use Emission Intensity");
-
-                            if(useEmissiveIntensity.floatValue == 1.0f)
-                            {
-                                m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColorLDR);
-                                using (new EditorGUILayout.HorizontalScope())
-                                {
-                                    EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
-
-                                    if (unit == EmissiveIntensityUnit.Luminance)
-                                        m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-                                    else
-                                    {
-                                        float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
-                                        evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                                        emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
-                                    }
-                                    emissiveIntensityUnit.floatValue = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
-                                }
-                            }
-                            else
-                            {
-                                m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColorHDR);
-                            }
+                            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColorHDR);
                         }
 
                         EditorGUI.indentLevel--;
@@ -382,14 +355,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         smoothnessRemapMax.floatValue = smoothnessRemapMaxValue;
                         AORemapMin.floatValue = AORemapMinValue;
                         AORemapMax.floatValue = AORemapMaxValue;
-                        if (useEmissiveIntensity.floatValue == 1.0f)
-                        {
-                            emissiveColor.colorValue = emissiveColorLDR.colorValue * emissiveIntensity.floatValue;
-                        }
-                        else
-                        {
-                            emissiveColor.colorValue = emissiveColorHDR.colorValue;
-                        }
+                        emissiveColor.colorValue = emissiveColorHDR.colorValue;
 
                         foreach (var obj in m_MaterialEditor.targets)
                             SetupMaterialKeywordsAndPassInternal((Material)obj);

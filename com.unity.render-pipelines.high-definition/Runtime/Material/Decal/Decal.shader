@@ -55,11 +55,11 @@ Shader "HDRP/Decal"
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
-    #pragma shader_feature_local _COLORMAP
-    #pragma shader_feature_local _NORMALMAP
-    #pragma shader_feature_local _MASKMAP
-    #pragma shader_feature_local _EMISSIVEMAP
-	#pragma shader_feature_local _ALBEDOCONTRIBUTION
+    #pragma shader_feature _COLORMAP
+    #pragma shader_feature _NORMALMAP
+    #pragma shader_feature _MASKMAP
+    #pragma shader_feature _EMISSIVEMAP
+	#pragma shader_feature _ALBEDOCONTRIBUTION
 
     #pragma multi_compile_instancing
 
@@ -72,7 +72,6 @@ Shader "HDRP/Decal"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration

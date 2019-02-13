@@ -1385,9 +1385,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderDeferredLighting(hdCamera, cmd);
 
-                        RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
+                RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
 
-                RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.OpaqueEmissive);
+                RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.OpaqueEmissive);
 
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_SSSBufferManager.GetSSSBufferMSAA(0), m_SSSBufferManager.GetSSSBuffer(0));
@@ -1851,9 +1851,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 
-        void RenderDecalsForwardEmissive(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cullResults)
+        void RenderDecalsForwardEmissive(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullResults cullResults)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            if (!hdCamera.frameSettings.enableDecals)
                 return;
 
             using (new ProfilingSample(cmd, "DecalsForwardEmissive", CustomSamplerId.DecalsForwardEmissive.GetSampler()))
@@ -1861,19 +1861,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                var sortingSettings = new SortingSettings(hdCamera.camera)
-                {
-                    criteria = SortingCriteria.CommonOpaque
-                };
-
-                var drawSettings = new DrawingSettings(HDShaderPassNames.s_EmptyName, sortingSettings)
-                {
-                    perObjectData = PerObjectData.None
+                var drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
+                { 
+                    rendererConfiguration = 0,
+                    sorting = { flags = SortFlags.CommonOpaque }
                 };
 
                 drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsForwardEmissiveName);
-                FilteringSettings filterRenderersSettings = new FilteringSettings(HDRenderQueue.k_RenderQueue_AllOpaque);
-                renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterRenderersSettings);
+                FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
+                };
+                renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
                 DecalSystem.instance.RenderForwardEmissive(cmd);
             }
         }
@@ -2066,62 +2065,62 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
+                    m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
 
-                if (pass == ForwardPass.Opaque)
-                {
-                    // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
-                    if (hdCamera.frameSettings.enableSubsurfaceScattering)
+                    if (pass == ForwardPass.Opaque)
                     {
-                        if(hdCamera.frameSettings.enableMSAA)
+                        // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
+                        if (hdCamera.frameSettings.enableSubsurfaceScattering)
                         {
-                            m_MRTWithSSS[0] = m_CameraColorMSAABuffer; // Store the specular color
-                            m_MRTWithSSS[1] = m_CameraSssDiffuseLightingMSAABuffer;
-                            for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                            if(hdCamera.frameSettings.enableMSAA)
                             {
-                                m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBufferMSAA(i);
+                                m_MRTWithSSS[0] = m_CameraColorMSAABuffer; // Store the specular color
+                                m_MRTWithSSS[1] = m_CameraSssDiffuseLightingMSAABuffer;
+                                for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                                {
+                                    m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBufferMSAA(i);
+                                }
                             }
+                            else
+                            {
+                                m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
+                                m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
+                                for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                                {
+                                    m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffer(i);
+                                }
+                            }
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
                         }
                         else
                         {
-                            m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
-                            m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
-                            for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
-                            {
-                                m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffer(i);
-                            }
+                            HDUtils.SetRenderTarget(cmd, hdCamera, hdCamera.frameSettings.enableMSAA ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
                         }
-                        HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
+
+                        var passNames = hdCamera.frameSettings.shaderLitMode == LitShaderMode.Forward
+                            ? m_ForwardAndForwardOnlyPassNames
+                            : m_ForwardOnlyPassNames;
+                        RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
                     }
                     else
                     {
                         HDUtils.SetRenderTarget(cmd, hdCamera, hdCamera.frameSettings.enableMSAA ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
-                    }
-
-                    var passNames = hdCamera.frameSettings.shaderLitMode == LitShaderMode.Forward
-                        ? m_ForwardAndForwardOnlyPassNames
-                        : m_ForwardOnlyPassNames;
-                    RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
-                }
-                else
-                {
-                    HDUtils.SetRenderTarget(cmd, hdCamera, hdCamera.frameSettings.enableMSAA ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.enableMSAA));
-                    if ((hdCamera.frameSettings.enableDecals) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
-                                                                                                      // decal datas count is 0 if no decals affect transparency
-                    {
-                        DecalSystem.instance.SetAtlas(cmd); // for clustered decals
-                    }
+                        if ((hdCamera.frameSettings.enableDecals) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                                                                                                          // decal datas count is 0 if no decals affect transparency
+                        {
+                            DecalSystem.instance.SetAtlas(cmd); // for clustered decals
+                        }
 
 
-                    RenderQueueRange transparentRange = pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent;
-                    if(!hdCamera.frameSettings.enableRoughRefraction)
-                    {
-                        transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
+                        RenderQueueRange transparentRange = pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent;
+                        if(!hdCamera.frameSettings.enableRoughRefraction)
+                        {
+                            transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
+                        }
+                        RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd,  m_Asset.renderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames, m_currentRendererConfigurationBakedLighting, transparentRange);
                     }
-                    RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd,  m_Asset.renderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames, m_currentRendererConfigurationBakedLighting, transparentRange);
                 }
             }
-        }
         }
 
         // This is use to Display legacy shader with an error shader

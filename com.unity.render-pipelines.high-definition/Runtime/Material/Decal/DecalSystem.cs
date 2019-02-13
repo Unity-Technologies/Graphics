@@ -555,7 +555,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 
                 int batchIndex = 0;
-                int totalToDraw = m_InstanceCount;
+                int totalToDraw = m_NumResults;
                 int shaderPass = 0;
                 if (m_IsHDRenderPipelineDecal)
                 {
@@ -566,7 +566,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     shaderPass = 2; // relies on the order shader passes are declared in DecalSubShader.cs
                 }
 
-                for (; batchIndex < m_InstanceCount / kDrawIndexedBatchSize; batchIndex++)
+                for (; batchIndex < m_NumResults / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);

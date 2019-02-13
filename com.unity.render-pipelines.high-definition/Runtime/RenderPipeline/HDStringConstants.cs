@@ -54,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly ShaderPassName s_MeshDecals3RTName = new ShaderPassName(s_MeshDecals3RTStr);
         public static readonly ShaderPassName s_ShaderGraphMeshDecalsName4RT = new ShaderPassName(s_ShaderGraphMeshDecals4RT);
         public static readonly ShaderPassName s_ShaderGraphMeshDecalsName3RT = new ShaderPassName(s_ShaderGraphMeshDecals3RT);
-        public static readonly ShaderTagId s_MeshDecalsForwardEmissiveName = new ShaderPassName(s_MeshDecalsForwardEmissive);
+        public static readonly ShaderPassName s_MeshDecalsForwardEmissiveName = new ShaderPassName(s_MeshDecalsForwardEmissive);
 
         // Legacy name
         public static readonly ShaderPassName s_AlwaysName = new ShaderPassName("Always");
