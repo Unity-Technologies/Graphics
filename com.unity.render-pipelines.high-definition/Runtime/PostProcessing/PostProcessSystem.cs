@@ -78,7 +78,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly TargetPool m_Pool;
 
-        readonly bool useSafePath;
+        readonly bool m_UseSafePath;
+        bool m_PostProcessEnabled;
+        bool m_AnimatedMaterialsEnabled;
 
         // Max guard band size is assumed to be 8 pixels
         const int k_RTGuardBandSize = 4;
@@ -93,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
-            useSafePath = SystemInfo.graphicsDeviceVendor
+            m_UseSafePath = SystemInfo.graphicsDeviceVendor
                 .ToLowerInvariant().Contains("intel");
 
             // Project-wise LUT size for all grading operations - meaning that internal LUTs and
@@ -197,6 +199,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void BeginFrame(CommandBuffer cmd, HDCamera camera)
         {
+            m_PostProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess) && CoreUtils.ArePostProcessesEnabled(camera.camera);
+            m_AnimatedMaterialsEnabled = CoreUtils.AreAnimatedMaterialsEnabled(camera.camera);
+
             // Grab physical camera settings or a default instance if it's null (should only happen
             // in rare occasions due to how HDAdditionalCameraData is added to the camera)
             m_PhysicalCamera = camera.physicalParameters ?? m_DefaultPhysicalCamera;
@@ -265,7 +270,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var source = colorBuffer;
 
-                if (camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess))
+                if (m_PostProcessEnabled)
                 {
                     // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
                     // content into smaller viewports with some effects like Bloom that rely on bilinear
@@ -298,8 +303,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     // Temporal anti-aliasing goes first
-                    bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing
-                        && camera.camera.cameraType == CameraType.Game;
+                    bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
 
                     if (taaEnabled)
                     {
@@ -325,7 +329,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
-                    if (m_MotionBlur.IsActive() && camera.camera.cameraType == CameraType.Game && !m_ResetHistory)
+                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !m_ResetHistory)
                     {
                         using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
                         {
@@ -926,7 +930,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int tx = ((targetWidth >> 1) + 7) / 8;
                     int ty = ((targetHeight >> 1) + 7) / 8;
 
-                    if (useSafePath)
+                    if (m_UseSafePath)
                     {
                         // The other compute fails hard on Intel because of texture format issues
                         cs = m_Resources.shaders.depthOfFieldMipSafeCS;
@@ -1961,6 +1965,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         #endregion
 
         #region FXAA
+
         void DoFXAA(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
         {
             var cs = m_Resources.shaders.FXAACS;
@@ -1969,14 +1974,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
             cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
         }
+
         #endregion
 
         #region Final Pass
 
         void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RenderTargetIdentifier destination, bool flipY)
         {
-            bool postProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess);
-
             // Final pass has to be done in a pixel shader as it will be the one writing straight
             // to the backbuffer eventually
 
@@ -1984,8 +1988,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FinalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
             var dynResHandler = HDDynamicResolutionHandler.instance;
-            float dynamicResScale = dynResHandler.GetCurrentScale();
             bool swDynamicResIsOn = camera.isMainGameView && dynResHandler.SoftwareDynamicResIsEnabled();
+
             if (swDynamicResIsOn)
             {
                 switch(dynResHandler.filter)
@@ -2002,7 +2006,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (postProcessEnabled)
+            if (m_PostProcessEnabled)
             {
                 if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !swDynamicResIsOn)
                     m_FinalPassMaterial.EnableKeyword("FXAA");

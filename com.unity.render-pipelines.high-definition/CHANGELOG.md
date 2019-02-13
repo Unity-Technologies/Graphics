@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.5.0-preview] - 2019-XX-XX
 
+### Added
+- Added support for post-processing anti-aliasing in the Scene View (FXAA and TAA). These can be set in Preferences.
+- Added emissive property for decal material (non-shader graph)
+
+### Fixed
+- Fixed a few UI bugs with the color grading curves.
+- Fixed "Post Processing" in the scene view not toggling post-processing effects.
+
+### Changed
+- Removed unsupported Clear Depth checkbox in Camera inspector	
+
 ## [5.4.0-preview] - 2019-02-23
 
 ### Added
@@ -15,7 +26,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added fade factor for decal projectors.
 - Added stereo instancing macros to most shaders used in VR
 - Added multi edition support for HDRenderPipelineAsset
-- Added emissive property for decal material (non-shader graph)
 
 ### Fixed
 - Fixed Decals when rendering multiple camera in a single frame
@@ -34,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with duplicate 3D texture in 3D texture altas of volumetric
 - Fixed Camera rendering order (base on the depth parameter)
 - Fixed bake only object with flag `ReflectionProbeStaticFlag` when baking a `ReflectionProbe`
+- Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan.
 
 ### Changed
 - Temporal Antialiasing optimization for Xbox One X
@@ -44,7 +55,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rearrange FetchDepth functions to prepare for stereo-instancing
 - Remove unused _ComputeEyeIndex
 - Updated HDRenderPipelineAsset inspector
-- Removed unsupported Clear Depth checkbox in Camera inspector
 
 ## [5.3.1-preview] - 2019-01-28
 
