@@ -7,12 +7,12 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Tester_SLSG 1 (aniso haze, dual spec occl, cap truef0fromhaze if dielectric)
-  m_Shader: {fileID: -6465566751694194690, guid: 0524938e5aa05864e8d23143df6a7c6f,
+  m_Name: Tester_SLSG
+  m_Shader: {fileID: -6465566751694194690, guid: 9682fd49df965de40b4a5ba3e21e6429,
     type: 3}
   m_ShaderKeywords: _ANISOTROPY_FOR_AREA_LIGHTS _BENTNORMALMAP _ENABLESPECULAROCCLUSION
     _MATERIAL_FEATURE_ANISOTROPY _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE _MATERIAL_FEATURE_HAZY_GLOSS
-    _STACKLIT_DEBUG _USE_SAMPLER_SHARING
+    _MATERIAL_FEATURE_SPECULAR_COLOR _STACKLIT_DEBUG _USE_SAMPLER_SHARING
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -29,10 +29,6 @@ Material:
         m_Texture: {fileID: 2800000, guid: 02fbde7410dc748449f3446909cc3d98, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - Texture2D_2ACF414E:
-        m_Texture: {fileID: 2800000, guid: 02fbde7410dc748449f3446909cc3d98, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - Texture2D_431E7828:
         m_Texture: {fileID: 2800000, guid: bf8f95c2c3bc2ef4fbd965a8bb3bea16, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -42,6 +38,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - Texture2D_6371C625:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_683AFF9B:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -154,7 +154,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicMap:
-        m_Texture: {fileID: 2800000, guid: 02fbde7410dc748449f3446909cc3d98, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
@@ -251,14 +251,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - Vector1_1D1540D1: 200
-    - Vector1_20AA717C: 1.5
-    - Vector1_20ED0316: 0.07
-    - Vector1_5DB134B6: 0.04
+    - Vector1_20ED0316: 0.254
     - Vector1_867DA71E: 0.885
     - Vector1_C41F78F3: 0
-    - Vector1_D58D81E: 0.05
+    - Vector1_D58D81E: 0.2
     - Vector1_F6FC54C8: 1.05
-    - Vector1_FC7928FA: 0.803
+    - Vector1_FC7928FA: -0.773
     - _AORemapMax: 0.99999994
     - _AORemapMin: 0
     - _ATDistance: 1
@@ -284,7 +282,7 @@ Material:
     - _AnisotropyAMapUV: 0
     - _AnisotropyAMapUVLocal: 0
     - _AnisotropyAUseMap: 0
-    - _AnisotropyB: 0.803
+    - _AnisotropyB: -0.773
     - _AnisotropyBMapChannel: 0
     - _AnisotropyBMapRemapInverted: 0
     - _AnisotropyBMapSamplerSharingOptout: 0
@@ -302,12 +300,12 @@ Material:
     - _BaseColorMapUV: 0
     - _BaseColorMapUVLocal: 0
     - _BaseColorUseMap: 2
-    - _BaseParametrization: 0
+    - _BaseParametrization: 1
     - _BaseUnlitDistortionShow: 0
     - _BentNormalMapShow: 1
     - _BentNormalUseMap: 1
     - _BlendMode: 0
-    - _CapHazinessWrtMetallic: 1
+    - _CapHazinessWrtMetallic: 0
     - _CoatExtinctionMapSamplerSharingOptout: 0
     - _CoatExtinctionMapShow: 1
     - _CoatExtinctionMapUV: 0
@@ -428,7 +426,7 @@ Material:
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
     - _GeometricNormalFilteringEnabled: 0
-    - _HazeExtent: 0.05
+    - _HazeExtent: 0.764
     - _HazeExtentMapChannel: 0
     - _HazeExtentMapRangeScale: 200
     - _HazeExtentMapRemapInverted: 0
@@ -437,7 +435,7 @@ Material:
     - _HazeExtentMapUV: 0
     - _HazeExtentMapUVLocal: 0
     - _HazeExtentUseMap: 0
-    - _Haziness: 0.07
+    - _Haziness: 0.254
     - _HazinessMapChannel: 0
     - _HazinessMapRemapInverted: 0
     - _HazinessMapSamplerSharingOptout: 0
@@ -445,8 +443,8 @@ Material:
     - _HazinessMapUV: 0
     - _HazinessMapUVLocal: 0
     - _HazinessUseMap: 0
-    - _HazyGlossMaxDielectricF0: 0.04
-    - _HazyGlossMaxDielectricF0UIBuffer: 0.04
+    - _HazyGlossMaxDielectricF0: 1
+    - _HazyGlossMaxDielectricF0UIBuffer: 0.133
     - _HazyGlossMaxF0WrtMetallic: 1
     - _HdrpVersion: 1
     - _HeightAmplitude: 0.02
@@ -495,7 +493,7 @@ Material:
     - _MetallicMapShow: 1
     - _MetallicMapUV: 0
     - _MetallicMapUVLocal: 0
-    - _MetallicUseMap: 2
+    - _MetallicUseMap: 0
     - _NormalMapObjSpace: 0
     - _NormalMapSamplerSharingOptout: 0
     - _NormalMapShow: 0
@@ -545,7 +543,7 @@ Material:
     - _SpecularColorMapShow: 1
     - _SpecularColorMapUV: 0
     - _SpecularColorMapUVLocal: 0
-    - _SpecularColorUseMap: 0
+    - _SpecularColorUseMap: 2
     - _SrcBlend: 1
     - _StandardShow: 1
     - _StencilDepthPrepassRef: 16
@@ -599,11 +597,11 @@ Material:
     - _ZTestModeDistortion: 4
     - _ZWrite: 1
     m_Colors:
-    - Color_D877BEDB: {r: 0.5568628, g: 0.5568628, b: 0.5568628, a: 1}
-    - Vector4_1B1DE2FE: {r: 1, g: 0, b: 0, a: 0}
+    - Color_90808EEB: {r: 0.5568628, g: 0.5568628, b: 0.5568628, a: 1}
+    - Color_D877BEDB: {r: 0, g: 0, b: 0, a: 1}
+    - Vector4_220FF2FF: {r: 1, g: 1, b: 0, a: 0}
     - Vector4_25D7BE88: {r: 0, g: 1, b: 0, a: 0}
     - Vector4_56AA901A: {r: 1, g: 1, b: 0, a: 0}
-    - Vector4_97BD4E0E: {r: 1, g: 1, b: 0, a: 0}
     - Vector4_DE96D7B1: {r: 1, g: 1, b: 0, a: 0}
     - Vector4_F239C786: {r: 1, g: 1, b: 0, a: 0}
     - _AmbientOcclusionMapChannelMask: {r: 0, g: 1, b: 0, a: 0}
@@ -618,7 +616,7 @@ Material:
     - _AnisotropyMapChannelMask: {r: 1, g: 0, b: 0, a: 0}
     - _AnisotropyMapRange: {r: 0, g: 1, b: 0, a: 0}
     - _AnisotropyMapRemap: {r: 0, g: 1, b: 0, a: 0}
-    - _BaseColor: {r: 0.5568628, g: 0.5568628, b: 0.5568628, a: 1}
+    - _BaseColor: {r: 0, g: 0, b: 0, a: 1}
     - _CoatExtinction: {r: 4, g: 4, b: 4, a: 1}
     - _CoatIorMapChannelMask: {r: 1, g: 0, b: 0, a: 0}
     - _CoatIorMapM: {r: 1.0001, g: 2, b: 0, a: 0}
@@ -631,7 +629,7 @@ Material:
     - _CoatThicknessMapChannelMask: {r: 1, g: 0, b: 0, a: 0}
     - _CoatThicknessMapRange: {r: 0, g: 1, b: 0, a: 0}
     - _CoatThicknessMapRemap: {r: 0, g: 1, b: 0, a: 0}
-    - _Color: {r: 0.5568628, g: 0.5568628, b: 0.5568628, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _DebugAniso: {r: 1, g: 0, b: 0, a: 1000}
     - _DebugEnvLobeMask: {r: 1, g: 1, b: 1, a: 1}
     - _DebugLobeMask: {r: 1, g: 1, b: 1, a: 1}
@@ -662,8 +660,8 @@ Material:
     - _LobeMixMapRange: {r: 0, g: 1, b: 0, a: 0}
     - _LobeMixMapRemap: {r: 0, g: 1, b: 0, a: 0}
     - _MetallicMapChannelMask: {r: 1, g: 0, b: 0, a: 0}
-    - _MetallicMapRange: {r: 0, g: 0.99999994, b: 0, a: 0}
-    - _MetallicMapRemap: {r: 0, g: 0.99999994, b: 0, a: 0}
+    - _MetallicMapRange: {r: 0, g: 1, b: 0, a: 0}
+    - _MetallicMapRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SamplerSharingUsage: {r: 1, g: 2, b: 0, a: 3}
     - _SmoothnessAMapChannelMask: {r: 1, g: 0, b: 0, a: 0}
     - _SmoothnessAMapRange: {r: 0, g: 1, b: 0, a: 0}
