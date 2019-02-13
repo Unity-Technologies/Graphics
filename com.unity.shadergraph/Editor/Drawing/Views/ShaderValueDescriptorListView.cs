@@ -42,14 +42,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal void RecreateList()
         {
+            // Get slots based on type
             List<MaterialSlot> slots = new List<MaterialSlot>();
             if(m_SlotType == SlotType.Input)
                 m_Node.GetInputSlots(slots);
             else
                 m_Node.GetOutputSlots(slots);
-                
+            
+            // Create reorderable list from IDs
             List<int> slotIDs = slots.Select(s => s.id).ToList();
-
             m_ReorderableList = new ReorderableList(slotIDs, typeof(int), true, true, true, true);
         }
 
@@ -83,19 +84,51 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
             {
                 rect.y += 2;
-                MaterialSlot slot = m_Node.FindSlot<MaterialSlot>((int)m_ReorderableList.list[index]);
+
+                // Slot is guaranteed to exist in this UI state
+                MaterialSlot oldSlot = m_Node.FindSlot<MaterialSlot>((int)m_ReorderableList.list[index]);
 
                 EditorGUI.BeginChangeCheck();
                 
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), slot.RawDisplayName(), labelStyle); 
-                var shaderOutputName = NodeUtils.GetHLSLSafeName(slot.RawDisplayName());
-                var valueType = (SlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + labelWidth, rect.y, rect.width - labelWidth, EditorGUIUtility.singleLineHeight), slot.valueType);
+                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), labelStyle); 
+                var shaderOutputName = NodeUtils.GetHLSLSafeName(oldSlot.RawDisplayName());
+                var valueType = (SlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + labelWidth, rect.y, rect.width - labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.valueType);
                 
                 if(EditorGUI.EndChangeCheck())
                 {
-                    var newSlot = MaterialSlot.CreateMaterialSlot(valueType, slot.id, displayName, shaderOutputName, m_SlotType, Vector4.zero);
-                    newSlot.CopyValuesFrom(slot);
+                    // Cant modify existing slots so need to create new and copy values
+                    var newSlot = MaterialSlot.CreateMaterialSlot(valueType, oldSlot.id, displayName, shaderOutputName, m_SlotType, Vector4.zero);
+                    newSlot.CopyValuesFrom(oldSlot);
                     m_Node.AddSlot(newSlot);
+
+                    // Need to get all current slots as everything after the edited slot in the list must be added again
+                    List<MaterialSlot> slots = new List<MaterialSlot>();
+                    if(m_SlotType == SlotType.Input)
+                        m_Node.GetInputSlots<MaterialSlot>(slots);
+                    else
+                        m_Node.GetOutputSlots<MaterialSlot>(slots);
+
+                    // Iterate all the slots
+                    foreach (MaterialSlot slot in slots)
+                    {
+                        // Because the list doesnt match the slot IDs (reordering)
+                        // Need to get the index in the list of every slot
+                        int listIndex = 0;
+                        for(int i = 0; i < m_ReorderableList.list.Count; i++)
+                        {
+                            if((int)m_ReorderableList.list[i] == slot.id)
+                                listIndex = i;
+                        }
+
+                        // Then for everything after the edited slot
+                        if(listIndex <= index)
+                            continue;
+
+                        // Remove and re-add
+                        m_Node.RemoveSlot(slot.id);
+                        m_Node.AddSlot(slot);
+                    }
+
                     m_Node.ValidateNode();
                 }   
             };
@@ -120,32 +153,63 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void AddEntry(ReorderableList list)
         {
+            // Need to get all current slots to get the next valid ID
             List<MaterialSlot> slots = new List<MaterialSlot>();
             m_Node.GetSlots(slots);
             int[] slotIDs = slots.Select(s => s.id).OrderByDescending(s => s).ToArray();
             int newSlotID = slotIDs.Length > 0 ? slotIDs[0] + 1 : 0;
 
+            // Create a new slot and add it
             var newSlot = MaterialSlot.CreateMaterialSlot(SlotValueType.Vector1, newSlotID, "New", "New", m_SlotType, Vector4.zero);
             m_Node.AddSlot(newSlot);
-            RecreateList();
 
+            // Select the new slot, then validate the node
             m_SelectedIndex = list.list.Count - 1;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Adding Slot");
             m_Node.ValidateNode();
         }
 
         private void RemoveEntry(ReorderableList list)
         {
-            list.index = m_SelectedIndex;
-            ReorderableList.defaultBehaviours.DoRemoveButton(list);
+            // Remove the slot from the node
             m_SelectedIndex = list.index;
-            m_Node.RemoveSlot((int)m_ReorderableList.list[list.index]);
-            RecreateList();
+            m_Node.RemoveSlot((int)m_ReorderableList.list[m_SelectedIndex]);
 
+            // Then remove it from the list
+            // Need to do this order to preserve the list indicies for previous step
+            ReorderableList.defaultBehaviours.DoRemoveButton(list);
+
+            // Validate
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Removing Slot");
             m_Node.ValidateNode();
         }
 
         private void ReorderEntries(ReorderableList list)
         {
+            // Get all the current slots
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            if(m_SlotType == SlotType.Input)
+                m_Node.GetInputSlots<MaterialSlot>(slots);
+            else
+                m_Node.GetOutputSlots<MaterialSlot>(slots);
+
+            // Get reorder slots so need to remove them all then re-add
+            foreach (MaterialSlot slot in slots)
+                m_Node.RemoveSlot(slot.id);
+
+            // Order them by their slot ID
+            slots = slots.OrderBy(s => s.id).ToList();
+            
+            // Now add the slots back based on the list order
+            // For each list entry get the slot with that ID
+            for(int i = 0; i < list.list.Count; i++)
+            {
+                var currentSlot = slots.Where(s => s.id == (int)list.list[i]).FirstOrDefault();
+                m_Node.AddSlot(currentSlot);
+            }
+
+            RecreateList();   
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Reordering Slots");
             m_Node.ValidateNode();
         }
     }
