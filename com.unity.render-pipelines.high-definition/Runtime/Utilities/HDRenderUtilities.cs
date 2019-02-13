@@ -60,11 +60,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="settings">Settings for the camera.</param>
         /// <param name="position">Position for the camera.</param>
         /// <param name="target">Target to render to.</param>
-        public static void Render(CameraSettings settings, CameraPositionSettings position, Texture target)
+        /// <param name="staticFlags">Only used in the Editor fo cubemaps.
+        /// This is bitmask of <see cref="UnityEditor.StaticEditorFlags"/> only objects with these flags will be rendered
+        /// </param>
+        public static void Render(
+            CameraSettings settings,
+            CameraPositionSettings position,
+            Texture target,
+            uint staticFlags = 0
+        )
         {
             // Argument checking
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             var rtTarget = target as RenderTexture;
             var cubeTarget = target as Cubemap;
@@ -77,8 +85,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case TextureDimension.Cube:
                     break;
                 default:
-                    throw new ArgumentException(string.Format("Rendering into a target of dimension " +
-                        "{0} is not supported", target.dimension));
+                    throw new ArgumentException("Rendering into a target of dimension "
+                        + $"{target.dimension} is not supported");
             }
 
             var camera = NewRenderingCamera();
@@ -91,6 +99,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     case TextureDimension.Tex2D:
                         {
+#if DEBUG
+                            Debug.LogWarning(
+                                "A static flags bitmask was provided but this is ignored when rendering into a Tex2D"
+                            );
+#endif
                             Assert.IsNotNull(rtTarget);
                             camera.targetTexture = rtTarget;
                             camera.Render();
@@ -101,10 +114,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case TextureDimension.Cube:
                         {
                             Assert.IsTrue(rtTarget != null || cubeTarget != null);
-                            if (rtTarget != null)
-                                camera.RenderToCubemap(rtTarget);
-                            if (cubeTarget != null)
-                                camera.RenderToCubemap(cubeTarget);
+
+                            var canHandleStaticFlags = false;
+#if UNITY_EDITOR
+                            canHandleStaticFlags = true;
+#endif
+                            // ReSharper disable ConditionIsAlwaysTrueOrFalse
+                            if (canHandleStaticFlags && staticFlags != 0)
+                                // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                            {
+#if UNITY_EDITOR
+                                UnityEditor.Rendering.EditorCameraUtils.RenderToCubemap(
+                                    camera,
+                                    rtTarget,
+                                    -1,
+                                    (UnityEditor.StaticEditorFlags)staticFlags
+                                );
+#endif
+                            }
+                            else
+                            {
+                                // ReSharper disable ConditionIsAlwaysTrueOrFalse
+                                if (!canHandleStaticFlags && staticFlags != 0)
+                                    // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                                {
+                                    Debug.LogWarning(
+                                        "A static flags bitmask was provided but this is ignored in player builds"
+                                    );
+                                }
+
+                                if (rtTarget != null)
+                                    camera.RenderToCubemap(rtTarget);
+                                if (cubeTarget != null)
+                                    camera.RenderToCubemap(cubeTarget);
+                            }
+
                             target.IncrementUpdateCount();
                             break;
                         }
@@ -121,14 +165,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ProbeCapturePositionSettings position,
             Texture target,
             bool forceFlipY = false,
-            bool forceInvertBackfaceCulling = false
+            bool forceInvertBackfaceCulling = false,
+            uint staticFlags = 0
         )
         {
             Render(
                 settings, position, target,
                 out CameraSettings cameraSettings, out CameraPositionSettings cameraPosition,
                 forceFlipY: forceFlipY,
-                forceInvertBackfaceCulling: forceInvertBackfaceCulling
+                forceInvertBackfaceCulling: forceInvertBackfaceCulling,
+                staticFlags: staticFlags
             );
         }
 
@@ -205,7 +251,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out CameraSettings cameraSettings,
             out CameraPositionSettings cameraPositionSettings,
             bool forceFlipY = false,
-            bool forceInvertBackfaceCulling = false
+            bool forceInvertBackfaceCulling = false,
+            uint staticFlags = 0
         )
         {
             // Copy settings
@@ -220,7 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cameraSettings.invertFaceCulling = true;
 
             // Perform rendering
-            Render(cameraSettings, cameraPositionSettings, target);
+            Render(cameraSettings, cameraPositionSettings, target, staticFlags);
         }
 
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize)
