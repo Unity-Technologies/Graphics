@@ -46,5 +46,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public sealed class BloomResolutionParameter : VolumeParameter<BloomResolution> { public BloomResolutionParameter(BloomResolution value, bool overriden = false) : base(value, overriden) { } }
+    public sealed class BloomResolutionParameter : VolumeParameter<BloomResolution> { public BloomResolutionParameter(BloomResolution value, bool overrideState = false) : base(value, overrideState) { } }
 }

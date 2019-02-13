@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.1.0-preview] - 2019-XX-XX
 
 ### Added
+- Added support for post-processing anti-aliasing in the Scene View (FXAA and TAA). These can be set in Preferences.
 
 ### Fixed
+- Fixed a few UI bugs with the color grading curves.
+- Fixed "Post Processing" in the scene view not toggling post-processing effects.
 
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector
