@@ -507,7 +507,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var positionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);
                         HDRenderUtilities.Render(probe.settings, positionSettings, cubeRT,
                             forceFlipY: true,
-                            forceInvertBackfaceCulling: true // TODO: for an unknown reason, we need to invert the backface culling for baked reflection probes, Remove this
+                            forceInvertBackfaceCulling: true, // TODO: for an unknown reason, we need to invert the backface culling for baked reflection probes, Remove this
+                            (uint)StaticEditorFlags.ReflectionProbeStatic
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
                         HDTextureUtilities.WriteTextureFileToDisk(cubeRT, targetFile);
