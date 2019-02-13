@@ -140,10 +140,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2207_ReflectionProbeVFace.unity
     guid: 4814073d6e6ec404bba1f26bec73307a
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2208_PlanarReflectionCullingStencil.unity
     guid: a550f264fed1623459f813b5001bea48
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2209_ReflectionProbeCullingStencil.unity
     guid: b8090c44833d0a842bcd90e27dc43b6b
   - enabled: 1
