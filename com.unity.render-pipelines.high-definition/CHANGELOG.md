@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.5.0-preview] - 2019-XX-XX
+## [5.5.0-preview] - 2019-02-13
 
 ### Added
 - Added support for post-processing anti-aliasing in the Scene View (FXAA and TAA). These can be set in Preferences.
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector	
 
-## [5.4.0-preview] - 2019-02-23
+## [5.4.0-preview] - 2019-02-11
 
 ### Added
 - Added support for "After Post-Process" render pass for unlit shader
