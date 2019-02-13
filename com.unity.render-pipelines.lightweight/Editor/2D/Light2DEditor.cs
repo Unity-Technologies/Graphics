@@ -267,10 +267,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             bool updateMesh = false;
 
-            SerializedProperty shapeLightStyle = serializedObject.FindProperty("m_ShapeLightStyle");
+            SerializedProperty shapeLightStyle = serializedObject.FindProperty("m_ShapeLightCookieStyle");
             SerializedProperty shapeLightFeathering = serializedObject.FindProperty("m_ShapeLightFeathering");
-            SerializedProperty shapeLightParametricShape = serializedObject.FindProperty("m_ParametricShape");
-            SerializedProperty shapeLightParametricSides = serializedObject.FindProperty("m_ParametricSides");
+            SerializedProperty shapeLightParametricShape = serializedObject.FindProperty("m_ShapeLightParametricShape");
+            SerializedProperty shapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             SerializedProperty shapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
             SerializedProperty shapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             SerializedProperty shapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
