@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.LWRP
 
         public int CompareTo(ScriptableRenderPass other)
         {
-            return renderPassEvent.CompareTo(other.renderPassEvent);
+            return (int)renderPassEvent - (int)other.renderPassEvent;
         }
     }
 }
