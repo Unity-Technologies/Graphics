@@ -208,7 +208,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void SetPointLightShaderGlobals(CommandBuffer cmdBuffer, Light2D light)
         {
-            cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
+            cmdBuffer.SetGlobalColor("_LightColor", light.color);
 
             if (light.pointLightQuality == Light2D.LightQuality.Fast)
             {

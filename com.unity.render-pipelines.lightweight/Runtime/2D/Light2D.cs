@@ -90,13 +90,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public Color color
         {
-            get { return m_LightColor; }
-            set { m_LightColor = value; }
+            get { return m_Color; }
+            set { m_Color = value; }
         }
         [ColorUsageAttribute(false, true)]
         [SerializeField]
-        public Color m_LightColor = Color.white;
-        private Color m_PreviousLightColor = Color.white;
+        [Serialization.FormerlySerializedAs("m_LightColor")]
+        private Color m_Color = Color.white;
+        private Color m_PreviousColor = Color.white;
 
         public Sprite lightCookieSprite
         {
@@ -294,7 +295,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
                 else if(m_LightProjectionType == LightProjectionTypes.Point)
                 {
-                     m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 4, 0, m_LightColor, m_LightVolumeOpacity);
+                     m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 4, 0, m_Color, m_LightVolumeOpacity);
                 }
             }
 
@@ -399,7 +400,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // Mesh Rebuilding
             bool rebuildMesh = false;
 
-            rebuildMesh |= LightUtility.CheckForColorChange(m_LightColor, ref m_PreviousLightColor);
+            rebuildMesh |= LightUtility.CheckForColorChange(m_Color, ref m_PreviousColor);
             rebuildMesh |= LightUtility.CheckForChange<float>(m_ShapeLightFeathering, ref m_PreviousShapeLightFeathering);
             rebuildMesh |= LightUtility.CheckForVector2Change(m_ShapeLightOffset, ref m_PreviousShapeLightOffset);
             rebuildMesh |= LightUtility.CheckForChange<int>(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);

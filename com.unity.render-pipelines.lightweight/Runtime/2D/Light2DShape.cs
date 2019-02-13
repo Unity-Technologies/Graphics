@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set { m_ShapeLightOffset = value; }
         }
         [SerializeField]
-        public Vector2 m_ShapeLightOffset;
+        private Vector2 m_ShapeLightOffset;
         private Vector2 m_PreviousShapeLightOffset;
 
 
@@ -86,8 +86,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //private BlendingModes m_PreviousShapeLightBlending = BlendingModes.Additive;
 
         [SerializeField]
-        Spline m_Spline = new Spline() { isExtensionsSupported = false };
-        int m_SplineHash;
+        private Spline m_Spline = new Spline() { isExtensionsSupported = false };
+        private int m_SplineHash;
 
         [SerializeField]
         Vector3[] m_ShapePath;
@@ -220,15 +220,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (m_ShapeLightCookieStyle == CookieStyles.Parametric)
             {
                 if (m_ShapeLightParametricShape == ParametricShapes.Freeform)
-                    localBounds = UpdateShapeLightMesh(m_LightColor);
+                    localBounds = UpdateShapeLightMesh(m_Color);
                 else
                 {
-                    localBounds = LightUtility.GenerateParametricMesh(ref mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricSides, m_ShapeLightFeathering, m_LightColor, m_LightVolumeOpacity);
+                    localBounds = LightUtility.GenerateParametricMesh(ref mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricSides, m_ShapeLightFeathering, m_Color, m_LightVolumeOpacity);
                 }
             }
             else if (m_ShapeLightCookieStyle == CookieStyles.Sprite)
             {
-                localBounds = LightUtility.GenerateSpriteMesh(ref mesh, m_LightCookieSprite, m_LightColor, m_LightVolumeOpacity, 1);
+                localBounds = LightUtility.GenerateSpriteMesh(ref mesh, m_LightCookieSprite, m_Color, m_LightVolumeOpacity, 1);
             }
 
             return localBounds;

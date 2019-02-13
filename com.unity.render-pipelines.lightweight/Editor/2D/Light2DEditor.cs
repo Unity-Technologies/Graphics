@@ -160,7 +160,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         private void OnEnable()
         {
             m_LightProjectionType = serializedObject.FindProperty("m_LightProjectionType");
-            m_LightColor = serializedObject.FindProperty("m_LightColor");
+            m_LightColor = serializedObject.FindProperty("m_Color");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
 
@@ -522,7 +522,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             else
             {
                 Transform t = lt.transform;
-                Vector3 posOffset = lt.m_ShapeLightOffset;
+                Vector3 posOffset = lt.shapeLightOffset;
 
                 if (lt.shapeLightCookieStyle == Light2D.CookieStyles.Sprite)
                 {
