@@ -498,6 +498,31 @@ namespace UnityEngine.Rendering
             DisplayUnsupportedMessage(msg);
         }
 
+        // Returns 'true' if "Post Processes" are enabled for the view associated with the given camera.
+        public static bool ArePostProcessesEnabled(Camera camera)
+        {
+            bool enabled = true;
+
+        #if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                enabled = false;
+
+                // Determine whether the "Post Processes" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                {
+                    if (sv.camera == camera && sv.sceneViewState.showImageEffects)
+                    {
+                        enabled = true;
+                        break;
+                    }
+                }
+            }
+        #endif
+
+            return enabled;
+        }
+
         // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.
         public static  bool AreAnimatedMaterialsEnabled(Camera camera)
         {
