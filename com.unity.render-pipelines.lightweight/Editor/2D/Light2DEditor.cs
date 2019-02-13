@@ -220,9 +220,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             SerializedProperty pointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             SerializedProperty pointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             SerializedProperty pointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            SerializedProperty pointZDistance = serializedObject.FindProperty("m_PointLightZDistance");
+            SerializedProperty pointZDistance = serializedObject.FindProperty("m_PointLightDistance");
             SerializedProperty pointLightCookie = serializedObject.FindProperty("m_LightCookieSprite");
-            SerializedProperty lightQuality = serializedObject.FindProperty("m_LightQuality");
+            SerializedProperty lightQuality = serializedObject.FindProperty("m_PointLightQuality");
 
             EditorGUI.indentLevel++;
 
@@ -427,15 +427,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             var oldColor = Handles.color;
             Handles.color = Color.yellow;
 
-            float diff = DrawAngleHandle(lt.transform, lt.m_PointLightOuterRadius, s_AngleCapOffset, TriCapTR, TriCapBR, ref lt.m_PointLightOuterAngle);
+            float outerAngle = lt.pointLightOuterAngle;
+            float diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, s_AngleCapOffset, TriCapTR, TriCapBR, ref outerAngle);
+            lt.pointLightOuterAngle = outerAngle;
 
             if (diff != 0.0f)
-                lt.m_PointLightInnerAngle = Mathf.Max(0.0f, lt.m_PointLightInnerAngle + diff);
+                lt.pointLightInnerAngle = Mathf.Max(0.0f, lt.pointLightInnerAngle + diff);
 
-            diff = DrawAngleHandle(lt.transform, lt.m_PointLightOuterRadius, -s_AngleCapOffset, TriCapTL, TriCapBL, ref lt.m_PointLightInnerAngle);
+            float innerAngle = lt.pointLightInnerAngle;
+            diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, -s_AngleCapOffset, TriCapTL, TriCapBL, ref innerAngle);
+            lt.pointLightInnerAngle = innerAngle;
 
             if (diff != 0.0f)
-                lt.m_PointLightInnerAngle = lt.m_PointLightInnerAngle < lt.m_PointLightOuterAngle ? lt.m_PointLightInnerAngle : lt.m_PointLightOuterAngle;
+                lt.pointLightInnerAngle = lt.pointLightInnerAngle < lt.pointLightOuterAngle ? lt.pointLightInnerAngle : lt.pointLightOuterAngle;
 
             Handles.color = oldColor;
         }
@@ -461,7 +465,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             var oldColor = Handles.color;
             Handles.color = Color.yellow;
 
-            float outerRadius = lt.m_PointLightOuterRadius;
+            float outerRadius = lt.pointLightOuterRadius;
             EditorGUI.BeginChangeCheck();
             Vector3 returnPos = DrawAngleSlider2D(lt.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUC, handleSize, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
@@ -472,10 +476,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 outerRadius = outerRadius + handleOffset;
                 radiusChanged = true;
             }
-            DrawRadiusArc(lt.transform, lt.m_PointLightOuterRadius, lt.m_PointLightOuterAngle, 0, s_RangeCapFunction, s_RangeCapSize, false);
+            DrawRadiusArc(lt.transform, lt.pointLightOuterRadius, lt.pointLightOuterAngle, 0, s_RangeCapFunction, s_RangeCapSize, false);
 
             Handles.color = Color.gray;
-            float innerRadius = lt.m_PointLightInnerRadius;
+            float innerRadius = lt.pointLightInnerRadius;
             EditorGUI.BeginChangeCheck();
             returnPos = DrawAngleSlider2D(lt.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDC, handleSize, true, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
@@ -484,14 +488,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 innerRadius = innerRadius - handleOffset;
                 radiusChanged = true;
             }
-            DrawRadiusArc(lt.transform, lt.m_PointLightInnerRadius, lt.m_PointLightOuterAngle, 0, s_InnerRangeCapFunction, s_InnerRangeCapSize, false);
+            DrawRadiusArc(lt.transform, lt.pointLightInnerRadius, lt.pointLightOuterAngle, 0, s_InnerRangeCapFunction, s_InnerRangeCapSize, false);
 
             Handles.color = oldColor;
 
             if (radiusChanged)
             {
-                lt.m_PointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
-                lt.m_PointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
+                lt.pointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
+                lt.pointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
             }
             
             Handles.color = handleColor;
@@ -520,7 +524,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 Transform t = lt.transform;
                 Vector3 posOffset = lt.m_ShapeLightOffset;
 
-                if (lt.m_ShapeLightStyle == Light2D.CookieStyles.Sprite)
+                if (lt.shapeLightCookieStyle == Light2D.CookieStyles.Sprite)
                 {
                     Vector3 v0 = t.TransformPoint(new Vector3(-0.5f, -0.5f));
                     Vector3 v1 = t.TransformPoint(new Vector3(0.5f, -0.5f));
@@ -531,10 +535,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     Handles.DrawLine(v2, v3);
                     Handles.DrawLine(v3, v0);
                 }
-                else if (lt.m_ParametricShape == Light2D.ParametricShapes.Circle)
+                else if (lt.shapeLightParametricShape == Light2D.ParametricShapes.Circle)
                 {
                     float radius = 0.5f;
-                    float sides = lt.m_ParametricSides;
+                    float sides = lt.shapeLightParametricSides;
                     float angleOffset = Mathf.PI / 2.0f;
 
                     if (sides < 2)
@@ -546,13 +550,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     }
 
                     Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
-                    Vector3 featherStartPoint = (1 + lt.m_ShapeLightFeathering * 2.0f) * startPoint;
+                    Vector3 featherStartPoint = (1 + lt.shapeLightFeathering * 2.0f) * startPoint;
                     float radiansPerSide = 2 * Mathf.PI / sides;
                     for (int i = 0; i < sides; i++)
                     {
                         float endAngle = (i + 1) * radiansPerSide;
                         Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
-                        Vector3 featherEndPoint = (1 + lt.m_ShapeLightFeathering * 2.0f) * endPoint;
+                        Vector3 featherEndPoint = (1 + lt.shapeLightFeathering * 2.0f) * endPoint;
 
 
                         Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
@@ -602,7 +606,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             OnTargetSortingLayers();
 
-            if (lightObject.m_ParametricShape == Light2D.ParametricShapes.Freeform && lightObject.LightProjectionType == Light2D.LightProjectionTypes.Shape && lightObject.m_ShapeLightStyle != Light2D.CookieStyles.Sprite)
+            if (lightObject.shapeLightParametricShape == Light2D.ParametricShapes.Freeform && lightObject.LightProjectionType == Light2D.LightProjectionTypes.Shape && lightObject.shapeLightCookieStyle != Light2D.CookieStyles.Sprite)
             {
                 // Draw the edit shape tool button here.
             }

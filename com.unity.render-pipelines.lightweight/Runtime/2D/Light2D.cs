@@ -68,64 +68,169 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Accurate
         }
 
+        static Material m_PointLightMaterial = null;
+        static Material m_PointLightVolumeMaterial = null;
+        static Material m_ShapeCookieSpriteAlphaBlendMaterial = null;
+        static Material m_ShapeCookieSpriteAdditiveMaterial = null;
+        static Material m_ShapeCookieSpriteVolumeMaterial = null;
+        static Material m_ShapeVertexColoredAlphaBlendMaterial = null;
+        static Material m_ShapeVertexColoredAdditiveMaterial = null;
+        static Material m_ShapeVertexColoredVolumeMaterial = null;
+        static CullingGroup m_CullingGroup;
+        static List<Light2D>[] m_Lights = SetupLightArray();
+
+        //------------------------------------------------------------------------------------------
+        //                              Shared Light 
+        //------------------------------------------------------------------------------------------
+
+        [SerializeField]
+        public LightProjectionTypes lightProjectionType
+        {
+            get { return m_LightProjectionType; }
+            set { m_LightProjectionType = value; }
+        }
         [SerializeField]
         private LightProjectionTypes m_LightProjectionType = LightProjectionTypes.Shape;
         private LightProjectionTypes m_PreviousLightProjectionType = LightProjectionTypes.Shape;
 
-        //------------------------------------------------------------------------------------------
-        //                              Values for Point light type
-        //------------------------------------------------------------------------------------------
-        public float m_PointLightInnerAngle = 360;
-        public float m_PointLightOuterAngle = 360;
-        public float m_PointLightInnerRadius = 0;
-        public float m_PointLightOuterRadius = 1;
-        public float m_PointLightZDistance = 3;
-        public LightQuality m_LightQuality = LightQuality.Fast;
+        public Color color
+        {
+            get { return m_LightColor; }
+            set { m_LightColor = value; }
+        }
+        [ColorUsageAttribute(false, true)]
+        [SerializeField]
+        public Color m_LightColor = Color.white;
+        private Color m_PreviousLightColor = Color.white;
 
-        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs.
+        public Sprite lightCookieSprite
+        {
+            get { return m_LightCookieSprite; }
+            set { m_LightCookieSprite = value; }
+        }
+        [SerializeField]
+        private Sprite m_LightCookieSprite;
+        private Sprite m_PreviousLightCookieSprite = null;
 
-        //------------------------------------------------------------------------------------------
-        //                              Values for Shape light type
-        //------------------------------------------------------------------------------------------
-        public CookieStyles m_ShapeLightStyle = CookieStyles.Parametric;
+        public float volumeOpacity
+        {
+            get { return m_LightVolumeOpacity; }
+            set { m_LightVolumeOpacity = value; }
+        }
+        [SerializeField]
+        private float m_LightVolumeOpacity = 0.0f;
+        private float m_PreviousLightVolumeOpacity = 0.0f;
 
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ShapeLightType")]
         private LightOperation m_LightOperation = LightOperation.Type0;
         private LightOperation m_PreviousLightOperation = LightOperation.Type0;
 
-        public ParametricShapes m_ParametricShape = ParametricShapes.Circle; // This should be removed and fixed in the inspector
+        //------------------------------------------------------------------------------------------
+        //                              Values for Point light type
+        //------------------------------------------------------------------------------------------
+        public float pointLightInnerAngle
+        {
+            get { return m_PointLightInnerAngle; }
+            set { m_PointLightInnerAngle = value; }
+        }
+        [SerializeField]
+        private float m_PointLightInnerAngle = 360;
 
+        public float pointLightOuterAngle
+        {
+            get { return m_PointLightOuterAngle; }
+            set { m_PointLightOuterAngle = value; }
+        }
+        [SerializeField]
+        private float m_PointLightOuterAngle = 360;
+
+        public float pointLightInnerRadius
+        {
+            get { return m_PointLightInnerRadius; }
+            set { m_PointLightInnerRadius = value; }
+        }
+        [SerializeField]
+        private float m_PointLightInnerRadius = 0;
+
+        public float pointLightOuterRadius
+        {
+            get { return m_PointLightOuterRadius; }
+            set { m_PointLightOuterRadius = value; }
+        }
+        [SerializeField]
+        private float m_PointLightOuterRadius = 1;
+
+        public float pointLightDistance
+        {
+            get { return m_PointLightDistance; }
+            set { m_PointLightDistance = value; }
+        }
+        [SerializeField]
+        private float m_PointLightDistance = 3;
+
+        public LightQuality pointLightQuality
+        {
+            get { return m_PointLightQuality; }
+            set { m_PointLightQuality = value; }
+        }
+        [SerializeField]
+        private LightQuality m_PointLightQuality = LightQuality.Fast;
+
+        [SerializeField]
+        int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs.
+
+        //------------------------------------------------------------------------------------------
+        //                              Values for Shape light type
+        //------------------------------------------------------------------------------------------
+        public CookieStyles shapeLightCookieStyle
+        {
+            get { return m_ShapeLightCookieStyle; }
+            set { m_ShapeLightCookieStyle = value; }
+        }
+        [SerializeField]
+        [Serialization.FormerlySerializedAs("m_ShapeLightStyle")]
+        private CookieStyles m_ShapeLightCookieStyle = CookieStyles.Parametric;
+
+        public ParametricShapes shapeLightParametricShape
+        {
+            get { return m_ShapeLightParametricShape; }
+            set { m_ShapeLightParametricShape = value; }
+        }
+        [SerializeField]
+        [Serialization.FormerlySerializedAs("m_ParametricShape")]
+        private ParametricShapes m_ShapeLightParametricShape = ParametricShapes.Circle; // This should be removed and fixed in the inspector
+
+        public float shapeLightFeathering
+        {
+            get { return m_ShapeLightFeathering; }
+            set { m_ShapeLightFeathering = value; }
+        }
+        [SerializeField]
+        private float m_ShapeLightFeathering = 0.50f;
         private float m_PreviousShapeLightFeathering = -1;
-        public float m_ShapeLightFeathering = 0.50f;
 
-        private int m_PreviousParametricSides = -1;
-        public int m_ParametricSides = 128;
 
-        static Material m_PointLightMaterial = null;
-        static Material m_PointLightVolumeMaterial = null;
+        public int shapeLightParametricSides
+        {
+            get { return m_ShapeLightParametricSides; }
+            set { m_ShapeLightParametricSides = value; }
+        }
+        [SerializeField]
+        [Serialization.FormerlySerializedAs("m_ParametricSides")]
+        private int m_ShapeLightParametricSides = 128;
+        private int m_PreviousShapeLightParametricSides = -1;
 
-        static Material m_ShapeCookieSpriteAlphaBlendMaterial = null;
-        static Material m_ShapeCookieSpriteAdditiveMaterial = null;
-        static Material m_ShapeCookieSpriteVolumeMaterial = null;
 
-        static Material m_ShapeVertexColoredAlphaBlendMaterial = null;
-        static Material m_ShapeVertexColoredAdditiveMaterial = null;
-        static Material m_ShapeVertexColoredVolumeMaterial = null;
-
-        [ColorUsageAttribute(false,true)]
-        public Color m_LightColor = Color.white;
-        private Color m_PreviousLightColor = Color.white;
-
+        public Vector2 shapeLightOffset
+        {
+            get { return m_ShapeLightOffset; }
+            set { m_ShapeLightOffset = value; }
+        }
+        [SerializeField]
         public Vector2 m_ShapeLightOffset;
         private Vector2 m_PreviousShapeLightOffset;
 
-        public Sprite m_LightCookieSprite;
-        private Sprite m_PreviousLightCookieSprite = null;
-
-        [SerializeField]
-        private float m_LightVolumeOpacity = 0.0f;
-        private float m_PreviousLightVolumeOpacity = 0.0f;
 
         [SerializeField]
         private int m_ShapeLightOrder = 0;
@@ -135,17 +240,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private LightOverlapMode m_ShapeLightOverlapMode = LightOverlapMode.Additive;
         //private BlendingModes m_PreviousShapeLightBlending = BlendingModes.Additive;
 
-        public float LightVolumeOpacity
-        {
-            get { return m_LightVolumeOpacity; }
-            set { m_LightVolumeOpacity = value; }
-        }
-
         private int m_LightCullingIndex = -1;
         private Bounds m_LocalBounds;
-        static CullingGroup m_CullingGroup;
-
-        static List<Light2D>[] m_Lights = SetupLightArray();
 
         public LightProjectionTypes GetLightProjectionType()
         {
@@ -418,7 +514,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (m_LightProjectionType == LightProjectionTypes.Shape)
             {
-                if (m_ShapeLightStyle == CookieStyles.Sprite)
+                if (m_ShapeLightCookieStyle == CookieStyles.Sprite)
                 {
                     // This is causing Object.op_inequality fix this
                     if (m_ShapeCookieSpriteVolumeMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
@@ -469,7 +565,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (m_LightProjectionType == LightProjectionTypes.Shape)
             {
-                if (m_ShapeLightStyle == CookieStyles.Sprite)
+                if (m_ShapeLightCookieStyle == CookieStyles.Sprite)
                 {
                     // This is causing Object.op_inequality fix this
                     if (m_ShapeCookieSpriteAdditiveMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
@@ -558,16 +654,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 if (m_LightProjectionType == LightProjectionTypes.Shape)
                 {
-                    if (m_ShapeLightStyle == CookieStyles.Parametric)
+                    if (m_ShapeLightCookieStyle == CookieStyles.Parametric)
                     {
-                        if (m_ParametricShape == ParametricShapes.Freeform)
+                        if (m_ShapeLightParametricShape == ParametricShapes.Freeform)
                             UpdateShapeLightMesh(m_LightColor);
                         else
                         {
-                            m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 0.5f, m_ShapeLightOffset, m_ParametricSides, m_ShapeLightFeathering, m_LightColor, m_LightVolumeOpacity);
+                            m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricSides, m_ShapeLightFeathering, m_LightColor, m_LightVolumeOpacity);
                         }
                     }
-                    else if (m_ShapeLightStyle == CookieStyles.Sprite)
+                    else if (m_ShapeLightCookieStyle == CookieStyles.Sprite)
                     {
                         m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, m_LightColor, m_LightVolumeOpacity, 1);
                     }
@@ -728,7 +824,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             rebuildMesh |= CheckForColorChange(m_LightColor, ref m_PreviousLightColor);
             rebuildMesh |= CheckForChange<float>(m_ShapeLightFeathering, ref m_PreviousShapeLightFeathering);
             rebuildMesh |= CheckForVector2Change(m_ShapeLightOffset, ref m_PreviousShapeLightOffset);
-            rebuildMesh |= CheckForChange<int>(m_ParametricSides, ref m_PreviousParametricSides);
+            rebuildMesh |= CheckForChange<int>(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= CheckForChange<float>(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
 
 #if UNITY_EDITOR
