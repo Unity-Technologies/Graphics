@@ -93,7 +93,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             foreach (var light in lights)
             {
-                if (light != null && light.GetLightProjectionType() == lightProjectionType && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null && light.lightProjectionType == lightProjectionType && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
                     Material shapeLightMaterial = light.GetMaterial();
                     if (shapeLightMaterial != null)
@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = lights[i];
 
-                    if (light != null && light.GetLightProjectionType() == lightProjectionType && light.volumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                    if (light != null && light.lightProjectionType == lightProjectionType && light.volumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                     {
                         Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
                         if (shapeLightVolumeMaterial != null)

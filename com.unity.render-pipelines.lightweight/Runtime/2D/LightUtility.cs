@@ -4,8 +4,47 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class LightUtility
+    internal class LightUtility
     {
+        public static bool CheckForColorChange(Color i, ref Color j)
+        {
+            bool retVal = i.r != j.r || i.g != j.g || i.b != j.b || i.a != j.a;
+            j = i;
+            return retVal;
+        }
+
+        public static bool CheckForVector2Change(Vector2 i, ref Vector2 j)
+        {
+            bool retVal = i.x != j.x || i.y != j.y;
+            j = i;
+            return retVal;
+        }
+
+        public static bool CheckForSpriteChange(Sprite i, ref Sprite j)
+        {
+            // If both are null
+            bool retVal = false;
+
+            // If one is not null but the other is
+            if (i == null ^ j == null)
+                retVal = true;
+
+            // if both are not null then do another test
+            if (i != null && j != null)
+                retVal = i.GetInstanceID() != j.GetInstanceID();
+
+            j = i;
+            return retVal;
+        }
+
+        public static bool CheckForChange<T>(T a, ref T b)
+        {
+            int compareResult = Comparer<T>.Default.Compare(a, b);
+            b = a;
+            return compareResult != 0;
+        }
+
+
         public static Bounds CalculateBoundingSphere(ref Vector3[] vertices)
         {
             Bounds localBounds = new Bounds();
