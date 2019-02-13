@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set { m_PointLightQuality = value; }
         }
         [SerializeField]
-        private LightQuality m_PointLightQuality = LightQuality.Fast;
+        private LightQuality m_PointLightQuality = LightQuality.Accurate;
 
 
         //==========================================================================================
