@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal ShaderValueDescriptorListView(AbstractMaterialNode node, SlotType slotType)
         {
-            //styleSheets.Add(Resources.Load<StyleSheet>("Styles/Views/ShaderValueDescriptorListView"));
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderValueDescriptorListView"));
             m_Node = node;
             m_SlotType = slotType;
             m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
@@ -92,12 +92,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), labelStyle); 
                 var shaderOutputName = NodeUtils.GetHLSLSafeName(oldSlot.RawDisplayName());
-                var valueType = (SlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + labelWidth, rect.y, rect.width - labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.valueType);
+                var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + labelWidth, rect.y, rect.width - labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.concreteValueType);
                 
                 if(EditorGUI.EndChangeCheck())
                 {
                     // Cant modify existing slots so need to create new and copy values
-                    var newSlot = MaterialSlot.CreateMaterialSlot(valueType, oldSlot.id, displayName, shaderOutputName, m_SlotType, Vector4.zero);
+                    var newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, shaderOutputName, m_SlotType, Vector4.zero);
                     newSlot.CopyValuesFrom(oldSlot);
                     m_Node.AddSlot(newSlot);
 
@@ -129,6 +129,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         m_Node.AddSlot(slot);
                     }
 
+                    RecreateList();
                     m_Node.ValidateNode();
                 }   
             };
