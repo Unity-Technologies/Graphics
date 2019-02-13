@@ -204,19 +204,33 @@ namespace UnityEngine.Rendering.LWRP
             CommandBufferPool.Release(cmd);
         }
 
-        protected void EnqueuePasses(RenderPassFeature.InjectionPoint injectionCallback, RenderPassFeature.InjectionPoint injectionCallbackMask,
-            RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthHandle,
-            RenderPassBlock renderPassBlock = RenderPassBlock.MainRender)
+        protected bool EnqueuePasses(RenderPassEvent renderPassEvent, List<ScriptableRenderPass> customRenderPasses, ref int startIndex, ref RenderingData renderingData)
         {
-            if (CoreUtils.HasFlag(injectionCallbackMask, injectionCallback))
+            if (startIndex >= customRenderPasses.Count)
+                return false;
+
+            int prevIndex = startIndex;
+            while (startIndex < customRenderPasses.Count && customRenderPasses[startIndex].renderPassEvent == renderPassEvent)
             {
-                foreach (var renderPassFeature in m_RenderPassFeatures)
+                var renderPass = customRenderPasses[startIndex];
+
+                if (renderPass.renderPassEvent == renderPassEvent)
                 {
-                    var renderPass = renderPassFeature.GetPassToEnqueue(injectionCallback, baseDescriptor, colorHandle, depthHandle);
-                    if (renderPass != null)
-                        EnqueuePass(renderPass, renderPassBlock);
+                    if (renderPass.ShouldExecute(ref renderingData))
+                    {
+                        if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
+                            EnqueuePass(renderPass, RenderPassBlock.BeforeMainRender);
+                        else if (renderPass.renderPassEvent >= RenderPassEvent.AfterRenderingPostProcessing)
+                            EnqueuePass(renderPass, RenderPassBlock.AfterMainRender);
+                        else
+                            EnqueuePass(renderPass);
+                    }
+
+                    startIndex++;
                 }
             }
+
+            return prevIndex != startIndex;
         }
     }
 }

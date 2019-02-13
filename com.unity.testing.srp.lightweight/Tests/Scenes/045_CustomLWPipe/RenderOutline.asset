@@ -13,12 +13,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4621d1f0d19720d42a8884910fa9012c, type: 3}
   m_Name: RenderOutline
   m_EditorClassIdentifier: 
-  callback: 1
-  renderQueueType: 0
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  passNames:
-  - Outline
-  overrideMaterial: {fileID: 0}
-  overrideMaterialPassIndex: 0
+  settings:
+    callback: 1
+    renderQueueType: 0
+    layerMask:
+      serializedVersion: 2
+      m_Bits: 256
+    passNames:
+    - LightweightForward
+    overrideMaterial: {fileID: 2100000, guid: 3bca41fe8b851ec44846af4f5686915e, type: 2}
+    overrideMaterialPassIndex: 0
+    overrideDepthState: 0
+    depthCompareFunction: 2
+    enableWrite: 1
+    overrideStencilState: 0
+    stencilReference: 1
+    stencilCompareFunction: 8
+    passOperation: 0
+    failOperation: 0
+    zFailOperation: 0

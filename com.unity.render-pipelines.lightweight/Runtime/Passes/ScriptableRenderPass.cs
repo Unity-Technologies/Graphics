@@ -5,11 +5,30 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Rendering.LWRP
 {
+    public enum RenderPassEvent
+    {
+        BeforeRenderingOpaques,
+        AfterRenderingOpaques,
+        AfterRenderingOpaquePostProcessing,
+        AfterRenderingSkybox,
+        AfterRenderingTransparentPasses,
+        AfterRenderingPostProcessing,
+        AfterRendering,
+    }
+
     /// <summary>
     /// Inherit from this class to perform custom rendering in the Lightweight Render Pipeline.
     /// </summary>
-    public abstract class ScriptableRenderPass
+    public abstract class ScriptableRenderPass : IComparable<ScriptableRenderPass>
     {
+        public RenderPassEvent renderPassEvent
+        {
+            get => m_RenderPassEvent;
+            set => m_RenderPassEvent = value;
+        }
+        
+        RenderPassEvent m_RenderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+
         List<ShaderTagId> m_ShaderTagIDs = new List<ShaderTagId>();
 
         static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
@@ -272,6 +291,11 @@ namespace UnityEngine.Rendering.LWRP
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                         depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }
+        }
+
+        public int CompareTo(ScriptableRenderPass other)
+        {
+            return renderPassEvent.CompareTo(other.renderPassEvent);
         }
     }
 }

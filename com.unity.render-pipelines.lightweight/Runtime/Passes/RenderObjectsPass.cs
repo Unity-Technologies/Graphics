@@ -30,8 +30,9 @@ namespace UnityEngine.Rendering.LWRP
 
         RenderStateBlock m_RenderStateBlock;
 
-        public RenderObjectsPass(string[] shaderTags, RenderQueueType renderQueueType, int layerMask)
+        public RenderObjectsPass(RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask)
         {
+            this.renderPassEvent = renderPassEvent;
             this.renderQueueType = renderQueueType;
             this.overrideMaterial = null;
             this.overrideMaterialPassIndex = 0;
