@@ -9,19 +9,16 @@ public class CameraCallbackTests : RenderPassFeature
 {
 	static RenderTargetHandle beforeAll;
 	static RenderTargetHandle afterOpaque;
-	static RenderTargetHandle afterOpaquePost;
 	static RenderTargetHandle afterSkybox;
 	static RenderTargetHandle afterTransparent;
 	static RenderTargetHandle afterAll;
 
-    Material m_CopyDepthMaterial;
     Material m_SamplingMaterial;
     
 	public CameraCallbackTests()
 	{
 		beforeAll.Init("_BeforeAll");
 		afterOpaque.Init("_AfterOpaque");
-		afterOpaquePost.Init("_AfterOpaquePost");
 		afterSkybox.Init("_AfterSkybox");
 		afterTransparent.Init("_AfterTransparent");
 		afterAll.Init("_AfterAll");
@@ -29,7 +26,6 @@ public class CameraCallbackTests : RenderPassFeature
 
 	private void OnEnable()
 	{
-		m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/CopyDepth"));
 		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling"));
 	}
 
@@ -67,10 +63,6 @@ public class CameraCallbackTests : RenderPassFeature
         copyAfterOpaquePass.Setup(colorAttachmentHandle, afterOpaque);
         copyAfterOpaquePass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
 
-        var copyAfterPostProcessPass = new CopyColorPass(m_SamplingMaterial);
-        copyAfterPostProcessPass.Setup(colorAttachmentHandle, afterOpaquePost);
-        copyAfterPostProcessPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaquePostProcessing;
-
         var copyAfterSkyboxPass = new CopyColorPass(m_SamplingMaterial);
         copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox);
         copyAfterSkyboxPass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
@@ -89,7 +81,6 @@ public class CameraCallbackTests : RenderPassFeature
         renderPasses.Add(copyAfterEverything);
         renderPasses.Add(BlitRenderPassesToScreen);
         renderPasses.Add(copyAfterOpaquePass);
-        renderPasses.Add(copyAfterPostProcessPass);
         renderPasses.Add(copyAfterSkyboxPass);
         renderPasses.Add(copyAfterTransparents);
         renderPasses.Add(clearRenderPass);
@@ -122,10 +113,6 @@ public class CameraCallbackTests : RenderPassFeature
 
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterOpaque.Identifier());
-		    RenderFullscreenQuad(cmd, m_BlitMaterial);
-
-			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f * 2.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
-			cmd.SetGlobalTexture("_BlitTex", afterOpaquePost.Identifier());
 		    RenderFullscreenQuad(cmd, m_BlitMaterial);
 
 			cmd.SetViewport(new Rect(0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));

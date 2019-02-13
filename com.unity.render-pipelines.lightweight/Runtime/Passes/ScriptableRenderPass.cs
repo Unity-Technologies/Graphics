@@ -5,15 +5,15 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Rendering.LWRP
 {
+    // Note: Spaced built-in events so we can add events in between them
+    // We need to leave room as we sort render passes based on event.
     public enum RenderPassEvent
     {
-        BeforeRenderingOpaques,
-        AfterRenderingOpaques,
-        AfterRenderingOpaquePostProcessing,
-        AfterRenderingSkybox,
-        AfterRenderingTransparentPasses,
-        AfterRenderingPostProcessing,
-        AfterRendering,
+        BeforeRenderingOpaques = 10,
+        AfterRenderingOpaques = 20,
+        AfterRenderingSkybox = 30,
+        AfterRenderingTransparentPasses = 40,
+        AfterRendering = 50,
     }
 
     /// <summary>

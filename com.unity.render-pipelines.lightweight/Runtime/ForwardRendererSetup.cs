@@ -88,7 +88,6 @@ namespace UnityEngine.Rendering.LWRP
         public override void Setup(ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
-
             RenderTextureDescriptor baseDescriptor = ScriptableRenderPass.CreateRenderTextureDescriptor(ref renderingData.cameraData);
             ClearFlag clearFlag = GetCameraClearFlag(renderingData.cameraData.camera);
 
@@ -115,20 +114,20 @@ namespace UnityEngine.Rendering.LWRP
             RenderTargetHandle colorHandle = (createColorTexture) ? m_ColorAttachment : RenderTargetHandle.CameraTarget;
             RenderTargetHandle depthHandle = (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget;
 
-            var sampleCount = (SampleCount) renderingData.cameraData.msaaSamples;
-            if (createColorTexture || createDepthTexture)
-            {
-                m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
-                EnqueuePass(m_CreateLightweightRenderTexturesPass);
-            }
-
+            int customRenderPassIndex = 0;
             m_AdditionalRenderPasses.Clear();
             for (int i = 0; i < m_RenderPassFeatures.Count; ++i)
             {
                 m_RenderPassFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, baseDescriptor, colorHandle, depthHandle);
             }
             m_AdditionalRenderPasses.Sort();
-            int customRenderPassIndex = 0;
+
+            var sampleCount = (SampleCount) renderingData.cameraData.msaaSamples;
+            if (createColorTexture || createDepthTexture)
+            {
+                m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
+                EnqueuePass(m_CreateLightweightRenderTexturesPass);
+            }
 
             bool beforeRenderOpaquesPasses = EnqueuePasses(RenderPassEvent.BeforeRenderingOpaques, m_AdditionalRenderPasses, ref customRenderPassIndex,
                 ref renderingData);
@@ -156,12 +155,7 @@ namespace UnityEngine.Rendering.LWRP
                 ref renderingData);
 
             if (m_OpaquePostProcessPass.ShouldExecute(ref renderingData))
-            {
                 m_OpaquePostProcessPass.Setup(baseDescriptor, colorHandle, colorHandle);
-
-                afterOpaques |= EnqueuePasses(RenderPassEvent.AfterRenderingOpaquePostProcessing, m_AdditionalRenderPasses, ref customRenderPassIndex,
-                    ref renderingData);
-            }
 
             if (m_DrawSkyboxPass.ShouldExecute(ref renderingData))
             {

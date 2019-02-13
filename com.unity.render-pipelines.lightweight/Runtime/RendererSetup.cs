@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.LWRP
                     {
                         if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
                             EnqueuePass(renderPass, RenderPassBlock.BeforeMainRender);
-                        else if (renderPass.renderPassEvent >= RenderPassEvent.AfterRenderingPostProcessing)
+                        else if (renderPass.renderPassEvent >= RenderPassEvent.AfterRendering)
                             EnqueuePass(renderPass, RenderPassBlock.AfterMainRender);
                         else
                             EnqueuePass(renderPass);
