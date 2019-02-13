@@ -277,16 +277,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUI.indentLevel++;
             if (lightProjectionType == Light2D.LightProjectionTypes.Sprite)
             {
-                EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(shapeLightSprite, EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite"));
                 updateMesh |= EditorGUI.EndChangeCheck();
-                EditorGUI.indentLevel--;
             }
             else if (lightProjectionType == Light2D.LightProjectionTypes.Parametric || lightProjectionType == Light2D.LightProjectionTypes.Freeform)
             {
-                EditorGUI.indentLevel++;
-
                 if (m_ModifiedMesh)
                     updateMesh = true;
 
@@ -306,7 +302,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 EditorGUILayout.Slider(shapeLightFeathering, 0, 5, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
                 Vector2 lastOffset = shapeLightOffset.vector2Value;
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
-                EditorGUI.indentLevel--;
             }
 
             EditorGUILayout.PropertyField(shapeLightOverlapMode, EditorGUIUtility.TrTextContent("Light Overlap Mode", "Specify what should happen when this light overlaps other lights"));
