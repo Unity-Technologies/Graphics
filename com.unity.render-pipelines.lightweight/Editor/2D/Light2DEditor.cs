@@ -257,7 +257,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUI.indentLevel--;
         }
 
-        private bool OnShapeLight(SerializedObject serializedObject)
+        private bool OnShapeLight(Light2D.LightProjectionTypes lightProjectionType, bool changedType, SerializedObject serializedObject)
         {
             if (!m_AnyLightOperationEnabled)
             {
@@ -266,21 +266,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             bool updateMesh = false;
-
-            SerializedProperty shapeLightStyle = serializedObject.FindProperty("m_ShapeLightCookieStyle");
             SerializedProperty shapeLightFeathering = serializedObject.FindProperty("m_ShapeLightFeathering");
-            SerializedProperty shapeLightParametricShape = serializedObject.FindProperty("m_ShapeLightParametricShape");
             SerializedProperty shapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             SerializedProperty shapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
             SerializedProperty shapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             SerializedProperty shapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
             SerializedProperty shapeLightOverlapMode = serializedObject.FindProperty("m_ShapeLightOverlapMode");
 
-            int prevShapeLightStyle = shapeLightStyle.intValue;
 
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
-            if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Sprite)
+            if (lightProjectionType == Light2D.LightProjectionTypes.Sprite)
             {
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
@@ -288,27 +283,24 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 updateMesh |= EditorGUI.EndChangeCheck();
                 EditorGUI.indentLevel--;
             }
-            else if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Parametric)
+            else if (lightProjectionType == Light2D.LightProjectionTypes.Parametric || lightProjectionType == Light2D.LightProjectionTypes.Freeform)
             {
                 EditorGUI.indentLevel++;
 
                 if (m_ModifiedMesh)
                     updateMesh = true;
 
-                int lastShape = shapeLightParametricShape.enumValueIndex;
-                EditorGUILayout.PropertyField(shapeLightParametricShape, EditorGUIUtility.TrTextContent("Shape", "Specify the shape"));
-                int shape = shapeLightParametricShape.enumValueIndex;
-                if (lastShape != shape)
+                if (changedType)
                 {
                     int sides = shapeLightParametricSides.intValue;
-                    if (shape == (int)Light2D.ParametricShapes.Circle) sides = 128;
-                    else if (shape == (int)Light2D.ParametricShapes.Freeform) sides = 4; // This one should depend on if this has data at the moment
+                    if (lightProjectionType == Light2D.LightProjectionTypes.Parametric) sides = 128;
+                    else if (lightProjectionType == Light2D.LightProjectionTypes.Freeform) sides = 4; // This one should depend on if this has data at the moment
                     shapeLightParametricSides.intValue = sides;
                 }
 
                 m_ModifiedMesh = false;
 
-                if (shapeLightParametricShape.enumValueIndex == (int)Light2D.ParametricShapes.Circle)
+                if (lightProjectionType == Light2D.LightProjectionTypes.Parametric)
                     EditorGUILayout.IntSlider(shapeLightParametricSides, 3, 128, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
 
                 EditorGUILayout.Slider(shapeLightFeathering, 0, 5, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
@@ -524,7 +516,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 Transform t = lt.transform;
                 Vector3 posOffset = lt.shapeLightOffset;
 
-                if (lt.shapeLightCookieStyle == Light2D.CookieStyles.Sprite)
+                if (lt.lightProjectionType == Light2D.LightProjectionTypes.Sprite)
                 {
                     Vector3 v0 = t.TransformPoint(new Vector3(-0.5f, -0.5f));
                     Vector3 v1 = t.TransformPoint(new Vector3(0.5f, -0.5f));
@@ -535,7 +527,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     Handles.DrawLine(v2, v3);
                     Handles.DrawLine(v3, v0);
                 }
-                else if (lt.shapeLightParametricShape == Light2D.ParametricShapes.Circle)
+                else if (lt.lightProjectionType == Light2D.LightProjectionTypes.Parametric)
                 {
                     float radius = 0.5f;
                     float sides = lt.shapeLightParametricSides;
@@ -591,10 +583,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         OnPointLight(serializedObject);
                     }
                     break;
-                case (int)Light2D.LightProjectionTypes.Shape:
+                case (int)Light2D.LightProjectionTypes.Parametric:
+                case (int)Light2D.LightProjectionTypes.Freeform:
+                case (int)Light2D.LightProjectionTypes.Sprite:
                     {
                         
-                        updateMesh |= OnShapeLight(serializedObject);
+                        updateMesh |= OnShapeLight((Light2D.LightProjectionTypes)m_LightProjectionType.intValue, updateMesh, serializedObject);
                     }
                     break;
             }
@@ -606,7 +600,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             OnTargetSortingLayers();
 
-            if (lightObject.shapeLightParametricShape == Light2D.ParametricShapes.Freeform && lightObject.LightProjectionType == Light2D.LightProjectionTypes.Shape && lightObject.shapeLightCookieStyle != Light2D.CookieStyles.Sprite)
+            if (lightObject.lightProjectionType == Light2D.LightProjectionTypes.Freeform )
             {
                 // Draw the edit shape tool button here.
             }

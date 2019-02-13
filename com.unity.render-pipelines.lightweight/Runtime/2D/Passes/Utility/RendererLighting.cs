@@ -87,13 +87,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
         }
 
-        static private bool RenderShapeLightSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights, Light2D.LightProjectionTypes lightProjectionType)
+        static private bool RenderShapeLightSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights, bool isShapeLight)
         {
             bool renderedAnyLight = false;
 
             foreach (var light in lights)
             {
-                if (light != null && light.lightProjectionType == lightProjectionType && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null && Light2D.IsShapeLight(light.LightProjectionType) == isShapeLight  && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
                     Material shapeLightMaterial = light.GetMaterial();
                     if (shapeLightMaterial != null)
@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             if (!renderedAnyLight)
                                 renderedAnyLight = true;
 
-                            if (lightProjectionType == Light2D.LightProjectionTypes.Shape)
+                            if (isShapeLight)
                             {
                                 cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
                             }
@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return renderedAnyLight;
         }
 
-        static private void RenderLightVolumeSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights, Light2D.LightProjectionTypes lightProjectionType)
+        static private void RenderLightVolumeSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights, bool renderShapeLights)
         {
             if (lights.Count > 0)
             {
@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = lights[i];
 
-                    if (light != null && light.lightProjectionType == lightProjectionType && light.volumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                    if (light != null && Light2D.IsShapeLight(light.lightProjectionType) == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                     {
                         Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
                         if (shapeLightVolumeMaterial != null)
@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             Mesh lightMesh = light.GetMesh();
                             if (lightMesh != null)
                             {
-                                if (lightProjectionType == Light2D.LightProjectionTypes.Shape)
+                                if (renderShapeLights)
                                 {
                                     cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
                                 }
@@ -300,7 +300,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmdBuffer,
                     layerToRender,
                     Light2D.GetShapeLights(lightType),
-                    Light2D.LightProjectionTypes.Shape
+                    true
                 );
 
                 rtDirty |= RenderShapeLightSet(
@@ -309,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmdBuffer,
                     layerToRender,
                     Light2D.GetShapeLights(lightType),
-                    Light2D.LightProjectionTypes.Point
+                    false
                 );
 
 
@@ -319,7 +319,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, Light2D.LightProjectionTypes lightProjectionType)
+        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, bool renderShapeLights)
         {
             for (int i = 0; i < s_LightOperations.Length; ++i)
             {
@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     layerToRender,
                     s_RenderTargets[i].Identifier(),
                     Light2D.GetShapeLights(lightType),
-                    lightProjectionType
+                    renderShapeLights
                 );
 
                 cmdBuffer.EndSample(sampleName);

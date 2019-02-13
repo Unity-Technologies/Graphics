@@ -21,15 +21,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         public enum LightProjectionTypes
         {
-            Shape = 0,
-            Point = 1
-        }
-
-        public enum CookieStyles
-        {
             Parametric = 0,
-            //FreeForm=1,
+            Freeform = 1,
             Sprite = 2,
+            Point = 3
         }
 
         private enum Light2DType
@@ -46,12 +41,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Type0 = 0,
             Type1 = 1,
             Type2 = 2
-        }
-
-        public enum ParametricShapes
-        {
-            Circle,
-            Freeform,
         }
 
         public enum LightOverlapMode
@@ -85,8 +74,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set { m_LightProjectionType = value; }
         }
         [SerializeField]
-        private LightProjectionTypes m_LightProjectionType = LightProjectionTypes.Shape;
-        private LightProjectionTypes m_PreviousLightProjectionType = LightProjectionTypes.Shape;
+        private LightProjectionTypes m_LightProjectionType = LightProjectionTypes.Parametric;
+        private LightProjectionTypes m_PreviousLightProjectionType = LightProjectionTypes.Parametric;
 
         public Color color
         {
@@ -254,7 +243,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             BoundingSphere boundingSphere = new BoundingSphere();
 
-            if (m_LightProjectionType == LightProjectionTypes.Shape)
+            if (Light2D.IsShapeLight(m_LightProjectionType))
                 boundingSphere = GetShapeLightBoundingSphere();
             else
                 boundingSphere = GetPointLightBoundingSphere();
@@ -264,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal Material GetVolumeMaterial()
         {
-            if (m_LightProjectionType == LightProjectionTypes.Shape)
+            if (Light2D.IsShapeLight(m_LightProjectionType))
                 return GetShapeLightVolumeMaterial();
             else if(m_LightProjectionType == LightProjectionTypes.Point)
                 return GetPointLightVolumeMaterial();
@@ -274,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal Material GetMaterial()
         {
-            if (m_LightProjectionType == LightProjectionTypes.Shape)
+            if (Light2D.IsShapeLight(m_LightProjectionType))
                 return GetShapeLightMaterial();
             else if(m_LightProjectionType == LightProjectionTypes.Point)
                 return GetPointLightMaterial();
@@ -289,7 +278,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (m_Mesh == null)
                     m_Mesh = new Mesh();
 
-                if (m_LightProjectionType == LightProjectionTypes.Shape)
+                if (IsShapeLight(m_LightProjectionType))
                 {
                     m_LocalBounds = GetShapeLightMesh(ref m_Mesh);
                 }
@@ -383,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private void LateUpdate()
         {
             // Sorting
-            if(LightUtility.CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && this.m_LightProjectionType == LightProjectionTypes.Shape)
+            if(LightUtility.CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && Light2D.IsShapeLight(this.m_LightProjectionType))
             {
                 //m_ShapeLightStyle = CookieStyles.Parametric;
                 m_Lights[(int)m_LightOperation].Remove(this);

@@ -10,9 +10,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             GameObject go = new GameObject("Freeform Light 2D");
             Light2D light2D = go.AddComponent<Light2D>();
-            light2D.lightProjectionType = Light2D.LightProjectionTypes.Shape;
-            light2D.shapeLightCookieStyle = Light2D.CookieStyles.Parametric;
-            light2D.shapeLightParametricShape = Light2D.ParametricShapes.Freeform;
+            light2D.lightProjectionType = Light2D.LightProjectionTypes.Freeform;
         }
 
         [MenuItem("GameObject/Light/2D/Sprite Light 2D", false, -100)]
@@ -20,8 +18,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             GameObject go = new GameObject("Sprite Light 2D");
             Light2D light2D = go.AddComponent<Light2D>();
-            light2D.lightProjectionType = Light2D.LightProjectionTypes.Shape;
-            light2D.shapeLightCookieStyle = Light2D.CookieStyles.Sprite;
+            light2D.lightProjectionType = Light2D.LightProjectionTypes.Sprite;
         }
 
         [MenuItem("GameObject/Light/2D/Parametric Light2D", false, -100)]
@@ -29,9 +26,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             GameObject go = new GameObject("Parametric Light 2D");
             Light2D  light2D = go.AddComponent<Light2D>();
-            light2D.lightProjectionType = Light2D.LightProjectionTypes.Shape;
-            light2D.shapeLightCookieStyle = Light2D.CookieStyles.Parametric;
-            light2D.shapeLightParametricShape = Light2D.ParametricShapes.Circle;
+            light2D.lightProjectionType = Light2D.LightProjectionTypes.Parametric;
         }
 
         [MenuItem("GameObject/Light/2D/Point Light 2D", false, -100)]

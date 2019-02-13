@@ -29,24 +29,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
         //------------------------------------------------------------------------------------------
-        public CookieStyles shapeLightCookieStyle
-        {
-            get { return m_ShapeLightCookieStyle; }
-            set { m_ShapeLightCookieStyle = value; }
-        }
-        [SerializeField]
-        [Serialization.FormerlySerializedAs("m_ShapeLightStyle")]
-        private CookieStyles m_ShapeLightCookieStyle = CookieStyles.Parametric;
-
-        public ParametricShapes shapeLightParametricShape
-        {
-            get { return m_ShapeLightParametricShape; }
-            set { m_ShapeLightParametricShape = value; }
-        }
-        [SerializeField]
-        [Serialization.FormerlySerializedAs("m_ParametricShape")]
-        private ParametricShapes m_ShapeLightParametricShape = ParametricShapes.Circle; // This should be removed and fixed in the inspector
-
         public float shapeLightFeathering
         {
             get { return m_ShapeLightFeathering; }
@@ -98,9 +80,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //                              Functions
         //==========================================================================================
 
+        internal static bool IsShapeLight(LightProjectionTypes lightProjectionType)
+        {
+            return lightProjectionType != LightProjectionTypes.Point;
+        }
+
         Material GetShapeLightVolumeMaterial()
         {
-            if (m_ShapeLightCookieStyle == CookieStyles.Sprite)
+            if (m_LightProjectionType == LightProjectionTypes.Sprite)
             {
                 // This is causing Object.op_inequality fix this
                 if (m_ShapeCookieSpriteVolumeMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
@@ -135,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         Material GetShapeLightMaterial()
         {
-            if (m_ShapeLightCookieStyle == CookieStyles.Sprite)
+            if (m_LightProjectionType == LightProjectionTypes.Sprite)
             {
                 // This is causing Object.op_inequality fix this
                 if (m_ShapeCookieSpriteAdditiveMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
@@ -217,16 +204,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         Bounds GetShapeLightMesh(ref Mesh mesh)
         {
             Bounds localBounds = new Bounds();
-            if (m_ShapeLightCookieStyle == CookieStyles.Parametric)
+            if (m_LightProjectionType == LightProjectionTypes.Freeform)
+                localBounds = UpdateShapeLightMesh(m_Color);
+            else if(m_LightProjectionType == LightProjectionTypes.Parametric)
             {
-                if (m_ShapeLightParametricShape == ParametricShapes.Freeform)
-                    localBounds = UpdateShapeLightMesh(m_Color);
-                else
-                {
-                    localBounds = LightUtility.GenerateParametricMesh(ref mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricSides, m_ShapeLightFeathering, m_Color, m_LightVolumeOpacity);
-                }
+                localBounds = LightUtility.GenerateParametricMesh(ref mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricSides, m_ShapeLightFeathering, m_Color, m_LightVolumeOpacity);
             }
-            else if (m_ShapeLightCookieStyle == CookieStyles.Sprite)
+            else if (m_LightProjectionType == LightProjectionTypes.Sprite)
             {
                 localBounds = LightUtility.GenerateSpriteMesh(ref mesh, m_LightCookieSprite, m_Color, m_LightVolumeOpacity, 1);
             }
