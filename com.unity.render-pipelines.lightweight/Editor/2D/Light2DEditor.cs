@@ -160,7 +160,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         private void OnEnable()
         {
             m_LightProjectionType = serializedObject.FindProperty("m_LightProjectionType");
-            m_LightColor = serializedObject.FindProperty("m_LightColor");
+            m_LightColor = serializedObject.FindProperty("m_Color");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
 
@@ -220,9 +220,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             SerializedProperty pointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             SerializedProperty pointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             SerializedProperty pointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            SerializedProperty pointZDistance = serializedObject.FindProperty("m_PointLightZDistance");
+            SerializedProperty pointZDistance = serializedObject.FindProperty("m_PointLightDistance");
             SerializedProperty pointLightCookie = serializedObject.FindProperty("m_LightCookieSprite");
-            SerializedProperty lightQuality = serializedObject.FindProperty("m_LightQuality");
+            SerializedProperty lightQuality = serializedObject.FindProperty("m_PointLightQuality");
 
             EditorGUI.indentLevel++;
 
@@ -257,7 +257,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUI.indentLevel--;
         }
 
-        private bool OnShapeLight(SerializedObject serializedObject)
+        private bool OnShapeLight(Light2D.LightProjectionTypes lightProjectionType, bool changedType, SerializedObject serializedObject)
         {
             if (!m_AnyLightOperationEnabled)
             {
@@ -266,55 +266,42 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             bool updateMesh = false;
-
-            SerializedProperty shapeLightStyle = serializedObject.FindProperty("m_ShapeLightStyle");
             SerializedProperty shapeLightFeathering = serializedObject.FindProperty("m_ShapeLightFeathering");
-            SerializedProperty shapeLightParametricShape = serializedObject.FindProperty("m_ParametricShape");
-            SerializedProperty shapeLightParametricSides = serializedObject.FindProperty("m_ParametricSides");
+            SerializedProperty shapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             SerializedProperty shapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
             SerializedProperty shapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             SerializedProperty shapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
             SerializedProperty shapeLightOverlapMode = serializedObject.FindProperty("m_ShapeLightOverlapMode");
 
-            int prevShapeLightStyle = shapeLightStyle.intValue;
 
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(shapeLightStyle, EditorGUIUtility.TrTextContent("Cookie Style", "Specify the cookie style"));
-            if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Sprite)
+            if (lightProjectionType == Light2D.LightProjectionTypes.Sprite)
             {
-                EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(shapeLightSprite, EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite"));
                 updateMesh |= EditorGUI.EndChangeCheck();
-                EditorGUI.indentLevel--;
             }
-            else if (shapeLightStyle.intValue == (int)Light2D.CookieStyles.Parametric)
+            else if (lightProjectionType == Light2D.LightProjectionTypes.Parametric || lightProjectionType == Light2D.LightProjectionTypes.Freeform)
             {
-                EditorGUI.indentLevel++;
-
                 if (m_ModifiedMesh)
                     updateMesh = true;
 
-                int lastShape = shapeLightParametricShape.enumValueIndex;
-                EditorGUILayout.PropertyField(shapeLightParametricShape, EditorGUIUtility.TrTextContent("Shape", "Specify the shape"));
-                int shape = shapeLightParametricShape.enumValueIndex;
-                if (lastShape != shape)
+                if (changedType)
                 {
                     int sides = shapeLightParametricSides.intValue;
-                    if (shape == (int)Light2D.ParametricShapes.Circle) sides = 128;
-                    else if (shape == (int)Light2D.ParametricShapes.Freeform) sides = 4; // This one should depend on if this has data at the moment
+                    if (lightProjectionType == Light2D.LightProjectionTypes.Parametric) sides = 128;
+                    else if (lightProjectionType == Light2D.LightProjectionTypes.Freeform) sides = 4; // This one should depend on if this has data at the moment
                     shapeLightParametricSides.intValue = sides;
                 }
 
                 m_ModifiedMesh = false;
 
-                if (shapeLightParametricShape.enumValueIndex == (int)Light2D.ParametricShapes.Circle)
+                if (lightProjectionType == Light2D.LightProjectionTypes.Parametric)
                     EditorGUILayout.IntSlider(shapeLightParametricSides, 3, 128, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
 
                 EditorGUILayout.Slider(shapeLightFeathering, 0, 5, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
                 Vector2 lastOffset = shapeLightOffset.vector2Value;
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
-                EditorGUI.indentLevel--;
             }
 
             EditorGUILayout.PropertyField(shapeLightOverlapMode, EditorGUIUtility.TrTextContent("Light Overlap Mode", "Specify what should happen when this light overlaps other lights"));
@@ -427,15 +414,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             var oldColor = Handles.color;
             Handles.color = Color.yellow;
 
-            float diff = DrawAngleHandle(lt.transform, lt.m_PointLightOuterRadius, s_AngleCapOffset, TriCapTR, TriCapBR, ref lt.m_PointLightOuterAngle);
+            float outerAngle = lt.pointLightOuterAngle;
+            float diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, s_AngleCapOffset, TriCapTR, TriCapBR, ref outerAngle);
+            lt.pointLightOuterAngle = outerAngle;
 
             if (diff != 0.0f)
-                lt.m_PointLightInnerAngle = Mathf.Max(0.0f, lt.m_PointLightInnerAngle + diff);
+                lt.pointLightInnerAngle = Mathf.Max(0.0f, lt.pointLightInnerAngle + diff);
 
-            diff = DrawAngleHandle(lt.transform, lt.m_PointLightOuterRadius, -s_AngleCapOffset, TriCapTL, TriCapBL, ref lt.m_PointLightInnerAngle);
+            float innerAngle = lt.pointLightInnerAngle;
+            diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, -s_AngleCapOffset, TriCapTL, TriCapBL, ref innerAngle);
+            lt.pointLightInnerAngle = innerAngle;
 
             if (diff != 0.0f)
-                lt.m_PointLightInnerAngle = lt.m_PointLightInnerAngle < lt.m_PointLightOuterAngle ? lt.m_PointLightInnerAngle : lt.m_PointLightOuterAngle;
+                lt.pointLightInnerAngle = lt.pointLightInnerAngle < lt.pointLightOuterAngle ? lt.pointLightInnerAngle : lt.pointLightOuterAngle;
 
             Handles.color = oldColor;
         }
@@ -461,7 +452,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             var oldColor = Handles.color;
             Handles.color = Color.yellow;
 
-            float outerRadius = lt.m_PointLightOuterRadius;
+            float outerRadius = lt.pointLightOuterRadius;
             EditorGUI.BeginChangeCheck();
             Vector3 returnPos = DrawAngleSlider2D(lt.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUC, handleSize, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
@@ -472,10 +463,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 outerRadius = outerRadius + handleOffset;
                 radiusChanged = true;
             }
-            DrawRadiusArc(lt.transform, lt.m_PointLightOuterRadius, lt.m_PointLightOuterAngle, 0, s_RangeCapFunction, s_RangeCapSize, false);
+            DrawRadiusArc(lt.transform, lt.pointLightOuterRadius, lt.pointLightOuterAngle, 0, s_RangeCapFunction, s_RangeCapSize, false);
 
             Handles.color = Color.gray;
-            float innerRadius = lt.m_PointLightInnerRadius;
+            float innerRadius = lt.pointLightInnerRadius;
             EditorGUI.BeginChangeCheck();
             returnPos = DrawAngleSlider2D(lt.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDC, handleSize, true, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
@@ -484,14 +475,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 innerRadius = innerRadius - handleOffset;
                 radiusChanged = true;
             }
-            DrawRadiusArc(lt.transform, lt.m_PointLightInnerRadius, lt.m_PointLightOuterAngle, 0, s_InnerRangeCapFunction, s_InnerRangeCapSize, false);
+            DrawRadiusArc(lt.transform, lt.pointLightInnerRadius, lt.pointLightOuterAngle, 0, s_InnerRangeCapFunction, s_InnerRangeCapSize, false);
 
             Handles.color = oldColor;
 
             if (radiusChanged)
             {
-                lt.m_PointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
-                lt.m_PointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
+                lt.pointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
+                lt.pointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
             }
             
             Handles.color = handleColor;
@@ -518,9 +509,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             else
             {
                 Transform t = lt.transform;
-                Vector3 posOffset = lt.m_ShapeLightOffset;
+                Vector3 posOffset = lt.shapeLightOffset;
 
-                if (lt.m_ShapeLightStyle == Light2D.CookieStyles.Sprite)
+                if (lt.lightProjectionType == Light2D.LightProjectionTypes.Sprite)
                 {
                     Vector3 v0 = t.TransformPoint(new Vector3(-0.5f, -0.5f));
                     Vector3 v1 = t.TransformPoint(new Vector3(0.5f, -0.5f));
@@ -531,10 +522,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     Handles.DrawLine(v2, v3);
                     Handles.DrawLine(v3, v0);
                 }
-                else if (lt.m_ParametricShape == Light2D.ParametricShapes.Circle)
+                else if (lt.lightProjectionType == Light2D.LightProjectionTypes.Parametric)
                 {
                     float radius = 0.5f;
-                    float sides = lt.m_ParametricSides;
+                    float sides = lt.shapeLightParametricSides;
                     float angleOffset = Mathf.PI / 2.0f;
 
                     if (sides < 2)
@@ -546,13 +537,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     }
 
                     Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
-                    Vector3 featherStartPoint = (1 + lt.m_ShapeLightFeathering * 2.0f) * startPoint;
+                    Vector3 featherStartPoint = (1 + lt.shapeLightFeathering * 2.0f) * startPoint;
                     float radiansPerSide = 2 * Mathf.PI / sides;
                     for (int i = 0; i < sides; i++)
                     {
                         float endAngle = (i + 1) * radiansPerSide;
                         Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
-                        Vector3 featherEndPoint = (1 + lt.m_ShapeLightFeathering * 2.0f) * endPoint;
+                        Vector3 featherEndPoint = (1 + lt.shapeLightFeathering * 2.0f) * endPoint;
 
 
                         Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
@@ -587,10 +578,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         OnPointLight(serializedObject);
                     }
                     break;
-                case (int)Light2D.LightProjectionTypes.Shape:
+                case (int)Light2D.LightProjectionTypes.Parametric:
+                case (int)Light2D.LightProjectionTypes.Freeform:
+                case (int)Light2D.LightProjectionTypes.Sprite:
                     {
                         
-                        updateMesh |= OnShapeLight(serializedObject);
+                        updateMesh |= OnShapeLight((Light2D.LightProjectionTypes)m_LightProjectionType.intValue, updateMesh, serializedObject);
                     }
                     break;
             }
@@ -602,7 +595,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             OnTargetSortingLayers();
 
-            if (lightObject.m_ParametricShape == Light2D.ParametricShapes.Freeform && lightObject.LightProjectionType == Light2D.LightProjectionTypes.Shape && lightObject.m_ShapeLightStyle != Light2D.CookieStyles.Sprite)
+            if (lightObject.lightProjectionType == Light2D.LightProjectionTypes.Freeform )
             {
                 // Draw the edit shape tool button here.
             }

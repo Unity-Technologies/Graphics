@@ -87,13 +87,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
         }
 
-        static private bool RenderShapeLightSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights, Light2D.LightProjectionTypes lightProjectionType)
+        static private bool RenderShapeLightSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights, bool isShapeLight)
         {
             bool renderedAnyLight = false;
 
             foreach (var light in lights)
             {
-                if (light != null && light.GetLightProjectionType() == lightProjectionType && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null && Light2D.IsShapeLight(light.LightProjectionType) == isShapeLight  && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
                     Material shapeLightMaterial = light.GetMaterial();
                     if (shapeLightMaterial != null)
@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             if (!renderedAnyLight)
                                 renderedAnyLight = true;
 
-                            if (lightProjectionType == Light2D.LightProjectionTypes.Shape)
+                            if (isShapeLight)
                             {
                                 cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
                             }
@@ -112,7 +112,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             {
                                 RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
                                 //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
-                                Vector3 scale = new Vector3(light.m_PointLightOuterRadius, light.m_PointLightOuterRadius, light.m_PointLightOuterRadius);
+                                Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                                 Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
                                 cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightMaterial);
                             }
@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return renderedAnyLight;
         }
 
-        static private void RenderLightVolumeSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights, Light2D.LightProjectionTypes lightProjectionType)
+        static private void RenderLightVolumeSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights, bool renderShapeLights)
         {
             if (lights.Count > 0)
             {
@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = lights[i];
 
-                    if (light != null && light.GetLightProjectionType() == lightProjectionType && light.LightVolumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                    if (light != null && Light2D.IsShapeLight(light.lightProjectionType) == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                     {
                         Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
                         if (shapeLightVolumeMaterial != null)
@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             Mesh lightMesh = light.GetMesh();
                             if (lightMesh != null)
                             {
-                                if (lightProjectionType == Light2D.LightProjectionTypes.Shape)
+                                if (renderShapeLights)
                                 {
                                     cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
                                 }
@@ -148,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                 {
                                     RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
                                     //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
-                                    Vector3 scale = new Vector3(light.m_PointLightOuterRadius, light.m_PointLightOuterRadius, light.m_PointLightOuterRadius);
+                                    Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                                     Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
                                     cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightVolumeMaterial);
                                 }
@@ -181,7 +181,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public float GetNormalizedInnerRadius(Light2D light)
         {
-            return light.m_PointLightInnerRadius / light.m_PointLightOuterRadius;
+            return light.pointLightInnerRadius / light.pointLightOuterRadius;
         }
 
         static public float GetNormalizedAngle(float angle)
@@ -191,7 +191,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void GetScaledLightInvMatrix(Light2D light, out Matrix4x4 retMatrix, bool includeRotation)
         {
-            float outerRadius = light.m_PointLightOuterRadius;
+            float outerRadius = light.pointLightOuterRadius;
             //Vector3 lightScale = light.transform.lossyScale;
             Vector3 lightScale = Vector3.one;
             Vector3 outerRadiusScale = new Vector3(lightScale.x * outerRadius, lightScale.y * outerRadius, lightScale.z * outerRadius);
@@ -208,9 +208,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void SetPointLightShaderGlobals(CommandBuffer cmdBuffer, Light2D light)
         {
-            cmdBuffer.SetGlobalColor("_LightColor", light.m_LightColor);
+            cmdBuffer.SetGlobalColor("_LightColor", light.color);
 
-            if (light.m_LightQuality == Light2D.LightQuality.Fast)
+            if (light.pointLightQuality == Light2D.LightQuality.Fast)
             {
                 cmdBuffer.EnableShaderKeyword("LIGHT_QUALITY_FAST");
                 cmdBuffer.DisableShaderKeyword("LIGHT_QUALITY_ACCURATE");
@@ -231,8 +231,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             GetScaledLightInvMatrix(light, out lightNoRotInverseMatrix, false);
 
             float innerRadius = GetNormalizedInnerRadius(light);
-            float innerAngle = GetNormalizedAngle(light.m_PointLightInnerAngle);
-            float outerAngle = GetNormalizedAngle(light.m_PointLightOuterAngle);
+            float innerAngle = GetNormalizedAngle(light.pointLightInnerAngle);
+            float outerAngle = GetNormalizedAngle(light.pointLightOuterAngle);
             float innerRadiusMult = 1 / (1 - innerRadius);
 
             cmdBuffer.SetGlobalVector("_LightPosition", light.transform.position);
@@ -244,12 +244,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
             cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
 
-            cmdBuffer.SetGlobalFloat("_LightZDistance", light.m_PointLightZDistance);
+            cmdBuffer.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
 
-            if (light.m_LightCookieSprite != null && light.m_LightCookieSprite.texture != null)
+            if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
             {
                 cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHT_COOKIES");
-                cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.m_LightCookieSprite.texture);
+                cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
             }
             else
             {
@@ -300,7 +300,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmdBuffer,
                     layerToRender,
                     Light2D.GetShapeLights(lightType),
-                    Light2D.LightProjectionTypes.Shape
+                    true
                 );
 
                 rtDirty |= RenderShapeLightSet(
@@ -309,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmdBuffer,
                     layerToRender,
                     Light2D.GetShapeLights(lightType),
-                    Light2D.LightProjectionTypes.Point
+                    false
                 );
 
 
@@ -319,7 +319,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, Light2D.LightProjectionTypes lightProjectionType)
+        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, bool renderShapeLights)
         {
             for (int i = 0; i < s_LightOperations.Length; ++i)
             {
@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     layerToRender,
                     s_RenderTargets[i].Identifier(),
                     Light2D.GetShapeLights(lightType),
-                    lightProjectionType
+                    renderShapeLights
                 );
 
                 cmdBuffer.EndSample(sampleName);
