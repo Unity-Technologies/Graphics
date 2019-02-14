@@ -1220,6 +1220,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114673099322863142}
   - {fileID: 114219562863948968}
@@ -2069,7 +2070,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: 
+  m_Name: 09_AttributeMaps
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:

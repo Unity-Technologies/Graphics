@@ -18,8 +18,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent opacityAsDensity = new GUIContent("Opacity as Density", "Enable Density Blend");
             public readonly GUIContent normalMapTexture = new GUIContent("Normal Map");
             public readonly GUIContent normalScale = new GUIContent("Normal Scale");
-            public readonly GUIContent maskMapTexture = new GUIContent("Mask", "R: Metallic\nG: AO\nB: Height\nA: Smoothness");
-            public readonly GUIContent maskMapTextureWithoutHeight = new GUIContent("Mask Map", "R: Metallic\nG: AO\nA: Smoothness");
+            public readonly GUIContent maskMapTexture = new GUIContent("Mask", "R: Metallic\nG: Ambient Occlusion\nB: Height\nA: Smoothness.");
+            public readonly GUIContent maskMapTextureWithoutHeight = new GUIContent("Mask Map", "R: Metallic\nG: Ambient Occlusion\nA: Smoothness.");
             public readonly GUIContent channelRemapping = new GUIContent("Channel Remapping");
             public readonly GUIContent defaultValues = new GUIContent("Channel Default Values");
             public readonly GUIContent metallic = new GUIContent("R: Metallic");

@@ -46,10 +46,6 @@ namespace UnityEditor.ShaderGraph
             name = "Colorspace Conversion";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Colorspace-Conversion-Node"; }
-        }
 
         [SerializeField]
         ColorspaceConversion m_Conversion = new ColorspaceConversion(Colorspace.RGB, Colorspace.RGB);

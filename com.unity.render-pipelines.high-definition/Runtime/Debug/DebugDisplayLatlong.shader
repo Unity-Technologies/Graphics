@@ -43,11 +43,6 @@ Shader "Hidden/HDRP/DebugDisplayLatlong"
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
 
-                if (ShouldFlipDebugTexture())
-                {
-                    output.texcoord.y = 1.0f - output.texcoord.y;
-                }
-
                 return output;
             }
 

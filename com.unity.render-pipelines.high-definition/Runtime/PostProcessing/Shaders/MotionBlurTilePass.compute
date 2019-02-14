@@ -2,6 +2,7 @@
 
 #pragma kernel TileGenPass          GEN_PASS
 #pragma kernel TileNeighbourhood    NEIGHBOURHOOD_PASS
+#pragma kernel TileMinMaxMerge      MERGE_PASS
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
@@ -33,8 +34,6 @@ float2 UnpackVel(uint packedVel)
 
 groupshared float gs_minVel[LDS_SIZE];
 groupshared uint gs_maxVel[LDS_SIZE];
-
-
 
 // Returns min vel length in x, max vel in zw
 float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
@@ -116,12 +115,148 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
     if (threadIdx == 0)
     {
+#if SCATTERING
+        _TileToScatterMax[groupID.xy] = PackVel(maxVel);
+        _TileToScatterMin[groupID.xy] = f32tof16(minVelLength);
+#else
         _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, minVelLength);
+#endif
     }
 
 }
 
 #elif NEIGHBOURHOOD_PASS 
+
+#if SCATTERING
+
+// TODO: Consider a conservative line rasterization.
+// Line drawing algorithms.
+#if 0
+void Bresenham(int2 center, float2 lineToDraw, uint centerInfo)
+{
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    // Determine start and end point of the line. Forward
+    int2 startPoint = center;
+    int2 endPoint = int2(ceil(startPoint.x + lineToDraw.x), ceil(startPoint.y + lineToDraw.y));
+    endPoint = clamp(endPoint, int2(0, 0), maxCoords);
+
+    int2 delta = int2(abs(startPoint - endPoint));
+    int2 steps = int2(startPoint.x < endPoint.x ? 1 : -1, startPoint.y < endPoint.y ? 1 : -1);
+    int tMax = (delta.x > delta.y ? delta.x : -delta.y) / 2;
+
+    int x = startPoint.x;
+    int y = startPoint.y;
+
+    for (int i = 0; i < 32; ++i)
+    {
+        if (x >= endPoint.x && y >= endPoint.y)
+        {
+            break;
+        }
+        if (tMax > -delta.x)
+        {
+            tMax -= delta.y;
+            x += steps.x;
+        }
+        if (tMax < delta.y)
+        {
+            tMax += delta.x;
+            y += steps.y;
+        }
+
+        InterlockedMax(_TileToScatterMax[int2(x, y)], uint(centerInfo));
+    }
+}
+#endif
+
+void DDA(int2 center, float2 lineToDraw, uint centerInfo)
+{
+    int2 maxCoords = int2(_TileTargetSize.xy);
+
+    int2 startPoint = center;
+    int2 endPoint = int2(ceil(startPoint.x + lineToDraw.x), ceil(startPoint.y + lineToDraw.y));
+    endPoint = clamp(endPoint, int2(0, 0), maxCoords);
+
+    bool permute = false;
+    if (abs(lineToDraw.x) < abs(lineToDraw.y))
+    {
+        permute = true;
+        lineToDraw = lineToDraw.yx;
+        startPoint = startPoint.yx;
+        endPoint = endPoint.yx;
+    }
+    float dirSign = sign(lineToDraw.x);
+
+    float invDeltaX = dirSign / lineToDraw.x;
+    float2 step = float2(dirSign, lineToDraw.y * invDeltaX);
+
+    float end = endPoint.x * dirSign;
+    float2 currPoint = startPoint;
+
+    const int maxIter = 64;
+    for (int i = 0; ((currPoint.x * dirSign) <= end) && (i < maxIter); ++i)
+    {
+        currPoint += step;
+        float2 hitPixel = permute ? currPoint.yx : currPoint;
+        hitPixel = clamp(hitPixel, 0, _TileTargetSize.xy);
+        InterlockedMax(_TileToScatterMax[ceil(hitPixel)], uint(centerInfo));
+    }
+}
+
+#define USE_NEIGHBOURHOOD_MIN 1
+[numthreads(8, 8, 1)]
+void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    int2 id = dispatchID.xy;
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    if (any(id > maxCoords)) return;
+
+    // Sample the velocity at this tile.
+    uint packedTileInfo = _TileToScatterMax[id];
+    uint minVel = _TileToScatterMin[id];
+
+    float2 VelData = UnpackVel(packedTileInfo);
+
+    // Covert to a per pixel velocity.
+    float2 maxVelVectorInTiles = DecodeVelocityFromPacked(VelData.xy) *  _TileTargetSize.xy * 0.5f;
+
+    // If the central velocity is small, no need to spread it.
+    if (VelocityLengthInPixelsFromEncoded(VelData) > 0.5f)
+    {
+        // Spread Forward
+        DDA(id, maxVelVectorInTiles, packedTileInfo);
+        // Spread Backward
+        DDA(id, -maxVelVectorInTiles, packedTileInfo);
+    }
+
+    // TODO: We need to find a better min velocity determination.
+    #if USE_NEIGHBOURHOOD_MIN
+    // Find min of the tile in the 1-ring neighbourhood? This is incorrect, but might be worth perf wise. 
+    uint v0 = _TileToScatterMin[clamp(id.xy + int2(-1, 1), int2(0, 0), maxCoords)];
+    uint v1 = _TileToScatterMin[clamp(id.xy + int2(0, 1), int2(0, 0), maxCoords)];
+    uint v2 = _TileToScatterMin[clamp(id.xy + int2(1, 1), int2(0, 0), maxCoords)];
+
+    uint v3 = _TileToScatterMin[clamp(id.xy + int2(-1, 0), int2(0, 0), maxCoords)];
+    uint v4 = minVel;
+    uint v5 = _TileToScatterMin[clamp(id.xy + int2(1, 0), int2(0, 0), maxCoords)];
+
+    uint v6 = _TileToScatterMin[clamp(id.xy + int2(-1, -1), int2(0, 0), maxCoords)];
+    uint v7 = _TileToScatterMin[clamp(id.xy + int2(0, -1), int2(0, 0), maxCoords)];
+    uint v8 = _TileToScatterMin[clamp(id.xy + int2(1, -1), int2(0, 0), maxCoords)];
+
+    uint minVel0 = Min3(v0, v1, v2);
+    uint minVel1 = Min3(v3, v4, v5);
+    uint minVel2 = Min3(v6, v7, v8);
+    minVel = Min3(minVel0, minVel1, minVel2);
+    #endif
+    _TileToScatterMin[id] = minVel;
+}
+
+#else
+
+RW_TEXTURE2D(float3, _TileMaxNeighbourhood);
 
 [numthreads(8, 8, 1)]
 void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
@@ -156,4 +291,21 @@ void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_Gro
     _TileMaxNeighbourhood[id.xy] = float3(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2)) ;
 }
 
+#endif
+
+#endif
+
+#if MERGE_PASS
+Texture2D<uint> _TileToScatterMax;
+Texture2D<uint> _TileToScatterMin;
+RW_TEXTURE2D(float3, _TileMaxNeighbourhood);
+
+[numthreads(8, 8, 1)]
+void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
+{
+#if SCATTERING
+    int2 id = dispatchID.xy;
+    _TileMaxNeighbourhood[id] = float3(UnpackVel(_TileToScatterMax[id]), f16tof32(_TileToScatterMin[id]));
+#endif
+}
 #endif

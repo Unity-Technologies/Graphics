@@ -53,8 +53,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent    clearcoatNormalMapText = new GUIContent("Clearcoat Normal");
             public static GUIContent    clearcoatIORMapText = new GUIContent("Clearcoat IOR");
 
-            public static GUIContent    supportDecalsText = new GUIContent("Enable Decal", "Allow to specify if the material can receive decal or not");
-            public static GUIContent    receivesSSRText = new GUIContent("Receives SSR", "Allow to specify if the material can receive SSR or not");
+            public static GUIContent    supportDecalsText = new GUIContent("Enable Decal", "Specify whether the material can receive decals.");
+            public static GUIContent    receivesSSRText = new GUIContent("Receives SSR", "Specify whether the material can receive screen space reflection.");
         }
 
         enum    AxfBrdfType

@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // External structures
         HDRenderPipelineAsset m_PipelineAsset = null;
+        RenderPipelineResources m_PipelineResources = null;
         SkyManager m_SkyManager = null;
         HDRaytracingManager m_RaytracingManager = null;
         SharedRTManager m_SharedRTManager = null;
@@ -40,6 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Keep track of the pipeline asset
             m_PipelineAsset = asset;
+            m_PipelineResources = asset.renderPipelineResources;
 
             // Keep track of the sky manager
             m_SkyManager = skyManager;
@@ -125,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
-            Texture2DArray noiseTexture = m_RaytracingManager.m_RGNoiseTexture;
+            BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
             RaytracingShader forwardShader = m_PipelineAsset.renderPipelineResources.shaders.forwardRaytracing;
             Shader raytracingMask = m_PipelineAsset.renderPipelineResources.shaders.raytracingFlagMask;
 
@@ -133,7 +135,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
             List<HDAdditionalLightData> lightData = m_RaytracingManager.RequestHDLightList(hdCamera);
 
-            bool missingResources = rtEnvironement == null || noiseTexture == null || forwardShader == null || raytracingMask == null || accelerationStructure == null || lightData == null;
+            bool missingResources = rtEnvironement == null || blueNoise == null || forwardShader == null || raytracingMask == null || accelerationStructure == null || lightData == null 
+                                    || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // If any resource or game-object is missing We stop right away
             if (missingResources || !rtEnvironement.raytracedObjects)
@@ -149,16 +152,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LightCluster.EvaluateLightClusters(cmd, hdCamera, lightData);
 
             // Define the shader pass to use for the reflection pass
-            cmd.SetRaytracingShaderPass(forwardShader, "RTRaytrace_Forward");
+            cmd.SetRaytracingShaderPass(forwardShader, "ForwardDXR");
 
             // Set the acceleration structure for the pass
             cmd.SetRaytracingAccelerationStructure(forwardShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
-            // Inject the ray-tracing noise data
-            cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._RaytracingNoiseTexture, noiseTexture);
-            cmd.SetRaytracingIntParams(forwardShader, HDShaderIDs._RaytracingNoiseResolution, noiseTexture.width);
-            cmd.SetRaytracingIntParams(forwardShader, HDShaderIDs._RaytracingNumNoiseLayers, noiseTexture.depth);
-
+            // Inject the ray-tracing sampling data
+            cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambledTex);
+            cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
+            
             // Inject the ray generation data
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, rtEnvironement.raytracingRayLength);

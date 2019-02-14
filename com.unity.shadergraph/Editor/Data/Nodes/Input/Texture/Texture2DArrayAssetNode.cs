@@ -18,10 +18,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Texture-2D-Array-Asset-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

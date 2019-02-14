@@ -12,6 +12,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // The list of raytracing environments that have been registered
         List<HDRaytracingEnvironment> m_Environments = null;
+        RayCountManager m_RayCountManager = new RayCountManager();
+        public RayCountManager rayCountManager
+        {
+            get
+            {
+                return m_RayCountManager;
+            }
+        }
 
         // Flag that defines if we should rebuild everything (when adding or removing an environment)
         bool m_DirtyEnvironment = false;
@@ -77,10 +85,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The HDRPAsset data that needs to be 
         RenderPipelineResources m_Resources = null;
-        RenderPipelineSettings m_Settings = null;
+        RenderPipelineSettings m_Settings;
 
-        // Noise texture used for screen space sampling
-        public Texture2DArray m_RGNoiseTexture = null;
+        // Noise texture manager
+        BlueNoise m_BlueNoise = null;
 
         public void RegisterFilter(HDRayTracingFilter targetFilter)
         {
@@ -146,6 +154,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Keep track of the settings
             m_Settings = settings;
 
+            // Keep track of the blue noise manager
+            m_BlueNoise = blueNoise;
+
             // Create the list of environments
             m_Environments = new List<HDRaytracingEnvironment>();
 
@@ -180,8 +191,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RegisterFilter(filterArray[filterIdx]);
             }
 
-            // Keep track of the noise texture to use
-            m_RGNoiseTexture = blueNoise.textureArray128RGCoherent;
+            m_RayCountManager.Init(resources);
 
 #if UNITY_EDITOR
             // We need to invalidate the acceleration structures in case the hierarchy changed
@@ -223,6 +233,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HDRayTracingSubScene currentSubScene = m_SubScenes[m_LayerMasks[subSceneIndex]];
                 DestroySubSceneStructure(ref currentSubScene);
             }
+            m_RayCountManager.Release();
         }
 
         public void DestroySubSceneStructure(ref HDRayTracingSubScene subScene)
@@ -568,6 +579,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDRaytracingEnvironment CurrentEnvironment()
         {
             return m_Environments.Count != 0 ? m_Environments[m_Environments.Count - 1] : null;
+        }
+
+        public BlueNoise GetBlueNoiseManager()
+        {
+            return m_BlueNoise;
         }
     }
 #endif

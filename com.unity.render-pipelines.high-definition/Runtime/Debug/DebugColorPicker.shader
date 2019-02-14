@@ -96,51 +96,51 @@ Shader "Hidden/HDRP/DebugColorPicker"
                     {
                         uint4 mouseValue = int4(mouseResult * 255.5);
 
-                        DrawCharacter('R', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                        DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                        DrawInteger(mouseValue.x, _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
+                        DrawCharacter('R', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                        DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                        DrawInteger(mouseValue.x, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
 
                         if (_ColorPickerMode == COLORPICKERDEBUGMODE_BYTE4)
                         {
                             displayUnormCoord.x = mousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
-                            DrawCharacter('G', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawInteger(mouseValue.y, _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
+                            DrawCharacter('G', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawInteger(mouseValue.y, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             displayUnormCoord.x = mousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
-                            DrawCharacter('B', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawInteger(mouseValue.z, _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
+                            DrawCharacter('B', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawInteger(mouseValue.z, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             displayUnormCoord.x = mousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
-                            DrawCharacter('A', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawInteger(mouseValue.w, _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
+                            DrawCharacter('A', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawInteger(mouseValue.w, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                         }
                     }
                     else // float
                     {
-                        DrawCharacter('X', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                        DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                        DrawFloat(mouseResult.x, _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
+                        DrawCharacter('X', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                        DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                        DrawFloat(mouseResult.x, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                         if (_ColorPickerMode == COLORPICKERDEBUGMODE_FLOAT4)
                         {
                             displayUnormCoord.x = mousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
-                            DrawCharacter('Y', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawFloat(mouseResult.y, _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
+                            DrawCharacter('Y', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawFloat(mouseResult.y, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             displayUnormCoord.x = mousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
-                            DrawCharacter('Z', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawFloat(mouseResult.z, _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
+                            DrawCharacter('Z', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawFloat(mouseResult.z, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                             displayUnormCoord.x = mousePixelCoord.x + displayTextOffsetX;
                             displayUnormCoord.y += displayTextOffsetY;
-                            DrawCharacter('W', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
-                            DrawFloat(mouseResult.w, _ColorPickerFontColor, unormCoord, displayUnormCoord, flipY, result.rgb);
+                            DrawCharacter('W', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawCharacter(':', _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
+                            DrawFloat(mouseResult.w, _ColorPickerFontColor, unormCoord, displayUnormCoord, result.rgb);
                         }
                     }
                 }
@@ -160,7 +160,7 @@ Shader "Hidden/HDRP/DebugColorPicker"
                 //Decompress value if luxMeter is active
                 if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER && _ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
                     result.rgb = result.rgb * LUXMETER_COMPRESSION_RATIO;
-                    
+
                 if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUMINANCE_METER)
                 {
                     result = Luminance(result.rgb);
@@ -179,7 +179,7 @@ Shader "Hidden/HDRP/DebugColorPicker"
                     }
 
                     float4 mouseResult = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, mousePixelCoord.zw);
-                    
+
                     //Decompress value if luxMeter is active
                     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
                         mouseResult = mouseResult * LUXMETER_COMPRESSION_RATIO;

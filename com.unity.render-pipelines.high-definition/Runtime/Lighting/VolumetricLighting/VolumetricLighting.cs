@@ -172,13 +172,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Build(HDRenderPipelineAsset asset)
         {
-            m_SupportVolumetrics = asset.renderPipelineSettings.supportVolumetrics;
+            m_SupportVolumetrics = asset.currentPlatformRenderPipelineSettings.supportVolumetrics;
 
             if (!m_SupportVolumetrics)
                 return;
 
-            preset = asset.renderPipelineSettings.increaseResolutionOfVolumetrics ? VolumetricLightingPreset.High :
-                                                                                    VolumetricLightingPreset.Medium;
+            preset = asset.currentPlatformRenderPipelineSettings.increaseResolutionOfVolumetrics
+                ? VolumetricLightingPreset.High
+                : VolumetricLightingPreset.Medium;
 
             m_VolumeVoxelizationCS = asset.renderPipelineResources.shaders.volumeVoxelizationCS;
             m_VolumetricLightingCS = asset.renderPipelineResources.shaders.volumetricLightingCS;

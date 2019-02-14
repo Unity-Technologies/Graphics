@@ -1,4 +1,4 @@
-// We need 2 bounces given that we want to see the direct lighting of the reflected surfaces
+// We need only need one bounce given that we want to see the if there is anything that occludes the area light
 #pragma max_recursion_depth 1
 
 #define HAS_LIGHTLOOP
@@ -16,6 +16,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
 // Raytracing includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SphericalRectangle.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
@@ -57,7 +58,7 @@ struct MISSamplingOuput
 // The approach here is that on a grid pattern, every pixel is using the opposite technique of his direct neighbor and every sample the technique used changes
 void EvaluateMISTechnique(inout MISSamplingInput samplingInput)
 {
-    if(samplingInput.noiseValue.x <= samplingInput.brdfProb)
+    if (samplingInput.noiseValue.x <= samplingInput.brdfProb)
     {
         samplingInput.mis = 0;
         samplingInput.noiseValue.x /= samplingInput.brdfProb;
@@ -71,7 +72,7 @@ void EvaluateMISTechnique(inout MISSamplingInput samplingInput)
 
 void EvaluateMISBRDFTechnique(inout MISSamplingInput samplingInput)
 {
-    if(samplingInput.noiseValue.y <= samplingInput.diffProb)
+    if (samplingInput.noiseValue.y <= samplingInput.diffProb)
     {
         samplingInput.brdfMIS = 0;
         samplingInput.noiseValue.y /= samplingInput.diffProb;
@@ -119,7 +120,7 @@ float3 EvalBrdfPDF(MISSamplingInput misInput, float3 L)
 
 float3 brdfSampleMIS(MISSamplingInput misInput, out float3 direction, out float pdf)
 {
-    if(misInput.brdfMIS == 0)
+    if (misInput.brdfMIS == 0)
     {
         // Diffuse BRDF sampling
         float3 localL = SampleHemisphereCosine(misInput.noiseValue.x, misInput.noiseValue.y);
@@ -142,7 +143,7 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphericalRectangle sr, f
     // Flag that defines if this sample is valid
     bool validity = false;
 
-    if(misInput.mis == 0)
+    if (misInput.mis == 0)
     {
         // This means we will be sampling using the BRDF, we need to pick if it is gonna be a diffuse or specular IS 
         EvaluateMISBRDFTechnique(misInput);
@@ -154,7 +155,7 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphericalRectangle sr, f
         float t;
         validity = IntersectPlane(sr.smpWSPos, misSamplingOutput.dir, sr.rectWSPos, sr.rectWSDir, t);
 
-        if(validity)
+        if (validity)
         {
             // Let's compute the sample pos
             misSamplingOutput.pos = sr.smpWSPos + t * misSamplingOutput.dir;
@@ -163,7 +164,7 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphericalRectangle sr, f
             // is coherent with the dimensions of the light
             float4 lsPoint = mul(_RaytracingAreaWorldToLocal, float4(misSamplingOutput.pos, 1.0)) * 2.0f;
             validity = abs(lsPoint.x) < sr.dimension.x && abs(lsPoint.y) < sr.dimension.y;
-            if(validity)
+            if (validity)
             {
                 // Compute the Light PDF
                 misSamplingOutput.lightPDF = 1.0 / sr.totalSolidAngle;
@@ -173,7 +174,7 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphericalRectangle sr, f
     else
     {
         validity = SampleSphericalRectangle(sr, misInput.noiseValue, misSamplingOutput.dir, misSamplingOutput.pos);
-        if(validity)
+        if (validity)
         {
             misSamplingOutput.brdfPDF = EvalBrdfPDF(misInput, misSamplingOutput.dir);
             // Compute the Light PDF
@@ -226,6 +227,9 @@ void RayGenShadows()
     // Pixel coordinate of the current pixel
     uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
 
+    // Get the scramblingValue of this pixel
+    uint2 scramblingValue = ScramblingValue(currentPixelCoord.x, currentPixelCoord.y);
+    
     // Reset the value of the buffer
     _UNTextureUAV[currentPixelCoord] = float4(0.0f, 0.0, 0.0, 1.0f);
     _SNTextureUAV[currentPixelCoord] = float4(0.0f, 0.0, 0.0, 1.0f);
@@ -233,7 +237,7 @@ void RayGenShadows()
     
     // Read the depth value
     float depthValue  = _DepthTexture[currentPixelCoord];
-    if(depthValue == 0.0f)
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
     // Compute the position input structure
@@ -280,10 +284,10 @@ void RayGenShadows()
     // Setup and check the spherical rectangle
     SphericalRectangle sr;
     bool validSR = InitSphericalRectangle(lightData, positionWS, normalData.normalWS, sr, misInput);
-    if(!validSR)
+    if (!validSR)
         return;
 
-    // Comptue the direct lighting of the light (used for MIS)
+    // Compute the direct lighting of the light (used for MIS)
     LightLoopContext context;
     misInput.lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
     misInput.lighting.diffuse = misInput.lighting.diffuse * bsdfData.diffuseColor;
@@ -297,12 +301,21 @@ void RayGenShadows()
     // Here we need to evaluate the diffuseProbablity and the unshadowed lighting
     EvaluateMISProbabilties(misInput, lightData, preLightData, posInput.positionWS, misInput.diffProb, misInput.brdfProb);
 
-    bool validity = false;
-    for(int sampleIdx = 0; sampleIdx < _RaytracingNumSamples; ++sampleIdx)
+    if (_RayCountEnabled > 0)
     {
-        // Get the following noise value
-        misInput.noiseValue = GetRaytracingNoiseSample(currentPixelCoord, sampleIdx);
+        _RayCountTexture[currentPixelCoord].z = _RayCountTexture[currentPixelCoord].z + (uint)_RaytracingNumSamples;
+    }
 
+    bool validity = false;
+    for (int sampleIdx = 0; sampleIdx < _RaytracingNumSamples; ++sampleIdx)
+    {
+        // Compute the current sample index
+        int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + sampleIdx;
+
+        // Generate the new sample (follwing values of the sequence)
+        float2 noiseValue = float2(0.0, 0.0);
+        misInput.noiseValue.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+        misInput.noiseValue.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
         // Pick the sampling technique
         EvaluateMISTechnique(misInput);
 
@@ -310,7 +323,7 @@ void RayGenShadows()
         validity = GenerateMISSample(misInput, sr, viewWS,  misOutput);
 
         // If we could not sample , or the sample is not in the hemisphere or the sample is on the backface of the light
-        if(!validity || dot(misOutput.dir, normalData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
+        if (!validity || dot(misOutput.dir, normalData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
         {
             continue;
         }

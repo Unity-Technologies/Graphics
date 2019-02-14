@@ -54,26 +54,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Flag that defines if the Reflections should be Ray-traced
         public bool raytracedReflections = false;
 
+        // Generic reflection Data
         // Max Ray Length for the Reflections
         [Range(0.001f, 50.0f)]
         public float reflRayLength = 5.0f;
+        // The distance at which the blend between the different strategies starts
+        [Range(0.001f, 50.0f)]
+        public float reflBlendDistance = 5.0f;
+        // The smoothness at which raytraced reflections are not used anymore
+        [Range(0.0f, 1.0f)]
+        public float reflMinSmoothness = 0.5f;
+        // Value that is used to clamp the intensity to avoid fireflies
+        [Range(0.01f, 10.0f)]
+        public float reflClampValue = 5.0f;
 
-        // Number of Samples for the Reflections
+        // The different reflection qualities that we implement
+        public enum ReflectionsQuality
+        {
+            // 1 ray for every 4 pixels
+            QuarterRes,
+            // Full integration
+            Integration
+        };
+        public ReflectionsQuality reflQualityMode = ReflectionsQuality.QuarterRes;
+
+        // Reflection Quarter Res Data
+        [Range(0.01f, 1.0f)]
+        public float reflTemporalAccumulationWeight = 0.1f;
+        [Range(1, 5)]
+        public int reflSpatialFilterRadius = 3;
+
+        // Data for the integration modeJe su
+        // Number of Samples for the integration
         [Range(1, 64)]
         public int reflNumMaxSamples = 8;
-
-        public enum ReflectionsFilterMode
-        {
-            None,
-            Bilateral
-        };
-        public ReflectionsFilterMode reflFilterMode = ReflectionsFilterMode.None;
-
-        // Reflection Bilateral Filter Data
-        [Range(1, 27)]
-        public int reflBilateralRadius = 10;
-        [Range(0.001f, 9.0f)]
-        public float reflBilateralSigma = 5.0f;
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Light Cluster

@@ -13,7 +13,7 @@ using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    sealed class MaterialNodeView : Node
+    sealed class MaterialNodeView : Node, IShaderNodeView
     {
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;
@@ -141,12 +141,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
             }
 
-            if (node is PropertyNode)
-            {
-                RegisterCallback<MouseEnterEvent>(OnMouseHover);
-                RegisterCallback<MouseLeaveEvent>(OnMouseHover);
-            }
-
             var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
@@ -217,32 +211,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnMouseHover(EventBase evt)
-        {
-            var graphView = GetFirstAncestorOfType<GraphEditorView>();
-            if (graphView == null)
-                return;
-
-            var blackboardProvider = graphView.blackboardProvider;
-            if (blackboardProvider == null)
-                return;
-
-            var propNode = (PropertyNode)node;
-
-            var propRow = blackboardProvider.GetBlackboardRow(propNode.propertyGuid);
-            if (propRow != null)
-            {
-                if (evt.eventTypeId == MouseEnterEvent.TypeId())
-                {
-                    propRow.AddToClassList("hovered");
-                }
-                else
-                {
-                    propRow.RemoveFromClassList("hovered");
-                }
-            }
-        }
-
         void OnGeometryChanged(GeometryChangedEvent evt)
         {
             // style.positionTop and style.positionLeft are in relation to the parent,
@@ -265,6 +233,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        public Node gvNode => this;
         public AbstractMaterialNode node { get; private set; }
 
         public override bool expanded
@@ -604,7 +573,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 portInputView.Dispose();
 
             node = null;
-            userData = null;
+            ((VisualElement)this).userData = null;
             if (m_PreviewRenderData != null)
             {
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;

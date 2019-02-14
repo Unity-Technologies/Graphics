@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -16,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Parameters for auto-scaled Render Textures
+        bool                m_HardwareDynamicResRequested = false;
         bool                m_ScaledRTSupportsMSAA = false;
         MSAASamples         m_ScaledRTCurrentMSAASamples = MSAASamples.None;
         HashSet<RTHandle>   m_AutoSizedRTs;
@@ -48,6 +50,8 @@ namespace UnityEngine.Experimental.Rendering
 
             m_ScaledRTSupportsMSAA = scaledRTsupportsMSAA;
             m_ScaledRTCurrentMSAASamples = scaledRTMSAASamples;
+
+            m_HardwareDynamicResRequested = HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
         }
 
         public void Release(RTHandle rth)
@@ -84,6 +88,33 @@ namespace UnityEngine.Experimental.Rendering
             if (sizeChanged || msaaSamplesChanged)
             {
                 Resize(width, height, msaaSamples, sizeChanged, msaaSamplesChanged);
+            }
+        }
+
+        public void SetHardwareDynamicResolutionState(bool enableHWDynamicRes)
+        {
+            if(enableHWDynamicRes != m_HardwareDynamicResRequested && m_AutoSizedRTsArray != null)
+            {
+                m_HardwareDynamicResRequested = enableHWDynamicRes;
+
+                for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
+                {
+                    var rth = m_AutoSizedRTsArray[i];
+
+                    // Grab the render texture
+                    var renderTexture = rth.m_RT;
+                    if(renderTexture)
+                    {
+                        // Free the previous version
+                        renderTexture.Release();
+
+                        renderTexture.useDynamicScale = m_HardwareDynamicResRequested && rth.m_EnableHWDynamicScale;
+
+                        // Create the render texture
+                        renderTexture.Create();
+                    }
+
+                }
             }
         }
 
@@ -288,7 +319,7 @@ namespace UnityEngine.Experimental.Rendering
                     mipMapBias = mipMapBias,
                     antiAliasing = (int)msaaSamples,
                     bindTextureMS = bindTextureMS,
-                    useDynamicScale = useDynamicScale,
+                    useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     vrUsage = vrUsage,
                     memorylessMode = memoryless,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, format, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
@@ -312,7 +343,7 @@ namespace UnityEngine.Experimental.Rendering
                     mipMapBias = mipMapBias,
                     antiAliasing = (int)msaaSamples,
                     bindTextureMS = bindTextureMS,
-                    useDynamicScale = useDynamicScale,
+                    useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     vrUsage = vrUsage,
                     memorylessMode = memoryless,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
@@ -327,6 +358,7 @@ namespace UnityEngine.Experimental.Rendering
             newRT.useScaling = false;
             newRT.m_EnableRandomWrite = enableRandomWrite;
             newRT.m_EnableMSAA = enableMSAA;
+            newRT.m_EnableHWDynamicScale = useDynamicScale;
             newRT.m_Name = name;
 
             newRT.referenceSize = new Vector2Int(width, height);
@@ -530,7 +562,7 @@ namespace UnityEngine.Experimental.Rendering
                     mipMapBias = mipMapBias,
                     antiAliasing = msaaSamples,
                     bindTextureMS = bindTextureMS,
-                    useDynamicScale = useDynamicScale,
+                    useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     vrUsage = vrUsage,
                     memorylessMode = memoryless,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
@@ -552,7 +584,7 @@ namespace UnityEngine.Experimental.Rendering
                     mipMapBias = mipMapBias,
                     antiAliasing = msaaSamples,
                     bindTextureMS = bindTextureMS,
-                    useDynamicScale = useDynamicScale,
+                    useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     vrUsage = vrUsage,
                     memorylessMode = memoryless,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
@@ -566,6 +598,7 @@ namespace UnityEngine.Experimental.Rendering
             rth.m_EnableMSAA = enableMSAA;
             rth.m_EnableRandomWrite = enableRandomWrite;
             rth.useScaling = true;
+            rth.m_EnableHWDynamicScale = useDynamicScale;
             rth.m_Name = name;
             m_AutoSizedRTs.Add(rth);
             return rth;

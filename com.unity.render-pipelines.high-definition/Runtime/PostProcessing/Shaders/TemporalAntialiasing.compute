@@ -75,11 +75,11 @@ float3 ClipToAABB(float3 color, float3 minimum, float3 maximum)
 
 float2 GetClosestFragment(PositionInputs posInputs)
 {
-    float center  = LOAD_TEXTURE2D(_CameraDepthTexture, posInputs.positionSS).r;
-    float nw = LOAD_TEXTURE2D(_CameraDepthTexture, posInputs.positionSS + int2(-1, -1)).r;
-    float ne = LOAD_TEXTURE2D(_CameraDepthTexture, posInputs.positionSS + int2( 1, -1)).r;
-    float sw = LOAD_TEXTURE2D(_CameraDepthTexture, posInputs.positionSS + int2(-1,  1)).r;
-    float se = LOAD_TEXTURE2D(_CameraDepthTexture, posInputs.positionSS + int2( 1,  1)).r;
+    float center  = LoadCameraDepth(posInputs.positionSS);
+    float nw = LoadCameraDepth(posInputs.positionSS + int2(-1, -1));
+    float ne = LoadCameraDepth(posInputs.positionSS + int2( 1, -1));
+    float sw = LoadCameraDepth(posInputs.positionSS + int2(-1,  1));
+    float se = LoadCameraDepth(posInputs.positionSS + int2( 1,  1));
 
     float4 neighborhood = float4(nw, ne, sw, se);
 
@@ -92,10 +92,16 @@ float2 GetClosestFragment(PositionInputs posInputs)
     return posInputs.positionSS + closest.xy;
 }
 
-[numthreads(8,8,1)]
+#define GROUP_SIZE 8
+
+#ifdef SHADER_API_XBOXONE
+#define GROUP_SIZE 16
+#endif
+
+[numthreads(GROUP_SIZE, GROUP_SIZE,1)]
 void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _ScreenSize.zw, uint2(8u, 8u));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     
     float2 jitter = _TaaJitterStrength.zw;
 

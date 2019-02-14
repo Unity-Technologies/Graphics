@@ -92,13 +92,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset)
         {
-            m_Settings = hdAsset.renderPipelineSettings;
+            m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
             m_Resources = hdAsset.renderPipelineResources;
 
-            if (!hdAsset.renderPipelineSettings.supportSSAO)
+            if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
 
-            bool supportMSAA = hdAsset.renderPipelineSettings.supportMSAA;
+            bool supportMSAA = hdAsset.currentPlatformRenderPipelineSettings.supportMSAA;
 
             // Destination targets
             m_AmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
@@ -106,6 +106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 colorFormat: GraphicsFormat.R8_UNorm,
                 enableRandomWrite: true,
                 xrInstancing: true,
+                useDynamicScale: true,
                 name: "Ambient Occlusion"
             );
 
@@ -116,6 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     colorFormat: GraphicsFormat.R8G8_UNorm,
                     enableRandomWrite: true,
                     xrInstancing: true,
+                    useDynamicScale: true,
                     name: "Ambient Occlusion MSAA"
                 );
 
@@ -211,13 +213,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext)
+        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext, uint frameCount)
         {
 
 #if ENABLE_RAYTRACING
             HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
             if (m_Settings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedAO)
-                m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext);
+                m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
             else
 #endif
             {
@@ -325,6 +327,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 depthBufferBits: DepthBits.None,
                 autoGenerateMips: false,
                 enableMSAA: false,
+                useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
                 xrInstancing: true,
@@ -342,6 +345,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 slices: 16, // XRTODO: multiply by eyeCount and handle indexing in shader
                 autoGenerateMips: false,
                 enableMSAA: false,
+                useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
                 xrInstancing: true,

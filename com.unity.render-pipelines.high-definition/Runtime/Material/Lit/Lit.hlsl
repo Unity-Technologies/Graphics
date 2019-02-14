@@ -1485,12 +1485,22 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // Rotate the endpoints into the local coordinate system.
             lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
 
-            float ltcValue;
+            float3 ltcValue;
 
             // Evaluate the diffuse part
             // Polygon irradiance in the transformed configuration.
-            ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
+            float4x3 LD = mul(lightVerts, preLightData.ltcTransformDiffuse);
+            ltcValue  = PolygonIrradiance(LD);
             ltcValue *= lightData.diffuseDimmer;
+
+            // Only apply cookie if there is one
+            if ( lightData.cookieIndex >= 0 )
+            {
+                // Compute the cookie data for the diffuse term
+                float3 formFactorD =  PolygonFormFactor(LD);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LD, formFactorD);
+            }
+
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
             // See comment for specular magnitude, it apply to diffuse as well
             lighting.diffuse = preLightData.diffuseFGD * ltcValue;
@@ -1508,8 +1518,18 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
                 // Polygon irradiance in the transformed configuration.
                 // TODO: double evaluation is very inefficient! This is a temporary solution.
-                ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
+                float4x3 LTD = mul(lightVerts, ltcTransform);
+                ltcValue  = PolygonIrradiance(LTD);
                 ltcValue *= lightData.diffuseDimmer;
+
+                // Only apply cookie if there is one
+                if ( lightData.cookieIndex >= 0 )
+                {
+                    // Compute the cookie data for the transmission diffuse term
+                    float3 formFactorTD = PolygonFormFactor(LTD);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LTD, formFactorTD);
+                }
+
                 // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
                 // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
                 lighting.diffuse += bsdfData.transmittance * ltcValue;
@@ -1517,8 +1537,18 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
             // Evaluate the specular part
             // Polygon irradiance in the transformed configuration.
-            ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
+            float4x3 LS = mul(lightVerts, preLightData.ltcTransformSpecular);
+            ltcValue  = PolygonIrradiance(LS);
             ltcValue *= lightData.specularDimmer;
+            
+            // Only apply cookie if there is one
+            if ( lightData.cookieIndex >= 0 )
+            {
+                // Compute the cookie data for the specular term
+                float3 formFactorS =  PolygonFormFactor(LS);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LS, formFactorS);
+            }
+
             // We need to multiply by the magnitude of the integral of the BRDF
             // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
             // This value is what we store in specularFGD, so reuse it

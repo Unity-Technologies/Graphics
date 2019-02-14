@@ -94,6 +94,8 @@ MonoBehaviour:
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
     blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163,
       type: 3}
+    filterAreaLightCookiesPS: {fileID: 4800000, guid: c243aac96dda5fa40bed693ed5ba02c4,
+      type: 3}
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
     shadowBlurMomentsCS: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08,
       type: 3}
@@ -142,6 +144,7 @@ MonoBehaviour:
     bloomPrefilterCS: {fileID: 7200000, guid: 243b24008041aaa4a91800690f63c684, type: 3}
     bloomBlurCS: {fileID: 7200000, guid: 133a68380d324de4ea8d3ff8657b02d8, type: 3}
     bloomUpsampleCS: {fileID: 7200000, guid: 5dbb0ac12cb11f84084b7e5633481bd1, type: 3}
+    FXAACS: {fileID: 7200000, guid: 1535d29f35ea86b4282b6ca652002e2a, type: 3}
     finalPassPS: {fileID: 4800000, guid: 5ac9ef0c50282754b93c7692488e7ee7, type: 3}
   materials:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}

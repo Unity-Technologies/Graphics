@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct FrameSettingsHistory : IDebugData
     {
         static readonly string[] foldoutNames = { "Rendering", "Lighting", "Async Compute", "Light Loop" };
-        static readonly string[] columnNames = { "", "Sanitazed", "Overridden", "Default" };
+        static readonly string[] columnNames = { "Debug", "Sanitized", "Overridden", "Default" };
         static readonly Dictionary<FrameSettingsField, FrameSettingsFieldAttribute> attributes;
         static Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>> attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
 
@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 camera,
                 additionalData,
                 ref hdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
-                hdrpAsset.GetRenderPipelineSettings()
+                hdrpAsset.currentPlatformRenderPipelineSettings
                 );
 
         // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
@@ -112,7 +112,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool dirty = noHistory || updatedComponent;
 
             history.sanitazed = aggregatedFrameSettings;
-            history.debug = dirty ? history.sanitazed : frameSettingsHistory[camera].debug;
+            if (dirty)
+                history.debug = history.sanitazed;
+            else
+            {
+                history.debug = frameSettingsHistory[camera].debug;
+
+                // Ensure user is not trying to activate unsupported settings in DebugMenu
+                FrameSettings.Sanitize(ref history.debug, camera, supportedFeatures);
+            }
 
             aggregatedFrameSettings = history.debug;
             frameSettingsHistory[camera] = history;
@@ -224,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var camera = frameSettings.camera;
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
             widgets.AddRange(GenerateFrameSettingsPanelContent(hdrpAsset, ref frameSettings));
-            var panel = DebugManager.instance.GetPanel(menuName, true);
+            var panel = DebugManager.instance.GetPanel(menuName, true, 1);
             panel.children.Add(widgets.ToArray());
         }
 

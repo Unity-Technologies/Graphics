@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
-{    
+{
     [Title("Input", "Texture", "Sample Texture 2D LOD")]
     class SampleTexture2DLODNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
@@ -36,10 +36,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sample-Texture-2D-LOD-Node"; }
-        }
 
         [SerializeField]
         private TextureType m_TextureType = TextureType.Default;
@@ -111,7 +107,6 @@ namespace UnityEditor.ShaderGraph
             var lodSlot = GetSlotValue(LODInput, generationMode);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            
             var result = string.Format("{0}4 {1} = SAMPLE_TEXTURE2D_LOD({2}, {3}, {4}, {5});"
                     , precision
                     , GetVariableNameForSlot(OutputSlotRGBAId)

@@ -171,8 +171,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (operationCount > 0)
             {
                 // == 4. ==
-                var cubemapSize = (int)hdPipeline.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-                var planarSize = (int)hdPipeline.renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize;
+                var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+                var planarSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize;
                 var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize);
                 var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget(planarSize);
 
@@ -315,8 +315,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
             }
 
-            var cubemapSize = (int)hdPipeline.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-            var planarSize = (int)hdPipeline.renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize;
+            var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+            var planarSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize;
 
             var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize);
             var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget(planarSize);
@@ -507,7 +507,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var positionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);
                         HDRenderUtilities.Render(probe.settings, positionSettings, cubeRT,
                             forceFlipY: true,
-                            forceInvertBackfaceCulling: true // TODO: for an unknown reason, we need to invert the backface culling for baked reflection probes, Remove this
+                            forceInvertBackfaceCulling: true, // TODO: for an unknown reason, we need to invert the backface culling for baked reflection probes, Remove this
+                            (uint)StaticEditorFlags.ReflectionProbeStatic
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
                         HDTextureUtilities.WriteTextureFileToDisk(cubeRT, targetFile);
@@ -550,7 +551,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         importer.filterMode = FilterMode.Bilinear;
                         importer.generateCubemap = TextureImporterGenerateCubemap.AutoCubemap;
                         importer.mipmapEnabled = false;
-                        importer.textureCompression = hd.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed
+                        importer.textureCompression = hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCacheCompressed
                             ? TextureImporterCompression.Compressed
                             : TextureImporterCompression.Uncompressed;
                         importer.textureShape = TextureImporterShape.TextureCube;
@@ -565,7 +566,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         importer.sRGBTexture = false;
                         importer.filterMode = FilterMode.Bilinear;
                         importer.mipmapEnabled = false;
-                        importer.textureCompression = hd.renderPipelineSettings.lightLoopSettings.planarReflectionCacheCompressed
+                        importer.textureCompression = hd.currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionCacheCompressed
                             ? TextureImporterCompression.Compressed
                             : TextureImporterCompression.Uncompressed;
                         importer.textureShape = TextureImporterShape.Texture2D;

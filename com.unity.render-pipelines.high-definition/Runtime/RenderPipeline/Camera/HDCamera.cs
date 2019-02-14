@@ -4,6 +4,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
+
     // This holds all the matrix data we need for rendering, including data from the previous frame
     // (which is the main reason why we need to keep them around for a minimum of one frame).
     // HDCameras are automatically created & updated from a source camera and will be destroyed if
@@ -28,7 +30,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4   screenParams;
         public int       volumeLayerMask;
         public Transform volumeAnchor;
-        public Rect      viewport;
+        // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
+        public Rect      finalViewport;
 
         public bool colorPyramidHistoryIsValid = false;
         public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
@@ -76,7 +79,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int actualHeight { get { return m_ActualHeight; } }
         public Vector2 viewportScale { get { return m_ViewportScaleCurrentFrame; } }
         public Vector2Int viewportSizePrevFrame { get { return m_ViewportSizePrevFrame; } }
-        public Vector4 doubleBufferedViewportScale { get { return new Vector4(m_ViewportScaleCurrentFrame.x, m_ViewportScaleCurrentFrame.y, m_ViewportScalePreviousFrame.x, m_ViewportScalePreviousFrame.y); } }
+        public Vector4 doubleBufferedViewportScale {
+            get
+            {
+                if (HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                {
+                    return new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                }
+
+                return new Vector4(m_ViewportScaleCurrentFrame.x, m_ViewportScaleCurrentFrame.y, m_ViewportScalePreviousFrame.x, m_ViewportScalePreviousFrame.y);
+            }
+        }
         public MSAASamples msaaSamples { get { return m_msaaSamples; } }
 
         public FrameSettings frameSettings { get { return m_frameSettings; } }
@@ -147,7 +160,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (camera.clearFlags == CameraClearFlags.Skybox)
                     return HDAdditionalCameraData.ClearColorMode.Sky;
                 else if (camera.clearFlags == CameraClearFlags.SolidColor)
-                    return HDAdditionalCameraData.ClearColorMode.BackgroundColor;
+                    return HDAdditionalCameraData.ClearColorMode.Color;
                 else // None
                     return HDAdditionalCameraData.ClearColorMode.None;
             }
@@ -177,9 +190,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public HDAdditionalCameraData.AntialiasingMode antialiasing => m_AdditionalCameraData != null
-            ? m_AdditionalCameraData.antialiasing
-            : HDAdditionalCameraData.AntialiasingMode.None;
+        // This value will always be correct for the current camera, no need to check for
+        // game view / scene view / preview in the editor, it's handled automatically
+        public AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
 
         public bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
@@ -240,6 +253,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_frameSettings = currentFrameSettings;
 
+            // Handle post-process AA
+            //  - If post-processing is disabled all together, no AA
+            //  - In scene view, only enable TAA if animated materials are enabled
+            //  - Else just use the currently set AA mode on the camera
+            {
+                if (!m_frameSettings.IsEnabled(FrameSettingsField.Postprocess) || !CoreUtils.ArePostProcessesEnabled(camera))
+                    antialiasing = AntialiasingMode.None;
+                else if (camera.cameraType == CameraType.SceneView)
+                {
+                    var mode = HDRenderPipelinePreferences.sceneViewAntialiasing;
+
+                    if (mode == AntialiasingMode.TemporalAntialiasing && !CoreUtils.AreAnimatedMaterialsEnabled(camera))
+                        antialiasing = AntialiasingMode.None;
+                    else
+                        antialiasing = mode;
+                }
+                else if (m_AdditionalCameraData != null)
+                    antialiasing = m_AdditionalCameraData.antialiasing;
+                else
+                    antialiasing = AntialiasingMode.None;
+            }
+
             // Handle memory allocation.
             {
                 bool isColorPyramidHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR); // TODO: TAA as well
@@ -275,9 +310,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
-            bool taaEnabled = m_frameSettings.IsEnabled(FrameSettingsField.Postprocess)
-                && antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing
-                && camera.cameraType == CameraType.Game;
+            bool taaEnabled = antialiasing == AntialiasingMode.TemporalAntialiasing;
 
             if (!taaEnabled)
             {
@@ -300,6 +333,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ViewportSizePrevFrame = new Vector2Int(m_ActualWidth, m_ActualHeight);
             m_ActualWidth = Math.Max(camera.pixelWidth, 1);
             m_ActualHeight = Math.Max(camera.pixelHeight, 1);
+
+            Vector2Int nonScaledSize = new Vector2Int(m_ActualWidth, m_ActualHeight);
+            if (isMainGameView)
+            {
+                Vector2Int scaledSize = HDDynamicResolutionHandler.instance.GetRTHandleScale(new Vector2Int(camera.pixelWidth, camera.pixelHeight));
+                nonScaledSize = HDDynamicResolutionHandler.instance.cachedOriginalSize;
+                m_ActualWidth = scaledSize.x;
+                m_ActualHeight = scaledSize.y;
+            }
 
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
@@ -343,15 +385,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         isFirstFrame = false;
                     }
                 }
+
+                // XRTODO: fix this
                 isFirstFrame = true; // So that mono vars can still update when stereo active
 
-                screenWidth = XRGraphics.eyeTextureWidth;
-                screenHeight = XRGraphics.eyeTextureHeight;
+                // XRTODO: remove once SPI is working
+                if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
+                {
+                    Debug.Assert(HDDynamicResolutionHandler.instance.SoftwareDynamicResIsEnabled() == false);
 
-                var xrDesc = XRGraphics.eyeTextureDesc;
-                m_ActualWidth = xrDesc.width;
-                m_ActualHeight = xrDesc.height;
-
+                    var xrDesc = XRGraphics.eyeTextureDesc;
+                    nonScaledSize.x = screenWidth  = m_ActualWidth  = xrDesc.width;
+                    nonScaledSize.y = screenHeight = m_ActualHeight = xrDesc.height;
+                }
             }
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
@@ -396,8 +442,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
                 prevWorldSpaceCameraPos = worldSpaceCameraPos - prevWorldSpaceCameraPos;
-                Matrix4x4 cameraDisplacement = Matrix4x4.Translate(prevWorldSpaceCameraPos);
-                prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
+                // This fixes issue with cameraDisplacement stacking in prevViewProjMatrix when same camera renders multiple times each logical frame 
+                // causing glitchy motion blur when editor paused.
+                if (m_LastFrameActive != Time.frameCount)
+                {
+                    Matrix4x4 cameraDisplacement = Matrix4x4.Translate(prevWorldSpaceCameraPos);
+                    prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
+                }
             }
             else
             {
@@ -465,10 +516,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 prevVolumetricBufferSize.z = rt.volumeDepth;
             }
 
-            // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = msaaSamples;
-            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
-            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_msaaSamples);
+            // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
+            // This is also useful because we have some RT after final up-rez that will need the full size.
+            RTHandles.SetReferenceSize(nonScaledSize.x, nonScaledSize.y, m_msaaSamples);
+            m_HistoryRTSystem.SetReferenceSize(nonScaledSize.x, nonScaledSize.y, m_msaaSamples);
             m_HistoryRTSystem.Swap();
 
             Vector3Int currColorPyramidBufferSize = Vector3Int.zero;
@@ -515,10 +567,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ViewportScalePreviousFrame = m_ViewportSizePrevFrame * rcpTextureSize;
             m_ViewportScaleCurrentFrame  = new Vector2Int(m_ActualWidth, m_ActualHeight) * rcpTextureSize;
 
-            screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
+            screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
-            viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, actualWidth, actualHeight);
+            finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, nonScaledSize.x, nonScaledSize.y);
 
             if (vlSys != null)
             {
@@ -563,10 +615,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                         // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
                         // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
-                        if (hdPipeline.asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
+                        if (hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
                             volumeLayerMask = -1;
                         else
-                            volumeLayerMask = (-1 & ~hdPipeline.asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
+                            volumeLayerMask = (-1 & ~hdPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
                     }
                 }
             }
@@ -620,7 +672,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
             taaJitter = new Vector4(jitterX, jitterY, jitterX / camera.pixelWidth, jitterY / camera.pixelHeight);
 
-            const int kMaxSampleCount = 256;
+            const int kMaxSampleCount = 8;
             if (++taaFrameIndex >= kMaxSampleCount)
                 taaFrameIndex = 0;
 
@@ -802,7 +854,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SetupGlobalParams(CommandBuffer cmd, float time, float lastTime, uint frameCount)
         {
             bool taaEnabled = m_frameSettings.IsEnabled(FrameSettingsField.Postprocess)
-                && antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing
+                && antialiasing == AntialiasingMode.TemporalAntialiasing
                 && camera.cameraType == CameraType.Game;
 
             cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix,                viewMatrix);

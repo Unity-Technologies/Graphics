@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Label m_PathLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
-        List<MaterialNodeView> m_SelectedNodes = new List<MaterialNodeView>();
+        List<Node> m_SelectedNodes = new List<Node>();
 
         //public Action onDragFinished
         //{
@@ -318,9 +318,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             var graphView = blackboard.GetFirstAncestorOfType<MaterialGraphView>();
             if (evt.eventTypeId == MouseEnterEvent.TypeId())
             {
-                foreach (var node in graphView.nodes.ToList().OfType<MaterialNodeView>())
+                foreach (var node in graphView.nodes.ToList())
                 {
-                    if (node.node is PropertyNode propertyNode)
+                    if (node.userData is PropertyNode propertyNode)
                     {
                         if (propertyNode.propertyGuid == property.guid)
                         {

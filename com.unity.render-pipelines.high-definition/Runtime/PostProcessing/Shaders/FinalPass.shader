@@ -7,18 +7,21 @@ Shader "Hidden/HDRP/FinalPass"
 
         #pragma multi_compile_local _ FXAA
         #pragma multi_compile_local _ GRAIN
+        #pragma multi_compile_local _ DITHER
+        #pragma multi_compile_local _ APPLY_AFTER_POST
+
+        #pragma multi_compile_local _ BILINEAR CATMULL_ROM_4 LANCZOS
+        #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-
-        #define FXAA_HDR_MAPUNMAP   0
-        #define FXAA_SPAN_MAX       (8.0)
-        #define FXAA_REDUCE_MUL     (1.0 / 8.0)
-        #define FXAA_REDUCE_MIN     (1.0 / 128.0)
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
 
         TEXTURE2D(_InputTexture);
         TEXTURE2D(_GrainTexture);
+        TEXTURE2D(_AfterPostProcessTexture);
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
 
         SAMPLER(sampler_LinearClamp);
@@ -32,119 +35,74 @@ Shader "Hidden/HDRP/FinalPass"
         struct Attributes
         {
             uint vertexID : SV_VertexID;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
             float2 texcoord   : TEXCOORD0;
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         Varyings Vert(Attributes input)
         {
             Varyings output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
             return output;
         }
 
-        float3 Fetch(float2 coords, float2 offset)
+        float3 UpscaledResult(float2 UV)
         {
-            float2 uv = saturate(coords + offset) * _ScreenToTargetScale.xy;
-            return SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, uv, 0.0).xyz;
+        #if DEBUG_UPSCALE_POINT
+            return Nearest(_InputTexture, UV);
+        #else
+            #if BILINEAR
+                return Bilinear(_InputTexture, UV);
+            #elif CATMULL_ROM_4
+                return CatmullRomFourSamples(_InputTexture, UV);
+            #elif LANCZOS
+                return Lanczos(_InputTexture, UV);
+            #else
+                return Nearest(_InputTexture, UV);
+            #endif
+        #endif
         }
 
-        float3 Load(int2 icoords, int idx, int idy)
+        float4 Frag(Varyings input) : SV_Target0
         {
-            return LOAD_TEXTURE2D(_InputTexture, min(icoords + int2(idx, idy), _ScreenSize.xy - 1.0)).xyz;
-        }
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        float3 GetColor(Varyings input, out uint2 positionSS)
-        {
             float2 positionNDC = input.texcoord;
-            positionSS = input.texcoord * _ScreenSize.xy;
+            uint2 positionSS = input.texcoord * _ScreenSize.xy;
 
-        #if UNITY_SINGLE_PASS_STEREO
+            #if UNITY_SINGLE_PASS_STEREO
             // TODO: This is wrong, fix me
             positionNDC.x = positionNDC.x / 2.0 + unity_StereoEyeIndex * 0.5;
             positionSS.x = positionSS.x / 2;
-        #endif
+            #endif
 
             // Flip logic
             positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
             positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
 
-            float3 outColor = Load(positionSS, 0, 0);
-
-            #if FXAA
-            {
-                // Edge detection
-                float3 rgbNW = Load(positionSS, -1, -1);
-                float3 rgbNE = Load(positionSS,  1, -1);
-                float3 rgbSW = Load(positionSS, -1,  1);
-                float3 rgbSE = Load(positionSS,  1,  1);
-
-                #if !FXAA_HDR_MAPUNMAP
-                rgbNW = saturate(rgbNW);
-                rgbNE = saturate(rgbNE);
-                rgbSW = saturate(rgbSW);
-                rgbSE = saturate(rgbSE);
-                outColor = saturate(outColor);
-                #endif
-
-                float lumaNW = Luminance(rgbNW);
-                float lumaNE = Luminance(rgbNE);
-                float lumaSW = Luminance(rgbSW);
-                float lumaSE = Luminance(rgbSE);
-                float lumaM  = Luminance(outColor);
-
-                float2 dir;
-                dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));
-                dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));
-
-                float lumaSum   = lumaNW + lumaNE + lumaSW + lumaSE;
-                float dirReduce = max(lumaSum * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);
-                float rcpDirMin = rcp(min(abs(dir.x), abs(dir.y)) + dirReduce);
-
-                dir = min((FXAA_SPAN_MAX).xx, max((-FXAA_SPAN_MAX).xx, dir * rcpDirMin)) * _ScreenSize.zw;
-
-                // Blur
-                float3 rgb03 = Fetch(positionNDC, dir * (0.0 / 3.0 - 0.5));
-                float3 rgb13 = Fetch(positionNDC, dir * (1.0 / 3.0 - 0.5));
-                float3 rgb23 = Fetch(positionNDC, dir * (2.0 / 3.0 - 0.5));
-                float3 rgb33 = Fetch(positionNDC, dir * (3.0 / 3.0 - 0.5));
-
-                #if FXAA_HDR_MAPUNMAP
-                rgb03 = FastTonemap(rgb03);
-                rgb13 = FastTonemap(rgb13);
-                rgb23 = FastTonemap(rgb23);
-                rgb33 = FastTonemap(rgb33);
-                #else
-                rgb03 = saturate(rgb03);
-                rgb13 = saturate(rgb13);
-                rgb23 = saturate(rgb23);
-                rgb33 = saturate(rgb33);
-                #endif
-
-                float3 rgbA = 0.5 * (rgb13 + rgb23);
-                float3 rgbB = rgbA * 0.5 + 0.25 * (rgb03 + rgb33);
-
-                float lumaB = Luminance(rgbB);
-
-                float lumaMin = Min3(lumaM, lumaNW, Min3(lumaNE, lumaSW, lumaSE));
-                float lumaMax = Max3(lumaM, lumaNW, Max3(lumaNE, lumaSW, lumaSE));
-
-                float3 rgb = ((lumaB < lumaMin) || (lumaB > lumaMax)) ? rgbA : rgbB;
-
-                #if FXAA_HDR_MAPUNMAP
-                outColor = FastTonemapInvert(rgb);
-                #else
-                outColor = rgb;
-                #endif
-            }
+            #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
+            float3 outColor = UpscaledResult(positionNDC.xy);
+            #else
+            float3 outColor = LOAD_TEXTURE2D(_InputTexture, positionSS).xyz;
             #endif
 
+            #if FXAA
+            RunFXAA(_InputTexture, sampler_LinearClamp, outColor, positionSS, positionNDC);
+            #endif
+
+            // Saturate is only needed for dither or grain to work. Otherwise we don't saturate because output might be HDR
+#if defined(GRAIN) || defined(DITHER)
             outColor = saturate(outColor);
+#endif
 
             #if GRAIN
             {
@@ -163,20 +121,7 @@ Shader "Hidden/HDRP/FinalPass"
             }
             #endif
 
-            return outColor;
-        }
-
-        float4 FragNoDither(Varyings input) : SV_Target0
-        {
-            uint2 positionSS;
-            return float4(GetColor(input, positionSS), 1.0);
-        }
-
-        float4 FragDither(Varyings input) : SV_Target0
-        {
-            uint2 positionSS;
-            float3 outColor = GetColor(input, positionSS);
-
+            #if DITHER
             // sRGB 8-bit dithering
             {
                 float3 ditherParams = _DitherParams;
@@ -189,6 +134,14 @@ Shader "Hidden/HDRP/FinalPass"
                 //outColor += noise / 255.0;
                 outColor = SRGBToLinear(LinearToSRGB(outColor) + noise / 255.0);
             }
+            #endif
+
+            // Apply AfterPostProcess target
+            #if APPLY_AFTER_POST
+            float4 afterPostColor = SAMPLE_TEXTURE2D_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _ScreenToTargetScale.xy, 0);
+            // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+            outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
+            #endif
 
             return float4(outColor, 1.0);
         }
@@ -206,19 +159,7 @@ Shader "Hidden/HDRP/FinalPass"
             HLSLPROGRAM
 
                 #pragma vertex Vert
-                #pragma fragment FragNoDither
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Cull Off ZWrite Off ZTest Always
-
-            HLSLPROGRAM
-
-                #pragma vertex Vert
-                #pragma fragment FragDither
+                #pragma fragment Frag
 
             ENDHLSL
         }

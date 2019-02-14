@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Rejection";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rejection-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
