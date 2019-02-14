@@ -29,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl\""
             },
 
             RequiredFields = new List<string>()
@@ -93,7 +93,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl\""
             },
 
             RequiredFields = new List<string>()
@@ -159,7 +159,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl\""
             },
 
             RequiredFields = new List<string>()
@@ -230,7 +230,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDBuffer.hlsl\""
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl\""
             },
 
             RequiredFields = new List<string>()

@@ -4,6 +4,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
+
     // This holds all the matrix data we need for rendering, including data from the previous frame
     // (which is the main reason why we need to keep them around for a minimum of one frame).
     // HDCameras are automatically created & updated from a source camera and will be destroyed if
@@ -188,9 +190,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public HDAdditionalCameraData.AntialiasingMode antialiasing => m_AdditionalCameraData != null
-            ? m_AdditionalCameraData.antialiasing
-            : HDAdditionalCameraData.AntialiasingMode.None;
+        // This value will always be correct for the current camera, no need to check for
+        // game view / scene view / preview in the editor, it's handled automatically
+        public AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
 
         public bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
@@ -241,13 +243,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
-        public bool IsTAAEnabled()
-        {
-            return m_frameSettings.IsEnabled(FrameSettingsField.Postprocess)
-                && antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing
-                && camera.cameraType == CameraType.Game;
-        }
-
         // Pass all the systems that may want to update per-camera data here.
         // That way you will never update an HDCamera and forget to update the dependent system.
         public void Update(FrameSettings currentFrameSettings, VolumetricLightingSystem vlSys, MSAASamples msaaSamples)
@@ -257,6 +252,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_AdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
             m_frameSettings = currentFrameSettings;
+
+            // Handle post-process AA
+            //  - If post-processing is disabled all together, no AA
+            //  - In scene view, only enable TAA if animated materials are enabled
+            //  - Else just use the currently set AA mode on the camera
+            {
+                if (!m_frameSettings.IsEnabled(FrameSettingsField.Postprocess) || !CoreUtils.ArePostProcessesEnabled(camera))
+                    antialiasing = AntialiasingMode.None;
+                else if (camera.cameraType == CameraType.SceneView)
+                {
+                    var mode = HDRenderPipelinePreferences.sceneViewAntialiasing;
+
+                    if (mode == AntialiasingMode.TemporalAntialiasing && !CoreUtils.AreAnimatedMaterialsEnabled(camera))
+                        antialiasing = AntialiasingMode.None;
+                    else
+                        antialiasing = mode;
+                }
+                else if (m_AdditionalCameraData != null)
+                    antialiasing = m_AdditionalCameraData.antialiasing;
+                else
+                    antialiasing = AntialiasingMode.None;
+            }
 
             // Handle memory allocation.
             {
@@ -293,7 +310,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
-            bool taaEnabled = IsTAAEnabled();
+            bool taaEnabled = antialiasing == AntialiasingMode.TemporalAntialiasing;
 
             if (!taaEnabled)
             {
@@ -837,7 +854,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SetupGlobalParams(CommandBuffer cmd, float time, float lastTime, uint frameCount)
         {
             bool taaEnabled = m_frameSettings.IsEnabled(FrameSettingsField.Postprocess)
-                && antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing
+                && antialiasing == AntialiasingMode.TemporalAntialiasing
                 && camera.cameraType == CameraType.Game;
 
             cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix,                viewMatrix);

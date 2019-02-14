@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         enum ForwardPass
         {
             Opaque,
+            OpaqueEmissive, // right now just decals
             PreRefraction,
             Transparent
         }
@@ -22,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static readonly string[] k_ForwardPassDebugName =
         {
             "Forward Opaque Debug",
+            "Forward Opaque Emissive Debug",
             "Forward PreRefraction Debug",
             "Forward Transparent Debug"
         };
@@ -29,6 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static readonly string[] k_ForwardPassName =
         {
             "Forward Opaque",
+            "Forward Opaque Emissive",
             "Forward PreRefraction",
             "Forward Transparent"
         };
@@ -1787,6 +1790,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
 
+                RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.OpaqueEmissive);
+
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_SSSBufferManager.GetSSSBufferMSAA(0), m_SSSBufferManager.GetSSSBuffer(0));
 
@@ -2503,6 +2508,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+
+        void RenderDecalsForwardEmissive(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cullResults)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                return;
+
+            using (new ProfilingSample(cmd, "DecalsForwardEmissive", CustomSamplerId.DecalsForwardEmissive.GetSampler()))
+            {
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                var sortingSettings = new SortingSettings(hdCamera.camera)
+                {
+                    criteria = SortingCriteria.CommonOpaque
+                };
+
+                var drawSettings = new DrawingSettings(HDShaderPassNames.s_EmptyName, sortingSettings)
+                {
+                    perObjectData = PerObjectData.None
+                };
+
+                drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsForwardEmissiveName);
+                FilteringSettings filterRenderersSettings = new FilteringSettings(HDRenderQueue.k_RenderQueue_AllOpaque);
+                renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterRenderersSettings);
+                DecalSystem.instance.RenderForwardEmissive(cmd);
+            }
+        }
+
         void RenderDebugViewMaterial(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "DisplayDebug ViewMaterial", CustomSamplerId.DisplayDebugViewMaterial.GetSampler()))
@@ -2618,58 +2651,66 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var camera = hdCamera.camera;
 
-                m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
-
-                if (pass == ForwardPass.Opaque)
+                if (pass == ForwardPass.OpaqueEmissive) // right now decals only
                 {
-                    // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
+                    RenderDecalsForwardEmissive(hdCamera, cmd, renderContext, cullResults);
+                }
+                else
+                {
+                    m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
+
+                    if (pass == ForwardPass.Opaque)
                     {
-                        if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                        // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
+                        if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                         {
-                            m_MRTWithSSS[0] = m_CameraColorMSAABuffer; // Store the specular color
-                            m_MRTWithSSS[1] = m_CameraSssDiffuseLightingMSAABuffer;
-                            for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                             {
-                                m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBufferMSAA(i);
+                                m_MRTWithSSS[0] = m_CameraColorMSAABuffer; // Store the specular color
+                                m_MRTWithSSS[1] = m_CameraSssDiffuseLightingMSAABuffer;
+                                for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                                {
+                                    m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBufferMSAA(i);
+                                }
                             }
+                            else
+                            {
+                                m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
+                                m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
+                                for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
+                                {
+                                    m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffer(i);
+                                }
+                            }
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
                         }
                         else
                         {
-                            m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
-                            m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
-                            for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
-                            {
-                                m_MRTWithSSS[i + 2] = m_SSSBufferManager.GetSSSBuffer(i);
-                            }
+                            HDUtils.SetRenderTarget(cmd, hdCamera, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
                         }
-                        HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTWithSSS, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
+
+                        var passNames = hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward
+                            ? m_ForwardAndForwardOnlyPassNames
+                            : m_ForwardOnlyPassNames;
+                        RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
                     }
                     else
                     {
                         HDUtils.SetRenderTarget(cmd, hdCamera, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
-                    }
+                        if ((hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                                                                                                                                  // decal datas count is 0 if no decals affect transparency
+                        {
+                            DecalSystem.instance.SetAtlas(cmd); // for clustered decals
+                        }
 
-                    var passNames = hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward
-                        ? m_ForwardAndForwardOnlyPassNames
-                        : m_ForwardOnlyPassNames;
-                    RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
-                }
-                else
-                {
-                    HDUtils.SetRenderTarget(cmd, hdCamera, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
-                    if ((hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
-                                                                                                      // decal datas count is 0 if no decals affect transparency
-                    {
-                        DecalSystem.instance.SetAtlas(cmd); // for clustered decals
-                    }
 
-                    RenderQueueRange transparentRange = pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent;
-                    if(!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
-                    {
-                        transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
-                    }
-                    RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd,  m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames, m_currentRendererConfigurationBakedLighting, transparentRange);
+                    	RenderQueueRange transparentRange = pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent;
+                    	if(!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+                    	{
+                        	transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
+                    	}
+                    	RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd,  m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames, m_currentRendererConfigurationBakedLighting, transparentRange);
+					}
                 }
             }
         }
@@ -2743,7 +2784,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
 
                 // In scene view there is no motion vector, so we clear the RT to black
-                if (hdCamera.camera.cameraType == CameraType.SceneView)
+                if (hdCamera.camera.cameraType == CameraType.SceneView && !CoreUtils.AreAnimatedMaterialsEnabled(hdCamera.camera))
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetVelocityBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
                 }

@@ -54,14 +54,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public sealed class ExposureModeParameter : VolumeParameter<ExposureMode> { public ExposureModeParameter(ExposureMode value, bool overriden = false) : base(value, overriden) {} }
+    public sealed class ExposureModeParameter : VolumeParameter<ExposureMode> { public ExposureModeParameter(ExposureMode value, bool overrideState = false) : base(value, overrideState) {} }
 
     [Serializable]
-    public sealed class MeteringModeParameter : VolumeParameter<MeteringMode> { public MeteringModeParameter(MeteringMode value, bool overriden = false) : base(value, overriden) { } }
+    public sealed class MeteringModeParameter : VolumeParameter<MeteringMode> { public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) { } }
     
     [Serializable]
-    public sealed class LuminanceSourceParameter : VolumeParameter<LuminanceSource> { public LuminanceSourceParameter(LuminanceSource value, bool overriden = false) : base(value, overriden) {} }
+    public sealed class LuminanceSourceParameter : VolumeParameter<LuminanceSource> { public LuminanceSourceParameter(LuminanceSource value, bool overrideState = false) : base(value, overrideState) {} }
 
     [Serializable]
-    public sealed class AdaptationModeParameter : VolumeParameter<AdaptationMode> { public AdaptationModeParameter(AdaptationMode value, bool overriden = false) : base(value, overriden) {} }
+    public sealed class AdaptationModeParameter : VolumeParameter<AdaptationMode> { public AdaptationModeParameter(AdaptationMode value, bool overrideState = false) : base(value, overrideState) {} }
 }

@@ -1,6 +1,6 @@
 DielectricSpecularControlView {
-    padding-left: 8;
-    padding-right: 8;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 DielectricSpecularControlView > #enumPanel {
@@ -9,14 +9,14 @@ DielectricSpecularControlView > #enumPanel {
 }
 
 DielectricSpecularControlView > #enumPanel > Label {
-    width: 60;
-    text-alignment : middle-left;
+    width: 60px;
+    -unity-text-align : middle-left;
 }
 
 DielectricSpecularControlView > #enumPanel > EnumField {
     flex-grow: 1;
-    margin-top: 4;
-    margin-bottom: 4;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
 DielectricSpecularControlView > #enumPanel > EnumField .unity-base-field__input {
@@ -26,8 +26,8 @@ DielectricSpecularControlView > #enumPanel > EnumField .unity-base-field__input 
 }
 
 DielectricSpecularControlView .unity-enum-field__text {
-    margin-left: 5;
-    margin-right: 10;
+    margin-left: 5px;
+    margin-right: 10px;
 }
 
 DielectricSpecularControlView > #sliderPanel {
@@ -36,8 +36,8 @@ DielectricSpecularControlView > #sliderPanel {
 }
 
 DielectricSpecularControlView > #sliderPanel > Label {
-    width: 60;
-    text-alignment : middle-left;
+    width: 60px;
+    -unity-text-align : middle-left;
 }
 
 DielectricSpecularControlView > #sliderPanel > Slider {
@@ -52,11 +52,11 @@ DielectricSpecularControlView > #sliderPanel > Slider .unity-base-field__input {
 DielectricSpecularControlView > #sliderPanel > FloatField {
     margin-right: 0;
     padding-right: 0;
-    width: 40;
+    width: 40px;
 }
 
 DielectricSpecularControlView > #sliderPanel > FloatField > .unity-base-field__input{
-    margin-left: 4;
+    margin-left: 4px;
     margin-right: 0;
-    text-alignment: middle-left;
+    -unity-text-align: middle-left;
 }

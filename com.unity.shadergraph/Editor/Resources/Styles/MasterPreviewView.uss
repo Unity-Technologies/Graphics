@@ -1,15 +1,15 @@
 MasterPreviewView {
     flex-direction: column;
     position: absolute;
-    right: 10;
-    bottom: 10;
+    right: 10px;
+    bottom: 10px;
     background-color: rgb(79, 79, 79);
     justify-content: flex-start;
-    border-radius: 6;
-    border-top-width: 1;
-    border-bottom-width: 1;
-    border-left-width: 1;
-    border-right-width: 1;
+    border-radius: 6px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
     border-color: rgb(25,25,25);
 }
 
@@ -17,49 +17,49 @@ MasterPreviewView > #top {
     flex-direction: row;
     justify-content: space-between;
     background-color: rgb(64, 64, 64);
-    padding-top: 8;
-    padding-bottom: 8;
-    padding-left: 8;
-    padding-right: 8;
-    border-top-left-radius: 6;
-    border-top-right-radius: 6;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
 }
 
 MasterPreviewView > #top > #title {
-    font-size: 12;
+    font-size: 12px;
     color: rgb(180, 180, 180);
-    padding-top: 1;
-    padding-bottom: 2;
-    padding-left: 2;
-    padding-right: 2;
+    padding-top: 1px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
 }
 
 MasterPreviewView > #top > #collapse-container {
     align-self : center;
-    width : 12;
+    width : 12px;
 }
 
 MasterPreviewView > #top > #collapse-container > #icon{
     align-self: center;
     background-image : resource("GraphView/Nodes/NodeChevronDown");
-    width: 12;
-    height: 12;
-    margin-right: 10;
-    margin-left: 10;
+    width: 12px;
+    height: 12px;
+    margin-right: 10px;
+    margin-left: 10px;
 }
 
 MasterPreviewView > #top > #collapse-container > #icon.collapsed {
     align-self: center;
     background-image : resource("GraphView/Nodes/NodeChevronLeft");
-    width: 12;
-    height: 12;
+    width: 12px;
+    height: 12px;
 }
 
 MasterPreviewView > #top > #collapse-container > #icon.expanded {
     align-self: center;
     background-image : resource("GraphView/Nodes/NodeChevronDown");
-    width: 12;
-    height: 12;
+    width: 12px;
+    height: 12px;
 }
 
 MasterPreviewView > #middle {
@@ -69,8 +69,8 @@ MasterPreviewView > #middle {
 
 MasterPreviewView > #middle > #preview {
     flex-grow: 1;
-    width: 200;
-    height: 200;
+    width: 200px;
+    height: 200px;
 }
 
 MasterPreviewView.collapsed{

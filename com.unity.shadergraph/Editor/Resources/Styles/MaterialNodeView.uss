@@ -6,7 +6,7 @@ MaterialNodeView.graphElement.node.MaterialNode {
 }
 
 MaterialNodeView.master {
-    min-width: 200;
+    min-width: 200px;
 }
 
 MaterialNodeView #collapsible-area {
@@ -15,8 +15,8 @@ MaterialNodeView #collapsible-area {
 }
 
 MaterialNodeView #previewFiller.expanded {
-    width: 200;
-    padding-bottom: 200;
+    width: 200px;
+    padding-bottom: 200px;
 }
 
 MaterialNodeView #previewFiller,
@@ -25,21 +25,21 @@ MaterialNodeView #controls {
 }
 
 MaterialNodeView #controls > #items {
-    padding-top: 4;
-    padding-bottom: 4;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 MaterialNodeView > #previewContainer {
     position: absolute;
-    bottom: 4;
-    left: 4;
-    border-radius: 6;
-    padding-top: 6;
+    bottom: 4px;
+    left: 4px;
+    border-radius: 6px;
+    padding-top: 6px;
 }
 
 MaterialNodeView > #previewContainer > #preview  {
-    width: 200;
-    height: 200;
+    width: 200px;
+    height: 200px;
     align-items:center;
 }
 
@@ -49,27 +49,27 @@ MaterialNodeView > #previewContainer > #preview > #collapse {
     width: 0;
     height: 0;
     opacity: 0;
-    border-radius: 1;
-    border-top-width: 1;
-    border-bottom-width: 1;
-    border-left-width: 1;
-    border-right-width: 1;
-    margin-top: 4;
+    border-radius: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    margin-top: 4px;
     align-items:center;
     justify-content:center;
 }
 
 
 MaterialNodeView:hover > #previewContainer > #preview > #collapse {
-    width: 20;
-    height: 20;
+    width: 20px;
+    height: 20px;
     opacity: 0.6;
 }
 
 MaterialNodeView > #previewContainer > #preview > #collapse > #icon  {
     background-image : resource("GraphView/Nodes/PreviewCollapse.png");
-    width: 16;
-    height: 16;
+    width: 16px;
+    height: 16px;
 }
 
 MaterialNodeView > #previewContainer > #preview > #collapse:hover {
@@ -78,16 +78,16 @@ MaterialNodeView > #previewContainer > #preview > #collapse:hover {
 
 MaterialNodeView #previewFiller > #expand {
     align-self: center;
-    width: 56;
-    height: 16;
+    width: 56px;
+    height: 16px;
     flex-direction: row;
     justify-content:center;
 }
 
 MaterialNodeView #previewFiller > #expand > #icon {
     background-image : resource("GraphView/Nodes/PreviewExpand.png");
-    width: 16;
-    height: 16;
+    width: 16px;
+    height: 16px;
 }
 
 MaterialNodeView #previewFiller.collapsed > #expand:hover {
@@ -101,18 +101,18 @@ MaterialNodeView #previewFiller.expanded > #expand {
 MaterialNodeView > #resize {
     background-image : resource("GraphView/Nodes/NodeChevronLeft.png");
     position: absolute;
-    right: 5;
-    bottom: 5;
-    width: 10;
-    height: 10;
+    right: 5px;
+    bottom: 5px;
+    width: 10px;
+    height: 10px;
     cursor: resize-up-left;
 }
 
 MaterialNodeView > #portInputContainer {
     position: absolute;
-    width: 232;
-    left: -220;
-    top: 46;
+    width: 232px;
+    left: -220px;
+    top: 46px;
 }
 
 MaterialNodeView > #settings-container {
@@ -120,14 +120,14 @@ MaterialNodeView > #settings-container {
 }
 
 #settings-button {
-    width: 16;
+    width: 16px;
     justify-content: center;
-    padding-left: 8;
+    padding-left: 8px;
 }
 
 #settings-button > #icon {
-    width : 12;
-    height : 12;
+    width : 12px;
+    height : 12px;
     align-self: center;
     visibility: hidden;
     background-image : resource("Icons/SettingsIcons");
