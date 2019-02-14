@@ -10,6 +10,7 @@ public class CameraCallbackTests : RenderPassFeature
 	static RenderTargetHandle beforeAll;
 	static RenderTargetHandle afterOpaque;
 	static RenderTargetHandle afterSkybox;
+    static RenderTargetHandle afterSkybox2;
 	static RenderTargetHandle afterTransparent;
 	static RenderTargetHandle afterAll;
 
@@ -21,6 +22,7 @@ public class CameraCallbackTests : RenderPassFeature
 		beforeAll.Init("_BeforeAll");
 		afterOpaque.Init("_AfterOpaque");
 		afterSkybox.Init("_AfterSkybox");
+	    afterSkybox.Init("_AfterSkybox2");
 		afterTransparent.Init("_AfterTransparent");
 		afterAll.Init("_AfterAll");
 	}
@@ -66,6 +68,9 @@ public class CameraCallbackTests : RenderPassFeature
         var copyAfterSkyboxPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_DownsamplingMethod);
         copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox);
 
+        var copyAfterSkyboxPass2 = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_DownsamplingMethod);
+        copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox2);
+
         var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparentPasses, m_SamplingMaterial, m_DownsamplingMethod);
         copyAfterTransparents.Setup(colorAttachmentHandle, afterTransparent);
 
@@ -79,6 +84,7 @@ public class CameraCallbackTests : RenderPassFeature
         renderPasses.Add(BlitRenderPassesToScreen);
         renderPasses.Add(copyAfterOpaquePass);
         renderPasses.Add(copyAfterSkyboxPass);
+        renderPasses.Add(copyAfterSkyboxPass2);
         renderPasses.Add(copyAfterTransparents);
         renderPasses.Add(clearRenderPass);
         renderPasses.Add(copyBeforeOpaquePass);
@@ -112,8 +118,12 @@ public class CameraCallbackTests : RenderPassFeature
 			cmd.SetGlobalTexture("_BlitTex", afterOpaque.Identifier());
 		    RenderFullscreenQuad(cmd, m_BlitMaterial);
 
-			cmd.SetViewport(new Rect(0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
+			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f * 2.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterSkybox.Identifier());
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
+
+			cmd.SetViewport(new Rect(0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
+			cmd.SetGlobalTexture("_BlitTex", afterSkybox2.Identifier());
 		    RenderFullscreenQuad(cmd, m_BlitMaterial);
 
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));

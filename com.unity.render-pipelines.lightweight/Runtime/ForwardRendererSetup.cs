@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace UnityEngine.Rendering.LWRP
 {
     internal class ForwardRendererSetup : RendererSetup
@@ -93,15 +91,8 @@ namespace UnityEngine.Rendering.LWRP
             ClearFlag clearFlag = GetCameraClearFlag(renderingData.cameraData.camera);
 
             bool mainLightShadows = m_MainLightShadowCasterPass.ShouldExecute(ref renderingData);
-            if (mainLightShadows)
-                EnqueuePass(m_MainLightShadowCasterPass);
-
-            if (m_MainLightShadowCasterPass.ShouldExecute(ref renderingData))
-                EnqueuePass(m_AdditionalLightsShadowCasterPass);
-
             bool resolveShadowsInScreenSpace = mainLightShadows && m_ScreenSpaceShadowResolvePass.ShouldExecute(ref renderingData);
             bool requiresDepthPrepass = resolveShadowsInScreenSpace || m_DepthOnlyPass.ShouldExecute(ref renderingData);
-
             // For now VR requires a depth prepass until we figure out how to properly resolve texture2DMS in stereo
             requiresDepthPrepass |= renderingData.cameraData.isStereoEnabled;
 
@@ -116,16 +107,21 @@ namespace UnityEngine.Rendering.LWRP
             RenderTargetHandle depthHandle = (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget;
 
             int customRenderPassIndex = 0;
-            m_CustomRenderPasses.Clear();
             for (int i = 0; i < m_RenderPassFeatures.Count; ++i)
             {
                 m_RenderPassFeatures[i].AddRenderPasses(m_CustomRenderPasses, cameraTargetDescriptor, colorHandle, depthHandle);
             }
             m_CustomRenderPasses.Sort();
 
-            int msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
+            if (mainLightShadows)
+                EnqueuePass(m_MainLightShadowCasterPass);
+
+            if (m_MainLightShadowCasterPass.ShouldExecute(ref renderingData))
+                EnqueuePass(m_AdditionalLightsShadowCasterPass);
+
             if (createColorTexture || createDepthTexture)
             {
+                int msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
                 m_CreateLightweightRenderTexturesPass.Setup(cameraTargetDescriptor, colorHandle, depthHandle, msaaSamples);
                 EnqueuePass(m_CreateLightweightRenderTexturesPass);
             }

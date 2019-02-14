@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
@@ -9,7 +8,6 @@ public class CustomLWPipe : RendererSetup
     private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
 
     ForwardLights m_ForwardLights;
-    List<ScriptableRenderPass> m_AdditionalRenderPasses = new List<ScriptableRenderPass>(10);
 
     public CustomLWPipe(CustomRenderGraphData data) : base(data)
     {
@@ -33,18 +31,17 @@ public class CustomLWPipe : RendererSetup
 
         Camera camera = renderingData.cameraData.camera;
 
-        m_AdditionalRenderPasses.Clear();
         for (int i = 0; i < m_RenderPassFeatures.Count; ++i)
         {
-            m_RenderPassFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, baseDescriptor, colorHandle, depthHandle);
+            m_RenderPassFeatures[i].AddRenderPasses(m_CustomRenderPasses, baseDescriptor, colorHandle, depthHandle);
         }
-        m_AdditionalRenderPasses.Sort( (lhs, rhs)=>lhs.renderPassEvent.CompareTo(rhs.renderPassEvent));
+        m_CustomRenderPasses.Sort( (lhs, rhs)=>lhs.renderPassEvent.CompareTo(rhs.renderPassEvent));
         int customRenderPassIndex = 0;
 
         m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, GetCameraClearFlag(camera), camera.backgroundColor);
         EnqueuePass(m_RenderOpaqueForwardPass);
 
-        EnqueuePasses(RenderPassEvent.AfterRenderingOpaques, m_AdditionalRenderPasses, ref customRenderPassIndex,
+        EnqueuePasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
             ref renderingData);
     }
 

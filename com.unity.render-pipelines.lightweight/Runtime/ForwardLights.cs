@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
 
 namespace UnityEngine.Rendering.LWRP
-{    
-    public class ForwardLights
+{
+    internal class ForwardLights
     {
         static class LightConstantBuffer
         {
