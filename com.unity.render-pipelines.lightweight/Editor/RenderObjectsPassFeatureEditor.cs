@@ -153,6 +153,7 @@ namespace UnityEngine.Rendering.LWRP
 				rect.y += Styles.defaultLineSpace;
 				//Override depth
 				DoDepthOverride(ref rect);
+				rect.y += Styles.defaultLineSpace;
 				//Override stencil
 				DoStencilOverride(ref rect);
 				
@@ -186,16 +187,15 @@ namespace UnityEngine.Rendering.LWRP
 	    void DoDepthOverride(ref Rect rect)
 	    {
 		    EditorGUI.PropertyField(rect, m_OverrideDepth, Styles.overrideDepth);
-		    rect.y += Styles.defaultLineSpace;
 		    if (m_OverrideDepth.boolValue)
 		    {
+			    rect.y += Styles.defaultLineSpace;
 			    EditorGUI.indentLevel++;
 			    //Write depth
 			    EditorGUI.PropertyField(rect, m_WriteDepth, Styles.writeDepth);
 			    rect.y += Styles.defaultLineSpace;
 			    //Depth testing options
 			    EditorGUI.PropertyField(rect, m_DepthState, Styles.depthState);
-			    rect.y += Styles.defaultLineSpace;
 			    EditorGUI.indentLevel--;
 		    }
 	    }
@@ -203,10 +203,10 @@ namespace UnityEngine.Rendering.LWRP
 	    void DoStencilOverride(ref Rect rect)
 	    {
 		    EditorGUI.PropertyField(rect, m_OverrideStencil, Styles.overrideStencil);
-		    rect.y += Styles.defaultLineSpace;
 		    if (m_OverrideStencil.boolValue)
 		    {
 			    EditorGUI.indentLevel++;
+			    rect.y += Styles.defaultLineSpace;
 			    //Stencil value
 			    EditorGUI.BeginChangeCheck();
 			    var stencilVal = m_StencilIndex.intValue;
@@ -237,14 +237,13 @@ namespace UnityEngine.Rendering.LWRP
 			    rect.y += Styles.defaultLineSpace;
 			    //Stencil compare options
 			    EditorGUI.PropertyField(rect, m_StencilFunction, Styles.stencilZFail);
-			    rect.y += Styles.defaultLineSpace;
 			    EditorGUI.indentLevel--;
 		    }
 	    }
 
 	    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 	    {
-		    float height = Styles.defaultLineSpace * 2;
+		    float height = Styles.defaultLineSpace;
 		    if (!firstTime)
 		    {
 			    height += Styles.defaultLineSpace * (m_FiltersFoldout.value ? m_FilterLines : 1);
@@ -258,7 +257,7 @@ namespace UnityEngine.Rendering.LWRP
 			    }
 		    }
 
-		    return height + EditorGUIUtility.singleLineHeight;
+		    return height;
 	    }
     }
 }

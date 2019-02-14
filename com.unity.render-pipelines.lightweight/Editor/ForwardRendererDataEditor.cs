@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.LWRP
                             if (settings != null)
                             {
                                 propRect.y += Styles.defaultLineSpace;
-                                EditorGUI.PropertyField(propRect, settings);
+                                EditorGUI.PropertyField(propRect, settings, true);
                             }
 
                             if (EditorGUI.EndChangeCheck())
@@ -99,6 +99,10 @@ namespace UnityEngine.Rendering.LWRP
                         }
                     }
                     EditorGUI.EndFoldoutHeaderGroup();
+                }
+                else
+                {
+                    EditorGUI.ObjectField(propRect, element, GUIContent.none);
                 }
                 
                 if (EditorGUI.EndChangeCheck())
@@ -109,19 +113,24 @@ namespace UnityEngine.Rendering.LWRP
 
             m_passesList.elementHeightCallback = (index) =>
             {
+                var height = Styles.defaultLineSpace + (EditorGUIUtility.standardVerticalSpacing * 2);
+                
                 var element = m_passesList.serializedProperty.GetArrayElementAtIndex(index);
                 if (element.objectReferenceValue == null)
-                    return Styles.defaultLineSpace + (m_Foldouts[index].value ? Styles.defaultLineSpace : 0f);
-                var serializedObject = GetElementSO(index);                
-                var settingsProp = serializedObject.FindProperty("settings");
-                if (settingsProp != null)
+                    return height;
+
+                if (m_Foldouts[index].value)
                 {
-                    return (m_Foldouts[index].value ? EditorGUI.GetPropertyHeight(settingsProp, true) + EditorGUIUtility.standardVerticalSpacing : Styles.defaultLineSpace) + (EditorGUIUtility.standardVerticalSpacing * 2);
+                    height += Styles.defaultLineSpace;
+                    var serializedObject = GetElementSO(index);
+                    var settingsProp = serializedObject.FindProperty("settings");
+                    if (settingsProp != null)
+                    {
+                        return height + EditorGUI.GetPropertyHeight(settingsProp) +
+                               EditorGUIUtility.standardVerticalSpacing;
+                    }
                 }
-                else
-                {
-                    return Styles.defaultLineSpace;
-                }
+                return height;
             };
 
             m_passesList.onAddCallback += AddPass;
