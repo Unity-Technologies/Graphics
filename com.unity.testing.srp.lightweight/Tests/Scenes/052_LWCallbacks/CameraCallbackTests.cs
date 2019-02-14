@@ -14,6 +14,7 @@ public class CameraCallbackTests : RenderPassFeature
 	static RenderTargetHandle afterAll;
 
     Material m_SamplingMaterial;
+    Downsampling m_DownsamplingMethod;
     
 	public CameraCallbackTests()
 	{
@@ -27,6 +28,7 @@ public class CameraCallbackTests : RenderPassFeature
 	private void OnEnable()
 	{
 		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling"));
+	    m_DownsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
 	}
 
 	internal class ClearColorPass : ScriptableRenderPass
@@ -55,25 +57,20 @@ public class CameraCallbackTests : RenderPassFeature
     {
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, colorAttachmentHandle);
 
-        var copyBeforeOpaquePass = new CopyColorPass(m_SamplingMaterial);
+        var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial, m_DownsamplingMethod);
         copyBeforeOpaquePass.Setup(colorAttachmentHandle, beforeAll);
-        copyBeforeOpaquePass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
 
-        var copyAfterOpaquePass = new CopyColorPass(m_SamplingMaterial);
+        var copyAfterOpaquePass = new CopyColorPass(RenderPassEvent.AfterRenderingOpaques, m_SamplingMaterial, m_DownsamplingMethod);
         copyAfterOpaquePass.Setup(colorAttachmentHandle, afterOpaque);
-        copyAfterOpaquePass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
 
-        var copyAfterSkyboxPass = new CopyColorPass(m_SamplingMaterial);
+        var copyAfterSkyboxPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_DownsamplingMethod);
         copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox);
-        copyAfterSkyboxPass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
 
-        var copyAfterTransparents = new CopyColorPass(m_SamplingMaterial);
+        var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparentPasses, m_SamplingMaterial, m_DownsamplingMethod);
         copyAfterTransparents.Setup(colorAttachmentHandle, afterTransparent);
-        copyAfterTransparents.renderPassEvent = RenderPassEvent.AfterRenderingTransparentPasses;
 
-        var copyAfterEverything = new CopyColorPass(m_SamplingMaterial);
+        var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRendering, m_SamplingMaterial, m_DownsamplingMethod);
         copyAfterEverything.Setup(colorAttachmentHandle, afterAll);
-        copyAfterEverything.renderPassEvent = RenderPassEvent.AfterRendering;
 
         var BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, colorAttachmentHandle);
 

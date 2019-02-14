@@ -34,9 +34,10 @@ namespace UnityEngine.Rendering.LWRP
         Vector4[] m_CascadeSplitDistances;
 
         const string k_RenderMainLightShadowmapTag = "Render Main Shadowmap";
-        public MainLightShadowCasterPass()
+        public MainLightShadowCasterPass(RenderPassEvent evt)
         {
             RegisterShaderPassName("ShadowCaster");
+            renderPassEvent = evt;
 
             m_MainLightShadowMatrices = new Matrix4x4[k_MaxCascades + 1];
             m_CascadeSlices = new ShadowSliceData[k_MaxCascades];

@@ -13,6 +13,11 @@ namespace UnityEngine.Rendering.LWRP
 
         bool m_CombineWithRenderOpaquesPass = false;
 
+        public DrawSkyboxPass(RenderPassEvent evt)
+        {
+            renderPassEvent = evt;
+        }
+
         /// <summary>
         /// Configure the color and depth passes to use when rendering the skybox
         /// </summary>

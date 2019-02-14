@@ -28,9 +28,10 @@ namespace UnityEngine.Rendering.LWRP
 
         const string k_RenderAdditionalLightShadows = "Render Additional Shadows";
 
-        public AdditionalLightsShadowCasterPass()
+        public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
             RegisterShaderPassName("ShadowCaster");
+            renderPassEvent = evt;
 
             int maxLights = LightweightRenderPipeline.maxVisibleAdditionalLights;
             m_AdditionalLightShadowMatrices = new Matrix4x4[maxLights];

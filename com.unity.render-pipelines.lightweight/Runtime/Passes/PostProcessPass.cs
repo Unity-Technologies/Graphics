@@ -20,10 +20,12 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetHandle m_TemporaryColorTexture;
         bool m_IsOpaquePostProcessing;
 
-        public PostProcessPass(bool renderOpaques = false)
+        public PostProcessPass(RenderPassEvent evt, bool renderOpaques = false)
         {
             m_IsOpaquePostProcessing = renderOpaques;
             m_TemporaryColorTexture.Init("_TemporaryColorTexture");
+
+            renderPassEvent = evt;
         }
 
         /// <summary>

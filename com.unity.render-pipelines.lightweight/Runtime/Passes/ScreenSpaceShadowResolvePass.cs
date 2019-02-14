@@ -9,10 +9,11 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
 
-        public ScreenSpaceShadowResolvePass(Material screenspaceShadowsMaterial)
+        public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
             m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
+            renderPassEvent = evt;
         }
 
         public void Setup(RenderTextureDescriptor baseDescriptor)

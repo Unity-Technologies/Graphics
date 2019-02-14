@@ -15,6 +15,11 @@ namespace UnityEngine.Rendering.LWRP
 
         RenderTargetHandle m_CameraColorHandle;
 
+        public CapturePass(RenderPassEvent evt)
+        {
+            renderPassEvent = evt;
+        }
+
         /// <summary>
         /// Configure the pass
         /// </summary>

@@ -22,10 +22,11 @@ namespace UnityEngine.Rendering.LWRP
         /// <summary>
         /// Create the DepthOnlyPass
         /// </summary>
-        public DepthOnlyPass(RenderQueueRange renderQueueRange)
+        public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange)
         {
             RegisterShaderPassName("DepthOnly");
             m_FilteringSettings = new FilteringSettings(renderQueueRange);
+            renderPassEvent = evt;
         }
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace UnityEngine.Rendering.LWRP
 
         bool CanCopyDepth(ref CameraData cameraData)
         {
-            bool msaaEnabledForCamera = (int)cameraData.msaaSamples > 1;
+            bool msaaEnabledForCamera = cameraData.cameraTargetDescriptor.msaaSamples > 1;
             bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
             bool supportsDepthTarget = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
             bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);

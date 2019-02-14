@@ -19,9 +19,10 @@ namespace UnityEngine.Rendering.LWRP
 
         const string k_DepthCopyTag = "Copy Depth";
 
-        public CopyDepthPass(Material copyDepthMaterial)
+        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
             m_CopyDepthMaterial = copyDepthMaterial;
+            renderPassEvent = evt;
         }
 
         /// <summary>
@@ -48,19 +49,19 @@ namespace UnityEngine.Rendering.LWRP
             RenderTargetIdentifier depthSurface = source.Identifier();
             RenderTargetIdentifier copyDepthSurface = destination.Identifier();
 
-            RenderTextureDescriptor descriptor = CreateRenderTextureDescriptor(ref renderingData.cameraData);
+            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+            int cameraSamples = descriptor.msaaSamples;
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: fix this ;
             descriptor.msaaSamples = 1;
-            descriptor.bindMS = false;
             cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 
-            if (renderingData.cameraData.msaaSamples > 1)
+            if (cameraSamples > 1)
             {
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
-                if (renderingData.cameraData.msaaSamples == 4)
+                if (cameraSamples == 4)
                 {
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
@@ -81,6 +82,18 @@ namespace UnityEngine.Rendering.LWRP
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
+        {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+
+            // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
+            //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
+            //    cmd.CopyTexture(source, dest);
+            //else
+            cmd.Blit(source, dest, material);
         }
 
         /// <inheritdoc/>

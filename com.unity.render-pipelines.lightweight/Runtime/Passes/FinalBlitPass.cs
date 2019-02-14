@@ -15,9 +15,10 @@ namespace UnityEngine.Rendering.LWRP
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
 
-        public FinalBlitPass(Material blitMaterial)
+        public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
+            renderPassEvent = evt;
         }
 
         /// <summary>

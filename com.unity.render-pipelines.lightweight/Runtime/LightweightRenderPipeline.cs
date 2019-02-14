@@ -190,11 +190,9 @@ namespace UnityEngine.Rendering.LWRP
             const float kRenderScaleThreshold = 0.05f;
             cameraData.camera = camera;
 
-            bool msaaEnabled = camera.allowMSAA && settings.msaaSampleCount > 1;
-            if (msaaEnabled)
-                cameraData.msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
-            else
-                cameraData.msaaSamples = 1;
+            int msaaSamples = 1;
+            if (camera.allowMSAA && settings.msaaSampleCount > 1)
+                msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
 
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
             {
@@ -202,10 +200,9 @@ namespace UnityEngine.Rendering.LWRP
                 // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
                 // We only do this for the main camera and this only takes effect in the beginning of next frame.
                 // This settings should not be changed on a frame basis so that's fine.
-                QualitySettings.antiAliasing = cameraData.msaaSamples;
+                QualitySettings.antiAliasing = msaaSamples;
             }
-
-
+            
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
 
@@ -228,8 +225,6 @@ namespace UnityEngine.Rendering.LWRP
             float usedRenderScale = XRGraphics.enabled ? XRGraphics.eyeTextureResolutionScale : settings.renderScale;
             cameraData.renderScale = (Mathf.Abs(1.0f - usedRenderScale) < kRenderScaleThreshold) ? 1.0f : usedRenderScale;
             cameraData.renderScale = (camera.cameraType == CameraType.Game) ? cameraData.renderScale : 1.0f;
-
-            cameraData.opaqueTextureDownsampling = settings.opaqueDownsampling;
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = (anyShadowsEnabled) ? settings.shadowDistance : 0.0f;
@@ -255,6 +250,9 @@ namespace UnityEngine.Rendering.LWRP
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(camera);
+
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+                cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
         }
 
         static void InitializeRenderingData(LightweightRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,

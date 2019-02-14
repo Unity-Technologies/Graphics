@@ -17,7 +17,12 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTargetHandle depthAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
-        private SampleCount samples { get; set; }
+        private int samples { get; set; }
+
+        public CreateLightweightRenderTexturesPass(RenderPassEvent evt)
+        {
+            renderPassEvent = evt;
+        }
 
         /// <summary>
         /// Configure the pass
@@ -26,7 +31,7 @@ namespace UnityEngine.Rendering.LWRP
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle colorAttachmentHandle,
             RenderTargetHandle depthAttachmentHandle,
-            SampleCount samples)
+            int samples)
         {
             this.colorAttachmentHandle = colorAttachmentHandle;
             this.depthAttachmentHandle = depthAttachmentHandle;
@@ -51,7 +56,7 @@ namespace UnityEngine.Rendering.LWRP
                 var depthDescriptor = descriptor;
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                 depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
-                depthDescriptor.bindMS = (int)samples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures!=0);
+                depthDescriptor.bindMS = samples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures!=0);
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, depthDescriptor, FilterMode.Point);
             }
 

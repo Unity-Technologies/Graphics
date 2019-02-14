@@ -13,21 +13,21 @@ public class CustomLWPipe : RendererSetup
 
     public CustomLWPipe(CustomRenderGraphData data) : base(data)
     {
-        m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
-        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderQueueRange.opaque, -1);
+        m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass(RenderPassEvent.BeforeRendering);
+        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, -1);
         m_ForwardLights = new ForwardLights();
     }
 
     public override void Setup(ref RenderingData renderingData)
     {
-        RenderTextureDescriptor baseDescriptor = ScriptableRenderPass.CreateRenderTextureDescriptor(ref renderingData.cameraData);
+        RenderTextureDescriptor baseDescriptor = renderingData.cameraData.cameraTargetDescriptor;
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;
         shadowDescriptor.dimension = TextureDimension.Tex2D;
 
         RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
         RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
 
-        var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
+        int sampleCount = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
         m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
         EnqueuePass(m_CreateLightweightRenderTexturesPass);
 

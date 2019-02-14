@@ -7,14 +7,6 @@ namespace UnityEngine.Rendering.LWRP
 {
     public abstract class RendererSetup
     {
-        public enum RenderPassBlock
-        {
-            BeforeMainRender,
-            MainRender,
-            AfterMainRender,
-            Count,
-        }
-        
         public abstract void Setup(ref RenderingData renderingData);
 
         public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -26,14 +18,9 @@ namespace UnityEngine.Rendering.LWRP
         {    
         }
 
-        protected List<ScriptableRenderPass>[] m_ActiveRenderPassQueue = 
-        {
-            new List<ScriptableRenderPass>(),
-            new List<ScriptableRenderPass>(),
-            new List<ScriptableRenderPass>(),
-        };
-
+        protected List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         protected List<RenderPassFeature> m_RenderPassFeatures = new List<RenderPassFeature>(10);
+        int m_RenderPassIndex;
 
         const string k_ClearRenderStateTag = "Clear Render State";
         const string k_RenderOcclusionMesh = "Render Occlusion Mesh";
@@ -42,6 +29,7 @@ namespace UnityEngine.Rendering.LWRP
         public RendererSetup(RendererData data)
         {
             m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
+            m_RenderPassIndex = 0;
         }
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -50,7 +38,7 @@ namespace UnityEngine.Rendering.LWRP
 
             // Before Render Block
             // In this block inputs passes should execute. e.g, shadowmaps
-            ExecuteBlock(RenderPassBlock.BeforeMainRender, context, ref renderingData, true);
+            ExecuteBlock(RenderPassEvent.BeforeRenderingOpaques, context, ref renderingData, true);
 
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
@@ -68,12 +56,12 @@ namespace UnityEngine.Rendering.LWRP
                 BeginXRRendering(context, camera);
             
             // In this block the bulk of render passes execute.
-            ExecuteBlock(RenderPassBlock.MainRender, context, ref renderingData);
+            ExecuteBlock(RenderPassEvent.AfterRenderingTransparentPasses, context, ref renderingData);
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock(RenderPassBlock.AfterMainRender, context, ref renderingData);
+            ExecuteBlock((RenderPassEvent)Int32.MaxValue, context, ref renderingData);
 
             if (stereoEnabled)
                 EndXRRendering(context, camera);
@@ -83,15 +71,12 @@ namespace UnityEngine.Rendering.LWRP
             DisposePasses(context);
         }
 
-        void ExecuteBlock(RenderPassBlock renderPassBlock,
+        void ExecuteBlock(RenderPassEvent maxEventIndex,
             ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
         {
-            int blockIndex = (int)renderPassBlock;
-            for (int i = 0; i < m_ActiveRenderPassQueue[blockIndex].Count; ++i)
-            {
-                var renderPass = m_ActiveRenderPassQueue[blockIndex][i];
-                renderPass.Execute(context, ref renderingData);
-            }
+            while (m_RenderPassIndex < m_ActiveRenderPassQueue.Count &&
+                   m_ActiveRenderPassQueue[m_RenderPassIndex].renderPassEvent < maxEventIndex)
+                m_ActiveRenderPassQueue[m_RenderPassIndex++].Execute(context, ref renderingData);
             
             if (submit)
                 context.Submit();
@@ -99,8 +84,8 @@ namespace UnityEngine.Rendering.LWRP
 
         public void Clear()
         {
-            for (int i = 0; i < (int)RenderPassBlock.Count; ++i)
-                m_ActiveRenderPassQueue[i].Clear();
+            m_ActiveRenderPassQueue.Clear();
+            m_RenderPassIndex = 0;
         }
 
         public void ClearRenderState(ScriptableRenderContext context)
@@ -118,10 +103,9 @@ namespace UnityEngine.Rendering.LWRP
             CommandBufferPool.Release(cmd);
         }
 
-        public void EnqueuePass(ScriptableRenderPass pass, RenderPassBlock renderPassBlock = RenderPassBlock.MainRender)
+        public void EnqueuePass(ScriptableRenderPass pass)
         {
-            if (pass != null)
-                m_ActiveRenderPassQueue[(int)renderPassBlock].Add(pass);
+            m_ActiveRenderPassQueue.Add(pass);
         }
 
         public static ClearFlag GetCameraClearFlag(Camera camera)
@@ -196,9 +180,8 @@ namespace UnityEngine.Rendering.LWRP
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
 
-            for (int block = 0; block < (int)RenderPassBlock.Count; ++block)
-                for (int i = 0; i < m_ActiveRenderPassQueue[block].Count; ++i)
-                    m_ActiveRenderPassQueue[block][i].FrameCleanup(cmd);
+            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -218,12 +201,7 @@ namespace UnityEngine.Rendering.LWRP
                 {
                     if (renderPass.ShouldExecute(ref renderingData))
                     {
-                        if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
-                            EnqueuePass(renderPass, RenderPassBlock.BeforeMainRender);
-                        else if (renderPass.renderPassEvent >= RenderPassEvent.AfterRendering)
-                            EnqueuePass(renderPass, RenderPassBlock.AfterMainRender);
-                        else
-                            EnqueuePass(renderPass);
+                        EnqueuePass(renderPass);
                     }
 
                     startIndex++;

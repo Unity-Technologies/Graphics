@@ -12,9 +12,9 @@ namespace UnityEngine.Rendering.LWRP
     internal class CopyColorPass : ScriptableRenderPass
     {
         const string k_CopyColorTag = "Copy Color";
-        float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;
+        Downsampling m_DownsamplingMethod;
 
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
@@ -22,10 +22,12 @@ namespace UnityEngine.Rendering.LWRP
         /// <summary>
         /// Create the CopyColorPass
         /// </summary>
-        public CopyColorPass(Material samplingMaterial)
+        public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Downsampling downsampling)
         {
             m_SamplingMaterial = samplingMaterial;
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
+            renderPassEvent = evt;
+            m_DownsamplingMethod = downsampling;
         }
 
         /// <summary>
@@ -54,18 +56,15 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             CommandBuffer cmd = CommandBufferPool.Get(k_CopyColorTag);
-            Downsampling downsampling = renderingData.cameraData.opaqueTextureDownsampling;
-            float opaqueScaler = m_OpaqueScalerValues[(int)downsampling];
-
-            RenderTextureDescriptor opaqueDesc = CreateRenderTextureDescriptor(ref renderingData.cameraData, opaqueScaler);
+            RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
             opaqueDesc.msaaSamples = 1;
             opaqueDesc.depthBufferBits = 0;
 
             RenderTargetIdentifier colorRT = source.Identifier();
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
-            cmd.GetTemporaryRT(destination.id, opaqueDesc, renderingData.cameraData.opaqueTextureDownsampling == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
-            switch (downsampling)
+            cmd.GetTemporaryRT(destination.id, opaqueDesc, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+            switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
                     cmd.Blit(colorRT, opaqueColorRT);

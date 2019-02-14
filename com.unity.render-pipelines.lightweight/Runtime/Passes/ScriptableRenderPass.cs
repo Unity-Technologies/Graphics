@@ -7,8 +7,10 @@ namespace UnityEngine.Rendering.LWRP
 {
     // Note: Spaced built-in events so we can add events in between them
     // We need to leave room as we sort render passes based on event.
+    // Users can also inject render pass events in a specific point by doing RenderPassEvent + offset
     public enum RenderPassEvent
     {
+        BeforeRendering = 0,
         BeforeRenderingOpaques = 10,
         AfterRenderingOpaques = 20,
         AfterRenderingSkybox = 30,
@@ -21,14 +23,13 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     public abstract class ScriptableRenderPass : IComparable<ScriptableRenderPass>
     {
-        public RenderPassEvent renderPassEvent
+        public RenderPassEvent renderPassEvent { get; set; }
+        public ScriptableRenderPass()
         {
-            get => m_RenderPassEvent;
-            set => m_RenderPassEvent = value;
+            renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
         }
-        
-        RenderPassEvent m_RenderPassEvent = RenderPassEvent.AfterRenderingOpaques;
 
+#region PrivateFields
         List<ShaderTagId> m_ShaderTagIDs = new List<ShaderTagId>();
 
         static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
@@ -98,6 +99,7 @@ namespace UnityEngine.Rendering.LWRP
                 return m_PostProcessRenderContext;
             }
         }
+#endregion
 
         /// <summary>
         /// Cleanup any allocated data that was created during the execution of the pass.
@@ -118,6 +120,11 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="context">Use this render context to issue any draw commands during execution</param>
         /// <param name="renderingData">Current rendering state information</param>
         public abstract void Execute(ScriptableRenderContext context, ref RenderingData renderingData);
+
+        public int CompareTo(ScriptableRenderPass other)
+        {
+            return (int)renderPassEvent - (int)other.renderPassEvent;
+        }
 
         protected void RegisterShaderPassName(string passName)
         {
@@ -189,18 +196,6 @@ namespace UnityEngine.Rendering.LWRP
                 cameraData.postProcessLayer.Render(postProcessRenderContext);
         }
 
-        protected static void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
-            //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
-            //    cmd.CopyTexture(source, dest);
-            //else
-            cmd.Blit(source, dest, material);
-        }
-
         protected DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             Camera camera = renderingData.cameraData.camera;
@@ -215,39 +210,6 @@ namespace UnityEngine.Rendering.LWRP
             for (int i = 1; i < m_ShaderTagIDs.Count; ++i)
                 settings.SetShaderPassName(i, m_ShaderTagIDs[i]);
             return settings;
-        }
-
-        public static RenderTextureDescriptor CreateRenderTextureDescriptor(ref CameraData cameraData, float scaler = 1.0f)
-        {
-            Camera camera = cameraData.camera;
-            RenderTextureDescriptor desc;
-            float renderScale = cameraData.renderScale;
-            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
-
-            if (cameraData.isStereoEnabled)
-            {
-                desc = XRGraphics.eyeTextureDesc;
-                renderTextureFormatDefault = desc.colorFormat;
-            }
-            else
-            {
-                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-                desc.width = (int)((float)desc.width * renderScale * scaler);
-                desc.height = (int)((float)desc.height * renderScale * scaler);
-                desc.depthBufferBits = 32;
-            }
-
-            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format.
-            bool useRGB111110 = Application.isMobilePlatform &&
-             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
-            RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
-            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
-            desc.enableRandomWrite = false;
-            desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-            desc.msaaSamples = cameraData.msaaSamples;
-            desc.bindMS = false;
-            desc.useDynamicScale = cameraData.camera.allowDynamicResolution;
-            return desc;
         }
 
         protected static void SetRenderTarget(
@@ -291,11 +253,6 @@ namespace UnityEngine.Rendering.LWRP
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                         depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }
-        }
-
-        public int CompareTo(ScriptableRenderPass other)
-        {
-            return (int)renderPassEvent - (int)other.renderPassEvent;
         }
     }
 }

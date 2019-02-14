@@ -8,9 +8,10 @@ namespace UnityEngine.Rendering.LWRP
 
         Material m_CopyDepthMaterial;
 
-        public SceneViewDepthCopyPass(Material copyDepthMaterial)
+        public SceneViewDepthCopyPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
             m_CopyDepthMaterial = copyDepthMaterial;
+            renderPassEvent = evt;
         }
 
         public void Setup(RenderTargetHandle source)

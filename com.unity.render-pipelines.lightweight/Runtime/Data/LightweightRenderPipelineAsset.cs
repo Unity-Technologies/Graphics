@@ -282,7 +282,6 @@ namespace UnityEngine.Rendering.LWRP
         public Downsampling opaqueDownsampling
         {
             get { return m_OpaqueDownsampling; }
-            set { m_OpaqueDownsampling = value; }
         }
 
         public bool supportsHDR
