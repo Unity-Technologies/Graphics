@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.LWRP
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
-        internal RendererSetup m_RendererSetup;
+        internal ScriptableRenderer m_RendererSetup;
 
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.LWRP
 #endif
         }
 
-        public RendererSetup rendererSetup
+        public ScriptableRenderer rendererSetup
         {
             get
             {

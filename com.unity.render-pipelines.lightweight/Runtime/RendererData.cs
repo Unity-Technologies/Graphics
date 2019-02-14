@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.LWRP
 {
     public abstract class RendererData : ScriptableObject
     {
-        public abstract RendererSetup Create();
+        public abstract ScriptableRenderer Create();
 
         [SerializeField] List<RenderPassFeature> m_RenderPassFeatures = new List<RenderPassFeature>(10);
         

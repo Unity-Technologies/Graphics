@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
 
-public class CustomLWPipe : RendererSetup
+public class CustomLWPipe : ScriptableRenderer
 {
     private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
     private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;

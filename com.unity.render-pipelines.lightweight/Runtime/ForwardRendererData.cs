@@ -13,9 +13,9 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
-        public override RendererSetup Create()
+        public override ScriptableRenderer Create()
         {
-            return new ForwardRendererSetup(this);
+            return new ForwardRenderer(this);
         }
 
         public Shader blitShader

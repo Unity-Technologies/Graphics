@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField] RendererOverrideOption m_RendererOverrideOption = RendererOverrideOption.UsePipelineSettings;
         [SerializeField] RendererData m_RendererData = null;
-        RendererSetup m_RendererSetup = null;
+        ScriptableRenderer m_RendererSetup = null;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.LWRP
             set { m_RequiresOpaqueTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
         }
 
-        public RendererSetup rendererSetup
+        public ScriptableRenderer rendererSetup
         {
             get
             {

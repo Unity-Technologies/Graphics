@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.LWRP
 {
-    internal class ForwardRendererSetup : RendererSetup
+    internal class ForwardRenderer : ScriptableRenderer
     {
         private DepthOnlyPass m_DepthOnlyPass;
         private MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.LWRP
 
         ForwardLights m_ForwardLights;
 
-        public ForwardRendererSetup(ForwardRendererData data) : base(data)
+        public ForwardRenderer(ForwardRendererData data) : base(data)
         {
             Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
 

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace UnityEngine.Rendering.LWRP
 {
-    public abstract class RendererSetup
+    public abstract class ScriptableRenderer
     {
         protected List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         protected List<RenderPassFeature> m_RenderPassFeatures = new List<RenderPassFeature>(10);
@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.LWRP
         const string k_RenderOcclusionMesh = "Render Occlusion Mesh";
         const string k_ReleaseResourcesTag = "Release Resources";
 
-        public RendererSetup(RendererData data)
+        public ScriptableRenderer(RendererData data)
         {
             m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
             m_ExecuteRenderPassIndex = 0;
