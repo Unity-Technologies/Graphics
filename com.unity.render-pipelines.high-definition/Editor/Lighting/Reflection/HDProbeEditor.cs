@@ -59,7 +59,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (target != null && !target.Equals(null))
                     s_Editors.Remove((Component)target);
             }
-                
         }
 
         protected virtual void Draw(TSerialized serialized, Editor owner)
