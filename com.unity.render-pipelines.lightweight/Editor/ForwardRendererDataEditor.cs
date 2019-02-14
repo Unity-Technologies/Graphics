@@ -13,22 +13,33 @@ namespace UnityEngine.Rendering.LWRP
     {
         private class Styles
         {
+            //Measurements
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            public static GUIContent renderPasses = new GUIContent("Render Passes", "List of render passes");
+            public static float indentWidth = 12;
+            //Title
+            public static GUIContent rendererTitle = new GUIContent("Forward Renderer");            
+            //LayerMasks
+            public static GUIContent layerMasks = new GUIContent("Default Layer Masks", "Null.");
+            public static GUIContent opaqueMask = new GUIContent("Opaque", "Null.");
+            public static GUIContent transparentMask = new GUIContent("Transparent", "Null.");
+            //RenderPasses
+            public static GUIContent renderPasses = new GUIContent("Additional Render Passes", "List of render passes");
             public static GUIContent header = new GUIContent("Null Pass", "Null.");
         }
-        SavedBool[] m_Foldout;
         
-        private SerializedProperty m_renderPasses;
+        SavedBool[] m_Foldouts;
+        private SerializedProperty m_RenderPasses;
+        private SerializedProperty m_OpaqueLayerMask;
+        private SerializedProperty m_TransparentLayerMask;
         
         private ReorderableList m_passesList;
         List<SerializedObject> m_ElementSOs = new List<SerializedObject>();
 
         SerializedObject GetElementSO(int index)
         {
-            if (m_ElementSOs.Count != m_renderPasses.arraySize)
-                m_ElementSOs = Enumerable.Range(0, m_renderPasses.arraySize)
-                    .Select(i => m_renderPasses.GetArrayElementAtIndex(i))
+            if (m_ElementSOs.Count != m_RenderPasses.arraySize)
+                m_ElementSOs = Enumerable.Range(0, m_RenderPasses.arraySize)
+                    .Select(i => m_RenderPasses.GetArrayElementAtIndex(i))
                     .Select(sp => sp.objectReferenceValue == null ? null : new SerializedObject(sp.objectReferenceValue))
                     .ToList();
        
@@ -37,32 +48,33 @@ namespace UnityEngine.Rendering.LWRP
             return m_ElementSOs[index];
         }
         
-        private SerializedObject obj;
         private void OnEnable()
         {
-            m_renderPasses = serializedObject.FindProperty("m_RenderPassFeatures");
+            m_RenderPasses = serializedObject.FindProperty("m_RenderPassFeatures");
+            m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
+            m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
             CreateFoldoutBools();
             
-            m_passesList = new ReorderableList(serializedObject, m_renderPasses, true, true, true, true);
+            m_passesList = new ReorderableList(serializedObject, m_RenderPasses, true, true, true, true);
 
             m_passesList.drawElementCallback =
             (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 EditorGUI.BeginChangeCheck();
                 var element = m_passesList.serializedProperty.GetArrayElementAtIndex(index);
-                var newRect = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
+                var propRect = new Rect(rect.x, rect.y + EditorGUIUtility.standardVerticalSpacing, rect.width, EditorGUIUtility.singleLineHeight);
+                var headerRect = new Rect(rect.x + Styles.indentWidth, rect.y + EditorGUIUtility.standardVerticalSpacing, rect.width - Styles.indentWidth, EditorGUIUtility.singleLineHeight);
 
                 if (element.objectReferenceValue != null)
                 {
                     Styles.header.text = element.objectReferenceValue.name;
-
-                    m_Foldout[index].value =
-                        EditorGUI.BeginFoldoutHeaderGroup(newRect, m_Foldout[index].value, Styles.header);
-                    if (m_Foldout[index].value)
+                    m_Foldouts[index].value =
+                        EditorGUI.BeginFoldoutHeaderGroup(headerRect, m_Foldouts[index].value, Styles.header);
+                    if (m_Foldouts[index].value)
                     {
-                        newRect.y += Styles.defaultLineSpace;
+                        propRect.y += Styles.defaultLineSpace;
                         EditorGUI.BeginChangeCheck();
-                        EditorGUI.ObjectField(newRect, element, GUIContent.none);
+                        EditorGUI.ObjectField(propRect, element, GUIContent.none);
                         if (EditorGUI.EndChangeCheck())
                         {
                             m_ElementSOs[index] = element.objectReferenceValue == null
@@ -73,25 +85,22 @@ namespace UnityEngine.Rendering.LWRP
                         var elementSO = GetElementSO(index);
                         if (elementSO != null)
                         {
-                            SerializedProperty propSP = elementSO.FindProperty("settings");
+                            SerializedProperty settings = elementSO.FindProperty("settings");
 
                             EditorGUI.BeginChangeCheck();
-                            if (propSP != null)
+                            if (settings != null)
                             {
-                                newRect.y += Styles.defaultLineSpace;
-                                rect.y = newRect.y;
-                                rect.xMin += EditorStyles.inspectorDefaultMargins.padding.left;
-                                EditorGUI.PropertyField(rect, propSP);
+                                propRect.y += Styles.defaultLineSpace;
+                                EditorGUI.PropertyField(propRect, settings);
                             }
 
                             if (EditorGUI.EndChangeCheck())
                                 elementSO.ApplyModifiedProperties();
                         }
                     }
-
                     EditorGUI.EndFoldoutHeaderGroup();
                 }
-
+                
                 if (EditorGUI.EndChangeCheck())
                 {
                     element.serializedObject.ApplyModifiedProperties();
@@ -102,12 +111,12 @@ namespace UnityEngine.Rendering.LWRP
             {
                 var element = m_passesList.serializedProperty.GetArrayElementAtIndex(index);
                 if (element.objectReferenceValue == null)
-                    return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing + (m_Foldout[index].value ? EditorGUIUtility.singleLineHeight : 0f);
+                    return Styles.defaultLineSpace + (m_Foldouts[index].value ? Styles.defaultLineSpace : 0f);
                 var serializedObject = GetElementSO(index);                
                 var settingsProp = serializedObject.FindProperty("settings");
                 if (settingsProp != null)
                 {
-                    return m_Foldout[index].value ? EditorGUI.GetPropertyHeight(settingsProp, true) : Styles.defaultLineSpace;
+                    return (m_Foldouts[index].value ? EditorGUI.GetPropertyHeight(settingsProp, true) + EditorGUIUtility.standardVerticalSpacing : Styles.defaultLineSpace) + (EditorGUIUtility.standardVerticalSpacing * 2);
                 }
                 else
                 {
@@ -118,14 +127,14 @@ namespace UnityEngine.Rendering.LWRP
             m_passesList.onAddCallback += AddPass;
             m_passesList.onRemoveCallback += list =>
             {
-                m_renderPasses.DeleteArrayElementAtIndex(list.index);
-                m_renderPasses.serializedObject.ApplyModifiedProperties();
+                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
+                m_RenderPasses.serializedObject.ApplyModifiedProperties();
                 m_ElementSOs.Clear();
             };
             m_passesList.onReorderCallbackWithDetails += ReorderPass;
 		    
             m_passesList.drawHeaderCallback = (Rect testHeaderRect) => {
-                EditorGUI.LabelField(testHeaderRect, "Render Pass Features");
+                EditorGUI.LabelField(testHeaderRect, Styles.renderPasses);
             };
         }
 
@@ -133,6 +142,16 @@ namespace UnityEngine.Rendering.LWRP
         {
             serializedObject.Update();
             
+            EditorGUILayout.Space();
+            
+            EditorGUILayout.LabelField(Styles.rendererTitle, EditorStyles.boldLabel);
+            
+            EditorGUILayout.LabelField(Styles.layerMasks);
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.opaqueMask);
+            EditorGUILayout.PropertyField(m_TransparentLayerMask, Styles.transparentMask);
+            EditorGUI.indentLevel--;
+
             EditorGUILayout.Space();
 
             m_passesList.DoLayoutList();
@@ -142,10 +161,10 @@ namespace UnityEngine.Rendering.LWRP
 
         private void CreateFoldoutBools()
         {
-            m_Foldout = new SavedBool[m_renderPasses.arraySize];
-            for (var i = 0; i < m_renderPasses.arraySize; i++)
+            m_Foldouts = new SavedBool[m_RenderPasses.arraySize];
+            for (var i = 0; i < m_RenderPasses.arraySize; i++)
             {
-                m_Foldout[i] = new SavedBool($"{serializedObject.targetObject.name}.ELEMENT{i}.PassFoldout", true);
+                m_Foldouts[i] = new SavedBool($"{serializedObject.targetObject.name}.ELEMENT{i}.PassFoldout", true);
             }
         }
 
@@ -167,6 +186,11 @@ namespace UnityEngine.Rendering.LWRP
             var item = m_ElementSOs[oldIndex];
             m_ElementSOs.RemoveAt(oldIndex);
             m_ElementSOs.Insert(newIndex, item);
+
+            var oldHeaderState = m_Foldouts[oldIndex].value;
+            var newHeaderState = m_Foldouts[newIndex].value;
+            m_Foldouts[oldIndex].value = newHeaderState;
+            m_Foldouts[newIndex].value = oldHeaderState;
         }
     }
 }

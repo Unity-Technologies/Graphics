@@ -14,11 +14,10 @@ namespace UnityEngine.Rendering.LWRP
         [System.Serializable]
         public class RenderObjectsSettings
         {
-            // TODO: expose opaque, transparent, all ranges as drop down
-            public RenderPassEvent callback = RenderPassEvent.AfterRenderingOpaques;
-            public RenderQueueType renderQueueType = RenderQueueType.Opaque;
-            public LayerMask layerMask = -1;
-            public string[] passNames = {"LightweightForward"};
+            public RenderPassEvent Event = RenderPassEvent.AfterRenderingOpaques;
+
+            public FilterSettings filterSettings = new FilterSettings();
+            
             public Material overrideMaterial = null;
             public int overrideMaterialPassIndex = 0;
 
@@ -32,6 +31,22 @@ namespace UnityEngine.Rendering.LWRP
             public StencilOp passOperation = StencilOp.Keep;
             public StencilOp failOperation = StencilOp.Keep;
             public StencilOp zFailOperation = StencilOp.Keep;
+        }
+        
+        [System.Serializable]
+        public class FilterSettings
+        {
+            // TODO: expose opaque, transparent, all ranges as drop down
+            public RenderQueueType RenderQueueType;
+            public LayerMask LayerMask;
+            public string[] PassNames;
+
+            public FilterSettings()
+            {
+                RenderQueueType = RenderQueueType.Opaque;
+                LayerMask = -1;
+                PassNames = new []{"LightweightForward"};
+            }
         }
 
         public RenderObjectsSettings settings = new RenderObjectsSettings();
@@ -50,7 +65,8 @@ namespace UnityEngine.Rendering.LWRP
 
         void Initialize()
         {
-            renderObjectsPass = new RenderObjectsPass(settings.callback, settings.passNames, settings.renderQueueType, settings.layerMask);
+            FilterSettings filter = settings.filterSettings;
+            renderObjectsPass = new RenderObjectsPass(settings.Event, filter.PassNames, filter.RenderQueueType, filter.LayerMask);
             renderObjectsPass.overrideMaterial = settings.overrideMaterial;
             renderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;
 
