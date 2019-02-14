@@ -30,8 +30,6 @@ namespace UnityEngine.Rendering.LWRP
 
         ForwardLights m_ForwardLights;
 
-        List<ScriptableRenderPass> m_AdditionalRenderPasses = new List<ScriptableRenderPass>(10);
-
         public ForwardRendererSetup(ForwardRendererData data) : base(data)
         {
             Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
@@ -118,12 +116,12 @@ namespace UnityEngine.Rendering.LWRP
             RenderTargetHandle depthHandle = (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget;
 
             int customRenderPassIndex = 0;
-            m_AdditionalRenderPasses.Clear();
+            m_CustomRenderPasses.Clear();
             for (int i = 0; i < m_RenderPassFeatures.Count; ++i)
             {
-                m_RenderPassFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, cameraTargetDescriptor, colorHandle, depthHandle);
+                m_RenderPassFeatures[i].AddRenderPasses(m_CustomRenderPasses, cameraTargetDescriptor, colorHandle, depthHandle);
             }
-            m_AdditionalRenderPasses.Sort();
+            m_CustomRenderPasses.Sort();
 
             int msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
             if (createColorTexture || createDepthTexture)
@@ -132,7 +130,7 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_CreateLightweightRenderTexturesPass);
             }
 
-            bool beforeRenderOpaquesPasses = EnqueuePasses(RenderPassEvent.BeforeRenderingOpaques, m_AdditionalRenderPasses, ref customRenderPassIndex,
+            bool beforeRenderOpaquesPasses = EnqueuePasses(RenderPassEvent.BeforeRenderingOpaques, ref customRenderPassIndex,
                 ref renderingData);
 
             if (requiresDepthPrepass)
@@ -154,7 +152,7 @@ namespace UnityEngine.Rendering.LWRP
             m_RenderOpaqueForwardPass.Setup(cameraTargetDescriptor, colorHandle, depthHandle, clearFlag, camera.backgroundColor);
             EnqueuePass(m_RenderOpaqueForwardPass);
 
-            bool afterOpaques = EnqueuePasses(RenderPassEvent.AfterRenderingOpaques, m_AdditionalRenderPasses, ref customRenderPassIndex,
+            bool afterOpaques = EnqueuePasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
                 ref renderingData);
 
             if (m_OpaquePostProcessPass.ShouldExecute(ref renderingData))
@@ -170,7 +168,7 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
-            EnqueuePasses(RenderPassEvent.AfterRenderingSkybox, m_AdditionalRenderPasses, ref customRenderPassIndex,
+            EnqueuePasses(RenderPassEvent.AfterRenderingSkybox, ref customRenderPassIndex,
                 ref renderingData);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
@@ -189,7 +187,7 @@ namespace UnityEngine.Rendering.LWRP
             m_RenderTransparentForwardPass.Setup(cameraTargetDescriptor, colorHandle, depthHandle);
             EnqueuePass(m_RenderTransparentForwardPass);
 
-            EnqueuePasses(RenderPassEvent.AfterRenderingTransparentPasses, m_AdditionalRenderPasses, ref customRenderPassIndex,
+            EnqueuePasses(RenderPassEvent.AfterRenderingTransparentPasses, ref customRenderPassIndex,
                 ref renderingData);
 
 
@@ -207,7 +205,7 @@ namespace UnityEngine.Rendering.LWRP
                     EnqueuePass(m_PostProcessPass);
                 }
 
-                EnqueuePasses(RenderPassEvent.AfterRendering, m_AdditionalRenderPasses, ref customRenderPassIndex,
+                EnqueuePasses(RenderPassEvent.AfterRendering, ref customRenderPassIndex,
                     ref renderingData);
 
                 //now blit into the final target
@@ -267,9 +265,9 @@ namespace UnityEngine.Rendering.LWRP
 
         bool AfterRenderExists(int currIndex)
         {
-            for (int i = currIndex; i < m_AdditionalRenderPasses.Count; ++i)
+            for (int i = currIndex; i < m_CustomRenderPasses.Count; ++i)
             {
-                if (m_AdditionalRenderPasses[i].renderPassEvent == RenderPassEvent.AfterRendering)
+                if (m_CustomRenderPasses[i].renderPassEvent == RenderPassEvent.AfterRendering)
                     return true;
             }
 

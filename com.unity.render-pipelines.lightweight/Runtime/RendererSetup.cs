@@ -7,20 +7,10 @@ namespace UnityEngine.Rendering.LWRP
 {
     public abstract class RendererSetup
     {
-        public abstract void Setup(ref RenderingData renderingData);
-
-        public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-        }
-
-        public virtual void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
-            ref CameraData cameraData)
-        {    
-        }
-
         protected List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         protected List<RenderPassFeature> m_RenderPassFeatures = new List<RenderPassFeature>(10);
-        int m_RenderPassIndex;
+        protected List<ScriptableRenderPass> m_CustomRenderPasses = new List<ScriptableRenderPass>(10);
+        int m_ExecuteRenderPassIndex;
 
         const string k_ClearRenderStateTag = "Clear Render State";
         const string k_RenderOcclusionMesh = "Render Occlusion Mesh";
@@ -29,8 +19,20 @@ namespace UnityEngine.Rendering.LWRP
         public RendererSetup(RendererData data)
         {
             m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
-            m_RenderPassIndex = 0;
+            m_ExecuteRenderPassIndex = 0;
         }
+
+        public abstract void Setup(ref RenderingData renderingData);
+
+        public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+        }
+
+        public virtual void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
+            ref CameraData cameraData)
+        {
+        }
+        
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
@@ -70,13 +72,13 @@ namespace UnityEngine.Rendering.LWRP
 
             DisposePasses(context);
         }
-
+        
         void ExecuteBlock(RenderPassEvent maxEventIndex,
             ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
         {
-            while (m_RenderPassIndex < m_ActiveRenderPassQueue.Count &&
-                   m_ActiveRenderPassQueue[m_RenderPassIndex].renderPassEvent < maxEventIndex)
-                m_ActiveRenderPassQueue[m_RenderPassIndex++].Execute(context, ref renderingData);
+            while (m_ExecuteRenderPassIndex < m_ActiveRenderPassQueue.Count &&
+                   m_ActiveRenderPassQueue[m_ExecuteRenderPassIndex].renderPassEvent < maxEventIndex)
+                m_ActiveRenderPassQueue[m_ExecuteRenderPassIndex++].Execute(context, ref renderingData);
             
             if (submit)
                 context.Submit();
@@ -85,7 +87,8 @@ namespace UnityEngine.Rendering.LWRP
         public void Clear()
         {
             m_ActiveRenderPassQueue.Clear();
-            m_RenderPassIndex = 0;
+            m_CustomRenderPasses.Clear();
+            m_ExecuteRenderPassIndex = 0;
         }
 
         public void ClearRenderState(ScriptableRenderContext context)
@@ -106,6 +109,30 @@ namespace UnityEngine.Rendering.LWRP
         public void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
+        }
+
+        protected bool EnqueuePasses(RenderPassEvent renderPassEvent, ref int startIndex, ref RenderingData renderingData)
+        {
+            if (startIndex >= m_CustomRenderPasses.Count)
+                return false;
+
+            int prevIndex = startIndex;
+            while (startIndex < m_CustomRenderPasses.Count && m_CustomRenderPasses[startIndex].renderPassEvent == renderPassEvent)
+            {
+                var renderPass = m_CustomRenderPasses[startIndex];
+
+                if (renderPass.renderPassEvent == renderPassEvent)
+                {
+                    if (renderPass.ShouldExecute(ref renderingData))
+                    {
+                        EnqueuePass(renderPass);
+                    }
+
+                    startIndex++;
+                }
+            }
+
+            return prevIndex != startIndex;
         }
 
         public static ClearFlag GetCameraClearFlag(Camera camera)
@@ -185,30 +212,6 @@ namespace UnityEngine.Rendering.LWRP
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        protected bool EnqueuePasses(RenderPassEvent renderPassEvent, List<ScriptableRenderPass> customRenderPasses, ref int startIndex, ref RenderingData renderingData)
-        {
-            if (startIndex >= customRenderPasses.Count)
-                return false;
-
-            int prevIndex = startIndex;
-            while (startIndex < customRenderPasses.Count && customRenderPasses[startIndex].renderPassEvent == renderPassEvent)
-            {
-                var renderPass = customRenderPasses[startIndex];
-
-                if (renderPass.renderPassEvent == renderPassEvent)
-                {
-                    if (renderPass.ShouldExecute(ref renderingData))
-                    {
-                        EnqueuePass(renderPass);
-                    }
-
-                    startIndex++;
-                }
-            }
-
-            return prevIndex != startIndex;
         }
     }
 }
