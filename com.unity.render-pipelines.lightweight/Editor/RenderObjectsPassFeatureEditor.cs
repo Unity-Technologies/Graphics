@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
@@ -12,38 +13,99 @@ namespace UnityEngine.Rendering.LWRP
     {
 	    internal class Styles
 	    {
+		    public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 		    public static GUIContent callback = new GUIContent("Callback", "Chose the Callback position for this render pass object.");
+
+		    //Headers
 		    public static GUIContent filtersHeader = new GUIContent("Filters", "Filters.");
+		    public static GUIContent renderHeader = new GUIContent("Render Options", "Things.");
+		    
+		    //Filters
 		    public static GUIContent renderQueueFilter = new GUIContent("Queue", "Filter the render queue range you want to render.");
 		    public static GUIContent layerMask = new GUIContent("Layer Mask", "Chose the Callback position for this render pass object.");
 		    public static GUIContent shaderPassFilter = new GUIContent("Shader Passes", "Chose the Callback position for this render pass object.");
+		    
+		    //Render Options
+		    public static GUIContent overrideMaterial = new GUIContent("Material", "Chose an override material, every renderer will be rendered with this material.");
+		    public static GUIContent overrideMaterialPass = new GUIContent("Pass Index", "The pass index for the override material to use.");
+		    
+		    //Depth Settings
+		    public static GUIContent overrideDepth = new GUIContent("Override Depth", "Override depth rendering.");
+		    public static GUIContent writeDepth = new GUIContent("Write Depth", "Chose to write depth to the screen.");
+		    public static GUIContent depthState = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
+		    
+		    //Stencil Settings
+		    public static GUIContent overrideStencil = new GUIContent("Override Stencil", "Override stencil rendering.");
+		    public static GUIContent stencilIndex = new GUIContent("Index", "The stencil index to write to.");
+		    public static GUIContent stencilFunction = new GUIContent("Function", "Choose the comparison function against the stencil value on screen.");
+		    public static GUIContent stencilPass = new GUIContent("Pass", "What happens to the stencil value when passing.");
+		    public static GUIContent stencilFail = new GUIContent("Fail", "What happens the the stencil value when failing.");
+		    public static GUIContent stencilZFail = new GUIContent("Z Fail", "What happens the the stencil value when failing Z testing.");
 		}
 
-	    //SavedBool m_FiltersFoldout;
+	    SavedBool m_FiltersFoldout;
+	    private int m_FilterLines = 3;
+	    SavedBool m_RenderFoldout;
+	    private int m_RenderLines = 3;
+	    private int m_DepthLines = 3;
+	    private int m_StencilLines = 3;
+	    
 	    private bool firstTime = true;
 	    
 	    private SerializedProperty m_Callback;
+	    //Filter props
 	    private SerializedProperty m_RenderQueue;
 	    private SerializedProperty m_LayerMask;
 	    private SerializedProperty m_ShaderPasses;
+	    //Render props
+	    private SerializedProperty m_OverrideMaterial;
+	    private SerializedProperty m_OverrideMaterialPass;
+	    //Depth props
+	    private SerializedProperty m_OverrideDepth;
+	    private SerializedProperty m_WriteDepth;
+	    private SerializedProperty m_DepthState;
+	    //Stencil props
+	    private SerializedProperty m_OverrideStencil;
+	    private SerializedProperty m_StencilIndex;
+	    private SerializedProperty m_StencilFunction;
+	    private SerializedProperty m_StencilPass;
+	    private SerializedProperty m_StencilFail;
+	    private SerializedProperty m_StencilZFail;
 
-	    private ReorderableList m_shaderPassesList;
+	    private ReorderableList m_ShaderPassesList;
 
 	    private void Init(SerializedProperty property)
 	    {
-		    //m_FiltersFoldout = new SavedBool($"{target.GetType()}.FiltersFoldout", true);
-		    
+		    //Header bools
+		    m_FiltersFoldout = new SavedBool($"{property.GetType()}.FiltersFoldout", true);
+		    m_RenderFoldout = new SavedBool($"{property.GetType()}.FiltersFoldout", false);
+
 		    m_Callback = property.FindPropertyRelative("callback");
+		    //Filter props
 		    m_RenderQueue = property.FindPropertyRelative("renderQueueType");
 		    m_LayerMask = property.FindPropertyRelative("layerMask");
 		    m_ShaderPasses = property.FindPropertyRelative("passNames");
+			//Render options
+		    m_OverrideMaterial = property.FindPropertyRelative("overrideMaterial");
+		    m_OverrideMaterialPass = property.FindPropertyRelative("overrideMaterialPassIndex");
+		    //Depth props
+		    m_OverrideDepth = property.FindPropertyRelative("overrideDepthState");
+		    m_WriteDepth = property.FindPropertyRelative("enableWrite");
+		    m_DepthState = property.FindPropertyRelative("depthCompareFunction");
+		    //Stencil
+		    m_OverrideStencil = property.FindPropertyRelative("overrideStencilState");
+		    m_StencilIndex = property.FindPropertyRelative("stencilReference");
+		    m_StencilFunction = property.FindPropertyRelative("stencilCompareFunction");
+		    m_StencilPass = property.FindPropertyRelative("passOperation");
+		    m_StencilFail = property.FindPropertyRelative("failOperation");
+		    m_StencilZFail = property.FindPropertyRelative("zFailOperation");
 		    
-		    m_shaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
+		    m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
 
-		    m_shaderPassesList.drawElementCallback =
+		    m_ShaderPassesList.drawElementCallback =
 		    (Rect rect, int index, bool isActive, bool isFocused) =>
 		    {
-			    var element = m_shaderPassesList.serializedProperty.GetArrayElementAtIndex(index);
+			    var element = m_ShaderPassesList.serializedProperty.GetArrayElementAtIndex(index);
 			    var newRect = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
 			    var labelWidth = EditorGUIUtility.labelWidth;
 			    EditorGUIUtility.labelWidth = 50;
@@ -51,7 +113,7 @@ namespace UnityEngine.Rendering.LWRP
 			    EditorGUIUtility.labelWidth = labelWidth;
 		    };
 		    
-		    m_shaderPassesList.drawHeaderCallback = (Rect testHeaderRect) => {
+		    m_ShaderPassesList.drawHeaderCallback = (Rect testHeaderRect) => {
 			    EditorGUI.LabelField(testHeaderRect, Styles.shaderPassFilter);
 		    };
 	    }
@@ -59,43 +121,102 @@ namespace UnityEngine.Rendering.LWRP
 	    public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
 	    {
 			rect.xMin -= EditorStyles.inspectorDefaultMargins.padding.left;
-		    
-		    if(firstTime)
+			rect.height = EditorGUIUtility.singleLineHeight;
+			EditorGUI.BeginProperty(rect, label, property);
+			if(firstTime)
 			    Init(property);
-		    EditorGUI.BeginProperty(rect, label, property);
 
-		    //EditorGUIUtility.labelWidth = 80;
-		    rect.height = EditorGUIUtility.singleLineHeight;
-		    EditorGUI.PropertyField(rect, m_Callback, Styles.callback);
-		    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-		    
-		    //m_FiltersFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_FiltersFoldout.value, Styles.filtersHeader);
-		    //if (m_FiltersFoldout.value)
-		    {
-			    EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
-			    
-			    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-			    EditorGUI.PropertyField(rect, m_LayerMask, Styles.layerMask);
+			//Forward Callbacks
+			EditorGUI.PropertyField(rect, m_Callback, Styles.callback);
+			rect.y += Styles.defaultLineSpace;
 
-			    rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-			    //rect.height = 10f;
-			    m_shaderPassesList.DoList(rect);
-		    }
-		    //EditorGUILayout.EndFoldoutHeaderGroup();
+			m_FiltersFoldout.value = EditorGUI.Foldout(rect, m_FiltersFoldout.value, Styles.filtersHeader);
+			rect.y += Styles.defaultLineSpace;
+			if (m_FiltersFoldout.value)
+			{
+				EditorGUI.indentLevel++;
+				//Render queue filter
+				EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
+				rect.y += Styles.defaultLineSpace;
+				//Layer mask
+				EditorGUI.PropertyField(rect, m_LayerMask, Styles.layerMask);
+				rect.y += Styles.defaultLineSpace;
+				//Shader pass list
+				m_ShaderPassesList.DoList(rect);
+				rect.y += m_ShaderPassesList.GetHeight();
 
-		    property.serializedObject.ApplyModifiedProperties();
-		    EditorGUI.EndProperty();
+				EditorGUI.indentLevel--;
+			}
+			//EditorGUILayout.EndFoldoutHeaderGroup();
+
+			m_RenderFoldout.value = EditorGUI.Foldout(rect, m_RenderFoldout.value, Styles.renderHeader);
+			rect.y += Styles.defaultLineSpace;
+			if (m_RenderFoldout.value)
+			{
+				EditorGUI.indentLevel++;
+				//Override material
+				EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
+				rect.y += Styles.defaultLineSpace;
+				//Override material pass index
+				EditorGUI.BeginChangeCheck();
+				EditorGUI.PropertyField(rect, m_OverrideMaterialPass, Styles.overrideMaterialPass);
+				if (EditorGUI.EndChangeCheck())
+					m_OverrideMaterialPass.intValue = Mathf.Max(0, m_OverrideMaterialPass.intValue);
+				rect.y += Styles.defaultLineSpace;
+
+				//Override depth
+				EditorGUI.PropertyField(rect, m_OverrideDepth, Styles.overrideDepth);
+				rect.y += Styles.defaultLineSpace;
+				if (m_OverrideDepth.boolValue)
+				{
+					EditorGUI.indentLevel++;
+					//Write depth
+					EditorGUI.PropertyField(rect, m_WriteDepth, Styles.writeDepth);
+					rect.y += Styles.defaultLineSpace;
+					//Depth testing options
+					EditorGUI.PropertyField(rect, m_DepthState, Styles.depthState);
+					rect.y += Styles.defaultLineSpace;
+					EditorGUI.indentLevel--;
+				}
+
+				//Override depth
+				EditorGUI.PropertyField(rect, m_OverrideStencil, Styles.overrideStencil);
+				rect.y += Styles.defaultLineSpace;
+				if (m_OverrideStencil.boolValue)
+				{
+					EditorGUI.indentLevel++;
+					//Write depth
+					EditorGUI.PropertyField(rect, m_StencilIndex, Styles.stencilIndex);
+					rect.y += Styles.defaultLineSpace;
+					//Depth testing options
+					EditorGUI.PropertyField(rect, m_StencilFunction, Styles.stencilFunction);
+					rect.y += Styles.defaultLineSpace;
+					EditorGUI.indentLevel--;
+				}
+
+				EditorGUI.indentLevel--;
+			}
+			EditorGUI.EndProperty();
 		    firstTime = false;
 	    }
 
 	    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 	    {
-		    var shaderPasses = property.FindPropertyRelative("passNames");
-		    float shaderPassListHeight = EditorGUIUtility.standardVerticalSpacing;
-		    if(m_shaderPassesList != null)
-				shaderPassListHeight += m_shaderPassesList.GetHeight();
-		    int lineCount = 4;
-		    return ((EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * lineCount) + shaderPassListHeight;
+		    float height = Styles.defaultLineSpace * 2;
+		    if (!firstTime)
+		    {
+			    height += Styles.defaultLineSpace * (m_FiltersFoldout.value ? m_FilterLines : 1);
+			    height += m_FiltersFoldout.value ? m_ShaderPassesList.GetHeight() : 0;
+			    
+			    height += Styles.defaultLineSpace * (m_RenderFoldout.value ? m_RenderLines : 1);
+			    if (m_RenderFoldout.value)
+			    {
+				    height += Styles.defaultLineSpace * (m_OverrideDepth.boolValue ? m_DepthLines : 1);
+				    height += Styles.defaultLineSpace * (m_OverrideStencil.boolValue ? m_StencilLines : 1);
+			    }
+		    }
+
+		    return height + EditorGUIUtility.singleLineHeight;
 	    }
     }
 }
