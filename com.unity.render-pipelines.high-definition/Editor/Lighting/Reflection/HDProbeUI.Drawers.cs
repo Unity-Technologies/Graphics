@@ -1,4 +1,3 @@
-//#define ENABLE_BAKED_PLANAR
 using System;
 using System.Collections.Generic;
 using UnityEditorInternal;
