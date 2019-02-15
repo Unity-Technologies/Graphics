@@ -1,7 +1,7 @@
 namespace UnityEngine.Rendering.LWRP
 {
     //[CreateAssetMenu]
-    public class ForwardRendererData : RendererData
+    public class ForwardRendererData : ScriptableRendererData
     {
         [SerializeField] Shader m_BlitShader = null;
         [SerializeField] Shader m_CopyDepthShader = null;

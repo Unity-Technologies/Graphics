@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.LWRP
 {
-    public abstract class RendererData : ScriptableObject
+    public abstract class ScriptableRendererData : ScriptableObject
     {
         public abstract ScriptableRenderer Create();
 

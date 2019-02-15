@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.LWRP
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
 
         [SerializeField] RendererOverrideOption m_RendererOverrideOption = RendererOverrideOption.UsePipelineSettings;
-        [SerializeField] RendererData m_RendererData = null;
+        [SerializeField] ScriptableRendererData m_RendererData = null;
         ScriptableRenderer m_Renderer = null;
 
         // Deprecated:

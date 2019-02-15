@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] int k_AssetVersion = 4;
 
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
-        [SerializeField] internal RendererData m_RendererData = null;
+        [SerializeField] internal ScriptableRendererData m_RendererData = null;
         
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.LWRP
             return instance;
         }
 
-        public RendererData LoadBuiltinRendererData()
+        public ScriptableRendererData LoadBuiltinRendererData()
         {
             switch (m_RendererType)
             {

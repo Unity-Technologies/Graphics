@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.LWRP
         const string k_RenderOcclusionMesh = "Render Occlusion Mesh";
         const string k_ReleaseResourcesTag = "Release Resources";
 
-        public ScriptableRenderer(RendererData data)
+        public ScriptableRenderer(ScriptableRendererData data)
         {
             m_RenderPassFeatures.AddRange(data.renderPassFeatures.Where(x => x != null));
             m_ExecuteRenderPassIndex = 0;

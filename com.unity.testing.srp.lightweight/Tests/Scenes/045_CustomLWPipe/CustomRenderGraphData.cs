@@ -1,7 +1,7 @@
 namespace UnityEngine.Rendering.LWRP
 {
     //[CreateAssetMenu()]
-    public class CustomRenderGraphData : RendererData
+    public class CustomRenderGraphData : ScriptableRendererData
     {
         public override ScriptableRenderer Create()
         {
