@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.2.0-preview] - 2019-XX-XX
 
+### Fixed
+- Better Handling of Null or Missing Parameter Binders (Editor + Runtime)
+
 ## [6.1.0-preview] - 2019-02-13
 
 ## [6.0.0-preview] - 2019-02-23

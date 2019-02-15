@@ -33,8 +33,21 @@ namespace UnityEngine.VFX.Utils
         {
             if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
 
-            foreach (var binding in m_Bindings)
-                if (binding.IsValid(m_VisualEffect)) binding.UpdateBinding(m_VisualEffect);
+            for (int i = 0; i < m_Bindings.Count; i++ )
+            {
+                var binding = m_Bindings[i];
+
+                if(binding == null)
+                {
+                    Debug.LogWarning(string.Format("Parameter binder at index {0} of GameObject {1} is null or missing", i, gameObject.name));
+                    continue;
+                }
+                else
+                {
+                    if (binding.IsValid(m_VisualEffect))
+                        binding.UpdateBinding(m_VisualEffect);
+                }
+            }
         }
 
         public T AddParameterBinder<T>() where T : VFXBinderBase
