@@ -36,6 +36,6 @@
     int _DebugSingleShadowIndex;
     int _EnvSliceSize;
     uint _CookieSizePOT;
-
+    int _RaytracedAreaShadow;
 
 #endif
