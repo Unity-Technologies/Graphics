@@ -2541,6 +2541,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 };
 
                 drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsForwardEmissiveName);
+                drawSettings.SetShaderPassName(1, HDShaderPassNames.s_ShaderGraphMeshDecalsForwardEmissiveName);
                 FilteringSettings filterRenderersSettings = new FilteringSettings(HDRenderQueue.k_RenderQueue_AllOpaque);
                 renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterRenderersSettings);
                 DecalSystem.instance.RenderForwardEmissive(cmd);
