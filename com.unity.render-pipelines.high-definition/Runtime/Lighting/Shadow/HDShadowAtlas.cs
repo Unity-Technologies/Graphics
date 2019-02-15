@@ -56,9 +56,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void ReserveResolution(HDShadowResolutionRequest shadowRequest)
+        public int GetShadowResolutionRequestCount()
+        {
+            return m_ShadowResolutionRequests.Count;
+        }
+
+        public void ScaleShadowResolutionRequests(float scaleFactor)
+        {
+            for (int i = 0; i < m_ShadowResolutionRequests.Count; i++)
+            {
+                HDShadowResolutionRequest shadowResolutionRequest = m_ShadowResolutionRequests[i];
+                shadowResolutionRequest.resolution *= scaleFactor;
+                m_ShadowResolutionRequests[i] = shadowResolutionRequest;
+            }
+        }
+
+        public int ReserveResolution(HDShadowResolutionRequest shadowRequest)
         {
             m_ShadowResolutionRequests.Add(shadowRequest);
+
+            return m_ShadowResolutionRequests.Count - 1;
         }
 
         public HDShadowResolutionRequest GetHDShadowResolutionRequest(int index)
