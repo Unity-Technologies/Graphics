@@ -316,16 +316,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             BlitTexture(cmd, source, destination, camera.viewportScale, mipLevel, bilinear);
         }
 
-        public static void BlitCameraTextureStereoDoubleWide(CommandBuffer cmd, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination)
-        {
-            var mat = GetBlitMaterial();
-            mat.SetTexture(HDShaderIDs._BlitTexture, source);
-            mat.SetFloat(HDShaderIDs._BlitMipLevel, 0f);
-            mat.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1f, 1f, 0f, 0f));
-            mat.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1f, 1f, 0f, 0f));
-            cmd.Blit(source, destination, mat, 1);
-        }
-
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
         // This will set the proper viewport and UV scale.
         public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
