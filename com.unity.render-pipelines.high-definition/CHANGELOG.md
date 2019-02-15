@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [6.3.0-preview] - 2019-XX-XX
+
+### Added
+- Added emissive property for shader graph decals
+
 ## [6.2.0-preview] - 2019-02-15
 
 ### Added
@@ -83,7 +88,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added fade factor for decal projectors.
 - Added stereo instancing macros to most shaders used in VR
 - Added multi edition support for HDRenderPipelineAsset
-- Added emissive property for shader graph decals
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
