@@ -100,7 +100,7 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 {
     // This test on define is required to remove warning of divide by 0 when initializing empty struct
     // TODO: Add forward opaque MRT case...
-#if (SHADERPASS == SHADERPASS_VELOCITY)
+#if (SHADERPASS == SHADERPASS_VELOCITY) || defined(_WRITE_TRANSPARENT_VELOCITY)
     // Encode velocity
     positionCS.xy = positionCS.xy / positionCS.w;
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
