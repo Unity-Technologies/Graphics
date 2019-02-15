@@ -66,20 +66,22 @@ Pass
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
-#if (SHADERPASS == SHADERPASS_RAYTRACING_REFLECTION)
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+
+#if (SHADERPASS == SHADERPASS_RAYTRACING_REFLECTION) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-
     #define HAS_LIGHTLOOP
-
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
 #else
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 #endif
-
+    
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingBuiltinData.hlsl"
@@ -154,10 +156,19 @@ Pass
         $SurfaceDescription.IridescenceMask:            surfaceData.iridescenceMask =           surfaceDescription.IridescenceMask;
         $SurfaceDescription.IridescenceThickness:       surfaceData.iridescenceThickness =      surfaceDescription.IridescenceThickness;
 
+#ifdef _HAS_REFRACTION
+        $SurfaceDescription.RefractionIndex:            surfaceData.ior =                       surfaceDescription.RefractionIndex;
+        $SurfaceDescription.RefractionColor:            surfaceData.transmittanceColor =        surfaceDescription.RefractionColor;
+        $SurfaceDescription.RefractionDistance:         surfaceData.atDistance =                surfaceDescription.RefractionDistance;
+
+        surfaceData.transmittanceMask = (1.0 - surfaceDescription.Alpha);
+        surfaceDescription.Alpha = 1.0;
+#else
         surfaceData.ior = 1.0;
         surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
         surfaceData.atDistance = 1.0;
         surfaceData.transmittanceMask = 0.0;
+#endif
         
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;

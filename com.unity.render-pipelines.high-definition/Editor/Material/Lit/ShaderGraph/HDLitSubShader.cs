@@ -718,6 +718,58 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = false
         };
 
+        Pass m_PassRaytracingForward = new Pass()
+        {
+            Name = "ForwardDXR",
+            LightMode = "ForwardDXR",
+            TemplateName = "HDLitRaytracingPass.template",
+            MaterialName = "Lit",
+            ShaderPassName = "SHADERPASS_RAYTRACING_FORWARD",
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#define SHADOW_LOW",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingForward.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.AlbedoSlotId,
+                HDLitMasterNode.NormalSlotId,
+                HDLitMasterNode.BentNormalSlotId,
+                HDLitMasterNode.TangentSlotId,
+                HDLitMasterNode.SubsurfaceMaskSlotId,
+                HDLitMasterNode.ThicknessSlotId,
+                HDLitMasterNode.DiffusionProfileSlotId,
+                HDLitMasterNode.IridescenceMaskSlotId,
+                HDLitMasterNode.IridescenceThicknessSlotId,
+                HDLitMasterNode.SpecularColorSlotId,
+                HDLitMasterNode.CoatMaskSlotId,
+                HDLitMasterNode.MetallicSlotId,
+                HDLitMasterNode.EmissionSlotId,
+                HDLitMasterNode.SmoothnessSlotId,
+                HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.AnisotropySlotId,
+                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
+                HDLitMasterNode.SpecularAAThresholdSlotId,
+                HDLitMasterNode.RefractionIndexSlotId,
+                HDLitMasterNode.RefractionColorSlotId,
+                HDLitMasterNode.RefractionDistanceSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId
+            },
+            UseInPreview = false
+        };
+
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
@@ -1077,6 +1129,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     GenerateShaderPassLit(masterNode, m_PassRaytracingReflection, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
                 }
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);

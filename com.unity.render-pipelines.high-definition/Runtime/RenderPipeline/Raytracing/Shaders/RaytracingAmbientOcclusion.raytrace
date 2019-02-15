@@ -105,7 +105,7 @@ void RayGenAmbientOcclusion()
 		rayIntersection.t = 0.0f;
 
 		// Evaluate the ray intersection
-		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayIntersection);
+		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 		
 		// combine
 		if (rayIntersection.t > 0.0f)
