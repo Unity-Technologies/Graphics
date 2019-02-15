@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField] RendererOverrideOption m_RendererOverrideOption = RendererOverrideOption.UsePipelineSettings;
         [SerializeField] RendererData m_RendererData = null;
-        ScriptableRenderer m_RendererSetup = null;
+        ScriptableRenderer m_Renderer = null;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -104,12 +104,12 @@ namespace UnityEngine.Rendering.LWRP
             get
             {
                 if (m_RendererOverrideOption == RendererOverrideOption.UsePipelineSettings || m_RendererData == null)
-                    return LightweightRenderPipeline.asset.rendererSetup;
+                    return LightweightRenderPipeline.asset.renderer;
 
-                if (m_RendererSetup == null)
-                    m_RendererSetup = m_RendererData.Create();
+                if (m_Renderer == null)
+                    m_Renderer = m_RendererData.Create();
 
-                return m_RendererSetup;
+                return m_Renderer;
             }
         }
 

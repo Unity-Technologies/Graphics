@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.LWRP
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
-        internal ScriptableRenderer m_RendererSetup;
+        internal ScriptableRenderer m_Renderer;
 
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.LWRP
                 LoadBuiltinRendererData();
 #endif
 
-            m_RendererSetup = m_RendererData.Create();
+            m_Renderer = m_RendererData.Create();
         }
 
         Material GetMaterial(DefaultMaterialType materialType)
@@ -256,14 +256,14 @@ namespace UnityEngine.Rendering.LWRP
 #endif
         }
 
-        public ScriptableRenderer rendererSetup
+        public ScriptableRenderer renderer
         {
             get
             {
-                if (m_RendererSetup == null && m_RendererData != null)
-                    m_RendererSetup = m_RendererData.Create();
+                if (m_Renderer == null && m_RendererData != null)
+                    m_Renderer = m_RendererData.Create();
 
-                return m_RendererSetup;
+                return m_Renderer;
             }
         }
 

@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-
 namespace UnityEngine.Rendering.LWRP
 {
-    [CreateAssetMenu]
+    //[CreateAssetMenu]
     public class ForwardRendererData : RendererData
     {
         [SerializeField] Shader m_BlitShader = null;
