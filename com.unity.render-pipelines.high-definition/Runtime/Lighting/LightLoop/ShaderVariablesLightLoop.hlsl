@@ -36,7 +36,7 @@
     TEXTURE2D(_DeferredShadowTexture);
 
     // Area shadow paper texture
-#ifdef ENABLE_RAYTRACING
+#if SHADEROPTIONS_RAYTRACING
     TEXTURE2D_ARRAY(_AreaShadowTexture);
 #endif
 

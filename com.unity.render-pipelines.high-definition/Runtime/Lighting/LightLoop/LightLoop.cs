@@ -195,13 +195,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbeCache m_ReflectionProbeCache;
 
         // Structure for cookies used by directional and spotlights
+        public TextureCache2D cookieTexArray { get { return m_CookieTexArray; } }
         TextureCache2D m_CookieTexArray;
 
         // Structure for cookies used by point lights
+        public TextureCacheCubemap cubeCookieTexArray { get { return m_CubeCookieTexArray; } }
         TextureCacheCubemap m_CubeCookieTexArray;
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
 
         // Structure for cookies used by area lights
+        public LTCAreaLightCookieManager areaLightCookieManager { get { return m_AreaLightCookieManager; } }
         LTCAreaLightCookieManager m_AreaLightCookieManager;
 
         // For now we don't use shadow cascade borders.
