@@ -33,11 +33,11 @@ namespace UnityEngine.Rendering.LWRP
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
 
-        const string k_RenderMainLightShadowmapTag = "Render Main Shadowmap";
         public MainLightShadowCasterPass(RenderPassEvent evt)
         {
             RegisterShaderPassName("ShadowCaster");
             renderPassEvent = evt;
+            profilerTag = "Render Main Shadowmap";
 
             m_MainLightShadowMatrices = new Matrix4x4[k_MaxCascades + 1];
             m_CascadeSlices = new ShadowSliceData[k_MaxCascades];
@@ -146,8 +146,8 @@ namespace UnityEngine.Rendering.LWRP
 
             VisibleLight shadowLight = lightData.visibleLights[shadowLightIndex];
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderMainLightShadowmapTag);
-            using (new ProfilingSample(cmd, k_RenderMainLightShadowmapTag))
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            using (new ProfilingSample(cmd, profilerTag))
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
 

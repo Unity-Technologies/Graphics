@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.LWRP
             RenderTexture
         }
         
-        string blitTag { get; set; }
+        string profilerTag { get; set; }
         public Material blitMaterial = null;
         public int blitShaderPassIndex = 0;
         public FilterMode filterMode { get; set; }
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.LWRP
             this.renderPassEvent = renderPassEvent;
             this.blitMaterial = blitMaterial;
             this.blitShaderPassIndex = blitShaderPassIndex;
-            blitTag = tag;
+            profilerTag = tag;
         }
 
         /// <summary>
@@ -49,15 +49,21 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override bool ShouldExecute(ref RenderingData renderingData)
         {
             if (blitMaterial == null)
             {
                 Debug.LogWarningFormat("Missing Blit Material. {0} blit pass will not execute. Check for missing reference in the assigned renderer.", GetType().Name);
-                return;
+                return false;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(blitTag);
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
             
             RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
             opaqueDesc.msaaSamples = 1;
@@ -66,13 +72,15 @@ namespace UnityEngine.Rendering.LWRP
             RenderTargetIdentifier dest = destination.Identifier();
 
             cmd.GetTemporaryRT(destination.id, opaqueDesc, filterMode);
-
-
             cmd.Blit(src, dest, blitMaterial, blitShaderPassIndex);
-            
-            
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        /// <inheritdoc/>
+        public virtual void FrameCleanup(CommandBuffer cmd)
+        {
+            cmd.ReleaseTemporaryRT(destination.id);
         }
     }
 }

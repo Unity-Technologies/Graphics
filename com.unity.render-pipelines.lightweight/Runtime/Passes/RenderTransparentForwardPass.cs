@@ -9,8 +9,6 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     internal class RenderTransparentForwardPass : ScriptableRenderPass
     {
-        const string k_RenderTransparentsTag = "Render Transparents";
-
         RenderTargetHandle colorAttachmentHandle { get; set; }
         RenderTargetHandle depthAttachmentHandle { get; set; }
         RenderTextureDescriptor descriptor { get; set; }
@@ -22,6 +20,7 @@ namespace UnityEngine.Rendering.LWRP
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
             renderPassEvent = evt;
+            profilerTag = "Render Transparents";
 
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
         }
@@ -46,8 +45,8 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderTransparentsTag);
-            using (new ProfilingSample(cmd, k_RenderTransparentsTag))
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            using (new ProfilingSample(cmd, profilerTag))
             {
                 RenderBufferLoadAction loadOp = RenderBufferLoadAction.Load;
                 RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;

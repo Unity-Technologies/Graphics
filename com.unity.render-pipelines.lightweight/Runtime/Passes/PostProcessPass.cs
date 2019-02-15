@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     internal class PostProcessPass : ScriptableRenderPass
     {
-        const string k_PostProcessingTag = "Render PostProcess Effects";
         RenderTargetHandle m_Source;
         RenderTargetHandle m_Destination;
         RenderTextureDescriptor m_Descriptor;
@@ -26,6 +25,7 @@ namespace UnityEngine.Rendering.LWRP
             m_TemporaryColorTexture.Init("_TemporaryColorTexture");
 
             renderPassEvent = evt;
+            profilerTag = "Render PostProcess Effects";
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.LWRP
             bool isLastRenderPass = (m_Destination == RenderTargetHandle.CameraTarget) && !cameraData.isStereoEnabled;
             bool flip = isLastRenderPass && cameraData.camera.targetTexture == null;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_PostProcessingTag);
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
 
             var layer = renderingData.cameraData.postProcessLayer;
             int effectsCount;

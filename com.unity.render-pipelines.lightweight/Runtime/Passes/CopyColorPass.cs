@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     internal class CopyColorPass : ScriptableRenderPass
     {
-        const string k_CopyColorTag = "Copy Color";
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;
         Downsampling m_DownsamplingMethod;
@@ -27,6 +26,7 @@ namespace UnityEngine.Rendering.LWRP
             m_SamplingMaterial = samplingMaterial;
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
+            profilerTag = "Copy Color";
             m_DownsamplingMethod = downsampling;
         }
 
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_CopyColorTag);
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
             RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
             opaqueDesc.msaaSamples = 1;
             opaqueDesc.depthBufferBits = 0;

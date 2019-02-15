@@ -2,8 +2,6 @@ namespace UnityEngine.Rendering.LWRP
 {
     internal class SceneViewDepthCopyPass : ScriptableRenderPass
     {
-        const string k_CopyDepthToCameraTag = "Copy Depth to Camera";
-
         private RenderTargetHandle source { get; set; }
 
         Material m_CopyDepthMaterial;
@@ -12,6 +10,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
+            profilerTag = "Copy Depth for Scene View";
         }
 
         public void Setup(RenderTargetHandle source)
@@ -35,7 +34,7 @@ namespace UnityEngine.Rendering.LWRP
 
             // Restore Render target for additional editor rendering.
             // Note: Scene view camera always perform depth prepass
-            CommandBuffer cmd = CommandBufferPool.Get(k_CopyDepthToCameraTag);
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
             CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
             cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);

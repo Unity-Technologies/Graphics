@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     internal class CreateLightweightRenderTexturesPass : ScriptableRenderPass
     {
-        const string k_CreateRenderTexturesTag = "Create Render Textures";
         const int k_DepthStencilBufferBits = 32;
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTargetHandle depthAttachmentHandle { get; set; }
@@ -22,6 +21,7 @@ namespace UnityEngine.Rendering.LWRP
         public CreateLightweightRenderTexturesPass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
+            profilerTag = "Create Render Textures";
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_CreateRenderTexturesTag);
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
                 bool useDepthRenderBuffer = depthAttachmentHandle == RenderTargetHandle.CameraTarget;

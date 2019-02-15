@@ -9,8 +9,6 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     internal class RenderOpaqueForwardPass : ScriptableRenderPass
     {
-        const string k_RenderOpaquesTag = "Render Opaques";
-
         RenderTargetHandle colorAttachmentHandle { get; set; }
         RenderTargetHandle depthAttachmentHandle { get; set; }
         RenderTextureDescriptor descriptor { get; set; }
@@ -24,6 +22,7 @@ namespace UnityEngine.Rendering.LWRP
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
             renderPassEvent = evt;
+            profilerTag = "Render Opaques";
 
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
         }
@@ -54,8 +53,8 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderOpaquesTag);
-            using (new ProfilingSample(cmd, k_RenderOpaquesTag))
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            using (new ProfilingSample(cmd, profilerTag))
             {
                 // When ClearFlag.None that means this is not the first render pass to write to camera target.
                 // In that case we set loadOp for both color and depth as RenderBufferLoadAction.Load

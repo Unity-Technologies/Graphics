@@ -9,8 +9,6 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     internal class FinalBlitPass : ScriptableRenderPass
     {
-        const string k_FinalBlitTag = "Final Blit Pass";
-
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
@@ -19,6 +17,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
+            profilerTag = "Final Blit Pass";
         }
 
         /// <summary>
@@ -44,7 +43,7 @@ namespace UnityEngine.Rendering.LWRP
             bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
             bool killAlpha = renderingData.killAlphaInFinalBlit;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_FinalBlitTag);
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
 
             if (requiresSRGBConvertion)
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
