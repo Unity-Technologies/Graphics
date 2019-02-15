@@ -368,8 +368,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     float LdotV, NdotH, LdotH, NdotV, invLenLV;
     GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
 
-    // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
-	float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
@@ -377,6 +376,10 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // V_Charlie is expensive, use approx with V_Ashikhmin instead
         // float Vis = V_Charlie(NdotL, NdotV, bsdfData.roughness);
         float Vis = V_Ashikhmin(NdotL, NdotV);
+
+        // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
+        // We don't use Fresnel term for CharlieD
+        float3 F = bsdfData.fresnel0;
 
         specularLighting = F * Vis * D;
 
@@ -397,6 +400,9 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
         float DV = DV_SmithJointGGXAniso(   TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
                                             bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
+
+        // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
+        float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
         specularLighting = F * DV;
 
