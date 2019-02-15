@@ -6,23 +6,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.5.0-preview] - 2019-02-13
 
-### Changed
-- The default value roughness value for the clearcoat has been changed from 0.03 to 0.01
-
-### Fixed
-- Fixed post processing with stereo double-wide
-
-
 ### Added
 - Added support for post-processing anti-aliasing in the Scene View (FXAA and TAA). These can be set in Preferences.
 - Added emissive property for decal material (non-shader graph)
+- Added cascade visualizer, supporting disabled handles when not overriding.
 
 ### Fixed
 - Fixed a few UI bugs with the color grading curves.
 - Fixed "Post Processing" in the scene view not toggling post-processing effects.
+- Fixed post processing with stereo double-wide
+- Fixed issue with Metal: Use sign bit to find the cache type instead of lowest bit.
+- Fixed invalid state when creating a planar reflection for the first time
 
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector	
+- The default value roughness value for the clearcoat has been changed from 0.03 to 0.01
+- Update default value of based color for master node
+- Update Fabric Charlie Sheen lighting model - Remove Fresnel component that wasn't part of initial model + Remap smoothness to [0.0 - 0.6] range for more artist friendly parameter
+- Updated the toggle for advanced mode in inspectors.
 
 ## [5.4.0-preview] - 2019-02-11
 
