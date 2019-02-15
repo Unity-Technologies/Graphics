@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.5.0-preview] - 2019-02-13
+### Fixed
+- Fixed post processing with stereo double-wide
+
 
 ### Added
 - Added support for post-processing anti-aliasing in the Scene View (FXAA and TAA). These can be set in Preferences.
