@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.5.0-preview] - 2019-02-13
+## [5.5.0-preview] - 2019-02-18
 
 ### Added
 
@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for post-processing anti-aliasing in the Scene View (FXAA and TAA). These can be set in Preferences.
 - Added emissive property for decal material (non-shader graph)
 - Added cascade visualizer, supporting disabled handles when not overriding.
+- Added support of motion vector for transparent object (as replace)
 
 ### Fixed
 - Fixed a few UI bugs with the color grading curves.
@@ -19,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed post processing with stereo double-wide
 - Fixed issue with Metal: Use sign bit to find the cache type instead of lowest bit.
 - Fixed invalid state when creating a planar reflection for the first time
-- Fix FrameSettings's LitShaderMode not restrained by supported LitShaderMode regression.
+- Fixed FrameSettings's LitShaderMode not restrained by supported LitShaderMode regression.
 
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector	
