@@ -243,6 +243,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
+        public bool IsTAAEnabled()
+        {
+            return antialiasing == AntialiasingMode.TemporalAntialiasing;
+        }
+
         // Pass all the systems that may want to update per-camera data here.
         // That way you will never update an HDCamera and forget to update the dependent system.
         public void Update(FrameSettings currentFrameSettings, VolumetricLightingSystem vlSys, MSAASamples msaaSamples)
