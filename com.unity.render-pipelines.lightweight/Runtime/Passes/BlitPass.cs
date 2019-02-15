@@ -60,34 +60,17 @@ namespace UnityEngine.Rendering.LWRP
             CommandBuffer cmd = CommandBufferPool.Get(blitTag);
             
             RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
-            //opaqueDesc.msaaSamples = 1;
+            opaqueDesc.msaaSamples = 1;
 
             RenderTargetIdentifier src = source.Identifier();
             RenderTargetIdentifier dest = destination.Identifier();
 
             cmd.GetTemporaryRT(destination.id, opaqueDesc, filterMode);
 
-            if (true)
-            {
-                cmd.Blit(src, dest, blitMaterial, blitShaderPassIndex);
-            }
-            else
-            {
-/*                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
-                SetRenderTarget(
-                    cmd,
-                    BuiltinRenderTextureType.CameraTarget,
-                    RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store,
-                    ClearFlag.None,
-                    Color.black,
-                    m_TargetDimension);
-
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
-                RenderFullscreenQuad(cmd, m_BlitMaterial);*/
-            }
+            cmd.Blit(src, dest, blitMaterial, blitShaderPassIndex);
+            
+            
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

@@ -12,6 +12,16 @@ namespace UnityEngine.Rendering.LWRP
             
             public Material blitMaterial = null;
             public int blitMaterialPassIndex = -1;
+            public Target source = Target.Color;
+            public Target dest = Target.Color;
+            public RenderTexture texture;
+        }
+        
+        public enum Target
+        {
+            Color,
+            Depth,
+            Texture
         }
 
         public BlitSettings settings = new BlitSettings();
@@ -39,7 +49,28 @@ namespace UnityEngine.Rendering.LWRP
             RenderTargetHandle colorAttachmentHandle,
             RenderTargetHandle depthAttachmentHandle)
         {
-            blitPass.Setup(colorAttachmentHandle, colorAttachmentHandle);
+            var src = colorAttachmentHandle;
+            var dest = colorAttachmentHandle;
+
+            switch (settings.source)
+            {
+                case Target.Color:
+                    break;
+                case Target.Depth:
+                    src = depthAttachmentHandle;
+                    break;
+            }
+            
+            switch (settings.dest)
+            {
+                case Target.Color:
+                    break;
+                case Target.Depth:
+                    dest = depthAttachmentHandle;
+                    break;
+            }
+            
+            blitPass.Setup(src, dest);
             renderPasses.Add(blitPass);
         }
     }
