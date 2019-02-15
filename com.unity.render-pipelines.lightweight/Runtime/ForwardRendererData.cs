@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.LWRP
 {
-    //[CreateAssetMenu]
+    [CreateAssetMenu(fileName = "New Forward Renderer", menuName = "Rendering/Lightweight Render Pipeline/Forward Renderer", order = 2)]
     public class ForwardRendererData : ScriptableRendererData
     {
         [SerializeField] Shader m_BlitShader = null;
