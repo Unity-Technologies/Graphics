@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SNBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "SNBuffer");
             m_UNBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "UNBuffer");
             m_UBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "UBuffer");
-            m_AreaShadowTextureArray = RTHandles.Alloc(Vector2.one, slices:4, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "AreaShadowArrayBuffer");
+            m_AreaShadowTextureArray = RTHandles.Alloc(Vector2.one, slices:4, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "AreaShadowArrayBuffer");
         }
 
         public RTHandleSystem.RTHandle GetShadowedIntegrationTexture()
@@ -192,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeIntParam(bilateralFilter, HDShaderIDs._RaytracingShadowSlot, m_LightLoop.m_lightList.lights[lightIdx].shadowIndex);
 
                     // Set the output slot
-                    cmd.SetComputeTextureParam(bilateralFilter, m_KernelFilter, HDShaderIDs._AreaShadowTexture, m_AreaShadowTextureArray);
+                    cmd.SetComputeTextureParam(bilateralFilter, m_KernelFilter, HDShaderIDs._AreaShadowTextureRW, m_AreaShadowTextureArray);
 
                     // Texture dimensions
                     int texWidth = m_AreaShadowTextureArray.rt.width;

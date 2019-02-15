@@ -174,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool displayAreaLightEmissiveMesh = false;
 
         // Optional cookie for rectangular area lights
-        public Texture2D areaLightCookie = null;
+        public Texture areaLightCookie = null;
         
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light

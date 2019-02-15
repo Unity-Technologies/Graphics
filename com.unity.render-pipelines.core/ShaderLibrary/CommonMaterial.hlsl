@@ -50,6 +50,17 @@ real ClampRoughnessForAnalyticalLights(real roughness)
     return max(roughness, 1.0 / 1024.0);
 }
 
+// Given that the GGX model is invalid for a roughness of 0.0. This values have been experimentally evaluated to be the limit for the roughness
+// for integration.
+real ClampRoughnessForRaytracing(real roughness)
+{
+    return max(roughness, 0.001225);
+}
+real ClampPerceptualRoughnessForRaytracing(real perceptualRoughness)
+{
+    return max(perceptualRoughness, 0.035);
+}
+
 void ConvertValueAnisotropyToValueTB(real value, real anisotropy, out real valueT, out real valueB)
 {
     // Use the parametrization of Sony Imageworks.
