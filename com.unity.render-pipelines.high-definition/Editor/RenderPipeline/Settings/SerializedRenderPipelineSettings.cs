@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty supportedLitShaderMode;
         
         public SerializedProperty supportDecals;
-        public SerializedProperty supportMSAA;
+        public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportRuntimeDebugDisplay;
@@ -54,7 +54,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
             
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
-            supportMSAA                     = root.Find((RenderPipelineSettings s) => s.supportMSAA);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);

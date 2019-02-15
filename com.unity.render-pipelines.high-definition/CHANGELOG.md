@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.5.0-preview] - 2019-02-13
 
 ### Added
+
+- Added help box listing feature supported in a given HDRenderPipelineAsset alongs with the drawbacks implied.
 - Added support for post-processing anti-aliasing in the Scene View (FXAA and TAA). These can be set in Preferences.
 - Added emissive property for decal material (non-shader graph)
 - Added cascade visualizer, supporting disabled handles when not overriding.
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed post processing with stereo double-wide
 - Fixed issue with Metal: Use sign bit to find the cache type instead of lowest bit.
 - Fixed invalid state when creating a planar reflection for the first time
+- Fix FrameSettings's LitShaderMode not restrained by supported LitShaderMode regression.
 
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector	

@@ -110,10 +110,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool depthPrepassEnablable = hdrpAssetSupportDeferred && (defaultDefferedUsed || frameSettingsOverrideToDeferred);
             area.AmmendInfo(FrameSettingsField.MSAA,
                 overrideable: () => msaaEnablable,
-                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA));
+                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA),
+                customOverrideable: () =>
+                {
+                    switch (hdrpSettings.supportedLitShaderMode)
+                    {
+                        case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                            return false; //negative dependency
+                        case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                            return true; //negative dependency
+                        case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                            return !(frameSettingsOverrideToForward || defaultForwardUsed); //negative dependency
+                        default:
+                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
+                    }
+                });
             area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering,
                 overrideable: () => depthPrepassEnablable,
-                overridedDefaultValue: depthPrepassEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering));
+                overridedDefaultValue: depthPrepassEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering),
+                customOverrideable: () =>
+                {
+                    switch (hdrpSettings.supportedLitShaderMode)
+                    {
+                        case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                            return false;
+                        case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                            return true;
+                        case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                            return frameSettingsOverrideToDeferred || defaultDefferedUsed;
+                        default:
+                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
+                    }
+                });
             
             area.AmmendInfo(FrameSettingsField.MotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
