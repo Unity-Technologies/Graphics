@@ -80,9 +80,7 @@ Shader "Hidden/HDRP/FinalPass"
             uint2 positionSS = input.texcoord * _ScreenSize.xy;
 
             #if UNITY_SINGLE_PASS_STEREO
-            // TODO: This is wrong, fix me
-            positionNDC.x = positionNDC.x / 2.0 + unity_StereoEyeIndex * 0.5;
-            positionSS.x = positionSS.x / 2;
+                positionNDC.x = (positionNDC.x + unity_StereoEyeIndex) * 0.5;
             #endif
 
             // Flip logic
