@@ -1,5 +1,3 @@
-using System;
-
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
@@ -14,8 +12,7 @@ namespace UnityEngine.Rendering.LWRP
         public enum RenderTarget
         {
             Color,
-            Depth,
-            RenderTexture
+            RenderTexture,
         }
         
         string profilerTag { get; set; }
@@ -26,6 +23,8 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
 
+        RenderTargetHandle m_TemporaryColorTexture;
+
         /// <summary>
         /// Create the CopyColorPass
         /// </summary>
@@ -35,6 +34,7 @@ namespace UnityEngine.Rendering.LWRP
             this.blitMaterial = blitMaterial;
             this.blitShaderPassIndex = blitShaderPassIndex;
             profilerTag = tag;
+            m_TemporaryColorTexture.Init("_TemporaryColorTexture");
         }
 
         /// <summary>
@@ -69,10 +69,18 @@ namespace UnityEngine.Rendering.LWRP
             opaqueDesc.msaaSamples = 1;
 
             RenderTargetIdentifier src = source.Identifier();
-            RenderTargetIdentifier dest = destination.Identifier();
 
-            cmd.GetTemporaryRT(destination.id, opaqueDesc, filterMode);
-            cmd.Blit(src, dest, blitMaterial, blitShaderPassIndex);
+            if (source == destination)
+            {
+                cmd.GetTemporaryRT(m_TemporaryColorTexture.id, opaqueDesc, filterMode);
+                cmd.Blit(src, m_TemporaryColorTexture.Identifier(), blitMaterial, blitShaderPassIndex);
+                cmd.Blit(m_TemporaryColorTexture.Identifier(), src);
+            }
+            else
+            {
+                cmd.Blit(src, destination.Identifier(), blitMaterial, blitShaderPassIndex);
+            }
+            
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

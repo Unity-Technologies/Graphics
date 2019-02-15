@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -12,19 +12,18 @@ namespace UnityEngine.Rendering.LWRP
             
             public Material blitMaterial = null;
             public int blitMaterialPassIndex = -1;
-            public Target source = Target.Color;
             public Target dest = Target.Color;
-            public RenderTexture texture;
+            public string textureId = "_BlitPassTexture";
         }
         
         public enum Target
         {
             Color,
-            Depth,
             Texture
         }
 
         public BlitSettings settings = new BlitSettings();
+        RenderTargetHandle m_RenderTextureHandle;
 
         BlitPass blitPass;
 
@@ -42,6 +41,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             settings.blitMaterialPassIndex = Mathf.Clamp(settings.blitMaterialPassIndex, -1, settings.blitMaterial.passCount - 1);
             blitPass = new BlitPass(settings.Event, settings.blitMaterial, settings.blitMaterialPassIndex, name);
+            m_RenderTextureHandle.Init(settings.textureId);
         }
 
         public override void AddRenderPasses(List<ScriptableRenderPass> renderPasses,
@@ -50,25 +50,7 @@ namespace UnityEngine.Rendering.LWRP
             RenderTargetHandle depthAttachmentHandle)
         {
             var src = colorAttachmentHandle;
-            var dest = colorAttachmentHandle;
-
-            switch (settings.source)
-            {
-                case Target.Color:
-                    break;
-                case Target.Depth:
-                    src = depthAttachmentHandle;
-                    break;
-            }
-            
-            switch (settings.dest)
-            {
-                case Target.Color:
-                    break;
-                case Target.Depth:
-                    dest = depthAttachmentHandle;
-                    break;
-            }
+            var dest = (settings.dest == Target.Color) ? colorAttachmentHandle : m_RenderTextureHandle;
             
             blitPass.Setup(src, dest);
             renderPasses.Add(blitPass);
