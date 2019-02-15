@@ -947,6 +947,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114207965363388990}
   - {fileID: 114664836143208348}
@@ -3818,6 +3819,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114411037450555758}
   - {fileID: 114976729503126856}
@@ -4982,6 +4984,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114826167990830044}
   - {fileID: 114976929173405708}
