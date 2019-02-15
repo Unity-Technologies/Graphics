@@ -77,7 +77,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return msaaSampleCount != MSAASamples.None;
             }
-
         }
 
         public bool supportMotionVectors;

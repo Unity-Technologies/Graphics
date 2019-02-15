@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.2.0-preview] - 2019-XX-XX
 
 ### Added
+
+- Added help box listing feature supported in a given HDRenderPipelineAsset alongs with the drawbacks implied.
 - Added cascade visualizer, supporting disabled handles when not overriding.
 
 ### Fixed
 - Fixed post processing with stereo double-wide
 - Fixed issue with Metal: Use sign bit to find the cache type instead of lowest bit.
 - Fixed invalid state when creating a planar reflection for the first time
+- Fix FrameSettings's LitShaderMode not restrained by supported LitShaderMode regression.
 
 ### Changed
 - The default value roughness value for the clearcoat has been changed from 0.03 to 0.01
