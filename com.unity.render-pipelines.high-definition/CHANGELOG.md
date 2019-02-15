@@ -6,11 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.2.0-preview] - 2019-XX-XX
 
-### Changed
-- The default value roughness value for the clearcoat has been changed from 0.03 to 0.01
+### Added
+- Added cascade visualizer, supporting disabled handles when not overriding.
 
 ### Fixed
 - Fixed post processing with stereo double-wide
+- Fixed issue with Metal: Use sign bit to find the cache type instead of lowest bit.
+- Fixed invalid state when creating a planar reflection for the first time
+
+### Changed
+- The default value roughness value for the clearcoat has been changed from 0.03 to 0.01
+- Update default value of based color for master node
+- Update Fabric Charlie Sheen lighting model - Remove Fresnel component that wasn't part of initial model + Remap smoothness to [0.0 - 0.6] range for more artist friendly parameter
 
 ## [6.1.0-preview] - 2019-02-13
 
@@ -25,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector
+- Updated the toggle for advanced mode in inspectors.
 
 ## [6.0.0-preview] - 2019-02-23
 
