@@ -35,8 +35,7 @@ Shader "CoreResources/FilterAreaLightCookies"
         {
             Varyings output;
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
-            output.texcoord.x = 1.0f - output.texcoord.x;
+            output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
             return output;
         }
 
@@ -53,7 +52,7 @@ Shader "CoreResources/FilterAreaLightCookies"
             float4  frag(Varyings input) : SV_Target
             {
                 float2  UV = input.texcoord;
-                return SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, UV, 0.0 );
+                return SAMPLE_TEXTURE2D_LOD( _SourceTexture, s_linear_clamp_sampler, UV, _SourceMipLevel);
             }
             ENDHLSL
         }

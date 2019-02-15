@@ -850,7 +850,7 @@ PositionInputs GetPositionInput_Stereo(float2 positionSS, float2 invScreenSize, 
     ZERO_INITIALIZE(PositionInputs, posInput);
 
     posInput.positionNDC = positionSS;
-#if SHADER_STAGE_COMPUTE
+#if SHADER_STAGE_COMPUTE || SHADER_STAGE_RAYTRACING
     // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
     posInput.positionNDC.xy += float2(0.5, 0.5);
 #endif

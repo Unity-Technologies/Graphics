@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.2.0-preview] - 2019-XX-XX
 
+### Changed
+- The default value roughness value for the clearcoat has been changed from 0.03 to 0.01
+
 ### Fixed
 - Fixed post processing with stereo double-wide
 

@@ -118,6 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Start by copying the source texture to the array slice's mip 0
             {
                 cmd.SetGlobalTexture( s_texSource, source );
+                cmd.SetGlobalInt( s_sourceMipLevel, 0 );
                 cmd.SetRenderTarget( m_TempRenderTexture0, 0);
                 cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 0, MeshTopology.Triangles, 3, 1);
             }

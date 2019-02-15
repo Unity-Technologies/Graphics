@@ -72,6 +72,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Flag that defines if this sub-scene is valid
             public bool valid = false;
+
+            // Light cluster used for some effects
+            public HDRaytracingLightCluster lightCluster = null;
         }
 
         // The list of graphs that have been referenced
@@ -86,6 +89,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The HDRPAsset data that needs to be 
         RenderPipelineResources m_Resources = null;
         RenderPipelineSettings m_Settings;
+        LightLoop m_LightLoop = null;
+        SharedRTManager m_SharedRTManager = null;
 
         // Noise texture manager
         BlueNoise m_BlueNoise = null;
@@ -146,13 +151,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise)
+        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise, LightLoop lightloop, SharedRTManager sharedRTManager)
         {
             // Keep track of the resources
             m_Resources = resources;
 
             // Keep track of the settings
             m_Settings = settings;
+
+            // Keep track of the lightloop
+            m_LightLoop = lightloop;
+
+            // Keep track of the shared RT manager
+            m_SharedRTManager = sharedRTManager;
 
             // Keep track of the blue noise manager
             m_BlueNoise = blueNoise;
@@ -244,9 +255,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 subScene.targetRenderers = null;
                 subScene.accelerationStructure = null;
                 subScene.hdLightArray = null;
+                subScene.lightCluster.ReleaseResources();
+                subScene.lightCluster = null;
             }
         }
-        public void UpdateAccelerationStructures()
+        public void CheckSubScenes()
         {
             // Here there is two options, either the full things needs to be rebuilded or we should only rebuild the ones that have been flagged obsolete
             if(m_DirtyEnvironment)
@@ -311,11 +324,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     subScene.obsolete = false;
                 }
             }
+        }
 
-            // Update all the transforms
-            for (var subSceneIndex = 0; subSceneIndex < m_LayerMasks.Count; subSceneIndex++)
+        public void UpdateSubSceneData(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            HDRayTracingSubScene subScene = RequestSubScene(hdCamera);
+            if(subScene != null)
             {
-                HDRayTracingSubScene subScene = m_SubScenes[m_LayerMasks[subSceneIndex]];
+                // Update the acceleration structure
                 if (subScene.accelerationStructure != null)
                 {
                     for (var i = 0; i < subScene.targetRenderers.Count; i++)
@@ -327,6 +343,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     subScene.accelerationStructure.Update();
                 }
+
+                // Evaluate the light cluster
+                subScene.lightCluster.EvaluateLightClusters(cmd, hdCamera, subScene.hdLightArray);
             }
         }
 
@@ -517,6 +536,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 subScene.hdLightArray.AddRange(lineLights);
                 subScene.hdLightArray.AddRange(rectLights);
 
+                // Build the light cluster
+                subScene.lightCluster = new HDRaytracingLightCluster();
+                subScene.lightCluster.Initialize(m_Resources, this, m_SharedRTManager, m_LightLoop);
+
                 // Mark this sub-scene as valid
                 subScene.valid = true;
             }
@@ -541,17 +564,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public List<HDAdditionalLightData> RequestHDLightList(HDCamera hdCamera)
+        public HDRaytracingLightCluster RequestLightCluster(HDCamera hdCamera)
         {
             bool editorCamera = hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview;
             if (editorCamera)
             {
-                return RequestHDLightList(m_Settings.editorRaytracingFilterLayerMask);
+                // For the scene view, we want to use the default acceleration structure
+                return RequestLightCluster(m_Settings.editorRaytracingFilterLayerMask);
             }
             else
             {
                 HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
-                return raytracingFilter ? RequestHDLightList(raytracingFilter.layermask) : null;
+                return raytracingFilter ? RequestLightCluster(raytracingFilter.layermask) : null;
+            }
+        }
+
+        public HDRayTracingSubScene RequestSubScene(HDCamera hdCamera)
+        {
+            bool editorCamera = hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview;
+            if (editorCamera)
+            {
+                // For the scene view, we want to use the default acceleration structure
+                return RequestSubScene(m_Settings.editorRaytracingFilterLayerMask);
+            }
+            else
+            {
+                HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
+                return raytracingFilter ? RequestSubScene(raytracingFilter.layermask) : null;
             }
         }
 
@@ -565,12 +604,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return null;
         }
 
-        public List<HDAdditionalLightData> RequestHDLightList(LayerMask layerMask)
+        public HDRaytracingLightCluster RequestLightCluster(LayerMask layerMask)
         {
             HDRayTracingSubScene currentSubScene = null;
             if (m_SubScenes.TryGetValue(layerMask.value, out currentSubScene))
             {
-                return currentSubScene.valid ? currentSubScene.hdLightArray : null;
+                return currentSubScene.valid ? currentSubScene.lightCluster : null;
+            }
+            return null;
+        }
+
+        public HDRayTracingSubScene RequestSubScene(LayerMask layerMask)
+        {
+            HDRayTracingSubScene currentSubScene = null;
+            if (m_SubScenes.TryGetValue(layerMask.value, out currentSubScene))
+            {
+                return currentSubScene.valid ? currentSubScene : null;
             }
             return null;
         }

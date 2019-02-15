@@ -48,7 +48,7 @@ void RayGenHalfRes()
     uint3 LaunchDim = DispatchRaysDimensions();
 
     // Compute the pixel coordinate (which matches the half res of the effect)
-    uint2 halfResCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
+    uint2 halfResCoord = uint2(LaunchIndex.x, LaunchIndex.y);
 
     // Get the scramblingValue of this pixel
     uint2 scramblingValue = ScramblingValue(halfResCoord.x, halfResCoord.y);
