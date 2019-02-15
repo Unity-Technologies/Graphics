@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             this.root = root;
 
             lutSize = root.FindPropertyRelative("m_LutSize");
-            lutFormat = root.FindPropertyRelative("m_LutFormat");
+            lutFormat = root.FindPropertyRelative("lutFormat");
         }
     }
 }
