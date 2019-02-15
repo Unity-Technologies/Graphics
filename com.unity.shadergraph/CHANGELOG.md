@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.5.0] - 2019-02-13
+### Fixed
+- Fixed the property blackboard so it no longer goes missing or turns very small.
 
 ## [5.4.0] - 2019-02-11
 
