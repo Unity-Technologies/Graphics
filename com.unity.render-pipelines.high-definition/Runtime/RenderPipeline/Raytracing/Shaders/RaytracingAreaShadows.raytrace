@@ -383,7 +383,7 @@ void RayGenShadows()
         rayIntersection.incidentDirection = rayDescriptor.Direction;
         
         // Evaluate the ray visibility term and PDF
-        TraceRay(_RaytracingAccelerationStructure, rayFlag, 0xFF, 0, 1, 0, rayDescriptor, rayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, rayFlag, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 
         // Evaluate the lighting
         float3 diffuseLighting = float3(0.0, 0.0, 0.0);
