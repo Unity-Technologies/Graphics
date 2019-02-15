@@ -684,7 +684,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             AddSlot(new TangentMaterialSlot(TangentSlotId, TangentSlotName, TangentSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
             validSlots.Add(TangentSlotId);
 
-            AddSlot(new ColorRGBMaterialSlot(BaseColorSlotId, BaseColorSlotName, BaseColorSlotName, SlotType.Input, Color.white, ColorMode.Default, ShaderStageCapability.Fragment));
+            AddSlot(new ColorRGBMaterialSlot(BaseColorSlotId, BaseColorSlotName, BaseColorSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
             validSlots.Add(BaseColorSlotId);
 
             if (baseParametrization == StackLit.BaseParametrization.BaseMetallic)
