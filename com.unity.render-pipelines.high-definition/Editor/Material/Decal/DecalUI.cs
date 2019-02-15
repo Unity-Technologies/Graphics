@@ -203,6 +203,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOSStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOSStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecals3RTStr, true);
+            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsForwardEmissive, material.GetFloat("_Emissive") == 1.0f);
             switch (blendMode)
             {
                 case Decal.MaskBlendFlags.Metal:
