@@ -276,6 +276,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
+        bool m_TransparentWritesVelocity;
+
+        public ToggleData transparentWritesVelocity
+        {
+            get { return new ToggleData(m_TransparentWritesVelocity); }
+            set
+            {
+                if (m_TransparentWritesVelocity == value.isOn)
+                    return;
+                m_TransparentWritesVelocity = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
         bool m_AlphaTestShadow;
 
         public ToggleData alphaTestShadow
