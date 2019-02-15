@@ -699,7 +699,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_Material == null)
                     return;
-                if (!m_IsEmissive)
+                if ((m_IsHDRenderPipelineDecal) && (!m_IsEmissive)) // in shader graph emissive will be toggled by #define
                     return;
                 if (m_NumResults == 0)
                     return;
