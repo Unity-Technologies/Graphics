@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with SRP batcher and DebugDisplay variant of lit shader
 - Fixed issue with debug material mode not doing alpha test
 - Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan
+- Fixed Begin/EndSample mismatch when using CustomRender 
 
 ## [4.9.0-preview] - 2019-01-28
 

@@ -910,7 +910,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 foreach (var material in m_MaterialList)
                     material.RenderInit(cmd);
 
-                using (new ProfilingSample(cmd, "HDRenderPipeline::Render", CustomSamplerId.HDRenderPipelineRender.GetSampler()))
+                using (var sample = new ProfilingSample(cmd, "HDRenderPipeline::Render", CustomSamplerId.HDRenderPipelineRender.GetSampler()))
                 {
                     // If we render a reflection view or a preview we should not display any debug information
                     // This need to be call before ApplyDebugDisplaySettings()
@@ -969,6 +969,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Execute custom render
                         additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
 
+                        // make sure sample is closed
+                        sample.Dispose();
+                        renderContext.ExecuteCommandBuffer(cmd);
+                        CommandBufferPool.Release(cmd);
+
                         renderContext.Submit();
                         continue;
                     }
@@ -986,6 +991,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ScriptableCullingParameters cullingParams;
                     if (!CullResults.GetCullingParameters(camera, camera.stereoEnabled, out cullingParams)) // Fixme remove stereo passdown?
                     {
+                        sample.Dispose();
+                        renderContext.ExecuteCommandBuffer(cmd);
+                        CommandBufferPool.Release(cmd);
+
                         renderContext.Submit();
                         continue;
                     }
