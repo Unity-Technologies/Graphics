@@ -365,14 +365,16 @@ namespace UnityEditor
                     if (splitCount > 0)
                     {
                         splits[0].value.floatValue = Mathf.Max(0f, cascadePartitionSizes[0]);
-                        borders[0].value.floatValue = Mathf.Clamp01(cascadeEndBlendPercent[0]);
+                        if (borders != null)
+                            borders[0].value.floatValue = Mathf.Clamp01(cascadeEndBlendPercent[0]);
                     }
                     for (int index = 1; index < splitCount; ++index)
                     {
                         splits[index].value.floatValue = splits[index - 1].value.floatValue + Mathf.Max(0f, cascadePartitionSizes[index]);
-                        borders[index].value.floatValue = Mathf.Clamp01(cascadeEndBlendPercent[index]);
+                        if (borders != null)
+                            borders[index].value.floatValue = Mathf.Clamp01(cascadeEndBlendPercent[index]);
                     }
-                    if (blendLastCascade)
+                    if (blendLastCascade && borders != null)
                         borders[splitCount].value.floatValue = Mathf.Clamp01(cascadeEndBlendPercent[splitCount]);
                 }
             }
