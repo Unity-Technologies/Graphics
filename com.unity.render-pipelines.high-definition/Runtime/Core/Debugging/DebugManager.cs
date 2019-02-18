@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering.UI;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -16,11 +18,8 @@ namespace UnityEngine.Experimental.Rendering
 
     public sealed partial class DebugManager
     {
-        static readonly DebugManager s_Instance = new DebugManager();
-        public static DebugManager instance => s_Instance;
-
-        // Explicit static constructor to tell the C# compiler not to mark type as beforefieldinit
-        static DebugManager() {}
+        static readonly Lazy<DebugManager> s_Instance = new Lazy<DebugManager>(() => new DebugManager());
+        public static DebugManager instance => s_Instance.Value;
 
         ReadOnlyCollection<DebugUI.Panel> m_ReadOnlyPanels;
         readonly List<DebugUI.Panel> m_Panels = new List<DebugUI.Panel>();
@@ -62,40 +61,23 @@ namespace UnityEngine.Experimental.Rendering
 
         public bool displayRuntimeUI
         {
-            get
-            {
-                if (m_Root == null)
-                {
-                    var uiManager = UnityObject.FindObjectOfType<DebugUIHandlerCanvas>();
-
-                    // Might be needed to update the reference after domain reload
-                    if (uiManager != null)
-                    {
-                        m_Root = uiManager.gameObject;
-                    }
-                }
-                return m_Root != null && m_Root.activeInHierarchy;
-            }
+            get => m_Root != null && m_Root.activeInHierarchy;
             set
             {
-                if (value && m_Root == null)
+                if (value)
                 {
-                    var uiManager = UnityObject.FindObjectOfType<DebugUIHandlerCanvas>();
-
-                    if (uiManager != null)
-                    {
-                        m_Root = uiManager.gameObject;
-                        return;
-                    }
-
                     m_Root = UnityObject.Instantiate(Resources.Load<Transform>("DebugUI Canvas")).gameObject;
                     m_Root.name = "[Debug Canvas]";
                     m_Root.transform.localPosition = Vector3.zero;
                     m_RootUICanvas = m_Root.GetComponent<DebugUIHandlerCanvas>();
+                    m_Root.SetActive(true);
                 }
-
-                if (m_Root != null)
-                    m_Root.SetActive(value);
+                else
+                {
+                    CoreUtils.Destroy(m_Root);
+                    m_Root = null;
+                    m_RootUICanvas = null;
+                }
 
                 onDisplayRuntimeUIChanged(value);
             }
@@ -104,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public bool displayPersistentRuntimeUI
         {
-            get { return m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy; }
+            get => m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy;
             set
             {
                 CheckPersistentCanvas();
@@ -147,6 +129,13 @@ namespace UnityEngine.Experimental.Rendering
                 hash = hash * 23 + panel.GetHashCode();
 
             return hash;
+        }
+
+        internal void RegisterRootCanvas(DebugUIHandlerCanvas root)
+        {
+            Assert.IsNotNull(root);
+            m_Root = root.gameObject;
+            m_RootUICanvas = root;
         }
 
         internal void ChangeSelection(DebugUIHandlerWidget widget, bool fromNext)
