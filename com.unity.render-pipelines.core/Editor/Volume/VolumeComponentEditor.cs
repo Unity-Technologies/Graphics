@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering
 
         public virtual string GetDisplayTitle()
         {
-            return ObjectNames.NicifyVariableName(target.GetType().Name);
+            return target.displayName == "" ? ObjectNames.NicifyVariableName(target.GetType().Name) : target.displayName;
         }
 
         void TopRowFields()

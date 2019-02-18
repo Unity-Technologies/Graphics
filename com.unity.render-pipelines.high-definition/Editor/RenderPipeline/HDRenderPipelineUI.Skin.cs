@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_ReflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
         static readonly GUIContent k_SkySubTitle = EditorGUIUtility.TrTextContent("Sky");
         static readonly GUIContent k_DecalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
+        static readonly GUIContent k_DecalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
         static readonly GUIContent k_ShadowSubTitle = EditorGUIUtility.TrTextContent("Shadow");
         static readonly GUIContent k_ShadowAtlasSubTitle = EditorGUIUtility.TrTextContent("Atlas");
         static readonly GUIContent k_DynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
@@ -102,9 +103,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_LutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");
 
         const string memoryDrawback = "Adds GPU memory";
-        const string shaderVariantDrawback = "Adds Shader Variant(s)";
+        const string shaderVariantDrawback = "Adds Shader Variants";
         const string lotShaderVariantDrawback = "Adds multiple Shader Variants";
-        const string gBufferDrawback = "Adds a Gbuffer";
+        const string gBufferDrawback = "Adds a GBuffer";
+        const string lotGBufferDrawback = "Adds GBuffers";
+        const string dBufferDrawback = "Adds a DBuffer";
+        const string lotDBufferDrawback = "Adds DBuffers";
         static readonly Dictionary<GUIContent, string> k_SupportDrawbacks = new Dictionary<GUIContent, string>
         {
             //k_SupportLitShaderModeContent is special case handled separately
@@ -115,7 +119,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             { k_SupportVolumetricContent           , memoryDrawback },
             //k_SupportLightLayerContent is special case handled separately
             { k_MSAASampleCountContent             , memoryDrawback },
-            { k_SupportDecalContent                , memoryDrawback },
+            { k_SupportDecalContent                , string.Format("{0}, {1}", memoryDrawback, lotDBufferDrawback) },
+            { k_MetalAndAOContent                  , string.Format("{0}, {1}", memoryDrawback, dBufferDrawback) },
             { k_SupportMotionVectorContent         , memoryDrawback },
             { k_SupportRuntimeDebugDisplayContent  , shaderVariantDrawback },
             { k_SupportDitheringCrossFadeContent   , shaderVariantDrawback },
@@ -129,8 +134,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static Dictionary<SupportedLitShaderMode, string> k_SupportLitShaderModeDrawbacks = new Dictionary<SupportedLitShaderMode, string>
         {
             { SupportedLitShaderMode.ForwardOnly, lotShaderVariantDrawback },
-            { SupportedLitShaderMode.DeferredOnly, string.Format("{0}, {1}", shaderVariantDrawback, gBufferDrawback) },
-            { SupportedLitShaderMode.Both, string.Format("{0}, {1}", shaderVariantDrawback, gBufferDrawback) }
+            { SupportedLitShaderMode.DeferredOnly, string.Format("{0}, {1}", shaderVariantDrawback, lotGBufferDrawback) },
+            { SupportedLitShaderMode.Both, string.Format("{0}, {1}", lotShaderVariantDrawback, lotGBufferDrawback) }
         };
 
         static Dictionary<SupportedLitShaderMode, string> k_SupportShadowMaskDrawbacks = new Dictionary<SupportedLitShaderMode, string>
