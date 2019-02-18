@@ -21,7 +21,7 @@ Surface options control the overall look of your Material's surface and how Unit
 | **Double Sided** | Controls whether HDRP renders both faces of the polygons in your geometry, or just the side defined by the normal. See the [Double Sided](Double-Sided.html) documentation for more information. |
 | **Material Type** | Allows you to give your Material a type, which allows you to customize it with different settings depending on the Material Type you select. See the [Material Type](Material-Type.html) documentation for more information. |
 | **Enable Decal** | Enable to allow this Material to receive decals that the Decal Project Component casts into the Scene. |
-| **Enable geometric specular AA** | Tick this checkbox to tell HDRP to perform geometric anti-aliasing on this Material. This removes specular artifacts that occur on high density Meshes with a high smoothness. |
+| **geometric specular AA** | Enable this checkbox to tell HDRP to perform geometric anti-aliasing on this Material. This removes specular artifacts that occur on high density Meshes with a high smoothness. |
 | **- Offset multiplier** | Modules the geometric specular anti-aliasing effect between 0 and 1. |
 | **- Offset threshold** | Clamps the maximum of the offset effect. |
 | **Receives SSR** | Enable to allow this Material to receive screen space reflection. |
@@ -60,7 +60,7 @@ Surface options control the overall look of your Material's surface and how Unit
 | Property| Description |
 |:---|:---|
 | **Detail Map** | Select the type of composited map that HDRP uses to add micro details into the Material. The blue channel of the Mask Map manages the visibility of the Detail Map. <br/>The Detail Map uses the following channel settings: <br/>**A(R)**:  Red channel stores the grey scale as albedo. <br/>**Ny(G)**: Green channel stores the detail normal map.<br/>**S(B)**: Blue channel stores the detail smoothness.<br/>**Nx(A)**: Alpha channel stores the red channel of the detail normal map.<br/><br/>HDRP organises channels like this because each channel uses a different compression qualities. |
-| **Detail UV mapping** | Select the type of UV map to use, which can be UV0, UV1, UV2 or UV3. If the Material’s UV Set property is set to planar or triplanar, the Detail UV Mapping is also set to planar or triplanar. By default, a detail texture is linked to the Material to be able to add a micro detail to the Material. To remove this link, uncheck the Lock to base Tiling/Offset checkbox. |
+| **Detail UV mapping** | Select the type of UV map to use, which can be UV0, UV1, UV2 or UV3. If the Material’s UV Set property is set to planar or triplanar, the Detail UV Mapping is also set to planar or triplanar. By default, a detail texture is linked to the Material to be able to add a micro detail to the Material. To remove this link, disable the Lock to base Tiling/Offset checkbox. |
 | **Tiling** | Set the tiling of the detail texture inside a tile of the Material. For example, if the Material is tiled by 2 on a plane and the detail is tiled by 2 on the Material, then the detail texture is tiled by 4 on the plane. In this case, you can change the tiling of the Material without having to set the detail UV. |
 | **Offset** | Set an X and Y offset for the detail UV. |
 | **Detail AlbedoScale** | Use this slider to modulate the detail albedo (red channel) between 0 and 2, like an overlay effect. The default value is 1 and has no scale. |
@@ -73,9 +73,9 @@ Set the __Surface Type__ to __Transparent__ to expose the __Transparency Inputs_
 
 | Property| Description |
 |:---|:---|
-| **Distortion** | Check this box to distort the light passing through this transparent Material. Checking this box exposes the following properties. |
+| **Distortion** | Enable this checkbox to distort the light passing through this transparent Material. Checking this box exposes the following properties. |
 | **- Distortion Blend Mode** | Set the mode HDRP uses to blend overlayed distortion surfaces. |
-| **- Distortion Only** | Check this box to only show the distortion effect and set all inputs to have no effect. |
+| **- Distortion Only** | Enable this checkbox to only show the distortion effect and set all inputs to have no effect. |
 | **- Distortion Depth Test** | Check this box to have closer GameObjects hide the distortion effect, otherwise you can always see the effect. If you do no enable this feature then the distortion appears on top of the rendering. |
 | **- Distortion Vector Map** | HDRP uses the red and green channels of this texture to calculate distortion. It also uses the blue channel to manage the blur intensity between 0 and 1. By default, a texture has values between 0 and 1. To be able to produce distortion in either direction, you must remap the distortion texture between -1 and 1. HDRP provides two values you can use to remap this distortion texture. It takes the original value from the map and multiplies it by the value on the left then adds the value on the right. For example, to remap the original values, from 0 to 1, to -1 to 1, enter 2 for the first value and -1 for the second value. |
 | **- Distortion Scale** | A multiplier for the distortion effect. Set this to a value higher than 1 to amplify the effect. |
@@ -99,7 +99,7 @@ Set the __Surface Type__ to __Transparent__ to expose the __Transparency Inputs_
 
 | Property| Description |
 |:---|:---|
-| **Enable GPU instancing** | Tick this checkbox to tell HDRP to render meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, GameObjects with an animation base on the object pivot can’t be static batched (unique pivot for all) but they can be instanced by GPU. |
+| **Enable GPU instancing** | Enable this checkbox to tell HDRP to render meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, GameObjects with an animation base on the object pivot can’t be static batched (unique pivot for all) but they can be instanced by GPU. |
 | **Enable Specular Occlusion from Bent normal** | This option uses the Bent Normal Map to do specular occlusion for the reflection probe. |
 
 
