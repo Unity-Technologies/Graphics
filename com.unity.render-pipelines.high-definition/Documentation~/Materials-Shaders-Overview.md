@@ -8,4 +8,4 @@ To change the Shader for a Material:
 
 1. In the Unity Editor, select the Material.
 2.  In the Inspector, click the Shader drop-down menu at the top of the Material.
-3. Select **HDRenderPipeline**, then choose your desired HDRP Shader from the list.
+3. Select **HDRP**, then choose your desired HDRP Shader from the list.
