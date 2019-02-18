@@ -68,8 +68,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteAlways]
     public class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        // TODO: Use proper migration toolkit
         // 3. Added ShadowNearPlane to HDRP additional light data, we don't use Light.shadowNearPlane anymore
-        private const int currentVersion = 3;
+        // 4. Migrate HDAdditionalLightData.lightLayer to Light.renderingLayerMask
+        private const int currentVersion = 4;
 
         [HideInInspector, SerializeField]
         [FormerlySerializedAs("m_Version")]
@@ -179,12 +181,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
+        [Obsolete("Use Light.renderingLayerMask instead")]
         public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
 
         // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         public uint GetLightLayers()
         {
-            int value = (int)(lightLayers);
+            int value = m_Light.renderingLayerMask;
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
@@ -845,11 +848,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // ShadowNearPlane have been move to HDRP as default legacy unity clamp it to 0.1 and we need to be able to go below that
                 shadowNearPlane = m_Light.shadowNearPlane;
             }
+            if (m_Version <= 3)
+            {
+                m_Light.renderingLayerMask = LightLayerToRenderingLayerMask((int)lightLayers, m_Light.renderingLayerMask);
+            }
 
             m_Version = currentVersion;
             version = currentVersion;
 
 #pragma warning restore 0618
         }
+
+        /// <summary>
+        /// Converts a light layer into a rendering layer mask.
+        ///
+        /// Light layer is stored in the first 8 bit of the rendering layer mask.
+        ///
+        /// NOTE: light layers are obsolete, use directly renderingLayerMask.
+        /// </summary>
+        /// <param name="lightLayer">The light layer, only the first 8 bits will be used.</param>
+        /// <param name="renderingLayerMask">Current renderingLayerMask, only the last 24 bits will be used.</param>
+        /// <returns></returns>
+        internal static int LightLayerToRenderingLayerMask(int lightLayer, int renderingLayerMask)
+        {
+            var renderingLayerMask_u32 = (uint)renderingLayerMask;
+            var lightLayer_u8 = (byte)lightLayer;
+            return (int)((renderingLayerMask_u32 & 0xFFFFFF00) | lightLayer_u8);
+        }
+
+        /// <summary>
+        /// Converts a renderingLayerMask into a lightLayer.
+        ///
+        /// NOTE: light layers are obsolete, use directly renderingLayerMask.
+        /// </summary>
+        /// <param name="renderingLayerMask"></param>
+        /// <returns></returns>
+        internal static int RenderingLayerMaskToLightLayer(int renderingLayerMask)
+            => (byte)renderingLayerMask;
     }
 }
