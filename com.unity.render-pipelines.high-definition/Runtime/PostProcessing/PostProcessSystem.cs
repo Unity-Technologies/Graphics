@@ -308,17 +308,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             PoolSource(ref source, destination);
                         }
                     }
+                }
 
-                    // TODO: Do we want user effects before post?
-
-                    // Start with exposure - will be applied in the next frame
-                    if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                // Dynamic exposure - will be applied in the next frame
+                // Not considered as a post-process so it's not affected by its enabled state
+                if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                {
+                    using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
                     {
-                        using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
-                        {
-                            DoDynamicExposure(cmd, camera, source, lightingBuffer);
-                        }
+                        DoDynamicExposure(cmd, camera, source, lightingBuffer);
                     }
+                }
+
+                if (m_PostProcessEnabled)
+                {
+                    // TODO: Do we want user effects before post?
 
                     // Temporal anti-aliasing goes first
                     bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
