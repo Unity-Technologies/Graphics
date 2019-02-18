@@ -21,6 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public SerializedProperty antialiasing;
         public SerializedProperty dithering;
+        public SerializedProperty stopNaNs;
         public SerializedProperty clearColorMode;
         public SerializedProperty backgroundColorHDR;
         public SerializedProperty passThrough;
@@ -63,6 +64,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
             dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);
+            stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);
             passThrough = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fullscreenPassthrough);

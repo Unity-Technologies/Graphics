@@ -129,6 +129,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public AntialiasingMode antialiasing = AntialiasingMode.None;
         public bool dithering = false;
+        public bool stopNaNs = false;
 
         // Physical parameters
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();

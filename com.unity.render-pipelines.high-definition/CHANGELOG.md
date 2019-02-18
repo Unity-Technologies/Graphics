@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added emissive property for shader graph decals
+- Added a "Stop NaNs" option on cameras and in the Scene View preferences.
 
 ### Fixed
 - Fixed decals in forward
