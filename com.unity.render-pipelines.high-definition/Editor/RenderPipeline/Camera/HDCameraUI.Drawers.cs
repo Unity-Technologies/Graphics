@@ -104,7 +104,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CED.space,
             CED.Group(
                 Drawer_Antialiasing,
-                Drawer_Dithering
+                Drawer_Dithering,
+                Drawer_StopNaNs
                 ),
             CED.space,
             CED.Group(
@@ -387,6 +388,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_Dithering(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.dithering, ditheringContent);
+        }
+
+        static void Drawer_StopNaNs(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.stopNaNs, stopNaNsContent);
         }
 
         static void Drawer_FieldRenderingPath(SerializedHDCamera p, Editor owner)
