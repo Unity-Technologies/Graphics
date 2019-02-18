@@ -265,6 +265,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (!m_frameSettings.IsEnabled(FrameSettingsField.Postprocess) || !CoreUtils.ArePostProcessesEnabled(camera))
                     antialiasing = AntialiasingMode.None;
+#if UNITY_EDITOR
                 else if (camera.cameraType == CameraType.SceneView)
                 {
                     var mode = HDRenderPipelinePreferences.sceneViewAntialiasing;
@@ -274,6 +275,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     else
                         antialiasing = mode;
                 }
+#endif
                 else if (m_AdditionalCameraData != null)
                     antialiasing = m_AdditionalCameraData.antialiasing;
                 else
