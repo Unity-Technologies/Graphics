@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [Serializable]
+    [Serializable, VolumeComponentMenu("Shadowing/Shadows")]
     public class HDShadowSettings : VolumeComponent
     {
         float[] m_CascadeShadowSplits = new float[3];
@@ -57,5 +57,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public NoInterpClampedFloatParameter    cascadeShadowBorder2 = new NoInterpClampedFloatParameter(0.0f, 0.0f, 1.0f);
         [Tooltip("Sets the border size at the end of the last cascade split.")]
         public NoInterpClampedFloatParameter    cascadeShadowBorder3 = new NoInterpClampedFloatParameter(0.0f, 0.0f, 1.0f);
+
+        HDShadowSettings()
+        {
+            displayName = "Shadows";
+        }
     }
 }

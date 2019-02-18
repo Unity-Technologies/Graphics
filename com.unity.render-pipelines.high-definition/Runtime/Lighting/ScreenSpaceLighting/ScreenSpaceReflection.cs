@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [Serializable]
+    [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
     public class ScreenSpaceReflection : VolumeComponent
     {
 
