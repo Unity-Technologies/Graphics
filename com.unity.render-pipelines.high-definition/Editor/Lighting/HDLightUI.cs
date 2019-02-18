@@ -218,7 +218,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
-                serialized.serializedLightData.lightLayers.intValue = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)serialized.serializedLightData.lightLayers.intValue));
+                var renderingLayerMask = serialized.serializedLightData.renderingLayerMask.intValue;
+                var lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
+                EditorGUI.BeginChangeCheck();
+                lightLayer = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)lightLayer));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Overwrite only first byte
+                    lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
+                    serialized.serializedLightData.renderingLayerMask.intValue = lightLayer;
+                }
             }
         }
 
