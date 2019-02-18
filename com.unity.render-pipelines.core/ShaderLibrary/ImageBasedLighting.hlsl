@@ -443,7 +443,7 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
 }
 
 // Ref: Listing 19 in "Moving Frostbite to PBR"
-real4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
+real4 IntegrateLD(TEXTURECUBE_PARAM(tex, sampl),
                    TEXTURE2D(ggxIblSamples),
                    real3 V,
                    real3 N,
@@ -559,7 +559,7 @@ real4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     return real4(lightInt / cbsdfInt, 1.0);
 }
 
-real4 IntegrateLDCharlie(TEXTURECUBE_ARGS(tex, sampl),
+real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
                    real3 V,
                    real3 N,
                    real roughness,
@@ -669,7 +669,7 @@ uint BinarySearchRow(uint j, real needle, TEXTURE2D(haystack), uint n)
 }
 
 #if !defined SHADER_API_GLES
-real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
+real4 IntegrateLD_MIS(TEXTURECUBE_PARAM(envMap, sampler_envMap),
                        TEXTURE2D(marginalRowDensities),
                        TEXTURE2D(conditionalDensities),
                        real3 V,
