@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Metal: Use sign bit to find the cache type instead of lowest bit.
 - Fixed invalid state when creating a planar reflection for the first time
 - Fixed FrameSettings's LitShaderMode not restrained by supported LitShaderMode regression.
+- Fixed decals in forward
 
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector	

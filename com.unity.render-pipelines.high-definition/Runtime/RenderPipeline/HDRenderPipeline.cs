@@ -1463,7 +1463,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ApplyDebugDisplaySettings(hdCamera, cmd);
             m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
-            renderContext.SetupCameraProperties(camera, camera.stereoEnabled);
+            SetupCameraProperties(camera, renderContext, cmd);
 
             PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
 
@@ -1731,7 +1731,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_LightLoop.RenderShadows(renderContext, cmd, cullingResults, hdCamera);
 
                     // Overwrite camera properties set during the shadow pass with the original camera properties.
-                    renderContext.SetupCameraProperties(camera, camera.stereoEnabled);
+                    SetupCameraProperties(camera, renderContext, cmd);
                     hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
                 }
 
@@ -1944,6 +1944,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BlitPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
             m_BlitPropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
             HDUtils.DrawFullScreen(cmd, hdCamera.finalViewport, GetBlitMaterial(), destination, m_BlitPropertyBlock, 0);
+        }
+
+        void SetupCameraProperties(Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            // The next 2 functions are required to flush the command buffer before calling functions directly on the render context.
+            // This way, the commands will execute in the order specified by the C# code.
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            renderContext.SetupCameraProperties(camera, camera.stereoEnabled);
         }
 
         void InitializeGlobalResources(ScriptableRenderContext renderContext)
