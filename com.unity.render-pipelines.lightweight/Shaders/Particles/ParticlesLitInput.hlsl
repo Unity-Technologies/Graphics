@@ -35,9 +35,9 @@ TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
 #define ALBEDO_MUL albedo.a
 #endif
 
-half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor, float4 projectedPosition, TEXTURE2D_ARGS(albedoMap, sampler_albedoMap))
+half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor, float4 projectedPosition, TEXTURE2D_PARAM(albedoMap, sampler_albedoMap))
 {
-    half4 albedo = BlendTexture(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), uv, blendUv) * color;
+    half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), uv, blendUv) * color;
 
     half4 colorAddSubDiff = half4(0, 0, 0, 0);
 #if defined (_COLORADDSUBDIFF_ON)
@@ -62,18 +62,18 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
 inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 particleColor, float4 projectedPosition, out SurfaceData outSurfaceData)
 {
 
-    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, particleColor, projectedPosition, TEXTURE2D_PARAM(_BaseMap, sampler_BaseMap)); 
+    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, particleColor, projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
 
 #if defined(_METALLICSPECGLOSSMAP)
-    half2 metallicGloss = BlendTexture(TEXTURE2D_PARAM(_MetallicGlossMap, sampler_MetallicGlossMap), uv, blendUv).ra * half2(1.0, _Smoothness);
+    half2 metallicGloss = BlendTexture(TEXTURE2D_ARGS(_MetallicGlossMap, sampler_MetallicGlossMap), uv, blendUv).ra * half2(1.0, _Smoothness);
 #else
     half2 metallicGloss = half2(_Metallic, _Smoothness);
 #endif
 
-    half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap), _BumpScale);
+    half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
     
 #if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap), uv, blendUv) * _EmissionColor.rgb;
+    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv) * _EmissionColor.rgb;
 #else
     half3 emission = half3(0 ,0 ,0 );
 #endif

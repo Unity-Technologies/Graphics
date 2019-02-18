@@ -147,7 +147,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
         #if 0 // Bilinear
         float3 bloom = SAMPLE_TEXTURE2D_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
         #else
-        float3 bloom = SampleTexture2DBicubic(TEXTURE2D_PARAM(_BloomTexture, sampler_LinearClamp), uvDistorted * _ScreenToTargetScale.xy, _BloomBicubicParams, _ScreenToTargetScale.xy).xyz;
+        float3 bloom = SampleTexture2DBicubic(TEXTURE2D_ARGS(_BloomTexture, sampler_LinearClamp), uvDistorted * _ScreenToTargetScale.xy, _BloomBicubicParams, _ScreenToTargetScale.xy).xyz;
         #endif
 
         color = lerp(color, bloom * BloomTint, BloomIntensity);
@@ -194,7 +194,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
         float3 colorLutSpace = saturate(LinearToLogC(color));
 
         // Color lookup in the LogC lut
-        color = ApplyLut3D(TEXTURE3D_PARAM(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
+        color = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
     }
 
     // Done

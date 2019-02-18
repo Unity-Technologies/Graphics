@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyAsArgumentString()
         {
-            return string.Format("TEXTURE3D_ARGS({0}, sampler{0})", referenceName);
+            return string.Format("TEXTURE3D_PARAM({0}, sampler{0})", referenceName);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
