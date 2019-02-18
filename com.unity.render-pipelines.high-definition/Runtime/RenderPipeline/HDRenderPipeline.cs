@@ -930,7 +930,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
 
-            UnityEngine.Rendering.RenderPipeline.BeginFrameRendering(cameras);
+            UnityEngine.Rendering.RenderPipeline.BeginFrameRendering(renderContext, cameras);
 
             // Check if we can speed up FrameSettings process by skiping history
             // or go in detail if debug is activated. Done once for all renderer.
@@ -1004,7 +1004,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     //  They are called at the beginning of a camera render, but the very same camera may not end its rendering
                     //  for various reasons (full screen pass through, custom render, or just invalid parameters)
                     //  and in that case the associated ending call is never called.
-                    UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(camera);
+                    UnityEngine.Rendering.RenderPipeline.BeginCameraRendering(renderContext, camera);
                     UnityEngine.Experimental.VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
 
                     // Reset pooled variables
@@ -1039,6 +1039,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Submit render context and free pooled resources for this request
                         renderContext.Submit();
                         GenericPool<HDCullingResults>.Release(cullingResults);
+                        UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
                         continue;
                     }
 
@@ -1094,6 +1095,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (!visibleInIndices.Contains(visibleInIndex))
                             visibleInIndices.Add(visibleInIndex);
                     }
+                    
+                    UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
                 }
 
                 foreach (var probeToRenderAndDependencies in renderRequestIndicesWhereTheProbeIsVisible)
@@ -1276,7 +1279,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var renderRequest = renderRequests[i];
                         var isCubemapFaceTarget = renderRequest.target.face != CubemapFace.Unknown;
                         if (!isCubemapFaceTarget)
-                        continue;
+                            continue;
 
                         var width = renderRequest.hdCamera.actualWidth;
                         var height = renderRequest.hdCamera.actualHeight;
@@ -1393,6 +1396,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
             }
+
+            UnityEngine.Rendering.RenderPipeline.EndFrameRendering(renderContext, cameras);
         }
 
         void ExecuteRenderRequest(RenderRequest renderRequest, ScriptableRenderContext renderContext, CommandBuffer cmd)
