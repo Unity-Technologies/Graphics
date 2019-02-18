@@ -307,10 +307,14 @@ Material:
     - _DetailSmoothnessScale2: 1
     - _DetailSmoothnessScale3: 1
     - _DiffusionProfile: 3
-    - _DiffusionProfile0: 10
-    - _DiffusionProfile1: 7
-    - _DiffusionProfile2: 8
-    - _DiffusionProfile3: 9
+    - _DiffusionProfile0: -1
+    - _DiffusionProfile1: -1
+    - _DiffusionProfile2: -1
+    - _DiffusionProfile3: -1
+    - _DiffusionProfileHash0: 2.5469048
+    - _DiffusionProfileHash1: 2.6490312
+    - _DiffusionProfileHash2: 2.7967417
+    - _DiffusionProfileHash3: 2.6552956
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -530,6 +534,13 @@ Material:
     - _BaseColor3: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap0_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 1}
+    - _DiffusionProfileAsset0: {r: -5.91506e-15, g: 993.29297, b: 1.4271955e+37, a: 1181034.8}
+    - _DiffusionProfileAsset1: {r: -2.1016454e+32, g: -3.774642e-17, b: -2.9451513e+33,
+        a: 2.7516838e-19}
+    - _DiffusionProfileAsset2: {r: -5.8463766e+15, g: -3.4655098e+22, b: -44.82114,
+        a: -6.711228e-21}
+    - _DiffusionProfileAsset3: {r: 9.885191e+32, g: -567.34216, b: -0.0000538898,
+        a: 1.5666998e-20}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}

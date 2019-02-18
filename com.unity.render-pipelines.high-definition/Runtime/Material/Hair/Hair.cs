@@ -43,8 +43,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float perceptualSmoothness;
 
             // SSS
-            [SurfaceDataAttributes("Diffusion Profile")]
-            public uint diffusionProfile;
+            [SurfaceDataAttributes("Diffusion Profile Hash")]
+            public uint diffusionProfileHash;
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
 
@@ -102,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float perceptualRoughness;
 
             // SSS
-            public uint diffusionProfile;
+            public uint diffusionProfileIndex;
             public float subsurfaceMask;
 
             // Transmission

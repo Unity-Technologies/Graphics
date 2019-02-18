@@ -9,7 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRP_Test_Def_DepthPrepass
   m_EditorClassIdentifier: 
@@ -84,7 +83,7 @@ MonoBehaviour:
       perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
-      m_LutFormat: 48
+      lutFormat: 48
     dynamicResolutionSettings:
       enabled: 0
       maxPercentage: 100
@@ -98,6 +97,22 @@ MonoBehaviour:
   shaderVariantLogLevel: 0
   diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
     type: 2}
+  diffusionProfileSettingsList:
+  - {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}
+  - {fileID: 11400000, guid: 09c63d8f96a14884e8efd2f01004f491, type: 2}
+  - {fileID: 11400000, guid: 8471a5bfcdb8fff4f9406cd8079b8554, type: 2}
+  - {fileID: 11400000, guid: 968a3176000311d42af174756ece7f4d, type: 2}
+  - {fileID: 11400000, guid: 768484f758b6f7b4daf53a7d9949f5af, type: 2}
+  - {fileID: 11400000, guid: fcb8f92518ca5d14bbd7e6751b28cd24, type: 2}
+  - {fileID: 11400000, guid: 64ca25f51b132ea4093511f7456ea220, type: 2}
+  - {fileID: 11400000, guid: fd29a6d903d5eae4d94833c2048bfd9d, type: 2}
+  - {fileID: 11400000, guid: 76f34276e6d50dc4bb0762b87af8931e, type: 2}
+  - {fileID: 11400000, guid: cd1cd5a7c0527844dbca2b7d562b9049, type: 2}
+  - {fileID: 11400000, guid: 385fff18b5c61754188b49a485ecb84a, type: 2}
+  - {fileID: 11400000, guid: d3dd41407c183554ca54bded902d4b7b, type: 2}
+  - {fileID: 11400000, guid: 86c1c808ebce1cc4992b9b0fd197a0b3, type: 2}
+  - {fileID: 11400000, guid: 3506ae472b257f042af66a183fbaac6a, type: 2}
+  - {fileID: 11400000, guid: 6be2047feaba36945b8fd12f29e3a7b5, type: 2}
   m_Version: 2
   m_ObsoleteFrameSettings:
     overrides: 0

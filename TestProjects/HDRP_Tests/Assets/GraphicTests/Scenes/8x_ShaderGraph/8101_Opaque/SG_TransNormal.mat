@@ -31,10 +31,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _CoatMask: 0.7
+    - _DiffusionProfileHash: 2.7967417
     - _Occlusion: 1
     - _Profile: 8
     - _Smoothness: 0.1
     - _Thickness: 0.9
     m_Colors:
     - Color_7E1D12A2: {r: 1, g: 1, b: 1, a: 1}
+    - _DiffusionProfileAsset: {r: -5.8463766e+15, g: -3.4655098e+22, b: -44.82114,
+        a: -6.711228e-21}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

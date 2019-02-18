@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         readonly static ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
-                
+
         enum ShadowResolutionValue
         {
             ShadowResolution128 = 128,
@@ -49,6 +49,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BakedOrCustomReflection,
             RealtimeReflection
         }
+
+        internal static DiffusionProfileSettingsListUI diffusionProfileUI = new DiffusionProfileSettingsListUI();
 
         internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
 
@@ -122,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     k_ExpandedState.SetExpandedAreas(Expandable.RealtimeProbeFrameSettings, true);
                     break;
             }
-        }            
+        }
 
         static void Drawer_TitleDefaultFrameSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
@@ -419,8 +421,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDistortion, k_SupportDistortion);
 
-            EditorGUILayout.PropertyField(serialized.diffusionProfileSettings, k_DiffusionProfileSettingsContent);
-
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSubsurfaceScattering, k_SupportedSSSContent);
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue))
             {
@@ -430,6 +430,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution, k_SupportFabricBSDFConvolutionContent);
+
+            diffusionProfileUI.drawElement = DrawDiffusionProfileElement;
+            diffusionProfileUI.OnGUI(serialized.diffusionProfileSettingsList);
+        }
+
+        static void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
+        {
+            EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
         }
 
         const string supportedFormaterMultipleValue = "\u2022 {0} --Multiple different values--";

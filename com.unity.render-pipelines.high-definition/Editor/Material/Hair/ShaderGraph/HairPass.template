@@ -182,7 +182,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
         $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;        
         $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
-        $SurfaceDescription.DiffusionProfile:               surfaceData.diffusionProfile =              surfaceDescription.DiffusionProfile;
+        $SurfaceDescription.DiffusionProfileHash:           surfaceData.diffusionProfileHash =          asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.SubsurfaceMask:                 surfaceData.subsurfaceMask =                surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                      surfaceData.thickness =                     surfaceDescription.Thickness;
 

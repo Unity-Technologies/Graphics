@@ -40,6 +40,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
+            
+            if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
+                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props));
         }
     }
 }
