@@ -2,6 +2,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [VolumeComponentMenu("Environment Lighting/Gradient Sky")]
     [SkyUniqueID((int)SkyType.Gradient)]
     public class GradientSky : SkySettings
     {

@@ -2,6 +2,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [VolumeComponentMenu("Environment Lighting/HDRI Sky")]
     [SkyUniqueID((int)SkyType.HDRISky)]
     public class HDRISky : SkySettings
     {
