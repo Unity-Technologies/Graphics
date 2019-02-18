@@ -23,7 +23,7 @@
 #define DEBUGVIEW_HAIR_SURFACEDATA_GEOMETRIC_NORMAL (1406)
 #define DEBUGVIEW_HAIR_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1407)
 #define DEBUGVIEW_HAIR_SURFACEDATA_SMOOTHNESS (1408)
-#define DEBUGVIEW_HAIR_SURFACEDATA_DIFFUSION_PROFILE (1409)
+#define DEBUGVIEW_HAIR_SURFACEDATA_DIFFUSION_PROFILE_HASH (1409)
 #define DEBUGVIEW_HAIR_SURFACEDATA_SUBSURFACE_MASK (1410)
 #define DEBUGVIEW_HAIR_SURFACEDATA_THICKNESS (1411)
 #define DEBUGVIEW_HAIR_SURFACEDATA_HAIR_STRAND_DIRECTION (1412)
@@ -47,7 +47,7 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_GEOMETRIC_NORMAL (1458)
 #define DEBUGVIEW_HAIR_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1459)
 #define DEBUGVIEW_HAIR_BSDFDATA_PERCEPTUAL_ROUGHNESS (1460)
-#define DEBUGVIEW_HAIR_BSDFDATA_DIFFUSION_PROFILE (1461)
+#define DEBUGVIEW_HAIR_BSDFDATA_DIFFUSION_PROFILE_INDEX (1461)
 #define DEBUGVIEW_HAIR_BSDFDATA_SUBSURFACE_MASK (1462)
 #define DEBUGVIEW_HAIR_BSDFDATA_THICKNESS (1463)
 #define DEBUGVIEW_HAIR_BSDFDATA_USE_THICK_OBJECT_MODE (1464)
@@ -74,7 +74,7 @@ struct SurfaceData
     float3 normalWS;
     float3 geomNormalWS;
     float perceptualSmoothness;
-    uint diffusionProfile;
+    uint diffusionProfileHash;
     float subsurfaceMask;
     float thickness;
     float3 hairStrandDirectionWS;
@@ -98,7 +98,7 @@ struct BSDFData
     float3 normalWS;
     float3 geomNormalWS;
     float perceptualRoughness;
-    uint diffusionProfile;
+    uint diffusionProfileIndex;
     float subsurfaceMask;
     float thickness;
     bool useThickObjectMode;
@@ -150,8 +150,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_HAIR_SURFACEDATA_SMOOTHNESS:
             result = surfacedata.perceptualSmoothness.xxx;
             break;
-        case DEBUGVIEW_HAIR_SURFACEDATA_DIFFUSION_PROFILE:
-            result = GetIndexColor(surfacedata.diffusionProfile);
+        case DEBUGVIEW_HAIR_SURFACEDATA_DIFFUSION_PROFILE_HASH:
+            result = GetIndexColor(surfacedata.diffusionProfileHash);
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_SUBSURFACE_MASK:
             result = surfacedata.subsurfaceMask.xxx;
@@ -223,8 +223,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_HAIR_BSDFDATA_PERCEPTUAL_ROUGHNESS:
             result = bsdfdata.perceptualRoughness.xxx;
             break;
-        case DEBUGVIEW_HAIR_BSDFDATA_DIFFUSION_PROFILE:
-            result = GetIndexColor(bsdfdata.diffusionProfile);
+        case DEBUGVIEW_HAIR_BSDFDATA_DIFFUSION_PROFILE_INDEX:
+            result = GetIndexColor(bsdfdata.diffusionProfileIndex);
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_SUBSURFACE_MASK:
             result = bsdfdata.subsurfaceMask.xxx;

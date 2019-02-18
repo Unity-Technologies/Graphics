@@ -81,10 +81,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// It will execute steps 3 then 5 then 6.
         /// </summary>
         /// <param name="target">The instance to migrate.</param>
-        public void Migrate(TTarget target)
+        /// <returns>True if it has executed migration steps, false otherwise.</returns>
+        public bool Migrate(TTarget target)
         {
             if (Equals(target.version, Steps[Steps.Length - 1].Version))
-                return;
+                return false;
 
             for (int i = 0; i < Steps.Length; ++i)
             {
@@ -94,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     target.version = Steps[i].Version;
                 }
             }
+            return true;
         }
 
         public void ExecuteStep(TTarget target, TVersion stepVersion)

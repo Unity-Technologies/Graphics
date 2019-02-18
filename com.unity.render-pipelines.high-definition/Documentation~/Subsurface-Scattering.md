@@ -20,7 +20,7 @@ To enable subsurface scattering in your [HDRP Asset](HDRP-Asset.html):
 
 HDRP stores most subsurface scattering settings in a [Diffusion Profile Settings](Diffusion-Profile.html) Asset. The __Diffusion Profile List Asset__ contains a set of 15 Diffusion Profiles you can edit and later assign to your Materials.
 
-To create a Diffusion Profile List Asset, navigate to __Assets > Create > Rendering > Diffusion Profile Settings__. To use it, open your HDRP Asset and assign the new Diffusion Profile List Asset to the __Diffusion Profile List__ property.
+To create a Diffusion Profile Asset, navigate to __Assets > Create > Rendering > Diffusion Profile Settings__. To use it, open your HDRP Asset and assign the new Diffusion Profile Asset to the __Diffusion Profile List__ property.
 
 ## Adding Subsurface Scattering to your Material
 

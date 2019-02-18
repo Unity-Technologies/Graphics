@@ -1,7 +1,8 @@
 {
     "name": "Unity.VisualEffectGraph.Runtime",
     "references": [
-        "Unity.Timeline"
+        "Unity.Timeline",
+        "GUID:457756d89b35d2941b3e7b37b4ece6f1"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
