@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Length";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Length-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

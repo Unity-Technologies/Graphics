@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
 
-                return hdPipelineAsset.renderPipelineSettings;
+                return hdPipelineAsset.currentPlatformRenderPipelineSettings;
             }
         }
         public static int debugStep { get { return MousePositionDebug.instance.debugStep; } }
@@ -314,16 +314,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetRenderTarget(cmd, camera, destination);
             cmd.SetViewport(destViewport);
             BlitTexture(cmd, source, destination, camera.viewportScale, mipLevel, bilinear);
-        }
-
-        public static void BlitCameraTextureStereoDoubleWide(CommandBuffer cmd, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination)
-        {
-            var mat = GetBlitMaterial();
-            mat.SetTexture(HDShaderIDs._BlitTexture, source);
-            mat.SetFloat(HDShaderIDs._BlitMipLevel, 0f);
-            mat.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1f, 1f, 0f, 0f));
-            mat.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1f, 1f, 0f, 0f));
-            cmd.Blit(source, destination, mat, 1);
         }
 
         // These method should be used to render full screen triangles sampling auto-scaling RTs.

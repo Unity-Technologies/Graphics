@@ -60,27 +60,51 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public class GlobalLightLoopSettings
+    public struct GlobalLightLoopSettings
     {
-        public CookieResolution cookieSize = CookieResolution.CookieResolution128;
-        public int cookieTexArraySize = 16;
-        public CubeCookieResolution pointCookieSize = CubeCookieResolution.CubeCookieResolution128;
-        public int cubeCookieTexArraySize = 16;
+        /// <summary>Default GlobalDecalSettings</summary>
+        public static readonly GlobalLightLoopSettings @default = new GlobalLightLoopSettings()
+        {
+            cookieSize = CookieResolution.CookieResolution128,
+            cookieTexArraySize = 16,
+            pointCookieSize = CubeCookieResolution.CubeCookieResolution128,
+            cubeCookieTexArraySize = 16,
 
-        public int planarReflectionProbeCacheSize = 2;
-        public PlanarReflectionResolution planarReflectionTextureSize = PlanarReflectionResolution.PlanarReflectionResolution1024;
-        public int reflectionProbeCacheSize = 64;
-        public CubeReflectionResolution reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256;
-        public bool reflectionCacheCompressed = false;
-        public bool planarReflectionCacheCompressed = false;
-        public SkyResolution skyReflectionSize = SkyResolution.SkyResolution256;
-        public LayerMask skyLightingOverrideLayerMask = 0;
-        public bool supportFabricConvolution = false;
+            planarReflectionProbeCacheSize = 2,
+            planarReflectionTextureSize = PlanarReflectionResolution.PlanarReflectionResolution1024,
+            reflectionProbeCacheSize = 64,
+            reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256,
 
-        public int maxDirectionalLightsOnScreen = 16;
-        public int maxPunctualLightsOnScreen    = 512;
-        public int maxAreaLightsOnScreen        = 64;
-        public int maxEnvLightsOnScreen         = 64;
-        public int maxDecalsOnScreen            = 512;
+            skyReflectionSize = SkyResolution.SkyResolution256,
+            skyLightingOverrideLayerMask = 0,
+
+            maxDirectionalLightsOnScreen = 16,
+            maxPunctualLightsOnScreen = 512,
+            maxAreaLightsOnScreen = 64,
+            maxEnvLightsOnScreen = 64,
+            maxDecalsOnScreen = 512,
+        };
+
+        public CookieResolution cookieSize;
+        public int cookieTexArraySize;
+        public CubeCookieResolution pointCookieSize;
+        public int cubeCookieTexArraySize;
+
+        public int planarReflectionProbeCacheSize;
+        public PlanarReflectionResolution planarReflectionTextureSize;
+        public int reflectionProbeCacheSize;
+        public CubeReflectionResolution reflectionCubemapSize;
+        public bool reflectionCacheCompressed;
+        public bool planarReflectionCacheCompressed;
+
+        public SkyResolution skyReflectionSize;
+        public LayerMask skyLightingOverrideLayerMask;
+        public bool supportFabricConvolution;
+
+        public int maxDirectionalLightsOnScreen;
+        public int maxPunctualLightsOnScreen;
+        public int maxAreaLightsOnScreen;
+        public int maxEnvLightsOnScreen;
+        public int maxDecalsOnScreen;
     }
 }

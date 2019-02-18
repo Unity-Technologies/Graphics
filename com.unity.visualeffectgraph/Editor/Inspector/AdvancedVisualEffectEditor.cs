@@ -157,18 +157,20 @@ namespace UnityEditor.VFX
 
         protected override void AssetField()
         {
-            var component = (VisualEffect)target;
             using (new GUILayout.HorizontalScope())
             {
                 EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
 
-                GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                GUI.enabled = ! m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
                 if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
                 {
                     VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-                    window.LoadAsset(component.visualEffectAsset, component);
+                    var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
+
+                    window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
                 }
+                GUI.enabled = true;
             }
         }
 

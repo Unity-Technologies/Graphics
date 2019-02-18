@@ -40,7 +40,10 @@ namespace UnityEditor.VFX.UI
                     m_ViewController.graph.UIInfos.SetNameOfSystem(contexts.Select(t => t.model), value);
                     VFXData data = contexts.First().model.GetData();
                     if (data != null)
-                        data.title = value;
+                    {
+                        int index = value.IndexOfAny(new char[] { '\r', '\n' });
+                        data.title = index == -1 ? value : value.Substring(0, index);
+                    }
                     m_ViewController.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
             }

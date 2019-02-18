@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Checkerboard";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Checkerboard-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

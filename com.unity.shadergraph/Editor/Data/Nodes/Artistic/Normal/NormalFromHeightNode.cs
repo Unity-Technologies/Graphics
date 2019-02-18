@@ -22,11 +22,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Normal-From-Heightmap-Node"; }
-        }
-
         [SerializeField]
         private OutputSpace m_OutputSpace = OutputSpace.Tangent;
 
@@ -75,7 +70,6 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlotId));
             sb.AppendLine("{0}3x3 _{1}_TangentMatrix = {0}3x3(IN.{2}SpaceTangent, IN.{2}SpaceBiTangent, IN.{2}SpaceNormal);", precision, GetVariableNameForNode(), NeededCoordinateSpace.World.ToString());
             sb.AppendLine("{0}3 _{1}_Position = IN.{2}SpacePosition;", precision, GetVariableNameForNode(), NeededCoordinateSpace.World.ToString());
-            
             sb.AppendLine("{0}({1},_{2}_Position,_{2}_TangentMatrix, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
 
             visitor.AddShaderChunk(sb.ToString(), false);

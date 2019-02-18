@@ -27,7 +27,7 @@ With the Lightweight Render Pipeline, you can have real-time lighting wither eit
 
 For PBS, use the [[Lit shader | lit_shader#lit_shader]]. You can use it on all platforms. The shader quality scales, depending on the platform, but keeps physically based rendering on all platforms. This gives you realistic graphics across hardware. The Unity [Standard Shader](<https://docs.unity3d.com/Manual/shader-StandardShader.html>) and the [Standard (Specular setup)](https://docs.unity3d.com/Manual/StandardShaderMetallicVsSpecular.html) shaders both map to the Lit shader in LWRP. For a list of shader mappings, see [shader mappings](upgrading-your-shaders.md#shaderMappings)
 
-If you’re targeting less powerful devices, or just would like simpler shading, use the [[Simple lit shader | simple_lit_shader#simple_lit_shader]], which is non-PBR. 
+If you’re targeting less powerful devices, or just would like simpler shading, use the [Simple Lit Shader](simple-lit-shader.md), which is non-PBR. 
 
 If you don’t need real-time lighting, or would rather only use [baked lighting](https://docs.unity3d.com/Manual/LightMode-Baked.html) and sample global illumination, choose a Baked Lit shader. 
 

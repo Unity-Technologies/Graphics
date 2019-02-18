@@ -34,6 +34,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void AddTexture(Texture3D tex)
         {
+            if (m_textures.Contains(tex))
+            {
+                return;
+            }
+            
             if (tex.width != m_atlasSize || tex.height != m_atlasSize || tex.depth != m_atlasSize)
             {
                 Debug.LogError(String.Format("3D Texture Atlas: Added texture {4} size {0}x{1}x{2} does not match size of atlas {3}x{3}x{3}", tex.width, tex.height, tex.depth, m_atlasSize, tex.name));

@@ -4924,6 +4924,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 8926484042661614627}
   - {fileID: 8926484042661615092}
@@ -15001,6 +15002,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 8926484042661615150}
   shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
@@ -15606,6 +15608,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 8926484042661615172}
   shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}

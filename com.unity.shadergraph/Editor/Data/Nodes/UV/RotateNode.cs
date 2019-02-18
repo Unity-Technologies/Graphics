@@ -36,10 +36,6 @@ namespace UnityEditor.ShaderGraph
             name = "Rotate";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rotate-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

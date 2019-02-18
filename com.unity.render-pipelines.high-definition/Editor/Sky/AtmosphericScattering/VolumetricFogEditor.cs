@@ -15,13 +15,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_GlobalLightProbeDimmer;
         SerializedDataParameter m_EnableDistantFog;
 
-        static GUIContent s_AlbedoLabel                 = new GUIContent("Single Scattering Albedo", "Hue and saturation control the color of the fog (the wavelength of in-scattered light). Value controls scattering (0 = max absorption & no scattering, 1 = no absorption & max scattering).");
-        static GUIContent s_MeanFreePathLabel           = new GUIContent("Base Fog Distance", "Controls the density, which determines how far you can see through the fog. A.k.a. \"mean free path length\". At this distance, 63% of background light is lost in the fog (due to absorption and out-scattering).");
-        static GUIContent s_BaseHeightLabel             = new GUIContent("Base Height", "Height at which the exponential density falloff starts.");
-        static GUIContent s_MeanHeightLabel             = new GUIContent("Mean Height", "Controls the rate of falloff of the height fog. Higher values stretch the fog vertically.");
-        static GUIContent s_AnisotropyLabel             = new GUIContent("Global Anisotropy", "Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, -1 is backward scattering.");
-        static GUIContent s_GlobalLightProbeDimmerLabel = new GUIContent("Global Light Probe Dimmer", "Reduces the intensity of the global light probe.");
-        static GUIContent s_EnableDistantFog            = new GUIContent("Distant Fog", "Activates the fog with precomputed lighting behind the volumetrically-lit frustum.");
+        static GUIContent s_AlbedoLabel                 = new GUIContent("Single Scattering Albedo", "Specifies the color this fog scatteres light to.");
+        static GUIContent s_MeanFreePathLabel           = new GUIContent("Base Fog Distance", "Sets the density at the base of the fog. Determines how far you can see through the fog in meters.");
+        static GUIContent s_BaseHeightLabel             = new GUIContent("Base Height", "Sets the height of the boundary between the constant and exponential fog.");
+        static GUIContent s_MeanHeightLabel             = new GUIContent("Mean Height", "Sets the rate of falloff for the height fog. Higher values stretch the fog vertically.");
+        static GUIContent s_AnisotropyLabel             = new GUIContent("Global Anisotropy", "Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering.");
+        static GUIContent s_GlobalLightProbeDimmerLabel = new GUIContent("Global Light Probe Dimmer", "Controls the intensity reduction of the global Light Probe that the sky generates.");
+        static GUIContent s_EnableDistantFog            = new GUIContent("Distant Fog", "When enabled, activates fog with precomputed lighting behind the volumetric section of the Camera’s frustum.");
 
         public override void OnEnable()
         {

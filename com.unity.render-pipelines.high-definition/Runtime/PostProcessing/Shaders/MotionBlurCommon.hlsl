@@ -2,7 +2,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
-#if defined(SHADER_API_PSSL) && (UNITY_VERSION < 20192)
+#if ((defined(SHADER_API_PSSL) && (UNITY_VERSION < 20192)) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL)) 
 #define SCATTERING 0
 #else
 #define SCATTERING 1

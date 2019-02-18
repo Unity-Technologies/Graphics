@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Matrix Determinant";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Matrix-Determinant-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

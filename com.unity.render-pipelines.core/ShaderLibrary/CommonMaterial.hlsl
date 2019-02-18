@@ -36,6 +36,11 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
     return (1.0 - perceptualSmoothness);
 }
 
+real PerceptualRoughnessToPerceptualSmoothness(real perceptualRoughness)
+{
+    return (1.0 - perceptualRoughness);
+}
+
 // WARNING: this has been deprecated, and should not be used!
 // Using roughness values of 0 leads to INFs and NANs. The only sensible place to use the roughness
 // value of 0 is IBL, so we do not modify the perceptual roughness which is used to select the MIP map level.
@@ -43,6 +48,17 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
 real ClampRoughnessForAnalyticalLights(real roughness)
 {
     return max(roughness, 1.0 / 1024.0);
+}
+
+// Given that the GGX model is invalid for a roughness of 0.0. This values have been experimentally evaluated to be the limit for the roughness
+// for integration.
+real ClampRoughnessForRaytracing(real roughness)
+{
+    return max(roughness, 0.001225);
+}
+real ClampPerceptualRoughnessForRaytracing(real perceptualRoughness)
+{
+    return max(perceptualRoughness, 0.035);
 }
 
 void ConvertValueAnisotropyToValueTB(real value, real anisotropy, out real valueT, out real valueB)

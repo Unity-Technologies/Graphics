@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum ClearColorMode
         {
             Sky,
-            BackgroundColor,
+            Color,
             None
         };
 
@@ -121,7 +121,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
         public bool clearDepth = true;
         
+
+        [Tooltip("LayerMask HDRP uses for Volume interpolation for this Camera.")]
         public LayerMask volumeLayerMask = -1;
+
         public Transform volumeAnchorOverride;
 
         public AntialiasingMode antialiasing = AntialiasingMode.None;
@@ -131,8 +134,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
 
         public FlipYMode flipYMode;
-        
+
+        [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video).")]
         public bool fullscreenPassthrough = false;
+
+        [Tooltip("Allows you to override the default settings for this Renderer.")]
         public bool customRenderingSettings = false;
 
         public bool invertFaceCulling = false;
@@ -272,7 +278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera.clearFlags == CameraClearFlags.Skybox)
                 cameraData.clearColorMode = ClearColorMode.Sky;
             else if (camera.clearFlags == CameraClearFlags.SolidColor)
-                cameraData.clearColorMode = ClearColorMode.BackgroundColor;
+                cameraData.clearColorMode = ClearColorMode.Color;
             else     // None
                 cameraData.clearColorMode = ClearColorMode.None;
         }

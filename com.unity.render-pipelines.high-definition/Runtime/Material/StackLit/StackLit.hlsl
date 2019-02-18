@@ -1087,7 +1087,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 //
 // If you recompute everything per light, FGD fetches per light might be expensive,
 // so could use the FGD used for IBLs, angle used will be more or less incorrect
-// depending on light directions, but probably better than using F0 terms everywhere).
+// depending on light directions, but probably better than using fresnel terms everywhere).
 //
 // -Right now the method uses Fresnel terms for everything.
 //
@@ -1835,8 +1835,10 @@ void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMA
     theta[COAT_NORMAL_IDX] =  FastACosPos(NdotV[COAT_NORMAL_IDX]);
     theta[BASE_NORMAL_IDX] =  FastACosPos(NdotV[BASE_NORMAL_IDX]);
 
-    // NB_NORMALS is always <= TOTAL_NB_LOBES, so we are safe to always be able to compile this however preLightData.orthoBasisViewNormal[]
-    // is sized and we use _NORMAL_IDX for clarity instead of ORTHOBASIS_VN_*_IDX aliases
+    // NB_NORMALS is always <= TOTAL_NB_LOBES, so we are safe to always be able to compile this even if preLightData.orthoBasisViewNormal[]
+    // is sized with NB_ORTHOBASISVIEWNORMAL, and we use _NORMAL_IDX for clarity instead of ORTHOBASIS_VN_*_IDX aliases
+    // (this function should never be called anyways when NB_ORTHOBASISVIEWNORMAL == TOTAL_NB_LOBES,
+    // as PreLightData_SetupAreaLightsAniso is used in that case, but it must still compile)
     preLightData.orthoBasisViewNormal[COAT_NORMAL_IDX] = GetOrthoBasisViewNormal(V, N[COAT_NORMAL_IDX], preLightData.NdotV[COAT_NORMAL_IDX]);
     preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX] = GetOrthoBasisViewNormal(V, N[BASE_NORMAL_IDX], preLightData.NdotV[BASE_NORMAL_IDX]);
 
@@ -1887,7 +1889,7 @@ void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_
 
     // Now we need 3 matrices + 1 for transmission
     // Note we need to use ORTHOBASIS_VN_*_IDX since we could have no anisotropy and one or two normals but 3 lobes:
-    // in that case, this function has to compile preLightData.orthoBasisViewNormal[] but is never called
+    // in that case, this function has to compile with preLightData.orthoBasisViewNormal[] but is never called
     preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_COAT_LOBE_IDX] = GetOrthoBasisViewNormal(V, iblN[COAT_LOBE_IDX], iblNdotV[COAT_LOBE_IDX]);
     preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEA_IDX] = GetOrthoBasisViewNormal(V, iblN[BASE_LOBEA_IDX], iblNdotV[BASE_LOBEA_IDX]);
     preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEB_IDX] = GetOrthoBasisViewNormal(V, iblN[BASE_LOBEB_IDX], iblNdotV[BASE_LOBEB_IDX]);
@@ -2419,8 +2421,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 // bake lighting function
 //-----------------------------------------------------------------------------
 
+#ifndef DISABLE_MODIFY_BAKED_DIFFUSE_LIGHTING
 // This define allow to say that we implement a ModifyBakedDiffuseLighting function to be called in PostInitBuiltinData
 #define MODIFY_BAKED_DIFFUSE_LIGHTING
+#endif
 
 void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
 {
@@ -2454,30 +2458,79 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 // light transport functions
 //-----------------------------------------------------------------------------
 
+// Try to infer a metallic value from a specularColor parameterization,
+// in the context of adding reflectance from f0 for metals for the meta pass:
+// There's a limit to inferring a valid value. In particular, the diffuseColor
+// close to 0.0 is a hard guess, especially if f0 is close to dielectricF0.
+// The algorithm tries to avoid returning extremes in those cases.
+//
+// Assumes surfaceData.dielectricIor is valid, and not overriden, ie we're not using a diffusionProfile
+// with transmission or SSS which fix metallic to 0 and sets bsdfData.fresnel0 to IorToFresnel0(diffusionProfile.IOR)
+//
 float GetInferredMetallic(float dielectricF0, float3 inDiffuseColor, float3 inFresnel0)
 {
     float fresnel0 = Max3(inFresnel0.r, inFresnel0.g, inFresnel0.b);
     float diffuseColor = Max3(inDiffuseColor.r, inDiffuseColor.g, inDiffuseColor.b);
     float metallic = 0.0;
 
-    if (dielectricF0 <= 0.0)
+    if (dielectricF0 <= 0.0001)
     {
+        // The baseColor + metallic parameterization gives (note that this is used to build
+        // a possible conversion, but the given fresnel0, diffuseColor and dielectricF0 might not 
+        // be possible with a baseColor + metallic parameterization):
+        //
+        //  (A) fresnel0 = metallic * basecolor  +  (1.0 - metallic) * dielectricF0;
+        //  (B) diffuseColor = baseColor * (1.0 - metallic);
+        //
+        // if dielectricF0 = 0, we have:
+        //
+        //  (1) fresnel0 = metallic * basecolor;
+        //  (2) diffuseColor = (1.0 - metallic) * baseColor;
+        //
+        // if metallic == 0, fresnel0 must be == 0 and we can just output it (ie metallic = fresnel0 = 0.0);
+        // else
+        // metallic != 0 and
+        // if baseColor != 0 (otherwise, if either is 0, fresnel0 == 0, and even if metallic was set to anything else than 0,
+        //                   with dielectricF0 == 0, this doesn't make sense as a metal, so we will still infer metallic = 0
+        //                   and again could output directly fresnel0 as our metallic),
+        //
+        // thus fresnel0 != 0 and we substitute safely 1 in 2:
+        //
+        //  fresnel0 / metallic = basecolor;
+        //  diffuseColor = (1.0 - metallic) * fresnel0 / metallic;
+        //
+        //  metallic = 1/(diffuseColor/fresnel0 + 1);
+        //  metallic = fresnel0/(diffuseColor + fresnel0);
+        //
+        // So we will use that formula when dielectricF0 == 0 since it outputs plausible values: 
+        //
+        //   -When fresnel0 is 0, it will always output a desired (for the reasons discussed above) value of metallic = 0.
+        //   -When input values are possible for (A) and (B), the formula is correct (for when dielectricF0 == 0 of course).
+        //   -When input values are not possible with base/metal, it will output a sensible value.
+
         metallic = ((fresnel0 + diffuseColor) > 0.0) ? fresnel0 / (fresnel0 + diffuseColor) : 0.0;
     }
     else
     {
-        float sqrtTerm = sqrt(Sq(fresnel0 + diffuseColor) - 4*diffuseColor*dielectricF0);
-        float rootA = -( sqrtTerm - 2*dielectricF0 + fresnel0 + diffuseColor) / (2*dielectricF0);
-        float rootB = -(-sqrtTerm - 2*dielectricF0 + fresnel0 + diffuseColor) / (2*dielectricF0);
+        float2 roots;
+        // We will try to find positive roots, but again, the input parameters might not be possible
+        // to replicate in a baseColor / metallic parameterization, so we must be careful to precondition
+        // our values. Even when conditioned, the inputs might have no positive solutions.
+        // Also, to mitigate extremes for the diffuseColor close to 0 case, we will average our
+        // positive roots.
+        diffuseColor = max(diffuseColor, 0.0001);
+        dielectricF0 = min(dielectricF0, Sq(fresnel0 + diffuseColor) / 4*diffuseColor);
 
-        // There's some special cases where we could have 2 valid roots, they are ambiguous anyway
-        // (eg fresnel0 == dielectricF0), so we choose arbitrarily.
-        float rootmin = min(rootA, rootB);
-        if (rootmin < 0.0)
-        {
-            //Also we reject invalid roots:
-            metallic = max(rootA, rootB);
-        }
+        float sqrtTerm = sqrt(Sq(fresnel0 + diffuseColor) - 4*diffuseColor*dielectricF0);
+        roots.x = -( sqrtTerm - 2*dielectricF0 + fresnel0 + diffuseColor) / (2*dielectricF0);
+        roots.y = -(-sqrtTerm - 2*dielectricF0 + fresnel0 + diffuseColor) / (2*dielectricF0);
+
+        float2 rootsWeights = float2(roots >= 0);
+        //float rootsTotalWeight = max(1.0, dot(rootsWeights, float2(1.0, 1.0)));
+        float rootsTotalWeight = 1.0 + float(all(roots >= 0));
+        float average = dot(roots, rootsWeights) / rootsTotalWeight;
+
+        metallic = average;
     }
 
     return metallic;
@@ -2525,7 +2578,11 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
     float3 f0forCalculatingFGD;
     float3 diffuseEnergy = float3(1.0, 1.0, 1.0);
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR))
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
+    {
+        metallic = 0.0;
+    }
+    else if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR))
     {
         metallic = GetInferredMetallic(IorToFresnel0(surfaceData.dielectricIor), bsdfData.diffuseColor, bsdfData.fresnel0);
     }
@@ -3823,14 +3880,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float iblMipLevel;
         // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
         // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-#if !defined(SHADER_API_METAL)
         if (IsEnvIndexTexture2D(lightData.envIndex))
         {
             // Empirical remapping
             iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i], _ColorPyramidScale.z);
         }
         else
-#endif
         {
             iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]);
         }

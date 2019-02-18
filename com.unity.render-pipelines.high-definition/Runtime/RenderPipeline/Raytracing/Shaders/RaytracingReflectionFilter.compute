@@ -1,0 +1,244 @@
+#pragma kernel RaytracingReflectionFilter
+#pragma kernel TemporalAccumulationFilter
+
+#pragma only_renderers d3d11
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
+
+// Raytracing Includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/OnlineVariance.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingConsts.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+
+// Tile size of this compute
+#define RAYTRACING_REFLECTION_TILE_SIZE 8
+
+// Input textures for the spatial filtering
+Texture2D<float>                    _DepthTexture;
+Texture2DArray<float>               _NoiseTexture;
+Texture2D<float4>                   _SsrLightingTextureRW;
+Texture2D<float4>                   _SsrHitPointTexture;
+
+// Output Textures for the spatial filtering
+RWTexture2D<float4>                 _RaytracingReflectionTexture;
+RWTexture2D<float>                  _VarianceTexture;
+RWTexture2D<float4>                 _MaxColorRangeTexture;
+RWTexture2D<float4>                 _MinColorRangeTexture;
+int                                 _SpatialFilterRadius;
+
+// Input and Output data of the temporal accumulation pass
+RWTexture2D<float4>                 _CurrentFrameTexture;
+RWTexture2D<float4>                 _AccumulatedFrameTexture;
+float                               _TemporalAccumuationWeight;
+
+[numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]
+void RaytracingReflectionFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Compute the half res coordinate that we shall be using for our effect
+    uint2 halfResCoord = groupId * RAYTRACING_REFLECTION_TILE_SIZE + groupThreadId;
+    halfResCoord.x = halfResCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    // Compute the index of the noise texture to use
+    int noiseIndex = (int)(clamp((int)(_ScramblingTexture[halfResCoord].y * 32.0f), 0, 31));
+
+    // For all the pixels of the subcell, we shall compute the parameters that will be used for the spatial filter
+    float depth[4];
+    float3 viewWS[4];
+    float3 normalWS[4];
+    float roughness[4];
+    VarianceEstimator variance[4];
+    float3 resultSum[4];
+    float3 weightSum[4];
+    float3 minColorRange[4];
+    float3 maxColorRange[4];
+    float3 reflDir[4];
+    int sampleCount[4];
+
+    int i,j;
+    for(j = 0; j < 2; ++j)
+    {
+        for(i = 0; i < 2; ++i)
+        {
+            // Index of this sub pixel in the value array
+            uint localIndex = i + j * 2;
+
+            // Compute the full res coordinate
+            uint2 fullResCoord = halfResCoord * 2 + uint2(i , j);
+
+            // Fetch the depth
+            depth[localIndex] = LOAD_TEXTURE2D(_DepthTexture, fullResCoord).x;
+
+            // Compute the world space position
+            PositionInputs posInput = GetPositionInput_Stereo(fullResCoord, _ScreenSize.zw, depth[localIndex], UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+            float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+            // Compute the view in world space
+            viewWS[localIndex] = normalize(_WorldSpaceCameraPos - positionWS);
+
+            // Decode the world space normal
+            NormalData normalData;  
+            DecodeFromNormalBuffer(fullResCoord, normalData);
+
+            // Fetch the normal WS
+            normalWS[localIndex] = normalData.normalWS;
+
+            // Fetch the roughness
+            roughness[localIndex] = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
+
+            // Compute the reflected direction for this view direction
+            reflDir[localIndex] = reflect(-viewWS[localIndex], normalWS[localIndex]);
+
+            // Initialize the output pixels
+            resultSum[localIndex] = float3(0.0 ,0.0, 0.0);
+            weightSum[localIndex] = float3(0.0 ,0.0, 0.0);
+            minColorRange[localIndex] = float3(1000.0, 1000.0, 1000.0);
+            maxColorRange[localIndex] = float3(0.0, 0.0, 0.0);
+            InitializeVarianceEstimator(variance[localIndex]);
+            sampleCount[localIndex] = 0;
+        }
+    }
+
+    for(int y = -_SpatialFilterRadius; y < _SpatialFilterRadius; ++y)
+    {
+        for(int x = -_SpatialFilterRadius; x < _SpatialFilterRadius; ++x)
+        {
+            float radiusDistance = sqrt(y*y + x*x);
+            if(radiusDistance > _SpatialFilterRadius) continue;
+
+            // Compute the noise position that shall be used
+            int2 relativeHRShift = uint2(8 + x, 8 + y);
+
+            // Full res sample position
+            int2 sourceCoord = (halfResCoord + uint2(x,y)) * 2;
+
+            // If this pixel is outside of the screen, we cannot use it
+            if(sourceCoord.x < 0 || sourceCoord.x > _ScreenSize.x 
+                || sourceCoord.y < 0 || sourceCoord.y > _ScreenSize.y) 
+            continue;
+            
+            // Let's fetch the half res sample's properties
+            // Get the direction and pdf
+            float4 directionPDF = _SsrHitPointTexture[sourceCoord];
+
+            // Fetch the target color
+            float4 sampleColor = _SsrLightingTextureRW[sourceCoord];
+
+            // Compute the position of the actual source pixel
+            uint subPixel =  clamp(floor(sampleColor.w * 4.0f), 0, 3);
+            uint2 shift = HalfResIndexToCoordinateShift[subPixel];
+            uint2 actualSourceCoord = sourceCoord + shift;
+
+            // Fetch the Depth
+            float sampleDepth = LOAD_TEXTURE2D(_DepthTexture, actualSourceCoord).x;
+            // If this the background, it should not be used as a valid sample
+            if(sampleDepth == 0.0f) continue;
+
+            // Compute the target pixel that it will impact
+            float sample = _NoiseTexture[int3(relativeHRShift, noiseIndex)].x;
+            int index = clamp(floor(sample * 4.0f), 0, 3);
+
+            // If this direction is under the candidate surface, then it is not valid
+            if(dot(directionPDF.xyz, normalWS[index]) <= 0.0f) continue;
+
+            // If this direction is not in the hemisphere of the reflected view direction, then it is not valid
+            if(dot(directionPDF.xyz, reflDir[index]) <= 0.0f) continue;
+
+            // Compute the brdf of this sample
+            float weight = 1.0f;
+            if(roughness[index] > 0.001)
+            {
+                // Compute the brdf of this sample
+                float3 H = normalize(directionPDF.xyz + viewWS[index]);
+                float NdotH = dot(normalWS[index], H);
+                float LdotH = dot(directionPDF.xyz, H);
+                float NdotL = dot(directionPDF.xyz, normalWS[index]);
+                float NdotV = dot(viewWS[index], normalWS[index]);
+                float localBRDF = D_GGX(NdotH, roughness[index]) * V_SmithJointGGX(NdotL, NdotV, roughness[index]) * NdotL;
+                weight = localBRDF * directionPDF.w;
+            }
+
+            // Push the value to the variance estimation
+            PushValue(variance[index], length(sampleColor.xyz));
+
+            // Contirbute to all the output values
+            float3 sampleResult = sampleColor.xyz * weight;
+            resultSum[index] += sampleResult;
+            weightSum[index] += weight;
+            minColorRange[index] = min(minColorRange[index], sampleResult);
+            maxColorRange[index] = max(maxColorRange[index], sampleResult);
+            sampleCount[index] += 1;
+        }
+    }
+
+    for(j = 0; j < 2; ++j)
+    {
+        for(i = 0; i < 2; ++i)
+        {
+            uint localIndex = i + j * 2;
+
+            // Compute the full res coordinate
+            uint2 fullResCoord = halfResCoord * 2 + uint2(i, j);
+            if(depth[localIndex] == 0.0f || sampleCount[localIndex] == 0)
+            {
+                _RaytracingReflectionTexture[fullResCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+                _VarianceTexture[fullResCoord] = 1.0f;
+                _MaxColorRangeTexture[fullResCoord] = float4(0.0, 0.0, 0.0, 0.0);
+                _MinColorRangeTexture[fullResCoord] = float4(1.0, 1.0, 1.0, 0.0);
+            }
+            else
+            {
+                _RaytracingReflectionTexture[fullResCoord] = float4((resultSum[localIndex] / weightSum[localIndex]), roughness[localIndex]);
+                _VarianceTexture[fullResCoord] = clamp(Variance(variance[localIndex]), 0.0, 1.0);
+                _MaxColorRangeTexture[fullResCoord] = float4(maxColorRange[localIndex], 1.0);
+                _MinColorRangeTexture[fullResCoord] = float4(minColorRange[localIndex], 1.0);
+            }
+        }
+    }
+}
+
+[numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]
+void TemporalAccumulationFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 currentCoord = groupId * RAYTRACING_REFLECTION_TILE_SIZE + groupThreadId;
+    currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    // Fetch the previous color
+    float3 previousColor = _AccumulatedFrameTexture[currentCoord].xyz;
+    bool previousValidityFlag = _AccumulatedFrameTexture[currentCoord].w > 0.0f;
+
+    // Fetch the color range that we need to check before using
+    float3 colorMinBound = _MinColorRangeTexture[currentCoord].xyz;
+    float3 colorMaxBound = _MaxColorRangeTexture[currentCoord].xyz;
+
+    // check if the previous color is in the bounds
+    // TODO: Try to do the comparison in Lab for better results http://www.brucelindbloom.com/index.html?Math.html
+    bool colorInBound = colorMinBound.x < previousColor.x && colorMaxBound.x > previousColor.x 
+                        && colorMinBound.y < previousColor.y && colorMaxBound.y > previousColor.y 
+                        && colorMinBound.z < previousColor.z && colorMaxBound.z > previousColor.z;
+
+    // Validity flag of the current sample
+    float validityFlag = _MinColorRangeTexture[currentCoord].w;  
+    
+    float3 combinedColor = float3(0.0f, 0.0f, 0.0f);
+    if(previousValidityFlag && colorInBound)
+    {
+        // Compute the accumulation factor for this surface (using the user parameter and the rouhgness of the surface)
+        float accumulationFactor = _CurrentFrameTexture[currentCoord].w < 0.001f ? 1.0 : _TemporalAccumuationWeight;  
+
+        // Previous pixel is valid
+        combinedColor = (_CurrentFrameTexture[currentCoord].xyz * accumulationFactor + _AccumulatedFrameTexture[currentCoord].xyz * (1.0 - accumulationFactor));
+    }
+    else
+    {
+        // Previous pixel is invalid, override it
+        combinedColor = _CurrentFrameTexture[currentCoord].xyz;
+    }
+    
+    _AccumulatedFrameTexture[currentCoord] = float4(combinedColor, validityFlag);
+    _CurrentFrameTexture[currentCoord] = float4(combinedColor, validityFlag);
+}

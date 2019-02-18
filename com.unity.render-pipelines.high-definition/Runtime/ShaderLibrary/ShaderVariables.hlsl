@@ -95,6 +95,7 @@ CBUFFER_START(UnityPerDraw)
     //X : Use last frame positions (right now skinned meshes are the only objects that use this
     //Y : Force No Motion
     //Z : Z bias value
+    //W : Camera only
     float4 unity_MotionVectorsParams;
 
 CBUFFER_END
@@ -129,9 +130,7 @@ CBUFFER_END
     static uint unity_StereoEyeIndex;
 #elif defined(UNITY_SINGLE_PASS_STEREO)
 #if SHADER_STAGE_COMPUTE
-    // Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
-    // Instead, we manually update _ComputeEyeIndex in SRP code.
-    #define unity_StereoEyeIndex _ComputeEyeIndex
+    #define unity_StereoEyeIndex 0
 #else
     CBUFFER_START(UnityStereoEyeIndex)
         int unity_StereoEyeIndex;
@@ -335,11 +334,6 @@ float4x4 _PrevViewProjMatrixStereo[2];
 float4   _WorldSpaceCameraPosStereo[2];
 float4   _WorldSpaceCameraPosStereoEyeOffset[2];
 float4   _PrevCamPosRWSStereo[2];
-#if SHADER_STAGE_COMPUTE
-// Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
-// Instead, we manually update _ComputeEyeIndex in SRP code.
-float _ComputeEyeIndex;
-#endif
 CBUFFER_END
 
 #endif // USING_STEREO_MATRICES
@@ -406,7 +400,7 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 
 float GetCurrentExposureMultiplier()
 {
-#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+#if SHADEROPTIONS_PRE_EXPOSITION
     return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
 #else
     return 1.0;
@@ -415,7 +409,7 @@ float GetCurrentExposureMultiplier()
 
 float GetPreviousExposureMultiplier()
 {
-#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+#if SHADEROPTIONS_PRE_EXPOSITION
     return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x;
 #else
     return 1.0;

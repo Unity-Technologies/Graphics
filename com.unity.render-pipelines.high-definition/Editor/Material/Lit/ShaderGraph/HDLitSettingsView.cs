@@ -159,6 +159,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     });
                 });
 
+                ps.Add(new PropertyRow(CreateLabel("Transparent Writes Velocity", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.transparentWritesVelocity.isOn;
+                        toggle.OnToggleChanged(ChangeTransparentWritesVelocity);
+                    });
+                });
+
                 if (m_Node.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction)
                 {
                     ps.Add(new PropertyRow(CreateLabel("Refraction Model", indentLevel)), (row) =>
@@ -497,6 +506,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.alphaTestDepthPostpass;
             td.isOn = evt.newValue;
             m_Node.alphaTestDepthPostpass = td;
+        }
+        void ChangeTransparentWritesVelocity(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Writes Velocity Change");
+            ToggleData td = m_Node.transparentWritesVelocity;
+            td.isOn = evt.newValue;
+            m_Node.transparentWritesVelocity = td;
         }
         void ChangeAlphaTestShadow(ChangeEvent<bool> evt)
         {

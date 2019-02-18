@@ -12,13 +12,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // The list of raytracing environments that have been registered
         List<HDRaytracingEnvironment> m_Environments = null;
+        RayCountManager m_RayCountManager = new RayCountManager();
+        public RayCountManager rayCountManager
+        {
+            get
+            {
+                return m_RayCountManager;
+            }
+        }
 
         // Flag that defines if we should rebuild everything (when adding or removing an environment)
         bool m_DirtyEnvironment = false;
 
         public void RegisterEnvironment(HDRaytracingEnvironment targetEnvironment)
         {
-            if(!m_Environments.Contains(targetEnvironment))
+            if (!m_Environments.Contains(targetEnvironment))
             {
                 m_Environments.Add(targetEnvironment);
                 m_DirtyEnvironment = true;
@@ -64,6 +72,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Flag that defines if this sub-scene is valid
             public bool valid = false;
+
+            // Light cluster used for some effects
+            public HDRaytracingLightCluster lightCluster = null;
         }
 
         // The list of graphs that have been referenced
@@ -77,14 +88,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The HDRPAsset data that needs to be 
         RenderPipelineResources m_Resources = null;
-        RenderPipelineSettings m_Settings = null;
+        RenderPipelineSettings m_Settings;
+        LightLoop m_LightLoop = null;
+        SharedRTManager m_SharedRTManager = null;
 
-        // Noise texture used for screen space sampling
-        public Texture2DArray m_RGNoiseTexture = null;
+        // Noise texture manager
+        BlueNoise m_BlueNoise = null;
 
         public void RegisterFilter(HDRayTracingFilter targetFilter)
         {
-            if(!m_Filters.Contains(targetFilter))
+            if (!m_Filters.Contains(targetFilter))
             {
                 // Add this graph
                 m_Filters.Add(targetFilter);
@@ -138,13 +151,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise)
+        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise, LightLoop lightloop, SharedRTManager sharedRTManager)
         {
             // Keep track of the resources
             m_Resources = resources;
 
             // Keep track of the settings
             m_Settings = settings;
+
+            // Keep track of the lightloop
+            m_LightLoop = lightloop;
+
+            // Keep track of the shared RT manager
+            m_SharedRTManager = sharedRTManager;
+
+            // Keep track of the blue noise manager
+            m_BlueNoise = blueNoise;
 
             // Create the list of environments
             m_Environments = new List<HDRaytracingEnvironment>();
@@ -175,13 +197,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Grab all the ray-tracing graphs that have been created before
             HDRayTracingFilter[] filterArray = Object.FindObjectsOfType<HDRayTracingFilter>();
-            for(int filterIdx = 0; filterIdx < filterArray.Length; ++filterIdx)
+            for (int filterIdx = 0; filterIdx < filterArray.Length; ++filterIdx)
             {
                 RegisterFilter(filterArray[filterIdx]);
             }
 
-            // Keep track of the noise texture to use
-            m_RGNoiseTexture = blueNoise.textureArray128RGCoherent;
+            m_RayCountManager.Init(resources);
 
 #if UNITY_EDITOR
             // We need to invalidate the acceleration structures in case the hierarchy changed
@@ -203,13 +224,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void SetDirty()
         {
             int numFilters = m_Filters.Count;
-            for(int filterIdx = 0; filterIdx < numFilters; ++filterIdx)
+            for (int filterIdx = 0; filterIdx < numFilters; ++filterIdx)
             {
                 // Grab the target graph component
                 HDRayTracingFilter filterComponent = m_Filters[filterIdx];
-                
+
                 // If this camera had a graph component had an obsolete flag
-                if(filterComponent != null)
+                if (filterComponent != null)
                 {
                     filterComponent.SetDirty();
                 }
@@ -223,6 +244,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HDRayTracingSubScene currentSubScene = m_SubScenes[m_LayerMasks[subSceneIndex]];
                 DestroySubSceneStructure(ref currentSubScene);
             }
+            m_RayCountManager.Release();
         }
 
         public void DestroySubSceneStructure(ref HDRayTracingSubScene subScene)
@@ -233,22 +255,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 subScene.targetRenderers = null;
                 subScene.accelerationStructure = null;
                 subScene.hdLightArray = null;
+                subScene.lightCluster.ReleaseResources();
+                subScene.lightCluster = null;
             }
         }
-        public void UpdateAccelerationStructures()
+        public void CheckSubScenes()
         {
             // Here there is two options, either the full things needs to be rebuilded or we should only rebuild the ones that have been flagged obsolete
-            if(m_DirtyEnvironment)
+            if (m_DirtyEnvironment)
             {
                 // First of let's reset all the obsolescence flags
                 int numFilters = m_Filters.Count;
-                for(int filterIdx = 0; filterIdx < numFilters; ++filterIdx)
+                for (int filterIdx = 0; filterIdx < numFilters; ++filterIdx)
                 {
                     // Grab the target graph component
                     HDRayTracingFilter filterComponent = m_Filters[filterIdx];
-                    
+
                     // If this camera had a graph component had an obsolete flag
-                    if(filterComponent != null)
+                    if (filterComponent != null)
                     {
                         filterComponent.ResetDirty();
                     }
@@ -266,13 +290,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // First of all propagate the obsolete flags to the sub scenes
                 int numGraphs = m_Filters.Count;
-                for(int filterIdx = 0; filterIdx < numGraphs; ++filterIdx)
+                for (int filterIdx = 0; filterIdx < numGraphs; ++filterIdx)
                 {
                     // Grab the target graph component
                     HDRayTracingFilter filterComponent = m_Filters[filterIdx];
-                    
+
                     // If this camera had a graph component had an obsolete flag
-                    if(filterComponent != null && filterComponent.IsDirty())
+                    if (filterComponent != null && filterComponent.IsDirty())
                     {
                         // Get the sub-scene  that matches
                         HDRayTracingSubScene currentSubScene = null;
@@ -284,7 +308,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
             }
- 
+
 
             // Rebuild all the obsolete scenes
             for (var subSceneIndex = 0; subSceneIndex < m_LayerMasks.Count; subSceneIndex++)
@@ -300,11 +324,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     subScene.obsolete = false;
                 }
             }
+        }
 
-            // Update all the transforms
-            for (var subSceneIndex = 0; subSceneIndex < m_LayerMasks.Count; subSceneIndex++)
+        public void UpdateSubSceneData(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            HDRayTracingSubScene subScene = RequestSubScene(hdCamera);
+            if (subScene != null)
             {
-                HDRayTracingSubScene subScene = m_SubScenes[m_LayerMasks[subSceneIndex]];
+                // Update the acceleration structure
                 if (subScene.accelerationStructure != null)
                 {
                     for (var i = 0; i < subScene.targetRenderers.Count; i++)
@@ -316,13 +343,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     subScene.accelerationStructure.Update();
                 }
+
+                // Evaluate the light cluster
+                subScene.lightCluster.EvaluateLightClusters(cmd, hdCamera, subScene.hdLightArray);
             }
         }
 
         public void BuildSubSceneStructure(ref HDRayTracingSubScene subScene)
         {
             // If there is no render environments, then we should not generate acceleration structure
-            if(m_Environments.Count > 0)
+            if (m_Environments.Count > 0)
             {
                 // This structure references all the renderers that are considered to be processed
                 Dictionary<int, int> rendererReference = new Dictionary<int, int>();
@@ -342,13 +372,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Get the set of LODs
                     LOD[] lodArray = lodGroup.GetLODs();
-                    for(int lodIdx = 0; lodIdx < lodArray.Length; ++lodIdx)
+                    for (int lodIdx = 0; lodIdx < lodArray.Length; ++lodIdx)
                     {
                         LOD currentLOD = lodArray[lodIdx];
                         // We only want to push to the acceleration structure the first fella
                         if (lodIdx == 0)
                         {
-                            for(int rendererIdx = 0; rendererIdx < currentLOD.renderers.Length; ++rendererIdx)
+                            for (int rendererIdx = 0; rendererIdx < currentLOD.renderers.Length; ++rendererIdx)
                             {
                                 // Convert the object's layer to an int
                                 int objectLayerValue = 1 << currentLOD.renderers[rendererIdx].gameObject.layer;
@@ -369,7 +399,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Add this fella to the renderer list
                             rendererReference.Add(currentRenderer.GetInstanceID(), 1);
                         }
-                        
+
                     }
                 }
 
@@ -380,16 +410,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 for (var i = 0; i < rendererArray.Length; i++)
                 {
                     // Fetch the current renderer
-                    Renderer currentRenderer =  rendererArray[i];
+                    Renderer currentRenderer = rendererArray[i];
 
                     // If it is not active skip it
-                    if(currentRenderer.enabled ==  false) continue;
+                    if (currentRenderer.enabled == false) continue;
 
                     // Grab the current game object
                     GameObject gameObject = currentRenderer.gameObject;
 
                     // Has this object already been processed, jsut skip
-                    if(rendererReference.ContainsKey(currentRenderer.GetInstanceID()))
+                    if (rendererReference.ContainsKey(currentRenderer.GetInstanceID()))
                     {
                         continue;
                     }
@@ -430,26 +460,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // For every sub-mesh/sub-material let's build the right flags
                             int numSubMeshes = currentRenderer.sharedMaterials.Length;
 
-                            for(int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
+                            uint instanceFlag = 0xff;
+                            for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
                             {
                                 Material currentMaterial = currentRenderer.sharedMaterials[meshIdx];
-                                bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT");
-                                if(currentMaterial != null)
+                                // The material is transparent if either it has the requested keyword or is in the transparent queue range
+                                if (currentMaterial != null)
                                 {
-                                    subMeshFlagArray[meshIdx] = true; // !currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT");
-                                    subMeshCutoffArray[meshIdx] = currentMaterial.IsKeywordEnabled("_ALPHATEST_ON");
-                                    singleSided |= !currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
+                                    subMeshFlagArray[meshIdx] = true;
+
+                                    // Is the material transparent?
+                                    bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
+                                    || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
+                                    && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue)
+                                    || (HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.lowerBound <= currentMaterial.renderQueue
+                                    && HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.upperBound >= currentMaterial.renderQueue);
+
+                                    // Propagate the right mask
+                                    instanceFlag = materialIsTransparent ? (uint)0xf0 : (uint)0x0f;
+
+                                    // Is the material alpha tested?
+                                    subMeshCutoffArray[meshIdx] = currentMaterial.IsKeywordEnabled("_ALPHATEST_ON")
+                                    || (HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound <= currentMaterial.renderQueue
+                                    && HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound >= currentMaterial.renderQueue);
+
+                                    // Force it to be non single sided if it has the keyword if there is a reason
+                                    bool doubleSided = currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
+                                    singleSided |= !doubleSided;
                                 }
                                 else
                                 {
-                                    singleSided = true;
-                                    subMeshCutoffArray[meshIdx] = false;
                                     subMeshFlagArray[meshIdx] = false;
+                                    subMeshCutoffArray[meshIdx] = false;
+                                    singleSided = true;
                                 }
                             }
 
                             // Add it to the acceleration structure
-                            subScene.accelerationStructure.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided);
+                            subScene.accelerationStructure.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided, mask: instanceFlag);
                         }
                     }
                 }
@@ -472,19 +520,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 for (int lightIdx = 0; lightIdx < hdLightArray.Length; ++lightIdx)
                 {
                     HDAdditionalLightData hdLight = hdLightArray[lightIdx];
-                    if (hdLight.enabled )
+                    if (hdLight.enabled)
                     {
                         // Convert the object's layer to an int
                         int lightayerValue = 1 << hdLight.gameObject.layer;
                         if ((lightayerValue & subScene.mask.value) != 0)
                         {
-                            if(hdLight.GetComponent<Light>().type == LightType.Directional)
+                            if (hdLight.GetComponent<Light>().type == LightType.Directional)
                             {
                                 subScene.hdDirectionalLightArray.Add(hdLight);
                             }
                             else
                             {
-                                if(hdLight.lightTypeExtent == LightTypeExtent.Punctual)
+                                if (hdLight.lightTypeExtent == LightTypeExtent.Punctual)
                                 {
                                     pointLights.Add(hdLight);
                                 }
@@ -505,6 +553,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 subScene.hdLightArray.AddRange(pointLights);
                 subScene.hdLightArray.AddRange(lineLights);
                 subScene.hdLightArray.AddRange(rectLights);
+
+                // Build the light cluster
+                subScene.lightCluster = new HDRaytracingLightCluster();
+                subScene.lightCluster.Initialize(m_Resources, this, m_SharedRTManager, m_LightLoop);
 
                 // Mark this sub-scene as valid
                 subScene.valid = true;
@@ -530,17 +582,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public List<HDAdditionalLightData> RequestHDLightList(HDCamera hdCamera)
+        public HDRaytracingLightCluster RequestLightCluster(HDCamera hdCamera)
         {
             bool editorCamera = hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview;
             if (editorCamera)
             {
-                return RequestHDLightList(m_Settings.editorRaytracingFilterLayerMask);
+                // For the scene view, we want to use the default acceleration structure
+                return RequestLightCluster(m_Settings.editorRaytracingFilterLayerMask);
             }
             else
             {
                 HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
-                return raytracingFilter ? RequestHDLightList(raytracingFilter.layermask) : null;
+                return raytracingFilter ? RequestLightCluster(raytracingFilter.layermask) : null;
+            }
+        }
+
+        public HDRayTracingSubScene RequestSubScene(HDCamera hdCamera)
+        {
+            bool editorCamera = hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview;
+            if (editorCamera)
+            {
+                // For the scene view, we want to use the default acceleration structure
+                return RequestSubScene(m_Settings.editorRaytracingFilterLayerMask);
+            }
+            else
+            {
+                HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
+                return raytracingFilter ? RequestSubScene(raytracingFilter.layermask) : null;
             }
         }
 
@@ -554,12 +622,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return null;
         }
 
-        public List<HDAdditionalLightData> RequestHDLightList(LayerMask layerMask)
+        public HDRaytracingLightCluster RequestLightCluster(LayerMask layerMask)
         {
             HDRayTracingSubScene currentSubScene = null;
             if (m_SubScenes.TryGetValue(layerMask.value, out currentSubScene))
             {
-                return currentSubScene.valid ? currentSubScene.hdLightArray : null;
+                return currentSubScene.valid ? currentSubScene.lightCluster : null;
+            }
+            return null;
+        }
+
+        public HDRayTracingSubScene RequestSubScene(LayerMask layerMask)
+        {
+            HDRayTracingSubScene currentSubScene = null;
+            if (m_SubScenes.TryGetValue(layerMask.value, out currentSubScene))
+            {
+                return currentSubScene.valid ? currentSubScene : null;
             }
             return null;
         }
@@ -568,6 +646,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDRaytracingEnvironment CurrentEnvironment()
         {
             return m_Environments.Count != 0 ? m_Environments[m_Environments.Count - 1] : null;
+        }
+
+        public BlueNoise GetBlueNoiseManager()
+        {
+            return m_BlueNoise;
         }
     }
 #endif

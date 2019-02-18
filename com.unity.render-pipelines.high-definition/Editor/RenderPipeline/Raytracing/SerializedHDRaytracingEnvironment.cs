@@ -32,10 +32,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Reflections Attributes
         public SerializedProperty raytracedReflections;
         public SerializedProperty reflRayLength;
+        public SerializedProperty reflBlendDistance;
+        public SerializedProperty reflMinSmoothness;
+        public SerializedProperty reflClampValue;
+        public SerializedProperty reflQualityMode;
+        public SerializedProperty reflTemporalAccumulationWeight;
+        public SerializedProperty reflSpatialFilterRadius;
         public SerializedProperty reflNumMaxSamples;
-        public SerializedProperty reflFilterMode;
-        public SerializedProperty reflBilateralRadius;
-        public SerializedProperty reflBilateralSigma;
 
         // Primary visiblity raytracing
         public SerializedProperty raytracedObjects;
@@ -70,10 +73,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Reflections Attributes
             raytracedReflections = o.Find(x => x.raytracedReflections);
             reflRayLength = o.Find(x => x.reflRayLength);
+            reflBlendDistance = o.Find(x => x.reflBlendDistance);
+            reflMinSmoothness = o.Find(x => x.reflMinSmoothness);
+            reflClampValue = o.Find(x => x.reflClampValue);
+            reflQualityMode = o.Find(x => x.reflQualityMode);
+            reflTemporalAccumulationWeight = o.Find(x => x.reflTemporalAccumulationWeight);
+            reflSpatialFilterRadius = o.Find(x => x.reflSpatialFilterRadius);
             reflNumMaxSamples = o.Find(x => x.reflNumMaxSamples);
-            reflFilterMode = o.Find(x => x.reflFilterMode);
-            reflBilateralRadius = o.Find(x => x.reflBilateralRadius);
-            reflBilateralSigma = o.Find(x => x.reflBilateralSigma);
 
             // Shadows Attributes
             raytracedShadows = o.Find(x => x.raytracedShadows);

@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     using RTHandle = RTHandleSystem.RTHandle;
 
-    [Serializable]
+    [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
     public sealed class AmbientOcclusion : VolumeComponent
     {
         [Tooltip("Degree of darkness added by ambient occlusion.")]
@@ -92,13 +92,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public AmbientOcclusionSystem(HDRenderPipelineAsset hdAsset)
         {
-            m_Settings = hdAsset.renderPipelineSettings;
+            m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
             m_Resources = hdAsset.renderPipelineResources;
 
-            if (!hdAsset.renderPipelineSettings.supportSSAO)
+            if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
 
-            bool supportMSAA = hdAsset.renderPipelineSettings.supportMSAA;
+            bool supportMSAA = hdAsset.currentPlatformRenderPipelineSettings.supportMSAA;
 
             // Destination targets
             m_AmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
@@ -213,13 +213,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext)
+        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext, uint frameCount)
         {
 
 #if ENABLE_RAYTRACING
             HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
             if (m_Settings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedAO)
-                m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext);
+                m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
             else
 #endif
             {

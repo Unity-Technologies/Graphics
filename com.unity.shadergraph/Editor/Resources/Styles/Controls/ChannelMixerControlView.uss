@@ -1,21 +1,21 @@
 ChannelMixerControlView {
-    padding-left: 8;
-    padding-right: 8;
-    padding-top: 4;
-    padding-bottom: 4;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 ChannelMixerControlView > Label {
     margin-left: 0;
     margin-right: 0;
     cursor: slide-arrow;
-    text-alignment : middle-left;
+    -unity-text-align : middle-left;
 }
 
 ChannelMixerControlView > #buttonPanel {
     flex-direction: row;
     flex-grow: 1;
-    margin-bottom: 6;
+    margin-bottom: 6px;
 }
 
 ChannelMixerControlView > #buttonPanel > Button {
@@ -27,7 +27,7 @@ ChannelMixerControlView > #buttonPanel > Button {
 
 ChannelMixerControlView > #buttonPanel > Button > Label {
     flex-grow: 1;
-    text-alignment : middle-left;
+    -unity-text-align : middle-left;
 }
 
 ChannelMixerControlView > #sliderPanel {
@@ -36,8 +36,8 @@ ChannelMixerControlView > #sliderPanel {
 }
 
 ChannelMixerControlView > #sliderPanel > Label {
-    text-alignment : middle-left;
-    min-width: 20;
+    -unity-text-align : middle-left;
+    min-width: 20px;
 }
 
 ChannelMixerControlView > #sliderPanel > Slider {
@@ -51,9 +51,9 @@ ChannelMixerControlView > #sliderPanel > Slider > .unity-base-field__input {
 ChannelMixerControlView > #sliderPanel > FloatField {
     margin-right: 0;
     padding-right: 0;
-    width: 40;
+    width: 40px;
 }
 
 ChannelMixerControlView > #sliderPanel > FloatField > .unity-base-field__input {
-    text-alignment : middle-left;
+    -unity-text-align : middle-left;
 }

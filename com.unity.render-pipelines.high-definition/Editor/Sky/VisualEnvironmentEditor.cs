@@ -74,7 +74,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 DrawOverrideCheckbox(m_SkyType);
                 using (new EditorGUI.DisabledScope(!m_SkyType.overrideState.boolValue))
                 {
-                    EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Type"));
+                    EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Type", "Specifies the type of sky this Volume uses."));
+
                 }
             }
             PropertyField(m_SkyAmbientMode, EditorGUIUtility.TrTextContent("Ambient Mode"));
@@ -90,7 +91,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 DrawOverrideCheckbox(m_FogType);
                 using (new EditorGUI.DisabledScope(!m_FogType.overrideState.boolValue))
                 {
-                    EditorGUILayout.IntPopup(m_FogType.value, m_FogNames.ToArray(), fogValues, EditorGUIUtility.TrTextContent("Type"));
+                    EditorGUILayout.IntPopup(m_FogType.value, m_FogNames.ToArray(), fogValues, EditorGUIUtility.TrTextContent("Type", "Specifies the type of fog this Volume uses."));
                 }
             }
         }

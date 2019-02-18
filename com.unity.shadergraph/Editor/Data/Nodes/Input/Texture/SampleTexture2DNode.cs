@@ -41,10 +41,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sample-Texture-2D-Node"; }
-        }
 
         [SerializeField]
         private TextureType m_TextureType = TextureType.Default;

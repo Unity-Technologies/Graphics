@@ -161,10 +161,14 @@ Shader "HDRP/Unlit"
 
             ZWrite On
 
-            ColorMask 0 // We don't have WRITE_NORMAL_BUFFER for unlit, but as we bind a buffer we shouldn't write into it.
+            // Caution: When using MSAA we have normal and depth buffer bind.
+            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
+            // This is not a problem in no MSAA mode as there is no buffer bind
+            ColorMask 0 0
 
             HLSLPROGRAM
             #pragma multi_compile _ WRITE_MSAA_DEPTH
+            // Note we don't need to define WRITE_NORMAL_BUFFER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
 
@@ -199,8 +203,14 @@ Shader "HDRP/Unlit"
 
             ZWrite On
 
+            // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
+            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
+            // This is not a problem in no MSAA mode as there is no buffer bind
+            ColorMask 0 1
+
             HLSLPROGRAM
             #pragma multi_compile _ WRITE_MSAA_DEPTH
+            // Note we don't need to define WRITE_NORMAL_BUFFER
 
             #define SHADERPASS SHADERPASS_VELOCITY
 
@@ -357,8 +367,8 @@ Shader "HDRP/Unlit"
 
         Pass
         {
-            Name "ShadowsDXR"
-            Tags{ "LightMode" = "ShadowsDXR" }
+            Name "VisibilityDXR"
+            Tags{ "LightMode" = "VisibilityDXR" }
 
             HLSLPROGRAM
 

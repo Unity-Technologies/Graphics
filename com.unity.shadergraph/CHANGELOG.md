@@ -4,9 +4,20 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.0.0] - 2019-xx-xx
+## [6.3.0] - 2019-XX-XX
+### Fixed
+- Fixed an issue where the Normal Reconstruct Z Node sometimes caused Not a Number (NaN) errors when using negative values.
+
+## [6.2.0] - 2019-02-15
+### Fixed
+- Fixed the property blackboard so it no longer goes missing or turns very small.
+
+## [6.1.0] - 2019-02-13
+
+## [6.0.0] - 2019-02-23
 ### Added
 - When you hover your cursor over a property in the blackboard, this now highlights the corresponding property elements in your Shader Graph. Similarly, if you hover over a property in the Shader Graph itself, this highlights the corresponding property in the blackboard.
+- Property nodes in your Shader Graph now have a similar look and styling as the properties in the blackboard.
 
 ### Changed
 - Errors in the compiled shader are now displayed as badges on the appropriate node.

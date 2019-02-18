@@ -39,10 +39,7 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
-        public string title
-        {
-            get;set;
-        }
+        public string title;
 
         public int index
         {
@@ -72,7 +69,8 @@ namespace UnityEditor.VFX
 
         public string fileName {
             get {
-
+                if( ! string.IsNullOrWhiteSpace(title))
+                    return title;
                 int i = this.index;
                 if (i < 0)
                     return string.Empty;

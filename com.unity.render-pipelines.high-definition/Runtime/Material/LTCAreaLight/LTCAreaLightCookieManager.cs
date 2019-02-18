@@ -17,8 +17,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material m_MaterialFilterAreaLights;
         MaterialPropertyBlock m_MPBFilterAreaLights;
 
-        RenderTexture m_TempRenderTexture0;
-        RenderTexture m_TempRenderTexture1;
+        RenderTexture m_TempRenderTexture0 = null;
+        RenderTexture m_TempRenderTexture1 = null;
 
         public LTCAreaLightCookieManager(HDRenderPipelineAsset hdAsset, int maxCacheSize)
         {
@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RenderPipelineAsset = hdAsset;
 
             // Create the texture cookie cache that we shall be using for the area lights
-            GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
+            GlobalLightLoopSettings gLightLoopSettings = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
             m_AreaCookieTexArray = new TextureCache2D("AreaCookie");
             int cookieSize = gLightLoopSettings.cookieTexArraySize;
             int cookieResolution = (int)gLightLoopSettings.cookieSize;
@@ -47,6 +47,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             CoreUtils.Destroy(m_MaterialFilterAreaLights);
+            if(m_TempRenderTexture0 != null)
+            {
+                m_TempRenderTexture0.Release();
+                m_TempRenderTexture0 = null;
+            }
+            if (m_TempRenderTexture1 != null)
+            {
+                m_TempRenderTexture1.Release();
+                m_TempRenderTexture1 = null;
+            }
         }
 
         public Texture GetTexCache()
@@ -108,6 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Start by copying the source texture to the array slice's mip 0
             {
                 cmd.SetGlobalTexture( s_texSource, source );
+                cmd.SetGlobalInt( s_sourceMipLevel, 0 );
                 cmd.SetRenderTarget( m_TempRenderTexture0, 0);
                 cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 0, MeshTopology.Triangles, 3, 1);
             }

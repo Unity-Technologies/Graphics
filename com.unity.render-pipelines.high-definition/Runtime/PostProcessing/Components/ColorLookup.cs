@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (hdAsset == null || texture.value == null)
                 return false;
 
-            if (texture.value.width != hdAsset.renderPipelineSettings.postProcessSettings.lutSize)
+            if (texture.value.width != hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.lutSize)
                 return false;
 
             bool valid = false;

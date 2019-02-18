@@ -8,19 +8,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public Texture2D[] textures16L { get { return m_Textures16L; } }
         public Texture2D[] textures16RGB { get { return m_Textures16RGB; } }
-        public Texture2D[] textures128RGCoherent { get { return m_Textures128RGCoherent; } }
 
         public Texture2DArray textureArray16L { get { return m_TextureArray16L; } }
         public Texture2DArray textureArray16RGB { get { return m_TextureArray16RGB; } }
-        public Texture2DArray textureArray128RGCoherent { get { return m_TextureArray128RGCoherent; } }
 
         readonly Texture2D[] m_Textures16L;
         readonly Texture2D[] m_Textures16RGB;
-        readonly Texture2D[] m_Textures128RGCoherent;
 
         Texture2DArray m_TextureArray16L;
         Texture2DArray m_TextureArray16RGB;
-        Texture2DArray m_TextureArray128RGCoherent;
 
         public BlueNoise(HDRenderPipelineAsset asset)
         {
@@ -28,18 +24,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             InitTextures(16, TextureFormat.Alpha8, resources.blueNoise16LTex, out m_Textures16L, out m_TextureArray16L);
             InitTextures(16, TextureFormat.RGB24, resources.blueNoise16RGBTex, out m_Textures16RGB, out m_TextureArray16RGB);
-            InitTextures(128, TextureFormat.RGB24, resources.coherentRGNoise128, out m_Textures128RGCoherent, out m_TextureArray128RGCoherent);
         }
 
         public void Cleanup()
         {
             CoreUtils.Destroy(m_TextureArray16L);
             CoreUtils.Destroy(m_TextureArray16RGB);
-            CoreUtils.Destroy(m_TextureArray128RGCoherent);
 
             m_TextureArray16L = null;
             m_TextureArray16RGB = null;
-            m_TextureArray128RGCoherent = null;
         }
 
         public Texture2D GetRandom16L()

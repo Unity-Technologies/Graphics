@@ -34,6 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public FrameSettingsField field;
             public Func<bool> overrideable;
+            public Func<bool> customOverrideable;
             public Func<object> customGetter;
             public Action<object> customSetter;
             public object overridedDefaultValue;
@@ -50,7 +51,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 for (int index = dependencies.Length - 1; index >= 0 && dependenciesOverrideable; --index)
                 {
                     FrameSettingsField depency = dependencies[index];
-                    dependenciesOverrideable &= EvaluateBoolWithOverride(depency, defaultFrameSettings, serialized, attribute.IsNegativeDependency(depency));
+                    dependenciesOverrideable &= EvaluateBoolWithOverride(depency, this, defaultFrameSettings, serialized, attribute.IsNegativeDependency(depency));
                 }
                 return dependenciesOverrideable;
             }
@@ -79,21 +80,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return area;
         }
 
-        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null)
+        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, Func<bool> customOverrideable = null)
         {
-            var match = fields.Find(f => f.field == field);
+            var matchIndex = fields.FindIndex(f => f.field == field);
+            var match = fields[matchIndex];
             if (overrideable != null)
                 match.overrideable = overrideable;
+            if (customOverrideable != null)
+                match.customOverrideable = customOverrideable;
             if (customGetter != null)
                 match.customGetter = customGetter;
             if (customSetter != null)
                 match.customSetter = customSetter;
             if (overridedDefaultValue != null)
                 match.overridedDefaultValue = overridedDefaultValue;
+            fields[matchIndex] = match;
         }
 
-        static bool EvaluateBoolWithOverride(FrameSettingsField field, FrameSettings defaultFrameSettings, SerializedFrameSettings serializedFrameSettings, bool negative)
-            => (serializedFrameSettings.GetOverrides(field) ? serializedFrameSettings.IsEnabled(field) : defaultFrameSettings.IsEnabled(field)) ^ negative;
+        static bool EvaluateBoolWithOverride(FrameSettingsField field, Field forField, FrameSettings defaultFrameSettings, SerializedFrameSettings serializedFrameSettings, bool negative)
+        {
+            bool value;
+            if (forField.customOverrideable != null)
+                return forField.customOverrideable() ^ negative;
+
+            if (serializedFrameSettings.GetOverrides(field))
+                value = serializedFrameSettings.IsEnabled(field) ?? false;
+            else
+                value = defaultFrameSettings.IsEnabled(field);
+            return value ^ negative;
+        }
 
         /// <summary>Add an overrideable field to be draw when Draw(bool) will be called.</summary>
         /// <param name="serializedFrameSettings">The overrideable property to draw in inspector</param>
@@ -101,7 +116,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         /// <param name="overrideable">The enabler will be used to check if this field could be overrided. If null or have a return value at true, it will be overrided.</param>
         /// <param name="overridedDefaultValue">The value to display when the property is not overrided. If null, use the actual value of it.</param>
         /// <param name="indent">Add this value number of indent when drawing this field.</param>
-        public void Add(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null)
+        void Add(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null)
             => fields.Add(new Field { field = field, overrideable = overrideable, overridedDefaultValue = overridedDefaultValue, customGetter = customGetter, customSetter = customSetter });
 
         public void Draw(bool withOverride)
@@ -180,7 +195,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             switch (attributes[field.field].type)
                             {
                                 case FrameSettingsFieldAttribute.DisplayType.BoolAsCheckbox:
-                                    bool oldBool = serializedFrameSettings.IsEnabled(field.field);
+                                    bool oldBool = serializedFrameSettings.IsEnabled(field.field) ?? false;
                                     bool newBool = (bool)DrawFieldShape(field.label, oldBool);
                                     if (oldBool ^ newBool)
                                     {
@@ -190,10 +205,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                     break;
                                 case FrameSettingsFieldAttribute.DisplayType.BoolAsEnumPopup:
                                     //shame but it is not possible to use Convert.ChangeType to convert int into enum in current C#
-                                    //rely on string parsing for the moment
-                                    var oldEnumValue = Enum.Parse(attributes[field.field].targetType, serializedFrameSettings.IsEnabled(field.field) ? "1" : "0"); 
-                                    var newEnumValue = (Enum)DrawFieldShape(field.label, oldEnumValue);
-                                    if (oldEnumValue != newEnumValue)
+                                    //Also, Enum.Equals and Enum operator!= always send true here. As it seams to compare object reference instead of value.
+                                    var oldBoolValue = serializedFrameSettings.IsEnabled(field.field);
+                                    int oldEnumIntValue = -1;
+                                    int newEnumIntValue;
+                                    object newEnumValue;
+                                    if (oldBoolValue.HasValue)
+                                    {
+                                        var oldEnumValue = Enum.GetValues(attributes[field.field].targetType).GetValue(oldBoolValue.Value ? 1 : 0);
+                                        newEnumValue = Convert.ChangeType(DrawFieldShape(field.label, oldEnumValue), attributes[field.field].targetType);
+                                        oldEnumIntValue = ((IConvertible)oldEnumValue).ToInt32(System.Globalization.CultureInfo.CurrentCulture);
+                                        newEnumIntValue = ((IConvertible)newEnumValue).ToInt32(System.Globalization.CultureInfo.CurrentCulture);
+                                    }
+                                    else //in multi edition, do not assume any previous value
+                                    {
+                                        newEnumIntValue = EditorGUILayout.Popup(field.label, -1, Enum.GetNames(attributes[field.field].targetType));
+                                        newEnumValue = newEnumIntValue < 0 ? null : Enum.GetValues(attributes[field.field].targetType).GetValue(newEnumIntValue);
+                                    }
+                                    if (oldEnumIntValue != newEnumIntValue)
                                     {
                                         Undo.RecordObject(serializedFrameSettings.serializedObject.targetObject, "Changed FrameSettings " + field.field);
                                         serializedFrameSettings.SetEnabled(field.field, Convert.ToInt32(newEnumValue) == 1);
