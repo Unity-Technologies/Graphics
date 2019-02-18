@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.LWRP
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-            BeginFrameRendering(cameras);
+            BeginFrameRendering(renderContext, cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             SetupPerFrameShaderConstants();
