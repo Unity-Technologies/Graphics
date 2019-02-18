@@ -196,6 +196,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
+        public bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
+
         public HDPhysicalCamera physicalParameters => m_AdditionalCameraData?.physicalParameters;
 
         public bool invertFaceCulling

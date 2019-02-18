@@ -7,13 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.5.0-preview] - 2019-02-18
 
 ### Added
-
 - Added help box listing feature supported in a given HDRenderPipelineAsset alongs with the drawbacks implied.
 - Added support for post-processing anti-aliasing in the Scene View (FXAA and TAA). These can be set in Preferences.
 - Added emissive property for decal material (non-shader graph)
 - Added cascade visualizer, supporting disabled handles when not overriding.
 - Added support of motion vector for transparent object (as replace)
 - Added emissive property for shader graph decals
+- Added a "Stop NaNs" option on cameras and in the Scene View preferences.
 
 ### Fixed
 - Fixed a few UI bugs with the color grading curves.

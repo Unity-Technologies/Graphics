@@ -250,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, bool flipY)
         {
-            HDDynamicResolutionHandler dynResHandler = HDDynamicResolutionHandler.instance;
+            var dynResHandler = HDDynamicResolutionHandler.instance;
 
             // We cleanup the pool at the beginning of the render function as resource deletion is immediate while
             // graphics command are deferred. If we delete at the end of the frame, the gfx commands will try to access
@@ -291,6 +291,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
+                    // Optional NaN killer before post-processing kicks in
+                    bool stopNaNs = camera.stopNaNs;
+
+                #if UNITY_EDITOR
+                    if (camera.camera.cameraType == CameraType.SceneView)
+                        stopNaNs = HDRenderPipelinePreferences.sceneViewStopNaNs;
+                #endif
+
+                    if (stopNaNs)
+                    {
+                        using (new ProfilingSample(cmd, "Stop NaNs", CustomSamplerId.StopNaNs.GetSampler()))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            DoStopNaNs(cmd, camera, source, destination);
+                            PoolSource(ref source, destination);
+                        }
+                    }
+
                     // TODO: Do we want user effects before post?
 
                     // Start with exposure - will be applied in the next frame
@@ -298,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
                         {
-                            DoDynamicExposure(cmd, camera, colorBuffer, lightingBuffer);
+                            DoDynamicExposure(cmd, camera, source, lightingBuffer);
                         }
                     }
 
@@ -480,6 +498,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cb = new ComputeBuffer(size, stride, type);
             }
         }
+
+        #region NaN Killer
+
+        void DoStopNaNs(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        {
+            var cs = m_Resources.shaders.nanKillerCS;
+            int kernel = cs.FindKernel("KMain");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+        }
+
+        #endregion
 
         #region Exposure
 
