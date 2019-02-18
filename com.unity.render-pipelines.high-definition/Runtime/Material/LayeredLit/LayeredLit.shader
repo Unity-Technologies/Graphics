@@ -158,10 +158,19 @@ Shader "HDRP/LayeredLit"
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace2("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace3("NormalMap space", Float) = 0
 
-        _DiffusionProfile0("Diffusion Profile0", Int) = 0
-        _DiffusionProfile1("Diffusion Profile1", Int) = 0
-        _DiffusionProfile2("Diffusion Profile2", Int) = 0
-        _DiffusionProfile3("Diffusion Profile3", Int) = 0
+        _DiffusionProfile0("Obsolete, kept for migration purpose", Int) = 0
+        _DiffusionProfile1("Obsolete, kept for migration purpose", Int) = 0
+        _DiffusionProfile2("Obsolete, kept for migration purpose", Int) = 0
+        _DiffusionProfile3("Obsolete, kept for migration purpose", Int) = 0
+
+        [HideInInspector] _DiffusionProfileAsset0("Diffusion Profile Asset0", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash0("Diffusion Profile Hash0", Float) = 0
+        [HideInInspector] _DiffusionProfileAsset1("Diffusion Profile Asset0", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash1("Diffusion Profile Hash0", Float) = 0
+        [HideInInspector] _DiffusionProfileAsset2("Diffusion Profile Asset0", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash2("Diffusion Profile Hash0", Float) = 0
+        [HideInInspector] _DiffusionProfileAsset3("Diffusion Profile Asset0", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash3("Diffusion Profile Hash0", Float) = 0
 
         _SubsurfaceMask0("Subsurface Mask0", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMask1("Subsurface Mask1", Range(0.0, 1.0)) = 1.0

@@ -81,7 +81,7 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     return builtinData;
 }
 
-SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfile, out float opacity)
+SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfileHash, out float opacity)
 {
     SurfaceData surfaceData = (SurfaceData)0;
 
@@ -130,7 +130,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #ifdef VFX_VARYING_THICKNESS
     surfaceData.thickness = i.VFX_VARYING_THICKNESS * opacity;
     #endif
-    surfaceData.diffusionProfile = diffusionProfile;
+    surfaceData.diffusionProfileHash = diffusionProfileHash;
     surfaceData.subsurfaceMask = 1.0f;
     #endif
 

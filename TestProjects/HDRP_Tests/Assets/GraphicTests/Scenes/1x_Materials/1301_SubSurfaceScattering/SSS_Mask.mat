@@ -320,11 +320,12 @@ Material:
     - _DetailSmoothnessScale1: 1
     - _DetailSmoothnessScale2: 1
     - _DetailSmoothnessScale3: 1
-    - _DiffusionProfile: 7
+    - _DiffusionProfile: -1
     - _DiffusionProfile0: 10
     - _DiffusionProfile1: 7
     - _DiffusionProfile2: 8
     - _DiffusionProfile3: 9
+    - _DiffusionProfileHash: 2.6490312
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -552,6 +553,8 @@ Material:
     - _BaseColor3: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DiffusionProfileAsset: {r: -2.1016454e+32, g: -3.774642e-17, b: -2.9451513e+33,
+        a: 2.7516838e-19}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
