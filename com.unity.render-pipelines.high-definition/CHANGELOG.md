@@ -13,10 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed decals in forward
 
+### Fixed
+- Fixed issue with stencil not correctly setup for various master node and shader for the depth pass, motion vector pass and GBuffer/Forward pass
+- Fixed SRP batcher and metal
+
 ## [6.2.0-preview] - 2019-02-15
 
 ### Added
-
 - Added help box listing feature supported in a given HDRenderPipelineAsset alongs with the drawbacks implied.
 - Added cascade visualizer, supporting disabled handles when not overriding.
 
@@ -161,10 +164,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with debug material mode not doing alpha test
 - Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan
 - Fixed pre-exposure incorrectly apply to preview
-- Fixed issue with duplicate 3D texture in 3D texture altas of volumetric
+- Fixed issue with duplicate 3D texture in 3D texture altas of volumetric?
 - Fixed Camera rendering order (base on the depth parameter)
 - Fixed shader graph decals not being cropped by gizmo
 - Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan.
+
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
@@ -195,6 +199,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rearrange FetchDepth functions to prepare for stereo-instancing
 - Remove unused _ComputeEyeIndex
 - Updated HDRenderPipelineAsset inspector
+- Re-enable SRP batcher for metal
 
 ## [5.2.0-preview] - 2018-11-27
 
