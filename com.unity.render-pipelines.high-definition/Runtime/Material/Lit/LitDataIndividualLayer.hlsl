@@ -259,7 +259,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
     surfaceData.metallic *= ADD_IDX(_Metallic);
 
-    surfaceData.diffusionProfile = ADD_IDX(_DiffusionProfile);
+    surfaceData.diffusionProfileHash = asuint(ADD_IDX(_DiffusionProfileHash));
     surfaceData.subsurfaceMask = ADD_IDX(_SubsurfaceMask);
 
 #ifdef _SUBSURFACE_MASK_MAP_IDX

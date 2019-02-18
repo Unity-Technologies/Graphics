@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 StackLitMasterNode.TangentSlotId,
                 StackLitMasterNode.SubsurfaceMaskSlotId,
                 StackLitMasterNode.ThicknessSlotId,
-                StackLitMasterNode.DiffusionProfileSlotId,
+                StackLitMasterNode.DiffusionProfileHashSlotId,
                 StackLitMasterNode.IridescenceMaskSlotId,
                 StackLitMasterNode.IridescenceThicknessSlotId,
                 StackLitMasterNode.SpecularColorSlotId,
@@ -334,7 +334,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 StackLitMasterNode.TangentSlotId,
                 StackLitMasterNode.SubsurfaceMaskSlotId,
                 StackLitMasterNode.ThicknessSlotId,
-                StackLitMasterNode.DiffusionProfileSlotId,
+                StackLitMasterNode.DiffusionProfileHashSlotId,
                 StackLitMasterNode.IridescenceMaskSlotId,
                 StackLitMasterNode.IridescenceThicknessSlotId,
                 StackLitMasterNode.SpecularColorSlotId,
@@ -495,7 +495,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // 
         // ok masterNode.SubsurfaceMaskSlotId
         // ok masterNode.ThicknessSlotId
-        // ok masterNode.DiffusionProfileSlotId
+        // ok masterNode.DiffusionProfileHashSlotId
         // ok masterNode.IridescenceMaskSlotId
         // ok masterNode.IridescenceThicknessSlotId
         // ok masterNode.SpecularColorSlotId

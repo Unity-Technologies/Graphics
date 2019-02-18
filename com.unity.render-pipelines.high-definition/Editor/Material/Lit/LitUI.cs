@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
+using System;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -200,8 +201,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty[] heightParametrization = new MaterialProperty[kMaxLayerCount];
         protected const string kHeightParametrization = "_HeightMapParametrization";
 
-        protected MaterialProperty[] diffusionProfileID = new MaterialProperty[kMaxLayerCount];
-        protected const string kDiffusionProfileID = "_DiffusionProfile";
+        protected MaterialProperty[] diffusionProfileHash = new MaterialProperty[kMaxLayerCount];
+        protected const string kDiffusionProfileHash = "_DiffusionProfileHash";
+        protected MaterialProperty[] diffusionProfileAsset = new MaterialProperty[kMaxLayerCount];
+        protected const string kDiffusionProfileAsset = "_DiffusionProfileAsset";
         protected MaterialProperty[] subsurfaceMask = new MaterialProperty[kMaxLayerCount];
         protected const string kSubsurfaceMask = "_SubsurfaceMask";
         protected MaterialProperty[] subsurfaceMaskMap = new MaterialProperty[kMaxLayerCount];
@@ -353,7 +356,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 heightParametrization[i] = FindProperty(string.Format("{0}{1}", kHeightParametrization, m_PropertySuffixes[i]), props);
 
                 // Sub surface
-                diffusionProfileID[i] = FindProperty(string.Format("{0}{1}", kDiffusionProfileID, m_PropertySuffixes[i]), props);
+                diffusionProfileHash[i] = FindProperty(string.Format("{0}{1}", kDiffusionProfileHash, m_PropertySuffixes[i]), props);
+                diffusionProfileAsset[i] = FindProperty(string.Format("{0}{1}", kDiffusionProfileAsset, m_PropertySuffixes[i]), props);
                 subsurfaceMask[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceMask, m_PropertySuffixes[i]), props);
                 subsurfaceMaskMap[i] = FindProperty(string.Format("{0}{1}", kSubsurfaceMaskMap, m_PropertySuffixes[i]), props);
                 thickness[i] = FindProperty(string.Format("{0}{1}", kThickness, m_PropertySuffixes[i]), props);
@@ -446,57 +450,46 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (hdPipeline == null)
                 return;
 
-            var diffusionProfileSettings = hdPipeline.diffusionProfileSettings;
-
-            if (hdPipeline.IsInternalDiffusionProfile(diffusionProfileSettings))
-            {
-                EditorGUILayout.HelpBox("No Diffusion Profile List have been assigned to the render pipeline asset.", MessageType.Warning);
-                return;
-            }
-
-            // TODO: Optimize me
-            var profiles = diffusionProfileSettings.profiles;
-            var names = new GUIContent[profiles.Length + 1];
-            names[0] = new GUIContent("None");
-
-            var values = new int[names.Length];
-            values[0] = DiffusionProfileConstants.DIFFUSION_PROFILE_NEUTRAL_ID;
-
-            for (int i = 0; i < profiles.Length; i++)
-            {
-                names[i + 1] = new GUIContent(profiles[i].name);
-                values[i + 1] = i + 1;
-            }
-
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                int profileID = (int)diffusionProfileID[layerIndex].floatValue;
-
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.PrefixLabel(Styles.diffusionProfileText);
+                    // We can't cache these fields because of several edge cases like undo/redo or pressing escape in the object picker
+                    string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset[layerIndex].vectorValue);
+                    DiffusionProfileSettings diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
 
-                    using (new EditorGUILayout.HorizontalScope())
+                    // is it okay to do this every frame ?
+                    using (var changeScope = new EditorGUI.ChangeCheckScope())
                     {
-                        profileID = EditorGUILayout.IntPopup(profileID, names, values);
+                        diffusionProfile = (DiffusionProfileSettings)EditorGUILayout.ObjectField(Styles.diffusionProfileText, diffusionProfile, typeof(DiffusionProfileSettings), false);
+                        if (changeScope.changed)
+                        {
+                            Vector4 newGuid = Vector4.zero;
+                            float    hash = 0;
 
-                        if (GUILayout.Button("Goto", EditorStyles.miniButton, GUILayout.Width(50f)))
-                            Selection.activeObject = diffusionProfileSettings;
+                            if (diffusionProfile != null)
+                            {
+                                guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(diffusionProfile));
+                                newGuid = HDUtils.ConvertGUIDToVector4(guid);
+                                hash = HDShadowUtils.Asfloat(diffusionProfile.profile.hash);
+                            }
+
+                            // encode back GUID and it's hash
+                            diffusionProfileAsset[layerIndex].vectorValue = newGuid;
+                            diffusionProfileHash[layerIndex].floatValue = hash;
+                        }
                     }
                 }
-
-                if (scope.changed)
-                    diffusionProfileID[layerIndex].floatValue = profileID;
             }
 
-            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
+            if ((int)materialID.floatValue == (int)MaterialId.LitSSS)
             {
                 m_MaterialEditor.ShaderProperty(subsurfaceMask[layerIndex], Styles.subsurfaceMaskText);
                 m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[layerIndex]);
             }
 
-            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitTranslucent ||
-                ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS && transmissionEnable.floatValue > 0.0f))
+            if ((int)materialID.floatValue == (int)MaterialId.LitTranslucent ||
+                ((int)materialID.floatValue == (int)MaterialId.LitSSS && transmissionEnable.floatValue > 0.0f))
             {
                 m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[layerIndex]);
                 if (thicknessMap[layerIndex].textureValue != null)
@@ -607,9 +600,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
 
-                    if ((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitStandard ||
-                        (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitAniso ||
-                        (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitIridescence)
+                    if ((MaterialId)materialID.floatValue == MaterialId.LitStandard ||
+                        (MaterialId)materialID.floatValue == MaterialId.LitAniso ||
+                        (MaterialId)materialID.floatValue == MaterialId.LitIridescence)
                     {
                         m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
                     }
@@ -641,7 +634,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    m_MaterialEditor.TexturePropertySingleLine(((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
+                    m_MaterialEditor.TexturePropertySingleLine(((MaterialId)materialID.floatValue == MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
 
                     m_MaterialEditor.ShaderProperty(normalMapSpace[layerIndex], Styles.normalMapSpaceText);
 
@@ -716,25 +709,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    switch ((BaseLitGUI.MaterialId)materialID.floatValue)
+                    switch ((MaterialId)materialID.floatValue)
                     {
-                        case BaseLitGUI.MaterialId.LitSSS:
-                        case BaseLitGUI.MaterialId.LitTranslucent:
+                        case MaterialId.LitSSS:
+                        case MaterialId.LitTranslucent:
                             ShaderSSSAndTransmissionInputGUI(material, layerIndex);
                             break;
-                        case BaseLitGUI.MaterialId.LitStandard:
+                        case MaterialId.LitStandard:
                             // Nothing
                             break;
 
                         // Following mode are not supported by layered lit and will not be call by it
                         // as the MaterialId enum don't define it
-                        case BaseLitGUI.MaterialId.LitAniso:
+                        case MaterialId.LitAniso:
                             ShaderAnisoInputGUI();
                             break;
-                        case BaseLitGUI.MaterialId.LitSpecular:
+                        case MaterialId.LitSpecular:
                             ShaderSpecularColorInputGUI(material);
                             break;
-                        case BaseLitGUI.MaterialId.LitIridescence:
+                        case MaterialId.LitIridescence:
                             ShaderIridescenceInputGUI();
                             break;
 
@@ -1036,15 +1029,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV3");
             }
 
-            BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitTranslucent || (materialId == BaseLitGUI.MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
+            MaterialId materialId = (MaterialId)material.GetFloat(kMaterialID);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == MaterialId.LitTranslucent || (materialId == MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
 
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", materialId == BaseLitGUI.MaterialId.LitAniso);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", materialId == MaterialId.LitAniso);
             // No material Id for clear coat, just test the attribute
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", material.GetFloat(kCoatMask) > 0.0 || material.GetTexture(kCoatMaskMap));
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_IRIDESCENCE", materialId == BaseLitGUI.MaterialId.LitIridescence);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == BaseLitGUI.MaterialId.LitSpecular);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_IRIDESCENCE", materialId == MaterialId.LitIridescence);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == MaterialId.LitSpecular);
 
             var refractionModelValue = (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel);
             // We can't have refraction in pre-refraction queue

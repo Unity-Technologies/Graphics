@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public GameObject defaultScene;
         public VolumeProfile defaultRenderSettingsProfile;
         public VolumeProfile defaultPostProcessingProfile;
-        public DiffusionProfileSettings defaultDiffusionProfileSettings;
+        public DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
 
         [Serializable]
         public sealed class ShaderResources

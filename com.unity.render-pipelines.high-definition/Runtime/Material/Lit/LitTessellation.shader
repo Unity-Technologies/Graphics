@@ -57,7 +57,9 @@ Shader "HDRP/LitTessellation"
         _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
-        _DiffusionProfile("Diffusion Profile", Int) = 0
+        [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
+        [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
         _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMaskMap("Subsurface Radius Map", 2D) = "white" {}
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0

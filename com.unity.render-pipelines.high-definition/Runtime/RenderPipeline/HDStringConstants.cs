@@ -215,6 +215,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TransmissionTintsAndFresnel0 = Shader.PropertyToID("_TransmissionTintsAndFresnel0");
         public static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
         public static readonly int diffuseLightingUAV = Shader.PropertyToID("diffuseLightingUAV");
+        public static readonly int _DiffusionProfileHashTable = Shader.PropertyToID("_DiffusionProfileHashTable");
+        public static readonly int _DiffusionProfileCount = Shader.PropertyToID("_DiffusionProfileCount");
+        public static readonly int _DiffusionProfileAsset = Shader.PropertyToID("_DiffusionProfileAsset");
+        public static readonly int _MaterialID = Shader.PropertyToID("_MaterialID");
 
         public static readonly int g_TileListOffset = Shader.PropertyToID("g_TileListOffset");
 
@@ -395,7 +399,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
 
-        public static readonly int _DiffusionProfile = Shader.PropertyToID("_DiffusionProfile");
+        public static readonly int _DiffusionProfileHash = Shader.PropertyToID("_DiffusionProfileHash");
         public static readonly int _MaxRadius = Shader.PropertyToID("_MaxRadius");
         public static readonly int _ShapeParam = Shader.PropertyToID("_ShapeParam");
         public static readonly int _StdDev1 = Shader.PropertyToID("_StdDev1");

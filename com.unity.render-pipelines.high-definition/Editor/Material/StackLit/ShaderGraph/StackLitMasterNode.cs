@@ -29,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public const string SubsurfaceMaskSlotName = "SubsurfaceMask";
         public const string ThicknessSlotName = "Thickness";
-        public const string DiffusionProfileSlotName = "DiffusionProfile";
+        public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
 
         public const string IridescenceMaskSlotName = "IridescenceMask";
         public const string IridescenceThicknessSlotName = "IridescenceThickness";
@@ -72,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const int TangentSlotId = 4;
         public const int SubsurfaceMaskSlotId = 5;
         public const int ThicknessSlotId = 6;
-        public const int DiffusionProfileSlotId = 7;
+        public const int DiffusionProfileHashSlotId = 7;
         public const int IridescenceMaskSlotId = 8;
         public const int IridescenceThicknessSlotId = 9;
         public const int SpecularColorSlotId = 10;
@@ -782,8 +782,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (subsurfaceScattering.isOn || transmission.isOn)
             {
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileSlotId, DiffusionProfileSlotName, DiffusionProfileSlotName, ShaderStageCapability.Fragment));
-                validSlots.Add(DiffusionProfileSlotId);
+                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
+                validSlots.Add(DiffusionProfileHashSlotId);
             }
 
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));

@@ -547,6 +547,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public static bool IsAreaLight(LightTypeExtent lightType)
+        {
+            return lightType != LightTypeExtent.Punctual;
+        }
 
 #if UNITY_EDITOR
 
@@ -623,11 +627,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void RefreshLightIntensity()
         {
             intensity = displayLightIntensity;
-        }
-
-        public static bool IsAreaLight(LightTypeExtent lightType)
-        {
-            return lightType != LightTypeExtent.Punctual;
         }
 
         public static bool IsAreaLight(SerializedProperty lightType)

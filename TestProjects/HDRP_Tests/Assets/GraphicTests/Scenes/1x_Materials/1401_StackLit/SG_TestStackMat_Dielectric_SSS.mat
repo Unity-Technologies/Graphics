@@ -364,6 +364,7 @@ Material:
     - _DetailsShow: 0
     - _DielectricIor: 1.5
     - _DiffusionProfile: 2
+    - _DiffusionProfileHash: 2.8699825
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -623,6 +624,8 @@ Material:
     - _DetailSmoothnessMapChannelMask: {r: 1, g: 0, b: 0, a: 0}
     - _DetailSmoothnessMapRange: {r: 0, g: 1, b: 0, a: 0}
     - _DetailSmoothnessMapRemap: {r: 0, g: 1, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: -9.35656e-30, g: -2.3584084e-36, b: -5.2225505e+29,
+        a: -3.8498916e-28}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
