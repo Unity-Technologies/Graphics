@@ -16,9 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a diffusion profile override volume so the list of diffusion profile assets to use can be chanaged without affecting the HDRP asset
 - Added a "Stop NaNs" option on cameras and in the Scene View preferences.
 
-### Changed
-- Diffusion profiles are now limited to one per asset and can be referenced in materials, shader graphs and vfx graphs. Materials will be upgraded automatically except if they are using a shader graph, in this case it will display an error message.
-
 ### Fixed
 - Fixed a few UI bugs with the color grading curves.
 - Fixed "Post Processing" in the scene view not toggling post-processing effects.
@@ -29,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed invalid state when creating a planar reflection for the first time
 - Fixed FrameSettings's LitShaderMode not restrained by supported LitShaderMode regression.
 - Fixed decals in forward
+- Fixed Lightlayers and shadow. Now Lightlayers correctly support exclusion of shadows.
 
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector	
@@ -36,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update default value of based color for master node
 - Update Fabric Charlie Sheen lighting model - Remove Fresnel component that wasn't part of initial model + Remap smoothness to [0.0 - 0.6] range for more artist friendly parameter
 - Updated the toggle for advanced mode in inspectors.
+- Diffusion profiles are now limited to one per asset and can be referenced in materials, shader graphs and vfx graphs. Materials will be upgraded automatically except if they are using a shader graph, in this case it will display an error message.
 
 ## [5.4.0-preview] - 2019-02-11
 
