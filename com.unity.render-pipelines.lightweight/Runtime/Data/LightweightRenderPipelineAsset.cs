@@ -466,7 +466,7 @@ namespace UnityEngine.Rendering.LWRP
             get { return editorResources.autodeskInteractiveMaskedShader; }
         }
 
-        /*public override Shader terrainDetailLitShader
+        public override Shader terrainDetailLitShader
         {
             get { return editorResources.terrainDetailLitShader; }
         }
@@ -479,7 +479,7 @@ namespace UnityEngine.Rendering.LWRP
         public override Shader terrainDetailGrassBillboardShader
         {
             get { return editorResources.terrainDetailGrassBillboardShader; }
-        }*/
+        }
 #endif
 
         public void OnBeforeSerialize()

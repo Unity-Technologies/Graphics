@@ -14,8 +14,7 @@ namespace UnityEngine.Rendering.LWRP
             Color,
             RenderTexture,
         }
-        
-        string profilerTag { get; set; }
+
         public Material blitMaterial = null;
         public int blitShaderPassIndex = 0;
         public FilterMode filterMode { get; set; }
@@ -86,7 +85,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         /// <inheritdoc/>
-        public virtual void FrameCleanup(CommandBuffer cmd)
+        public override void FrameCleanup(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(destination.id);
         }
