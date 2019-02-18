@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.5.0] - 2019-02-18
 ### Fixed
+- Fixed an issue where the Normal Reconstruct Z Node sometimes caused Not a Number (NaN) errors when using negative values.
+### Fixed
 - Fixed the property blackboard so it no longer goes missing or turns very small.
 
 ## [5.4.0] - 2019-02-11
