@@ -117,13 +117,17 @@ namespace UnityEngine.Rendering.LWRP
             SortCameras(cameras);
             foreach (Camera camera in cameras)
             {
-                BeginCameraRendering(camera);
+                BeginCameraRendering(renderContext, camera);
 
                 foreach (var beforeCamera in camera.GetComponents<IBeforeCameraRender>())
                     beforeCamera.ExecuteBeforeCameraRender(this, renderContext, camera);
 
                 RenderSingleCamera(this, renderContext, camera, camera.GetComponent<IRendererSetup>());
+
+                EndCameraRendering(renderContext, camera);
             }
+
+            EndFrameRendering(renderContext, cameras);
         }
 
         public static void RenderSingleCamera(LightweightRenderPipeline pipelineInstance, ScriptableRenderContext context, Camera camera, IRendererSetup setup = null)
