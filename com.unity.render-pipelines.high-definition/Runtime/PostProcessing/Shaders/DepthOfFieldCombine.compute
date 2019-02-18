@@ -60,7 +60,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
             #if FULL_RES
             float3 farColor = LOAD_TEXTURE2D(_InputFarTexture, posInputs.positionSS).xyz;
             #elif HIGH_QUALITY
-            float3 farColor = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputFarTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).xyz;
+            float3 farColor = SampleTexture2DBicubic(TEXTURE2D_ARGS(_InputFarTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).xyz;
             #else
             float3 farColor = SAMPLE_TEXTURE2D_LOD(_InputFarTexture, sampler_LinearClamp, uv, 0.0).xyz;
             #endif
@@ -83,8 +83,8 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
         float3 nearColor = LOAD_TEXTURE2D(_InputNearTexture, posInputs.positionSS).xyz;
         float alpha = LOAD_TEXTURE2D(_InputNearAlphaTexture, posInputs.positionSS).x;
         #elif HIGH_QUALITY
-        float3 nearColor = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputNearTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).xyz;
-        float alpha = SampleTexture2DBicubic(TEXTURE2D_PARAM(_InputNearAlphaTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).x;
+        float3 nearColor = SampleTexture2DBicubic(TEXTURE2D_ARGS(_InputNearTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).xyz;
+        float alpha = SampleTexture2DBicubic(TEXTURE2D_ARGS(_InputNearAlphaTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).x;
         #else
         float3 nearColor = SAMPLE_TEXTURE2D_LOD(_InputNearTexture, sampler_LinearClamp, uv, 0.0).xyz;
         float alpha = SAMPLE_TEXTURE2D_LOD(_InputNearAlphaTexture, sampler_LinearClamp, uv, 0.0).x;
