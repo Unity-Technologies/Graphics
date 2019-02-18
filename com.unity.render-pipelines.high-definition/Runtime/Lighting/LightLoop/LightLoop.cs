@@ -2033,7 +2033,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (probeIndex < cullResults.visibleReflectionProbes.Length)
                         {
                             var probe = cullResults.visibleReflectionProbes[probeIndex];
-                            if (probe.reflectionProbe == null || probe.reflectionProbe.Equals(null))
+                            if (probe.reflectionProbe == null || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled)
                                 continue;
 
                             // Exclude env lights based on hdCamera.probeLayerMask
@@ -2044,10 +2044,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // probe.texture can be null when we are adding a reflection probe in the editor
                             if (additional.texture == null || envLightCount >= m_MaxEnvLightsOnScreen)
-                                continue;
-
-                            // Work around the culling issues. TODO: fix culling in C++.
-                            if (probe.reflectionProbe == null || !probe.reflectionProbe.isActiveAndEnabled)
                                 continue;
 
                             // Work around the data issues.

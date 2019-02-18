@@ -9,7 +9,9 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: SSS_Layered
   m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
-  m_ShaderKeywords: _LAYEREDLIT_4_LAYERS _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
+  m_ShaderKeywords: _LAYEREDLIT_4_LAYERS _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION
+    _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2
+    _NORMALMAP_TANGENT_SPACE3
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -331,6 +333,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -434,6 +439,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _PreRefractionPass: 0
+    - _ReceivesSSR: 1
     - _RefractionMode: 0
     - _SSSAndTransmissionType: 0
     - _ShiverDirectionality: 0.5
@@ -462,9 +468,13 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 1
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 1
     - _StencilRefMV: 128
-    - _StencilWriteMask: 7
-    - _StencilWriteMaskMV: 128
+    - _StencilWriteMask: 3
+    - _StencilWriteMaskDepth: 48
+    - _StencilWriteMaskGBuffer: 51
+    - _StencilWriteMaskMV: 176
     - _Stiffness: 1
     - _SubsurfaceMask: 1
     - _SubsurfaceMask0: 1
@@ -504,6 +514,7 @@ Material:
     - _UVDetail3: 0
     - _UVEmissive: 0
     - _UseDensityMode: 0
+    - _UseEmissiveIntensity: 0
     - _UseHeightBasedBlend: 0
     - _UseMainLayerInfluence: 0
     - _VertexColorMode: 0
@@ -517,10 +528,12 @@ Material:
     - _BaseColor1: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColor2: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColor3: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColorMap0_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
