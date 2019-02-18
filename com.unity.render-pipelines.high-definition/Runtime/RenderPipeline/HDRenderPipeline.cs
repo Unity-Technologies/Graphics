@@ -1433,6 +1433,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
             m_LightLoop.NewFrame(hdCamera.frameSettings);
 
+            // Apparently scissor states can leak from editor code. As it is not used currently in HDRP (appart from VR). We disable scissor at the beginning of the frame.
+            cmd.DisableScissorRect();
+
             Resize(hdCamera);
             m_PostProcessSystem.BeginFrame(cmd, hdCamera);
 
