@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FrameSettings's LitShaderMode not restrained by supported LitShaderMode regression.
 - Fixed decals in forward
 - Fixed Lightlayers and shadow. Now Lightlayers correctly support exclusion of shadows.
+- Fixed an issue where scissor render state leaking from the editor code caused partially black rendering
 
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector	
