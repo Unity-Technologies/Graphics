@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.2.0-preview] - 2019-02-15
 
+### Changed
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
+
 ## [6.1.0-preview] - 2019-02-13
 
 ## [6.0.0-preview] - 2019-02-23
