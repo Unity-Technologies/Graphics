@@ -1,7 +1,7 @@
 {
 	"name": "com.unity.testframework.graphics",
 	"displayName":"Graphics Tests Framework",
-	"version": "4.10.0-preview",
+	"version": "4.11.0-preview",
 	"unity": "2018.3",
 	"description": "Provides test framework helpers for writing tests for graphics code, such as image comparison assertions and automatic management of reference images.",
 	"keywords": ["qa", "test", "testing", "tests", "graphics"],
