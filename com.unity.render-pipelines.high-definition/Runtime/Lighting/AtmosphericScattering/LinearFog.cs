@@ -6,6 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [VolumeComponentMenu("Environment Lighting/Linear Fog")]
     public class LinearFog : AtmosphericScattering
     {
         private readonly static int m_LinearFogParam = Shader.PropertyToID("_LinearFogParameters");
