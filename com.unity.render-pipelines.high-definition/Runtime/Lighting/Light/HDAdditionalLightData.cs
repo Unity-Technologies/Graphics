@@ -254,7 +254,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             #if ENABLE_RAYTRACING
             m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow) && lightTypeExtent == LightTypeExtent.Punctual;
             #else
-            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow);
+            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow) && !IsAreaLight(lightTypeExtent);
             #endif
 
             m_WillRenderShadows &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
@@ -762,6 +762,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case LightType.Rectangle: // Rectangle by default when light is created
                     lightData.lightUnit = LightUnit.Lumen;
                     lightData.intensity = k_DefaultAreaLightIntensity;
+                    // Disable shadows for area lights as it's not yet supported
+                    light.shadows = LightShadows.None;
                     break;
                 case LightType.Point:
                 case LightType.Spot:
