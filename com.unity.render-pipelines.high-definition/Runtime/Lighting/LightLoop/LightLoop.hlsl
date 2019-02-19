@@ -61,12 +61,6 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
 #endif
 }
 
-// Factor all test so we can disable it easily
-bool IsMatchingLightLayer(uint lightLayers, uint renderingLayers)
-{
-    return (lightLayers & renderingLayers) != 0;
-}
-
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
                 out float3 diffuseLighting,
                 out float3 specularLighting)
