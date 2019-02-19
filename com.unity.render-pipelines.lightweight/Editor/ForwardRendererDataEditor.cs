@@ -76,7 +76,8 @@ namespace UnityEditor.Rendering.LWRP
                     {
                         propRect.y += Styles.defaultLineSpace;
                         EditorGUI.BeginChangeCheck();
-                        EditorGUI.ObjectField(propRect, element, GUIContent.none);
+                        element.objectReferenceValue.name =
+                            EditorGUI.TextField(propRect, "Pass Name", element.objectReferenceValue.name);
                         if (EditorGUI.EndChangeCheck())
                         {
                             m_ElementSOs[index] = element.objectReferenceValue == null
@@ -141,7 +142,6 @@ namespace UnityEditor.Rendering.LWRP
                 var obj = list.serializedProperty.GetArrayElementAtIndex(list.index).objectReferenceValue;
                 DestroyImmediate(obj, true);
                 AssetDatabase.SaveAssets();
-                list.serializedProperty.DeleteArrayElementAtIndex(list.index);
                 --list.serializedProperty.arraySize;
                 list.serializedProperty.serializedObject.ApplyModifiedProperties();
                 m_ElementSOs.Clear();
@@ -179,7 +179,7 @@ namespace UnityEditor.Rendering.LWRP
             m_Foldouts = new SavedBool[m_RenderPasses.arraySize];
             for (var i = 0; i < m_RenderPasses.arraySize; i++)
             {
-                m_Foldouts[i] = new SavedBool($"{serializedObject.targetObject.name}.ELEMENT{i}.PassFoldout", true);
+                m_Foldouts[i] = new SavedBool($"{serializedObject.targetObject.name}.ELEMENT{i}.PassFoldout", false);
             }
         }
 
@@ -222,7 +222,7 @@ namespace UnityEditor.Rendering.LWRP
             {
                 var asset = AssetDatabase.GetAssetOrScenePath(target);
                 var obj = CreateInstance((string)pass);
-                obj.name = "Pass 01";
+                obj.name = "New " + obj.GetType().Name;
                 AssetDatabase.AddObjectToAsset(obj, asset);
                 
                 ++m_passesList.serializedProperty.arraySize;
