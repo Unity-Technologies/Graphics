@@ -316,16 +316,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             BlitTexture(cmd, source, destination, camera.viewportScale, mipLevel, bilinear);
         }
 
-        public static void BlitCameraTextureStereoDoubleWide(CommandBuffer cmd, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination)
-        {
-            var mat = GetBlitMaterial();
-            mat.SetTexture(HDShaderIDs._BlitTexture, source);
-            mat.SetFloat(HDShaderIDs._BlitMipLevel, 0f);
-            mat.SetVector(HDShaderIDs._BlitScaleBiasRt, new Vector4(1f, 1f, 0f, 0f));
-            mat.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1f, 1f, 0f, 0f));
-            cmd.Blit(source, destination, mat, 1);
-        }
-
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
         // This will set the proper viewport and UV scale.
         public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
@@ -631,6 +621,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
             // In order to simplify writing them, we don't Y-flip in the post process pass but add a final blit at the end of the frame.
             return !Debug.isDebugBuild;
+        }
+        
+        // These two convertion functions are used to store GUID assets inside materials,
+        // a unity asset GUID is exactly 16 bytes long which is also a Vector4 so by adding a
+        // Vector4 field inside the shader we can store references of an asset inside the material
+        // which is actually used to store the reference of the diffusion profile asset
+        public static Vector4 ConvertGUIDToVector4(string guid)
+        {
+            Vector4 vector;
+            byte[]  bytes = new byte[16];
+
+            for (int i = 0; i < 16; i++)
+                bytes[i] = byte.Parse(guid.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
+            
+            unsafe
+            {
+                fixed (byte * b = bytes)
+                    vector = *(Vector4 *)b;
+            }
+
+            return vector;
+        }
+
+        public static string ConvertVector4ToGUID(Vector4 vector)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            unsafe
+            {
+                byte * v = (byte *)&vector;
+                for (int i = 0; i < 16; i++)
+                    sb.Append(v[i].ToString("x2"));
+                var guidBytes = new byte[16];
+                System.Runtime.InteropServices.Marshal.Copy((IntPtr)v, guidBytes, 0, 16);
+            }
+
+            return sb.ToString();
         }
     }
 }

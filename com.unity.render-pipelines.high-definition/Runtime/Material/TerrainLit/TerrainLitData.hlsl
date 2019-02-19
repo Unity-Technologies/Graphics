@@ -58,7 +58,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = 0;
     surfaceData.thickness = 1;
-    surfaceData.diffusionProfile = 0;
+    surfaceData.diffusionProfileHash = 0;
 
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 

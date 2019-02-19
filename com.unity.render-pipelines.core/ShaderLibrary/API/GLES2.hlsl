@@ -94,23 +94,23 @@
 #define SAMPLER(samplerName)
 #define SAMPLER_CMP(samplerName)
 
-#define TEXTURE2D_ARGS(textureName, samplerName)                sampler2D textureName
-#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)          samplerCUBE textureName
-#define TEXTURECUBE_ARGS(textureName, samplerName)              samplerCUBE textureName
-#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)        samplerCUBE textureName
-#define TEXTURE3D_ARGS(textureName, samplerName)                sampler3D textureName
-#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)         SHADOW2D_TEXTURE_AND_SAMPLER textureName
-#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)   SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
-#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)       SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
+#define TEXTURE2D_PARAM(textureName, samplerName)                sampler2D textureName
+#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)          samplerCUBE textureName
+#define TEXTURECUBE_PARAM(textureName, samplerName)              samplerCUBE textureName
+#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)        samplerCUBE textureName
+#define TEXTURE3D_PARAM(textureName, samplerName)                sampler3D textureName
+#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)         SHADOW2D_TEXTURE_AND_SAMPLER textureName
+#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)   SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
+#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)       SHADOWCUBE_TEXTURE_AND_SAMPLER textureName
 
-#define TEXTURE2D_PARAM(textureName, samplerName)               textureName
-#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)         textureName
-#define TEXTURECUBE_PARAM(textureName, samplerName)             textureName
-#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)       textureName
-#define TEXTURE3D_PARAM(textureName, samplerName)               textureName
-#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)        textureName
-#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)  textureName
-#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)      textureName
+#define TEXTURE2D_ARGS(textureName, samplerName)               textureName
+#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)         textureName
+#define TEXTURECUBE_ARGS(textureName, samplerName)             textureName
+#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)       textureName
+#define TEXTURE3D_ARGS(textureName, samplerName)               textureName
+#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)        textureName
+#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)  textureName
+#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)      textureName
 
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) tex2D(textureName, coord2)
 

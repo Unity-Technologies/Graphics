@@ -135,6 +135,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDUnlitMasterNode.PositionSlotId
             },
             UseInPreview = false,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as HDUnlitMasterNode;
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(false, false, false, ref pass);
+            }
         };
 
         Pass m_PassMotionVectors = new Pass()
@@ -177,21 +183,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as HDUnlitMasterNode;
-
-                int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-                int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-
-                pass.StencilOverride = new List<string>()
-                {
-                    "// If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity",
-                    "Stencil",
-                    "{",
-                    string.Format("   WriteMask {0}", stencilWriteMaskMV),
-                    string.Format("   Ref  {0}", stencilRefMV),
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(false, false, true, ref pass);
             }
         };
 
@@ -275,7 +267,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 HDUnlitMasterNode.PositionSlotId
             },
-            UseInPreview = true
+            UseInPreview = true,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as HDUnlitMasterNode;
+                HDSubShaderUtilities.GetStencilStateForForwardUnlit(ref pass);
+            }
         };
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)

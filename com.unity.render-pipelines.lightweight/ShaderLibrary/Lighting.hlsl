@@ -356,11 +356,11 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     half4 transformCoords = half4(1, 1, 0, 0);
         
 #ifdef DIRLIGHTMAP_COMBINED
-    return SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
-        TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
+    return SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
+        TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
         lightmapUV, transformCoords, normalWS, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON)
-    return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
+    return SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
 #else
     return half3(0.0, 0.0, 0.0);
 #endif

@@ -114,14 +114,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Area Light Shadows
         public bool raytracedShadows = false;
-        [Range(2, 32)]
+        [Range(1, 32)]
         public int shadowNumSamples = 4;
         [Range(0, 4)]
         public int numAreaLightShadows = 1;
         [Range(1, 27)]
-        public int shadowFilterRadius = 10;
+        public int shadowFilterRadius = 1;
         [Range(0.001f, 9.0f)]
-        public float shadowFilterSigma = 5.0f;
+        public float shadowFilterSigma = 0.001f;
 
         void Start()
         {

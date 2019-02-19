@@ -128,7 +128,7 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 
     sssData.diffuseColor = surfaceData.baseColor;
     sssData.subsurfaceMask = surfaceData.subsurfaceMask;
-    sssData.diffusionProfile = surfaceData.diffusionProfile;
+    sssData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     return sssData;
 }
@@ -159,17 +159,19 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
     // However in practice we keep parity between deferred and forward, so we should constrain the various features.
     // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
+    
+    bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+        FillMaterialSSS(bsdfData.diffusionProfileIndex, surfaceData.subsurfaceMask, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
+        FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, bsdfData);
     }
 
     if (!HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
@@ -368,8 +370,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     float LdotV, NdotH, LdotH, NdotV, invLenLV;
     GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
 
-    // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
-	float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
@@ -377,6 +378,10 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // V_Charlie is expensive, use approx with V_Ashikhmin instead
         // float Vis = V_Charlie(NdotL, NdotV, bsdfData.roughness);
         float Vis = V_Ashikhmin(NdotL, NdotV);
+
+        // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
+        // We don't use Fresnel term for CharlieD
+        float3 F = bsdfData.fresnel0;
 
         specularLighting = F * Vis * D;
 
@@ -397,6 +402,9 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
         float DV = DV_SmithJointGGXAniso(   TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
                                             bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
+
+        // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
+        float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
         specularLighting = F * DV;
 
@@ -565,14 +573,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float iblMipLevel;
     // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-#if !defined(SHADER_API_METAL)
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
     }
     else
-#endif
     {
         iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }

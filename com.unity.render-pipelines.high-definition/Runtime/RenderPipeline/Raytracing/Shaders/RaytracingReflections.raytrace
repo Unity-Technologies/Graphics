@@ -48,7 +48,7 @@ void RayGenHalfRes()
     uint3 LaunchDim = DispatchRaysDimensions();
 
     // Compute the pixel coordinate (which matches the half res of the effect)
-    uint2 halfResCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
+    uint2 halfResCoord = uint2(LaunchIndex.x, LaunchIndex.y);
 
     // Get the scramblingValue of this pixel
     uint2 scramblingValue = ScramblingValue(halfResCoord.x, halfResCoord.y);
@@ -148,7 +148,7 @@ void RayGenHalfRes()
     }
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Compute the PDF
     float samplePDF = 1.0f;
@@ -264,7 +264,7 @@ void RayGenIntegration()
         rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, 0, 1, 0, rayDescriptor, rayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 
         // Contribute to the pixel
         finalColor += rayIntersection.color;

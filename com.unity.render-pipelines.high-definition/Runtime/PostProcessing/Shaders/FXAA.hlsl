@@ -5,7 +5,7 @@
 #define FXAA_REDUCE_MUL     (1.0 / 8.0)
 #define FXAA_REDUCE_MIN     (1.0 / 128.0)
 
-float3 Fetch(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), float2 coords, float2 offset)
+float3 Fetch(TEXTURE2D_PARAM(_InputTexture, _InputTextureSampler), float2 coords, float2 offset)
 {
     float2 uv = saturate(coords + offset) * _ScreenToTargetScale.xy;
     return SAMPLE_TEXTURE2D_LOD(_InputTexture, _InputTextureSampler, uv, 0.0).xyz;
@@ -16,7 +16,7 @@ float3 Load(TEXTURE2D(_InputTexture), int2 icoords, int idx, int idy)
     return LOAD_TEXTURE2D(_InputTexture, min(icoords + int2(idx, idy), _ScreenSize.xy - 1.0)).xyz;
 }
 
-void RunFXAA(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), inout float3 outColor, uint2 positionSS, float2 positionNDC)
+void RunFXAA(TEXTURE2D_PARAM(_InputTexture, _InputTextureSampler), inout float3 outColor, uint2 positionSS, float2 positionNDC)
 {
     {
         // Edge detection
@@ -50,10 +50,10 @@ void RunFXAA(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), inout float3 o
         dir = min((FXAA_SPAN_MAX).xx, max((-FXAA_SPAN_MAX).xx, dir * rcpDirMin)) * _ScreenSize.zw;
 
         // Blur
-        float3 rgb03 = Fetch(TEXTURE2D_PARAM(_InputTexture, _InputTextureSampler), positionNDC, dir * (0.0 / 3.0 - 0.5));
-        float3 rgb13 = Fetch(TEXTURE2D_PARAM(_InputTexture, _InputTextureSampler), positionNDC, dir * (1.0 / 3.0 - 0.5));
-        float3 rgb23 = Fetch(TEXTURE2D_PARAM(_InputTexture, _InputTextureSampler), positionNDC, dir * (2.0 / 3.0 - 0.5));
-        float3 rgb33 = Fetch(TEXTURE2D_PARAM(_InputTexture, _InputTextureSampler), positionNDC, dir * (3.0 / 3.0 - 0.5));
+        float3 rgb03 = Fetch(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), positionNDC, dir * (0.0 / 3.0 - 0.5));
+        float3 rgb13 = Fetch(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), positionNDC, dir * (1.0 / 3.0 - 0.5));
+        float3 rgb23 = Fetch(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), positionNDC, dir * (2.0 / 3.0 - 0.5));
+        float3 rgb33 = Fetch(TEXTURE2D_ARGS(_InputTexture, _InputTextureSampler), positionNDC, dir * (3.0 / 3.0 - 0.5));
 
 #if FXAA_HDR_MAPUNMAP
         rgb03 = FastTonemap(rgb03);

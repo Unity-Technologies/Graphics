@@ -120,7 +120,7 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 
     sssData.diffuseColor = surfaceData.diffuseColor;
     sssData.subsurfaceMask = surfaceData.subsurfaceMask;
-    sssData.diffusionProfile = surfaceData.diffusionProfile;
+    sssData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     return sssData;
 }
@@ -151,17 +151,19 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
     // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
+    
+    bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_SUBSURFACE_SCATTERING))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+        FillMaterialSSS(bsdfData.diffusionProfileIndex, surfaceData.subsurfaceMask, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_TRANSMISSION))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
+        FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, bsdfData);
     }
 
     // This is the hair tangent (which represents the hair strand direction, root to tip).
@@ -544,14 +546,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float iblMipLevel;
     // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-#if !defined(SHADER_API_METAL)
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
     }
     else
-#endif
     {
         iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }

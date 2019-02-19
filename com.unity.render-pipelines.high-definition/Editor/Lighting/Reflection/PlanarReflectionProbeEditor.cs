@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override bool HasPreviewGUI()
         {
-            foreach (PlanarReflectionProbe p in m_TypedTargets)
+            foreach (var p in m_TypedTargets)
             {
                 if (p.texture != null)
                     return true;
@@ -35,10 +35,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
             m_PreviewedTextures.Clear();
-            foreach (PlanarReflectionProbe p in m_TypedTargets)
-            {
+            foreach (var p in m_TypedTargets)
                 m_PreviewedTextures.Add(p.texture);
-            }
 
             var space = Vector2.one;
             var rowSize = Mathf.CeilToInt(Mathf.Sqrt(m_PreviewedTextures.Count));
@@ -100,7 +98,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
             var previewSize = new Rect();
-            foreach(PlanarReflectionProbe p in m_TypedTargets)
+            foreach(var p in m_TypedTargets)
             {
                 if (p.texture == null)
                     continue;
@@ -112,12 +110,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             // Get and reserve rect
-            Rect cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
+            var cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
 
             if (Event.current.type == EventType.Repaint)
             {
                 var c = new Rect(cameraRect);
-                foreach(PlanarReflectionProbe p in m_TypedTargets)
+                foreach(var p in m_TypedTargets)
                 {
                     if (p.texture == null)
                         continue;

@@ -83,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VolumeUpdate,
 
         // Post-processing
+        StopNaNs,
         Exposure,
         TemporalAntialiasing,
         DepthOfField,

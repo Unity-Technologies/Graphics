@@ -203,6 +203,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOSStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOSStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecals3RTStr, true);
+            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsForwardEmissive, material.GetFloat("_Emissive") == 1.0f);
             switch (blendMode)
             {
                 case Decal.MaskBlendFlags.Metal:
@@ -364,7 +365,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.indentLevel--;
 
                         EditorGUILayout.HelpBox(
-                            "Control of AO and Metal is based on option 'Enable Metal and AO properties' in HDRP Asset.\nThere is a performance cost of enabling this option.",
+                            "Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
                             MessageType.Info);
                     }
 

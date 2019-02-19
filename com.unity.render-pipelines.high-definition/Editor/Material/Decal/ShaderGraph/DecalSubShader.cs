@@ -139,6 +139,44 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         };
 
+        Pass m_PassProjectorEmissive = new Pass()
+        {
+            Name = "ShaderGraph_ProjectorEmissive",
+            LightMode = "ShaderGraph_ProjectorEmissive",
+            TemplateName = "DecalPass.template",
+            MaterialName = "Decal",
+            ShaderPassName = "SHADERPASS_FORWARD_EMISSIVE_PROJECTOR",
+
+            CullOverride = "Cull Front",
+            ZTestOverride = "ZTest Greater",
+            ZWriteOverride = "ZWrite Off",
+            BlendOverride = "Blend 0 SrcAlpha One",
+
+            ExtraDefines = new List<string>()
+            {
+            },
+
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl\""
+            },
+
+            RequiredFields = new List<string>()
+            {
+            },
+
+            PixelShaderSlots = new List<int>()
+            {
+                DecalMasterNode.EmissionSlotId
+            },
+
+            VertexShaderSlots = new List<int>()
+            {
+            },
+
+            UseInPreview = true,
+        };
+
 
         Pass m_PassMesh3RT = new Pass()
         {
@@ -283,6 +321,60 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         };
 
+
+        Pass m_PassMeshEmissive = new Pass()
+        {
+            Name = "ShaderGraph_MeshEmissive",
+            LightMode = "ShaderGraph_MeshEmissive",
+            TemplateName = "DecalPass.template",
+            MaterialName = "Decal",
+            ShaderPassName = "SHADERPASS_FORWARD_EMISSIVE_MESH",
+
+            ZTestOverride = "ZTest LEqual",
+            ZWriteOverride = "ZWrite Off",
+            BlendOverride = "Blend 0 SrcAlpha One",
+
+            ExtraDefines = new List<string>()
+            {
+            },
+
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl\""
+            },
+
+            RequiredFields = new List<string>()
+            {
+                "AttributesMesh.normalOS",
+                "AttributesMesh.tangentOS",
+                "AttributesMesh.uv0",
+
+                "FragInputs.worldToTangent",
+                "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
+            },
+
+            PixelShaderSlots = new List<int>()
+            {
+                DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
+                DecalMasterNode.NormalSlotId,
+                DecalMasterNode.NormaOpacitySlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.MAOSOpacitySlotId,
+                DecalMasterNode.EmissionSlotId
+            },
+
+            VertexShaderSlots = new List<int>()
+            {
+            },
+
+            UseInPreview = true,
+        };
+
+
         private static string[] m_ColorMasks = new string[8]
         {
             "ColorMask 0 2 ColorMask 0 3",     // nothing
@@ -312,6 +404,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.affectsNormal.isOn)
             {
                 activeFields.Add("Material.AffectsNormal");
+            }
+            if (masterNode.affectsEmission.isOn)
+            {
+                activeFields.Add("Material.AffectsEmission");
             }
             return activeFields;
         }
@@ -365,8 +461,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 GenerateShaderPass(masterNode, m_PassProjector3RT, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(masterNode, m_PassProjector4RT, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassProjectorEmissive, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(masterNode, m_PassMesh3RT, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(masterNode, m_PassMesh4RT, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassMeshEmissive, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

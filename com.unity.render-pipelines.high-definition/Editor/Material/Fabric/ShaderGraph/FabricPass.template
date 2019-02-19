@@ -182,7 +182,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
         $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion =          surfaceDescription.Occlusion;
         $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
-        $SurfaceDescription.DiffusionProfile:           surfaceData.diffusionProfile =          surfaceDescription.DiffusionProfile;
+        $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
@@ -193,6 +193,7 @@ $include("SharedCode.template.hlsl")
         // Transform the preprocess macro into a material feature (note that silk flag is deduced from the abscence of this one)
 #ifdef _MATERIAL_FEATURE_COTTON_WOOL
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
+        $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      lerp(0.0, 0.6, surfaceDescription.Smoothness);
 #endif
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING

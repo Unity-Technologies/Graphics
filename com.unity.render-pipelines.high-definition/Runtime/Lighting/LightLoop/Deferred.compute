@@ -70,9 +70,7 @@
 // deferred opaque always use FPTL
 #define USE_FPTL_LIGHTLIST 1
 
-//#pragma enable_d3d11_debug_symbols
-
-//#define ENABLE_RAYTRACING
+// #pragma enable_d3d11_debug_symbols
 
 //-------------------------------------------------------------------------------------
 // Include
@@ -90,10 +88,6 @@
 
 CBUFFER_START(UnityDeferredCompute)
     uint g_TileListOffset;
-    #ifdef ENABLE_RAYTRACING
-    // Uniform variables that defines if we shall be using the shadow area texture or not
-    int _RaytracedAreaShadow;
-    #endif
 CBUFFER_END
 
 #ifdef DEBUG_DISPLAY

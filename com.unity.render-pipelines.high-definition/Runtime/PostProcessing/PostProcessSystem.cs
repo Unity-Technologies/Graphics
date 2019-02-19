@@ -250,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, bool flipY)
         {
-            HDDynamicResolutionHandler dynResHandler = HDDynamicResolutionHandler.instance;
+            var dynResHandler = HDDynamicResolutionHandler.instance;
 
             // We cleanup the pool at the beginning of the render function as resource deletion is immediate while
             // graphics command are deferred. If we delete at the end of the frame, the gfx commands will try to access
@@ -291,16 +291,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    // TODO: Do we want user effects before post?
+                    // Optional NaN killer before post-processing kicks in
+                    bool stopNaNs = camera.stopNaNs;
 
-                    // Start with exposure - will be applied in the next frame
-                    if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                #if UNITY_EDITOR
+                    if (camera.camera.cameraType == CameraType.SceneView)
+                        stopNaNs = HDRenderPipelinePreferences.sceneViewStopNaNs;
+                #endif
+
+                    if (stopNaNs)
                     {
-                        using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
+                        using (new ProfilingSample(cmd, "Stop NaNs", CustomSamplerId.StopNaNs.GetSampler()))
                         {
-                            DoDynamicExposure(cmd, camera, colorBuffer, lightingBuffer);
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            DoStopNaNs(cmd, camera, source, destination);
+                            PoolSource(ref source, destination);
                         }
                     }
+                }
+
+                // Dynamic exposure - will be applied in the next frame
+                // Not considered as a post-process so it's not affected by its enabled state
+                if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                {
+                    using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
+                    {
+                        DoDynamicExposure(cmd, camera, source, lightingBuffer);
+                    }
+                }
+
+                if (m_PostProcessEnabled)
+                {
+                    // TODO: Do we want user effects before post?
 
                     // Temporal anti-aliasing goes first
                     bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
@@ -420,8 +442,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Final pass
                 using (new ProfilingSample(cmd, "Final Pass", CustomSamplerId.FinalPost.GetSampler()))
                 {
+                    // XRTODO: remove once SPI is working
+                    bool restoreSinglePass = false;
+                    if (camera.camera.stereoEnabled && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
+                    {
+                        cmd.SetSinglePassStereo(SinglePassStereoMode.None);
+                        restoreSinglePass = true;
+                    }
+
                     DoFinalPass(cmd, camera, blueNoise, source, afterPostProcessTexture, finalRT, flipY);
                     PoolSource(ref source, null);
+
+                    // XRTODO: remove once SPI is working
+                    if (restoreSinglePass)
+                        cmd.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
                 }
             }
 
@@ -468,6 +502,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cb = new ComputeBuffer(size, stride, type);
             }
         }
+
+        #region NaN Killer
+
+        void DoStopNaNs(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        {
+            var cs = m_Resources.shaders.nanKillerCS;
+            int kernel = cs.FindKernel("KMain");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+        }
+
+        #endregion
 
         #region Exposure
 
@@ -2078,15 +2125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, Texture2D.blackTexture);
             }
 
-            // This assumes that for now, posts are always off when double wide is enabled
-            if (camera.camera.stereoEnabled && (XRGraphics.eyeTextureDesc.dimension == TextureDimension.Tex2D))
-            {
-                HDUtils.BlitCameraTextureStereoDoubleWide(cmd, source, destination);
-            }
-            else
-            {
-                HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
-            }
+            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
         }
 
         #endregion

@@ -5,6 +5,16 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
+    public enum MaterialId
+    {
+        LitSSS = 0,
+        LitStandard = 1,
+        LitAniso = 2,
+        LitIridescence = 3,
+        LitSpecular = 4,
+        LitTranslucent = 5
+    };
+
     // A Material can be authored from the shader graph or by hand. When written by hand we need to provide an inspector.
     // Such a Material will share some properties between it various variant (shader graph variant or hand authored variant).
     // This is the purpose of BaseLitGUI. It contain all properties that are common to all Material based on Lit template.
@@ -89,16 +99,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Tessellation
         }
 
-        public enum MaterialId
-        {
-            LitSSS = 0,
-            LitStandard = 1,
-            LitAniso = 2,
-            LitIridescence = 3,
-            LitSpecular = 4,
-            LitTranslucent = 5
-        };
-
         public enum HeightmapParametrization
         {
             MinMax = 0,
@@ -119,6 +119,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected const string kStencilRef = "_StencilRef";
         protected const string kStencilWriteMask = "_StencilWriteMask";
+        protected const string kStencilRefDepth = "_StencilRefDepth";
+        protected const string kStencilWriteMaskDepth = "_StencilWriteMaskDepth";
+        protected const string kStencilRefGBuffer = "_StencilRefGBuffer";
+        protected const string kStencilWriteMaskGBuffer = "_StencilWriteMaskGBuffer";
         protected const string kStencilRefMV = "_StencilRefMV";
         protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
 
@@ -274,7 +278,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
 
-                if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
+                if ((int)materialID.floatValue == (int)MaterialId.LitSSS)
                 {
                     EditorGUI.indentLevel++;
                     m_MaterialEditor.ShaderProperty(transmissionEnable, StylesBaseLit.transmissionEnableText);
@@ -485,25 +489,54 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            // Set the reference value for the stencil test.
-            int stencilRef = (int)StencilLightingUsage.RegularLighting;
+            // Stencil usage rules:
+            // DoesntReceiveSSR and DecalsForwardOutputNormalBuffer need to be tagged during depth prepass
+            // LightingMask need to be tagged during either GBuffer or Forward pass
+            // ObjectVelocity need to be tagged in velocity pass.
+            // As velocity pass can be use as a replacement of depth prepass it also need to have DoesntReceiveSSR and DecalsForwardOutputNormalBuffer
+            // As GBuffer pass can have no depth prepass, it also need to have DoesntReceiveSSR and DecalsForwardOutputNormalBuffer
+            // Object velocity is always render after a full depth buffer (if there is no depth prepass for GBuffer all object motion vectors are render after GBuffer)
+            // so we have a guarantee than when we write object velocity no other object will be draw on top (and so would have require to overwrite velocity).
+            // Final combination is:
+            // Prepass: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer
+            // Motion vectors: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer, ObjectVelocity
+            // GBuffer: LightingMask, DecalsForwardOutputNormalBuffer, ObjectVelocity
+            // Forward: LightingMask
+
+            int stencilRef = (int)StencilLightingUsage.RegularLighting; // Forward case
             int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            if (material.HasProperty(kMaterialID) && (int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
+            int stencilRefDepth = 0;
+            int stencilWriteMaskDepth = 0;
+            int stencilRefGBuffer = (int)StencilLightingUsage.RegularLighting;
+            int stencilWriteMaskGBuffer = (int)HDRenderPipeline.StencilBitMask.LightingMask;
+            int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
+            int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
+
+            if (material.HasProperty(kMaterialID) && (int)material.GetFloat(kMaterialID) == (int)MaterialId.LitSSS)
             {
-                stencilRef = (int)StencilLightingUsage.SplitLighting;
+                stencilRefGBuffer = stencilRef = (int)StencilLightingUsage.SplitLighting;
             }
 
-            if(material.HasProperty(kReceivesSSR) && material.GetInt(kReceivesSSR) == 0)
+            if (material.HasProperty(kReceivesSSR) && material.GetInt(kReceivesSSR) == 0)
             {
-                stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-                stencilRef |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+                stencilRefDepth |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+                stencilRefGBuffer |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+                stencilRefMV |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
             }
+
+            stencilWriteMaskDepth |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+            stencilWriteMaskGBuffer |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+            stencilWriteMaskMV |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
 
             // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
             material.SetInt(kStencilRef, stencilRef);
             material.SetInt(kStencilWriteMask, stencilWriteMask);
-            material.SetInt(kStencilRefMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
-            material.SetInt(kStencilWriteMaskMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
+            material.SetInt(kStencilRefDepth, stencilRefDepth);
+            material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
+            material.SetInt(kStencilRefGBuffer, stencilRefGBuffer);
+            material.SetInt(kStencilWriteMaskGBuffer, stencilWriteMaskGBuffer);
+            material.SetInt(kStencilRefMV, stencilRefMV);
+            material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
 
             if (material.HasProperty(kDisplacementMode))
             {

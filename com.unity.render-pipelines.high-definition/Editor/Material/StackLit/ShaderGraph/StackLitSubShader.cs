@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 StackLitMasterNode.TangentSlotId,
                 StackLitMasterNode.SubsurfaceMaskSlotId,
                 StackLitMasterNode.ThicknessSlotId,
-                StackLitMasterNode.DiffusionProfileSlotId,
+                StackLitMasterNode.DiffusionProfileHashSlotId,
                 StackLitMasterNode.IridescenceMaskSlotId,
                 StackLitMasterNode.IridescenceThicknessSlotId,
                 StackLitMasterNode.SpecularColorSlotId,
@@ -182,26 +182,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as StackLitMasterNode;
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(masterNode.receiveDecals.isOn, masterNode.receiveSSR.isOn, false, ref pass);
 
-                int stencilDepthPrepassWriteMask = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer : 0;
-                int stencilDepthPrepassRef = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer : 0;
-                stencilDepthPrepassWriteMask |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-                stencilDepthPrepassRef |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-
-                if (stencilDepthPrepassWriteMask != 0)
-                {
-                    pass.StencilOverride = new List<string>()
-                    {
-                        "// Stencil setup",
-                        "Stencil",
-                        "{",
-                        string.Format("   WriteMask {0}", stencilDepthPrepassWriteMask),
-                        string.Format("   Ref  {0}", stencilDepthPrepassRef),
-                        "   Comp Always",
-                        "   Pass Replace",
-                        "}"
-                    };
-                }
                 // See comments in:
                 AddPixelShaderSlotsForWriteNormalBufferPasses(masterNode, ref pass);
             }
@@ -253,21 +235,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as StackLitMasterNode;
-
-                int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-                int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-
-                pass.StencilOverride = new List<string>()
-                {
-                    "// If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity",
-                    "Stencil",
-                    "{",
-                    string.Format("   WriteMask {0}", stencilWriteMaskMV),
-                    string.Format("   Ref  {0}", stencilRefMV),
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(masterNode.receiveDecals.isOn, masterNode.receiveSSR.isOn, true, ref pass);
 
                 // For WRITE_NORMAL_BUFFER, see comments for pass m_PassDepthForwardOnly and in:
                 AddPixelShaderSlotsForWriteNormalBufferPasses(masterNode, ref pass);
@@ -366,7 +334,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 StackLitMasterNode.TangentSlotId,
                 StackLitMasterNode.SubsurfaceMaskSlotId,
                 StackLitMasterNode.ThicknessSlotId,
-                StackLitMasterNode.DiffusionProfileSlotId,
+                StackLitMasterNode.DiffusionProfileHashSlotId,
                 StackLitMasterNode.IridescenceMaskSlotId,
                 StackLitMasterNode.IridescenceThicknessSlotId,
                 StackLitMasterNode.SpecularColorSlotId,
@@ -403,17 +371,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as StackLitMasterNode;
-                pass.StencilOverride = new List<string>()
-                {
-                    "// Stencil setup",
-                    "Stencil",
-                    "{",
-                    string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
-                    string.Format("   Ref  {0}", masterNode.RequiresSplitLighting() ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting),
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
+                HDSubShaderUtilities.GetStencilStateForForward(masterNode.RequiresSplitLighting(), ref pass);
 
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
 
@@ -537,7 +495,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // 
         // ok masterNode.SubsurfaceMaskSlotId
         // ok masterNode.ThicknessSlotId
-        // ok masterNode.DiffusionProfileSlotId
+        // ok masterNode.DiffusionProfileHashSlotId
         // ok masterNode.IridescenceMaskSlotId
         // ok masterNode.IridescenceThicknessSlotId
         // ok masterNode.SpecularColorSlotId

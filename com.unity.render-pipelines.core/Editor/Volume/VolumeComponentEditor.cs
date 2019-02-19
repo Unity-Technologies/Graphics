@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering
 
         public bool isInAdvancedMode => m_AdvancedMode != null && m_AdvancedMode.boolValue;
 
-        Editor m_Inspector;
+        protected Editor m_Inspector;
         List<SerializedDataParameter> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering
 
         public virtual string GetDisplayTitle()
         {
-            return ObjectNames.NicifyVariableName(target.GetType().Name);
+            return target.displayName == "" ? ObjectNames.NicifyVariableName(target.GetType().Name) : target.displayName;
         }
 
         void TopRowFields()

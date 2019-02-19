@@ -4,7 +4,44 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.2.0-preview] - 2019-XX-XX
+## [6.3.0-preview] - 2019-02-18
+
+### Added
+- Added emissive property for shader graph decals
+- Added a diffusion profile override volume so the list of diffusion profile assets to use can be chanaged without affecting the HDRP asset
+- Added a "Stop NaNs" option on cameras and in the Scene View preferences.
+- Added metric display option in HDShadowSettings and improve clamping
+
+### Changed
+- Diffusion profiles are now limited to one per asset and can be referenced in materials, shader graphs and vfx graphs. Materials will be upgraded automatically except if they are using a shader graph, in this case it will display an error message.
+
+### Fixed
+- Fixed decals in forward
+- Fixed issue with stencil not correctly setup for various master node and shader for the depth pass, motion vector pass and GBuffer/Forward pass
+- Fixed SRP batcher and metal
+
+### Fixed
+- Fixed an issue where scissor render state leaking from the editor code caused partially black rendering
+
+## [6.2.0-preview] - 2019-02-15
+
+### Added
+- Added help box listing feature supported in a given HDRenderPipelineAsset alongs with the drawbacks implied.
+- Added cascade visualizer, supporting disabled handles when not overriding.
+
+### Fixed
+- Fixed post processing with stereo double-wide
+- Fixed issue with Metal: Use sign bit to find the cache type instead of lowest bit.
+- Fixed invalid state when creating a planar reflection for the first time
+- Fix FrameSettings's LitShaderMode not restrained by supported LitShaderMode regression.
+
+### Changed
+- The default value roughness value for the clearcoat has been changed from 0.03 to 0.01
+- Update default value of based color for master node
+- Update Fabric Charlie Sheen lighting model - Remove Fresnel component that wasn't part of initial model + Remap smoothness to [0.0 - 0.6] range for more artist friendly parameter
+
+### Changed
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
 
 ## [6.1.0-preview] - 2019-02-13
 
@@ -19,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Removed unsupported Clear Depth checkbox in Camera inspector
+- Updated the toggle for advanced mode in inspectors.
 
 ## [6.0.0-preview] - 2019-02-23
 
@@ -135,9 +173,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with debug material mode not doing alpha test
 - Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan
 - Fixed pre-exposure incorrectly apply to preview
-- Fixed issue with duplicate 3D texture in 3D texture altas of volumetric
+- Fixed issue with duplicate 3D texture in 3D texture altas of volumetric?
 - Fixed Camera rendering order (base on the depth parameter)
+- Fixed shader graph decals not being cropped by gizmo
 - Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan.
+
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
@@ -168,6 +208,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rearrange FetchDepth functions to prepare for stereo-instancing
 - Remove unused _ComputeEyeIndex
 - Updated HDRenderPipelineAsset inspector
+- Re-enable SRP batcher for metal
 
 ## [5.2.0-preview] - 2018-11-27
 

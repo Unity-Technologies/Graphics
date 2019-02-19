@@ -165,7 +165,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             #endif
         }
 
-        if (i < last ) // GPULIGHTTYPE_RECTANGLE
+        while (i < last ) // GPULIGHTTYPE_RECTANGLE
         {
             lightData.lightType = GPULIGHTTYPE_RECTANGLE; // Enforce constant propagation
 
