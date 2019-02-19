@@ -7,6 +7,14 @@
 
 #define DEFAULT_SPECULAR_VALUE 0.04
 
+// Following constant are used when we use clear coat properties that can't be store in the Gbuffer (with the Lit shader)
+#define CLEAR_COAT_IOR 1.5
+#define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR) // IETA is the inverse eta which is the ratio of IOR of two interface
+#define CLEAR_COAT_F0 0.04 // IORToFresnel0(CLEAR_COAT_IOR)
+#define CLEAR_COAT_ROUGHNESS 0.01
+#define CLEAR_COAT_PERCEPTUAL_SMOOTHNESS RoughnessToPerceptualSmoothness(CLEAR_COAT_ROUGHNESS)
+#define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
+
 //-----------------------------------------------------------------------------
 // Helper functions for roughness
 //-----------------------------------------------------------------------------
