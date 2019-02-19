@@ -1,10 +1,14 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using UnityEditor;
+using System.Reflection;
 using UnityEditorInternal;
-using UnityEditor.Rendering;
+using UnityEngine;
+using UnityEngine.Rendering.LWRP;
+using Object = UnityEngine.Object;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEditor.Rendering.LWRP
 {
     [CustomEditor(typeof(ForwardRendererData))]
     public class ForwardRendererDataEditor : Editor
@@ -32,7 +36,7 @@ namespace UnityEngine.Rendering.LWRP
         
         private ReorderableList m_passesList;
         List<SerializedObject> m_ElementSOs = new List<SerializedObject>();
-
+        
         SerializedObject GetElementSO(int index)
         {
             if (m_ElementSOs.Count != m_RenderPasses.arraySize || m_ElementSOs[index] == null)
@@ -134,8 +138,12 @@ namespace UnityEngine.Rendering.LWRP
             m_passesList.onAddCallback += AddPass;
             m_passesList.onRemoveCallback += list =>
             {
-                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
-                m_RenderPasses.serializedObject.ApplyModifiedProperties();
+                var obj = list.serializedProperty.GetArrayElementAtIndex(list.index).objectReferenceValue;
+                DestroyImmediate(obj, true);
+                AssetDatabase.SaveAssets();
+                list.serializedProperty.DeleteArrayElementAtIndex(list.index);
+                --list.serializedProperty.arraySize;
+                list.serializedProperty.serializedObject.ApplyModifiedProperties();
                 m_ElementSOs.Clear();
             };
             m_passesList.onReorderCallbackWithDetails += ReorderPass;
@@ -177,15 +185,21 @@ namespace UnityEngine.Rendering.LWRP
 
         private void AddPass(ReorderableList list)
         {
-            if (list.serializedProperty != null)
+            var menu = new GenericMenu();
+
+            foreach (Type type in 
+                AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())
+                    .Where(myType => myType.IsClass &&
+                                     !myType.IsAbstract &&
+                                     myType.IsSubclassOf(typeof(ScriptableRendererFeature))))
             {
-                ++list.serializedProperty.arraySize;
-                list.index = list.serializedProperty.arraySize - 1;
-                list.serializedProperty.serializedObject.ApplyModifiedProperties();
+                var path = type.Namespace;
+                if (path == typeof(ScriptableRendererFeature).Namespace)
+                    path = path.Split('.').Last();
+                path = path.Replace('.', '/');
+                menu.AddItem(new GUIContent(path + "/" + type.Name), false, clickHandler, type.Name);
             }
-            m_ElementSOs.Clear();
-            CreateFoldoutBools();
-            EditorUtility.SetDirty(target);
+            menu.ShowAsContext();
         }
         
         private void ReorderPass(ReorderableList list, int oldIndex, int newIndex)
@@ -198,6 +212,29 @@ namespace UnityEngine.Rendering.LWRP
             var newHeaderState = m_Foldouts[newIndex].value;
             m_Foldouts[oldIndex].value = newHeaderState;
             m_Foldouts[newIndex].value = oldHeaderState;
+        }
+        
+        private void clickHandler(object pass)
+        {
+            serializedObject.ApplyModifiedProperties();
+            
+            if (m_passesList.serializedProperty != null)
+            {
+                var asset = AssetDatabase.GetAssetOrScenePath(target);
+                var obj = CreateInstance((string)pass);
+                obj.name = "Pass 01";
+                AssetDatabase.AddObjectToAsset(obj, asset);
+                
+                ++m_passesList.serializedProperty.arraySize;
+                m_passesList.index = m_passesList.serializedProperty.arraySize - 1;
+                m_passesList.serializedProperty.serializedObject.ApplyModifiedProperties();
+                m_passesList.serializedProperty.GetArrayElementAtIndex(m_passesList.index).objectReferenceValue = obj;
+                m_passesList.serializedProperty.serializedObject.ApplyModifiedProperties();
+                AssetDatabase.SaveAssets();
+            }
+            m_ElementSOs.Clear();
+            CreateFoldoutBools();
+            EditorUtility.SetDirty(target);
         }
     }
 }
