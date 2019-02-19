@@ -52,7 +52,7 @@ void GetPreIntegratedFGDCharlieAndFabricLambert(float NdotV, float perceptualRou
     // Denormalize the value
     preFGD.y = preFGD.y / (1 - preFGD.y);
 
-    specularFGD = lerp(preFGD.xxx, preFGD.yyy, fresnel0);
+    specularFGD = preFGD.yyy * fresnel0;
     
     // z = FabricLambert
     diffuseFGD = preFGD.z;

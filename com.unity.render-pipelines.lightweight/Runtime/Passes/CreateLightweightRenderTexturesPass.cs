@@ -1,8 +1,6 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Generate rendering attachments that can be used for rendering.
@@ -14,12 +12,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     /// </summary>
     internal class CreateLightweightRenderTexturesPass : ScriptableRenderPass
     {
-        const string k_CreateRenderTexturesTag = "Create Render Textures";
         const int k_DepthStencilBufferBits = 32;
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTargetHandle depthAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
-        private SampleCount samples { get; set; }
+        private int samples { get; set; }
+
+        public CreateLightweightRenderTexturesPass(RenderPassEvent evt)
+        {
+            renderPassEvent = evt;
+            profilerTag = "Create Render Textures";
+        }
 
         /// <summary>
         /// Configure the pass
@@ -28,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle colorAttachmentHandle,
             RenderTargetHandle depthAttachmentHandle,
-            SampleCount samples)
+            int samples)
         {
             this.colorAttachmentHandle = colorAttachmentHandle;
             this.depthAttachmentHandle = depthAttachmentHandle;
@@ -37,12 +40,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-            
-            CommandBuffer cmd = CommandBufferPool.Get(k_CreateRenderTexturesTag);
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
                 bool useDepthRenderBuffer = depthAttachmentHandle == RenderTargetHandle.CameraTarget;
@@ -56,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 var depthDescriptor = descriptor;
                 depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                 depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
-                depthDescriptor.bindMS = (int)samples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures!=0);
+                depthDescriptor.bindMS = samples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures!=0);
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, depthDescriptor, FilterMode.Point);
             }
 

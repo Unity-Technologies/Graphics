@@ -1,8 +1,6 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Render all objects that have a 'DepthOnly' pass into the given depth buffer.
@@ -12,23 +10,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     /// </summary>
     internal class DepthOnlyPass : ScriptableRenderPass
     {
-        const string k_DepthPrepassTag = "Depth Prepass";
-
         int kDepthBufferBits = 32;
 
         private RenderTargetHandle depthAttachmentHandle { get; set; }
         internal RenderTextureDescriptor descriptor { get; private set; }
-        private FilteringSettings opaqueFilterSettings { get; set; }
+
+        FilteringSettings m_FilteringSettings;
 
         /// <summary>
         /// Create the DepthOnlyPass
         /// </summary>
-        public DepthOnlyPass()
+        public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange)
         {
             RegisterShaderPassName("DepthOnly");
-            opaqueFilterSettings = new FilteringSettings(RenderQueueRange.opaque);
+            m_FilteringSettings = new FilteringSettings(renderQueueRange);
+            renderPassEvent = evt;
+            profilerTag = "Depth Prepass";
         }
-        
+
         /// <summary>
         /// Configure the pass
         /// </summary>
@@ -42,18 +41,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;
-            
+
             descriptor = baseDescriptor;
         }
 
-        /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override bool ShouldExecute(ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-            
-            CommandBuffer cmd = CommandBufferPool.Get(k_DepthPrepassTag);
-            using (new ProfilingSample(cmd, k_DepthPrepassTag))
+            // Depth prepass is generated in the following cases:
+            // - We resolve shadows in screen space
+            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
+            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
+            return renderingData.cameraData.isSceneViewCamera ||
+                (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
+        }
+
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            using (new ProfilingSample(cmd, profilerTag))
             {
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
                 SetRenderTarget(
@@ -68,19 +74,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                m_FilteringSettings.layerMask = renderingData.cameraData.camera.cullingMask;
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(renderingData.cameraData.camera, sortFlags, PerObjectData.None, renderingData.supportsDynamicBatching);
-                var filteringSettings = opaqueFilterSettings;
-                
-                if (renderingData.cameraData.isStereoEnabled)
-                {
-                    Camera camera = renderingData.cameraData.camera;
-                    context.StartMultiEye(camera);
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
-                    context.StopMultiEye(camera);
-                }
-                else
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
+                var drawSettings = CreateDrawingSettings(ref renderingData, sortFlags);
+                drawSettings.perObjectData = PerObjectData.None;
+
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -91,12 +90,26 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
+
             if (depthAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(depthAttachmentHandle.id);
                 depthAttachmentHandle = RenderTargetHandle.CameraTarget;
             }
+        }
+
+        bool CanCopyDepth(ref CameraData cameraData)
+        {
+            bool msaaEnabledForCamera = cameraData.cameraTargetDescriptor.msaaSamples > 1;
+            bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
+            bool supportsDepthTarget = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
+            bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
+
+            // TODO:  We don't have support to highp Texture2DMS currently and this breaks depth precision.
+            // currently disabling it until shader changes kick in.
+            //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
+            bool msaaDepthResolve = false;
+            return supportsDepthCopy || msaaDepthResolve;
         }
     }
 }

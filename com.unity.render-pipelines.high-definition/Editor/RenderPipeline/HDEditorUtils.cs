@@ -162,8 +162,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return bounds;
             };
         }
-
-
+        
         /// <summary>
         /// Give a human readable string representing the inputed weight given in byte.
         /// </summary>
@@ -188,6 +187,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 float res = weightInByte / 1000000000f;
                 return res.ToString("n2") + " GB";
             }
+        }
+    }
+
+    public static partial class SerializedPropertyExtention
+    {
+        /// <summary>
+        /// Helper to get an enum value from a SerializedProperty
+        /// </summary>
+        public static T GetEnumValue<T>(this SerializedProperty property)
+        {
+            return (T)System.Enum.GetValues(typeof(T)).GetValue(property.enumValueIndex);
+        }
+
+        /// <summary>
+        /// Helper to get an enum name from a SerializedProperty
+        /// </summary>
+        public static T GetEnumName<T>(this SerializedProperty property)
+        {
+            return (T)System.Enum.GetNames(typeof(T)).GetValue(property.enumValueIndex);
         }
     }
 }

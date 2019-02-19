@@ -4,8 +4,6 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
-using UnityEngine.Experimental.Rendering.LWRP;
-
 namespace UnityEngine.Rendering.LWRP
 {
     public enum ShadowCascadesOption
@@ -78,13 +76,13 @@ namespace UnityEngine.Rendering.LWRP
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
-        internal IRendererSetup m_RendererSetup;
+        internal ScriptableRenderer m_Renderer;
 
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
 
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
-        [SerializeField] internal IRendererData m_RendererData = null;
+        [SerializeField] internal ScriptableRendererData m_RendererData = null;
         
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
@@ -147,7 +145,7 @@ namespace UnityEngine.Rendering.LWRP
             return instance;
         }
 
-        public IRendererData LoadBuiltinRendererData()
+        public ScriptableRendererData LoadBuiltinRendererData()
         {
             switch (m_RendererType)
             {
@@ -229,7 +227,7 @@ namespace UnityEngine.Rendering.LWRP
                 LoadBuiltinRendererData();
 #endif
 
-            m_RendererSetup = m_RendererData.Create();
+            m_Renderer = m_RendererData.Create();
         }
 
         Material GetMaterial(DefaultMaterialType materialType)
@@ -258,14 +256,14 @@ namespace UnityEngine.Rendering.LWRP
 #endif
         }
 
-        public IRendererSetup rendererSetup
+        public ScriptableRenderer renderer
         {
             get
             {
-                if (m_RendererSetup == null && m_RendererData != null)
-                    m_RendererSetup = m_RendererData.Create();
+                if (m_Renderer == null && m_RendererData != null)
+                    m_Renderer = m_RendererData.Create();
 
-                return m_RendererSetup;
+                return m_Renderer;
             }
         }
 
@@ -289,7 +287,6 @@ namespace UnityEngine.Rendering.LWRP
         public Downsampling opaqueDownsampling
         {
             get { return m_OpaqueDownsampling; }
-            set { m_OpaqueDownsampling = value; }
         }
 
         public bool supportsHDR
@@ -529,7 +526,7 @@ namespace UnityEngine.Rendering.LWRP
 
         int ValidatePerObjectLights(int value)
         {
-            return System.Math.Max(0, System.Math.Min(value, LightweightRenderPipeline.maxPerObjectLightCount));
+            return System.Math.Max(0, System.Math.Min(value, LightweightRenderPipeline.maxPerObjectLights));
         }
 
         float ValidateRenderScale(float value)

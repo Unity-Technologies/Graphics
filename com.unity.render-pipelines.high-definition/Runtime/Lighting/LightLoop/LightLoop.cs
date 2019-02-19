@@ -195,13 +195,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbeCache m_ReflectionProbeCache;
 
         // Structure for cookies used by directional and spotlights
+        public TextureCache2D cookieTexArray { get { return m_CookieTexArray; } }
         TextureCache2D m_CookieTexArray;
 
         // Structure for cookies used by point lights
+        public TextureCacheCubemap cubeCookieTexArray { get { return m_CubeCookieTexArray; } }
         TextureCacheCubemap m_CubeCookieTexArray;
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
 
         // Structure for cookies used by area lights
+        public LTCAreaLightCookieManager areaLightCookieManager { get { return m_AreaLightCookieManager; } }
         LTCAreaLightCookieManager m_AreaLightCookieManager;
 
         // For now we don't use shadow cascade borders.
@@ -1465,7 +1468,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var influenceToWorld = probe.influenceToWorld;
 
             // 31 bits index, 1 bit cache type
-            var envIndex = -1;
+            var envIndex = int.MinValue;
             switch (probe)
             {
                 case PlanarReflectionProbe planarProbe:
@@ -1474,7 +1477,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             break;
 
                         var fetchIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
-                        envIndex = (fetchIndex << 1) | (int)EnvCacheType.Texture2D;
+                        // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
+                        envIndex = fetchIndex == -1 ? int.MinValue : -(fetchIndex + 1);
 
                         var renderData = planarProbe.renderData;
                         var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
@@ -1492,24 +1496,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_Env2DCaptureVP[fetchIndex] = vp;
                         break;
                     }
-                case HDAdditionalReflectionData cubeProbe:
+                case HDAdditionalReflectionData _:
                     {
                         envIndex = m_ReflectionProbeCache.FetchSlice(cmd, probe.texture);
-                        envIndex = envIndex << 1 | (int)EnvCacheType.Cubemap;
+                        // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
+                        envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
 
                         // Calculate settings to use for the probe
                         var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
                         HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
                             probe.settings, probePositionSettings,
-                            out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
+                            out _, out var cameraPositionSettings
                         );
                         capturePosition = cameraPositionSettings.position;
 
                         break;
                     }
             }
-            // -1 means that the texture is not ready yet (ie not convolved/compressed yet)
-            if (envIndex == -1)
+            // int.MinValue means that the texture is not ready yet (ie not convolved/compressed yet)
+            if (envIndex == int.MinValue)
                 return false;
 
             // Build light data
@@ -1524,12 +1529,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (influence.envShape)
             {
                 case EnvShapeType.Box:
-            envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
-            envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
-            envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
-            envLightData.blendDistanceNegative = influence.boxBlendDistanceNegative;
-            envLightData.boxSideFadePositive = influence.boxSideFadePositive;
-            envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
+                    envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
+                    envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
+                    envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
+                    envLightData.blendDistanceNegative = influence.boxBlendDistanceNegative;
+                    envLightData.boxSideFadePositive = influence.boxSideFadePositive;
+                    envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
                     break;
                 case EnvShapeType.Sphere:
                     envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;

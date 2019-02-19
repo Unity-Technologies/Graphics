@@ -30,27 +30,26 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
         specularLighting = float3(0.0, 0.0, 0.0);
 
         const float3 s_CascadeColors[] = {
-            float3(1.0, 0.0, 0.0),
-            float3(0.0, 1.0, 0.0),
-            float3(0.0, 0.0, 1.0),
-            float3(1.0, 1.0, 0.0),
+            float3(0.5, 0.5, 0.7),
+            float3(0.5, 0.7, 0.5),
+            float3(0.7, 0.7, 0.5),
+            float3(0.7, 0.5, 0.5),
             float3(1.0, 1.0, 1.0)
         };
 
         diffuseLighting = float3(1.0, 1.0, 1.0);
-        if (_DirectionalLightCount > 0)
+        if (_DirectionalShadowIndex >= 0)
         {
-            int   shadowIdx = _DirectionalShadowIndex;
-            float shadow    = lightLoopContext.shadowValue; // Not affected by the shadow dimmer
-
-            uint  payloadOffset;
             real  alpha;
             int cascadeCount;
 
-            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, shadowIdx, positionWS, alpha, cascadeCount);
+            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, _DirectionalShadowIndex, positionWS, alpha, cascadeCount);
             if (shadowSplitIndex >= 0)
             {
-                diffuseLighting = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex+1], alpha) * shadow;
+                float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
+                // We can't mix with the lighting as it can be HDR and it is hard to find a good lerp operation for this case that is still compliant with
+                // exposure. So disable exposure instead and replace color.
+                diffuseLighting = cascadeShadowColor;
             }
 
         }

@@ -1,102 +1,94 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.LWRP;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering;
 
-public class CameraCallbackTests : MonoBehaviour
-	, IBeforeRender
-	, IAfterOpaquePass
-	, IAfterOpaquePostProcess
-	, IAfterSkyboxPass
-	, IAfterTransparentPass
-	, IAfterRender
+[CreateAssetMenu]
+public class CameraCallbackTests : RenderPassFeature
 {
-	
 	static RenderTargetHandle beforeAll;
 	static RenderTargetHandle afterOpaque;
-	static RenderTargetHandle afterOpaquePost;
 	static RenderTargetHandle afterSkybox;
+    static RenderTargetHandle afterSkybox2;
 	static RenderTargetHandle afterTransparent;
 	static RenderTargetHandle afterAll;
 
-    Material m_CopyDepthMaterial;
     Material m_SamplingMaterial;
+    Downsampling m_DownsamplingMethod;
     
 	public CameraCallbackTests()
 	{
-	    m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/CopyDepth"));
-	    m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling"));
-	    
 		beforeAll.Init("_BeforeAll");
 		afterOpaque.Init("_AfterOpaque");
-		afterOpaquePost.Init("_AfterOpaquePost");
 		afterSkybox.Init("_AfterSkybox");
+	    afterSkybox.Init("_AfterSkybox2");
 		afterTransparent.Init("_AfterTransparent");
 		afterAll.Init("_AfterAll");
 	}
 
-    internal class ClearColorPass : ScriptableRenderPass
+	private void OnEnable()
+	{
+		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling"));
+	    m_DownsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
+	}
+
+	internal class ClearColorPass : ScriptableRenderPass
     {
         RenderTargetHandle m_ColorHandle;
-        ClearFlag m_ClearFlag;
 
-        public ClearColorPass(RenderTargetHandle colorHandle, ClearFlag clearFlag)
+        public ClearColorPass(RenderPassEvent renderPassEvent, RenderTargetHandle colorHandle)
         {
             m_ColorHandle = colorHandle;
-            m_ClearFlag = clearFlag;
+            this.renderPassEvent = renderPassEvent;
         }
 
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get("Clear Color");
             cmd.SetRenderTarget(m_ColorHandle.Identifier());
-            cmd.ClearRenderTarget(CoreUtils.HasFlag(m_ClearFlag, ClearFlag.Color), CoreUtils.HasFlag(m_ClearFlag, ClearFlag.Depth), Color.yellow);
-
-            RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
-            cmd.GetTemporaryRT(beforeAll.id, opaqueDesc, FilterMode.Point);
-            cmd.Blit(m_ColorHandle.Identifier(), beforeAll.Identifier());
+            cmd.ClearRenderTarget(true, true, Color.yellow);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
     }
+    public override void AddRenderPasses(List<ScriptableRenderPass> renderPasses,
+        RenderTextureDescriptor baseDescriptor,
+        RenderTargetHandle colorAttachmentHandle,
+        RenderTargetHandle depthAttachmentHandle)
+    {
+        var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, colorAttachmentHandle);
 
-    ScriptableRenderPass IBeforeRender.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthAttachmentHandle, ClearFlag clearFlag)
-	{
-        return new ClearColorPass(colorHandle, clearFlag);
-	}
+        var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial, m_DownsamplingMethod);
+        copyBeforeOpaquePass.Setup(colorAttachmentHandle, beforeAll);
 
-	ScriptableRenderPass IAfterOpaquePass.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorAttachmentHandle,
-		RenderTargetHandle depthAttachmentHandle)
-	{
-		var pass = new CopyColorPass(m_SamplingMaterial);
-		pass.Setup(colorAttachmentHandle, afterOpaque);
-		return pass;
-	}
+        var copyAfterOpaquePass = new CopyColorPass(RenderPassEvent.AfterRenderingOpaques, m_SamplingMaterial, m_DownsamplingMethod);
+        copyAfterOpaquePass.Setup(colorAttachmentHandle, afterOpaque);
 
-	ScriptableRenderPass IAfterOpaquePostProcess.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle,
-		RenderTargetHandle depthHandle)
-	{
-		var pass = new CopyColorPass(m_SamplingMaterial);;
-		pass.Setup(colorHandle, afterOpaquePost);
-		return pass;
-	}
+        var copyAfterSkyboxPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_DownsamplingMethod);
+        copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox);
 
-	ScriptableRenderPass IAfterSkyboxPass.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle,
-		RenderTargetHandle depthHandle)
-	{
-		var pass = new CopyColorPass(m_SamplingMaterial);
-		pass.Setup(colorHandle, afterSkybox);
-		return pass;
-	}
+        var copyAfterSkyboxPass2 = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_DownsamplingMethod);
+        copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox2);
 
-	ScriptableRenderPass IAfterTransparentPass.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle,
-		RenderTargetHandle depthHandle)
-	{
-		var pass = new CopyColorPass(m_SamplingMaterial);
-		pass.Setup(colorHandle, afterTransparent);
-		return pass;
-	}
+        var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparentPasses, m_SamplingMaterial, m_DownsamplingMethod);
+        copyAfterTransparents.Setup(colorAttachmentHandle, afterTransparent);
+
+        var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRendering, m_SamplingMaterial, m_DownsamplingMethod);
+        copyAfterEverything.Setup(colorAttachmentHandle, afterAll);
+
+        var BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, colorAttachmentHandle);
+
+        // Inserts out of order so we also test render passes sort correctly
+        renderPasses.Add(copyAfterEverything);
+        renderPasses.Add(BlitRenderPassesToScreen);
+        renderPasses.Add(copyAfterOpaquePass);
+        renderPasses.Add(copyAfterSkyboxPass);
+        renderPasses.Add(copyAfterSkyboxPass2);
+        renderPasses.Add(copyAfterTransparents);
+        renderPasses.Add(clearRenderPass);
+        renderPasses.Add(copyBeforeOpaquePass);
+    }
 
 	class BlitPass : ScriptableRenderPass
 	{
@@ -104,49 +96,43 @@ public class CameraCallbackTests : MonoBehaviour
         private RenderTargetHandle depthHandle;
 	    Material m_BlitMaterial;
 
-        public BlitPass(RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
+        public BlitPass(RenderPassEvent renderPassEvent, RenderTargetHandle colorHandle)
         {
             this.colorHandle = colorHandle;
             this.depthHandle = colorHandle;
+            this.renderPassEvent = renderPassEvent;
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Blit"));
         }
 
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
 		{
-			if (renderer == null)
-				throw new ArgumentNullException("renderer");
-
-		    var pass = new CopyColorPass(CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling")));
-		    pass.Setup(colorHandle, afterAll);
-            pass.Execute(renderer, context, ref renderingData);
-
 			CommandBuffer cmd = CommandBufferPool.Get("Blit Pass");
 			cmd.SetRenderTarget(colorHandle.id, depthHandle.id);
 			cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-			
+
 			cmd.SetViewport(new Rect(0, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", beforeAll.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
-			
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
+
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterOpaque.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
-			
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
+
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f * 2.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
-			cmd.SetGlobalTexture("_BlitTex", afterOpaquePost.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);			
-						
-			cmd.SetViewport(new Rect(0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterSkybox.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
-			
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
+
+			cmd.SetViewport(new Rect(0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
+			cmd.SetGlobalTexture("_BlitTex", afterSkybox2.Identifier());
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
+
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterTransparent.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
-			
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
+
 			cmd.SetViewport(new Rect(renderingData.cameraData.camera.pixelRect.width / 3.0f * 2.0f, 0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
 			cmd.SetGlobalTexture("_BlitTex", afterAll.Identifier());
-		    ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
+		    RenderFullscreenQuad(cmd, m_BlitMaterial);
 
             context.ExecuteCommandBuffer(cmd);
 			CommandBufferPool.Release(cmd);
@@ -156,13 +142,8 @@ public class CameraCallbackTests : MonoBehaviour
 		{
 			if (cmd == null)
 				throw new ArgumentNullException("cmd");
-			
+
 			base.FrameCleanup(cmd);
 		}
-	}
-
-	ScriptableRenderPass IAfterRender.GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
-	{
-		return new BlitPass(colorHandle, depthHandle);
 	}
 }

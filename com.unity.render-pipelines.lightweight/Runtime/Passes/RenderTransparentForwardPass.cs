@@ -1,11 +1,7 @@
-using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
-
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
-    /// Render all transparent forward objects into the given color and depth target 
+    /// Render all transparent forward objects into the given color and depth target
     ///
     /// You can use this pass to render objects that have a material and/or shader
     /// with the pass names LightweightForward or SRPDefaultUnlit. The pass only renders
@@ -13,21 +9,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     /// </summary>
     internal class RenderTransparentForwardPass : ScriptableRenderPass
     {
-        const string k_RenderTransparentsTag = "Render Transparents";
-
-        FilteringSettings m_TransparentFilterSettings;
-
         RenderTargetHandle colorAttachmentHandle { get; set; }
         RenderTargetHandle depthAttachmentHandle { get; set; }
         RenderTextureDescriptor descriptor { get; set; }
-        PerObjectData rendererConfiguration;
 
-        public RenderTransparentForwardPass()
+        FilteringSettings m_FilteringSettings;
+
+        public RenderTransparentForwardPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
+            renderPassEvent = evt;
+            profilerTag = "Render Transparents";
 
-            m_TransparentFilterSettings = new FilteringSettings(RenderQueueRange.transparent);
+            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
         }
 
         /// <summary>
@@ -40,23 +35,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle colorAttachmentHandle,
-            RenderTargetHandle depthAttachmentHandle,
-            PerObjectData configuration)
+            RenderTargetHandle depthAttachmentHandle)
         {
             this.colorAttachmentHandle = colorAttachmentHandle;
             this.depthAttachmentHandle = depthAttachmentHandle;
             descriptor = baseDescriptor;
-            rendererConfiguration = configuration;
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-            
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderTransparentsTag);
-            using (new ProfilingSample(cmd, k_RenderTransparentsTag))
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            using (new ProfilingSample(cmd, profilerTag))
             {
                 RenderBufferLoadAction loadOp = RenderBufferLoadAction.Load;
                 RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;
@@ -67,11 +57,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                var drawSettings = CreateDrawingSettings(camera, SortingCriteria.CommonTransparent, rendererConfiguration, renderingData.supportsDynamicBatching, renderingData.lightData.mainLightIndex);
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_TransparentFilterSettings);
+                var drawSettings = CreateDrawingSettings(ref renderingData, SortingCriteria.CommonTransparent);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                renderer.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_TransparentFilterSettings, SortingCriteria.None);
+                RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
             }
 
             context.ExecuteCommandBuffer(cmd);

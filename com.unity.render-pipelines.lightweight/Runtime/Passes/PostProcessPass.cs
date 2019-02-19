@@ -1,9 +1,7 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Perform post-processing using the given color attachment
@@ -14,16 +12,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     /// </summary>
     internal class PostProcessPass : ScriptableRenderPass
     {
-        const string k_PostProcessingTag = "Render PostProcess Effects";
-        private RenderTargetHandle source { get; set; }
-        private RenderTextureDescriptor descriptor { get; set; }
-        private RenderTargetHandle destination { get; set; }
-        private bool flip { get; set; }
-        bool opaquePost { get; set; }
-
-        bool m_ReleaseTemporaryRenderTexture;
+        RenderTargetHandle m_Source;
+        RenderTargetHandle m_Destination;
+        RenderTextureDescriptor m_Descriptor;
 
         RenderTargetHandle m_TemporaryColorTexture;
+        bool m_IsOpaquePostProcessing;
+
+        public PostProcessPass(RenderPassEvent evt, bool renderOpaques = false)
+        {
+            m_IsOpaquePostProcessing = renderOpaques;
+            m_TemporaryColorTexture.Init("_TemporaryColorTexture");
+
+            renderPassEvent = evt;
+            profilerTag = "Render PostProcess Effects";
+        }
 
         /// <summary>
         /// Setup the pass
@@ -34,30 +37,31 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle sourceHandle,
-            RenderTargetHandle destinationHandle,
-            bool opaquePost,
-            bool flip)
+            RenderTargetHandle destinationHandle)
         {
-            source = sourceHandle;
-            destination = destinationHandle;
-            descriptor = baseDescriptor;
-            this.flip = flip;
-            this.opaquePost = opaquePost;
-            m_TemporaryColorTexture.Init("_TemporaryColorTexture");
-            m_ReleaseTemporaryRenderTexture = false;
+            m_Descriptor = baseDescriptor;
+            m_Source = sourceHandle;
+            m_Destination = destinationHandle;
+        }
+
+        public override bool ShouldExecute(ref RenderingData renderingData)
+        {
+            return renderingData.cameraData.postProcessEnabled &&
+                   (!m_IsOpaquePostProcessing || renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(postProcessRenderContext));
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException(nameof(renderer));
+            ref CameraData cameraData = ref renderingData.cameraData;
+            bool isLastRenderPass = (m_Destination == RenderTargetHandle.CameraTarget) && !cameraData.isStereoEnabled;
+            bool flip = isLastRenderPass && cameraData.camera.targetTexture == null;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_PostProcessingTag);
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
 
             var layer = renderingData.cameraData.postProcessLayer;
             int effectsCount;
-            if (opaquePost)
+            if (m_IsOpaquePostProcessing)
             {
                 effectsCount = layer.sortedBundles[PostProcessEvent.BeforeTransparent].Count;
             }
@@ -70,29 +74,22 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // If there's only one effect in the stack and soure is same as dest we
             // create an intermediate blit rendertarget to handle it.
             // Otherwise, PostProcessing system will create the intermediate blit targets itself.
-            if (effectsCount == 1 && source.id == destination.id)
+            if (effectsCount == 1 && m_Source.id == m_Destination.id)
             {
-                m_ReleaseTemporaryRenderTexture = true;
-                cmd.GetTemporaryRT(m_TemporaryColorTexture.id, descriptor, FilterMode.Point);
-                renderer.RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), m_TemporaryColorTexture.Identifier(), opaquePost, flip);
-                cmd.Blit(m_TemporaryColorTexture.Identifier(), source.Identifier());
+                cmd.GetTemporaryRT(m_TemporaryColorTexture.id, m_Descriptor, FilterMode.Point);
+                RenderPostProcess(cmd, ref renderingData.cameraData, m_Descriptor.colorFormat, m_Source.Identifier(),
+                    m_TemporaryColorTexture.Identifier(), m_IsOpaquePostProcessing, flip);
+                cmd.Blit(m_TemporaryColorTexture.Identifier(), m_Source.Identifier());
+                cmd.ReleaseTemporaryRT(m_TemporaryColorTexture.id);
             }
             else
             {
-                renderer.RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), destination.Identifier(), opaquePost, flip);
+                RenderPostProcess(cmd, ref renderingData.cameraData, m_Descriptor.colorFormat, m_Source.Identifier(),
+                    m_Destination.Identifier(), m_IsOpaquePostProcessing, flip);
             }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        public override void FrameCleanup(CommandBuffer cmd)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            if (m_ReleaseTemporaryRenderTexture)
-                cmd.ReleaseTemporaryRT(m_TemporaryColorTexture.id);
         }
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [Serializable]
+    [Serializable, VolumeComponentMenu("Shadowing/Shadows")]
     public class HDShadowSettings : VolumeComponent
     {
         float[] m_CascadeShadowSplits = new float[3];
@@ -50,12 +50,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Sets the position of the third cascade split as a percentage of Max Distance.")]
         public NoInterpClampedFloatParameter    cascadeShadowSplit2 = new NoInterpClampedFloatParameter(0.3f, 0.0f, 1.0f);
         [Tooltip("Sets the border size between the first and second cascade split.")]
-        public NoInterpMinFloatParameter        cascadeShadowBorder0 = new NoInterpMinFloatParameter(0.0f, 0.0f);
+        public NoInterpClampedFloatParameter    cascadeShadowBorder0 = new NoInterpClampedFloatParameter(0.0f, 0.0f, 1.0f);
         [Tooltip("Sets the border size between the second and third cascade split.")]
-        public NoInterpMinFloatParameter        cascadeShadowBorder1 = new NoInterpMinFloatParameter(0.0f, 0.0f);
+        public NoInterpClampedFloatParameter    cascadeShadowBorder1 = new NoInterpClampedFloatParameter(0.0f, 0.0f, 1.0f);
         [Tooltip("Sets the border size between the third and last cascade split.")]
-        public NoInterpMinFloatParameter        cascadeShadowBorder2 = new NoInterpMinFloatParameter(0.0f, 0.0f);
+        public NoInterpClampedFloatParameter    cascadeShadowBorder2 = new NoInterpClampedFloatParameter(0.0f, 0.0f, 1.0f);
         [Tooltip("Sets the border size at the end of the last cascade split.")]
-        public NoInterpMinFloatParameter        cascadeShadowBorder3 = new NoInterpMinFloatParameter(0.0f, 0.0f);
+        public NoInterpClampedFloatParameter    cascadeShadowBorder3 = new NoInterpClampedFloatParameter(0.0f, 0.0f, 1.0f);
+
+        HDShadowSettings()
+        {
+            displayName = "Shadows";
+        }
     }
 }

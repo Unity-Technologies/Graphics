@@ -1,16 +1,19 @@
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
-    //[CreateAssetMenu()]
-    public class ForwardRendererData : IRendererData
+    [CreateAssetMenu(fileName = "New Forward Renderer", menuName = "Rendering/Lightweight Render Pipeline/Forward Renderer", order = 2)]
+    public class ForwardRendererData : ScriptableRendererData
     {
         [SerializeField] Shader m_BlitShader = null;
         [SerializeField] Shader m_CopyDepthShader = null;
         [SerializeField] Shader m_ScreenSpaceShadowShader = null;
         [SerializeField] Shader m_SamplingShader = null;
 
-        public override IRendererSetup Create()
+        [SerializeField] LayerMask m_OpaqueLayerMask = -1;
+        [SerializeField] LayerMask m_TransparentLayerMask = -1;
+
+        public override ScriptableRenderer Create()
         {
-            return new ForwardRendererSetup(this);
+            return new ForwardRenderer(this);
         }
 
         public Shader blitShader
@@ -35,6 +38,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             get => m_SamplingShader;
             set => m_SamplingShader = value;
+        }
+
+        public LayerMask opaqueLayerMask
+        {
+            get => m_OpaqueLayerMask;
+        }
+
+        public LayerMask transparentLayerMask
+        {
+            get => m_TransparentLayerMask;
         }
     }
 }

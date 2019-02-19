@@ -1,8 +1,4 @@
-using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
-
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Draw the skybox into the given color buffer using the given depth buffer for depth testing.
@@ -17,6 +13,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         bool m_CombineWithRenderOpaquesPass = false;
 
+        public DrawSkyboxPass(RenderPassEvent evt)
+        {
+            renderPassEvent = evt;
+            profilerTag = "Draw Skybox (Set RT's)";
+        }
+
         /// <summary>
         /// Configure the color and depth passes to use when rendering the skybox
         /// </summary>
@@ -30,17 +32,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             this.m_CombineWithRenderOpaquesPass = combineWithRenderOpaquesPass;
         }
 
-        /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override bool ShouldExecute(ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
+            return renderingData.cameraData.camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null;
+        }
 
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
             // For now, we can't combine Skybox and Opaques into a single render pass if there's a custom render pass injected
             // between them.
             if (!m_CombineWithRenderOpaquesPass)
             {
-                CommandBuffer cmd = CommandBufferPool.Get("Draw Skybox (Set RT's)");
+                CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
 
                 RenderBufferLoadAction loadOp = RenderBufferLoadAction.Load;
                 RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;

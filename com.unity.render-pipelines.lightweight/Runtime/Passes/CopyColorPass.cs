@@ -1,8 +1,6 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Copy the given color buffer to the given destination color buffer.
@@ -13,10 +11,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     /// </summary>
     internal class CopyColorPass : ScriptableRenderPass
     {
-        const string k_CopyColorTag = "Copy Color";
-        float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;
+        Downsampling m_DownsamplingMethod;
 
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
@@ -24,10 +21,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         /// <summary>
         /// Create the CopyColorPass
         /// </summary>
-        public CopyColorPass(Material samplingMaterial)
+        public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Downsampling downsampling)
         {
             m_SamplingMaterial = samplingMaterial;
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
+            renderPassEvent = evt;
+            profilerTag = "Copy Color";
+            m_DownsamplingMethod = downsampling;
         }
 
         /// <summary>
@@ -41,8 +41,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             this.destination = destination;
         }
 
+        public override bool ShouldExecute(ref RenderingData renderingData)
+        {
+            return renderingData.cameraData.requiresOpaqueTexture;
+        }
+
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (m_SamplingMaterial == null)
             {
@@ -50,22 +55,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 return;
             }
 
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-                
-            CommandBuffer cmd = CommandBufferPool.Get(k_CopyColorTag);
-            Downsampling downsampling = renderingData.cameraData.opaqueTextureDownsampling;
-            float opaqueScaler = m_OpaqueScalerValues[(int)downsampling];
-
-            RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData, opaqueScaler);
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
             opaqueDesc.msaaSamples = 1;
             opaqueDesc.depthBufferBits = 0;
 
             RenderTargetIdentifier colorRT = source.Identifier();
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
-            cmd.GetTemporaryRT(destination.id, opaqueDesc, renderingData.cameraData.opaqueTextureDownsampling == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
-            switch (downsampling)
+            cmd.GetTemporaryRT(destination.id, opaqueDesc, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+            switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
                     cmd.Blit(colorRT, opaqueColorRT);
@@ -91,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
+
             if (destination != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(destination.id);

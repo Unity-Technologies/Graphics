@@ -1,50 +1,52 @@
-using System;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.ProjectWindowCallback;
-#endif
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.LWRP;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
-public class CustomLWPipe : IRendererSetup
-{  
-    private SetupForwardRenderingPass m_SetupForwardRenderingPass;
+using UnityEngine.Rendering;
+
+public class CustomLWPipe : ScriptableRenderer
+{
     private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
-    private SetupLightweightConstanstPass m_SetupLightweightConstants;
     private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
 
-    public CustomLWPipe(CustomRenderGraphData data)
+    ForwardLights m_ForwardLights;
+
+    public CustomLWPipe(CustomRenderGraphData data) : base(data)
     {
-        m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
-        m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
-        m_SetupLightweightConstants = new SetupLightweightConstanstPass();
-        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
+        m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass(RenderPassEvent.BeforeRendering);
+        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, -1);
+        m_ForwardLights = new ForwardLights();
     }
 
-    public override void Setup(ScriptableRenderer renderer, ref RenderingData renderingData)
+    public override void Setup(ref RenderingData renderingData)
     {
-        renderer.SetupPerObjectLightIndices(ref renderingData.cullResults, ref renderingData.lightData);
-        RenderTextureDescriptor baseDescriptor = ScriptableRenderer.CreateRenderTextureDescriptor(ref renderingData.cameraData);
+        RenderTextureDescriptor baseDescriptor = renderingData.cameraData.cameraTargetDescriptor;
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;
         shadowDescriptor.dimension = TextureDimension.Tex2D;
 
-        renderer.EnqueuePass(m_SetupForwardRenderingPass);
-
         RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
         RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
-        
-        var sampleCount = (SampleCount)renderingData.cameraData.msaaSamples;
+
+        int sampleCount = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
         m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
-        renderer.EnqueuePass(m_CreateLightweightRenderTexturesPass);
+        EnqueuePass(m_CreateLightweightRenderTexturesPass);
 
         Camera camera = renderingData.cameraData.camera;
-        var perObjectFlags = ScriptableRenderer.GetPerObjectLightFlags(renderingData.lightData.mainLightIndex, renderingData.lightData.additionalLightsCount);
 
-        m_SetupLightweightConstants.Setup(renderer.maxVisibleAdditionalLights, renderer.perObjectLightIndices);
-        renderer.EnqueuePass(m_SetupLightweightConstants);
+        for (int i = 0; i < m_RenderPassFeatures.Count; ++i)
+        {
+            m_RenderPassFeatures[i].AddRenderPasses(m_CustomRenderPasses, baseDescriptor, colorHandle, depthHandle);
+        }
+        m_CustomRenderPasses.Sort( (lhs, rhs)=>lhs.renderPassEvent.CompareTo(rhs.renderPassEvent));
+        int customRenderPassIndex = 0;
 
-        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, ScriptableRenderer.GetCameraClearFlag(camera), camera.backgroundColor, perObjectFlags);
-        renderer.EnqueuePass(m_RenderOpaqueForwardPass);
+        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, GetCameraClearFlag(camera), camera.backgroundColor);
+        EnqueuePass(m_RenderOpaqueForwardPass);
+
+        EnqueuePasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
+            ref renderingData);
+    }
+
+    public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+    {
+        m_ForwardLights.Setup(context, ref renderingData);
     }
 }

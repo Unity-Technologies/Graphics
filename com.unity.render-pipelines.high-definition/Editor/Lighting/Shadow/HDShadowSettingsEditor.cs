@@ -13,6 +13,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         SerializedDataParameter[] m_CascadeShadowSplits = new SerializedDataParameter[3];
         SerializedDataParameter[] m_CascadeShadowBorders = new SerializedDataParameter[4];
+        private enum Unit { Metric, Percent }
+        private static Unit s_Unit = Unit.Metric;
 
         public override void OnEnable()
         {
@@ -40,8 +42,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_CascadeShadowSplitCount.value.hasMultipleDifferentValues)
             {
                 EditorGUI.indentLevel++;
-                int splitCount = m_CascadeShadowSplitCount.value.intValue;
-                for (int i = 0; i < splitCount - 1; i++)
+                int cascadeCount = m_CascadeShadowSplitCount.value.intValue;
+                for (int i = 0; i < cascadeCount - 1; i++)
                 {
                     PropertyField(m_CascadeShadowSplits[i], EditorGUIUtility.TrTextContent(string.Format("Split {0}", i + 1)));
                 }
@@ -50,11 +52,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     EditorGUILayout.Space();
 
-                    for (int i = 0; i < splitCount; i++)
+                    for (int i = 0; i < cascadeCount; i++)
                     {
                         PropertyField(m_CascadeShadowBorders[i], EditorGUIUtility.TrTextContent(string.Format("Border {0}", i + 1)));
                     }
                 }
+
+                EditorGUILayout.Space();
+
+                GUILayout.Label("Cascade splits");
+                Rect rect = GUILayoutUtility.GetLastRect();
+                rect.x += rect.width - 100;
+                rect.width = 60f;
+                EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent("Unit"));
+                rect.x += 25;
+                rect.width = 75;
+                s_Unit = (Unit)EditorGUI.EnumPopup(rect, s_Unit);
+                ShadowCascadeGUI.DrawCascadeSplitGUI(m_CascadeShadowSplits, LightLoop.s_UseCascadeBorders ? m_CascadeShadowBorders : null, (uint)cascadeCount, blendLastCascade: true, useMetric: s_Unit == Unit.Metric, baseMetric: m_MaxShadowDistance.value.floatValue);
                 EditorGUI.indentLevel--;
             }
 
