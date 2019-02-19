@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.6.0-preview] - 2019-XX-XX
 
+### Changed
+- When a lit material has a clear coat mask that is not null, we now use the clear coat roughness to compute the screen space reflection.
+
 ## [5.5.0-preview] - 2019-02-18
 
 ### Added

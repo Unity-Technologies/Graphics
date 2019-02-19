@@ -13,6 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SkyManager m_SkyManager = null;
         HDRaytracingManager m_RaytracingManager = null;
         SharedRTManager m_SharedRTManager = null;
+        GBufferManager m_GbufferManager = null;
 
         // Intermediate buffer that stores the reflection pre-denoising
         RTHandleSystem.RTHandle m_LightingTexture = null;
@@ -31,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
         }
 
-        public void Init(HDRenderPipelineAsset asset, SkyManager skyManager, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
+        public void Init(HDRenderPipelineAsset asset, SkyManager skyManager, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager, GBufferManager gbufferManager)
         {
             // Keep track of the pipeline asset
             m_PipelineAsset = asset;
@@ -45,6 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Keep track of the shared rt manager
             m_SharedRTManager = sharedRTManager;
+            m_GbufferManager = gbufferManager;
 
             m_LightingTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "LightingBuffer");
             m_HitPdfTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "HitPdfBuffer");
@@ -148,6 +150,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
             cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
 
+            // Evaluate the clear coat mask texture based on the lit shader mode
+            RenderTargetIdentifier clearCoatMaskTexture = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? m_GbufferManager.GetBuffersRTI()[2] : Texture2D.blackTexture;
+            cmd.SetRaytracingTextureParam(reflectionShader, targetRayGen, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMaskTexture);
+
             // Set the data for the ray miss
             cmd.SetRaytracingTextureParam(reflectionShader, m_MissShaderName, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
 
@@ -203,6 +209,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int numTilesXHR = (texWidth / 2 + (areaTileSize - 1)) / areaTileSize;
                         int numTilesYHR = (texHeight / 2 + (areaTileSize - 1)) / areaTileSize;
 
+                        // Bind the right texture for clear coat support
+                        cmd.SetComputeTextureParam(bilateralFilter, currentKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMaskTexture);
+                        
                         // Compute the texture
                         cmd.DispatchCompute(bilateralFilter, currentKernel, numTilesXHR, numTilesYHR, 1);
                         

@@ -98,13 +98,6 @@ TEXTURE2D(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to kno
 #define GBUFFER_LIT_ANISOTROPIC      4
 #define GBUFFER_LIT_IRIDESCENCE      5 // TODO
 
-#define CLEAR_COAT_IOR 1.5
-#define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR) // IETA is the inverse eta which is the ratio of IOR of two interface
-#define CLEAR_COAT_F0 0.04 // IORToFresnel0(CLEAR_COAT_IOR)
-#define CLEAR_COAT_ROUGHNESS 0.01
-#define CLEAR_COAT_PERCEPTUAL_SMOOTHNESS RoughnessToPerceptualSmoothness(CLEAR_COAT_ROUGHNESS)
-#define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
-
 // It is safe to include this file after the G-Buffer macros above.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialGBufferMacros.hlsl"
 
@@ -334,10 +327,23 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 {
     NormalData normalData;
 
-    // Note: We can't handle clear coat material here, we have only one slot to store smoothness
-    // and the buffer is the GBuffer1.
-    normalData.normalWS = surfaceData.normalWS;
-    normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    // Note: When we are in the prepass (depth only or velocity) and we need to export the normal/roughness - Mean we are lit forward. In deferred the normal buffer will not be exported
+    // If the fragment that we are processing has clear cloat, we want to export the clear coat's perceptual roughness and geometric normal
+    // instead of the base layer's roughness and the shader normal to be use by SSR
+    #if SHADERPASS == SHADERPASS_DEPTH_ONLY || SHADERPASS == SHADERPASS_VELOCITY
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    {
+        normalData.normalWS = surfaceData.geomNormalWS;
+        normalData.perceptualRoughness = CLEAR_COAT_PERCEPTUAL_ROUGHNESS;
+    }
+    else
+    #endif
+    {
+        // Note: We can't handle clear coat material here, we have only one slot to store smoothness
+        // and the buffer is the GBuffer1.
+        normalData.normalWS = surfaceData.normalWS;
+        normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    }
 
     return normalData;
 }

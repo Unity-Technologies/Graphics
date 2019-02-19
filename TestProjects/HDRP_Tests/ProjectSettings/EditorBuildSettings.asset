@@ -185,6 +185,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2701_TexturedAreaLights.unity
     guid: 3b6ce72f472558240a2a8d61a932c6d0
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2801_SSR.unity
+    guid: 62f2b88cccb280246a9211bbcf0c8245
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
     guid: 21522d96110c8dd41ab353d89fd740c3
