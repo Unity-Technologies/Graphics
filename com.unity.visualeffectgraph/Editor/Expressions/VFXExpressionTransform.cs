@@ -90,6 +90,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionTRSToMatrix)
+                return parent.parents[0];
+
+            return base.Reduce(reducedParents);
+        }
+
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
@@ -122,6 +131,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionTRSToMatrix)
+                return parent.parents[1];
+
+            return base.Reduce(reducedParents);
+        }
+
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
@@ -147,6 +165,15 @@ namespace UnityEditor.VFX
             {
                 return VFXExpressionOperation.ExtractScaleFromMatrix;
             }
+        }
+
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionTRSToMatrix)
+                return parent.parents[2];
+
+            return base.Reduce(reducedParents);
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
