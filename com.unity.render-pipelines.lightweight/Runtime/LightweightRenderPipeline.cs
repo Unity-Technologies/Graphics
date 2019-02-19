@@ -130,7 +130,10 @@ namespace UnityEngine.Rendering.LWRP
             using (new ProfilingSample(cmd, k_RenderCameraTag))
             {
                 var settings = asset;
-                LWRPAdditionalCameraData additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
+                LWRPAdditionalCameraData additionalCameraData = null;
+                if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
+                    additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
+
                 InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
                 SetupPerCameraShaderConstants(cameraData);
                 
