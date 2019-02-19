@@ -2,7 +2,7 @@ namespace UnityEngine.Rendering.LWRP
 {
     internal class ForwardRenderer : ScriptableRenderer
     {
-        private DepthOnlyPass m_DepthOnlyPass;
+        private DepthOnlyPass m_DepthPrepass;
         private MainLightShadowCasterPass m_MainLightShadowCasterPass;
         private AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         private ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.LWRP
             m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass(RenderPassEvent.BeforeRendering);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRendering);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRendering);
-            m_DepthOnlyPass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque);
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingOpaques, screenspaceShadowsMaterial);
             m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_OpaquePostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingOpaques + 9, true);
@@ -65,37 +65,17 @@ namespace UnityEngine.Rendering.LWRP
             m_ForwardLights = new ForwardLights();
         }
 
-        public static bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
-        {
-            ref CameraData cameraData = ref renderingData.cameraData;
-            int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
-            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
-            bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
-            bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
-            bool isOffscreenRender = cameraData.camera.targetTexture != null && !cameraData.isSceneViewCamera;
-            bool isCapturing = cameraData.captureActions != null;
-            bool isInstancedStereo = cameraData.isStereoEnabled && (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced);
-
-            bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve;
-            if (isOffscreenRender)
-                return requiresBlitForOffscreenCamera;
-
-            return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                (isTargetTexture2DArray && !isInstancedStereo)|| !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
-                    || renderingData.killAlphaInFinalBlit;
-        }
-
         public override void Setup(ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-            ClearFlag clearFlag = GetCameraClearFlag(renderingData.cameraData.camera);
+            ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
 
             bool mainLightShadows = m_MainLightShadowCasterPass.ShouldExecute(ref renderingData);
             bool resolveShadowsInScreenSpace = mainLightShadows && m_ScreenSpaceShadowResolvePass.ShouldExecute(ref renderingData);
-            bool requiresDepthPrepass = resolveShadowsInScreenSpace || m_DepthOnlyPass.ShouldExecute(ref renderingData);
+            bool requiresDepthPrepass = resolveShadowsInScreenSpace || m_DepthPrepass.ShouldExecute(ref renderingData);
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
-                                      || m_RenderPassFeatures.Count != 0;
+                                      || m_AdditionalFeatures.Count != 0;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
@@ -105,11 +85,11 @@ namespace UnityEngine.Rendering.LWRP
             RenderTargetHandle depthHandle = (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget;
 
             int customRenderPassIndex = 0;
-            for (int i = 0; i < m_RenderPassFeatures.Count; ++i)
+            for (int i = 0; i < m_AdditionalFeatures.Count; ++i)
             {
-                m_RenderPassFeatures[i].AddRenderPasses(m_CustomRenderPasses, cameraTargetDescriptor, colorHandle, depthHandle);
+                m_AdditionalFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, cameraTargetDescriptor, colorHandle, depthHandle);
             }
-            m_CustomRenderPasses.Sort();
+            m_AdditionalRenderPasses.Sort();
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -124,13 +104,13 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_CreateLightweightRenderTexturesPass);
             }
 
-            bool beforeRenderOpaquesPasses = EnqueuePasses(RenderPassEvent.BeforeRenderingOpaques, ref customRenderPassIndex,
+            bool beforeRenderOpaquesPasses = EnqueueAdditionalRenderPasses(RenderPassEvent.BeforeRenderingOpaques, ref customRenderPassIndex,
                 ref renderingData);
 
             if (requiresDepthPrepass)
             {
-                m_DepthOnlyPass.Setup(cameraTargetDescriptor, m_DepthTexture);
-                EnqueuePass(m_DepthOnlyPass);
+                m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                EnqueuePass(m_DepthPrepass);
             }
 
             if (resolveShadowsInScreenSpace)
@@ -146,7 +126,7 @@ namespace UnityEngine.Rendering.LWRP
             m_RenderOpaqueForwardPass.Setup(cameraTargetDescriptor, colorHandle, depthHandle, clearFlag, camera.backgroundColor);
             EnqueuePass(m_RenderOpaqueForwardPass);
 
-            bool afterOpaques = EnqueuePasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
+            bool afterOpaques = EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
                 ref renderingData);
 
             if (m_OpaquePostProcessPass.ShouldExecute(ref renderingData))
@@ -162,7 +142,7 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
-            EnqueuePasses(RenderPassEvent.AfterRenderingSkybox, ref customRenderPassIndex,
+            EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingSkybox, ref customRenderPassIndex,
                 ref renderingData);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
@@ -181,7 +161,7 @@ namespace UnityEngine.Rendering.LWRP
             m_RenderTransparentForwardPass.Setup(cameraTargetDescriptor, colorHandle, depthHandle);
             EnqueuePass(m_RenderTransparentForwardPass);
 
-            EnqueuePasses(RenderPassEvent.AfterRenderingTransparentPasses, ref customRenderPassIndex,
+            EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingTransparentPasses, ref customRenderPassIndex,
                 ref renderingData);
 
 
@@ -199,7 +179,7 @@ namespace UnityEngine.Rendering.LWRP
                     EnqueuePass(m_PostProcessPass);
                 }
 
-                EnqueuePasses(RenderPassEvent.AfterRendering, ref customRenderPassIndex,
+                EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRendering, ref customRenderPassIndex,
                     ref renderingData);
 
                 //now blit into the final target
@@ -257,11 +237,31 @@ namespace UnityEngine.Rendering.LWRP
             cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
         }
 
+        bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
+        {
+            ref CameraData cameraData = ref renderingData.cameraData;
+            int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
+            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
+            bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
+            bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
+            bool isOffscreenRender = cameraData.camera.targetTexture != null && !cameraData.isSceneViewCamera;
+            bool isCapturing = cameraData.captureActions != null;
+            bool isInstancedStereo = cameraData.isStereoEnabled && (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced);
+
+            bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve;
+            if (isOffscreenRender)
+                return requiresBlitForOffscreenCamera;
+
+            return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+                   (isTargetTexture2DArray && !isInstancedStereo) || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
+                   || renderingData.killAlphaInFinalBlit;
+        }
+
         bool AfterRenderExists(int currIndex)
         {
-            for (int i = currIndex; i < m_CustomRenderPasses.Count; ++i)
+            for (int i = currIndex; i < m_AdditionalRenderPasses.Count; ++i)
             {
-                if (m_CustomRenderPasses[i].renderPassEvent == RenderPassEvent.AfterRendering)
+                if (m_AdditionalRenderPasses[i].renderPassEvent == RenderPassEvent.AfterRendering)
                     return true;
             }
 

@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.LWRP
     }
 
     [CreateAssetMenu]
-    public class RenderObjectsPassFeature : RenderPassFeature
+    public class RenderObjectsPassFeature : ScriptableRendererFeature
     {
         [System.Serializable]
         public class RenderObjectsSettings

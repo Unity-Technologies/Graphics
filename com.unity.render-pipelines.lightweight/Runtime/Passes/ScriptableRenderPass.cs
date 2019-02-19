@@ -8,6 +8,9 @@ namespace UnityEngine.Rendering.LWRP
     // Note: Spaced built-in events so we can add events in between them
     // We need to leave room as we sort render passes based on event.
     // Users can also inject render pass events in a specific point by doing RenderPassEvent + offset
+    /// <summary>
+    /// Controls when the render pass should execute.
+    /// </summary>
     public enum RenderPassEvent
     {
         BeforeRendering = 0,
@@ -110,6 +113,12 @@ namespace UnityEngine.Rendering.LWRP
         public virtual void FrameCleanup(CommandBuffer cmd)
         {}
 
+        /// <summary>
+        /// Implement this to conditionally enqueue the pass depending on rendering state for the current frame.
+        /// By default a render pass will always be enqueued for execution.
+        /// </summary>
+        /// <param name="renderingData">Current rendering state information</param>
+        /// <returns></returns>
         public virtual bool ShouldExecute(ref RenderingData renderingData)
         {
             return true;
@@ -141,46 +150,16 @@ namespace UnityEngine.Rendering.LWRP
             cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
         }
 
-        protected void RenderObjects(ScriptableRenderContext context, ref RenderingData renderingData, ref FilteringSettings filterSettings,
-            ShaderTagId[] passNames,  SortingCriteria sortingCriteria)
-        {
-            if (passNames.Length == 0)
-                return;
-
-            SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
-            DrawingSettings drawingSettings = new DrawingSettings(passNames[0], sortingSettings)
-            {
-                perObjectData = renderingData.perObjectData,
-                enableInstancing = true,
-                mainLightIndex = renderingData.lightData.mainLightIndex,
-                enableDynamicBatching = renderingData.supportsDynamicBatching,
-            };
-            for (int i = 1; i < passNames.Length; ++i)
-                drawingSettings.SetShaderPassName(i, passNames[i]);
-            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filterSettings);
-        }
-
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
-        {
-            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
-            DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
-            {
-                perObjectData = PerObjectData.None,
-                overrideMaterial = errorMaterial,
-                overrideMaterialPassIndex = 0
-            };
-            for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
-                errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
-
-            context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
-        }
-
-        protected void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
-        {
-            RenderPostProcess(cmd, ref cameraData, colorFormat, source, dest, opaqueOnly, !cameraData.isStereoEnabled && cameraData.camera.targetTexture == null);
-        }
-
+        /// <summary>
+        /// Renders PostProcessing.
+        /// </summary>
+        /// <param name="cmd">A command buffer to execute post processing commands.</param>
+        /// <param name="cameraData">Camera rendering data.</param>
+        /// <param name="colorFormat">Color format of the source render target id.</param>
+        /// <param name="source">Source render target id.</param>
+        /// <param name="dest">Destination render target id.</param>
+        /// <param name="opaqueOnly">Should only execute after opaque post processing effects.</param>
+        /// <param name="flip">Should flip the image vertically.</param>
         protected void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly, bool flip)
         {
             Camera camera = cameraData.camera;
@@ -198,6 +177,13 @@ namespace UnityEngine.Rendering.LWRP
                 cameraData.postProcessLayer.Render(postProcessRenderContext);
         }
 
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current rendering state.
+        /// </summary>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns></returns>
+        /// <seealso cref="DrawingSettings"/>
         protected DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             Camera camera = renderingData.cameraData.camera;
@@ -255,6 +241,22 @@ namespace UnityEngine.Rendering.LWRP
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                         depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
+        {
+            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
+            DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
+            {
+                perObjectData = PerObjectData.None,
+                overrideMaterial = errorMaterial,
+                overrideMaterialPassIndex = 0
+            };
+            for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
+                errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
+
+            context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
         }
     }
 }

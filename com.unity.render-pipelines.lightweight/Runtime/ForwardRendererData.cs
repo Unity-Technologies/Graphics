@@ -19,25 +19,21 @@ namespace UnityEngine.Rendering.LWRP
         public Shader blitShader
         {
             get => m_BlitShader;
-            set => m_BlitShader = value;
         }
 
         public Shader copyDepthShader
         {
             get => m_CopyDepthShader;
-            set => m_CopyDepthShader = value;
         }
 
         public Shader screenSpaceShadowShader
         {
             get => m_ScreenSpaceShadowShader;
-            set => m_ScreenSpaceShadowShader = value;
         }
 
         public Shader samplingShader
         {
             get => m_SamplingShader;
-            set => m_SamplingShader = value;
         }
 
         public LayerMask opaqueLayerMask

@@ -5,7 +5,7 @@ using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
 
 [CreateAssetMenu]
-public class CameraCallbackTests : RenderPassFeature
+public class CameraCallbackTests : ScriptableRendererFeature
 {
 	static RenderTargetHandle beforeAll;
 	static RenderTargetHandle afterOpaque;
