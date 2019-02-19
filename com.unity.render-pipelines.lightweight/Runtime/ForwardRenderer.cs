@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.LWRP
             bool resolveShadowsInScreenSpace = mainLightShadows && m_ScreenSpaceShadowResolvePass.ShouldExecute(ref renderingData);
             bool requiresDepthPrepass = resolveShadowsInScreenSpace || m_DepthPrepass.ShouldExecute(ref renderingData);
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
-                                      || m_AdditionalFeatures.Count != 0;
+                                      || m_RendererFeatures.Count != 0;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
@@ -85,9 +85,9 @@ namespace UnityEngine.Rendering.LWRP
             RenderTargetHandle depthHandle = (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget;
 
             int customRenderPassIndex = 0;
-            for (int i = 0; i < m_AdditionalFeatures.Count; ++i)
+            for (int i = 0; i < m_RendererFeatures.Count; ++i)
             {
-                m_AdditionalFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, cameraTargetDescriptor, colorHandle, depthHandle);
+                m_RendererFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, cameraTargetDescriptor, colorHandle, depthHandle);
             }
             m_AdditionalRenderPasses.Sort();
 

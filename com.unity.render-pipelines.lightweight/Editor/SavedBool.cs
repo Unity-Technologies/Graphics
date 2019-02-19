@@ -1,8 +1,6 @@
-using System;
-using UnityEngine;
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
-    class SavedBool
+    public class SavedBool
     {
         bool m_Value;
         string m_Name;
