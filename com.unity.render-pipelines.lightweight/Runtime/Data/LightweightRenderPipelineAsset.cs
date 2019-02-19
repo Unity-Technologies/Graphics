@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
-        public IRendererData rendererData
+        public ScriptableRendererData rendererData
         {
             get => m_RendererData;
         }

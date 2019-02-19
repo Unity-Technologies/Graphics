@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RegisterShaderPassName("CombinedShapeLight");
         }
 
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
 #if UNITY_EDITOR
             if (!Application.isPlaying)
@@ -42,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             context.ExecuteCommandBuffer(cmd);
 
             Profiler.BeginSample("RenderSpritesWithLighting - Prepare");
-            DrawingSettings drawSettings = CreateDrawingSettings(camera, SortingCriteria.CommonTransparent, PerObjectData.None, true);
+            DrawingSettings drawSettings = CreateDrawingSettings(ref renderingData, SortingCriteria.CommonTransparent);
             FilteringSettings filterSettings = new FilteringSettings();
             filterSettings.renderQueueRange = RenderQueueRange.all;
             filterSettings.layerMask = -1;

@@ -1,10 +1,12 @@
+using UnityEngine.Rendering.LWRP;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class Default2DRendererData : IRendererData
+    public class Default2DRendererData : ScriptableRendererData
     {
         [SerializeField]
         private float m_LightIntensityScale = 1;
@@ -24,9 +26,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set => m_LightIntensityScale = value;
         }
 
-        public override IRendererSetup Create()
+        public override ScriptableRenderer Create()
         {
-            return new Default2DRendererSetup(this);
+            return new _2DRenderer(this);
         }
 
 #if UNITY_EDITOR
