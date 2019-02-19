@@ -31,17 +31,17 @@ public class CustomLWPipe : ScriptableRenderer
 
         Camera camera = renderingData.cameraData.camera;
 
-        for (int i = 0; i < m_RenderPassFeatures.Count; ++i)
+        for (int i = 0; i < m_RendererFeatures.Count; ++i)
         {
-            m_RenderPassFeatures[i].AddRenderPasses(m_CustomRenderPasses, baseDescriptor, colorHandle, depthHandle);
+            m_RendererFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, baseDescriptor, colorHandle, depthHandle);
         }
-        m_CustomRenderPasses.Sort( (lhs, rhs)=>lhs.renderPassEvent.CompareTo(rhs.renderPassEvent));
+        m_AdditionalRenderPasses.Sort( (lhs, rhs)=>lhs.renderPassEvent.CompareTo(rhs.renderPassEvent));
         int customRenderPassIndex = 0;
 
-        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, GetCameraClearFlag(camera), camera.backgroundColor);
+        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, GetCameraClearFlag(camera.clearFlags), camera.backgroundColor);
         EnqueuePass(m_RenderOpaqueForwardPass);
 
-        EnqueuePasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
+        EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
             ref renderingData);
     }
 

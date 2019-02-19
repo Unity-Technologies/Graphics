@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.LWRP
 {
     [CreateAssetMenu]
-    public class BlitPassFeature : RenderPassFeature
+    public class BlitPassFeature : ScriptableRendererFeature
     {
         [System.Serializable]
         public class BlitSettings

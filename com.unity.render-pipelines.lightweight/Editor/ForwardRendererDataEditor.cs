@@ -1,10 +1,8 @@
-﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using UnityEditor.Experimental.Rendering;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -50,7 +48,7 @@ namespace UnityEngine.Rendering.LWRP
         
         private void OnEnable()
         {
-            m_RenderPasses = serializedObject.FindProperty("m_RenderPassFeatures");
+            m_RenderPasses = serializedObject.FindProperty("m_RendererFeatures");
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
             CreateFoldoutBools();
