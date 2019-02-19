@@ -1,6 +1,6 @@
 namespace UnityEditor.Rendering
 {
-    public class SavedBool
+    class SavedBool
     {
         bool m_Value;
         string m_Name;
