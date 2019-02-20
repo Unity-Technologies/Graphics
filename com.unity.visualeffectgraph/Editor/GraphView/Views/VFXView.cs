@@ -123,10 +123,28 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                if (m_ComponentBoard == null)
+                if (m_ComponentBoard == null || m_ComponentBoard.parent == null)
                     ShowComponentBoard();
                 if (m_ComponentBoard != null)
                     m_ComponentBoard.Attach(value);
+            }
+        }
+
+        public void RemoveAnchorEdges(VFXDataAnchor anchor)
+        {
+            foreach (var edge in dataEdges.Where(t => t.Value.input == anchor || t.Value.output == anchor).ToArray())
+            {
+                RemoveElement(edge.Value);
+                dataEdges.Remove(edge.Key);
+            }
+        }
+
+        public void RemoveNodeEdges(VFXNodeUI node)
+        {
+            foreach (var edge in dataEdges.Where(t => t.Value.input.node == node || t.Value.output.node == node).ToArray())
+            {
+                RemoveElement(edge.Value);
+                dataEdges.Remove(edge.Key);
             }
         }
 
@@ -232,11 +250,11 @@ namespace UnityEditor.VFX.UI
             toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
             m_Toolbar.Add(toggleBlackboard);
 
-            Toggle toggleComponentBoard = new Toggle();
-            toggleComponentBoard.text = "Target GameObject";
-            toggleComponentBoard.AddToClassList("toolbarItem");
-            toggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
-            m_Toolbar.Add(toggleComponentBoard);
+            m_ToggleComponentBoard = new Toggle();
+            m_ToggleComponentBoard.text = "Target GameObject";
+            m_ToggleComponentBoard.AddToClassList("toolbarItem");
+            m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
+            m_Toolbar.Add(m_ToggleComponentBoard);
 
 
             spacer = new VisualElement();
@@ -360,6 +378,8 @@ namespace UnityEditor.VFX.UI
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, true);
 
             m_ComponentBoard.RegisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
+
+            m_ToggleComponentBoard.SetValueWithoutNotify(true);
         }
 
         void OnFirstComponentBoardGeometryChanged(GeometryChangedEvent e)
@@ -393,6 +413,7 @@ namespace UnityEditor.VFX.UI
             UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
+        Toggle m_ToggleComponentBoard;
         void ToggleComponentBoard(ChangeEvent<bool> e)
         {
             if (m_ComponentBoard == null || m_ComponentBoard.parent == null)
@@ -403,6 +424,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_ComponentBoard.RemoveFromHierarchy();
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, false);
+                m_ToggleComponentBoard.SetValueWithoutNotify(false);
             }
         }
 

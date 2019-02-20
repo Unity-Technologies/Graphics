@@ -7,9 +7,9 @@ using Object = System.Object;
 
 namespace UnityEditor.VFX
 {
-    class InlineTypeProvider : IVariantProvider
+    class InlineTypeProvider : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {

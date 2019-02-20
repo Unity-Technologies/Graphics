@@ -63,10 +63,21 @@ namespace UnityEditor.ShaderGraph
                 m_RangeValues = value;
             }
         }
+        
+        [SerializeField]
+        bool    m_Hidden = false;
+
+        public bool hidden
+        {
+            get { return m_Hidden; }
+            set { m_Hidden = value; }
+        }
 
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
+            if (hidden)
+                result.Append("[HideInInspector] ");
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);
@@ -102,7 +113,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)
             {
@@ -117,7 +128,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new Vector1ShaderProperty();
             copied.displayName = displayName;

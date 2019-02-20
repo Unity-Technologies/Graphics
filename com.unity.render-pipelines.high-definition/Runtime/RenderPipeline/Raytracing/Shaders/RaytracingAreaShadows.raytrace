@@ -1,0 +1,422 @@
+// We need only need one bounce given that we want to see the if there is anything that occludes the area light
+#pragma max_recursion_depth 1
+
+// Macro that defines if we are raytracing from the light source to the object in backface culling or the opposite in frontface culling
+#define LIGHT_TO_SURFACE
+
+// Given that the algorithm requires BSDF evaluation, we need to define this macro
+#define HAS_LIGHTLOOP
+
+// Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
+#define SHADOW_LOW
+
+// We are using DX12 here
+#define SHADER_TARGET 50
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_RAYTRACING
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition\Runtime\Material\Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition\Runtime\Lighting\Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+
+// Raytracing includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SphericalRectangle.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+
+// Light Data
+uint                                    _RaytracingTargetAreaLight;
+float4x4                                _RaytracingAreaWorldToLocal;
+
+// The target acceleration structure that we will evaluate the reflexion in
+TEXTURE2D(_DepthTexture);
+
+// Output structure of the shadows raytrace shader
+RWTexture2D<float4>     _SNTextureUAV;
+RWTexture2D<float4>     _UNTextureUAV;
+RWTexture2D<float4>     _UTextureUAV;
+
+struct MISSamplingInput
+{
+    float2 noiseValue;
+    float diffProb;
+    float brdfProb;
+    float mis;
+    float brdfMIS;
+    DirectLighting lighting;
+    float3x3 localToWorld;
+    float roughness;
+    float3 viewWS;
+};
+
+struct MISSamplingOuput
+{
+    float3 dir;
+    float3 pos;
+    float brdfPDF;
+    float lightPDF;
+    float3 brdf;
+    float2 sampleUV;
+};
+
+// The approach here is that on a grid pattern, every pixel is using the opposite technique of his direct neighbor and every sample the technique used changes
+void EvaluateMISTechnique(inout MISSamplingInput samplingInput)
+{
+    if (samplingInput.noiseValue.x <= samplingInput.brdfProb)
+    {
+        samplingInput.mis = 0.0;
+        samplingInput.noiseValue.x /= samplingInput.brdfProb;
+    }
+    else
+    {
+        samplingInput.mis = 1.0;
+        samplingInput.noiseValue.x = (samplingInput.noiseValue.x - samplingInput.brdfProb) / (1.0 - samplingInput.brdfProb);
+    }
+}
+
+void EvaluateMISBRDFTechnique(inout MISSamplingInput samplingInput)
+{
+    if (samplingInput.noiseValue.y <= samplingInput.diffProb)
+    {
+        samplingInput.brdfMIS = 0.0;
+        samplingInput.noiseValue.y /= samplingInput.diffProb;
+    }
+    else
+    {
+        samplingInput.brdfMIS = 1.0;
+        samplingInput.noiseValue.y = (samplingInput.noiseValue.y - samplingInput.diffProb) / (1.0 - samplingInput.diffProb);
+    }
+}
+
+bool InitSphericalRectangle(LightData areaLightData, float3 positionWS, float3 normalWS, out SphericalRectangle sr, inout MISSamplingInput misInput)
+{
+    // Dimension of the area light
+    float halfWidth  = areaLightData.size.x * 0.5;
+    float halfHeight = areaLightData.size.y * 0.5;
+
+    // Compute the world space position of the center of the lightlight
+    float3 areaLightPosWS = GetAbsolutePositionWS(areaLightData.positionRWS);
+
+    // Let's first compute the position of the rectangle's corners in world space
+    float3 v0 = areaLightPosWS + areaLightData.right *  halfWidth + areaLightData.up *  halfHeight;
+    float3 v1 = areaLightPosWS + areaLightData.right *  halfWidth + areaLightData.up * -halfHeight;
+    float3 v2 = areaLightPosWS + areaLightData.right * -halfWidth + areaLightData.up * -halfHeight;
+    float3 v3 = areaLightPosWS + areaLightData.right * -halfWidth + areaLightData.up *  halfHeight;
+
+    // Setup the spherical rectangle for the mis calculus (if we can't setup the SR that means this point does not see the light source)
+    return SetupSphericalRectangle(v0, v1, v2, v3, areaLightPosWS, areaLightData.forward, positionWS, normalWS, areaLightData.size.xy, sr);
+}
+
+float EvalBrdfPDF(MISSamplingInput misInput, float3 L)
+{
+    // Compute the diffuse PDF
+    float diffPDF = dot(misInput.localToWorld[2], L) / PI;
+
+    // Compute the specular PDF
+    float3 H = normalize(L + misInput.viewWS );
+    float NdotH = dot(misInput.localToWorld[2], H);
+    float LdotH = dot(L, H);
+    float specPDF = D_GGX(NdotH, misInput.roughness) * NdotH / (4.0f * LdotH);
+
+    // Blend the two of them
+    return lerp(specPDF, diffPDF, misInput.diffProb);
+}
+
+void brdfSampleMIS(MISSamplingInput misInput, out float3 direction, out float pdf)
+{
+    if (misInput.brdfMIS < 0.5f)
+    {
+        // Diffuse BRDF sampling
+        float3 localL = SampleHemisphereCosine(misInput.noiseValue.x, misInput.noiseValue.y);
+        direction = mul(localL, misInput.localToWorld);
+    }
+    else
+    {
+        // Specular BRDF sampling
+        float NdotL, NdotH, VdotH, LdotH;
+        SampleGGXDir2(misInput.noiseValue, misInput.viewWS, misInput.localToWorld, misInput.roughness, direction, NdotL, NdotH, VdotH, LdotH);
+    }
+
+    // Evaluate the pdf for this sample
+    pdf = EvalBrdfPDF(misInput, direction);
+}
+
+// Here we decided to use a "Damier" pattern to define which importance sampling technique to use for the MIS
+bool GenerateMISSample(inout MISSamplingInput misInput, SphericalRectangle sr, float3 viewVector, inout MISSamplingOuput misSamplingOutput)
+{
+    // Flag that defines if this sample is valid
+    bool validity = false;
+
+    if (misInput.mis < 0.5f)
+    {
+        // This means we will be sampling using the BRDF, we need to pick if it is gonna be a diffuse or specular IS 
+        EvaluateMISBRDFTechnique(misInput);
+
+        // Compute the output light direction
+        brdfSampleMIS(misInput, misSamplingOutput.dir, misSamplingOutput.brdfPDF);
+
+        // First we need to figure out if this sample touches the area light otherwise it is not a valid sample
+        float t;
+        validity = IntersectPlane(sr.smpWSPos, misSamplingOutput.dir, sr.rectWSPos, sr.rectWSDir, t);
+
+        if (validity)
+        {
+            // Let's compute the sample pos
+            misSamplingOutput.pos = sr.smpWSPos + t * misSamplingOutput.dir;
+
+            // The next question is: This the sample point inside the triangle? To do that for the moment we move it to the local space of the light and see if its distance to the center of the light
+            // is coherent with the dimensions of the light
+            float4 lsPoint = mul(_RaytracingAreaWorldToLocal, float4(misSamplingOutput.pos, 1.0)) * 2.0f;
+            validity = abs(lsPoint.x) < sr.dimension.x && abs(lsPoint.y) < sr.dimension.y;
+            if (validity)
+            {
+                // Compute the uv on the light
+                misSamplingOutput.sampleUV = float2((lsPoint.x + sr.dimension.x) / (2.0f * sr.dimension.x), (lsPoint.y + sr.dimension.y) /  (2.0f * sr.dimension.y));
+                // Compute the Light PDF
+                misSamplingOutput.lightPDF = 1.0 / sr.totalSolidAngle;
+            }
+        }
+    }
+    else
+    {
+        validity = SampleSphericalRectangle(sr, misInput.noiseValue, misSamplingOutput.dir, misSamplingOutput.pos);
+        if (validity)
+        {
+            misSamplingOutput.brdfPDF = EvalBrdfPDF(misInput, misSamplingOutput.dir);
+            // Compute the Light PDF
+            misSamplingOutput.lightPDF = 1.0 / sr.totalSolidAngle;
+            // Compute the uv on the light
+            float4 lsPoint = mul(_RaytracingAreaWorldToLocal, float4(misSamplingOutput.pos, 1.0)) * 2.0f;
+            misSamplingOutput.sampleUV = float2((lsPoint.x + sr.dimension.x) / (2.0f * sr.dimension.x), (lsPoint.y + sr.dimension.y) /  (2.0f * sr.dimension.y));
+        }
+    }
+    return validity;
+}
+
+void EvaluateMISProbabilties(MISSamplingInput misInput, LightData lightData, PreLightData preLightData, float3 positionWS, out float diffProb, out float brdfProb)
+{
+    // TODO: some of this could be precomputed.
+    float halfWidth  = lightData.size.x * 0.5;
+    float halfHeight = lightData.size.y * 0.5;
+
+    float3 unNormalizedDirection = lightData.positionRWS - positionWS;
+
+    float4x3 lightVerts;
+    lightVerts[0] = unNormalizedDirection + lightData.right *  halfWidth + lightData.up *  halfHeight;
+    lightVerts[1] = unNormalizedDirection + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    lightVerts[2] = unNormalizedDirection + lightData.right * -halfWidth + lightData.up * -halfHeight;
+    lightVerts[3] = unNormalizedDirection + lightData.right * -halfWidth + lightData.up *  halfHeight;
+
+    // Rotate the endpoints into the local coordinate system.
+    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
+
+    float diffLobe = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
+    float specLobe = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
+    float ltcValue;
+
+    float diffMag = Luminance(misInput.lighting.diffuse);
+    float specMag = Luminance(misInput.lighting.specular);
+    diffProb = diffMag / max(diffMag + specMag, 1e-5);
+    brdfProb = lerp(specLobe, diffLobe, diffProb);
+}
+
+[shader("miss")]
+void MissShaderShadows(inout RayIntersection rayIntersection : SV_RayPayload)
+{
+    rayIntersection.color = float3(1.0f, 1.0f, 1.0f);
+}
+
+[shader("raygeneration")]
+void RayGenShadows()
+{
+    // Grab the dimensions of the current raytrace shader
+    uint3 LaunchIndex = DispatchRaysIndex();
+    uint3 LaunchDim = DispatchRaysDimensions();
+
+    // Pixel coordinate of the current pixel
+    uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
+
+    // Get the scramblingValue of this pixel
+    uint2 scramblingValue = ScramblingValue(currentPixelCoord.x, currentPixelCoord.y);
+    
+    // Reset the value of the buffer
+    _UNTextureUAV[currentPixelCoord] = float4(0.0f, 0.0, 0.0, 1.0f);
+    _SNTextureUAV[currentPixelCoord] = float4(0.0f, 0.0, 0.0, 1.0f);
+    _UTextureUAV[currentPixelCoord] = float4(0.0f, 0.0, 0.0, 1.0f);
+    
+    // Read the depth value
+    float depthValue  = _DepthTexture[currentPixelCoord].x;
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Compute the position input structure
+    PositionInputs posInput = GetPositionInput_Stereo(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0, 0);
+
+    // Let's now decode the BSDF data from the  gbuffer
+    BSDFData bsdfData;
+    BuiltinData builtinData;
+    uint  featureFlags = UINT_MAX;
+    DecodeFromGBuffer(posInput.positionSS, featureFlags, bsdfData, builtinData);
+
+    // Beyond a certain value of smoothness, we clamp due to the invalidity of the ratio BRDF / MIS.
+    // TODO: investigate this and find a way to by pass it
+    bsdfData.perceptualRoughness = ClampPerceptualRoughnessForRaytracing(bsdfData.perceptualRoughness);
+    bsdfData.roughnessT = ClampRoughnessForRaytracing(bsdfData.roughnessT);
+    bsdfData.roughnessB = ClampRoughnessForRaytracing(bsdfData.roughnessB);
+
+    // Convert this to a world space position
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Compute the view vector on the surface
+    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+
+    // Structure that holds all the input data for the MIS
+    MISSamplingInput misInput;
+    misInput.noiseValue = float2(0, 0); // Overriden later
+    misInput.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+    misInput.viewWS = viewWS;
+
+    // Compute the prelight data
+    PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
+
+    // Decode the world space normal
+    NormalData normalData;  
+    DecodeFromNormalBuffer(currentPixelCoord, normalData);
+
+    // Compute the local frame that matches the normal
+    misInput.localToWorld = GetLocalFrame(normalData.normalWS);
+
+    // Structure that holds all the output data from the MIS
+    MISSamplingOuput misOutput;
+    misOutput.dir = float3(0.0, 0.0, 0.0);
+    misOutput.pos = float3(0.0, 0.0, 0.0);
+    misOutput.brdf = float3(0.0, 0.0, 0.0);
+    misOutput.brdfPDF = 0.0f;
+    misOutput.lightPDF = 0.0f;
+
+    // Fetch the data of the area light
+    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+
+    // Setup and check the spherical rectangle
+    SphericalRectangle sr;
+    bool validSR = InitSphericalRectangle(lightData, positionWS, normalData.normalWS, sr, misInput);
+    if (!validSR)
+        return;
+
+    // Compute the direct lighting of the light (used for MIS)
+    LightLoopContext context;
+    // Given that the approximation used for LTC is completely different from what we would get from a real integration, we only rely on the not textured intensity.
+    // To acheive that, we set cookie index to -1 so that the evaluatebsdf_rect function to not use any cookie. We also keep track of that cookie value to restore it after the evaluation.
+    int cookieIndex = lightData.cookieIndex;
+    lightData.cookieIndex = -1;
+    misInput.lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
+    misInput.lighting.diffuse = misInput.lighting.diffuse * bsdfData.diffuseColor;
+    lightData.cookieIndex = cookieIndex;
+
+    // Copy the full lighting to the buffer
+    _UTextureUAV[currentPixelCoord] = float4(misInput.lighting.diffuse + misInput.lighting.specular, 1.0f);
+
+    // NOTE: Due to a VGPR optimisation in we need to restore the previous value (position, dimmer, and other thing are overriden)
+    lightData = _LightDatas[_RaytracingTargetAreaLight];
+
+    // Here we need to evaluate the diffuseProbablity and the unshadowed lighting
+    EvaluateMISProbabilties(misInput, lightData, preLightData, posInput.positionWS, misInput.diffProb, misInput.brdfProb);
+
+    if (_RayCountEnabled > 0)
+    {
+        _RayCountTexture[currentPixelCoord].z = _RayCountTexture[currentPixelCoord].z + (uint)_RaytracingNumSamples;
+    }
+
+    bool validity = false;
+    for (int sampleIdx = 0; sampleIdx < _RaytracingNumSamples; ++sampleIdx)
+    {
+        // Compute the current sample index
+        int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + sampleIdx;
+
+        // Generate the new sample (follwing values of the sequence)
+        float2 noiseValue = float2(0.0, 0.0);
+        misInput.noiseValue.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+        misInput.noiseValue.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+        // Pick the sampling technique
+        EvaluateMISTechnique(misInput);
+
+        // Generate the right MIS Sample
+        validity = GenerateMISSample(misInput, sr, viewWS,  misOutput);
+
+        // If we could not sample , or the sample is not in the hemisphere or the sample is on the backface of the light
+        if (!validity || dot(misOutput.dir, normalData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
+        {
+            continue;
+        }
+
+        // Let's shift the origin and destination positions by a bias
+        #ifdef LIGHT_TO_SURFACE
+        // In order to match the behavior of the raster pipeline, shadow rays are casted from the light source and not the point (to mimic backface culling in shadowmaps)
+        float3 rayOrigin = misOutput.pos + lightData.forward * _RaytracingRayBias;
+        float3 rayDestination = positionWS + normalData.normalWS * _RaytracingRayBias;
+        float3 rayDirection = normalize(rayDestination-rayOrigin);
+        uint rayFlag = RAY_FLAG_CULL_BACK_FACING_TRIANGLES;
+        #else
+        // In order to match the behavior of the raster pipeline, shadow rays are casted from the light source and not the point (to mimic backface culling in shadowmaps)
+        float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias;
+        float3 rayDestination = misOutput.pos + lightData.forward * _RaytracingRayBias;
+        float3 rayDirection = normalize(rayDestination-rayOrigin);
+        uint rayFlag = RAY_FLAG_CULL_FRONT_FACING_TRIANGLES;
+        #endif
+
+        // Create the ray descriptor for this pixel
+        RayDesc rayDescriptor;
+        rayDescriptor.Origin = rayOrigin;
+        rayDescriptor.Direction = rayDirection;
+        rayDescriptor.TMin = 0.0f;
+        rayDescriptor.TMax = length(rayDestination - rayOrigin);
+
+        // Create and init the RayIntersection structure for this
+        RayIntersection rayIntersection;
+        rayIntersection.color = float3(0.0, 0.0, 0.0);
+        rayIntersection.incidentDirection = rayDescriptor.Direction;
+        
+        // Evaluate the ray visibility term and PDF
+        TraceRay(_RaytracingAccelerationStructure, rayFlag, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+
+        // Evaluate the lighting
+        float3 diffuseLighting = float3(0.0, 0.0, 0.0);
+        float3 specularLighting = float3(0.0, 0.0, 0.0);
+        float NdotL = saturate(dot(normalData.normalWS, misOutput.dir));
+        BSDF(viewWS, misOutput.dir, NdotL, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+
+        // Combine the light color with the light cookie color (if any)
+        float3 lightColor = lightData.color;
+        if (lightData.cookieIndex >= 0)
+        {
+            lightColor *= SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, misOutput.sampleUV, lightData.cookieIndex, bsdfData.perceptualRoughness *  _CookieSizePOT).xyz;
+        }
+
+        diffuseLighting *= bsdfData.diffuseColor * lightData.diffuseDimmer * lightColor;
+        specularLighting *= lightData.specularDimmer * lightColor;
+
+        // Compute the MIS weight
+        float misPDF = lerp(misOutput.lightPDF, misOutput.brdfPDF, misInput.brdfProb);
+        float3 radiance = (diffuseLighting + specularLighting) / misPDF;
+
+        _SNTextureUAV[currentPixelCoord] += float4(radiance * rayIntersection.color, 1.0f);
+        _UNTextureUAV[currentPixelCoord] += float4(radiance, 1.0f);
+    }
+
+    _SNTextureUAV[currentPixelCoord] *= 1.0f / _RaytracingNumSamples;
+    _UNTextureUAV[currentPixelCoord] *= 1.0f / _RaytracingNumSamples;
+}
+
+// Fallback default any hit shader for this raytrace shader
+[shader("anyhit")]
+void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+{
+    rayIntersection.color = float3(0.0, 0.0, 0.0);
+    AcceptHitAndEndSearch();
+}

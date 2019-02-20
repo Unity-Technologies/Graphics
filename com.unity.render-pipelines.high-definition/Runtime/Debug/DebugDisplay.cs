@@ -20,13 +20,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         PreRefractionColorPyramid,
         DepthPyramid,
         FinalColorPyramid,
+        // Raytracing
+        LightCluster,
+        RaytracedAreaShadow,
         MaxLightingFullScreenDebug,
 
         // Rendering
         MinRenderingFullScreenDebug,
         MotionVectors,
         NanTracker,
-        MaxRenderingFullScreenDebug
+        MaxRenderingFullScreenDebug,
+
+        //Material
+        MinMaterialFullScreenDebug,
+        ValidateDiffuseColor,
+        ValidateSpecularColor,
+        MaxMaterialFullScreenDebug
     }
 
     public class DebugDisplaySettings : IDebugData
@@ -47,6 +56,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int[] s_LightingFullScreenDebugValues = null;
         static GUIContent[] s_RenderingFullScreenDebugStrings = null;
         static int[] s_RenderingFullScreenDebugValues = null;
+        static GUIContent[] s_MaterialFullScreenDebugStrings = null;
+        static int[] s_MaterialFullScreenDebugValues = null;
         static GUIContent[] s_MsaaSamplesDebugStrings = null;
         static int[] s_MsaaSamplesDebugValues = null;
 
@@ -70,7 +81,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
             public DecalsDebugSettings decalsDebugSettings = new DecalsDebugSettings();
             public MSAASamples msaaSamples = MSAASamples.None;
-            
+
+            // Raytracing
+#if ENABLE_RAYTRACING
+            public bool countRays = false;
+            public Color rayCountFontColor = Color.white;
+            public bool showRayCountTex = false;
+            public int countRayPassIndex;
+#endif
+
             public int debugCameraToFreeze = 0;
 
             //saved enum fields for when repainting
@@ -103,6 +122,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             FillFullScreenDebugEnum(ref s_LightingFullScreenDebugStrings, ref s_LightingFullScreenDebugValues, FullScreenDebugMode.MinLightingFullScreenDebug, FullScreenDebugMode.MaxLightingFullScreenDebug);
             FillFullScreenDebugEnum(ref s_RenderingFullScreenDebugStrings, ref s_RenderingFullScreenDebugValues, FullScreenDebugMode.MinRenderingFullScreenDebug, FullScreenDebugMode.MaxRenderingFullScreenDebug);
+            FillFullScreenDebugEnum(ref s_MaterialFullScreenDebugStrings, ref s_MaterialFullScreenDebugValues, FullScreenDebugMode.MinMaterialFullScreenDebug, FullScreenDebugMode.MaxMaterialFullScreenDebug);
+
+            s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
+            s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
 
             s_MsaaSamplesDebugStrings = Enum.GetNames(typeof(MSAASamples))
                 .Select(t => new GUIContent(t))
@@ -172,6 +195,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool IsDebugFullScreenEnabled()
         {
             return data.fullScreenDebugMode != FullScreenDebugMode.None;
+        }
+
+        public bool IsMaterialValidationEnabled()
+        {
+            return (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor) || (data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor);
         }
 
         public bool IsDebugMipMapDisplayEnabled()
@@ -264,7 +292,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCameraFreezeOptions()
         {
-            if(needsRefreshingCameraFreezeList)
+            if (needsRefreshingCameraFreezeList)
             {
                 s_CameraNames.Insert(0, new GUIContent("None"));
 
@@ -283,7 +311,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
             return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
-                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections);
+                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.RaytracedAreaShadow);
         }
 
         void RegisterDisplayStatsDebug()
@@ -292,6 +320,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 30f },
                 new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 30f }
+#if ENABLE_RAYTRACING
+                ,
+                new DebugUI.BoolField { displayName = "Display Ray Count", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug },
+                new DebugUI.ColorField { displayName = "Ray Count Font Color", getter = () => data.rayCountFontColor, setter = value => data.rayCountFontColor = value }
+#endif
             };
 
             var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);
@@ -301,17 +334,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RegisterMaterialDebug()
         {
-            m_DebugMaterialItems = new DebugUI.Widget[]
-            {
-                new DebugUI.EnumField { displayName = "Material", getter = () => data.materialDebugSettings.debugViewMaterial, setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues, getIndex = () => data.materialEnumIndex, setIndex = value => data.materialEnumIndex = value },
-                new DebugUI.EnumField { displayName = "Engine", getter = () => data.materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues, getIndex = () => data.engineEnumIndex, setIndex = value => data.engineEnumIndex = value },
-                new DebugUI.EnumField { displayName = "Attributes", getter = () => (int)data.materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying), getIndex = () => data.attributesEnumIndex, setIndex = value => data.attributesEnumIndex = value },
-                new DebugUI.EnumField { displayName = "Properties", getter = () => (int)data.materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties), getIndex = () => data.propertiesEnumIndex, setIndex = value => data.propertiesEnumIndex = value },
-                new DebugUI.EnumField { displayName = "GBuffer", getter = () => data.materialDebugSettings.debugViewGBuffer, setter = value => SetDebugViewGBuffer(value), enumNames = MaterialDebugSettings.debugViewMaterialGBufferStrings, enumValues = MaterialDebugSettings.debugViewMaterialGBufferValues, getIndex = () => data.gBufferEnumIndex, setIndex = value => data.gBufferEnumIndex = value }
-            };
+            var list = new List<DebugUI.Widget>();
 
+            list.Add( new DebugUI.EnumField { displayName = "Material", getter = () => data.materialDebugSettings.debugViewMaterial, setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues, getIndex = () => data.materialEnumIndex, setIndex = value => data.materialEnumIndex = value });
+            list.Add( new DebugUI.EnumField { displayName = "Engine", getter = () => data.materialDebugSettings.debugViewEngine, setter = value => SetDebugViewEngine(value), enumNames = MaterialDebugSettings.debugViewEngineStrings, enumValues = MaterialDebugSettings.debugViewEngineValues, getIndex = () => data.engineEnumIndex, setIndex = value => data.engineEnumIndex = value });
+            list.Add( new DebugUI.EnumField { displayName = "Attributes", getter = () => (int)data.materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying), getIndex = () => data.attributesEnumIndex, setIndex = value => data.attributesEnumIndex = value });
+            list.Add( new DebugUI.EnumField { displayName = "Properties", getter = () => (int)data.materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties), getIndex = () => data.propertiesEnumIndex, setIndex = value => data.propertiesEnumIndex = value });
+            list.Add( new DebugUI.EnumField { displayName = "GBuffer", getter = () => data.materialDebugSettings.debugViewGBuffer, setter = value => SetDebugViewGBuffer(value), enumNames = MaterialDebugSettings.debugViewMaterialGBufferStrings, enumValues = MaterialDebugSettings.debugViewMaterialGBufferValues, getIndex = () => data.gBufferEnumIndex, setIndex = value => data.gBufferEnumIndex = value });
+            list.Add( new DebugUI.EnumField { displayName = "Material validator", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_MaterialFullScreenDebugStrings, enumValues = s_MaterialFullScreenDebugValues, onValueChanged = RefreshMaterialDebug, getIndex = () => data.lightingFulscreenDebugModeEnumIndex, setIndex = value => data.lightingFulscreenDebugModeEnumIndex = value });
+
+            if (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor || data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.ColorField { displayName = "Too High Color", getter = () => data.materialDebugSettings.materialValidateHighColor, setter = value => data.materialDebugSettings.materialValidateHighColor = value, showAlpha = false, hdr = true },
+                        new DebugUI.ColorField { displayName = "Too Low Color", getter = () => data.materialDebugSettings.materialValidateLowColor, setter = value => data.materialDebugSettings.materialValidateLowColor = value, showAlpha = false, hdr = true },
+                        new DebugUI.ColorField { displayName = "Not True Metal Color", getter = () => data.materialDebugSettings.materialValidateTrueMetalColor, setter = value => data.materialDebugSettings.materialValidateTrueMetalColor = value, showAlpha = false, hdr = true },
+                        new DebugUI.BoolField  { displayName = "True Metals", getter = () => data.materialDebugSettings.materialValidateTrueMetal, setter = (v) => data.materialDebugSettings.materialValidateTrueMetal = v },
+                    }
+                });
+            }
+
+            m_DebugMaterialItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelMaterials, true);
             panel.children.Add(m_DebugMaterialItems);
+        }
+
+        void RefreshDisplayStatsDebug<T>(DebugUI.Field<T> field, T value)
+        {
+            UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
+            RegisterDisplayStatsDebug();
         }
 
         // For now we just rebuild the lighting panel if needed, but ultimately it could be done in a better way
@@ -331,6 +385,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
             RegisterRenderingDebug();
+        }
+
+        void RefreshMaterialDebug<T>(DebugUI.Field<T> field, T value)
+        {
+            UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
+            RegisterMaterialDebug();
         }
 
         public void RegisterLightingDebug()
@@ -686,8 +746,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 needsRefreshingCameraFreezeList = true;
             }
             
-            FrameSettings.RegisterDebug(name, additionalData.GetFrameSettings());
-            DebugManager.instance.RegisterData(additionalData);
+            var history = FrameSettingsHistory.RegisterDebug(camera, additionalData);
+            DebugManager.instance.RegisterData(history);
         }
 
         public static void UnRegisterCamera(Camera camera, HDAdditionalCameraData additionalData)
@@ -699,8 +759,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_CameraNames.RemoveAt(indexOfCamera);
                 needsRefreshingCameraFreezeList = true;
             }
-            FrameSettings.UnRegisterDebug(name);
-            DebugManager.instance.UnregisterData(additionalData);
+
+            DebugManager.instance.UnregisterData(FrameSettingsHistory.GetPersistantDebugDataCopy(camera));
+            FrameSettingsHistory.UnRegisterDebug(camera);
         }
     }
 }

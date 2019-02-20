@@ -9,11 +9,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // There is a dedicated RenderRenderPipelineSettings for each platform
 
     [Serializable]
-    public class GlobalDecalSettings
+    public struct GlobalDecalSettings
     {
-        public int drawDistance = 1000;
-        public int atlasWidth = 4096;
-        public int atlasHeight = 4096;
-        public bool perChannelMask = false;
+        /// <summary>Default GlobalDecalSettings</summary>
+        public static readonly GlobalDecalSettings @default = new GlobalDecalSettings()
+        {
+            drawDistance = 1000,
+            atlasWidth = 4096,
+            atlasHeight = 4096
+        };
+
+        public int drawDistance;
+        public int atlasWidth;
+        public int atlasHeight;
+        public bool perChannelMask;
     }
 }

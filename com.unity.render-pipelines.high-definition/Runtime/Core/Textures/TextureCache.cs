@@ -57,6 +57,16 @@ namespace UnityEngine.Experimental.Rendering
             m_NumMipLevels = 0;
         }
 
+        public string GetCacheName()
+        {
+            return m_CacheName;
+        }
+        
+        public int GetNumMipLevels()
+        {
+            return m_NumMipLevels;
+        }
+
         // Function that initialize the texture cache with a maximal number of textures in the cache
         protected bool AllocTextureArray(int numTextures)
         {

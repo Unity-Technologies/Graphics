@@ -161,11 +161,11 @@ namespace UnityEngine.Rendering.LWRP
             // Get Slot and Node lists per stage
 
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<INode>.Get();
+            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             var pixelSlots = pass.PixelShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var pixelNodes = ListPool<INode>.Get();
+            var pixelNodes = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // -------------------------------------
@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.LWRP
             // Generate Vertex Description function
 
             GraphUtil.GenerateVertexDescriptionFunction(
-                masterNode.owner as AbstractMaterialGraph,
+                masterNode.owner as GraphData,
                 vertexDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.LWRP
             GraphUtil.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 masterNode,
-                masterNode.owner as AbstractMaterialGraph,
+                masterNode.owner as GraphData,
                 surfaceDescriptionFunction,
                 functionRegistry,
                 shaderProperties,

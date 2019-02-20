@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXDebugExpressionTest
     {
-        string tempFilePath = "Assets/TmpTests/vfxTest.vfx";
+        string tempFilePath = "Assets/TmpTests/vfxTest_time.vfx";
 
         VFXGraph MakeTemporaryGraph()
         {
@@ -25,24 +25,44 @@ namespace UnityEditor.VFX.Test
             }
 
             var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
-
             VisualEffectResource resource = asset.GetResource(); // force resource creation
-
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
-
             graph.visualEffectResource = resource;
-
             return graph;
+        }
+
+        private float m_previousFixedTimeStep;
+        private float m_previousMaxDeltaTime;
+        private GameObject m_gameObject;
+        private GameObject m_camera;
+
+        [SetUp]
+        public void Init()
+        {
+            m_previousFixedTimeStep = UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep;
+            m_previousMaxDeltaTime = UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime;
+
+            m_gameObject = new GameObject("MainGameObject");
+
+            m_camera = new GameObject("CreateAssetAndComponentSpawner_Camera");
+            var camera = m_camera.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(m_gameObject.transform);
         }
 
         [TearDown]
         public void CleanUp()
         {
+            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
+            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
             AssetDatabase.DeleteAsset(tempFilePath);
+
+            UnityEngine.Object.DestroyImmediate(m_gameObject);
+            UnityEngine.Object.DestroyImmediate(m_camera);
         }
 
         [UnityTest]
-        public IEnumerator CreateAssetAndComponentTotalTime()
+        public IEnumerator Create_Asset_And_Component_Check_Expected_TotalTime()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = MakeTemporaryGraph();
@@ -53,6 +73,8 @@ namespace UnityEditor.VFX.Test
             // Attach to a valid particle system so that spawner is compiled
             var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var outputContext = ScriptableObject.CreateInstance<VFXPointOutput>();
+            graph.AddChild(initContext);
+            graph.AddChild(outputContext);
             spawnerContext.LinkTo(initContext);
             initContext.LinkTo(outputContext);
 
@@ -66,14 +88,9 @@ namespace UnityEditor.VFX.Test
             graph.RecompileIfNeeded();
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
 
-            var gameObj = new GameObject("CreateAssetAndComponentDebugExpressionTest");
-            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            while (m_gameObject.GetComponent<VisualEffect>() != null) UnityEngine.Object.DestroyImmediate(m_gameObject.GetComponent<VisualEffect>());
+            var vfxComponent = m_gameObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
-
-            var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
-            var camera = cameraObj.AddComponent<Camera>();
-            camera.transform.localPosition = Vector3.one;
-            camera.transform.LookAt(vfxComponent.transform);
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -88,9 +105,65 @@ namespace UnityEditor.VFX.Test
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
+        }
 
-            UnityEngine.Object.DestroyImmediate(gameObj);
-            UnityEngine.Object.DestroyImmediate(cameraObj);
+#pragma warning disable 0414
+        public static object[] updateModes = { VFXUpdateMode.FixedDeltaTime, VFXUpdateMode.DeltaTime };
+#pragma warning restore 0414
+
+        [UnityTest]
+        public IEnumerator Create_Asset_And_Component_Check_Overflow_MaxDeltaTime([ValueSource("updateModes")] object updateMode)
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = MakeTemporaryGraph();
+            graph.visualEffectResource.updateMode = (VFXUpdateMode)updateMode;
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var constantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var outputContext = ScriptableObject.CreateInstance<VFXPointOutput>();
+            graph.AddChild(initContext);
+            graph.AddChild(outputContext);
+
+            spawnerContext.LinkTo(initContext);
+            initContext.LinkTo(outputContext);
+
+            spawnerContext.AddChild(constantRate);
+            graph.AddChild(spawnerContext);
+            graph.RecompileIfNeeded();
+
+            var vfxComponent = m_gameObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+
+            float fixedTimeStep = 1.0f / 20.0f;
+            float maxTimeStep = 1.0f / 10.0f;
+
+            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = fixedTimeStep;
+            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = maxTimeStep;
+
+            /* waiting for culling */
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            float sleepTimeInSeconds = maxTimeStep * 5.0f;
+            System.Threading.Thread.Sleep((int)(sleepTimeInSeconds * 1000.0f));
+            yield return null;
+
+            var spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0u);
+            if (graph.visualEffectResource.updateMode == VFXUpdateMode.FixedDeltaTime)
+            {
+                Assert.AreEqual(maxTimeStep, spawnerState.deltaTime);
+            }
+            else
+            {
+                Assert.AreEqual(maxTimeStep, spawnerState.deltaTime); //< There is clamp even in delta time mode
+                //Assert.AreEqual((double)sleepTimeInSeconds, spawnerState.deltaTime, 0.01f);
+            }
+            yield return null;
         }
 
         //TEMP disable LogAssert.Expect, still failing running on katana

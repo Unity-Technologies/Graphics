@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            var graph = new MaterialGraph();
+            var graph = new GraphData();
             graph.AddNode(new DecalMasterNode());
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
             AssetDatabase.Refresh();

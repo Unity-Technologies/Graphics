@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.LWRP
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
-            BeginFrameRendering(cameras);
+            BeginFrameRendering(renderContext, cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             SetupPerFrameShaderConstants();
@@ -117,13 +117,17 @@ namespace UnityEngine.Rendering.LWRP
             SortCameras(cameras);
             foreach (Camera camera in cameras)
             {
-                BeginCameraRendering(camera);
+                BeginCameraRendering(renderContext, camera);
 
                 foreach (var beforeCamera in camera.GetComponents<IBeforeCameraRender>())
                     beforeCamera.ExecuteBeforeCameraRender(this, renderContext, camera);
 
                 RenderSingleCamera(this, renderContext, camera, camera.GetComponent<IRendererSetup>());
+
+                EndCameraRendering(renderContext, camera);
             }
+
+            EndFrameRendering(renderContext, cameras);
         }
 
         public static void RenderSingleCamera(LightweightRenderPipeline pipelineInstance, ScriptableRenderContext context, Camera camera, IRendererSetup setup = null)
@@ -145,11 +149,12 @@ namespace UnityEngine.Rendering.LWRP
                 InitializeCameraData(settings, camera, out var cameraData);
                 SetupPerCameraShaderConstants(cameraData);
 
-                if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
-                    asset.maxAdditionalLightsCount == 0)
-                {
-                    cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
-                }
+                // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
+                // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
+                //     asset.maxAdditionalLightsCount == 0)
+                // {
+                //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+                // }
 
                 cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
 

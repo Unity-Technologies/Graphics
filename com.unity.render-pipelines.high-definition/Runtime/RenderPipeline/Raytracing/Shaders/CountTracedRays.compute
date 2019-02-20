@@ -1,0 +1,53 @@
+#pragma kernel CS_CountRays
+#pragma kernel CS_Clear
+
+#pragma only_renderers d3d11
+
+RWTexture2D<uint4> _RayCountTexture;
+RWStructuredBuffer<uint> _TotalRayCountBuffer;
+
+groupshared uint aoRayCountPerThreadGroup;
+groupshared uint reflectionRayCountPerThreadGroup;
+groupshared uint areaShadowRayCountPerThreadGroup;
+
+[numthreads(1,1,1)]
+void CS_Clear(uint3 globalID : SV_DispatchThreadID)
+{
+    _TotalRayCountBuffer[0] = 0;
+    _TotalRayCountBuffer[1] = 0;
+    _TotalRayCountBuffer[2] = 0;
+}
+
+[numthreads(8,8,1)]
+void CS_CountRays(uint3 globalId : SV_DispatchThreadID, uint3 localId : SV_GroupThreadID)
+{
+    // CS_CountRays reads from a texture holding ray count per pixel
+    // and sums first across all pixels in a threadgroup,
+    // and then across all threadgroups. Barriers are used to prevent contention.
+
+    if (localId.x == 0 && localId.y == 0)
+    {
+        aoRayCountPerThreadGroup = 0;
+        reflectionRayCountPerThreadGroup = 0;
+        areaShadowRayCountPerThreadGroup = 0;
+    }
+		
+    GroupMemoryBarrierWithGroupSync();
+	
+    const uint aoRayCount           = (uint)_RayCountTexture[globalId.xy].x;
+    const uint reflectionRayCount   = (uint)_RayCountTexture[globalId.xy].y;
+    const uint areaShadowRayCount   = (uint)_RayCountTexture[globalId.xy].z;
+	
+    InterlockedAdd(aoRayCountPerThreadGroup,            aoRayCount);
+    InterlockedAdd(reflectionRayCountPerThreadGroup,    reflectionRayCount);
+    InterlockedAdd(areaShadowRayCountPerThreadGroup,    areaShadowRayCount);
+	
+    GroupMemoryBarrierWithGroupSync();
+		
+    if (localId.x == 0 && localId.y == 0)
+    {
+        InterlockedAdd(_TotalRayCountBuffer[0], aoRayCountPerThreadGroup);
+        InterlockedAdd(_TotalRayCountBuffer[1], reflectionRayCountPerThreadGroup);
+        InterlockedAdd(_TotalRayCountBuffer[2], areaShadowRayCountPerThreadGroup);
+    }
+}

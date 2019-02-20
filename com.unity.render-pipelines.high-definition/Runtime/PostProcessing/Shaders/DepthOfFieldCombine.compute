@@ -1,0 +1,121 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel KMainNearFarLowQ         MAIN=KMainNearFarLowQ           LOW_QUALITY NEAR FAR
+#pragma kernel KMainNearLowQ            MAIN=KMainNearLowQ              LOW_QUALITY NEAR
+#pragma kernel KMainFarLowQ             MAIN=KMainFarLowQ               LOW_QUALITY FAR
+
+#pragma kernel KMainNearFarHighQ        MAIN=KMainNearFarHighQ          HIGH_QUALITY NEAR FAR
+#pragma kernel KMainNearHighQ           MAIN=KMainNearHighQ             HIGH_QUALITY NEAR
+#pragma kernel KMainFarHighQ            MAIN=KMainFarHighQ              HIGH_QUALITY FAR
+
+#pragma kernel KMainNearFarFullRes      MAIN=KMainNearFarFullRes        FULL_RES NEAR FAR
+#pragma kernel KMainNearFullRes         MAIN=KMainNearFullRes           FULL_RES NEAR
+#pragma kernel KMainFarFullRes          MAIN=KMainFarFullRes            FULL_RES FAR
+
+#pragma kernel KMainPreCombineFar
+
+TEXTURE2D(_InputTexture);
+TEXTURE2D(_InputNearTexture);
+TEXTURE2D(_InputNearAlphaTexture);
+TEXTURE2D(_InputFarTexture);
+TEXTURE2D(_InputCoCTexture);
+
+RW_TEXTURE2D(float3, _OutputTexture);
+
+SAMPLER(sampler_LinearClamp);
+
+CBUFFER_START(cb0)
+    float4 _TargetScale;
+CBUFFER_END
+
+#define GROUP_SIZE 8
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    float2 uv = posInputs.positionNDC * _ScreenToTargetScale.xy;
+
+    float3 outColor = LOAD_TEXTURE2D(_InputTexture, posInputs.positionSS).xyz;
+    float4 bicubicWnd = float4(_ScreenSize.xy * _TargetScale.y * rcp(_ScreenToTargetScale.xy), 1.0 / (_ScreenSize.xy * _TargetScale.y* rcp(_ScreenToTargetScale.xy)));
+
+    // Avoid bleeding with the RTHandle autosize system
+    float2 maxCoord = (_ScreenToTargetScale.xy - bicubicWnd.zw);
+    uv = min(uv, maxCoord);
+    // Blend the far layer first
+    #if FAR
+    {
+        float3 dstColor = float3(0.0, 0.0, 0.0);
+        float dstAlpha = 1.0;
+
+        // Fullscreen CoC
+        float coc = LOAD_TEXTURE2D(_InputCoCTexture, posInputs.positionSS).x;
+
+        if (coc > 0.0)
+        {
+            #if FULL_RES
+            float3 farColor = LOAD_TEXTURE2D(_InputFarTexture, posInputs.positionSS).xyz;
+            #elif HIGH_QUALITY
+            float3 farColor = SampleTexture2DBicubic(TEXTURE2D_ARGS(_InputFarTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).xyz;
+            #else
+            float3 farColor = SAMPLE_TEXTURE2D_LOD(_InputFarTexture, sampler_LinearClamp, uv, 0.0).xyz;
+            #endif
+
+            // Non-linear blend
+            // "CryEngine 3 Graphics Gems" [Sousa13]
+            float blend = sqrt(coc * FOUR_PI);
+            dstColor = farColor * saturate(blend);
+            dstAlpha = saturate(1.0 - blend);
+        }
+
+        outColor = outColor * dstAlpha + dstColor;
+    }
+    #endif
+
+    // Then the near layer
+    #if NEAR
+    {
+        #if FULL_RES
+        float3 nearColor = LOAD_TEXTURE2D(_InputNearTexture, posInputs.positionSS).xyz;
+        float alpha = LOAD_TEXTURE2D(_InputNearAlphaTexture, posInputs.positionSS).x;
+        #elif HIGH_QUALITY
+        float3 nearColor = SampleTexture2DBicubic(TEXTURE2D_ARGS(_InputNearTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).xyz;
+        float alpha = SampleTexture2DBicubic(TEXTURE2D_ARGS(_InputNearAlphaTexture, sampler_LinearClamp), uv, bicubicWnd, maxCoord).x;
+        #else
+        float3 nearColor = SAMPLE_TEXTURE2D_LOD(_InputNearTexture, sampler_LinearClamp, uv, 0.0).xyz;
+        float alpha = SAMPLE_TEXTURE2D_LOD(_InputNearAlphaTexture, sampler_LinearClamp, uv, 0.0).x;
+        #endif
+
+        outColor = lerp(outColor, nearColor, alpha);
+    }
+    #endif
+
+    _OutputTexture[posInputs.positionSS] = outColor;
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void KMainPreCombineFar(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    float3 baseColor = LOAD_TEXTURE2D(_InputTexture, dispatchThreadId).xyz;
+    float3 farColor = LOAD_TEXTURE2D(_InputFarTexture, dispatchThreadId).xyz;
+
+    float3 dstColor = float3(0.0, 0.0, 0.0);
+    float dstAlpha = 1.0;
+
+    float coc = LOAD_TEXTURE2D(_InputCoCTexture, dispatchThreadId).x;
+
+    if (coc > 0.0)
+    {
+        // Non-linear blend
+        // "CryEngine 3 Graphics Gems" [Sousa13]
+        float blend = sqrt(coc * FOUR_PI);
+        dstColor = farColor * saturate(blend);
+        dstAlpha = saturate(1.0 - blend);
+    }
+
+    _OutputTexture[dispatchThreadId] = baseColor * dstAlpha + dstColor;
+}

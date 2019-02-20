@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
@@ -59,14 +60,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="settings">Settings for the camera.</param>
         /// <param name="position">Position for the camera.</param>
         /// <param name="target">Target to render to.</param>
-        public static void Render(CameraSettings settings, CameraPositionSettings position, Texture target)
+        /// <param name="staticFlags">Only used in the Editor fo cubemaps.
+        /// This is bitmask of <see cref="UnityEditor.StaticEditorFlags"/> only objects with these flags will be rendered
+        /// </param>
+        public static void Render(
+            CameraSettings settings,
+            CameraPositionSettings position,
+            Texture target,
+            uint staticFlags = 0
+        )
         {
             // Argument checking
             if (target == null)
-                throw new ArgumentNullException("target");
-            // Assert for frame settings
-            if (settings.frameSettings == null)
-                throw new ArgumentNullException("settings");
+                throw new ArgumentNullException(nameof(target));
 
             var rtTarget = target as RenderTexture;
             var cubeTarget = target as Cubemap;
@@ -79,8 +85,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case TextureDimension.Cube:
                     break;
                 default:
-                    throw new ArgumentException(string.Format("Rendering into a target of dimension " +
-                        "{0} is not supported", target.dimension));
+                    throw new ArgumentException("Rendering into a target of dimension "
+                        + $"{target.dimension} is not supported");
             }
 
             var camera = NewRenderingCamera();
@@ -89,11 +95,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 camera.ApplySettings(settings);
                 camera.ApplySettings(position);
 
-                GL.invertCulling = settings.invertFaceCulling;
                 switch (target.dimension)
                 {
                     case TextureDimension.Tex2D:
                         {
+#if DEBUG
+                            Debug.LogWarning(
+                                "A static flags bitmask was provided but this is ignored when rendering into a Tex2D"
+                            );
+#endif
                             Assert.IsNotNull(rtTarget);
                             camera.targetTexture = rtTarget;
                             camera.Render();
@@ -104,15 +114,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case TextureDimension.Cube:
                         {
                             Assert.IsTrue(rtTarget != null || cubeTarget != null);
-                            if (rtTarget != null)
-                                camera.RenderToCubemap(rtTarget);
-                            if (cubeTarget != null)
-                                camera.RenderToCubemap(cubeTarget);
+
+                            var canHandleStaticFlags = false;
+#if UNITY_EDITOR
+                            canHandleStaticFlags = true;
+#endif
+                            // ReSharper disable ConditionIsAlwaysTrueOrFalse
+                            if (canHandleStaticFlags && staticFlags != 0)
+                                // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                            {
+#if UNITY_EDITOR
+                                UnityEditor.Rendering.EditorCameraUtils.RenderToCubemap(
+                                    camera,
+                                    rtTarget,
+                                    -1,
+                                    (UnityEditor.StaticEditorFlags)staticFlags
+                                );
+#endif
+                            }
+                            else
+                            {
+                                // ReSharper disable ConditionIsAlwaysTrueOrFalse
+                                if (!canHandleStaticFlags && staticFlags != 0)
+                                    // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                                {
+                                    Debug.LogWarning(
+                                        "A static flags bitmask was provided but this is ignored in player builds"
+                                    );
+                                }
+
+                                if (rtTarget != null)
+                                    camera.RenderToCubemap(rtTarget);
+                                if (cubeTarget != null)
+                                    camera.RenderToCubemap(cubeTarget);
+                            }
+
                             target.IncrementUpdateCount();
                             break;
                         }
                 }
-                GL.invertCulling = false;
             }
             finally
             {
@@ -124,20 +164,71 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ProbeSettings settings,
             ProbeCapturePositionSettings position,
             Texture target,
-            bool forceFlipY = false
+            bool forceFlipY = false,
+            bool forceInvertBackfaceCulling = false,
+            uint staticFlags = 0
         )
         {
             Render(
                 settings, position, target,
                 out CameraSettings cameraSettings, out CameraPositionSettings cameraPosition,
-                forceFlipY: forceFlipY
+                forceFlipY: forceFlipY,
+                forceInvertBackfaceCulling: forceInvertBackfaceCulling,
+                staticFlags: staticFlags
             );
+        }
+
+        static readonly Vector3[] s_GenerateRenderingSettingsFor_Rotations =
+        {
+            new Vector3(0, 90, 0),
+            new Vector3(0, 270, 0),
+            new Vector3(270, 0, 0),
+            new Vector3(90, 0, 0),
+            new Vector3(0, 0, 0),
+            new Vector3(0, 180, 0),
+        };
+        public static void GenerateRenderingSettingsFor(
+            ProbeSettings settings, ProbeCapturePositionSettings position,
+            List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions,
+            bool forceFlipY = false
+        )
+        {
+            // Copy settings
+            ComputeCameraSettingsFromProbeSettings(
+                settings, position,
+                out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
+            );
+
+            if (forceFlipY)
+                cameraSettings.flipYMode = HDAdditionalCameraData.FlipYMode.ForceFlipY;
+
+            switch (settings.type)
+            {
+                case ProbeSettings.ProbeType.PlanarProbe:
+                    {
+                        cameras.Add(cameraSettings);
+                        cameraPositions.Add(cameraPositionSettings);
+                        break;
+                    }
+                case ProbeSettings.ProbeType.ReflectionProbe:
+                    {
+                        for (int i = 0; i < 6; ++i)
+                        {
+                            var cameraPositionCopy = cameraPositionSettings;
+                            cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
+                                s_GenerateRenderingSettingsFor_Rotations[i]
+                            );
+                            cameras.Add(cameraSettings);
+                            cameraPositions.Add(cameraPositionCopy);
+                        }
+                        break;
+                    }
+            }
         }
 
         public static void ComputeCameraSettingsFromProbeSettings(
             ProbeSettings settings,
             ProbeCapturePositionSettings position,
-            Texture target,
             out CameraSettings cameraSettings,
             out CameraPositionSettings cameraPositionSettings
         )
@@ -159,20 +250,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Texture target,
             out CameraSettings cameraSettings,
             out CameraPositionSettings cameraPositionSettings,
-            bool forceFlipY = false
+            bool forceFlipY = false,
+            bool forceInvertBackfaceCulling = false,
+            uint staticFlags = 0
         )
         {
             // Copy settings
             ComputeCameraSettingsFromProbeSettings(
-                settings, position, target,
+                settings, position,
                 out cameraSettings, out cameraPositionSettings
             );
 
             if (forceFlipY)
                 cameraSettings.flipYMode = HDAdditionalCameraData.FlipYMode.ForceFlipY;
+            if (forceInvertBackfaceCulling)
+                cameraSettings.invertFaceCulling = true;
 
             // Perform rendering
-            Render(cameraSettings, cameraPositionSettings, target);
+            Render(cameraSettings, cameraPositionSettings, target, staticFlags);
         }
 
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize)

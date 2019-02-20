@@ -24,10 +24,10 @@ Material:
   m_Name: 1. Lit - Shadow - Cutout
   m_Shader: {fileID: 4800000, guid: b7839dad95683814aa64166edc107ae2, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON _EMISSION _NORMALMAP _RECEIVE_SHADOWS_OFF
-  m_LightmapFlags: 0
+  m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2450
+  m_CustomRenderQueue: 2500
   stringTagMap:
     RenderType: TransparentCutout
   disabledShaderPasses:

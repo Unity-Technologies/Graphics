@@ -22,6 +22,8 @@
 
     // Used by directional and spot lights
     TEXTURE2D_ARRAY(_CookieTextures);
+    // Used by area lights
+    TEXTURE2D_ARRAY(_AreaCookieTextures);
 
     // Used by point lights
     TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
@@ -32,5 +34,10 @@
 
     // XRTODO: Need to stereo-ize access
     TEXTURE2D(_DeferredShadowTexture);
+
+    // Area shadow paper texture
+#if SHADEROPTIONS_RAYTRACING
+    TEXTURE2D_ARRAY(_AreaShadowTexture);
+#endif
 
 #endif

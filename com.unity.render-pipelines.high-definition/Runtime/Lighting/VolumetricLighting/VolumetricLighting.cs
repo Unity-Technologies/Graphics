@@ -172,13 +172,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Build(HDRenderPipelineAsset asset)
         {
-            m_SupportVolumetrics = asset.renderPipelineSettings.supportVolumetrics;
+            m_SupportVolumetrics = asset.currentPlatformRenderPipelineSettings.supportVolumetrics;
 
             if (!m_SupportVolumetrics)
                 return;
 
-            preset = asset.renderPipelineSettings.increaseResolutionOfVolumetrics ? VolumetricLightingPreset.High :
-                                                                                    VolumetricLightingPreset.Medium;
+            preset = asset.currentPlatformRenderPipelineSettings.increaseResolutionOfVolumetrics
+                ? VolumetricLightingPreset.High
+                : VolumetricLightingPreset.Medium;
 
             m_VolumeVoxelizationCS = asset.renderPipelineResources.shaders.volumeVoxelizationCS;
             m_VolumetricLightingCS = asset.renderPipelineResources.shaders.volumetricLightingCS;
@@ -228,8 +229,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return rtHandleSystem.Alloc(scaleFunc:         ComputeHistoryVBufferResolutionXY,
                 slices:            d,
                 dimension:         TextureDimension.Tex3D,
-                colorFormat:       RenderTextureFormat.ARGBHalf,
-                sRGB:              false,
+                colorFormat:       GraphicsFormat.R16G16B16A16_SFloat,
                 enableRandomWrite: true,
                 enableMSAA:        false,
                 /* useDynamicScale: true, // <- TODO */
@@ -251,8 +251,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
                     slices:            d,
                     dimension:         TextureDimension.Tex3D,
-                    colorFormat:       RenderTextureFormat.ARGBHalf, // 8888_sRGB is not precise enough
-                    sRGB:              false,
+                    colorFormat:       GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                     enableRandomWrite: true,
                     enableMSAA:        false,
                     /* useDynamicScale: true, // <- TODO */
@@ -261,8 +260,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LightingBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
                     slices:            d,
                     dimension:         TextureDimension.Tex3D,
-                    colorFormat:       RenderTextureFormat.ARGBHalf,
-                    sRGB:              false,
+                    colorFormat:       GraphicsFormat.R16G16B16A16_SFloat,
                     enableRandomWrite: true,
                     enableMSAA:        false,
                     /* useDynamicScale: true, // <- TODO */
@@ -319,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The results are undefined otherwise.
         public void UpdatePerCameraData(HDCamera hdCamera)
         {
-            if (!hdCamera.frameSettings.enableVolumetrics)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
 
             var parameters = ComputeVBufferParameters(hdCamera);
@@ -453,10 +451,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // VisualEnvironment sets global fog parameters
 
-            if (!hdCamera.frameSettings.enableVolumetrics || visualEnvironment.fogType.value != FogType.Volumetric)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) || visualEnvironment.fogType.value != FogType.Volumetric)
             {
-                var neutralTexture = UnityEngine.Rendering.PostProcessing.RuntimeUtilities.transparentTexture3D;
-                cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, neutralTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, HDUtils.clearTexture3D);
                 return;
             }
 
@@ -494,7 +491,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             DensityVolumeList densityVolumes = new DensityVolumeList();
 
-            if (!hdCamera.frameSettings.enableVolumetrics)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return densityVolumes;
 
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
@@ -553,7 +550,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes, LightLoop lightLoop)
         {
-            if (!hdCamera.frameSettings.enableVolumetrics)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
 
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
@@ -563,7 +560,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Volume Voxelization"))
             {
                 int  numVisibleVolumes = m_VisibleVolumeBounds.Count;
-                bool tiledLighting     = hdCamera.frameSettings.lightLoopSettings.enableBigTilePrepass;
+                bool tiledLighting     = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
                 bool highQuality       = preset == VolumetricLightingPreset.High;
 
                 int kernel = (tiledLighting ? 1 : 0) | (highQuality ? 2 : 0);
@@ -606,7 +603,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // We explicitly set the big tile info even though it is set globally, since this could be running async before the PushGlobalParams
                     cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileX, lightLoop.GetNumTileBigTileX(hdCamera));
                     cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileY, lightLoop.GetNumTileBigTileY(hdCamera));
-                    if (hdCamera.frameSettings.lightLoopSettings.enableBigTilePrepass)
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
                         cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, lightLoop.GetBigTileLightList());
                 }
 
@@ -667,7 +664,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex)
         {
-            if (!hdCamera.frameSettings.enableVolumetrics)
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
 
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
@@ -680,9 +677,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
 
                 // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
-                bool tiledLighting      = hdCamera.frameSettings.lightLoopSettings.enableBigTilePrepass;
+                bool tiledLighting      = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
                 bool enableReprojection = Application.isPlaying && hdCamera.camera.cameraType == CameraType.Game &&
-                                          hdCamera.frameSettings.enableReprojectionForVolumetrics;
+                                          hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
                 bool enableAnisotropy   = fog.anisotropy != 0;
                 bool highQuality        = preset == VolumetricLightingPreset.High;
 

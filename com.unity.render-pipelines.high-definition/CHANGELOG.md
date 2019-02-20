@@ -4,21 +4,128 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.3.0-preview] - 2019-01-14
+## [5.6.0-preview] - 2019-XX-XX
+
+## [5.5.0-preview] - 2019-02-18
+
+### Added
+- Added help box listing feature supported in a given HDRenderPipelineAsset alongs with the drawbacks implied.
+- Added support for post-processing anti-aliasing in the Scene View (FXAA and TAA). These can be set in Preferences.
+- Added emissive property for decal material (non-shader graph)
+- Added cascade visualizer, supporting disabled handles when not overriding.
+- Added support of motion vector for transparent object (as replace)
+- Added emissive property for shader graph decals
+- Added a diffusion profile override volume so the list of diffusion profile assets to use can be chanaged without affecting the HDRP asset
+- Added a "Stop NaNs" option on cameras and in the Scene View preferences.
+- Added metric display option in HDShadowSettings and improve clamping
+
+### Fixed
+- Fixed a few UI bugs with the color grading curves.
+- Fixed "Post Processing" in the scene view not toggling post-processing effects.
+- Fixed issue with stencil not correctly setup for various master node and shader for the depth pass, motion vector pass and GBuffer/Forward pass
+- Fixed SRP batcher and metal
+- Fixed post processing with stereo double-wide
+- Fixed issue with Metal: Use sign bit to find the cache type instead of lowest bit.
+- Fixed invalid state when creating a planar reflection for the first time
+- Fixed FrameSettings's LitShaderMode not restrained by supported LitShaderMode regression.
+- Fixed decals in forward
+- Fixed Lightlayers and shadow. Now Lightlayers correctly support exclusion of shadows.
+- Fixed an issue where scissor render state leaking from the editor code caused partially black rendering
+
+### Changed
+- Removed unsupported Clear Depth checkbox in Camera inspector	
+- The default value roughness value for the clearcoat has been changed from 0.03 to 0.01
+- Update default value of based color for master node
+- Update Fabric Charlie Sheen lighting model - Remove Fresnel component that wasn't part of initial model + Remap smoothness to [0.0 - 0.6] range for more artist friendly parameter
+- Updated the toggle for advanced mode in inspectors.
+- Diffusion profiles are now limited to one per asset and can be referenced in materials, shader graphs and vfx graphs. Materials will be upgraded automatically except if they are using a shader graph, in this case it will display an error message.
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
+
+## [5.4.0-preview] - 2019-02-11
+
+### Added
+- Added support for "After Post-Process" render pass for unlit shader
+- Added support for textured rectangular area lights
+- Added stereo instancing macros to MSAA shaders
+- Added fade factor for decal projectors.
+- Added stereo instancing macros to most shaders used in VR
+- Added multi edition support for HDRenderPipelineAsset
+
+### Fixed
+- Fixed Decals when rendering multiple camera in a single frame
+- Fixed cascade shadow count in shader
+- Fixed issue with Stacklit shader with Haze effect
+- Fixed an issue with the max sample count for the TAA
+- Fixed post-process guard band for XR
+- Fixed exposure of emissive of Unlit
+- Fixed depth only and motion vector pass for Unlit not working correctly with MSAA
+- Fixed an issue with stencil buffer copy causing unnecessary compute dispatches for lighting
+- Fixed multi edition issue in FrameSettings
+- Fixed issue with SRP batcher and DebugDisplay variant of lit shader
+- Fixed issue with debug material mode not doing alpha test
+- Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan
+- Fixed pre-exposure incorrectly apply to preview
+- Fixed issue with duplicate 3D texture in 3D texture altas of volumetric
+- Fixed Camera rendering order (base on the depth parameter)
+- Fixed bake only object with flag `ReflectionProbeStaticFlag` when baking a `ReflectionProbe`
+- Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan.
+
+### Changed
+- Temporal Antialiasing optimization for Xbox One X
+- Parameter depthSlice on SetRenderTarget functions now defaults to -1 to bind the entire resource
+- Rename SampleCameraDepth() functions to LoadCameraDepth() and SampleCameraDepth(), same for SampleCameraColor() functions
+- Improved Motion Blur quality. 
+- Update stereo frame settings values for single-pass instancing and double-wide
+- Rearrange FetchDepth functions to prepare for stereo-instancing
+- Remove unused _ComputeEyeIndex
+- Updated HDRenderPipelineAsset inspector
+
+## [5.3.1-preview] - 2019-01-28
+
+### Added
+- Added software dynamic resolution support
+
+### Fixed
+- Fixed a case of ambient lighting flickering because of previews
+
+## [5.3.0-preview] - 2019-01-28
 
 ### Added
 - Added new API to perform a camera rendering
-- Add suport for hair master node (Double kajiya kay - Lambert)
+- Added support for hair master node (Double kajiya kay - Lambert)
 - Added Reset behaviour in DebugMenu (ingame mapping is right joystick + B)
-- Added default HD scene at new scene creation while in HDRP.
-- Added Wizard helping to configure HDRP project.
+- Added Default HD scene at new scene creation while in HDRP
+- Added Wizard helping to configure HDRP project
 - Added new UI for decal material to allow remapping and scaling of some properties
 - Added cascade shadow visualisation toggle in HD shadow settings
-- Added icons for assets.
+- Added icons for assets
 - Added replace blending mode for distortion
 - Added basic distance fade for density volumes
 - Added decal master node for shader graph
-- Added HD unlit master node (Cross Pipeline one is name Unlit)
+- Added HD unlit master node (Cross Pipeline version is name Unlit)
+- Added new Rendering Queue in materials
+- Added post-processing V3 framework embed in HDRP, remove postprocess V2 framework
+- Post-processing now uses the generic volume framework
+-   New depth-of-field, bloom, panini projection effects, motion blur
+-   Exposure is now done as a pre-exposition pass, the whole system has been revamped
+-   Exposure now use EV100 everywhere in the UI (Sky, Emissive Light)
+- Added emissive intensity (Luminance and EV100 control) control for Emissive
+- Added pre-exposure weigth for Emissive
+- Added an emissive color node and a slider to control the pre-exposure percentage of emission color
+- Added physical camera support where applicable
+- Added more color grading tools
+- Added changelog level for Shader Variant stripping
+- Added Debug mode for validation of material albedo and metalness/specularColor values
+- Added a new dynamic mode for ambient probe and renamed BakingSky to StaticLightingSky
+- Added command buffer parameter to all Bind() method of material
+- Added Material validator in Render Pipeline Debug
+- Added code to future support of DXR (not enabled)
+- Added support of multiviewport
+- Added stereo instancing macros to a few shaders
+- Added HDRenderPipeline.RequestSkyEnvironmentUpdate function to force an update from script when sky is set to OnDemand
+- Added a Lighting and BackLighting slots in Lit, StackLit, Fabric and Hair master nodes
+- Added xrInstancing flag support to RTHandle
+- Added support for cullmask for decal projectors
 
 ### Fixed
 - Fixed logic to disable FPTL with stereo rendering
@@ -55,21 +162,47 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material's RenderQueue edition in default view.
 - Fixed banding issues within volumetric density buffer
 - Fixed missing multicompile for MSAA for AxF
+- Fixed camera-relative support for stereo rendering
 - Fixed remove sync with render thread when updating decal texture atlas.
+- Fixed max number of keyword reach [256] issue. Several shader feature are now local
+- Fixed Scene Color and Depth nodes
+- Fixed SSR in forward
+- Fixed custom editor of Unlit, HD Unlit and PBR shader graph master node
+- Fixed issue with NewFrame not correctly calculated in Editor when switching scene
+- Fixed issue with TerrainLit not compiling with depth only pass and normal buffer
+- Fixed geometric normal use for shadow bias with PBR master node in forward
+- Fixed instancing macro usage for decals
+- Fixed error message when having more than one directional light casting shadow
+- Fixed error when trying to display preview of Camera or PlanarReflectionProbe
+- Fixed LOAD_TEXTURE2D_ARRAY_MSAA macro
+- Fixed min-max and amplitude clamping value in inspector of vertex displacement materials
+- Fixed issue with alpha shadow clip (was incorrectly clipping object shadow)
+- Fixed an issue where sky cubemap would not be cleared correctly when setting the current sky to None
+- Fixed a typo in Static Lighting Sky component UI
+- Fixed issue with incorrect reset of RenderQueue when switching shader in inspector GUI
+- Fixed issue with variant stripper stripping incorrectly some variants
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
 - Removing the simple lightloop used by the simple lit shader
-- Whole refactor of reflection system: Workflow and performance improvement.
+- Whole refactor of reflection system: Planar and reflection probe
 - Separated Passthrough from other RenderingPath
 - Update several properties naming and caption based on feedback from documentation team
 - Remove tile shader variant for transparent backface pass of lit shader
 - Rename all HDRenderPipeline to HDRP folder for shaders
 - Rename decal property label (based on doc team feedback)
-- Add command buffer parameter to all Bind() method of material
 - Lit shader mode now default to Deferred to reduce build time
 - Update UI of Emission parameters in shaders
 - Improve shader variant stripping including shader graph variant
+- Refactored render loop to render realtime probes visible per camera
+- Enable SRP batcher by default
+- Shader code refactor: Rename LIGHTLOOP_SINGLE_PASS => LIGHTLOOP_DISABLE_TILE_AND_CLUSTER and clean all usage of LIGHTLOOP_TILE_PASS
+- Shader code refactor: Move pragma definition of vertex and pixel shader inside pass + Move SURFACE_GRADIENT definition in XXXData.hlsl
+- Micro-shadowing in Lit forward now use ambientOcclusion instead of SpecularOcclusion
+- Upgraded FrameSettings workflow, DebugMenu and Inspector part relative to it
+- Update build light list shader code to support 32 threads in wavefronts on Switch
+- LayeredLit layers' foldout are now grouped in one main foldout per layer
+- Shadow alpha clip can now be enabled on lit shader and haor shader enven for opaque
 
 ## [5.2.0-preview] - 2018-11-27
 
@@ -352,7 +485,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Decal now support per channel selection mask. There is now two mode. One with BaseColor, Normal and Smoothness and another one more expensive with BaseColor, Normal, Smoothness, Metal and AO. Control is on HDRP Asset. This may require to launch an update script for old scene: 'Edit/Render Pipeline/Single step upgrade script/Upgrade all DecalMaterial MaskBlendMode'.
 - Decal now supports depth bias for decal mesh, to prevent z-fighting
-- Decal material now supports draw order for decal projectors 
+- Decal material now supports draw order for decal projectors
 - Added LightLayers support (Base on mask from renderers name RenderingLayers and mask from light name LightLayers - if they match, the light apply) - cost an extra GBuffer in deferred (more bandwidth)
 - When LightLayers is enabled, the AmbientOclusion is store in the GBuffer in deferred path allowing to avoid double occlusion with SSAO. In forward the double occlusion is now always avoided.
 - Added the possibility to add an override transform on the camera for volume interpolation
@@ -530,7 +663,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
-- Fix numerical issues with the default value of mean free path of volumetric fog 
+- Fix numerical issues with the default value of mean free path of volumetric fog
 - Fix the bug preventing decals from coexisting with density volumes
 - Fix issue with alpha tested geometry using planar/triplanar mapping not render correctly or flickering (due to being wrongly alpha tested in depth prepass)
 - Fix meta pass with triplanar (was not handling correctly the normal)

@@ -2,12 +2,41 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+#ifdef _WRITE_TRANSPARENT_VELOCITY
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VelocityVertexShaderCommon.hlsl"
+
+PackedVaryingsType Vert(AttributesMesh inputMesh, AttributesPass inputPass)
+{
+    VaryingsType varyingsType;
+    varyingsType.vmesh = VertMesh(inputMesh);
+    return VelocityVS(varyingsType, inputMesh, inputPass);
+}
+
+#ifdef TESSELLATION_ON
+
+PackedVaryingsToPS VertTesselation(VaryingsToDS input)
+{
+    VaryingsToPS output;
+    output.vmesh = VertMeshTesselation(input.vmesh);
+    VelocityPositionZBias(output);
+
+    output.vpass.positionCS = input.vpass.positionCS;
+    output.vpass.previousPositionCS = input.vpass.previousPositionCS;
+
+    return PackVaryingsToPS(output);
+}
+
+#endif // TESSELLATION_ON
+
+#else // _WRITE_TRANSPARENT_VELOCITY
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
+
     return PackVaryingsType(varyingsType);
 }
 
@@ -17,12 +46,19 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
+
     return PackVaryingsToPS(output);
 }
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 
 #endif // TESSELLATION_ON
+
+#endif // _WRITE_TRANSPARENT_VELOCITY
+
+
+#ifdef TESSELLATION_ON
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
+#endif
 
 void Frag(PackedVaryingsToPS packedInput,
         #ifdef OUTPUT_SPLIT_LIGHTING
@@ -31,12 +67,16 @@ void Frag(PackedVaryingsToPS packedInput,
             OUTPUT_SSSBUFFER(outSSSBuffer)
         #else
             out float4 outColor : SV_Target0
-        #endif
+        #ifdef _WRITE_TRANSPARENT_VELOCITY
+          , out float4 outVelocity : SV_Target1
+        #endif // _WRITE_TRANSPARENT_VELOCITY
+        #endif // OUTPUT_SPLIT_LIGHTING
         #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
         #endif
           )
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
@@ -93,6 +133,14 @@ void Frag(PackedVaryingsToPS packedInput,
 
         outColor = float4(result, 1.0);
     }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR || _DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    {
+        float3 result = float3(0.0, 0.0, 0.0);
+
+        GetPBRValidatorDebug(surfaceData, result);
+
+        outColor = float4(result, 1.0f);
+    }
     else
 #endif
     {
@@ -105,6 +153,9 @@ void Frag(PackedVaryingsToPS packedInput,
         float3 specularLighting;
 
         LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+
+        diffuseLighting *= GetCurrentExposureMultiplier();
+        specularLighting *= GetCurrentExposureMultiplier();
 
 #ifdef OUTPUT_SPLIT_LIGHTING
         if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
@@ -121,6 +172,20 @@ void Frag(PackedVaryingsToPS packedInput,
 #else
         outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
         outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
+#endif
+#ifdef _WRITE_TRANSPARENT_VELOCITY
+        VaryingsPassToPS inputPass = UnpackVaryingsPassToPS(packedInput.vpass);
+        bool forceNoMotion = any(unity_MotionVectorsParams.yw == 0.0);
+        if (forceNoMotion)
+        {
+            outVelocity = float4(2.0, 0.0, 0.0, 0.0);
+        }
+        else
+        {
+            float2 velocity = CalculateVelocity(inputPass.positionCS, inputPass.previousPositionCS);
+            EncodeVelocity(velocity * 0.5, outVelocity);
+            outVelocity.zw = 1.0;
+        }
 #endif
     }
 

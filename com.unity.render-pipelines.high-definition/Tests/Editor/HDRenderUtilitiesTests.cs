@@ -18,7 +18,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
         [Test]
         public void RenderThrowWhenFrameSettingsIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => HDRenderUtilities.Render(
+            // should throw error that Texture2D is no RenderTexture
+            Assert.Throws<ArgumentException>(() => HDRenderUtilities.Render(
                 default(CameraSettings),
                 default(CameraPositionSettings),
                 Texture2D.whiteTexture
@@ -31,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
             Assert.Throws<ArgumentException>(() => HDRenderUtilities.Render(
                     new CameraSettings
                     {
-                        frameSettings = new FrameSettings()
+                        renderingPathCustomFrameSettings = default
                     },
                     default(CameraPositionSettings),
                     Texture2D.whiteTexture

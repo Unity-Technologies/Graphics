@@ -33,7 +33,7 @@ Shader "Hidden/Lightweight Render Pipeline/Sampling"
         return output;
     }
 
-    half4 DownsampleBox4Tap(TEXTURE2D_ARGS(tex, samplerTex), float2 uv, float2 texelSize, float amount)
+    half4 DownsampleBox4Tap(TEXTURE2D_PARAM(tex, samplerTex), float2 uv, float2 texelSize, float amount)
     {
         float4 d = texelSize.xyxy * float4(-amount, -amount, amount, amount);
 
@@ -74,7 +74,7 @@ Shader "Hidden/Lightweight Render Pipeline/Sampling"
 
             half4 FragBoxDownsample(Varyings input) : SV_Target
             {
-                half4 col = DownsampleBox4Tap(TEXTURE2D_PARAM(_MainTex, sampler_MainTex), input.uv, _MainTex_TexelSize.xy, _SampleOffset);
+                half4 col = DownsampleBox4Tap(TEXTURE2D_ARGS(_MainTex, sampler_MainTex), input.uv, _MainTex_TexelSize.xy, _SampleOffset);
                 return half4(col.rgb, 1);
             }
             ENDHLSL

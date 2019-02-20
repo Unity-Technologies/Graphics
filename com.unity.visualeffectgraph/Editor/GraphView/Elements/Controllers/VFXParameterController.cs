@@ -14,8 +14,13 @@ using System.Collections.ObjectModel;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSubParameterController : IPropertyRMProvider
+    class VFXSubParameterController : Controller, IPropertyRMProvider
     {
+
+        public const int ExpandedChange = 1;
+        public override void ApplyChanges()
+        {
+        }
         VFXParameterController m_Parameter;
         //int m_Field;
         int[] m_FieldPath;
@@ -91,17 +96,14 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expanded
         {
-            get
-            {
-                return false;
-            }
+            get { return expanded;}
         }
         bool IPropertyRMProvider.editable
         {
             get { return true; }
         }
 
-        bool IPropertyRMProvider.expandable { get { return false; } }
+        bool IPropertyRMProvider.expandable { get { return children.Count() > 0; } }
 
         public string name
         {
@@ -114,14 +116,20 @@ namespace UnityEditor.VFX.UI
 
         int IPropertyRMProvider.depth { get { return m_FieldPath.Length; } }
 
+
+        public bool expanded { get; private set; }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
+
         void IPropertyRMProvider.ExpandPath()
         {
-            throw new NotImplementedException();
+            expanded = true;
+            NotifyChange(ExpandedChange);
         }
 
         void IPropertyRMProvider.RetractPath()
         {
-            throw new NotImplementedException();
+            expanded = false;
+            NotifyChange(ExpandedChange);
         }
 
         public Type portType
@@ -192,6 +200,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_Owner.expandable; }
         }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return true; } }
         public object value
         {
             get { return m_Min ? m_Owner.minValue : m_Owner.maxValue; }
@@ -806,6 +815,8 @@ namespace UnityEditor.VFX.UI
         }
 
         public bool expandable { get { return false; } }
+
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
         public override string name { get { return "Value"; } }
 

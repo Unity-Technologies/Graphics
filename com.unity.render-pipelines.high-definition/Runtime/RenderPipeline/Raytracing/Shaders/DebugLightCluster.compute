@@ -1,0 +1,97 @@
+#pragma kernel DebugLightCluster
+
+#define DEBUG_LIGHT_CLUSTER_TILE_SIZE 8
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition\Runtime\ShaderLibrary\ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+// The target data that this computer shader must fill
+StructuredBuffer<uint> 				_RaytracingLightCluster;
+float3								_MinClusterPos;
+float3								_MaxClusterPos;
+float3								_HalfClusterCellSize;
+uint 								_LightPerCellCount;
+
+
+// Color gradient texture used for the lightcount heatmap
+TEXTURE2D(_DebugColorGradientTexture);
+
+// The output texture for the cluster debug
+RWTexture2D<float4> 				_DebutLightClusterTexture;
+
+uint GetTotalLightClusterCellCount(int cellIndex)
+{
+	return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 3) + 0];	
+}
+
+uint GetPunctualLightClusterCellCount(int cellIndex)
+{
+	return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 3) + 1];	
+}
+
+uint GetAreaLightClusterCellCount(int cellIndex)
+{
+	return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 3) + 2];	
+}
+
+bool PointInsideCluster(float3 positionWS)
+{
+	return !(positionWS.x < _MinClusterPos.x || positionWS.y < _MinClusterPos.y || positionWS.z < _MinClusterPos.z 
+		|| positionWS.x > _MaxClusterPos.x || positionWS.y > _MaxClusterPos.y || positionWS.z > _MaxClusterPos.z);
+}
+
+uint GetClusterCellIndex(float3 positionWS)
+{
+	// Compute the grid position
+	uint3 gridPosition = (uint3)((positionWS - _MinClusterPos) / (_MaxClusterPos - _MinClusterPos) * float3(64.0, 64.0, 32.0));
+
+	// Deduce the cell index
+	return gridPosition.z + gridPosition.y * 32 + gridPosition.x * 2048;
+}
+
+[numthreads(DEBUG_LIGHT_CLUSTER_TILE_SIZE, DEBUG_LIGHT_CLUSTER_TILE_SIZE, 1)]
+void DebugLightCluster(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+	// Fetch the current pixel coordinate
+	uint2 currentPixelCoordinate = groupId * DEBUG_LIGHT_CLUSTER_TILE_SIZE + groupThreadId;
+    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+	// Convert this to a world space position
+    float depth = LoadCameraDepth(currentPixelCoordinate.xy);
+    PositionInputs posInput = GetPositionInput(currentPixelCoordinate, 1.0/ _ScreenSize.xy, depth, _InvViewProjMatrix, _ViewMatrix, 0);
+	posInput.positionWS += _WorldSpaceCameraPos;
+
+	// If this position is outisde of the cluster, color is black
+	if(!PointInsideCluster(posInput.positionWS))
+	{
+		_DebutLightClusterTexture[currentPixelCoordinate] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+		return;
+	}
+
+	// Compute the grid position
+	float3 floatingGridPosition = (posInput.positionWS - _MinClusterPos) / (_MaxClusterPos - _MinClusterPos) * float3(64.0, 64.0, 32.0);
+
+	// Convert it to an int
+	uint3 gridPosition = (uint3)floatingGridPosition;
+
+	// Deduce the cell index
+	uint cellIndex = GetClusterCellIndex(posInput.positionWS);
+
+	uint numLights = GetTotalLightClusterCellCount(cellIndex);	
+	if(numLights == 0)
+	{
+		_DebutLightClusterTexture[currentPixelCoordinate] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+		return;
+	}
+	float lightFillPercentage = (float)numLights / (float)_LightPerCellCount;
+
+	// Given there is at least one light here use the gradient
+	float4 colorValue = numLights >= _LightPerCellCount ? float4(1.0, 0.0, 0.0, 1.0f) : SAMPLE_TEXTURE2D_LOD(_DebugColorGradientTexture, s_linear_clamp_sampler, float2(lightFillPercentage, 0.5f), 0);
+	_DebutLightClusterTexture[currentPixelCoordinate] = colorValue;
+
+	if(abs(floatingGridPosition.x - gridPosition.x) < 0.01f || abs(floatingGridPosition.y - gridPosition.y) < 0.01f || abs(floatingGridPosition.z - gridPosition.z) < 0.01f)
+	{
+		_DebutLightClusterTexture[currentPixelCoordinate] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+}

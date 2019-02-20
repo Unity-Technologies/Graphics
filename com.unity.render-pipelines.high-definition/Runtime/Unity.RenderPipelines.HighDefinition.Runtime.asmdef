@@ -1,8 +1,7 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Runtime",
     "references": [
-        "Unity.RenderPipelines.Core.Runtime",
-        "Unity.Postprocessing.Runtime"
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

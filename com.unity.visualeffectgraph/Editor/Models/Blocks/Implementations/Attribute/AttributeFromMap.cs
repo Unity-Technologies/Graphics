@@ -196,19 +196,21 @@ namespace UnityEditor.VFX.Block
                     string samplePos = "0";
                     switch (SampleMode)
                     {
-                        case AttributeMapSampleMode.IndexRelative: samplePos = "relativePos * count"; break;
+                        case AttributeMapSampleMode.IndexRelative: samplePos = "clamp(relativePos * count,  0u, count - 1u)"; break;
                         case AttributeMapSampleMode.Index: samplePos = "index % count"; break;
                         case AttributeMapSampleMode.Sequential: samplePos = "particleId % count"; break;
                         case AttributeMapSampleMode.Random: samplePos = "RAND * count"; break;
-                        case AttributeMapSampleMode.RandomConstantPerParticle: samplePos = "FIXED_RAND(Seed) * count"; break; // TODO expose hash
+                        case AttributeMapSampleMode.RandomConstantPerParticle: samplePos = "FIXED_RAND(Seed) * count"; break;
                     }
 
                     output += string.Format(@"
 uint width, height;
 attributeMap.t.GetDimensions(width, height);
 uint count = width * height;
-uint id = clamp(uint({0}), 0, count - 1);
-{1} value = ({1})attributeMap.t.Load(int3(id % width, id / width,0));
+uint id = {0};
+uint y = id / width;
+uint x = id - y * width;
+{1} value = ({1})attributeMap.t.Load(int3(x, y, 0));
 {2}
 ", samplePos, GetCompatTypeString(valueType), biasScale);
                 }

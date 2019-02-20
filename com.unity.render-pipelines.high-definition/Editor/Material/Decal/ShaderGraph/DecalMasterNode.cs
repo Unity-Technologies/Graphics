@@ -49,6 +49,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string MAOSOpacityDisplaySlotName = "MAOS Opacity";
         public const int MAOSOpacitySlotId = 8;
 
+        public const string EmissionSlotName = "Emission";
+        public const string EmissionDisplaySlotName = "Emission";
+        public const int EmissionSlotId = 9;
+
 
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
@@ -64,10 +68,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Metallic = 1 << MetallicSlotId,
             Occlusion = 1 << AmbientOcclusionSlotId,
             Smoothness = 1 << SmoothnessSlotId,
-            AlphaMAOS = 1 << MAOSOpacitySlotId
+            AlphaMAOS = 1 << MAOSOpacitySlotId,
+            Emission = 1 << EmissionSlotId
         }
 
-        const SlotMask decalParameter = SlotMask.Position | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.Smoothness | SlotMask.AlphaMAOS;
+        const SlotMask decalParameter = SlotMask.Position | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.Smoothness | SlotMask.AlphaMAOS | SlotMask.Emission;
         
 
         // This could also be a simple array. For now, catch any mismatched data.
@@ -109,7 +114,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Albedo
             if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
             {
-                AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoDisplaySlotName, AlbedoSlotName, SlotType.Input, Color.white, ColorMode.Default, ShaderStageCapability.Fragment));
+                AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoDisplaySlotName, AlbedoSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
                 validSlots.Add(AlbedoSlotId);
             }
 
@@ -137,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Metal
             if (MaterialTypeUsesSlotMask(SlotMask.Metallic))
             {
-                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(MetallicSlotId);
             }
 
@@ -152,16 +157,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Smoothness
             if (MaterialTypeUsesSlotMask(SlotMask.Smoothness))
             {
-                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(SmoothnessSlotId);
             }
-
 
             // Alpha MAOS
             if (MaterialTypeUsesSlotMask(SlotMask.AlphaMAOS))
             {
                 AddSlot(new Vector1MaterialSlot(MAOSOpacitySlotId, MAOSOpacityDisplaySlotName, MAOSOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(MAOSOpacitySlotId);
+            }
+
+            // Alpha MAOS
+            if (MaterialTypeUsesSlotMask(SlotMask.Emission))
+            {
+                AddSlot(new ColorRGBMaterialSlot(EmissionSlotId, EmissionDisplaySlotName, EmissionSlotName, SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
+                validSlots.Add(EmissionSlotId);
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);
@@ -315,6 +326,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
+        bool m_AffectsEmission = true;
+
+        public ToggleData affectsEmission
+        {
+            get { return new ToggleData(m_AffectsEmission); }
+            set
+            {
+                if (m_AffectsEmission == value.isOn)
+                    return;
+                m_AffectsEmission = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+
+        [SerializeField]
         int m_DrawOrder;
 
         public int drawOrder
@@ -328,6 +355,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-
     }
 }

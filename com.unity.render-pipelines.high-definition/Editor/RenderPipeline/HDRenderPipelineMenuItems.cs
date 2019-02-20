@@ -91,10 +91,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             volume.isGlobal = true;
             volume.sharedProfile = profile;
 
-            var bakingSky = sceneSettings.AddComponent<BakingSky>();
-            bakingSky.profile = volume.sharedProfile;
-            bakingSky.bakingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
+            var staticLightingSky = sceneSettings.AddComponent<StaticLightingSky>();
+            staticLightingSky.profile = volume.sharedProfile;
+            staticLightingSky.staticLightingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
         }
+
+#if ENABLE_RAYTRACING
+        [MenuItem("GameObject/Rendering/Raytracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
+        static void CreateRaytracingEnvironmentGameObject(MenuCommand menuCommand)
+        {
+            var parent = menuCommand.context as GameObject;
+            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Raytracing Environment");
+            raytracingEnvGameObject.AddComponent<HDRaytracingEnvironment>();
+        }
+#endif
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
         {
@@ -109,11 +119,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings> { }
 
-        [MenuItem("Assets/Create/Rendering/Diffusion Profile List", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/Diffusion Profile", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile List.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 
         [MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]

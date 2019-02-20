@@ -19,36 +19,36 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanCreateBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(0, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
         }
 
         [Test]
         public void TestCanAddNodeToBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestNode();
             node.name = "Test Node";
             graph.AddNode(node);
 
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
-            Assert.AreEqual("Test Node", graph.GetNodes<INode>().FirstOrDefault().name);
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
+            Assert.AreEqual("Test Node", graph.GetNodes<AbstractMaterialNode>().FirstOrDefault().name);
             Assert.AreEqual(graph, node.owner);
         }
 
         [Test]
         public void TestCanRemoveNodeFromBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestNode();
             node.name = "Test Node";
             graph.AddNode(node);
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            graph.RemoveNode(graph.GetNodes<INode>().FirstOrDefault());
-            Assert.AreEqual(0, graph.GetNodes<INode>().Count());
+            graph.RemoveNode(graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
+            Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
         }
 
         [Test]
@@ -125,14 +125,14 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestRemoveNodeFromBaseMaterialGraphCleansEdges()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
             var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
@@ -142,9 +142,9 @@ namespace UnityEditor.Graphing.UnitTests
 
             graph.RemoveNode(outputNode);
 
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(inputNode, graph.GetNodes<INode>().FirstOrDefault());
+            Assert.AreEqual(inputNode, graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
         }
 
         private class NoDeleteNode : TestNode
@@ -155,14 +155,14 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanNotRemoveNoDeleteNodeFromBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new NoDeleteNode();
             node.name = "Test Node";
             graph.AddNode(node);
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            graph.RemoveNode(graph.GetNodes<INode>().FirstOrDefault());
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
+            graph.RemoveNode(graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
         }
 
         private class OnEnableNode : TestNode, IOnAssetEnabled
@@ -177,7 +177,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestSerializedGraphDelegatesOnEnableCalls()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new OnEnableNode();
             node.name = "Test Node";
             graph.AddNode(node);
@@ -190,11 +190,11 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanFindNodeInBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestNode();
             graph.AddNode(node);
 
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
             Assert.IsNotNull(graph.GetNodeFromGuid(node.guid));
             Assert.IsNull(graph.GetNodeFromGuid(Guid.NewGuid()));
         }
@@ -202,15 +202,15 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanAddSlotToTestNode()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestNode();
             node.AddSlot(new TestSlot(0, "output", SlotType.Output));
             node.AddSlot(new TestSlot(1, "input", SlotType.Input));
             node.name = "Test Node";
             graph.AddNode(node);
 
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
-            var found = graph.GetNodes<INode>().FirstOrDefault();
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
+            var found = graph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
             Assert.AreEqual(1, found.GetInputSlots<ISlot>().Count());
             Assert.AreEqual(1, found.GetInputSlots<ISlot>().FirstOrDefault().id);
             Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
@@ -228,7 +228,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanRemoveSlotFromTestNode()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestNode();
             node.AddSlot(new TestSlot(0, "output", SlotType.Output));
             node.AddSlot(new TestSlot(1, "input", SlotType.Input));
@@ -248,7 +248,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanRemoveSlotsWithNonMathingNameFromTestNode()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestableNode();
             graph.AddNode(node);
 
@@ -270,15 +270,15 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanNotAddDuplicateSlotToTestNode()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestNode();
             node.AddSlot(new TestSlot(0, "output", SlotType.Output));
             node.AddSlot(new TestSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
             graph.AddNode(node);
 
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
-            var found = graph.GetNodes<INode>().FirstOrDefault();
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
+            var found = graph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
             Assert.AreEqual(0, found.GetInputSlots<ISlot>().Count());
             Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
             Assert.AreEqual(1, found.GetSlots<ISlot>().Count());
@@ -287,15 +287,15 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanUpdateDisplaynameByReaddingSlotToTestNode()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestNode();
             node.AddSlot(new TestSlot(0, "output", SlotType.Output));
             node.AddSlot(new TestSlot(0, "output_updated", SlotType.Output));
             node.name = "Test Node";
             graph.AddNode(node);
 
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
-            var found = graph.GetNodes<INode>().FirstOrDefault();
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
+            var found = graph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
             Assert.AreEqual(0, found.GetInputSlots<ISlot>().Count());
             Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
             Assert.AreEqual(1, found.GetSlots<ISlot>().Count());
@@ -307,14 +307,14 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanUpdateSlotPriority()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestNode();
             node.AddSlot(new TestSlot(0, "output", SlotType.Output, 0));
             node.name = "Test Node";
             graph.AddNode(node);
 
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
-            var found = graph.GetNodes<INode>().FirstOrDefault();
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
+            var found = graph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
             Assert.AreEqual(0, found.GetInputSlots<ISlot>().Count());
             Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
             Assert.AreEqual(1, found.GetSlots<ISlot>().Count());
@@ -328,15 +328,15 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanUpdateSlotPriorityByReaddingSlotToTestNode()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var node = new TestNode();
             node.AddSlot(new TestSlot(0, "output", SlotType.Output, 0));
             node.AddSlot(new TestSlot(0, "output", SlotType.Output, 5));
             node.name = "Test Node";
             graph.AddNode(node);
 
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
-            var found = graph.GetNodes<INode>().FirstOrDefault();
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
+            var found = graph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
             Assert.AreEqual(0, found.GetInputSlots<ISlot>().Count());
             Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
             Assert.AreEqual(1, found.GetSlots<ISlot>().Count());
@@ -393,7 +393,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanConnectAndTraverseTwoNodesOnBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -401,7 +401,7 @@ namespace UnityEditor.Graphing.UnitTests
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
 
 
             var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
@@ -425,7 +425,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanConnectAndTraverseThreeNodesOnBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -436,7 +436,7 @@ namespace UnityEditor.Graphing.UnitTests
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(3, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(3, graph.GetNodes<AbstractMaterialNode>().Count());
 
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), middleNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
@@ -447,7 +447,7 @@ namespace UnityEditor.Graphing.UnitTests
             var edgesOnMiddleNode = NodeUtils.GetAllEdges(middleNode);
             Assert.AreEqual(2, edgesOnMiddleNode.Count());
 
-            List<INode> result = new List<INode>();
+            List<AbstractMaterialNode> result = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode);
             Assert.AreEqual(3, result.Count);
 
@@ -501,7 +501,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestConectionToSameInputReplacesOldInput()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -509,7 +509,7 @@ namespace UnityEditor.Graphing.UnitTests
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
 
             var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
@@ -525,7 +525,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestRemovingSlotRemovesConnectedEdges()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -533,7 +533,7 @@ namespace UnityEditor.Graphing.UnitTests
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
 
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
@@ -545,7 +545,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanNotConnectToNullSlot()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -553,7 +553,7 @@ namespace UnityEditor.Graphing.UnitTests
             var inputNode = new TestNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
 
             var createdEdge2 = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), new SlotReference(Guid.NewGuid(), 666));
             Assert.AreEqual(0, graph.edges.Count());
@@ -563,7 +563,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanNotConnectTwoOuputSlotsOnBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -571,7 +571,7 @@ namespace UnityEditor.Graphing.UnitTests
             var outputNode2 = new TestableNode();
             graph.AddNode(outputNode2);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
 
             var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), outputNode2.GetSlotReference(TestableNode.Output0));
             Assert.IsNull(createdEdge);
@@ -581,7 +581,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanNotConnectTwoInputSlotsOnBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
@@ -589,7 +589,7 @@ namespace UnityEditor.Graphing.UnitTests
             var inputNode2 = new TestableNode();
             graph.AddNode(inputNode2);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
 
             var createdEdge = graph.Connect(inputNode.GetSlotReference(TestableNode.Input0), inputNode2.GetSlotReference(TestableNode.Input0));
             Assert.IsNull(createdEdge);
@@ -599,71 +599,71 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestRemovingNodeRemovesConectedEdgesOnBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
-            graph.RemoveNode(graph.GetNodes<INode>().FirstOrDefault());
-            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
+            graph.RemoveNode(graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
             Assert.AreEqual(0, graph.edges.Count());
         }
 
         [Test]
         public void TestRemovingEdgeOnBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
             graph.RemoveEdge(graph.edges.FirstOrDefault());
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
             Assert.AreEqual(0, graph.edges.Count());
         }
 
         [Test]
         public void TestRemovingElementsFromBaseMaterialGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
-            graph.RemoveElements(graph.GetNodes<INode>(), graph.edges, Enumerable.Empty<GroupData>());
-            Assert.AreEqual(0, graph.GetNodes<INode>().Count());
+            graph.RemoveElements(graph.GetNodes<AbstractMaterialNode>(), graph.edges, Enumerable.Empty<GroupData>());
+            Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
             Assert.AreEqual(0, graph.edges.Count());
         }
 
         [Test]
         public void TestCanGetEdgesOnBaseMaterialGraphFromSlotReference()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
@@ -675,7 +675,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestGetInputsWithNoConnection()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             var outputNode = new TestableNode();
             graph.AddNode(outputNode);
@@ -683,7 +683,7 @@ namespace UnityEditor.Graphing.UnitTests
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
@@ -695,7 +695,7 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCyclicConnectionsAreNotAllowedOnGraph()
         {
-            var graph = new TestMaterialGraph();
+            var graph = new GraphData();
 
             var nodeA = new TestableNode();
 
@@ -704,7 +704,7 @@ namespace UnityEditor.Graphing.UnitTests
             var nodeB = new TestableNode();
             graph.AddNode(nodeB);
 
-            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
             graph.Connect(nodeA.GetSlotReference(TestableNode.Output0), nodeB.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 

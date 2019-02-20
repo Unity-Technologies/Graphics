@@ -23,11 +23,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public enum LightUnit
     {
-        Lumen,
-        Candela,
-        Lux,
-        Luminance,
-        Ev100,
+        Lumen,      // lm = total power/flux emitted by the light
+        Candela,    // lm/sr = flux per steradian
+        Lux,        // lm/m² = flux per unit area
+        Luminance,  // lm/m²/sr = flux per unit area and per steradian
+        Ev100,      // ISO 100 Exposure Value (https://en.wikipedia.org/wiki/Exposure_value)
     }
 
     // Light layering
@@ -68,8 +68,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteAlways]
     public class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        // TODO: Use proper migration toolkit
         // 3. Added ShadowNearPlane to HDRP additional light data, we don't use Light.shadowNearPlane anymore
-        private const int currentVersion = 3;
+        // 4. Migrate HDAdditionalLightData.lightLayer to Light.renderingLayerMask
+        private const int currentVersion = 4;
 
         [HideInInspector, SerializeField]
         [FormerlySerializedAs("m_Version")]
@@ -173,15 +175,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
         public bool displayAreaLightEmissiveMesh = false;
 
+        // Optional cookie for rectangular area lights
+        public Texture areaLightCookie = null;
+        
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
+        [Obsolete("Use Light.renderingLayerMask instead")]
         public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
 
         // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         public uint GetLightLayers()
         {
-            int value = (int)(lightLayers);
+            int value = m_Light.renderingLayerMask;
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
@@ -209,6 +215,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HDShadowRequest[]   shadowRequests;
         bool                m_WillRenderShadows;
         int[]               m_ShadowRequestIndices;
+
+
+        #if ENABLE_RAYTRACING
+        // Temporary index that stores the current shadow index for the light
+        [System.NonSerialized] public int shadowIndex;
+        #endif
 
         [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;
         HDShadowSettings    m_ShadowSettings
@@ -241,8 +253,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Bounds bounds;
             float cameraDistance = Vector3.Distance(camera.transform.position, transform.position);
+            
+            #if ENABLE_RAYTRACING
+            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow) && lightTypeExtent == LightTypeExtent.Punctual;
+            #else
+            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow) && !IsAreaLight(lightTypeExtent);
+            #endif
 
-            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.enableShadow;
             m_WillRenderShadows &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadows &= m_ShadowData != null && m_ShadowData.shadowDimmer > 0;
@@ -530,6 +547,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public static bool IsAreaLight(LightTypeExtent lightType)
+        {
+            return lightType != LightTypeExtent.Punctual;
+        }
 
 #if UNITY_EDITOR
 
@@ -608,11 +629,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             intensity = displayLightIntensity;
         }
 
-        public static bool IsAreaLight(LightTypeExtent lightType)
-        {
-            return lightType != LightTypeExtent.Punctual;
-        }
-
         public static bool IsAreaLight(SerializedProperty lightType)
         {
             return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
@@ -667,8 +683,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
             }
 
-            if (emissiveMeshRenderer.sharedMaterial == null)
-                emissiveMeshRenderer.material = new Material(Shader.Find("HDRP/Unlit"));
+            // NOTE: When the user duplicates a light in the editor, the material is not duplicated and when changing the properties of one of them (source or duplication)
+            // It either overrides both or is overriden. Given that when we duplicate an object the name changes, this approach works. When the name of the game object is then changed again
+            // the material is not re-created until one of the light properties is changed again.
+            if (emissiveMeshRenderer.sharedMaterial == null || emissiveMeshRenderer.sharedMaterial.name != gameObject.name)
+            {
+                emissiveMeshRenderer.sharedMaterial = new Material(Shader.Find("HDRP/Unlit"));
+                emissiveMeshRenderer.sharedMaterial.name = gameObject.name;
+            }
 
             // Update Mesh emissive properties
             emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
@@ -676,15 +698,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = m_Light.color.linear * m_Light.intensity;
             if (useColorTemperature)
-                value *= LightUtils.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature);
-            value.r = Mathf.Clamp01(value.r);
-            value.g = Mathf.Clamp01(value.g);
-            value.b = Mathf.Clamp01(value.b);
-            value.a = Mathf.Clamp01(value.a);
+                value *= Mathf.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature);
 
             value *= lightDimmer;
 
             emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", value);
+
+            // Set the cookie (if there is one) and raise or remove the shader feature
+            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
+            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
         }
 
 #endif
@@ -742,6 +764,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case LightType.Rectangle: // Rectangle by default when light is created
                     lightData.lightUnit = LightUnit.Lumen;
                     lightData.intensity = k_DefaultAreaLightIntensity;
+                    // Disable shadows for area lights as it's not yet supported
+                    light.shadows = LightShadows.None;
                     break;
                 case LightType.Point:
                 case LightType.Spot:
@@ -823,11 +847,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // ShadowNearPlane have been move to HDRP as default legacy unity clamp it to 0.1 and we need to be able to go below that
                 shadowNearPlane = m_Light.shadowNearPlane;
             }
+            if (m_Version <= 3)
+            {
+                m_Light.renderingLayerMask = LightLayerToRenderingLayerMask((int)lightLayers, m_Light.renderingLayerMask);
+            }
 
             m_Version = currentVersion;
             version = currentVersion;
 
 #pragma warning restore 0618
         }
+
+        /// <summary>
+        /// Converts a light layer into a rendering layer mask.
+        ///
+        /// Light layer is stored in the first 8 bit of the rendering layer mask.
+        ///
+        /// NOTE: light layers are obsolete, use directly renderingLayerMask.
+        /// </summary>
+        /// <param name="lightLayer">The light layer, only the first 8 bits will be used.</param>
+        /// <param name="renderingLayerMask">Current renderingLayerMask, only the last 24 bits will be used.</param>
+        /// <returns></returns>
+        internal static int LightLayerToRenderingLayerMask(int lightLayer, int renderingLayerMask)
+        {
+            var renderingLayerMask_u32 = (uint)renderingLayerMask;
+            var lightLayer_u8 = (byte)lightLayer;
+            return (int)((renderingLayerMask_u32 & 0xFFFFFF00) | lightLayer_u8);
+        }
+
+        /// <summary>
+        /// Converts a renderingLayerMask into a lightLayer.
+        ///
+        /// NOTE: light layers are obsolete, use directly renderingLayerMask.
+        /// </summary>
+        /// <param name="renderingLayerMask"></param>
+        /// <returns></returns>
+        internal static int RenderingLayerMaskToLightLayer(int renderingLayerMask)
+            => (byte)renderingLayerMask;
     }
 }

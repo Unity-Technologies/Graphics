@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyAsArgumentString()
         {
-            return string.Format("TEXTURE3D_ARGS({0}, sampler{0})", referenceName);
+            return string.Format("TEXTURE3D_PARAM({0}, sampler{0})", referenceName);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
@@ -73,12 +73,12 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new Texture3DAssetNode { texture = (Texture3D)value.texture };
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new Texture3DShaderProperty();
             copied.displayName = displayName;

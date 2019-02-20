@@ -21,9 +21,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class AttributeVariant : IVariantProvider
+    class AttributeVariant : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {
@@ -35,9 +35,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class AttributeVariantReadWritable : IVariantProvider
+    class AttributeVariantReadWritable : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override Dictionary<string, object[]> variants
         {
             get
             {
@@ -49,9 +49,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class AttributeVariantReadWritableNoVariadic : IVariantProvider
+    class AttributeVariantReadWritableNoVariadic : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {

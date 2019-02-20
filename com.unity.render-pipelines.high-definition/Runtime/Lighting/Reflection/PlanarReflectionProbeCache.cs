@@ -75,9 +75,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeProbeBakingStates()
         {
-            m_ProbeBakingState = new ProbeFilteringState[m_CacheSize];
-            for (int i = 0; i < m_CacheSize; ++i)
-                m_ProbeBakingState[i] = ProbeFilteringState.Convolving;
+            if (m_ProbeBakingState == null || m_ProbeBakingState.Length != m_CacheSize)
+            {
+                Array.Resize(ref m_ProbeBakingState, m_CacheSize);
+                for (var i = 0; i < m_CacheSize; ++i)
+                    m_ProbeBakingState[i] = ProbeFilteringState.Convolving;
+            }
         }
 
         public void Release()

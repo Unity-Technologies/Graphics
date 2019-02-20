@@ -45,6 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader screenSpaceShadowCS;
             public ComputeShader volumeVoxelizationCS;
             public ComputeShader volumetricLightingCS;
+            public Shader deferredTilePS;
 
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
             public Shader combineLightingPS;
@@ -67,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader proceduralSkyPS;
             public Shader skyboxCubemapPS;
             public Shader gradientSkyPS;
+            public ComputeShader ambientProbeConvolutionCS;
 
             // Material
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -78,7 +80,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader encodeBC6HCS;
             public Shader cubeToPanoPS;
             public Shader blitCubeTextureFacePS;
-
+            public Shader filterAreaLightCookiesPS;
+            
             // Shadow
             public Shader shadowClearPS;
             public ComputeShader shadowBlurMomentsCS;
@@ -88,10 +91,58 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Decal
             public Shader decalNormalBufferPS;
 
+            // Ambient occlusion
+            public ComputeShader aoDownsample1CS;
+            public ComputeShader aoDownsample2CS;
+            public ComputeShader aoRenderCS;
+            public ComputeShader aoUpsampleCS;
+            public Shader aoResolvePS;
+
             // MSAA Shaders
             public Shader depthValuesPS;
-            public Shader aoResolvePS;
             public Shader colorResolvePS;
+
+            // Post-processing
+            public ComputeShader nanKillerCS;
+            public ComputeShader exposureCS;
+            public ComputeShader uberPostCS;
+            public ComputeShader lutBuilder3DCS;
+            public ComputeShader temporalAntialiasingCS;
+            public ComputeShader depthOfFieldKernelCS;
+            public ComputeShader depthOfFieldCoCCS;
+            public ComputeShader depthOfFieldCoCReprojectCS;
+            public ComputeShader depthOfFieldDilateCS;
+            public ComputeShader depthOfFieldMipCS;
+            public ComputeShader depthOfFieldMipSafeCS;
+            public ComputeShader depthOfFieldPrefilterCS;
+            public ComputeShader depthOfFieldTileMaxCS;
+            public ComputeShader depthOfFieldGatherCS;
+            public ComputeShader depthOfFieldCombineCS;
+            public ComputeShader paniniProjectionCS;
+            public ComputeShader motionBlurVelocityPrepCS;
+            public ComputeShader motionBlurTileGenCS;
+            public ComputeShader motionBlurCS;
+            public ComputeShader bloomPrefilterCS;
+            public ComputeShader bloomBlurCS;
+            public ComputeShader bloomUpsampleCS;
+            public ComputeShader FXAACS;
+            public Shader finalPassPS;
+
+#if ENABLE_RAYTRACING
+            // Raytracing shaders
+            public RaytracingShader aoRaytracing;
+            public RaytracingShader reflectionRaytracing;
+            public RaytracingShader shadowsRaytracing;
+            public Shader           raytracingFlagMask;
+            public RaytracingShader forwardRaytracing;
+            public ComputeShader areaBillateralFilterCS;
+            public ComputeShader jointBilateralFilterCS;
+            public ComputeShader reflectionBilateralFilterCS;
+            public ComputeShader lightClusterBuildCS;
+            public ComputeShader lightClusterDebugCS;
+            public ComputeShader countTracedRays;
+            public Shader debugViewRayCountPS;
+#endif
         }
 
         [Serializable]
@@ -110,6 +161,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Debug
             public Texture2D debugFontTex;
             public Texture2D colorGradient;
+
+            // Pre-baked noise
+            public Texture2D[] blueNoise16LTex;
+            public Texture2D[] blueNoise16RGBTex;
+            public Texture2D owenScrambledTex;
+            public Texture2D scramblingTex;
+
+            // Post-processing
+            public Texture2D[] filmGrainTex;
         }
 
         [Serializable]
@@ -172,9 +232,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 volumeVoxelizationCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/VolumetricLighting/VolumeVoxelization.compute"),
                 volumetricLightingCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/VolumetricLighting/VolumetricLighting.compute"),
 
+                deferredTilePS = Load<Shader>(HDRenderPipelinePath + "Lighting/LightLoop/DeferredTile.shader"),
+
                 subsurfaceScatteringCS = Load<ComputeShader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/SubsurfaceScattering.compute"),
                 combineLightingPS = Load<Shader>(HDRenderPipelinePath + "Material/SubsurfaceScattering/CombineLighting.shader"),
-
+                
                 // General
                 cameraMotionVectorsPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader"),
                 copyStencilBufferPS = Load<Shader>(HDRenderPipelinePath + "ShaderLibrary/CopyStencilBuffer.shader"),
@@ -192,6 +254,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 integrateHdriSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/IntegrateHDRISky.shader"),
                 proceduralSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/ProceduralSky/ProceduralSky.shader"),
                 gradientSkyPS = Load<Shader>(HDRenderPipelinePath + "Sky/GradientSky/GradientSky.shader"),
+                ambientProbeConvolutionCS = Load<ComputeShader>(HDRenderPipelinePath + "Sky/AmbientProbeConvolution.compute"),
 
                 // Skybox/Cubemap is a builtin shader, must use Shader.Find to access it. It is fine because we are in the editor
                 skyboxCubemapPS = Shader.Find("Skybox/Cubemap"),
@@ -206,6 +269,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute"),
                 cubeToPanoPS = Load<Shader>(CorePath + "CoreResources/CubeToPano.shader"),
                 blitCubeTextureFacePS = Load<Shader>(CorePath + "CoreResources/BlitCubeTextureFace.shader"),
+                filterAreaLightCookiesPS = Load<Shader>(CorePath + "CoreResources/FilterAreaLightCookies.shader"),
 
                 // Shadow
                 shadowClearPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowClear.shader"),
@@ -216,11 +280,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Decal
                 decalNormalBufferPS = Load<Shader>(HDRenderPipelinePath + "Material/Decal/DecalNormalBuffer.shader"),
                 
+                // Ambient occlusion
+                aoDownsample1CS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/ScreenSpaceLighting/AmbientOcclusionDownsample1.compute"),
+                aoDownsample2CS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/ScreenSpaceLighting/AmbientOcclusionDownsample2.compute"),
+                aoRenderCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/ScreenSpaceLighting/AmbientOcclusionRender.compute"),
+                aoUpsampleCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/ScreenSpaceLighting/AmbientOcclusionUpsample.compute"),
+
                 // MSAA
                 depthValuesPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/MSAA/DepthValues.shader"),
-                aoResolvePS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/MSAA/AOResolve.shader"),
                 colorResolvePS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/MSAA/ColorResolve.shader"),
-            };
+                aoResolvePS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/MSAA/AmbientOcclusionResolve.shader"),
+
+                // Post-processing
+                nanKillerCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/NaNKiller.compute"),
+                exposureCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/Exposure.compute"),
+                uberPostCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/UberPost.compute"),
+                lutBuilder3DCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/LutBuilder3D.compute"),
+                temporalAntialiasingCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/TemporalAntialiasing.compute"),
+                depthOfFieldKernelCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldKernel.compute"),
+                depthOfFieldCoCCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldCoC.compute"),
+                depthOfFieldCoCReprojectCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldCoCReproject.compute"),
+                depthOfFieldDilateCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldCoCDilate.compute"),
+                depthOfFieldMipCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldMip.compute"),
+                depthOfFieldMipSafeCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldMipSafe.compute"),
+                depthOfFieldPrefilterCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldPrefilter.compute"),
+                depthOfFieldTileMaxCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldTileMax.compute"),
+                depthOfFieldGatherCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldGather.compute"),
+                depthOfFieldCombineCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/DepthOfFieldCombine.compute"),
+                motionBlurTileGenCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/MotionBlurTilePass.compute"),
+                motionBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/MotionBlur.compute"),
+                motionBlurVelocityPrepCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/MotionBlurVelocityPrep.compute"),
+                paniniProjectionCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/PaniniProjection.compute"),
+                bloomPrefilterCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomPrefilter.compute"),
+                bloomBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomBlur.compute"),
+                bloomUpsampleCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomUpsample.compute"),
+                FXAACS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/FXAA.compute"),
+                finalPassPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/FinalPass.shader"),
+
+#if ENABLE_RAYTRACING
+                aoRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace"),
+                reflectionRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace"),
+                shadowsRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAreaShadows.raytrace"),
+                areaBillateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/AreaBilateralShadow.compute"),
+                jointBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/JointBilateralFilter.compute"),
+                reflectionBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflectionFilter.compute"),
+                lightClusterBuildCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute"),
+                lightClusterDebugCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute"),
+				countTracedRays = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/CountTracedRays.compute"),
+				debugViewRayCountPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugViewRayCount.shader")
+#endif
+        };
 
             // Materials
             materials = new MaterialResources
@@ -233,12 +342,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Debug
                 debugFontTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/DebugFont.tga"),
                 colorGradient = Load<Texture2D>(HDRenderPipelinePath + "Debug/ColorGradient.png"),
+
+                filmGrainTex = new[]
+                {
+                    // These need to stay in this specific order!
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Thin01.png"),
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Thin02.png"),
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Medium01.png"),
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Medium02.png"),
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Medium03.png"),
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Medium04.png"),
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Medium05.png"),
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Medium06.png"),
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Large01.png"),
+                    Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Large02.png")
+                },
+
+                blueNoise16LTex = new Texture2D[32],
+                blueNoise16RGBTex = new Texture2D[32],
             };
 
             // ShaderGraphs
             shaderGraphs = new ShaderGraphResources
             {
             };
+
+            // Fill-in blue noise textures
+            for (int i = 0; i < 32; i++)
+            {
+                textures.blueNoise16LTex[i] = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/BlueNoise16/L/LDR_LLL1_" + i + ".png");
+                textures.blueNoise16RGBTex[i] = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/BlueNoise16/RGB/LDR_RGB1_" + i + ".png");
+            }
+
+            // Coherent noise textures
+            textures.owenScrambledTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise.png");
+            textures.scramblingTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/CoherentNoise/ScrambleNoise.png");
         }
 #endif
     }

@@ -50,16 +50,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Atlas != null)
                 m_Atlas.Release();
-            
-            m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, sRGB: false, colorFormat: m_Format, name: m_Name);
-            if(m_SupportMomentShadows)
+
+            m_Atlas = RTHandles.Alloc(width, height, filterMode: m_FilterMode, depthBufferBits: m_DepthBufferBits, isShadowMap: true, name: m_Name);
+
+            if (m_SupportMomentShadows)
             {
                 string momentShadowMapName = m_Name + "Moment";
-                m_AtlasMoments = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false, enableRandomWrite: true, name: momentShadowMapName);
+                m_AtlasMoments = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, name: momentShadowMapName);
                 string intermediateSummedAreaName = m_Name + "IntermediateSummedArea";
-                m_IntermediateSummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBInt, sRGB: false, enableRandomWrite: true, name: intermediateSummedAreaName);
+                m_IntermediateSummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: intermediateSummedAreaName);
                 string summedAreaName = m_Name + "SummedAreaFinal";
-                m_SummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBInt, sRGB: false, enableRandomWrite: true, name: summedAreaName);
+                m_SummedAreaTexture = RTHandles.Alloc(width, height, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_SInt, enableRandomWrite: true, name: summedAreaName);
             }
             identifier = new RenderTargetIdentifier(m_Atlas);
         }
@@ -78,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_ShadowResolutionRequests.Add(shadowRequest);
         }
-        
+
         public void AddShadowRequest(HDShadowRequest shadowRequest)
         {
             m_ShadowRequests.Add(shadowRequest);
@@ -231,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             cmd.SetRenderTarget(identifier);
             cmd.SetGlobalVector(m_AtlasSizeShaderID, new Vector4(width, height, 1.0f / width, 1.0f / height));
-            
+
             if (m_LightingDebugSettings.clearShadowAtlas)
                 CoreUtils.DrawFullScreen(cmd, m_ClearMaterial, null, 0);
 
@@ -310,11 +311,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void DisplayAtlas(CommandBuffer cmd, Material debugMaterial, Rect atlasViewport, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, bool flipY)
+        public void DisplayAtlas(CommandBuffer cmd, Material debugMaterial, Rect atlasViewport, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if (m_Atlas == null)
                 return;
-            
+
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
             float rWidth = 1.0f / width;
             float rHeight = 1.0f / height;
@@ -352,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_IntermediateSummedAreaTexture = null;
 
             }
-            
+
             if (m_SummedAreaTexture != null)
             {
                 RTHandles.Release(m_SummedAreaTexture);

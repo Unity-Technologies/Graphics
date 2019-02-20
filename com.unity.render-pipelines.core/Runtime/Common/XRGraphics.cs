@@ -115,11 +115,50 @@ namespace UnityEngine.Rendering
 #endif
             }
         }
+
+        // XRTODO: remove once SinglePassInstanced is working
         public static uint GetPixelOffset(uint eye)
         {
             if (!enabled || stereoRenderingMode != StereoRenderingMode.SinglePass)
                 return 0;
             return (uint)(Mathf.CeilToInt((eye * XRSettings.eyeTextureWidth) / 2));
+        }
+
+        public static int eyeCount
+        {
+            get
+            {
+                return enabled ? 2 : 1;
+            }
+        }
+
+        public static int computePassCount
+        {
+            get
+            {
+                if (stereoRenderingMode == StereoRenderingMode.SinglePassInstanced)
+                    return eyeCount;
+
+                return 1;
+            }
+        }
+
+        public static VRTextureUsage OverrideRenderTexture(bool xrInstancing, ref TextureDimension dimension, ref int slices)
+        {
+            if (xrInstancing)
+            {
+                //dimension = TextureDimension.Tex2DArray;
+            }
+
+            if (stereoRenderingMode == StereoRenderingMode.SinglePassInstanced)
+            {
+	            slices = eyeCount;
+
+                // XRTODO: add validation, asserts
+                return XRGraphics.eyeTextureDesc.vrUsage;
+            }
+
+            return VRTextureUsage.None;
         }
 
         public static RenderTextureDescriptor eyeTextureDesc

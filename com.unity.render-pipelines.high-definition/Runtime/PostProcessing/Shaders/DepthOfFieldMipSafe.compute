@@ -1,0 +1,26 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel KMain
+
+TEXTURE2D(_InputTexture);
+
+RW_TEXTURE2D(float3, _OutputTexture);
+
+SAMPLER(sampler_LinearClamp);
+
+CBUFFER_START(cb0)
+    float4 _TexelSize;       // xy: size, zw: texel size
+CBUFFER_END
+
+#define GROUP_SIZE 8
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    float2 uv =ClampAndScaleUVForBilinear(posInputs.positionNDC);
+    _OutputTexture[posInputs.positionSS] = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, uv, 0.0).xyz;
+}

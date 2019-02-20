@@ -282,23 +282,23 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
 
 // In the case of subsurface profile index, the goal is to take the index with the hights weights.
 // Or the last found in case of equality.
-float BlendLayeredDiffusionProfile(float x0, float x1, float x2, float x3, float weight[4])
+uint BlendLayeredDiffusionProfile(uint x0, uint x1, uint x2, uint x3, float weight[4])
 {
-    int diffusionProfileId = x0;
+    uint diffusionProfileHash = x0;
     float currentMax = weight[0];
 
-    diffusionProfileId = currentMax < weight[1] ? x1 : diffusionProfileId;
+    diffusionProfileHash = currentMax < weight[1] ? x1 : diffusionProfileHash;
     currentMax = max(currentMax, weight[1]);
 
 #if _LAYER_COUNT >= 3
-    diffusionProfileId = currentMax < weight[2] ? x2 : diffusionProfileId;
+    diffusionProfileHash = currentMax < weight[2] ? x2 : diffusionProfileHash;
     currentMax = max(currentMax, weight[2]);
 #endif
 #if _LAYER_COUNT >= 4
-    diffusionProfileId = currentMax < weight[3] ? x3 : diffusionProfileId;
+    diffusionProfileHash = currentMax < weight[3] ? x3 : diffusionProfileHash;
 #endif
 
-    return diffusionProfileId;
+    return diffusionProfileHash;
 }
 
 #define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
@@ -646,7 +646,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
+
+    ApplyDoubleSidedFlipOrMirror(input, doubleSidedConstants); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
@@ -709,7 +715,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = SURFACEDATA_BLEND_SCALAR(surfaceData, subsurfaceMask, weights);
     surfaceData.thickness = SURFACEDATA_BLEND_SCALAR(surfaceData, thickness, weights);
-    surfaceData.diffusionProfile = SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, diffusionProfile, weights);
+    surfaceData.diffusionProfileHash = SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, diffusionProfileHash, weights); // We don't need the hash as we only use it to compute the diffusion profile index
 
     // Layered shader support SSS and Transmission features
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
@@ -735,12 +741,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    GetNormalWS(input, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
     // Use bent normal to sample GI if available
     // If any layer use a bent normal map, then bentNormalTS contain the interpolated result of bentnormal and normalmap (in case no bent normal are available)
     // Note: the code in LitDataInternal ensure that we fallback on normal map for layer that have no bentnormal
 #if defined(_BENTNORMALMAP0) || defined(_BENTNORMALMAP1) || defined(_BENTNORMALMAP2) || defined(_BENTNORMALMAP3)
-    GetNormalWS(input, bentNormalTS, bentNormalWS);
+    GetNormalWS(input, bentNormalTS, bentNormalWS, doubleSidedConstants);
 #else // if no bent normal are available at all just keep the calculation fully
     bentNormalWS = surfaceData.normalWS;
 #endif

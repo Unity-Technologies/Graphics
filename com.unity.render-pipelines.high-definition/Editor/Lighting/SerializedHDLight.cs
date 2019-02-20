@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty volumetricDimmer;
             public SerializedProperty lightUnit;
             public SerializedProperty displayAreaLightEmissiveMesh;
-            public SerializedProperty lightLayers;
+            public SerializedProperty renderingLayerMask;
             public SerializedProperty shadowNearPlane;
             public SerializedProperty shadowSoftness;
             public SerializedProperty blockerSampleCount;
@@ -38,6 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty minFilterSize;
             public SerializedProperty sunDiskSize;
             public SerializedProperty sunHaloSize;
+            public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
 
             // Improved moment shadows data
             public SerializedProperty lightAngle;
@@ -103,7 +104,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     volumetricDimmer = o.Find(x => x.volumetricDimmer),
                     lightUnit = o.Find(x => x.lightUnit),
                     displayAreaLightEmissiveMesh = o.Find(x => x.displayAreaLightEmissiveMesh),
-                    lightLayers = o.Find(x => x.lightLayers),
                     fadeDistance = o.Find(x => x.fadeDistance),
                     affectDiffuse = o.Find(x => x.affectDiffuse),
                     affectSpecular = o.Find(x => x.affectSpecular),
@@ -123,7 +123,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     minFilterSize = o.Find(x => x.minFilterSize),
                     sunDiskSize = o.Find(x => x.sunDiskSize),
                     sunHaloSize = o.Find(x => x.sunHaloSize),
-
+                    areaLightCookie = o.Find(x => x.areaLightCookie),
+                    
                     // Moment light
                     lightAngle = o.Find(x => x.lightAngle),
                     kernelSize = o.Find(x => x.kernelSize),
@@ -133,7 +134,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     useOldInspector = o.Find(x => x.useOldInspector),
                     showFeatures = o.Find(x => x.featuresFoldout),
                     showAdditionalSettings = o.Find(x => x.showAdditionalSettings),
-                    useVolumetric = o.Find(x => x.useVolumetric)
+                    useVolumetric = o.Find(x => x.useVolumetric),
+                    renderingLayerMask = settings.renderingLayerMask
                 };
 
             // TODO: Review this once AdditionalShadowData is refactored

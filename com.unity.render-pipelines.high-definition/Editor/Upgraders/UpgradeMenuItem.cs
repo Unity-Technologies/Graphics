@@ -248,6 +248,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // This function go through all loaded materials so it can be used to update any materials that is
+        // not serialized as an asset (i.e materials saved in scenes)
+        static void UpgradeSceneMaterials()
+        {
+#pragma warning disable 618
+            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            // For each loaded materials
+            foreach (var mat in Resources.FindObjectsOfTypeAll<Material>())
+            {
+                DiffusionProfileSettings.UpgradeMaterial(mat, hdAsset.diffusionProfileSettings);
+            }
+#pragma warning restore 618
+        }
+
         [MenuItem("Edit/Render Pipeline/Upgrade all Materials to newer version", priority = CoreUtils.editMenuPriority3)]
         static public void UpdateMaterialToNewerVersion()
         {
@@ -263,6 +277,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UpdateMaterialToNewerVersion("(Decals_2)", 2.0f, UpdateMaterial_Decals_2, UpdateMaterialFile_Decals_2);
 
             // Caution: Version of latest script and default version in all HDRP shader must match 
+
+            UpgradeSceneMaterials();
         }
     }
 }

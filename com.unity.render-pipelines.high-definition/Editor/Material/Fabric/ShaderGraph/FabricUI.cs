@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using System.Linq;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -8,11 +9,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             materialEditor.PropertiesDefaultGUI(props);
+
             if (materialEditor.EmissionEnabledProperty())
             {
-                // Use the overload version of this function once the following PR is merged: Pull request #74105
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
-                //materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
+                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
             }
 
             // Make sure all selected materials are initialized.
@@ -42,6 +42,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
+
+            if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
+                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props));
         }
     }
 }

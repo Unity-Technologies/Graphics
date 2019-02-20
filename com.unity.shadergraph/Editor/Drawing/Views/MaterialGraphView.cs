@@ -32,12 +32,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return selection.OfType<Node>().Any() || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
-        public MaterialGraphView(AbstractMaterialGraph graph) : this()
+        public MaterialGraphView(GraphData graph) : this()
         {
             this.graph = graph;
         }
 
-        public AbstractMaterialGraph graph { get; private set; }
+        public GraphData graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
@@ -291,13 +291,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 .OfType<PropertyNode>();
 
             foreach (var propNode in selectedNodeViews)
-                ((AbstractMaterialGraph)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
+                ((GraphData)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
         }
 
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
         {
             if (onConvertToSubgraphClick == null) return DropdownMenuAction.Status.Hidden;
-            if (graph as SubGraph != null) return DropdownMenuAction.Status.Hidden;
+            if (graph.isSubGraph) return DropdownMenuAction.Status.Hidden;
             return selection.OfType<MaterialNodeView>().Any(v => v.node != null) ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden;
         }
 
@@ -309,9 +309,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
         {
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
-            var nodes = elements.OfType<MaterialNodeView>().Select(x => (INode)x.node);
+            var nodes = elements.OfType<MaterialNodeView>().Select(x => (AbstractMaterialNode)x.node);
             var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
-            var properties = selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty);
+            var properties = selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty);
 
             // Collect the property nodes and get the corresponding properties
             var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
@@ -340,7 +340,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    if(graph as SubGraph != null)
+                    if (graph.isSubGraph)
                     {
                         if (EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
                             break;
@@ -350,7 +350,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graph.owner.RegisterCompleteObjectUndo(operationName);
-            graph.RemoveElements(selection.OfType<MaterialNodeView>().Where(v => !(v.node is SubGraphOutputNode)).Select(x => (INode)x.node),
+            graph.RemoveElements(selection.OfType<MaterialNodeView>().Where(v => !(v.node is SubGraphOutputNode)).Select(x => (AbstractMaterialNode)x.node),
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData));
 
@@ -359,7 +359,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    var property = (IShaderProperty)field.userData;
+                    var property = (AbstractShaderProperty)field.userData;
                     graph.RemoveShaderProperty(property.guid);
                 }
             }
@@ -530,7 +530,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var blackboardField = obj as BlackboardField;
             if (blackboardField != null)
             {
-                IShaderProperty property = blackboardField.userData as IShaderProperty;
+                AbstractShaderProperty property = blackboardField.userData as AbstractShaderProperty;
                 if (property != null)
                 {
                     graph.owner.RegisterCompleteObjectUndo("Drag Property");
@@ -558,10 +558,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             // Make new properties from the copied graph
-            foreach (IShaderProperty property in copyGraph.properties)
+            foreach (AbstractShaderProperty property in copyGraph.properties)
             {
                 string propertyName = graphView.graph.SanitizePropertyName(property.displayName);
-                IShaderProperty copiedProperty = property.Copy();
+                AbstractShaderProperty copiedProperty = property.Copy();
                 copiedProperty.displayName = propertyName;
                 graphView.graph.AddShaderProperty(copiedProperty);
 
@@ -574,7 +574,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            using (var remappedNodesDisposable = ListPool<INode>.GetDisposable())
+            using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())
             {
                 using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
                 {

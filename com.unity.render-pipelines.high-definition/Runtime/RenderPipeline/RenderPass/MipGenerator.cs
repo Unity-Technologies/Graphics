@@ -94,11 +94,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TempColorTarget = RTHandles.Alloc(
                     Vector2.one * 0.5f,
                     filterMode: FilterMode.Bilinear,
-                    colorFormat: RenderTextureFormat.ARGBHalf,
-                    sRGB: false,
+                    colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
                     enableRandomWrite: true,
                     useMipMap: false,
                     enableMSAA: false,
+                    xrInstancing: source.dimension == TextureDimension.Tex2DArray,
+                    useDynamicScale: true,
                     name: "Temp Gaussian Pyramid Target"
                 );
             }

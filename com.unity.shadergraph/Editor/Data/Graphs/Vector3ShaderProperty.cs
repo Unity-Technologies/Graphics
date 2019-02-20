@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector3Node();
             node.FindInputSlot<Vector1MaterialSlot>(Vector3Node.InputSlotXId).value = value.x;
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
             return node;
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new Vector3ShaderProperty();
             copied.displayName = displayName;

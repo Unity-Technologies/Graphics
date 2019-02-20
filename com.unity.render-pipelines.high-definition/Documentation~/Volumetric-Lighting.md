@@ -12,11 +12,11 @@ To toggle and customize Volumetric Lighting in an [HDRP Asset](HDRP-Asset.html) 
 
  
 
-1. Open an HDRP Asset in your Unity Project and view it in the Inspector. Enable Volumetric Lighting by checking the **Volumetrics** property in the **Render Pipeline Supported Features** section.
+1. Open an HDRP Asset in your Unity Project and view it in the Inspector. Enable the **Volumetrics** checkbox in the **Render Pipeline Supported Features** section to enable Volumetric Lighting.
 
 ![](Images/VolumetricLighting1.png)
 
-1. If you want to increase the resolution of the volumetrics, check **Increase resolution of volumetrics**. Volumetric lighting is an expensive effect, and this option can potentially increase the cost of volumetric lighting by up to eight times.
+1. If you want to increase the resolution of the volumetrics, enable the **Increase resolution of volumetrics** checkbox. Volumetric lighting is an expensive effect, and this option can potentially increase the cost of volumetric lighting by up to eight times.
 2. In the **Default Frame Settings** section, under the **Lighting Settings** subsection, make sure you enable **Atmospheric Scattering** and **Volumetric** if they are not already.
    ![](Images/VolumetricLighting2.png)
 

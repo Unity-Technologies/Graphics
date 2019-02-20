@@ -4,9 +4,9 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Noise", "Voronoi")]
-    class VoronoiNode : CodeFunctionNode
+    class VoronoAbstractMaterialNode : CodeFunctionNode
     {
-        public VoronoiNode()
+        public VoronoAbstractMaterialNode()
         {
             name = "Voronoi";
         }

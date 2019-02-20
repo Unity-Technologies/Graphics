@@ -4,6 +4,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         ColorBufferMipChain,
         VolumetricLighting,
+        Exposure,
+        TemporalAntialiasing,
+        DepthOfFieldCoC,
+#if ENABLE_RAYTRACING
+        RaytracedReflection,
+#endif
         Count
     }
 }

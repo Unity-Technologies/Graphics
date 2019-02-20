@@ -119,7 +119,7 @@ Shader "Lightweight Render Pipeline/Baked Lit"
 #endif
 
     #if defined(_NORMALMAP)
-                half3 normalTS = SampleNormal(uv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap)).xyz;
+                half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
                 half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
     #else
                 half3 normalWS = input.normal;

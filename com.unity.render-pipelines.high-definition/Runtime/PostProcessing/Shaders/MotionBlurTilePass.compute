@@ -1,0 +1,311 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
+
+#pragma kernel TileGenPass          GEN_PASS
+#pragma kernel TileNeighbourhood    NEIGHBOURHOOD_PASS
+#pragma kernel TileMinMaxMerge      MERGE_PASS
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#define USE_WAVE_INTRINSICS         defined(SUPPORTS_WAVE_INTRINSICS)
+
+uint PackVel(float2 packedVel)
+{
+    // Most relevant bits contain the length of the velocity, so that we can sort directly on uint value.
+    return f32tof16(packedVel.y) | f32tof16(packedVel.x) << 16;
+}
+
+float2 UnpackVel(uint packedVel)
+{
+    float2 outVel;
+    outVel.x = f16tof32(packedVel >> 16);
+    outVel.y = f16tof32(packedVel);
+    return outVel;
+}
+
+#if USE_WAVE_INTRINSICS
+
+#define LDS_SIZE  (TILE_SIZE * TILE_SIZE) / WAVE_SIZE
+
+#else
+
+#define LDS_SIZE TILE_SIZE * TILE_SIZE
+
+#endif
+
+groupshared float gs_minVel[LDS_SIZE];
+groupshared uint gs_maxVel[LDS_SIZE];
+
+// Returns min vel length in x, max vel in zw
+float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
+{
+    uint packedVel = PackVel(velocity);
+    float velLength = VelocityLengthFromEncoded(velocity);
+    float minVelLen = 0.0f;
+    uint  maxVelPacked = 0.0f;
+
+#if USE_WAVE_INTRINSICS // This works only with multiple of 8 for TILE_SIZE.
+
+    uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
+
+    // Find min/max for this wave and store it in LDS. 
+    float waveMin = WaveActiveMin(velLength);
+    uint waveMax = WaveActiveMax(packedVel);
+
+    uint waveIDInGroup = gid / WAVE_SIZE;
+    if (WaveIsFirstLane())
+    {
+        gs_minVel[waveIDInGroup] = waveMin;
+        gs_maxVel[waveIDInGroup] = waveMax;
+    }
+
+    // We have values for all the waves, let's sync. 
+    GroupMemoryBarrierWithGroupSync();
+
+    if (threadIdx == 0)
+    {
+        // Find min and max across waves.
+        minVelLen = gs_minVel[0];
+        maxVelPacked = gs_maxVel[0];
+        for (uint i = 1u; i < waveCount; ++i)
+        {
+            minVelLen = min(minVelLen, gs_minVel[i]);
+            maxVelPacked = max(maxVelPacked, gs_maxVel[i]);
+        }
+    }
+#else
+    gs_minVel[threadIdx] = velLength;
+    gs_maxVel[threadIdx] = packedVel;
+
+    GroupMemoryBarrierWithGroupSync();
+
+
+    UNITY_UNROLL
+    for (uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_minVel[threadIdx] = min(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
+            gs_maxVel[threadIdx] = max(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    maxVelPacked = gs_maxVel[0];
+    minVelLen = gs_minVel[0];
+
+#endif
+    float2 unpackedMaxVel = UnpackVel(maxVelPacked);
+    return float3(minVelLen, unpackedMaxVel);
+}
+
+
+#ifdef GEN_PASS
+
+[numthreads(TILE_SIZE, TILE_SIZE,1)]
+void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
+{
+    uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
+
+    float2 velocity = LOAD_TEXTURE2D(_VelocityAndDepth, id.xy).xy;
+
+    float3 minMaxVel = ParallelReduction(gid, threadIdx, velocity);
+    float minVelLength = minMaxVel.x;
+    float2 maxVel = minMaxVel.yz;
+
+    if (threadIdx == 0)
+    {
+#if SCATTERING
+        _TileToScatterMax[groupID.xy] = PackVel(maxVel);
+        _TileToScatterMin[groupID.xy] = f32tof16(minVelLength);
+#else
+        _TileMinMaxVel[groupID.xy] = float3(maxVel.x, maxVel.y, minVelLength);
+#endif
+    }
+
+}
+
+#elif NEIGHBOURHOOD_PASS 
+
+#if SCATTERING
+
+// TODO: Consider a conservative line rasterization.
+// Line drawing algorithms.
+#if 0
+void Bresenham(int2 center, float2 lineToDraw, uint centerInfo)
+{
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    // Determine start and end point of the line. Forward
+    int2 startPoint = center;
+    int2 endPoint = int2(ceil(startPoint.x + lineToDraw.x), ceil(startPoint.y + lineToDraw.y));
+    endPoint = clamp(endPoint, int2(0, 0), maxCoords);
+
+    int2 delta = int2(abs(startPoint - endPoint));
+    int2 steps = int2(startPoint.x < endPoint.x ? 1 : -1, startPoint.y < endPoint.y ? 1 : -1);
+    int tMax = (delta.x > delta.y ? delta.x : -delta.y) / 2;
+
+    int x = startPoint.x;
+    int y = startPoint.y;
+
+    for (int i = 0; i < 32; ++i)
+    {
+        if (x >= endPoint.x && y >= endPoint.y)
+        {
+            break;
+        }
+        if (tMax > -delta.x)
+        {
+            tMax -= delta.y;
+            x += steps.x;
+        }
+        if (tMax < delta.y)
+        {
+            tMax += delta.x;
+            y += steps.y;
+        }
+
+        InterlockedMax(_TileToScatterMax[int2(x, y)], uint(centerInfo));
+    }
+}
+#endif
+
+void DDA(int2 center, float2 lineToDraw, uint centerInfo)
+{
+    int2 maxCoords = int2(_TileTargetSize.xy);
+
+    int2 startPoint = center;
+    int2 endPoint = int2(ceil(startPoint.x + lineToDraw.x), ceil(startPoint.y + lineToDraw.y));
+    endPoint = clamp(endPoint, int2(0, 0), maxCoords);
+
+    bool permute = false;
+    if (abs(lineToDraw.x) < abs(lineToDraw.y))
+    {
+        permute = true;
+        lineToDraw = lineToDraw.yx;
+        startPoint = startPoint.yx;
+        endPoint = endPoint.yx;
+    }
+    float dirSign = sign(lineToDraw.x);
+
+    float invDeltaX = dirSign / lineToDraw.x;
+    float2 step = float2(dirSign, lineToDraw.y * invDeltaX);
+
+    float end = endPoint.x * dirSign;
+    float2 currPoint = startPoint;
+
+    const int maxIter = 64;
+    for (int i = 0; ((currPoint.x * dirSign) <= end) && (i < maxIter); ++i)
+    {
+        currPoint += step;
+        float2 hitPixel = permute ? currPoint.yx : currPoint;
+        hitPixel = clamp(hitPixel, 0, _TileTargetSize.xy);
+        InterlockedMax(_TileToScatterMax[ceil(hitPixel)], uint(centerInfo));
+    }
+}
+
+#define USE_NEIGHBOURHOOD_MIN 1
+[numthreads(8, 8, 1)]
+void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    int2 id = dispatchID.xy;
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    if (any(id > maxCoords)) return;
+
+    // Sample the velocity at this tile.
+    uint packedTileInfo = _TileToScatterMax[id];
+    uint minVel = _TileToScatterMin[id];
+
+    float2 VelData = UnpackVel(packedTileInfo);
+
+    // Covert to a per pixel velocity.
+    float2 maxVelVectorInTiles = DecodeVelocityFromPacked(VelData.xy) *  _TileTargetSize.xy * 0.5f;
+
+    // If the central velocity is small, no need to spread it.
+    if (VelocityLengthInPixelsFromEncoded(VelData) > 0.5f)
+    {
+        // Spread Forward
+        DDA(id, maxVelVectorInTiles, packedTileInfo);
+        // Spread Backward
+        DDA(id, -maxVelVectorInTiles, packedTileInfo);
+    }
+
+    // TODO: We need to find a better min velocity determination.
+    #if USE_NEIGHBOURHOOD_MIN
+    // Find min of the tile in the 1-ring neighbourhood? This is incorrect, but might be worth perf wise. 
+    uint v0 = _TileToScatterMin[clamp(id.xy + int2(-1, 1), int2(0, 0), maxCoords)];
+    uint v1 = _TileToScatterMin[clamp(id.xy + int2(0, 1), int2(0, 0), maxCoords)];
+    uint v2 = _TileToScatterMin[clamp(id.xy + int2(1, 1), int2(0, 0), maxCoords)];
+
+    uint v3 = _TileToScatterMin[clamp(id.xy + int2(-1, 0), int2(0, 0), maxCoords)];
+    uint v4 = minVel;
+    uint v5 = _TileToScatterMin[clamp(id.xy + int2(1, 0), int2(0, 0), maxCoords)];
+
+    uint v6 = _TileToScatterMin[clamp(id.xy + int2(-1, -1), int2(0, 0), maxCoords)];
+    uint v7 = _TileToScatterMin[clamp(id.xy + int2(0, -1), int2(0, 0), maxCoords)];
+    uint v8 = _TileToScatterMin[clamp(id.xy + int2(1, -1), int2(0, 0), maxCoords)];
+
+    uint minVel0 = Min3(v0, v1, v2);
+    uint minVel1 = Min3(v3, v4, v5);
+    uint minVel2 = Min3(v6, v7, v8);
+    minVel = Min3(minVel0, minVel1, minVel2);
+    #endif
+    _TileToScatterMin[id] = minVel;
+}
+
+#else
+
+RW_TEXTURE2D(float3, _TileMaxNeighbourhood);
+
+[numthreads(8, 8, 1)]
+void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    int2 id = dispatchID.xy;
+    int2 maxCoords = int2(_TileTargetSize.xy - 1);
+
+    float3 centralSample = _TileMinMaxVel[id.xy + uint2(0, 0)].xyz;
+    
+    float3 v0 = _TileMinMaxVel[clamp(id.xy + int2(-1,  1), int2(0, 0), maxCoords)].xyz;
+    float3 v1 = _TileMinMaxVel[clamp(id.xy + int2( 0,  1), int2(0, 0), maxCoords)].xyz;
+    float3 v2 = _TileMinMaxVel[clamp(id.xy + int2( 1,  1), int2(0, 0), maxCoords)].xyz;
+
+    float3 v3 = _TileMinMaxVel[clamp(id.xy + int2(-1,  0), int2(0, 0), maxCoords)].xyz;
+    float3 v4 = centralSample.xyz;
+    float3 v5 = _TileMinMaxVel[clamp(id.xy + int2( 1,  0), int2(0, 0), maxCoords)].xyz;
+
+    float3 v6 = _TileMinMaxVel[clamp(id.xy + int2(-1,  -1), int2(0, 0), maxCoords)].xyz;
+    float3 v7 = _TileMinMaxVel[clamp(id.xy + int2( 0,  -1), int2(0, 0), maxCoords)].xyz;
+    float3 v8 = _TileMinMaxVel[clamp(id.xy + int2( 1,  -1), int2(0, 0), maxCoords)].xyz;
+
+
+    float2 maxVel0 = MaxVel(v0.xy, MaxVel(v1.xy, v2.xy));
+    float2 maxVel1 = MaxVel(v3.xy, MaxVel(v4.xy, v5.xy));
+    float2 maxVel2 = MaxVel(v6.xy, MaxVel(v7.xy, v8.xy));
+
+    float minVel0 = Min3(v0.z, v1.z, v2.z);
+    float minVel1 = Min3(v3.z, v4.z, v5.z);
+    float minVel2 = Min3(v6.z, v7.z, v8.z);
+
+
+    _TileMaxNeighbourhood[id.xy] = float3(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2)) ;
+}
+
+#endif
+
+#endif
+
+#if MERGE_PASS
+Texture2D<uint> _TileToScatterMax;
+Texture2D<uint> _TileToScatterMin;
+RW_TEXTURE2D(float3, _TileMaxNeighbourhood);
+
+[numthreads(8, 8, 1)]
+void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
+{
+#if SCATTERING
+    int2 id = dispatchID.xy;
+    _TileMaxNeighbourhood[id] = float3(UnpackVel(_TileToScatterMax[id]), f16tof32(_TileToScatterMin[id]));
+#endif
+}
+#endif

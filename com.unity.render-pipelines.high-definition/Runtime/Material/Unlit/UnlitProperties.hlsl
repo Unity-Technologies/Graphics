@@ -16,6 +16,7 @@ float4 _UnlitColorMap_MipInfo;
 
 float3 _EmissiveColor;
 float4 _EmissiveColorMap_ST;
+float _EmissiveExposureWeight;
 
 float _AlphaCutoff;
 float _DistortionScale;

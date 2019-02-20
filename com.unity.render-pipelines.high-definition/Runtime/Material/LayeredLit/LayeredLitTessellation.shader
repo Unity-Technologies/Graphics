@@ -20,6 +20,7 @@ Shader "HDRP/LayeredLitTessellation"
         _BaseColorMap1("BaseColorMap1", 2D) = "white" {}
         _BaseColorMap2("BaseColorMap2", 2D) = "white" {}
         _BaseColorMap3("BaseColorMap3", 2D) = "white" {}
+        [HideInInspector] _BaseColorMap0_MipInfo("_BaseColorMap0_MipInfo", Vector) = (0, 0, 0, 0)
 
         _Metallic0("Metallic0", Range(0.0, 1.0)) = 0
         _Metallic1("Metallic1", Range(0.0, 1.0)) = 0
@@ -230,8 +231,15 @@ Shader "HDRP/LayeredLitTessellation"
         [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
+        // Used only to serialize the LDR and HDR emissive color in the material UI,
+        // in the shader only the _EmissiveColor should be used
+        [HideInInspector] _EmissiveColorLDR("EmissiveColor LDR", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
+        [HideInInspector] _EmissiveIntensityUnit("Emissive Mode", Int) = 0
+        [ToggleUI] _UseEmissiveIntensity("Use Emissive Intensity", Int) = 0
+        _EmissiveIntensity("Emissive Intensity", Float) = 1
+        _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
         [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
@@ -239,10 +247,18 @@ Shader "HDRP/LayeredLitTessellation"
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Stencil state
+        // Forward
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
-        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 7 // StencilMask.Lighting  (fixed at compile time)
-        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilLightingUsage.RegularLighting  (fixed at compile time)
-        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity  (fixed at compile time)
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilMask.Lighting
+        // GBuffer
+        [HideInInspector] _StencilRefGBuffer("_StencilRefGBuffer", Int) = 2 // StencilLightingUsage.RegularLighting
+        [HideInInspector] _StencilWriteMaskGBuffer("_StencilWriteMaskGBuffer", Int) = 3 // StencilMask.Lighting
+        // Depth prepass
+        [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 0 // Nothing
+        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 32 // DoesntReceiveSSR
+        // Motion vector pass
+        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilMask.ObjectsVelocity
+        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -347,9 +363,6 @@ Shader "HDRP/LayeredLitTessellation"
         _TessellationBackFaceCullEpsilon("Tessellation back face epsilon", Range(-1.0, 0.0)) = -0.25
         // TODO: Handle culling mode for backface culling
 
-        // Transparency
-        [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
-
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
@@ -364,80 +377,81 @@ Shader "HDRP/LayeredLitTessellation"
     #pragma target 5.0
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-    #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DEPTHOFFSET_ON
-    #pragma shader_feature _DOUBLESIDED_ON
-    #pragma shader_feature _ _TESSELLATION_DISPLACEMENT _PIXEL_DISPLACEMENT
-    #pragma shader_feature _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _DISPLACEMENT_LOCK_TILING_SCALE
-    #pragma shader_feature _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    #pragma shader_feature _VERTEX_WIND
-    #pragma shader_feature _TESSELLATION_PHONG
+    #pragma shader_feature_local _ALPHATEST_ON
+    #pragma shader_feature_local _DEPTHOFFSET_ON
+    #pragma shader_feature_local _DOUBLESIDED_ON
+    #pragma shader_feature_local _ _TESSELLATION_DISPLACEMENT _PIXEL_DISPLACEMENT
+    #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
+    #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local _VERTEX_WIND
+    #pragma shader_feature_local _TESSELLATION_PHONG
 
-    #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
-    #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
-    #pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE0
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE1
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
-    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
+    #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
+    #pragma shader_feature_local _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
+    #pragma shader_feature_local _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE0
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE1
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE2
+    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE3
+    #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
 
-    #pragma shader_feature _NORMALMAP0
-    #pragma shader_feature _NORMALMAP1
-    #pragma shader_feature _NORMALMAP2
-    #pragma shader_feature _NORMALMAP3
-    #pragma shader_feature _MASKMAP0
-    #pragma shader_feature _MASKMAP1
-    #pragma shader_feature _MASKMAP2
-    #pragma shader_feature _MASKMAP3
-    #pragma shader_feature _BENTNORMALMAP0
-    #pragma shader_feature _BENTNORMALMAP1
-    #pragma shader_feature _BENTNORMALMAP2
-    #pragma shader_feature _BENTNORMALMAP3
-    #pragma shader_feature _EMISSIVE_COLOR_MAP
-    #pragma shader_feature _ENABLESPECULAROCCLUSION
-    #pragma shader_feature _DETAIL_MAP0
-    #pragma shader_feature _DETAIL_MAP1
-    #pragma shader_feature _DETAIL_MAP2
-    #pragma shader_feature _DETAIL_MAP3
-    #pragma shader_feature _HEIGHTMAP0
-    #pragma shader_feature _HEIGHTMAP1
-    #pragma shader_feature _HEIGHTMAP2
-    #pragma shader_feature _HEIGHTMAP3
-    #pragma shader_feature _SUBSURFACE_MASK_MAP0
-    #pragma shader_feature _SUBSURFACE_MASK_MAP1
-    #pragma shader_feature _SUBSURFACE_MASK_MAP2
-    #pragma shader_feature _SUBSURFACE_MASK_MAP3
-    #pragma shader_feature _THICKNESSMAP0
-    #pragma shader_feature _THICKNESSMAP1
-    #pragma shader_feature _THICKNESSMAP2
-    #pragma shader_feature _THICKNESSMAP3
+    // We can only have 64 shader_feature_local
+    #pragma shader_feature _NORMALMAP0              // Non-local
+    #pragma shader_feature _NORMALMAP1              // Non-local
+    #pragma shader_feature _NORMALMAP2              // Non-local
+    #pragma shader_feature _NORMALMAP3              // Non-local
+    #pragma shader_feature _MASKMAP0                // Non-local
+    #pragma shader_feature _MASKMAP1                // Non-local
+    #pragma shader_feature _MASKMAP2                // Non-local
+    #pragma shader_feature _MASKMAP3                // Non-local
+    #pragma shader_feature _BENTNORMALMAP0          // Non-local
+    #pragma shader_feature _BENTNORMALMAP1          // Non-local
+    #pragma shader_feature _BENTNORMALMAP2          // Non-local
+    #pragma shader_feature _BENTNORMALMAP3          // Non-local
+    #pragma shader_feature _EMISSIVE_COLOR_MAP      // Non-local
+    #pragma shader_feature _ENABLESPECULAROCCLUSION // Non-local
+    #pragma shader_feature _DETAIL_MAP0             // Non-local
+    #pragma shader_feature _DETAIL_MAP1             // Non-local
+    #pragma shader_feature _DETAIL_MAP2             // Non-local
+    #pragma shader_feature _DETAIL_MAP3             // Non-local
+    #pragma shader_feature _HEIGHTMAP0              // Non-local
+    #pragma shader_feature _HEIGHTMAP1              // Non-local
+    #pragma shader_feature _HEIGHTMAP2              // Non-local
+    #pragma shader_feature _HEIGHTMAP3              // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP0    // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP1    // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP2    // Non-local
+    #pragma shader_feature _SUBSURFACE_MASK_MAP3    // Non-local
+    #pragma shader_feature _THICKNESSMAP0           // Non-local
+    #pragma shader_feature _THICKNESSMAP1           // Non-local
+    #pragma shader_feature _THICKNESSMAP2           // Non-local
+    #pragma shader_feature _THICKNESSMAP3           // Non-local
 
-    #pragma shader_feature _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
-    #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
-    #pragma shader_feature _INFLUENCEMASK_MAP
-    #pragma shader_feature _DENSITY_MODE
-    #pragma shader_feature _HEIGHT_BASED_BLEND
-    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+    #pragma shader_feature_local _ _LAYER_MASK_VERTEX_COLOR_MUL _LAYER_MASK_VERTEX_COLOR_ADD
+    #pragma shader_feature_local _MAIN_LAYER_INFLUENCE_MODE
+    #pragma shader_feature_local _INFLUENCEMASK_MAP
+    #pragma shader_feature_local _DENSITY_MODE
+    #pragma shader_feature_local _HEIGHT_BASED_BLEND
+    #pragma shader_feature_local _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
-    #pragma shader_feature _DISABLE_DECALS
-    #pragma shader_feature _DISABLE_SSR
-    #pragma shader_feature _ENABLE_GEOMETRIC_SPECULAR_AA
+    #pragma shader_feature_local _DISABLE_DECALS
+    #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
-    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
-    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -451,8 +465,7 @@ Shader "HDRP/LayeredLitTessellation"
     //-------------------------------------------------------------------------------------
 
     #define TESSELLATION_ON
-    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
-    #define SURFACE_GRADIENT
+
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
     #define HAVE_TESSELLATION_MODIFICATION
@@ -504,10 +517,6 @@ Shader "HDRP/LayeredLitTessellation"
     // LitShading.hlsl implements the light loop API.
     // LitData.hlsl is included here, LitShading.hlsl is included below for shading passes only.
 
-    // All our shaders use same name for entry point
-    #pragma vertex Vert
-    #pragma fragment Frag
-
     ENDHLSL
 
     SubShader
@@ -530,9 +539,6 @@ Shader "HDRP/LayeredLitTessellation"
 
             // Note: Require _ObjectId and _PassValue variables
 
-            #pragma hull Hull
-            #pragma domain Domain
-
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -542,13 +548,18 @@ Shader "HDRP/LayeredLitTessellation"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma hull Hull
+            #pragma domain Domain
+
             ENDHLSL
         }
 
          // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
         {
-            Name "GBuffer"  // Name is not used
+            Name "GBuffer"
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
             Cull [_CullMode]
@@ -556,16 +567,13 @@ Shader "HDRP/LayeredLitTessellation"
 
             Stencil
             {
-                WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
+                WriteMask [_StencilWriteMaskGBuffer]
+                Ref [_StencilRefGBuffer]
                 Comp Always
                 Pass Replace
             }
 
             HLSLPROGRAM
-
-            #pragma hull Hull
-            #pragma domain Domain
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -576,8 +584,9 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ LIGHT_LAYERS
 
-        #ifdef _ALPHATEST_ON
+        #ifndef DEBUG_DISPLAY
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
+            // Don't do it with debug display mode as it is possible there is no depth prepass in this case
             #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
         #endif
 
@@ -593,6 +602,11 @@ Shader "HDRP/LayeredLitTessellation"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma hull Hull
+            #pragma domain Domain
+
             ENDHLSL
         }
 
@@ -601,7 +615,7 @@ Shader "HDRP/LayeredLitTessellation"
         Pass
         {
             Name "META"
-            Tags{ "LightMode" = "Meta" }
+            Tags{ "LightMode" = "META" }
 
             Cull Off
 
@@ -622,12 +636,15 @@ Shader "HDRP/LayeredLitTessellation"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+
             ENDHLSL
         }
 
         Pass
         {
-            Name "Motion Vectors"
+            Name "MotionVectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
 
             // If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity
@@ -646,9 +663,6 @@ Shader "HDRP/LayeredLitTessellation"
             HLSLPROGRAM
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
-            // TODO: Tesselation can't work with velocity for now...
-            #pragma hull Hull
-            #pragma domain Domain
 
             #define SHADERPASS SHADERPASS_VELOCITY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -661,6 +675,12 @@ Shader "HDRP/LayeredLitTessellation"
             #endif
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl"
+
+            // TODO: Tesselation can't work with velocity for now...
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma hull Hull
+            #pragma domain Domain
 
             ENDHLSL
         }
@@ -680,9 +700,6 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma hull Hull
-            #pragma domain Domain
-
             #define SHADERPASS SHADERPASS_SHADOWS
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -691,6 +708,11 @@ Shader "HDRP/LayeredLitTessellation"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma hull Hull
+            #pragma domain Domain
 
             ENDHLSL
         }
@@ -705,8 +727,8 @@ Shader "HDRP/LayeredLitTessellation"
             // To be able to tag stencil with disableSSR information for forward
             Stencil
             {
-                WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
+                WriteMask [_StencilWriteMaskDepth]
+                Ref [_StencilRefDepth]
                 Comp Always
                 Pass Replace
             }
@@ -714,9 +736,6 @@ Shader "HDRP/LayeredLitTessellation"
             ZWrite On
 
             HLSLPROGRAM
-
-            #pragma hull Hull
-            #pragma domain Domain
 
            // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
@@ -737,12 +756,17 @@ Shader "HDRP/LayeredLitTessellation"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma hull Hull
+            #pragma domain Domain
+
             ENDHLSL
         }
 
         Pass
         {
-            Name "Forward" // Name is not used
+            Name "Forward"
             Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
             Stencil
@@ -761,9 +785,6 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma hull Hull
-            #pragma domain Domain
-
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -775,14 +796,12 @@ Shader "HDRP/LayeredLitTessellation"
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
-            // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Lighting/Forward.hlsl"
-            //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define SHADERPASS SHADERPASS_FORWARD
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-            #ifndef _SURFACE_TYPE_TRANSPARENT
+            // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+            #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
                 #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
             #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -809,6 +828,11 @@ Shader "HDRP/LayeredLitTessellation"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma hull Hull
+            #pragma domain Domain
 
             ENDHLSL
         }
