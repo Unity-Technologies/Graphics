@@ -35,7 +35,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     float3 lowRes = SAMPLE_TEXTURE2D_LOD(_InputLowTexture, sampler_LinearClamp, uv, 0.0).xyz;
 #else // HIGH_QUALITY
     float2 maxCoord = (1.0f - _TexelSize.zw) * _ScreenToTargetScale.xy;
-    float3 lowRes = SampleTexture2DBicubic(TEXTURE2D_ARGS(_InputLowTexture, sampler_LinearClamp), uv, _BloomBicubicParams, maxCoord).xyz;
+    float3 lowRes = SampleTexture2DBicubic(TEXTURE2D_ARGS(_InputLowTexture, sampler_LinearClamp), uv, _BloomBicubicParams, maxCoord, unity_StereoEyeIndex).xyz;
 #endif
 
     float3 output = lerp(highRes, lowRes, Scatter);

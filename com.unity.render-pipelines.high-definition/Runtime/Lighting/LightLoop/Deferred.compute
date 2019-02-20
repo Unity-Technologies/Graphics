@@ -65,8 +65,6 @@
 #   pragma warning( disable : 4714 ) // sum of temp registers and indexable temp registers times 256 threads exceeds the recommended total 16384.  Performance may be reduced at kernel
 #endif
 
-#define UNITY_SINGLE_PASS_STEREO 1
-
 // deferred opaque always use FPTL
 #define USE_FPTL_LIGHTLIST 1
 
