@@ -29,7 +29,8 @@ float3 CatmullRomFourSamples(TEXTURE2D(_InputTexture), float2 UV)
     return SampleTexture2DBicubic(  TEXTURE2D_ARGS(_InputTexture, s_linear_clamp_sampler),
                                     UV * _ScreenToTargetScale.xy,
                                     bicubicWnd,
-                                    (1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.xy).xyz;
+                                    (1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.xy,
+                                    unity_StereoEyeIndex).xyz;
 }
 
 
