@@ -27,7 +27,7 @@ To configure the properties of a Light, select a GameObject in your Scene with a
 
 HDRP includes multiple types of Light. Although HDRP Lights share many properties, each one has its own unique behavior and set of properties.
 
-For more detailed information on how to configure realistic light fixtures, see the [Create High-Quality Light Fixtures in Unity](<https://docs.unity3d.com/uploads/ExpertGuides/Create_High-Quality_Light_Fixtures_in_Unity.pdf>) expert guide.
+For more detailed information on how to configure realistic light fixtures, see the [Create High-Quality Light Fixtures in Unity](https://docs.unity3d.com/uploads/ExpertGuides/Create_High-Quality_Light_Fixtures_in_Unity.pdf) expert guide.
 
 ### Properties
 
@@ -179,7 +179,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 
 Use the Shadows section to adjust the Shadows cast by this Light. HDRP currently does not support shadowing for **Rectangle** and **Tube** Lights. Because of this, Unity does not expose the **Shadows** drop-down section in the Inspector when you select either of these two **Types**. The Light **Types** that HDRP does support shadowing for (**Spot**, **Directional**, and **Point**) share almost all of their properties.
 
-Unity exposes extra properties in the **Shadows** section depending on the **Mode** you set in the [General](#GeneralProperties) section. It also exposes extra properties depending on the **Filtering Quality** set in your Unity Project’s [HDRP Asset](HDRP-Asset.html). To change the **Filtering Quality** property, navigate to your Project’s **HDRP Asset > Shadows** and use the **Filtering Quality** drop-down  to select the shadow filtering mode. Setting **Filtering Quality** to **High** or **Very High** exposes extra properties in the Light Inspector’s **Shadow** drop-down section. For more information on shadow filtering in HDRP, see the documentation on [Shadow Filtering](Shadows.html#ShadowFiltering)
+Unity exposes extra properties in the **Shadows** section depending on the **Mode** you set in the [General](#GeneralProperties) section. It also exposes extra properties depending on the **Filtering Quality** set in your Unity Project’s [HDRP Asset](HDRP-Asset.html). To change the **Filtering Quality** property, navigate to your Project’s **HDRP Asset > Shadows** and use the **Filtering Quality** drop-down  to select the shadow filtering mode. Setting **Filtering Quality** to **High** or **Very High** exposes extra properties in the Light Inspector’s **Shadow** drop-down section. For more information on shadow filtering in HDRP, see the documentation on [Shadow Filtering](Shadows-in-HDRP.html#ShadowFiltering)
 
 #### Properties
 
@@ -190,7 +190,7 @@ Unity exposes extra properties in the **Shadows** section depending on the **Mod
 | **Enable**                  | Enable this checkbox to add shadows to this Light.           |
 | **Resolution**              | The resolution of this Light’s shadow maps. Measured in pixels. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage, so if you experience any performance issues, try using a lower value. |
 | **Near Plane**              | The distance, in meters, from the Light that GameObjects begin to cast shadows. |
-| **Shadowmask Mode**         | Defines how the shadowmask behaves for this Light. For detailed information on each **Shadowmask Mode**, see the documentation on [Shadowmasks](Shadows.html#ShadowmaskModes). This property is only visible if you tet the **Mode**, under [General](#GeneralProperties), to **Mixed**. |
+| **Shadowmask Mode**         | Defines how the shadowmask behaves for this Light. For detailed information on each **Shadowmask Mode**, see the documentation on [Shadowmasks](Shadows-in-HDRP.html#ShadowmaskModes). This property is only visible if you tet the **Mode**, under [General](#GeneralProperties), to **Mixed**. |
 | **View Bias Scale**         | Defines how much the [View Bias](https://docs.unity3d.com/Manual/ShadowOverview.html#LightBias) scales with distance for this Light. Surfaces directly illuminated by a Light can sometimes appear to be partly in shadow and parts of the surface might be incorrectly illuminated due to low-resolution shadow maps or shadow filtering. If the shadows that this Light casts appear incorrectly, use the slider to adjust this value until they are correct. |
 | **View Bias**               | The minimum [View Bias](https://docs.unity3d.com/Manual/ShadowOverview.html#LightBias) for this Light. For more information about View Bias in HDRP, see documentation on [Shadows](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki/Shadows). |
 | **Normal Bias**             | Controls the amount of normal [bias](https://docs.unity3d.com/Manual/ShadowOverview.html#LightBias) this Light applies along the [normal](https://docs.unity3d.com/Manual/AnatomyofaMesh.html) of the illuminated surface. |
