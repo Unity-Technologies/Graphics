@@ -965,6 +965,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
             // This call need to happen once per frame, it evaluates if we need to fetch the geometry/lights for some subscenes
             m_RayTracingManager.CheckSubScenes();
+
+            // Before rendering any camera, we call this function to flag everything as not updated
+            m_RayTracingManager.UpdateFrameData();
 #endif
 
             var dynResHandler = HDDynamicResolutionHandler.instance;
@@ -1596,14 +1599,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
 #if ENABLE_RAYTRACING
-                // Update Acceleration structure and Light cluster if required
-                m_RayTracingManager.UpdateSubSceneData(cmd, hdCamera);
+                // Update the light clusters that we need to update
+                m_RayTracingManager.UpdateCameraData(cmd, hdCamera);
 
                 // We only request the light cluster if we are gonna use it for debug mode
                 if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
                 {
-                    HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(hdCamera);
-                    PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
+                    HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
+                    if(rtEnv != null && rtEnv.raytracedReflections)
+                    {
+                        HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
+                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
+                    }
+                    else if(rtEnv != null && rtEnv.raytracedObjects)
+                    {
+                        HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
+                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
+                    }
                 }
 #endif
                 if (!hdCamera.frameSettings.ContactShadowsRunAsync())
@@ -2839,8 +2851,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if ENABLE_RAYTRACING
             HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedReflections)
+            if (rtEnvironement != null && rtEnvironement.raytracedReflections)
             {
                 m_RaytracingReflections.RenderReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
             }
