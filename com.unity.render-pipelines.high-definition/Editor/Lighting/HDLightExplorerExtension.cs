@@ -158,7 +158,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             foreach (var volume in volumes)
             {
                 bool hasStaticLightingSky = volume.GetComponent<StaticLightingSky>();
-                volumeDataPairing[volume] = new VolumeData(volume.isGlobal, volume.profile,hasStaticLightingSky);
+                volumeDataPairing[volume] = new VolumeData(volume.isGlobal, volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile, hasStaticLightingSky);
             }
             return volumes;
         }
