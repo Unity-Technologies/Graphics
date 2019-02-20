@@ -73,21 +73,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Let's check all the resources
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
-            BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
             ComputeShader bilateralFilter = m_PipelineResources.shaders.jointBilateralFilterCS;
             RaytracingShader aoShader = m_PipelineResources.shaders.aoRaytracing;
-            bool missingResources = rtEnvironement == null || blueNoise == null || bilateralFilter == null || aoShader == null 
-            || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
+            var aoSettings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
-            // Try to grab the acceleration structure for the target camera
-            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
+            // Check if the state is valid for evaluating ambient occlusion
+            bool invalidState = rtEnvironement == null
+            || bilateralFilter == null || aoShader == null 
+            || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null
+            || !(hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && aoSettings.intensity.value > 0f);
 
-            // If a resource is missing, the effect is not requested or no acceleration structure, set the default one and leave right away
-            if (missingResources || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO) || accelerationStructure == null)
+            // If any of the previous requirements is missing, the effect is not requested or no acceleration structure, set the default one and leave right away
+            if (invalidState)
             {
                 SetDefaultAmbientOcclusionTexture(cmd);
                 return;
             }
+
+            // Grab the acceleration structure for the target camera
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.aoLayerMask);
 
             // Define the shader pass to use for the reflection pass
             cmd.SetRaytracingShaderPass(aoShader, "VisibilityDXR");
@@ -114,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
             // Value used to scale the ao intensity
-            cmd.SetRaytracingFloatParam(aoShader, HDShaderIDs._RaytracingAOIntensity, VolumeManager.instance.stack.GetComponent<AmbientOcclusion>().intensity.value);
+            cmd.SetRaytracingFloatParam(aoShader, HDShaderIDs._RaytracingAOIntensity, aoSettings.intensity.value);
 
             cmd.SetRaytracingIntParam(aoShader, HDShaderIDs._RayCountEnabled, m_RaytracingManager.rayCountManager.rayCountEnabled);
             cmd.SetRaytracingTextureParam(aoShader, m_RayGenShaderName, HDShaderIDs._RayCountTexture, m_RaytracingManager.rayCountManager.rayCountTex);
