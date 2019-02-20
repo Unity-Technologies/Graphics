@@ -219,6 +219,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnValidate()
         {
             HDProbeSystem.UnregisterProbe(this);
+            PrepareCulling();
 
             if (isActiveAndEnabled)
                 HDProbeSystem.RegisterProbe(this);
