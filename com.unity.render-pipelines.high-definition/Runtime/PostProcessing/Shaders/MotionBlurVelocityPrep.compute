@@ -60,8 +60,10 @@ float2 ComputeVelocity(PositionInputs posInput, float2 sampledVelocity)
 [numthreads(8, 8,1)]
 void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
     float3 velAndDepth = 0.0f;
-    float4 velocityBufferSample = LOAD_TEXTURE2D(_CameraMotionVectorsTexture, dispatchThreadId.xy);
+    float4 velocityBufferSample = LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, dispatchThreadId.xy);
     // if we have a value > 1.0f, it means we have selected the "no motion option", hence we force velocity 0. 
     bool forceNoMotion = PixelSetAsNoMotionVectors(velocityBufferSample);
 
@@ -88,5 +90,5 @@ void VelPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // Compute linear depth
-    _VelocityAndDepth[dispatchThreadId.xy] = velAndDepth;
+    _VelocityAndDepth[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = velAndDepth;
 }

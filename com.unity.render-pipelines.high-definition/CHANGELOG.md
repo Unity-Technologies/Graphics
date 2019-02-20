@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.4.0-preview] - 2019-XX-XX
 
 ### Added
-- Added TextureXR system to selectively expand TEXTURE2D macros to texture array for single-pass stereo instancing
+- VR: Added TextureXR system to selectively expand TEXTURE2D macros to texture array for single-pass stereo instancing + Convert textures call to these macros
 
 ## [6.3.0-preview] - 2019-02-18
 

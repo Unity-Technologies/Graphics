@@ -1,4 +1,5 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "DepthOfFieldCommon.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
@@ -22,8 +23,8 @@ CBUFFER_END
 #define INDIRECT_NEAR_OFFSET        0u
 #define INDIRECT_FAR_OFFSET         3u
 
-TEXTURE2D(_InputNearCoCTexture);
-TEXTURE2D(_InputFarCoCTexture);
+TEXTURE2D_X(_InputNearCoCTexture);
+TEXTURE2D_X(_InputFarCoCTexture);
 
 AppendStructuredBuffer<TileData> _NearTileList;
 AppendStructuredBuffer<TileData> _FarTileList;
@@ -44,8 +45,8 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV
 {
     uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
 
-    gs_cacheNear[threadIdx] = _InputNearCoCTexture[min(dispatchThreadId, Size)].x;
-    gs_cacheFar[threadIdx] = _InputFarCoCTexture[min(dispatchThreadId, Size)].x;
+    gs_cacheNear[threadIdx] = _InputNearCoCTexture[COORD_TEXTURE2D_X(min(dispatchThreadId, Size))].x;
+    gs_cacheFar[threadIdx] = _InputFarCoCTexture[COORD_TEXTURE2D_X(min(dispatchThreadId, Size))].x;
 
     GroupMemoryBarrierWithGroupSync();
 

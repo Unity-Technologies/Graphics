@@ -71,10 +71,12 @@ void Frag(  PackedVaryingsToPS packedInput,
     GetSurfaceData(input, V, posInput, surfaceData);
 
 #endif        
+
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
-        uint oldVal = UnpackByte(_DecalHTile[input.positionSS.xy / 8]);
+        uint2 htileCoord = input.positionSS.xy / 8;
+        uint oldVal = UnpackByte(_DecalHTile[COORD_TEXTURE2D_X(htileCoord)]);
         oldVal |= surfaceData.HTileMask;
-        _DecalHTile[input.positionSS.xy / 8] = PackByte(oldVal);
+        _DecalHTile[COORD_TEXTURE2D_X(htileCoord)] = PackByte(oldVal);
 #endif
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
