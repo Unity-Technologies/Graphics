@@ -1,4 +1,4 @@
-#Planar Reflection Probe
+# Planar Reflection Probe
 
 Planar Reflection Probes are one of the [Reflection Probes](Reflection-Probes-Intro.html) that the High Definition Render Pipeline (HDRP) provides to help you create reactive and accurate reflective Materials.
 
