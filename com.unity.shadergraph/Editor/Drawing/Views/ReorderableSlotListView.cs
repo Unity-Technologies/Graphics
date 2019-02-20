@@ -7,7 +7,7 @@ using UnityEditorInternal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    internal class ShaderValueDescriptorListView : VisualElement
+    internal class ReorderableSlotListView : VisualElement
     {
         private AbstractMaterialNode m_Node;
         private SlotType m_SlotType;
@@ -31,9 +31,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        internal ShaderValueDescriptorListView(AbstractMaterialNode node, SlotType slotType)
+        internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType)
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderValueDescriptorListView"));
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
             m_Node = node;
             m_SlotType = slotType;
             m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };

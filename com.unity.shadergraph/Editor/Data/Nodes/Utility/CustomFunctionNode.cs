@@ -200,8 +200,8 @@ namespace UnityEditor.ShaderGraph
         public VisualElement CreateSettingsElement()
         {
             PropertySheet ps = new PropertySheet();
-            ps.Add(new ShaderValueDescriptorListView(this, SlotType.Input));
-            ps.Add(new ShaderValueDescriptorListView(this, SlotType.Output));
+            ps.Add(new ReorderableSlotListView(this, SlotType.Input));
+            ps.Add(new ReorderableSlotListView(this, SlotType.Output));
             ps.Add(new HlslFunctionView(this));
             return ps;
         }

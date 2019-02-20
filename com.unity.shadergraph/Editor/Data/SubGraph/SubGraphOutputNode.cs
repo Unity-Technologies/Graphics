@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
         public VisualElement CreateSettingsElement()
         {
             PropertySheet ps = new PropertySheet();
-            ps.Add(new ShaderValueDescriptorListView(this, SlotType.Input));
+            ps.Add(new ReorderableSlotListView(this, SlotType.Input));
             return ps;
         }
     }
