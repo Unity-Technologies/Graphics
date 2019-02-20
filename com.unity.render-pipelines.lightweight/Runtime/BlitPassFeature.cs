@@ -39,7 +39,8 @@ namespace UnityEngine.Rendering.LWRP
 
         void Initialize()
         {
-            settings.blitMaterialPassIndex = Mathf.Clamp(settings.blitMaterialPassIndex, -1, settings.blitMaterial.passCount - 1);
+            var passIndex = settings.blitMaterial != null ? settings.blitMaterial.passCount - 1 : 1;
+            settings.blitMaterialPassIndex = Mathf.Clamp(settings.blitMaterialPassIndex, -1, passIndex);
             blitPass = new BlitPass(settings.Event, settings.blitMaterial, settings.blitMaterialPassIndex, name);
             m_RenderTextureHandle.Init(settings.textureId);
         }
