@@ -9,12 +9,12 @@
 #pragma kernel KMainNear          MAIN=KMainNear        NEAR
 #pragma kernel KMainNearTiles     MAIN=KMainNearTiles   NEAR USE_TILES
 
-TEXTURE2D(_InputTexture);
-TEXTURE2D(_InputCoCTexture);
-TEXTURE2D(_InputDilatedCoCTexture);
+TEXTURE2D_X(_InputTexture);
+TEXTURE2D_X(_InputCoCTexture);
+TEXTURE2D_X(_InputDilatedCoCTexture);
 
-RW_TEXTURE2D(float3, _OutputTexture);
-RW_TEXTURE2D(float, _OutputAlphaTexture);
+RW_TEXTURE2D_X(float3, _OutputTexture);
+RW_TEXTURE2D_X(float, _OutputAlphaTexture);
 
 SAMPLER(sampler_LinearClamp);
 SAMPLER(sampler_TrilinearClamp);
@@ -78,9 +78,9 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
 
     // Current pixel CoC
 #if NEAR
-    float samp0CoC = LOAD_TEXTURE2D(_InputDilatedCoCTexture, posInputs.positionSS).x;
+    float samp0CoC = LOAD_TEXTURE2D_X(_InputDilatedCoCTexture, posInputs.positionSS).x;
 #else // FAR
-    float samp0CoC = LOAD_TEXTURE2D(_InputCoCTexture, posInputs.positionSS).x;
+    float samp0CoC = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS).x;
 #endif
 
     const float kMaxMips = 4.0;
@@ -116,8 +116,8 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
         sampTap = sampTap * sampDist * clipping + uv;
         sampTap = ClampAndScaleUV(sampTap, _TexelSize.zw, texelsToClamp);
 
-        float3 sampColor = SAMPLE_TEXTURE2D_LOD(_InputTexture, SamplerTap, sampTap, mip).xyz;
-        float sampCoC = SAMPLE_TEXTURE2D_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;
+        float3 sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).xyz;
+        float sampCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;
 
         #if NEAR
         {
@@ -139,9 +139,9 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     float alpha = saturate(sqrt((acc.w / TotalSampleCount) * PI));
     alpha = smoothstep(0.0, 1.0, alpha);
 
-    _OutputTexture[posInputs.positionSS] = acc.xyz / (nearWeightAcc + 1e-5); // zero-div guard
-    _OutputAlphaTexture[posInputs.positionSS] = alpha;
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = acc.xyz / (nearWeightAcc + 1e-5); // zero-div guard
+    _OutputAlphaTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = alpha;
 #else // FAR
-    _OutputTexture[posInputs.positionSS] = acc.xyz / (acc.w + 1e-5); // zero-div guard
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = acc.xyz / (acc.w + 1e-5); // zero-div guard
 #endif
 }

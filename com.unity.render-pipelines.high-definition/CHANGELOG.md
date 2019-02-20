@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.6.0-preview] - 2019-XX-XX
 
 ### Added
-- Added TextureXR system to selectively expand TEXTURE2D macros to texture array for single-pass stereo instancing
+- VR: Added TextureXR system to selectively expand TEXTURE2D macros to texture array for single-pass stereo instancing + Convert textures call to these macros
 
 ### Changed
 - When a lit material has a clear coat mask that is not null, we now use the clear coat roughness to compute the screen space reflection.
