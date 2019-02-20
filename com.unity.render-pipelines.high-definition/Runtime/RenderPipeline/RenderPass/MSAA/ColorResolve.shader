@@ -8,7 +8,7 @@ Shader "Hidden/HDRP/ColorResolve"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         //#pragma enable_d3d11_debug_symbols
 
-        Texture2DMS<float4> _ColorTextureMS;
+        TEXTURE2D_X_MSAA(float4, _ColorTextureMS);
 
         struct Attributes
         {
@@ -35,7 +35,7 @@ Shader "Hidden/HDRP/ColorResolve"
 
         float4 LoadColorTextureMS(float2 pixelCoords, uint sampleIndex)
         {
-            return LOAD_TEXTURE2D_MSAA(_ColorTextureMS, pixelCoords, sampleIndex);
+            return LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, pixelCoords, sampleIndex);
         }
 
         float4 Frag1X(Varyings input) : SV_Target

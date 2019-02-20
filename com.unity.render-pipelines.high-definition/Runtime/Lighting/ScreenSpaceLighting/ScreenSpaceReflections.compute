@@ -42,11 +42,11 @@
 #endif
 
 #ifdef SSR_TRACE
-    TEXTURE2D(           _StencilTexture);
-    RW_TEXTURE2D(float2, _SsrHitPointTexture);
+       TEXTURE2D_X(         _StencilTexture);
+    RW_TEXTURE2D_X(float2, _SsrHitPointTexture);
 #else
-       TEXTURE2D(        _SsrHitPointTexture);
-    RW_TEXTURE2D(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
+       TEXTURE2D_X(        _SsrHitPointTexture);
+    RW_TEXTURE2D_X(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
 #endif
 
     TEXTURE2D(              _SsrClearCoatMaskTexture);
@@ -93,10 +93,13 @@ void WriteDebugInfo(uint2 positionSS, float4 value)
 #ifdef SSR_TRACE
 
 [numthreads(8, 8, 1)]
-void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
+void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    uint2 positionSS = dispatchThreadId.xy;
+
 #ifdef SSR_USE_STENCIL
-    uint stencilVal = UnpackByte(LOAD_TEXTURE2D(_StencilTexture, positionSS).r);
+    uint stencilVal = UnpackByte(LOAD_TEXTURE2D_X(_StencilTexture, positionSS).r);
     bool doesntReceiveSSR = (stencilVal & _SsrStencilExclusionValue) != 0;
     // Skip SSR for unlit/sky materials as well (check with stencilVal == 0). 
     doesntReceiveSSR = doesntReceiveSSR || (stencilVal == 0);
@@ -108,7 +111,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
 #endif
 
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-    float  deviceDepth = LOAD_TEXTURE2D(_DepthPyramidTexture, positionSS).r;
+    float  deviceDepth = LOAD_TEXTURE2D_X(_DepthPyramidTexture, positionSS).r;
            deviceDepth = (deviceDepth - _SsrThicknessBias) / _SsrThicknessScale; // Apply a small bias. TODO: precompute
     float3 positionWS  = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP); // Jittered
     float3 V           = GetWorldSpaceNormalizeViewDir(positionWS);
@@ -211,7 +214,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         float4 bounds;
 
         bounds.xy = (mipCoord + rayStep) << mipLevel;
-        bounds.z  = LOAD_TEXTURE2D(_DepthPyramidTexture, mipOffset + mipCoord).r;
+        bounds.z  = LOAD_TEXTURE2D_X(_DepthPyramidTexture, mipOffset + mipCoord).r;
         rayPos.z  = bounds.z;
         // We define the depth of the base as the depth value as:
         // b = DeviceDepth((1 + thickness) * LinearDepth(d))
@@ -278,7 +281,7 @@ void ScreenSpaceReflectionsTracing(uint2 positionSS : SV_DispatchThreadID)
         // recompute it using the last value of 't', which would result in an overshoot.
         // It also needs to be precisely at the center of the pixel to avoid artifacts.
         float2 hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-        _SsrHitPointTexture[positionSS] = hitPositionNDC;
+        _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = hitPositionNDC;
     }
 
     // If we do not hit anything, 'rayPos.xy' provides an indication where we stopped the search.
@@ -294,10 +297,13 @@ float PerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, fl
 }
 
 [numthreads(8, 8, 1)]
-void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
+void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    uint2 positionSS = dispatchThreadId.xy;
+
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
-    float2 hitPositionNDC = LOAD_TEXTURE2D(_SsrHitPointTexture, positionSS).xy;
+    float2 hitPositionNDC = LOAD_TEXTURE2D_X(_SsrHitPointTexture, positionSS).xy;
 
     if (max(hitPositionNDC.x, hitPositionNDC.y) == 0)
     {
@@ -308,7 +314,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
     float2 velocityNDC;
-    DecodeVelocity(SAMPLE_TEXTURE2D_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.zw, 0), velocityNDC);
+    DecodeVelocity(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.zw, 0), velocityNDC);
     float2 prevFrameNDC = hitPositionNDC - velocityNDC;
     float2 prevFrameUV  = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
@@ -328,7 +334,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     float  mipLevel = lerp(0, _SsrDepthPyramidMaxMip, perceptualRoughness);
 
     // Note that the color pyramid uses it's own viewport scale, since it lives on the camera.
-    float3 color    = SAMPLE_TEXTURE2D_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
+    float3 color    = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
     float  opacity  = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
                     * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
@@ -337,7 +343,7 @@ void ScreenSpaceReflectionsReprojection(uint2 positionSS : SV_DispatchThreadID)
     color /= prevExposure + (prevExposure == 0.0); // zero-div guard
 
     // Use premultiplied alpha.
-    _SsrLightingTextureRW[positionSS] = float4(color, 1) * opacity;
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1) * opacity;
 }
 
 #endif
