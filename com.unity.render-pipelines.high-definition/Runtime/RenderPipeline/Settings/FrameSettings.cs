@@ -52,8 +52,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Distortion = 14,
         [FrameSettingsField(0, autoName: Postprocess)]
         Postprocess = 15,
-        [FrameSettingsField(0, autoName: AfterPostprocess)]
-        AfterPostprocess = 16,
+        [FrameSettingsField(0, autoName: AfterPostprocess, customOrderInGroup: 15)]
+        AfterPostprocess = 17,
 
         //lighting settings from 20 to 39
         [FrameSettingsField(1, autoName: Shadow)]

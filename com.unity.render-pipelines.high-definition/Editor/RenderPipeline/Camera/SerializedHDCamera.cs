@@ -73,7 +73,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             volumeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeLayerMask);
             volumeAnchorOverride = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeAnchorOverride);
             frameSettings = new SerializedFrameSettings(
-                serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.renderingPathCustomFrameSettings),
+                serializedAdditionalDataObject.FindProperty("m_RenderingPathCustomFrameSettings"),
                 serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.renderingPathCustomFrameSettingsOverrideMask)
                 );
 
