@@ -10,6 +10,12 @@ Please add any useful notes about the feature/fix that might be helpful for othe
 **Katana Tests**: First off we need to make sure the Katana SRP tests are green?
 
 **Manual Tests**: What did you do?
+- [ ] Opened test project + Run graphic tests locally
+- [ ] Built a player
+- [ ] Checked new UI names with UX convention
+- [ ] Tested UI multi-edition + Undo/Redo
+- [ ] C# and shader warnings (supress shader cache to see them)
+- Other: 
 
 **Automated Tests**: What did you setup?
 
