@@ -7,7 +7,7 @@ Shader "ColorPyramidPS"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
-        TEXTURE2D_HALF(_Source);
+        TEXTURE2D_X_HALF(_Source);
         SamplerState sampler_LinearClamp;
         uniform half4 _SrcScaleBias;
         uniform half4 _SrcUvLimits; // {xy: max uv, zw: offset of blur for 1 texel }
@@ -54,11 +54,11 @@ Shader "ColorPyramidPS"
             half2 uv_p2 = min(_SrcUvLimits.xy, input.texcoord.xy + offset2);
 
             return
-              + SAMPLE_TEXTURE2D_LOD(_Source, sampler_LinearClamp, uv_m2, _SourceMip) * (gaussWeights[3] + gaussWeights[4])
-              + SAMPLE_TEXTURE2D_LOD(_Source, sampler_LinearClamp, uv_m1, _SourceMip) * (gaussWeights[1] + gaussWeights[2])
-              + SAMPLE_TEXTURE2D_LOD(_Source, sampler_LinearClamp, uv_p0, _SourceMip) *  gaussWeights[0]
-              + SAMPLE_TEXTURE2D_LOD(_Source, sampler_LinearClamp, uv_p1, _SourceMip) * (gaussWeights[1] + gaussWeights[2])
-              + SAMPLE_TEXTURE2D_LOD(_Source, sampler_LinearClamp, uv_p2, _SourceMip) * (gaussWeights[3] + gaussWeights[4]);
+              + SAMPLE_TEXTURE2D_X_LOD(_Source, sampler_LinearClamp, uv_m2, _SourceMip) * (gaussWeights[3] + gaussWeights[4])
+              + SAMPLE_TEXTURE2D_X_LOD(_Source, sampler_LinearClamp, uv_m1, _SourceMip) * (gaussWeights[1] + gaussWeights[2])
+              + SAMPLE_TEXTURE2D_X_LOD(_Source, sampler_LinearClamp, uv_p0, _SourceMip) *  gaussWeights[0]
+              + SAMPLE_TEXTURE2D_X_LOD(_Source, sampler_LinearClamp, uv_p1, _SourceMip) * (gaussWeights[1] + gaussWeights[2])
+              + SAMPLE_TEXTURE2D_X_LOD(_Source, sampler_LinearClamp, uv_p2, _SourceMip) * (gaussWeights[3] + gaussWeights[4]);
         }
 
     ENDHLSL
