@@ -10,7 +10,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             None,
             First,
             SeparatePassThrough,
-            UpgradingFrameSettingsToStruct
+            UpgradingFrameSettingsToStruct,
+            AddAfterPostProcessFrameSetting
         }
 
         [SerializeField, FormerlySerializedAs("version")]
@@ -43,7 +44,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (data.m_ObsoleteFrameSettings != null)
                     FrameSettings.MigrateFromClassVersion(ref data.m_ObsoleteFrameSettings, ref data.renderingPathCustomFrameSettings, ref data.renderingPathCustomFrameSettingsOverrideMask);
 #pragma warning restore 618
+            }),
+            MigrationStep.New(Version.AddAfterPostProcessFrameSetting, (HDAdditionalCameraData data) =>
+            {
+                FrameSettings.MigrateToAfterPostprocess(ref data.renderingPathCustomFrameSettings);
             })
+
         );
 
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
