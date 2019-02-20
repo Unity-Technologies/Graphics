@@ -42,8 +42,6 @@ Shader "Hidden/HDRP/DeferredTile"
 
             #define USE_INDIRECT    // otherwise TileVariantToFeatureFlags() will not be defined in Lit.hlsl!!!
 
-            #define UNITY_SINGLE_PASS_STEREO 1
-
             #define USE_FPTL_LIGHTLIST 1 // deferred opaque always use FPTL
 
             #ifdef VARIANT0
