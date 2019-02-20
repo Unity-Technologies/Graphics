@@ -58,7 +58,7 @@ namespace UnityEditor.Graphing
             return result;
         }
 
-        public static string GetDuplicateSafeNameForSlot(INode node, string name)
+        public static string GetDuplicateSafeNameForSlot(AbstractMaterialNode node, string name)
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
             node.GetSlots(slots);

@@ -396,7 +396,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var outputNode = subGraph.outputNode as SubGraphOutputNode;
 
-                INode node = graphView.graph.GetNodeFromGuid(group.edges[0].outputSlot.nodeGuid);
+                AbstractMaterialNode node = graphView.graph.GetNodeFromGuid(group.edges[0].outputSlot.nodeGuid);
                 MaterialSlot slot = node.FindSlot<MaterialSlot>(group.edges[0].outputSlot.slotId);
                 var slotId = outputNode.AddSlot(slot.concreteValueType);
 
