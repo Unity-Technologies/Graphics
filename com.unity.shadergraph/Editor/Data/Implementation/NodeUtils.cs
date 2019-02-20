@@ -58,6 +58,23 @@ namespace UnityEditor.Graphing
             return result;
         }
 
+        public static string GetDuplicateSafeNameForSlot(INode node, string name)
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            node.GetSlots(slots);
+
+            int duplicateNameCount = 0;
+            foreach(MaterialSlot value in slots)
+            {
+                if(value.displayName.StartsWith(name))
+                    duplicateNameCount++;
+            }
+            if(duplicateNameCount > 0)
+                name += string.Format(" ({0})", duplicateNameCount);
+
+            return name;
+        }
+
         // CollectNodesNodeFeedsInto looks at the current node and calculates
         // which child nodes it depends on for it's calculation.
         // Results are returned depth first so by processing each node in

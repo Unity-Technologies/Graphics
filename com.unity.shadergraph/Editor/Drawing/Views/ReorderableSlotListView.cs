@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 EditorGUI.BeginChangeCheck();
                 
-                var displayName = HandleDuplicateNames(EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), labelStyle)); 
+                var displayName = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), labelStyle)); 
                 var shaderOutputName = NodeUtils.GetHLSLSafeName(displayName);
                 var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + labelWidth, rect.y, rect.width - labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.concreteValueType);
                 
@@ -160,7 +160,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             int[] slotIDs = slots.Select(s => s.id).OrderByDescending(s => s).ToArray();
             int newSlotID = slotIDs.Length > 0 ? slotIDs[0] + 1 : 0;
             
-            string name = HandleDuplicateNames("New");
+            string name = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, "New");
 
             // Create a new slot and add it
             var newSlot = MaterialSlot.CreateMaterialSlot(SlotValueType.Vector1, newSlotID, name, NodeUtils.GetHLSLSafeName(name), m_SlotType, Vector4.zero);
@@ -214,24 +214,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             RecreateList();   
             m_Node.owner.owner.RegisterCompleteObjectUndo("Reordering Slots");
             m_Node.ValidateNode();
-        }
-
-        private string HandleDuplicateNames(string input)
-        {
-            List<MaterialSlot> slots = new List<MaterialSlot>();
-            m_Node.GetSlots(slots);
-
-            int duplicateNameCount = 0;
-            foreach(MaterialSlot value in slots)
-            {
-                if(value.displayName.StartsWith(input))
-                    duplicateNameCount++;
-            }
-            string name = input;
-            if(duplicateNameCount > 0)
-                name += string.Format(" ({0})", duplicateNameCount);
-
-            return name;
         }
     }
 }

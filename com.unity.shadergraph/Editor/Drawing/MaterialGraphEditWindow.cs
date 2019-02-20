@@ -365,7 +365,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var materialGraph = (AbstractMaterialGraph)graphObject.graph;
                     var fromPropertyNode = fromNode as PropertyNode;
                     var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
-                    prop.displayName = fromProperty != null ? fromProperty.displayName : fromNode.name;
+                    prop.displayName = fromProperty != null ? fromProperty.displayName : fromSlot.concreteValueType.ToString();
+
                     subGraph.AddShaderProperty(prop);
                     var propNode = new PropertyNode();
                     {
@@ -395,7 +396,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var group in uniqueOutgoingEdges)
             {
                 var outputNode = subGraph.outputNode;
-                var slotId = outputNode.AddSlot();
+
+                INode node = graphView.graph.GetNodeFromGuid(group.edges[0].outputSlot.nodeGuid);
+                MaterialSlot slot = node.FindSlot<MaterialSlot>(group.edges[0].outputSlot.slotId);
+                var slotId = outputNode.AddSlot(slot.concreteValueType);
 
                 var inputSlotRef = new SlotReference(outputNode.guid, slotId);
 

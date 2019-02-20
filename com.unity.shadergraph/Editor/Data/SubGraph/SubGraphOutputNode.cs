@@ -56,10 +56,11 @@ namespace UnityEditor.ShaderGraph
             base.ValidateNode();
         }
 
-        public virtual int AddSlot()
+        public virtual int AddSlot(ConcreteSlotValueType concreteValueType)
         {
             var index = this.GetInputSlots<ISlot>().Count() + 1;
-            AddSlot(new Vector4MaterialSlot(index, "Output " + index, "Output" + index, SlotType.Input, Vector4.zero));
+            string name = NodeUtils.GetDuplicateSafeNameForSlot(this, concreteValueType.ToString());
+            AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name, NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
             return index;
         }
 
