@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview => true;
 
         [SerializeField]
-        public HlslSourceType m_SourceType = HlslSourceType.File;
+        private HlslSourceType m_SourceType = HlslSourceType.File;
 
         public HlslSourceType sourceType
         {
@@ -28,7 +28,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private string m_FunctionName = "Enter function name here...";
+        private string m_FunctionName = m_DefaultFunctionName;
+
+        private static string m_DefaultFunctionName = "Enter function name here...";
 
         public string functionName 
         {
@@ -37,7 +39,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private string m_FunctionSource = "Enter function source file path here...";
+        private string m_FunctionSource = m_DefaultFunctionSource;
+
+        private static string m_DefaultFunctionSource = "Enter function source file path here...";
 
         public string functionSource
         {
@@ -46,7 +50,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private string m_FunctionBody = "Enter function body here...";
+        private string m_FunctionBody = m_DefaultFunctionBody;
+
+        private static string m_DefaultFunctionBody = "Enter function body here...";
 
         public string functionBody
         {
@@ -57,8 +63,20 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
-
             GetOutputSlots<MaterialSlot>(slots);
+
+            if(!IsValidFunction())
+            {
+                if(generationMode == GenerationMode.Preview && slots.Count != 0)
+                {
+                    slots.OrderBy(s => s.id);
+                    visitor.AddShaderChunk(string.Format("{0} _{1}_{2};",
+                        NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slots[0].concreteValueType),
+                        GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slots[0].shaderOutputName)));
+                }
+                return;
+            }
+            
             foreach (var argument in slots)
                 visitor.AddShaderChunk(string.Format("{0} _{1}_{2};",
                     NodeUtils.ConvertConcreteSlotValueTypeToString(precision, argument.concreteValueType),
@@ -90,28 +108,11 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(call, true);
         }
 
-        string SlotInputValue(MaterialSlot port, GenerationMode generationMode)
-        {
-            IEdge[] edges = port.owner.owner.GetEdges(port.slotReference).ToArray();
-            if (edges.Any())
-            {
-                var fromSocketRef = edges[0].outputSlot;
-                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
-                if (fromNode == null)
-                    return string.Empty;
-
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
-                if (slot == null)
-                    return string.Empty;
-
-                return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, port.concreteValueType);
-            }
-
-            return port.GetDefaultValue(generationMode);
-        }
-
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
+            if(!IsValidFunction())
+                return;
+
             registry.ProvideFunction(functionName, builder =>
             {
                 switch (sourceType)
@@ -158,6 +159,42 @@ namespace UnityEditor.ShaderGraph
             }
             header += ")";
             return header;
+        }
+
+        private string SlotInputValue(MaterialSlot port, GenerationMode generationMode)
+        {
+            IEdge[] edges = port.owner.owner.GetEdges(port.slotReference).ToArray();
+            if (edges.Any())
+            {
+                var fromSocketRef = edges[0].outputSlot;
+                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
+                if (fromNode == null)
+                    return string.Empty;
+
+                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
+                if (slot == null)
+                    return string.Empty;
+
+                return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, port.concreteValueType);
+            }
+
+            return port.GetDefaultValue(generationMode);
+        }
+
+        internal virtual bool IsValidFunction()
+        {
+            bool validFunctionName = !string.IsNullOrEmpty(functionName) && functionName != m_DefaultFunctionName;
+
+            if(sourceType == HlslSourceType.String)
+            {
+                bool validFunctionBody = !string.IsNullOrEmpty(functionBody) && functionBody != m_DefaultFunctionBody;
+                return validFunctionName & validFunctionBody;
+            }
+            else
+            {
+                bool validFunctionSource = !string.IsNullOrEmpty(functionSource) && functionSource != m_DefaultFunctionSource;
+                return validFunctionName & validFunctionSource;
+            }
         }
         
         public VisualElement CreateSettingsElement()
