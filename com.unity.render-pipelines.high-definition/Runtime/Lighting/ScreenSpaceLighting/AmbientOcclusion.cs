@@ -218,7 +218,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if ENABLE_RAYTRACING
             HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-            if (m_Settings.supportRayTracing && rtEnvironement != null && rtEnvironement.raytracedAO)
+            if (rtEnvironement != null && rtEnvironement.raytracedAO)
                 m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
             else
 #endif

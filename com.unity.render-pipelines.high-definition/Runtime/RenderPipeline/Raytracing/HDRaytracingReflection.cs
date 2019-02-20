@@ -78,16 +78,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
             ComputeShader bilateralFilter = m_PipelineAsset.renderPipelineResources.shaders.reflectionBilateralFilterCS;
             RaytracingShader reflectionShader = m_PipelineAsset.renderPipelineResources.shaders.reflectionRaytracing;
-            bool missingResources = rtEnvironement == null || blueNoise == null || bilateralFilter == null || reflectionShader == null 
-                                    || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
-            // Try to grab the acceleration structure and the list of HD lights for the target camera
-            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
-            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(hdCamera);
+            bool invalidState = rtEnvironement == null || blueNoise == null
+                || bilateralFilter == null || reflectionShader == null 
+                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // If no acceleration structure available, end it now
-            if (accelerationStructure == null || lightCluster == null || missingResources)
+            if (invalidState)
                 return;
+
+            // Grab the acceleration structures and the light cluster to use
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.reflLayerMask);
+            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironement.reflLayerMask);
 
             // Compute the actual resolution that is needed base on the quality
             string targetRayGen = "";

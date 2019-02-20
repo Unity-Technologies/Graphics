@@ -384,12 +384,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if(UnityEngine.SystemInfo.supportsRayTracing)
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
-                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
-                {
-                    ++EditorGUI.indentLevel;
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.editorRaytracingFilterLayerMask, k_EditorRaytracingFilterLayerMask);
-                    --EditorGUI.indentLevel;
-                }
             }
             else
 #endif
