@@ -216,18 +216,13 @@ namespace UnityEngine.Rendering.LWRP
  
         protected override RenderPipeline CreatePipeline()
         {
-            CreateRendererSetup();
-            return new LightweightRenderPipeline(this);
-        }
-
-        void CreateRendererSetup()
-        {
 #if UNITY_EDITOR
             if (m_RendererData == null)
                 LoadBuiltinRendererData();
 #endif
 
-            m_Renderer = m_RendererData.Create();
+            m_Renderer = m_RendererData.InternalCreateRenderer();
+            return new LightweightRenderPipeline(this);
         }
 
         Material GetMaterial(DefaultMaterialType materialType)
@@ -260,8 +255,9 @@ namespace UnityEngine.Rendering.LWRP
         {
             get
             {
-                if (m_Renderer == null && m_RendererData != null)
-                    m_Renderer = m_RendererData.Create();
+                Debug.Assert(m_RendererData != null, "Invalid Renderer Data.");
+                if (m_RendererData.isInvalidated || m_Renderer == null)
+                    m_Renderer = m_RendererData.InternalCreateRenderer();
 
                 return m_Renderer;
             }

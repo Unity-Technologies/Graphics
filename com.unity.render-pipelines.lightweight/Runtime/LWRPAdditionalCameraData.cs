@@ -106,8 +106,8 @@ namespace UnityEngine.Rendering.LWRP
                 if (m_RendererOverrideOption == RendererOverrideOption.UsePipelineSettings || m_RendererData == null)
                     return LightweightRenderPipeline.asset.renderer;
 
-                if (m_Renderer == null)
-                    m_Renderer = m_RendererData.Create();
+                if (m_RendererData.isInvalidated || m_Renderer == null)
+                    m_Renderer = m_RendererData.InternalCreateRenderer();
 
                 return m_Renderer;
             }
