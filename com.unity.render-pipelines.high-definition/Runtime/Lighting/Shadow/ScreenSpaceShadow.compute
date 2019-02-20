@@ -15,10 +15,10 @@
 //#pragma enable_d3d11_debug_symbols
 
 #ifdef ENABLE_MSAA
-    Texture2D<float4> _CameraDepthValues;
+    TEXTURE2D_X(_CameraDepthValues);
 #endif
 
-RWTexture2D<float> _DeferredShadowTextureUAV;
+RW_TEXTURE2D_X(float, _DeferredShadowTextureUAV);
 
 CBUFFER_START(DeferredShadowParameters)
 float4  _DirectionalLightDirection;
@@ -106,7 +106,7 @@ float ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLeng
 
 #ifdef ENABLE_MSAA
         // Depth buffer depth for this sample
-        float sampleDepth = SAMPLE_TEXTURE2D_LOD(_CameraDepthValues, s_point_clamp_sampler, sampleAlongRay.xy, 0.0f).y;
+        float sampleDepth = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthValues, s_point_clamp_sampler, sampleAlongRay.xy, 0.0f).y;
 #else
         // Depth buffer depth for this sample
         float sampleDepth = SampleDepth(saturate(sampleAlongRay.xy), tracingHalfRes);
@@ -157,14 +157,15 @@ float ComputeContactShadow(PositionInputs posInput, float3 direction)
 }
 
 [numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
-void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
     uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
-    pixelCoord.x = pixelCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
     uint2 tileCoord = groupId;
 
 #ifdef ENABLE_MSAA
-    float depth = LOAD_TEXTURE2D(_CameraDepthValues, pixelCoord.xy).z;
+    float depth = LOAD_TEXTURE2D_X(_CameraDepthValues, pixelCoord.xy).z;
 #else
     float depth = LoadCameraDepth(pixelCoord.xy);
 #endif
@@ -179,5 +180,5 @@ void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uin
 
     float contactShadow = ComputeContactShadow(posInput, direction);
 
-    _DeferredShadowTextureUAV[pixelCoord] = 1.0f - contactShadow;
+    _DeferredShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 1.0f - contactShadow;
 }

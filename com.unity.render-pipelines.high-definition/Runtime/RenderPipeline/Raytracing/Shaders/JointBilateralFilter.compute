@@ -21,7 +21,7 @@ float               _GaussianSigma;
 float3 ReadNormalValue(uint2 positionSS)
 {
     NormalData normalData;
-    float4 normalBuffer  = _NormalBufferTexture[positionSS];
+    float4 normalBuffer  = _NormalBufferTexture[COORD_TEXTURE2D_X(positionSS)];
     DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
     return normalData.normalWS;
 }
@@ -42,7 +42,7 @@ void JointBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
     // Read the central pixel values
     float depthValue  = ReadDepthValue(currentPixelCoordinate);
     NormalData normalData;
-    DecodeFromNormalBuffer(_NormalBufferTexture[currentPixelCoordinate], currentPixelCoordinate, normalData);
+    DecodeFromNormalBuffer(_NormalBufferTexture[COORD_TEXTURE2D_X(currentPixelCoordinate)], currentPixelCoordinate, normalData);
 
     float3 denoisedColor = float3(0.0f, 0.0f, 0.0f);
 

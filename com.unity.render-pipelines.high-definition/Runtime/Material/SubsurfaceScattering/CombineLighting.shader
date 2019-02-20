@@ -34,7 +34,7 @@ Shader "Hidden/HDRP/CombineLighting"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
-            TEXTURE2D(_IrradianceSource);
+            TEXTURE2D_X(_IrradianceSource);
 
             struct Attributes
             {
@@ -60,7 +60,7 @@ Shader "Hidden/HDRP/CombineLighting"
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                return LOAD_TEXTURE2D(_IrradianceSource, input.positionCS.xy);
+                return LOAD_TEXTURE2D_X(_IrradianceSource, input.positionCS.xy);
             }
             ENDHLSL
         }
