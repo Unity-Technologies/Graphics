@@ -1,9 +1,4 @@
-
-#ifdef _TERRAIN_8_LAYERS
-    #define _LAYER_COUNT 8
-#else
-    #define _LAYER_COUNT 4
-#endif
+TEXTURE2D(_Control0);
 
 #define DECLARE_TERRAIN_LAYER_TEXS(n)   \
     TEXTURE2D(_Splat##n);               \
@@ -24,85 +19,8 @@ DECLARE_TERRAIN_LAYER_TEXS(3);
 
 #undef DECLARE_TERRAIN_LAYER_TEXS
 
-TEXTURE2D(_Control0);
 SAMPLER(sampler_Splat0);
 SAMPLER(sampler_Control0);
-
-#ifdef UNITY_INSTANCING_ENABLED
-TEXTURE2D(_TerrainHeightmapTexture);
-TEXTURE2D(_TerrainNormalmapTexture);
-#endif
-
-#define DECLARE_TERRAIN_LAYER_PROPS(n)  \
-    float4 _Splat##n##_ST;              \
-    float _Metallic##n;                 \
-    float _Smoothness##n;               \
-    float _NormalScale##n;              \
-    float4 _DiffuseRemapScale##n;       \
-    float4 _MaskMapRemapOffset##n;      \
-    float4 _MaskMapRemapScale##n
-
-CBUFFER_START(UnityTerrain)
-
-    #ifdef DEBUG_DISPLAY
-        float4 _Control0_TexelSize;
-        float4 _Control0_MipInfo;
-        float4 _Splat0_TexelSize;
-        float4 _Splat0_MipInfo;
-        float4 _Splat1_TexelSize;
-        float4 _Splat1_MipInfo;
-        float4 _Splat2_TexelSize;
-        float4 _Splat2_MipInfo;
-        float4 _Splat3_TexelSize;
-        float4 _Splat3_MipInfo;
-        #ifdef _TERRAIN_8_LAYERS
-            float4 _Splat4_TexelSize;
-            float4 _Splat4_MipInfo;
-            float4 _Splat5_TexelSize;
-            float4 _Splat5_MipInfo;
-            float4 _Splat6_TexelSize;
-            float4 _Splat6_MipInfo;
-            float4 _Splat7_TexelSize;
-            float4 _Splat7_MipInfo;
-        #endif
-    #endif
-
-    DECLARE_TERRAIN_LAYER_PROPS(0);
-    DECLARE_TERRAIN_LAYER_PROPS(1);
-    DECLARE_TERRAIN_LAYER_PROPS(2);
-    DECLARE_TERRAIN_LAYER_PROPS(3);
-    #ifdef _TERRAIN_8_LAYERS
-        DECLARE_TERRAIN_LAYER_PROPS(4);
-        DECLARE_TERRAIN_LAYER_PROPS(5);
-        DECLARE_TERRAIN_LAYER_PROPS(6);
-        DECLARE_TERRAIN_LAYER_PROPS(7);
-    #endif
-
-    float _HeightTransition;
-    #ifdef UNITY_INSTANCING_ENABLED
-        float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-        float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
-    #endif
-
-CBUFFER_END
-
-#undef DECLARE_TERRAIN_LAYER_PROPS
-
-#ifdef HAVE_MESH_MODIFICATION
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitDataMeshModification.hlsl"
-#endif
-
-// Declare distortion variables just to make the code compile with the Debug Menu.
-// See LitBuiltinData.hlsl:73.
-TEXTURE2D(_DistortionVectorMap);
-SAMPLER(sampler_DistortionVectorMap);
-
-float _DistortionScale;
-float _DistortionVectorScale;
-float _DistortionVectorBias;
-float _DistortionBlurScale;
-float _DistortionBlurRemapMin;
-float _DistortionBlurRemapMax;
 
 float GetSumHeight(float4 heights0, float4 heights1)
 {
@@ -146,12 +64,12 @@ float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 rema
     return ret;
 }
 
-#ifdef OVERRIDE_SAMPLER_NAME
-    #define sampler_Splat0 OVERRIDE_SAMPLER_NAME
-    SAMPLER(OVERRIDE_SAMPLER_NAME);
+#ifdef OVERRIDE_SPLAT_SAMPLER_NAME
+    #define sampler_Splat0 OVERRIDE_SPLAT_SAMPLER_NAME
+    SAMPLER(OVERRIDE_SPLAT_SAMPLER_NAME);
 #endif
 
-void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
+void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, float3 tangentWS, float3 bitangentWS,
     out float3 outAlbedo, out float3 outNormalTS, out float outSmoothness, out float outMetallic, out float outAO)
 {
     // TODO: triplanar and SURFACE_GRADIENT?
@@ -175,30 +93,30 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
     #define NullMask(i)               float4(0, 1, 0, 0)
 #endif
 
-#define SampleResults(i, mask)                                                                          \
-    UNITY_BRANCH if (mask > 0)                                                                          \
-    {                                                                                                   \
-        float2 splatuv = uv * _Splat##i##_ST.xy + _Splat##i##_ST.zw;                                    \
-        float2 splatdxuv = dxuv * _Splat##i##_ST.x;                                                     \
-        float2 splatdyuv = dyuv * _Splat##i##_ST.y;                                                     \
-        albedo[i] = SAMPLE_TEXTURE2D_GRAD(_Splat##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv);    \
-        albedo[i].rgb *= _DiffuseRemapScale##i.xyz;                                                     \
-        normal[i] = SampleNormal(i);                                                                    \
-        masks[i] = SampleMasks(i, mask);                                                                \
-    }                                                                                                   \
-    else                                                                                                \
-    {                                                                                                   \
-        albedo[i] = float4(0, 0, 0, 0);                                                                 \
-        normal[i] = float3(0, 0, 0);                                                                    \
-        masks[i] = NullMask(i);                                                                         \
+#define SampleResults(i, mask)                                                                                  \
+    UNITY_BRANCH if (mask > 0)                                                                                  \
+    {                                                                                                           \
+        float2 splatuv = splatBaseUV * _Splat##i##_ST.xy + _Splat##i##_ST.zw;                                   \
+        float2 splatdxuv = dxuv * _Splat##i##_ST.x;                                                             \
+        float2 splatdyuv = dyuv * _Splat##i##_ST.y;                                                             \
+        albedo[i] = SAMPLE_TEXTURE2D_GRAD(_Splat##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv);            \
+        albedo[i].rgb *= _DiffuseRemapScale##i.xyz;                                                             \
+        normal[i] = SampleNormal(i);                                                                            \
+        masks[i] = SampleMasks(i, mask);                                                                        \
+    }                                                                                                           \
+    else                                                                                                        \
+    {                                                                                                           \
+        albedo[i] = float4(0, 0, 0, 0);                                                                         \
+        normal[i] = float3(0, 0, 0);                                                                            \
+        masks[i] = NullMask(i);                                                                                 \
     }
 
-    float2 dxuv = ddx(uv);
-    float2 dyuv = ddy(uv);
+    float2 dxuv = ddx(splatBaseUV);
+    float2 dyuv = ddy(splatBaseUV);
 
-    float4 blendMasks0 = SAMPLE_TEXTURE2D(_Control0, sampler_Control0, uv);
+    float4 blendMasks0 = SAMPLE_TEXTURE2D(_Control0, sampler_Control0, controlUV);
     #ifdef _TERRAIN_8_LAYERS
-        float4 blendMasks1 = SAMPLE_TEXTURE2D(_Control1, sampler_Control0, uv);
+        float4 blendMasks1 = SAMPLE_TEXTURE2D(_Control1, sampler_Control0, controlUV);
     #else
         float4 blendMasks1 = float4(0, 0, 0, 0);
     #endif
@@ -276,9 +194,9 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
             // Normalize
             float sumHeight = GetSumHeight(blendMasks0, blendMasks1);
             blendMasks0 = blendMasks0 / sumHeight.xxxx;
-#ifdef _TERRAIN_8_LAYERS
-            blendMasks1 = blendMasks1 / sumHeight.xxxx;
-#endif
+            #ifdef _TERRAIN_8_LAYERS
+                blendMasks1 = blendMasks1 / sumHeight.xxxx;
+            #endif
         #endif // if _TERRAIN_BLEND_HEIGHT
     #endif // if _MASKMAP
 
@@ -312,4 +230,36 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
     outSmoothness = outMasks.z;
     outMetallic = outMasks.x;
     outAO = outMasks.y;
+}
+
+void TerrainLitShade(float2 uv, float3 tangentWS, float3 bitangentWS,
+    out float3 outAlbedo, out float3 outNormalTS, out float outSmoothness, out float outMetallic, out float outAO)
+{
+    TerrainSplatBlend(uv, uv, tangentWS, bitangentWS, outAlbedo, outNormalTS, outSmoothness, outMetallic, outAO);
+}
+
+void TerrainLitDebug(float2 uv, inout float3 baseColor)
+{
+#ifdef DEBUG_DISPLAY
+    if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_CONTROL)
+        baseColor = GetTextureDataDebug(_DebugMipMapMode, uv, _Control0, _Control0_TexelSize, _Control0_MipInfo, baseColor);
+    else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER0)
+        baseColor = GetTextureDataDebug(_DebugMipMapMode, uv * _Splat0_ST.xy + _Splat0_ST.zw, _Splat0, _Splat0_TexelSize, _Splat0_MipInfo, baseColor);
+    else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER1)
+        baseColor = GetTextureDataDebug(_DebugMipMapMode, uv * _Splat1_ST.xy + _Splat1_ST.zw, _Splat1, _Splat1_TexelSize, _Splat1_MipInfo, baseColor);
+    else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER2)
+        baseColor = GetTextureDataDebug(_DebugMipMapMode, uv * _Splat2_ST.xy + _Splat2_ST.zw, _Splat2, _Splat2_TexelSize, _Splat2_MipInfo, baseColor);
+    else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER3)
+        baseColor = GetTextureDataDebug(_DebugMipMapMode, uv * _Splat3_ST.xy + _Splat3_ST.zw, _Splat3, _Splat3_TexelSize, _Splat3_MipInfo, baseColor);
+#ifdef _TERRAIN_8_LAYERS
+    else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER4)
+        baseColor = GetTextureDataDebug(_DebugMipMapMode, uv * _Splat4_ST.xy + _Splat4_ST.zw, _Splat4, _Splat4_TexelSize, _Splat4_MipInfo, baseColor);
+    else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER5)
+        baseColor = GetTextureDataDebug(_DebugMipMapMode, uv * _Splat5_ST.xy + _Splat5_ST.zw, _Splat5, _Splat5_TexelSize, _Splat5_MipInfo, baseColor);
+    else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER6)
+        baseColor = GetTextureDataDebug(_DebugMipMapMode, uv * _Splat6_ST.xy + _Splat6_ST.zw, _Splat6, _Splat6_TexelSize, _Splat6_MipInfo, baseColor);
+    else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER7)
+        baseColor = GetTextureDataDebug(_DebugMipMapMode, uv * _Splat7_ST.xy + _Splat7_ST.zw, _Splat7, _Splat7_TexelSize, _Splat7_MipInfo, baseColor);
+#endif
+#endif
 }
