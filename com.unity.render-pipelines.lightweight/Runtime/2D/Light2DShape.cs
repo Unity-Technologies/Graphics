@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -80,14 +80,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //                              Functions
         //==========================================================================================
 
-        internal static bool IsShapeLight(LightProjectionTypes lightProjectionType)
+        internal static bool IsShapeLight(LightType lightProjectionType)
         {
-            return lightProjectionType != LightProjectionTypes.Point;
+            return lightProjectionType != LightType.Point;
         }
 
         Material GetShapeLightVolumeMaterial()
         {
-            if (m_LightProjectionType == LightProjectionTypes.Sprite)
+            if (m_LightProjectionType == LightType.Sprite)
             {
                 // This is causing Object.op_inequality fix this
                 if (m_ShapeCookieSpriteVolumeMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         Material GetShapeLightMaterial()
         {
-            if (m_LightProjectionType == LightProjectionTypes.Sprite)
+            if (m_LightProjectionType == LightType.Sprite)
             {
                 // This is causing Object.op_inequality fix this
                 if (m_ShapeCookieSpriteAdditiveMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
@@ -204,13 +204,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         Bounds GetShapeLightMesh(ref Mesh mesh)
         {
             Bounds localBounds = new Bounds();
-            if (m_LightProjectionType == LightProjectionTypes.Freeform)
+            if (m_LightProjectionType == LightType.Freeform)
                 localBounds = UpdateShapeLightMesh(m_Color);
-            else if(m_LightProjectionType == LightProjectionTypes.Parametric)
+            else if(m_LightProjectionType == LightType.Parametric)
             {
                 localBounds = LightUtility.GenerateParametricMesh(ref mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricSides, m_ShapeLightFeathering, m_Color, m_LightVolumeOpacity);
             }
-            else if (m_LightProjectionType == LightProjectionTypes.Sprite)
+            else if (m_LightProjectionType == LightType.Sprite)
             {
                 localBounds = LightUtility.GenerateSpriteMesh(ref mesh, m_LightCookieSprite, m_Color, m_LightVolumeOpacity, 1);
             }

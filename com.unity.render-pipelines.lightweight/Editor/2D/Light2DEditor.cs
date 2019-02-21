@@ -257,7 +257,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUI.indentLevel--;
         }
 
-        private bool OnShapeLight(Light2D.LightProjectionTypes lightProjectionType, bool changedType, SerializedObject serializedObject)
+        private bool OnShapeLight(Light2D.LightType lightProjectionType, bool changedType, SerializedObject serializedObject)
         {
             if (!m_AnyLightOperationEnabled)
             {
@@ -275,13 +275,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
 
             EditorGUI.indentLevel++;
-            if (lightProjectionType == Light2D.LightProjectionTypes.Sprite)
+            if (lightProjectionType == Light2D.LightType.Sprite)
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(shapeLightSprite, EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite"));
                 updateMesh |= EditorGUI.EndChangeCheck();
             }
-            else if (lightProjectionType == Light2D.LightProjectionTypes.Parametric || lightProjectionType == Light2D.LightProjectionTypes.Freeform)
+            else if (lightProjectionType == Light2D.LightType.Parametric || lightProjectionType == Light2D.LightType.Freeform)
             {
                 if (m_ModifiedMesh)
                     updateMesh = true;
@@ -289,14 +289,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 if (changedType)
                 {
                     int sides = shapeLightParametricSides.intValue;
-                    if (lightProjectionType == Light2D.LightProjectionTypes.Parametric) sides = 128;
-                    else if (lightProjectionType == Light2D.LightProjectionTypes.Freeform) sides = 4; // This one should depend on if this has data at the moment
+                    if (lightProjectionType == Light2D.LightType.Parametric) sides = 128;
+                    else if (lightProjectionType == Light2D.LightType.Freeform) sides = 4; // This one should depend on if this has data at the moment
                     shapeLightParametricSides.intValue = sides;
                 }
 
                 m_ModifiedMesh = false;
 
-                if (lightProjectionType == Light2D.LightProjectionTypes.Parametric)
+                if (lightProjectionType == Light2D.LightType.Parametric)
                     EditorGUILayout.IntSlider(shapeLightParametricSides, 3, 128, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
 
                 EditorGUILayout.Slider(shapeLightFeathering, 0, 5, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
@@ -494,7 +494,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (lt == null)
                 return;
 
-            if (lt.LightProjectionType == Light2D.LightProjectionTypes.Point)
+            if (lt.LightProjectionType == Light2D.LightType.Point)
             {
 
                 Undo.RecordObject(lt, "Edit Target Light");
@@ -511,7 +511,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 Transform t = lt.transform;
                 Vector3 posOffset = lt.shapeLightOffset;
 
-                if (lt.lightProjectionType == Light2D.LightProjectionTypes.Sprite)
+                if (lt.lightProjectionType == Light2D.LightType.Sprite)
                 {
                     Vector3 v0 = t.TransformPoint(new Vector3(-0.5f, -0.5f));
                     Vector3 v1 = t.TransformPoint(new Vector3(0.5f, -0.5f));
@@ -522,7 +522,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     Handles.DrawLine(v2, v3);
                     Handles.DrawLine(v3, v0);
                 }
-                else if (lt.lightProjectionType == Light2D.LightProjectionTypes.Parametric)
+                else if (lt.lightProjectionType == Light2D.LightType.Parametric)
                 {
                     float radius = 0.5f;
                     float sides = lt.shapeLightParametricSides;
@@ -573,17 +573,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             switch (m_LightProjectionType.intValue)
             {
-                case (int)Light2D.LightProjectionTypes.Point:
+                case (int)Light2D.LightType.Point:
                     {
                         OnPointLight(serializedObject);
                     }
                     break;
-                case (int)Light2D.LightProjectionTypes.Parametric:
-                case (int)Light2D.LightProjectionTypes.Freeform:
-                case (int)Light2D.LightProjectionTypes.Sprite:
+                case (int)Light2D.LightType.Parametric:
+                case (int)Light2D.LightType.Freeform:
+                case (int)Light2D.LightType.Sprite:
                     {
                         
-                        updateMesh |= OnShapeLight((Light2D.LightProjectionTypes)m_LightProjectionType.intValue, updateMesh, serializedObject);
+                        updateMesh |= OnShapeLight((Light2D.LightType)m_LightProjectionType.intValue, updateMesh, serializedObject);
                     }
                     break;
             }
@@ -595,7 +595,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             OnTargetSortingLayers();
 
-            if (lightObject.lightProjectionType == Light2D.LightProjectionTypes.Freeform )
+            if (lightObject.lightProjectionType == Light2D.LightType.Freeform )
             {
                 // Draw the edit shape tool button here.
             }

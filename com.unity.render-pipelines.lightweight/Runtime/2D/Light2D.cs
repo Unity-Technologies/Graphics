@@ -1,10 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.U2D;
-using UnityEngine.U2D.Shape;
-using Unity.RenderPipeline2D.External.LibTessDotNet;
-using Mesh = UnityEngine.Mesh;
 using System.Linq;
 
 #if UNITY_EDITOR
@@ -19,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     [ExecuteAlways]
     sealed public partial class Light2D : MonoBehaviour
     {
-        public enum LightProjectionTypes
+        public enum LightType
         {
             Parametric = 0,
             Freeform = 1,
@@ -68,14 +62,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private Mesh m_Mesh = null;
 
         [SerializeField]
-        public LightProjectionTypes lightProjectionType
+        public LightType lightProjectionType
         {
             get { return m_LightProjectionType; }
             set { m_LightProjectionType = value; }
         }
         [SerializeField]
-        private LightProjectionTypes m_LightProjectionType = LightProjectionTypes.Parametric;
-        private LightProjectionTypes m_PreviousLightProjectionType = LightProjectionTypes.Parametric;
+        private LightType m_LightProjectionType = LightType.Parametric;
+        private LightType m_PreviousLightProjectionType = LightType.Parametric;
 
         public Color color
         {
@@ -126,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set { UpdateLightOperation(value); }
         }
 
-        public LightProjectionTypes LightProjectionType
+        public LightType LightProjectionType
         {
             get { return m_LightProjectionType; }
             set { UpdateLightProjectionType(value); }
@@ -220,7 +214,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        internal void UpdateLightProjectionType(LightProjectionTypes type)
+        internal void UpdateLightProjectionType(LightType type)
         {
             if (type != m_PreviousLightProjectionType)
             {
@@ -255,7 +249,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (Light2D.IsShapeLight(m_LightProjectionType))
                 return GetShapeLightVolumeMaterial();
-            else if(m_LightProjectionType == LightProjectionTypes.Point)
+            else if(m_LightProjectionType == LightType.Point)
                 return GetPointLightVolumeMaterial();
 
             return null;
@@ -265,7 +259,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (Light2D.IsShapeLight(m_LightProjectionType))
                 return GetShapeLightMaterial();
-            else if(m_LightProjectionType == LightProjectionTypes.Point)
+            else if(m_LightProjectionType == LightType.Point)
                 return GetPointLightMaterial();
 
             return null;
@@ -282,7 +276,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     m_LocalBounds = GetShapeLightMesh(ref m_Mesh);
                 }
-                else if(m_LightProjectionType == LightProjectionTypes.Point)
+                else if(m_LightProjectionType == LightType.Point)
                 {
                      m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 4, 0, m_Color, m_LightVolumeOpacity);
                 }
