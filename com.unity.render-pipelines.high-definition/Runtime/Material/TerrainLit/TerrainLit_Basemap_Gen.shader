@@ -19,16 +19,27 @@ Shader "Hidden/HDRP/TerrainLit_Basemap_Gen"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
+        // Terrain builtin keywords
         #pragma shader_feature _TERRAIN_8_LAYERS
-        #pragma shader_feature _TERRAIN_BLEND_HEIGHT
         #pragma shader_feature _NORMALMAP
         #pragma shader_feature _MASKMAP
 
+        #pragma shader_feature _TERRAIN_BLEND_HEIGHT
+
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.ShaderVariables.hlsl"
+
+        CBUFFER_START(UnityTerrain)
+            UNITY_TERRAIN_CB_VARS
+            float4 _Control0_ST;
+            float4 _Control0_TexelSize;
+        CBUFFER_END
+
         #ifdef _MASKMAP
             // Needed because unity tries to match the name of the used textures to samplers. Masks can be used without splats in Metallic pass.
-            #define OVERRIDE_SAMPLER_NAME sampler_Mask0
+            #define OVERRIDE_SPLAT_SAMPLER_NAME sampler_Mask0
         #endif
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSplatCommon.hlsl"
+
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
 
         struct Attributes {
             float3 vertex : POSITION;
@@ -38,8 +49,14 @@ Shader "Hidden/HDRP/TerrainLit_Basemap_Gen"
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
-            float2 texcoord : TEXCOORD0;
+            float4 texcoord : TEXCOORD0;
         };
+
+        float2 ComputeControlUV(float2 uv)
+        {
+            // adjust splatUVs so the edges of the terrain tile lie on pixel centers
+            return (uv * (_Control0_TexelSize.zw - 1.0f) + 0.5f) * _Control0_TexelSize.xy;
+        }
 
         ENDHLSL
 
@@ -64,7 +81,8 @@ Shader "Hidden/HDRP/TerrainLit_Basemap_Gen"
             {
                 Varyings output;
                 output.positionCS = TransformWorldToHClip(input.vertex);
-                output.texcoord = input.texcoord;
+                output.texcoord.xy = TRANSFORM_TEX(input.texcoord, _Control0);
+                output.texcoord.zw = ComputeControlUV(output.texcoord.xy);
                 return output;
             }
 
@@ -74,7 +92,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap_Gen"
                 float3 normalTS;
                 float metallic;
                 float ao;
-                TerrainSplatBlend(input.texcoord, float3(0, 0, 0), float3(0, 0, 0),
+                TerrainSplatBlend(input.texcoord.zw, input.texcoord.xy, float3(0, 0, 0), float3(0, 0, 0),
                     albedo.xyz, normalTS, albedo.w, metallic, ao);
 
                 return albedo;
@@ -104,7 +122,8 @@ Shader "Hidden/HDRP/TerrainLit_Basemap_Gen"
             {
                 Varyings output;
                 output.positionCS = TransformWorldToHClip(input.vertex);
-                output.texcoord = input.texcoord;
+                output.texcoord.xy = TRANSFORM_TEX(input.texcoord, _Control0);
+                output.texcoord.zw = ComputeControlUV(output.texcoord.xy);
                 return output;
             }
 
@@ -114,7 +133,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap_Gen"
                 float3 normalTS;
                 float metallic;
                 float ao;
-                TerrainSplatBlend(input.texcoord, float3(0, 0, 0), float3(0, 0, 0),
+                TerrainSplatBlend(input.texcoord.zw, input.texcoord.xy, float3(0, 0, 0), float3(0, 0, 0),
                     albedo.xyz, normalTS, albedo.w, metallic, ao);
 
                 return float2(metallic, ao);
