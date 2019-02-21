@@ -68,7 +68,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (expanded)
                 {
-                    if (spaceAtEnd)
+                    if (spaceAtEnd && (Event.current.type == EventType.Repaint || Event.current.type == EventType.Layout))
                         EditorGUILayout.Space();
                     --EditorGUI.indentLevel;
                 }

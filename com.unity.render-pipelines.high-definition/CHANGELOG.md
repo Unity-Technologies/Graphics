@@ -10,10 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VR: Added TextureXR system to selectively expand TEXTURE2D macros to texture array for single-pass stereo instancing + Convert textures call to these macros
 - Added an unit selection dropdown next to shutter speed (camera)
 - Added error helpbox when trying to use a sub volume component that require the current HDRenderPipelineAsset to support a feature that it is not supporting.
+- Add mesh for tube light when display emissive mesh is enabled
 
 ### Fixed
 - Fixed Light explorer. The volume explorer used `profile` instead of `sharedProfile` which instantiate a custom volume profile instead of editing the asset itself.
 - Fixed UI issue where all is displayed using metric unit in shadow cascade and Percent is set in the unit field (happening when opening the inspector).
+- Fix inspector event error when double clicking on an asset (diffusion profile/material).
+- Fix nullref on layered material UI when the material is not an asset.
+- Fix nullref exception when undo/redo a light property.
+- Fix visual bug when area light handle size is 0.
 
 ### Changed
 - Update UI for 32bit/16bit shadow precision settings in HDRP asset
