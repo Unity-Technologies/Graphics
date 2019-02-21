@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals in forward
 - Fixed issue with stencil not correctly setup for various master node and shader for the depth pass, motion vector pass and GBuffer/Forward pass
 - Fixed SRP batcher and metal
+- Fixed culling and shadows for Pyramid, Box, Rectangle and Tube lights
 
 ### Fixed
 - Fixed an issue where scissor render state leaking from the editor code caused partially black rendering
