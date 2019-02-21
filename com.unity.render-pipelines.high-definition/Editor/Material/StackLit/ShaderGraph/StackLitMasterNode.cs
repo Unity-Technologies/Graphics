@@ -42,6 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string SmoothnessASlotName = "SmoothnessA";
         public const string SmoothnessBSlotName = "SmoothnessB";
         public const string AmbientOcclusionSlotName = "AmbientOcclusion";
+        public const string SpecularOcclusionSlotName = "SpecularOcclusion";
         public const string AlphaSlotName = "Alpha";
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
         public const string AnisotropyASlotName = "AnisotropyA";
@@ -104,6 +105,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
        
         public const int LightingSlotId = 34;
         public const int BackLightingSlotId = 35;
+
+        public const int SpecularOcclusionSlotId = 36; // for custom (external) SO replacing data based SO (which comes from DataBasedSOMode(dataAO, optional bent normal))
 
         // In StackLit.hlsl engine side
         //public enum BaseParametrization
@@ -556,9 +559,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        // TODOTODO: Allow the combinations of the debug mode (fromAO, bentcone+cone, bentone+SPTD) ?
         [SerializeField]
-        bool m_SpecularOcclusion;
+        bool m_SpecularOcclusion; // Main enable
 
         public ToggleData specularOcclusion
         {
@@ -568,7 +570,90 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (m_SpecularOcclusion == value.isOn)
                     return;
                 m_SpecularOcclusion = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
+        SpecularOcclusionBaseMode m_ScreenSpaceSpecularOcclusionBaseMode = SpecularOcclusionBaseMode.DirectFromAO;
+
+        public SpecularOcclusionBaseMode screenSpaceSpecularOcclusionBaseMode
+        {
+            get { return m_ScreenSpaceSpecularOcclusionBaseMode; }
+            set
+            {
+                if (m_ScreenSpaceSpecularOcclusionBaseMode == value)
+                    return;
+
+                m_ScreenSpaceSpecularOcclusionBaseMode = value;
+                UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        SpecularOcclusionBaseMode m_DataBasedSpecularOcclusionBaseMode = SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO; // ie from baked AO + bentnormal
+
+        public SpecularOcclusionBaseMode dataBasedSpecularOcclusionBaseMode
+        {
+            get { return m_DataBasedSpecularOcclusionBaseMode; }
+            set
+            {
+                if (m_DataBasedSpecularOcclusionBaseMode == value)
+                    return;
+
+                m_DataBasedSpecularOcclusionBaseMode = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        SpecularOcclusionAOConeSize m_ScreenSpaceSpecularOcclusionAOConeSize; // This is still provided to tweak the effect of SSAO on the SO.
+
+        public SpecularOcclusionAOConeSize screenSpaceSpecularOcclusionAOConeSize
+        {
+            get { return m_ScreenSpaceSpecularOcclusionAOConeSize; }
+            set
+            {
+                if (m_ScreenSpaceSpecularOcclusionAOConeSize == value)
+                    return;
+
+                m_ScreenSpaceSpecularOcclusionAOConeSize = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        SpecularOcclusionAOConeSize m_DataBasedSpecularOcclusionAOConeSize = SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO; // Only for SO methods using visibility cones (ie ConeCone and SPTD)
+
+        public SpecularOcclusionAOConeSize dataBasedSpecularOcclusionAOConeSize
+        {
+            get { return m_DataBasedSpecularOcclusionAOConeSize; }
+            set
+            {
+                if (m_DataBasedSpecularOcclusionAOConeSize == value)
+                    return;
+
+                m_DataBasedSpecularOcclusionAOConeSize = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_SpecularOcclusionIsCustom; // allow custom input port for SO (replaces the data based one)
+
+        public ToggleData specularOcclusionIsCustom
+        {
+            get { return new ToggleData(m_SpecularOcclusionIsCustom); }
+            set
+            {
+                if (m_SpecularOcclusionIsCustom == value.isOn)
+                    return;
+                m_SpecularOcclusionIsCustom = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
             }
         }
 
@@ -665,6 +750,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return (surfaceType == SurfaceType.Transparent && distortion.isOn);
         }
 
+        public static bool SpecularOcclusionModeUsesVisibilityCone(SpecularOcclusionBaseMode soMethod)
+        {
+            return (soMethod == SpecularOcclusionBaseMode.ConeConeFromBentAO
+                || soMethod == SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO);
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
@@ -711,6 +802,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             AddSlot(new Vector1MaterialSlot(AmbientOcclusionSlotId, AmbientOcclusionSlotName, AmbientOcclusionSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
             validSlots.Add(AmbientOcclusionSlotId);
+
+            if (specularOcclusion.isOn && specularOcclusionIsCustom.isOn)
+            {
+                AddSlot(new Vector1MaterialSlot(SpecularOcclusionSlotId, SpecularOcclusionSlotName, SpecularOcclusionSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                validSlots.Add(SpecularOcclusionSlotId);
+            }
 
             if (coat.isOn)
             {

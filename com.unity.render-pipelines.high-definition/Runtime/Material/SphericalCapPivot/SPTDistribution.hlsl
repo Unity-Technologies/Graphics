@@ -229,10 +229,11 @@ float ComputeVs(SphereCap visibleCap,
 // Specular Occlusion using SPTD functions
 //-----------------------------------------------------------------------------
 
-// Choice of formulas to infer bent visibility:
-#define BENT_VISIBILITY_FROM_AO_UNIFORM 0
-#define BENT_VISIBILITY_FROM_AO_COS 1
-#define BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION 2
+// From:
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl"
+//#define BENT_VISIBILITY_FROM_AO_UNIFORM 0
+//#define BENT_VISIBILITY_FROM_AO_COS 1
+//#define BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION 2
 
 SphereCap GetBentVisibility(float3 bentNormalWS, float ambientOcclusion, int algorithm = BENT_VISIBILITY_FROM_AO_COS, float3 normalWS = float3(0,0,0))
 {

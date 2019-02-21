@@ -735,6 +735,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 activeFields.Add("SpecularOcclusion");
             }
 
+            activeFields.Add("ScreenSpaceSpecularOcclusionBaseMode." + masterNode.screenSpaceSpecularOcclusionBaseMode.ToString());
+            if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(masterNode.screenSpaceSpecularOcclusionBaseMode))
+            {
+                activeFields.Add("ScreenSpaceSpecularOcclusionAOConeSize." + masterNode.screenSpaceSpecularOcclusionAOConeSize.ToString());
+            }
+
+            if (!masterNode.specularOcclusionIsCustom.isOn)
+            {
+                activeFields.Add("DataBasedSpecularOcclusionBaseMode." + masterNode.dataBasedSpecularOcclusionBaseMode.ToString());
+                if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(masterNode.dataBasedSpecularOcclusionBaseMode))
+                {
+                    activeFields.Add("DataBasedSpecularOcclusionAOConeSize." + masterNode.dataBasedSpecularOcclusionAOConeSize.ToString());
+                }
+            }
+            //else we can just check for the presence of the surface description field
+
+
             //
             // Input special-casing predicates:
             //
