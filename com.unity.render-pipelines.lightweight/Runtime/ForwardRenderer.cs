@@ -142,9 +142,6 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
-            EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingSkybox, ref customRenderPassIndex,
-                ref renderingData);
-
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (createDepthTexture)
             {
@@ -154,9 +151,12 @@ namespace UnityEngine.Rendering.LWRP
 
             if (m_CopyColorPass.ShouldExecute(ref renderingData))
             {
-                m_CopyColorPass.Setup(colorHandle, m_OpaqueColor);
+                m_CopyColorPass.Setup(colorHandle, depthHandle, m_OpaqueColor);
                 EnqueuePass(m_CopyColorPass);
             }
+
+            EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingSkybox, ref customRenderPassIndex,
+                ref renderingData);
 
             m_RenderTransparentForwardPass.Setup(cameraTargetDescriptor, colorHandle, depthHandle);
             EnqueuePass(m_RenderTransparentForwardPass);

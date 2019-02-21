@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         static Mesh s_FullscreenMesh = null;
-        static Mesh fullscreenMesh
+        internal static Mesh fullscreenMesh
         {
             get
             {
@@ -142,12 +142,15 @@ namespace UnityEngine.Rendering.LWRP
             m_ShaderTagIDs.Add(new ShaderTagId(passName));
         }
 
-        protected void RenderFullscreenQuad(CommandBuffer cmd, Material material, MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        protected void DrawFullscreen(ScriptableRenderContext context, ref CameraData cameraData, Material material, MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
+            Camera camera = cameraData.camera;
+            var cmd = CommandBufferPool.Get("DrawFullscreen");
+            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
+            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         /// <summary>

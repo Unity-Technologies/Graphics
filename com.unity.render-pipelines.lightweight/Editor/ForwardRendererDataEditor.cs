@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.LWRP
 
         SerializedObject GetElementSO(int index)
         {
-            if (m_ElementSOs.Count != m_RenderPasses.arraySize)
+            if (m_ElementSOs.Count != m_RenderPasses.arraySize || m_ElementSOs[index] == null)
                 m_ElementSOs = Enumerable.Range(0, m_RenderPasses.arraySize)
                     .Select(i => m_RenderPasses.GetArrayElementAtIndex(i))
                     .Select(sp => sp.objectReferenceValue == null ? null : new SerializedObject(sp.objectReferenceValue))

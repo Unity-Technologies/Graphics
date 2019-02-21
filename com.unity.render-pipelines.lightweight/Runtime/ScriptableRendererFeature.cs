@@ -9,6 +9,11 @@ namespace UnityEngine.Rendering.LWRP
     public abstract class ScriptableRendererFeature : ScriptableObject
     {
         /// <summary>
+        /// Initializes this features resources.
+        /// </summary>
+        public abstract void Create();
+
+        /// <summary>
         /// Injects one or multiple <c>ScriptableRenderPass</c> in the renderer.
         /// </summary>
         /// <param name="renderPasses">List of render passes to add to.</param>
@@ -19,5 +24,15 @@ namespace UnityEngine.Rendering.LWRP
             RenderTextureDescriptor cameraDescriptor,
             RenderTargetHandle colorAttachmentHandle,
             RenderTargetHandle depthAttachmentHandle);
+
+        void OnEnable()
+        {
+            Create();
+        }
+
+        void OnValidate()
+        {
+            Create();
+        }
     }
 }
