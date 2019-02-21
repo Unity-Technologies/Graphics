@@ -127,8 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public const int k_DefaultShadowAtlasResolution = 4096;
         public const int k_DefaultMaxShadowRequests = 128;
-        // TODO: 32 bit shadowmap are not supported by RThandle currently, when they will, change Depth24 to Depth32
-        public const DepthBits k_DefaultShadowMapDepthBits = DepthBits.Depth24;
+        public const DepthBits k_DefaultShadowMapDepthBits = DepthBits.Depth32;
 
         [FormerlySerializedAs("shadowAtlasWidth")]
         public int shadowAtlasResolution;
