@@ -165,12 +165,12 @@ Shader "HDRP/LayeredLit"
 
         [HideInInspector] _DiffusionProfileAsset0("Diffusion Profile Asset0", Vector) = (0, 0, 0, 0)
         [HideInInspector] _DiffusionProfileHash0("Diffusion Profile Hash0", Float) = 0
-        [HideInInspector] _DiffusionProfileAsset1("Diffusion Profile Asset0", Vector) = (0, 0, 0, 0)
-        [HideInInspector] _DiffusionProfileHash1("Diffusion Profile Hash0", Float) = 0
-        [HideInInspector] _DiffusionProfileAsset2("Diffusion Profile Asset0", Vector) = (0, 0, 0, 0)
-        [HideInInspector] _DiffusionProfileHash2("Diffusion Profile Hash0", Float) = 0
-        [HideInInspector] _DiffusionProfileAsset3("Diffusion Profile Asset0", Vector) = (0, 0, 0, 0)
-        [HideInInspector] _DiffusionProfileHash3("Diffusion Profile Hash0", Float) = 0
+        [HideInInspector] _DiffusionProfileAsset1("Diffusion Profile Asset1", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash1("Diffusion Profile Hash1", Float) = 0
+        [HideInInspector] _DiffusionProfileAsset2("Diffusion Profile Asset2", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash2("Diffusion Profile Hash2", Float) = 0
+        [HideInInspector] _DiffusionProfileAsset3("Diffusion Profile Asset3", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash3("Diffusion Profile Hash3", Float) = 0
 
         _SubsurfaceMask0("Subsurface Mask0", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMask1("Subsurface Mask1", Range(0.0, 1.0)) = 1.0

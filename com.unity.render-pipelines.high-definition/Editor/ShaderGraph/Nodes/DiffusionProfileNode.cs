@@ -28,7 +28,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [SerializeField, Obsolete("Use m_DiffusionProfileAsset instead.")]
         PopupList m_DiffusionProfile = new PopupList();
 
+        // Helper class to serialize an asset inside a shader graph
+        [Serializable]
+        private class DiffusionProfileSerializer
+        {
+            [SerializeField]
+            public DiffusionProfileSettings    diffusionProfileAsset;
+        }
+
         [SerializeField]
+        string m_SerializedDiffusionProfile;
+
+        [NonSerialized]
         DiffusionProfileSettings    m_DiffusionProfileAsset;
 
         [ObjectControl]
@@ -36,10 +47,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             get
             {
+                if (String.IsNullOrEmpty(m_SerializedDiffusionProfile))
+                    return null;
+                
+                if (m_DiffusionProfileAsset == null)
+                {
+                    var serializedProfile = new DiffusionProfileSerializer();
+                    EditorJsonUtility.FromJsonOverwrite(m_SerializedDiffusionProfile, serializedProfile);
+                    m_DiffusionProfileAsset = serializedProfile.diffusionProfileAsset;
+                }
+
                 return m_DiffusionProfileAsset;
             }
             set
             {
+                if (m_DiffusionProfileAsset == value)
+                    return ;
+                
+                var serializedProfile = new DiffusionProfileSerializer();
+                serializedProfile.diffusionProfileAsset = value;
+                m_SerializedDiffusionProfile = EditorJsonUtility.ToJson(serializedProfile, true);
                 m_DiffusionProfileAsset = value;
                 Dirty(ModificationScope.Node);
             }
@@ -76,8 +103,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             uint hash = 0;
             
-            if (m_DiffusionProfileAsset != null)
-                hash = (m_DiffusionProfileAsset.profile.hash);
+            if (diffusionProfile != null)
+                hash = (diffusionProfile.profile.hash);
             
             visitor.AddShaderChunk(precision + " " + GetVariableNameForSlot(0) + " = asfloat(uint(" + hash + "));", true);
         }
