@@ -128,7 +128,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                             continue;
 
                         // Remove and re-add
-                        m_Node.RemoveSlot(slot.id);
                         m_Node.AddSlot(slot);
                     }
 
