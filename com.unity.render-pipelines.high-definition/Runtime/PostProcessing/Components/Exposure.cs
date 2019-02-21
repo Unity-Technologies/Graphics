@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Exposure")]
+    [Serializable, VolumeComponentMenu("Exposure")]
     public sealed class Exposure : VolumeComponent, IPostProcessComponent
     {
         public ExposureModeParameter mode = new ExposureModeParameter(ExposureMode.Fixed);
