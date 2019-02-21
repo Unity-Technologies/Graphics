@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed UI issue where all is displayed using metric unit in shadow cascade and Percent is set in the unit field (happening when opening the inspector).
 
 ### Changed
+- Update UI for 32bit/16bit shadow precision settings in HDRP asset
 
 ## [6.3.0-preview] - 2019-02-18
 
