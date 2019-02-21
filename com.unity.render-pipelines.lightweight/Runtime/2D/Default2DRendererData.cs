@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set => m_LightIntensityScale = value;
         }
 
-        public override ScriptableRenderer Create()
+        protected override ScriptableRenderer Create()
         {
             return new _2DRenderer(this);
         }
