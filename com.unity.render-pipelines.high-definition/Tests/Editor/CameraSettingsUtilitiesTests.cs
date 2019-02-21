@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                 cam.ApplySettings(position);
 
                 var add = cam.GetComponent<HDAdditionalCameraData>();
-                Assert.NotNull(add);
+                Assert.True(add != null && !add.Equals(null));
 
                 // Position
                 switch (position.mode)
