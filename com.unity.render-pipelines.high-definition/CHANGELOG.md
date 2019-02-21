@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed Light explorer. The volume explorer used `profile` instead of `sharedProfile` which instantiate a custom volume profile instead of editing the asset itself.
 - Fixed UI issue where all is displayed using metric unit in shadow cascade and Percent is set in the unit field (happening when opening the inspector).
-
+- Fixed culling and shadows for Pyramid, Box, Rectangle and Tube lights
+ 
 ### Changed
 - When a lit material has a clear coat mask that is not null, we now use the clear coat roughness to compute the screen space reflection.
 
