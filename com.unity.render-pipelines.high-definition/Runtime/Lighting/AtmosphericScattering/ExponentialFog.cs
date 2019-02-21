@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [VolumeComponentMenu("Environment Lighting/Exponential Fog")]
+    [VolumeComponentMenu("Fog/Exponential Fog")]
     public class ExponentialFog : AtmosphericScattering
     {
         private readonly static int m_ExpFogParam = Shader.PropertyToID("_ExpFogParameters");
