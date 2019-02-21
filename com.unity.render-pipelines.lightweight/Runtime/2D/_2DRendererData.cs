@@ -6,11 +6,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     public class _2DRendererData : ScriptableRendererData
     {
         [SerializeField]
-        private float m_LightIntensityScale = 1;
+        float m_LightIntensityScale = 1;
 
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ShapeLightTypes")]
-        private _2DLightOperationDescription[] m_LightOperations;
+        _2DLightOperationDescription[] m_LightOperations;
 
         public float lightIntensityScale
         {
