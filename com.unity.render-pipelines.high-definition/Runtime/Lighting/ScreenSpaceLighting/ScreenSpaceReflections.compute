@@ -66,6 +66,7 @@ CBUFFER_START(UnityScreenSpaceReflections)
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
 
     int    _SsrDepthPyramidMaxMip;
+    int    _SsrColorPyramidMaxMip;
     int    _SsrReflectsSky;         // bool...
 CBUFFER_END
 
@@ -329,7 +330,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     GetNormalAndPerceptualRoughness(positionSS, N, perceptualRoughness);
 
     // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
-    float  mipLevel = lerp(0, _SsrDepthPyramidMaxMip, perceptualRoughness);
+    float  mipLevel = lerp(0, _SsrColorPyramidMaxMip, perceptualRoughness);
 
     // Note that the color pyramid uses it's own viewport scale, since it lives on the camera.
     float3 color    = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
