@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                 var cam = go.AddComponent<Camera>();
 
                 var add = cam.GetComponent<HDAdditionalCameraData>() ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
-                Assert.NotNull(add);
+                Assert.True(add != null && !add.Equals(null));
 
                 add.renderingPathCustomFrameSettings = fs;
                 add.renderingPathCustomFrameSettingsOverrideMask = fso;
@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
                 var cam = go.AddComponent<Camera>();
 
                 var add = cam.GetComponent<HDAdditionalCameraData>() ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
-                Assert.NotNull(add);
+                Assert.True(add != null && !add.Equals(null));
 
                 add.renderingPathCustomFrameSettings = fs;
                 add.renderingPathCustomFrameSettingsOverrideMask = fso;
