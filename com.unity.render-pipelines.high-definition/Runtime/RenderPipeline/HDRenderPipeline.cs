@@ -2060,6 +2060,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
+            // Disable object-motion vectors in everything but the game view
+            if (camera.cameraType != CameraType.Game)
+            {
+                currentFrameSettings.SetEnabled(FrameSettingsField.ObjectMotionVectors, false);
+            }
+
             hdCamera = HDCamera.Get(camera) ?? HDCamera.Create(camera);
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, m_VolumetricLightingSystem, m_MSAASamples);
