@@ -8,20 +8,38 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     public abstract class ScriptableRendererData : ScriptableObject
     {
+        internal bool isInvalidated { get; set; }
+
         /// <summary>
         /// Creates the instance of the ScriptableRenderer.
         /// </summary>
         /// <returns>The instance of ScriptableRenderer</returns>
-        public abstract ScriptableRenderer Create();
+        protected abstract ScriptableRenderer Create();
 
         [SerializeField] List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
-
+        
         /// <summary>
         /// List of additional render pass features for this renderer.
         /// </summary>
         public List<ScriptableRendererFeature> rendererFeatures
         {
             get => m_RendererFeatures;
+        }
+
+        internal ScriptableRenderer InternalCreateRenderer()
+        {
+            isInvalidated = false;
+            return Create();
+        }
+
+        protected virtual void OnValidate()
+        {
+            isInvalidated = true;
+        }
+
+        protected virtual void OnEnable()
+        {
+            isInvalidated = true;
         }
     }
 }

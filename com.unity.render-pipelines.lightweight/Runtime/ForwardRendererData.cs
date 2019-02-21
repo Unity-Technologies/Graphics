@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
-        public override ScriptableRenderer Create()
+        protected override ScriptableRenderer Create()
         {
             return new ForwardRenderer(this);
         }
