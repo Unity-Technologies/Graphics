@@ -64,14 +64,14 @@ namespace UnityEditor.Graphing
             node.GetSlots(slots);
 
             int duplicateNameCount = 0;
-            string newName = name;
             foreach(MaterialSlot value in slots)
             {
-                if(value.displayName.StartsWith(name))
+                string rawDisplayName = value.RawDisplayName();
+                if(rawDisplayName.Contains(name))
                     duplicateNameCount++;
             }
             if(duplicateNameCount > 0)
-                newName = name + string.Format(" ({0})", duplicateNameCount);
+                name += string.Format(" ({0})", duplicateNameCount);
 
             return name;
         }

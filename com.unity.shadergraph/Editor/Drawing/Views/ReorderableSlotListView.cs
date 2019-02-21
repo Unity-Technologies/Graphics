@@ -90,10 +90,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 EditorGUI.BeginChangeCheck();
                 
-                var displayName = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), labelStyle)); 
+                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), labelStyle); 
                 var shaderOutputName = NodeUtils.GetHLSLSafeName(displayName);
                 var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + labelWidth, rect.y, rect.width - labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.concreteValueType);
                 
+                if(displayName != oldSlot.RawDisplayName())
+                    displayName = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, displayName);
+
                 if(EditorGUI.EndChangeCheck())
                 {
                     // Cant modify existing slots so need to create new and copy values
