@@ -87,9 +87,12 @@ uint WaveGetLaneCount()
 }
 
 
+// There is a bug in the xbox compiler for Hull shader and __XB_Min3_/__XB_Max
+#ifndef SHADER_STAGE_HULL
 #define INTRINSIC_MINMAX3
 GENERATE_INTRINSIC_VARIANTS_3_ARGS(Min3, __XB_Min3_, a, b, c);
 GENERATE_INTRINSIC_VARIANTS_3_ARGS(Max3, __XB_Max3_, a, b, c);
+#endif
 
 #define INTRINSIC_WAVE_MINMAX
 GENERATE_INTRINSIC_VARIANTS_1_ARG(WaveActiveMin, __XB_WaveMin_, value);
