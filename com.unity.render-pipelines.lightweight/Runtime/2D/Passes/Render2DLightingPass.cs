@@ -86,6 +86,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+
+            filterSettings.sortingLayerRange = SortingLayerRange.all;
+            RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
         }
     }
 }
