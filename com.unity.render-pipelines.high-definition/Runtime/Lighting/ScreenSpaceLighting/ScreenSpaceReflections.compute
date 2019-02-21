@@ -101,8 +101,6 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef SSR_USE_STENCIL
     uint stencilVal = UnpackByte(LOAD_TEXTURE2D_X(_StencilTexture, positionSS).r);
     bool doesntReceiveSSR = (stencilVal & _SsrStencilExclusionValue) != 0;
-    // Skip SSR for unlit/sky materials as well (check with stencilVal == 0). 
-    doesntReceiveSSR = doesntReceiveSSR || (stencilVal == 0);
     if (doesntReceiveSSR)
     {
         WriteDebugInfo(positionSS, -1);
