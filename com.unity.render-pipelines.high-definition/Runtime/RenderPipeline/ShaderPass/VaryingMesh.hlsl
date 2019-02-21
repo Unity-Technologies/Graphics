@@ -131,6 +131,8 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
     return output;
 }
 
+#ifndef CUSTOM_UNPACK
+
 FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 {
     FragInputs output;
@@ -176,6 +178,8 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
     return output;
 }
+
+#endif
 
 #ifdef TESSELLATION_ON
 

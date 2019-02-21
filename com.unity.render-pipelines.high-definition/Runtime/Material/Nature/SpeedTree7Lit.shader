@@ -46,7 +46,6 @@ Shader "HDRP/Nature/SpeedTree7"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
-        //#include "SpeedTreeCommon.cginc"
         
         //-------------------------------------------------------------------------------------
         // Variant
@@ -77,6 +76,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -108,6 +108,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
             ENDHLSL
@@ -156,6 +157,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -182,6 +184,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
             ENDHLSL
@@ -221,6 +224,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -289,6 +293,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
             
