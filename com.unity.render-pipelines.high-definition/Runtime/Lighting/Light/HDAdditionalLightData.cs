@@ -641,7 +641,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
             MeshFilter emissiveMeshFilter = GetComponent<MeshFilter>();
 
-            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && lightTypeExtent != LightTypeExtent.Tube && displayAreaLightEmissiveMesh;
+            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && displayAreaLightEmissiveMesh;
 
             // Ensure that the emissive mesh components are here
             if (displayEmissiveMesh)
@@ -672,6 +672,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightSize = new Vector3(shapeWidth, shapeHeight, transform.localScale.z);
 
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
+            lightSize.z = k_MinAreaWidth;
             m_Light.transform.localScale = lightSize;
             m_Light.areaSize = lightSize;
 
@@ -680,6 +681,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case LightTypeExtent.Rectangle:
                     shapeWidth = lightSize.x;
                     shapeHeight = lightSize.y;
+                    break;
+                case LightTypeExtent.Tube:
+                    shapeWidth = lightSize.x;
                     break;
                 default:
                     break;
