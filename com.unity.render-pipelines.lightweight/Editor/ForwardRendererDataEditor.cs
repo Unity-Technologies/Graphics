@@ -70,6 +70,7 @@ namespace UnityEditor.Rendering.LWRP
                 if (element.objectReferenceValue != null)
                 {
                     Styles.header.text = element.objectReferenceValue.name;
+                    Styles.header.tooltip = element.objectReferenceValue.GetType().Name;
                     m_Foldouts[index].value =
                         EditorGUI.BeginFoldoutHeaderGroup(headerRect, m_Foldouts[index].value, Styles.header);
                     if (m_Foldouts[index].value)
@@ -77,12 +78,10 @@ namespace UnityEditor.Rendering.LWRP
                         propRect.y += Styles.defaultLineSpace;
                         EditorGUI.BeginChangeCheck();
                         element.objectReferenceValue.name =
-                            EditorGUI.TextField(propRect, "Pass Name", element.objectReferenceValue.name);
+                            EditorGUI.DelayedTextField(propRect, "Pass Name", element.objectReferenceValue.name);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            m_ElementSOs[index] = element.objectReferenceValue == null
-                                ? null
-                                : new SerializedObject(element.objectReferenceValue);
+                            AssetDatabase.SaveAssets();
                         }
 
                         var elementSO = GetElementSO(index);
@@ -140,11 +139,13 @@ namespace UnityEditor.Rendering.LWRP
             m_passesList.onRemoveCallback += list =>
             {
                 var obj = list.serializedProperty.GetArrayElementAtIndex(list.index).objectReferenceValue;
+                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
+                list.serializedProperty.serializedObject.ApplyModifiedProperties();
+                --list.serializedProperty.arraySize;
+                //m_ElementSOs.Clear();
+                // Clean up the asset
                 DestroyImmediate(obj, true);
                 AssetDatabase.SaveAssets();
-                --list.serializedProperty.arraySize;
-                list.serializedProperty.serializedObject.ApplyModifiedProperties();
-                m_ElementSOs.Clear();
             };
             m_passesList.onReorderCallbackWithDetails += ReorderPass;
 		    
@@ -204,6 +205,7 @@ namespace UnityEditor.Rendering.LWRP
         
         private void ReorderPass(ReorderableList list, int oldIndex, int newIndex)
         {
+            Debug.LogWarning("reordering from" + oldIndex + " to " + newIndex);
             var item = m_ElementSOs[oldIndex];
             m_ElementSOs.RemoveAt(oldIndex);
             m_ElementSOs.Insert(newIndex, item);
@@ -232,7 +234,7 @@ namespace UnityEditor.Rendering.LWRP
                 m_passesList.serializedProperty.serializedObject.ApplyModifiedProperties();
                 AssetDatabase.SaveAssets();
             }
-            m_ElementSOs.Clear();
+            GetElementSO(m_passesList.index);
             CreateFoldoutBools();
             EditorUtility.SetDirty(target);
         }
