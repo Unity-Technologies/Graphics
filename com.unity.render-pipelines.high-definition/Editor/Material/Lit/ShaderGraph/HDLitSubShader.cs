@@ -715,6 +715,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = false
         };
 
+        private static List<string> GetInstancingOptionsFromMasterNode(AbstractMaterialNode iMasterNode)
+        {
+            List<string> instancingOption = new List<string>();
+
+            HDLitMasterNode masterNode = iMasterNode as HDLitMasterNode;
+
+            if (masterNode.dotsInstancing.isOn)
+            {
+                instancingOption.Add("#pragma instancing_options nolightprobe");
+                instancingOption.Add("#pragma instancing_options nolodfade");
+            }
+            else
+            {
+                instancingOption.Add("#pragma instancing_options renderinglayer");
+            }            
+
+            return instancingOption;
+        }
+        
+
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
@@ -954,6 +974,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // apply master node options to active fields
                 HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+
+                pass.ExtraInstancingOptions = GetInstancingOptionsFromMasterNode(masterNode);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(HDLitMasterNode.PositionSlotId);
