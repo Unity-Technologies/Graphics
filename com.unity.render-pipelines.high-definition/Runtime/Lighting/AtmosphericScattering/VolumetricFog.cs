@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [VolumeComponentMenu("Environment Lighting/Volumetric Fog")]
+    [VolumeComponentMenu("Fog/Volumetric Fog")]
     public class VolumetricFog : AtmosphericScattering
     {
         public ColorParameter        albedo                 = new ColorParameter(Color.white);

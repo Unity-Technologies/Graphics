@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
-    [Serializable, VolumeComponentMenu("Environment Lighting/Visual Environment")]
+    [Serializable, VolumeComponentMenu("Visual Environment")]
     public sealed class VisualEnvironment : VolumeComponent
     {
         public IntParameter skyType = new IntParameter(0);
