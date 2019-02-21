@@ -83,7 +83,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         //contain serialized property that are mainly used to draw inspector
         public LightEditor.Settings settings;
-        
+
         // Used for UI only; the processing code must use LightTypeExtent and LightType
         public LightShape editorLightShape;
 
@@ -109,7 +109,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     affectSpecular = o.Find(x => x.affectSpecular),
                     nonLightmappedOnly = o.Find(x => x.nonLightmappedOnly),
                     lightTypeExtent = o.Find(x => x.lightTypeExtent),
-                    spotLightShape = o.Find(x => x.spotLightShape),
+                    spotLightShape = o.Find("m_SpotLightShape"),
                     shapeWidth = o.Find(x => x.shapeWidth),
                     shapeHeight = o.Find(x => x.shapeHeight),
                     aspectRatio = o.Find(x => x.aspectRatio),
@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     sunDiskSize = o.Find(x => x.sunDiskSize),
                     sunHaloSize = o.Find(x => x.sunHaloSize),
                     areaLightCookie = o.Find(x => x.areaLightCookie),
-                    
+
                     // Moment light
                     lightAngle = o.Find(x => x.lightAngle),
                     kernelSize = o.Find(x => x.kernelSize),
