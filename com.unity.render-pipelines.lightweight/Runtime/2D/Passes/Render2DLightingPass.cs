@@ -7,15 +7,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     internal class Render2DLightingPass : ScriptableRenderPass
     {
         static SortingLayer[] s_SortingLayers;
-        static Default2DRendererData s_RendererData;
+        _2DRendererData m_RendererData;
 
-        public Render2DLightingPass(Default2DRendererData rendererData)
+        public Render2DLightingPass(_2DRendererData rendererData)
         {
             if (s_SortingLayers == null)
                 s_SortingLayers = SortingLayer.layers;
 
-            if (s_RendererData == null)
-                s_RendererData = rendererData;
+            m_RendererData = rendererData;
 
             RegisterShaderPassName("CombinedShapeLight");
         }
@@ -27,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 s_SortingLayers = SortingLayer.layers;
 #endif
             Camera camera = renderingData.cameraData.camera;
-            RendererLighting.Setup(s_RendererData.lightOperations);
+            RendererLighting.Setup(m_RendererData.lightOperations);
 
             CommandBuffer cmd = CommandBufferPool.Get("Render 2D Lighting");
 
@@ -35,8 +34,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RendererLighting.CreateRenderTextures(cmd, camera);
             Profiler.EndSample();
 
-            cmd.SetGlobalFloat("_LightIntensityScale", s_RendererData.lightIntensityScale);
-            cmd.SetGlobalFloat("_InverseLightIntensityScale", 1.0f / s_RendererData.lightIntensityScale);
+            cmd.SetGlobalFloat("_LightIntensityScale", m_RendererData.lightIntensityScale);
+            cmd.SetGlobalFloat("_InverseLightIntensityScale", 1.0f / m_RendererData.lightIntensityScale);
             RendererLighting.SetShapeLightShaderGlobals(cmd);
 
             context.ExecuteCommandBuffer(cmd);

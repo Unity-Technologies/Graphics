@@ -173,7 +173,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             var lightOperationNames = new List<string>();
 
             var pipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
-            var rendererData = pipelineAsset != null ? pipelineAsset.rendererData as Default2DRendererData : null;
+            var rendererData = pipelineAsset != null ? pipelineAsset.rendererData as _2DRendererData : null;
             if (rendererData != null)
             {
                 for (int i = 0; i < rendererData.lightOperations.Length; ++i)
