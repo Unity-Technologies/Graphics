@@ -103,6 +103,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent materialReferencesText = EditorGUIUtility.TrTextContent("Material To Copy");
 
+            public readonly string materialImporterNotAvailable = "Can't display material layer options because the material is not an asset";
+
             public StylesLayer()
             {
                 layerLabelColors[0].normal.textColor = layerColors[0];
@@ -245,7 +247,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
 
             Material[] layers = null;
-            InitializeMaterialLayers(materialImporter, ref layers);
+
+            // Material importer can be null when the selected material doesn't exists as asset (Material saved inside the scene)
+            if (materialImporter != null)
+                InitializeMaterialLayers(materialImporter, ref layers);
 
             // We could have no userData in the assets, so test if we have load something
             if (layers != null)
@@ -578,6 +583,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         bool DoLayersGUI(AssetImporter materialImporter)
         {
+            if (materialImporter == null)
+            {
+                EditorGUILayout.HelpBox(styles.materialImporterNotAvailable, MessageType.Warning);
+                return false;
+            }
+            
             bool layerChanged = false;
 
             GUI.changed = false;
@@ -775,7 +786,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Material material = m_MaterialEditor.target as Material;
             AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
 
-            InitializeMaterialLayers(materialImporter, ref m_MaterialLayers);
+            // Material importer can be null when the selected material doesn't exists as asset (Material saved inside the scene)
+            if (materialImporter != null)
+                InitializeMaterialLayers(materialImporter, ref m_MaterialLayers);
 
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
@@ -861,7 +874,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 // SaveAssetsProcessor the referenced material in the users data
-                SaveMaterialLayers(materialImporter);
+                if (materialImporter != null)
+                    SaveMaterialLayers(materialImporter);
             }
 
             // We should always do this call at the end
