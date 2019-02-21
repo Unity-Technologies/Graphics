@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  
 ### Changed
 - When a lit material has a clear coat mask that is not null, we now use the clear coat roughness to compute the screen space reflection.
+- Update UI for 32bit/16bit shadow precision settings in HDRP asset
 
 ## [5.5.0-preview] - 2019-02-18
 

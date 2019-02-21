@@ -258,12 +258,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(k_ShadowAtlasSubTitle);
             ++EditorGUI.indentLevel;
             serialized.renderPipelineSettings.hdShadowInitParams.shadowAtlasResolution.intValue = (int)(ShadowResolutionValue)EditorGUILayout.EnumPopup(k_ResolutionContent, (ShadowResolutionValue)serialized.renderPipelineSettings.hdShadowInitParams.shadowAtlasResolution.intValue);
-
-            bool shadowMap16Bits = (DepthBits)serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue == DepthBits.Depth16;
-            EditorGUI.BeginChangeCheck();
-            shadowMap16Bits = EditorGUILayout.Toggle(k_Map16bContent, shadowMap16Bits);
-            if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue = (shadowMap16Bits) ? (int)DepthBits.Depth16 : (int)DepthBits.Depth32;
+            serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue = EditorGUILayout.IntPopup(k_PrecisionContent, serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue, k_ShadowBitDepthNames, k_ShadowBitDepthValues);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.useDynamicViewportRescale, k_DynamicRescaleContent);
             --EditorGUI.indentLevel;
             
