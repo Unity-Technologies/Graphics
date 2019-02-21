@@ -18,7 +18,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [SerializeField, Obsolete("Use m_DiffusionProfileAsset instead.")]
         PopupList m_DiffusionProfile;
 
+        // Helper class to serialize an asset inside a shader graph
+        [Serializable]
+        private class DiffusionProfileSerializer
+        {
+            [SerializeField]
+            public DiffusionProfileSettings    diffusionProfileAsset = null;
+        }
+
         [SerializeField]
+        string m_SerializedDiffusionProfile;
+
+        [NonSerialized]
         DiffusionProfileSettings m_DiffusionProfileAsset;
 
         [SerializeField]
@@ -28,8 +39,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public DiffusionProfileSettings diffusionProfile
         {
-            get { return m_DiffusionProfileAsset; }
-            set { m_DiffusionProfileAsset = value; }
+            get
+            {
+                if (String.IsNullOrEmpty(m_SerializedDiffusionProfile))
+                    return null;
+                
+                if (m_DiffusionProfileAsset == null)
+                {
+                    var serializedProfile = new DiffusionProfileSerializer();
+                    EditorJsonUtility.FromJsonOverwrite(m_SerializedDiffusionProfile, serializedProfile);
+                    m_DiffusionProfileAsset = serializedProfile.diffusionProfileAsset;
+                }
+
+                return m_DiffusionProfileAsset;
+            }
+            set
+            {
+                if (m_DiffusionProfileAsset == value)
+                    return ;
+                
+                var serializedProfile = new DiffusionProfileSerializer();
+                serializedProfile.diffusionProfileAsset = value;
+                m_SerializedDiffusionProfile = EditorJsonUtility.ToJson(serializedProfile, true);
+                m_DiffusionProfileAsset = value;
+            }
         }
 
         public DiffusionProfileInputMaterialSlot()
@@ -80,10 +113,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            if (m_DiffusionProfileAsset == null)
+            if (diffusionProfile == null)
                 return "_DiffusionProfileHash";
             else
-                return "((asuint(_DiffusionProfileHash) != 0) ? _DiffusionProfileHash : asfloat(uint(" + m_DiffusionProfileAsset.profile.hash + ")))";
+                return "((asuint(_DiffusionProfileHash) != 0) ? _DiffusionProfileHash : asfloat(uint(" + diffusionProfile.profile.hash + ")))";
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
@@ -92,7 +125,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (slot != null)
             {
-                m_DiffusionProfileAsset = slot.m_DiffusionProfileAsset;
+                m_SerializedDiffusionProfile = slot.m_SerializedDiffusionProfile;
             }
         }
 
