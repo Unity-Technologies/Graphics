@@ -32,8 +32,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //------------------------------------------------------------------------------------------
 
         const int k_LightOperationCount = 4;    // This must match the array size of m_LightOperations in _2DRendererData.
-        static CullingGroup m_CullingGroup;
-        static List<Light2D>[] m_Lights = SetupLightArray();
+        static CullingGroup s_CullingGroup;
+        static List<Light2D>[] s_Lights = SetupLightArray();
 
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
@@ -81,6 +81,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //                              Functions
         //==========================================================================================
 
+        static internal List<Light2D>[] SetupLightArray()
+        {
+            List<Light2D>[] retArray = new List<Light2D>[k_LightOperationCount];
+
+            for (int i = 0; i < retArray.Length; i++)
+                retArray[i] = new List<Light2D>();
+
+            return retArray;
+        }
+
         // TODO: This is used in the editor, make internal somehow
         public void UpdateMesh()
         {
@@ -98,35 +108,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             GetMaterial();
         }
 
-        static internal List<Light2D>[] SetupLightArray()
-        {
-            int numLightTypes = k_LightOperationCount;
-            List<Light2D>[] retArray = new List<Light2D>[numLightTypes];
-            for (int i = 0; i < numLightTypes; i++)
-                retArray[i] = new List<Light2D>();
-
-            return retArray;
-        }
-
         static internal void SetupCulling(Camera camera)
         {
-            if (m_CullingGroup == null)
+            if (s_CullingGroup == null)
                 return;
 
-            m_CullingGroup.targetCamera = camera;
+            s_CullingGroup.targetCamera = camera;
 
             int totalLights = 0;
-            for (int lightTypeIndex = 0; lightTypeIndex < m_Lights.Length; lightTypeIndex++)
-                totalLights += m_Lights[lightTypeIndex].Count;
+            for (int lightOpIndex = 0; lightOpIndex < s_Lights.Length; ++lightOpIndex)
+                totalLights += s_Lights[lightOpIndex].Count;
 
             BoundingSphere[] boundingSpheres = new BoundingSphere[totalLights];
 
             int lightCullingIndex = 0;
-            for (int lightTypeIndex = 0; lightTypeIndex < m_Lights.Length; lightTypeIndex++)
+            for (int lightOpIndex = 0; lightOpIndex < s_Lights.Length; lightOpIndex++)
             {
-                for (int lightIndex = 0; lightIndex < m_Lights[lightTypeIndex].Count; lightIndex++)
+                for (int lightIndex = 0; lightIndex < s_Lights[lightOpIndex].Count; lightIndex++)
                 {
-                    Light2D light = m_Lights[lightTypeIndex][lightIndex];
+                    Light2D light = s_Lights[lightOpIndex][lightIndex];
                     if (light != null)
                     {
                         boundingSpheres[lightCullingIndex] = light.GetBoundingSphere();
@@ -135,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
             }
 
-            m_CullingGroup.SetBoundingSpheres(boundingSpheres);
+            s_CullingGroup.SetBoundingSpheres(boundingSpheres);
         }
 
         internal bool IsLitLayer(int layer)
@@ -147,17 +147,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             int index = 0;
             int lightType = (int)m_LightOperationIndex;
-            while (index < m_Lights[lightType].Count && m_ShapeLightOrder > m_Lights[lightType][index].m_ShapeLightOrder)
+            while (index < s_Lights[lightType].Count && m_ShapeLightOrder > s_Lights[lightType][index].m_ShapeLightOrder)
                 index++;
 
-            m_Lights[lightType].Insert(index, this);
+            s_Lights[lightType].Insert(index, this);
         }
 
         internal void UpdateLightOperation(int lightOpIndex)
         {
             if (lightOpIndex != m_PreviousLightOperationIndex)
             {
-                m_Lights[(int)m_LightOperationIndex].Remove(this);
+                s_Lights[(int)m_LightOperationIndex].Remove(this);
                 m_LightOperationIndex = lightOpIndex;
                 m_PreviousLightOperationIndex = m_LightOperationIndex;
                 InsertLight(this);
@@ -170,13 +170,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 // Remove the old value
                 int index = (int)m_LightOperationIndex;
-                if (m_Lights[index].Contains(this))
-                    m_Lights[index].Remove(this);
+                if (s_Lights[index].Contains(this))
+                    s_Lights[index].Remove(this);
 
                 // Add the new value
                 index = (int)m_LightOperationIndex;
-                if (!m_Lights[index].Contains(this))
-                    m_Lights[index].Add(this);
+                if (!s_Lights[index].Contains(this))
+                    s_Lights[index].Add(this);
 
                 m_LightType = type;
                 m_PreviousLightType = m_LightType;
@@ -237,12 +237,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal static List<Light2D> GetShapeLights(int lightOpIndex)
         {
-            return m_Lights[lightOpIndex];
+            return s_Lights[lightOpIndex];
         }
 
         internal bool IsLightVisible(Camera camera)
         {
-            bool isVisible = (m_CullingGroup == null || m_CullingGroup.IsVisible(m_LightCullingIndex)) && isActiveAndEnabled;
+            bool isVisible = (s_CullingGroup == null || s_CullingGroup.IsVisible(m_LightCullingIndex)) && isActiveAndEnabled;
 
             #if UNITY_EDITOR
                 isVisible = isVisible && UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(gameObject, camera);
@@ -254,10 +254,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private void RegisterLight()
         {
-            if (m_Lights != null)
+            if (s_Lights != null)
             {
                 int index = (int)m_LightOperationIndex;
-                if (!m_Lights[index].Contains(this))
+                if (!s_Lights[index].Contains(this))
                     InsertLight(this);
             }
         }
@@ -275,9 +275,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private void OnEnable()
         {
-            if (m_CullingGroup == null)
+            if (s_CullingGroup == null)
             {
-                m_CullingGroup = new CullingGroup();
+                s_CullingGroup = new CullingGroup();
                 RenderPipeline.beginCameraRendering += SetupCulling;
             }
 
@@ -288,22 +288,22 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             bool anyLightLeft = false;
 
-            if (m_Lights != null)
+            if (s_Lights != null)
             {
-                for (int i = 0; i < m_Lights.Length; i++)
+                for (int i = 0; i < s_Lights.Length; i++)
                 {
-                    if (m_Lights[i].Contains(this))
-                        m_Lights[i].Remove(this);
+                    if (s_Lights[i].Contains(this))
+                        s_Lights[i].Remove(this);
 
-                    if (m_Lights[i].Count > 0)
+                    if (s_Lights[i].Count > 0)
                         anyLightLeft = true;
                 }
             }
 
-            if (!anyLightLeft && m_CullingGroup != null)
+            if (!anyLightLeft && s_CullingGroup != null)
             {
-                m_CullingGroup.Dispose();
-                m_CullingGroup = null;
+                s_CullingGroup.Dispose();
+                s_CullingGroup = null;
                 RenderPipeline.beginCameraRendering -= SetupCulling;
             }
         }
@@ -314,7 +314,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if(LightUtility.CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && Light2D.IsShapeLight(this.m_LightType))
             {
                 //m_ShapeLightStyle = CookieStyles.Parametric;
-                m_Lights[(int)m_LightOperationIndex].Remove(this);
+                s_Lights[(int)m_LightOperationIndex].Remove(this);
                 InsertLight(this);
             }
 
