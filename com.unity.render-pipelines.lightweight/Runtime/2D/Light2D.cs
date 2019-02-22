@@ -21,22 +21,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Point = 3
         }
 
-        private enum Light2DType
-        {
-            ShapeType0 = 0,
-            ShapeType1,
-            ShapeType2,
-            Point,
-            Count
-        }
-
-        public enum LightOperation
-        {
-            Type0 = 0,
-            Type1 = 1,
-            Type2 = 2
-        }
-
         public enum LightOverlapMode
         {
             Additive,
@@ -50,9 +34,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         //------------------------------------------------------------------------------------------
-        //                                      Static
+        //                                      Static/Constants
         //------------------------------------------------------------------------------------------
 
+        const int k_LightOperationCount = 4;    // This must match the array size of m_LightOperations in _2DRendererData.
         static CullingGroup m_CullingGroup;
         static List<Light2D>[] m_Lights = SetupLightArray();
 
@@ -102,8 +87,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ShapeLightType")]
-        private LightOperation m_LightOperation = LightOperation.Type0;
-        private LightOperation m_PreviousLightOperation = LightOperation.Type0;
+        private int m_LightOperation;
+        private int m_PreviousLightOperation;
 
         [SerializeField]
         int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs.
@@ -114,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
 
         // TODO make these functions
-        public LightOperation lightOperation
+        public int lightOperationIndex
         {
             get { return m_LightOperation; }
             set { UpdateLightOperation(value); }
@@ -150,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static internal List<Light2D>[] SetupLightArray()
         {
-            int numLightTypes = (int)Light2DType.Count;
+            int numLightTypes = k_LightOperationCount;
             List<Light2D>[] retArray = new List<Light2D>[numLightTypes];
             for (int i = 0; i < numLightTypes; i++)
                 retArray[i] = new List<Light2D>();
@@ -203,12 +188,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_Lights[lightType].Insert(index, this);
         }
 
-        internal void UpdateLightOperation(LightOperation type)
+        internal void UpdateLightOperation(int lightOpIndex)
         {
-            if (type != m_PreviousLightOperation)
+            if (lightOpIndex != m_PreviousLightOperation)
             {
                 m_Lights[(int)m_LightOperation].Remove(this);
-                m_LightOperation = type;
+                m_LightOperation = lightOpIndex;
                 m_PreviousLightOperation = m_LightOperation;
                 InsertLight(this);
             }
@@ -285,14 +270,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return m_Mesh;
         }
 
-        internal static List<Light2D> GetPointLights()
+        internal static List<Light2D> GetShapeLights(int lightOpIndex)
         {
-            return m_Lights[(int)Light2DType.Point];
-        }
-
-        internal static List<Light2D> GetShapeLights(LightOperation lightOperation)
-        {
-            return m_Lights[(int)lightOperation];
+            return m_Lights[lightOpIndex];
         }
 
         internal bool IsLightVisible(Camera camera)

@@ -88,13 +88,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
         }
 
-        static private bool RenderShapeLightSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights, bool isShapeLight)
+        static private bool RenderShapeLightSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights, bool isShapeLight)
         {
             bool renderedAnyLight = false;
 
             foreach (var light in lights)
             {
-                if (light != null && Light2D.IsShapeLight(light.LightProjectionType) == isShapeLight  && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null && Light2D.IsShapeLight(light.LightProjectionType) == isShapeLight  && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
                     Material shapeLightMaterial = light.GetMaterial();
                     if (shapeLightMaterial != null)
@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return renderedAnyLight;
         }
 
-        static private void RenderLightVolumeSet(Camera camera, Light2D.LightOperation type, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights, bool renderShapeLights)
+        static private void RenderLightVolumeSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights, bool renderShapeLights)
         {
             if (lights.Count > 0)
             {
@@ -133,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = lights[i];
 
-                    if (light != null && Light2D.IsShapeLight(light.lightProjectionType) == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperation == type && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                    if (light != null && Light2D.IsShapeLight(light.lightProjectionType) == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                     {
                         Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
                         if (shapeLightVolumeMaterial != null)
@@ -294,22 +294,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (s_RenderTargetsDirty[i])
                     cmdBuffer.ClearRenderTarget(false, true, s_LightOperations[i].globalColor);
 
-                var lightType = (Light2D.LightOperation)i;
                 bool rtDirty = RenderShapeLightSet(
                     camera,
-                    lightType,
+                    i,
                     cmdBuffer,
                     layerToRender,
-                    Light2D.GetShapeLights(lightType),
+                    Light2D.GetShapeLights(i),
                     true
                 );
 
                 rtDirty |= RenderShapeLightSet(
                     camera,
-                    lightType,
+                    i,
                     cmdBuffer,
                     layerToRender,
-                    Light2D.GetShapeLights(lightType),
+                    Light2D.GetShapeLights(i),
                     false
                 );
 
@@ -330,14 +329,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 string sampleName = "2D Shape Light Volumes - " + s_LightOperations[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
-                var lightType = (Light2D.LightOperation)i;
                 RenderLightVolumeSet(
                     camera,
-                    lightType,
+                    i,
                     cmdBuffer,
                     layerToRender,
                     s_RenderTargets[i].Identifier(),
-                    Light2D.GetShapeLights(lightType),
+                    Light2D.GetShapeLights(i),
                     renderShapeLights
                 );
 
