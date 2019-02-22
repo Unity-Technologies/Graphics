@@ -1,8 +1,9 @@
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    [CreateAssetMenu(fileName = "New 2D Renderer", menuName = "Rendering/Lightweight Render Pipeline/2D Renderer", order = 2)]
+    [CreateAssetMenu(fileName = "New 2D Renderer", menuName = "Rendering/Lightweight Render Pipeline/2D Renderer", order = CoreUtils.assetCreateMenuPriority1)]
     public class _2DRendererData : ScriptableRendererData
     {
         [SerializeField]
