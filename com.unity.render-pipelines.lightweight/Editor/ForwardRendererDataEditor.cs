@@ -136,16 +136,14 @@ namespace UnityEditor.Rendering.LWRP
             };
 
             m_passesList.onAddCallback += AddPass;
-            m_passesList.onRemoveCallback += list =>
+            m_passesList.onRemoveCallback = (list) =>
             {
                 var obj = list.serializedProperty.GetArrayElementAtIndex(list.index).objectReferenceValue;
-                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
-                list.serializedProperty.serializedObject.ApplyModifiedProperties();
-                --list.serializedProperty.arraySize;
-                //m_ElementSOs.Clear();
-                // Clean up the asset
                 DestroyImmediate(obj, true);
                 AssetDatabase.SaveAssets();
+                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
+                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                serializedObject.ApplyModifiedProperties();
             };
             m_passesList.onReorderCallbackWithDetails += ReorderPass;
 		    
