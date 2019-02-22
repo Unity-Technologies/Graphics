@@ -32,8 +32,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //------------------------------------------------------------------------------------------
 
         const int k_LightOperationCount = 4;    // This must match the array size of m_LightOperations in _2DRendererData.
-        static CullingGroup s_CullingGroup;
         static List<Light2D>[] s_Lights = SetupLightArray();
+        static CullingGroup s_CullingGroup;
+        static BoundingSphere[] s_BoundingSpheres;
 
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
@@ -119,23 +120,29 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             for (int lightOpIndex = 0; lightOpIndex < s_Lights.Length; ++lightOpIndex)
                 totalLights += s_Lights[lightOpIndex].Count;
 
-            BoundingSphere[] boundingSpheres = new BoundingSphere[totalLights];
+            if (s_BoundingSpheres == null)
+                s_BoundingSpheres = new BoundingSphere[Mathf.Max(1024, 2 * totalLights)];
+            else if (totalLights > s_BoundingSpheres.Length)
+                s_BoundingSpheres = new BoundingSphere[2 * totalLights];
 
-            int lightCullingIndex = 0;
-            for (int lightOpIndex = 0; lightOpIndex < s_Lights.Length; lightOpIndex++)
+            int currentLightCullingIndex = 0;
+            for (int lightOpIndex = 0; lightOpIndex < s_Lights.Length; ++lightOpIndex)
             {
-                for (int lightIndex = 0; lightIndex < s_Lights[lightOpIndex].Count; lightIndex++)
+                var lightsPerLightOp = s_Lights[lightOpIndex];
+
+                for (int lightIndex = 0; lightIndex < lightsPerLightOp.Count; ++lightIndex)
                 {
-                    Light2D light = s_Lights[lightOpIndex][lightIndex];
-                    if (light != null)
-                    {
-                        boundingSpheres[lightCullingIndex] = light.GetBoundingSphere();
-                        light.m_LightCullingIndex = lightCullingIndex++;
-                    }
+                    Light2D light = lightsPerLightOp[lightIndex];
+                    if (light == null)
+                        continue;
+
+                    s_BoundingSpheres[currentLightCullingIndex] = light.GetBoundingSphere();
+                    light.m_LightCullingIndex = currentLightCullingIndex++;
                 }
             }
 
-            s_CullingGroup.SetBoundingSpheres(boundingSpheres);
+            s_CullingGroup.SetBoundingSpheres(s_BoundingSpheres);
+            s_CullingGroup.SetBoundingSphereCount(currentLightCullingIndex);
         }
 
         internal bool IsLitLayer(int layer)
