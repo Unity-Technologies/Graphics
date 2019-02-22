@@ -397,7 +397,8 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         specularLighting = F * (hairSpec1 + hairSpec2);
 
         // Diffuse lighting
-        // Note: this normalization term is wrong, we also need to divide by (2 * Pi)...
+        // Note: this normalization term is wrong, correct one is (1/(Pi^2)).
+        // (see "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces").
         // However, this would make the contribution of non-area-lights too small.
         float diffuseTerm = Lambert();
         diffuseLighting = diffuseTerm;
