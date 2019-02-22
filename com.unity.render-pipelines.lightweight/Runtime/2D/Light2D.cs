@@ -27,12 +27,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             AlphaBlend
         }
 
-        public enum LightQuality
-        {
-            Fast,
-            Accurate
-        }
-
         //------------------------------------------------------------------------------------------
         //                                      Static/Constants
         //------------------------------------------------------------------------------------------
@@ -44,73 +38,44 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
         //------------------------------------------------------------------------------------------
-        private Mesh m_Mesh = null;
 
         [SerializeField]
-        public LightType lightProjectionType
-        {
-            get { return m_LightProjectionType; }
-            set { m_LightProjectionType = value; }
-        }
-        [SerializeField]
-        private LightType m_LightProjectionType = LightType.Parametric;
-        private LightType m_PreviousLightProjectionType = LightType.Parametric;
-
-        public Color color
-        {
-            get { return m_Color; }
-            set { m_Color = value; }
-        }
-        [ColorUsageAttribute(false, true)]
-        [SerializeField]
-        [Serialization.FormerlySerializedAs("m_LightColor")]
-        private Color m_Color = Color.white;
-        private Color m_PreviousColor = Color.white;
-
-        public Sprite lightCookieSprite
-        {
-            get { return m_LightCookieSprite; }
-            set { m_LightCookieSprite = value; }
-        }
-        [SerializeField]
-        private Sprite m_LightCookieSprite;
-        private Sprite m_PreviousLightCookieSprite = null;
-
-        public float volumeOpacity
-        {
-            get { return m_LightVolumeOpacity; }
-            set { m_LightVolumeOpacity = value; }
-        }
-        [SerializeField]
-        private float m_LightVolumeOpacity = 0.0f;
-        private float m_PreviousLightVolumeOpacity = 0.0f;
+        [Serialization.FormerlySerializedAs("m_LightProjectionType")]
+        LightType m_LightType = LightType.Parametric;
 
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ShapeLightType")]
-        private int m_LightOperation;
-        private int m_PreviousLightOperation;
+        [Serialization.FormerlySerializedAs("m_LightOperation")]
+        int m_LightOperationIndex;
 
+        [ColorUsage(false, true)]
         [SerializeField]
-        int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs.
+        [Serialization.FormerlySerializedAs("m_LightColor")]
+        Color m_Color = Color.white;
 
+        [SerializeField] float  m_LightVolumeOpacity    = 0.0f;
+        [SerializeField] int[]  m_ApplyToSortingLayers  = new int[1];     // These are sorting layer IDs.
+        [SerializeField] Sprite m_LightCookieSprite     = null;
 
-        private int m_LightCullingIndex = -1;
-        private Bounds m_LocalBounds;
+        LightType   m_PreviousLightType             = LightType.Parametric;
+        int         m_PreviousLightOperationIndex;
+        Color       m_PreviousColor                 = Color.white;
+        float       m_PreviousLightVolumeOpacity;
+        Sprite      m_PreviousLightCookieSprite;
+        Mesh        m_Mesh;
+        int         m_LightCullingIndex             = -1;
+        Bounds      m_LocalBounds;
 
-
-        // TODO make these functions
-        public int lightOperationIndex
+        public LightType lightType
         {
-            get { return m_LightOperation; }
-            set { UpdateLightOperation(value); }
+            get => m_LightType;
+            set => UpdateLightProjectionType(value);
         }
 
-        public LightType LightProjectionType
-        {
-            get { return m_LightProjectionType; }
-            set { UpdateLightProjectionType(value); }
-        }
-
+        public int      lightOperationIndex => m_LightOperationIndex;
+        public Color    color               => m_Color;
+        public float    volumeOpacity       => m_LightVolumeOpacity;
+        public Sprite   lightCookieSprite   => m_LightCookieSprite;
 
         //==========================================================================================
         //                              Functions
@@ -181,7 +146,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         internal void InsertLight(Light2D light)
         {
             int index = 0;
-            int lightType = (int)m_LightOperation;
+            int lightType = (int)m_LightOperationIndex;
             while (index < m_Lights[lightType].Count && m_ShapeLightOrder > m_Lights[lightType][index].m_ShapeLightOrder)
                 index++;
 
@@ -190,31 +155,31 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal void UpdateLightOperation(int lightOpIndex)
         {
-            if (lightOpIndex != m_PreviousLightOperation)
+            if (lightOpIndex != m_PreviousLightOperationIndex)
             {
-                m_Lights[(int)m_LightOperation].Remove(this);
-                m_LightOperation = lightOpIndex;
-                m_PreviousLightOperation = m_LightOperation;
+                m_Lights[(int)m_LightOperationIndex].Remove(this);
+                m_LightOperationIndex = lightOpIndex;
+                m_PreviousLightOperationIndex = m_LightOperationIndex;
                 InsertLight(this);
             }
         }
 
         internal void UpdateLightProjectionType(LightType type)
         {
-            if (type != m_PreviousLightProjectionType)
+            if (type != m_PreviousLightType)
             {
                 // Remove the old value
-                int index = (int)m_LightOperation;
+                int index = (int)m_LightOperationIndex;
                 if (m_Lights[index].Contains(this))
                     m_Lights[index].Remove(this);
 
                 // Add the new value
-                index = (int)m_LightOperation;
+                index = (int)m_LightOperationIndex;
                 if (!m_Lights[index].Contains(this))
                     m_Lights[index].Add(this);
 
-                m_LightProjectionType = type;
-                m_PreviousLightProjectionType = m_LightProjectionType;
+                m_LightType = type;
+                m_PreviousLightType = m_LightType;
             }
         }
 
@@ -222,7 +187,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             BoundingSphere boundingSphere = new BoundingSphere();
 
-            if (Light2D.IsShapeLight(m_LightProjectionType))
+            if (Light2D.IsShapeLight(m_LightType))
                 boundingSphere = GetShapeLightBoundingSphere();
             else
                 boundingSphere = GetPointLightBoundingSphere();
@@ -232,9 +197,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal Material GetVolumeMaterial()
         {
-            if (Light2D.IsShapeLight(m_LightProjectionType))
+            if (Light2D.IsShapeLight(m_LightType))
                 return GetShapeLightVolumeMaterial();
-            else if(m_LightProjectionType == LightType.Point)
+            else if(m_LightType == LightType.Point)
                 return GetPointLightVolumeMaterial();
 
             return null;
@@ -242,9 +207,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal Material GetMaterial()
         {
-            if (Light2D.IsShapeLight(m_LightProjectionType))
+            if (Light2D.IsShapeLight(m_LightType))
                 return GetShapeLightMaterial();
-            else if(m_LightProjectionType == LightType.Point)
+            else if(m_LightType == LightType.Point)
                 return GetPointLightMaterial();
 
             return null;
@@ -257,11 +222,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (m_Mesh == null)
                     m_Mesh = new Mesh();
 
-                if (IsShapeLight(m_LightProjectionType))
+                if (IsShapeLight(m_LightType))
                 {
                     m_LocalBounds = GetShapeLightMesh(ref m_Mesh);
                 }
-                else if(m_LightProjectionType == LightType.Point)
+                else if(m_LightType == LightType.Point)
                 {
                      m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 4, 0, m_Color, m_LightVolumeOpacity);
                 }
@@ -291,7 +256,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             if (m_Lights != null)
             {
-                int index = (int)m_LightOperation;
+                int index = (int)m_LightOperationIndex;
                 if (!m_Lights[index].Contains(this))
                     InsertLight(this);
             }
@@ -346,10 +311,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private void LateUpdate()
         {
             // Sorting
-            if(LightUtility.CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && Light2D.IsShapeLight(this.m_LightProjectionType))
+            if(LightUtility.CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && Light2D.IsShapeLight(this.m_LightType))
             {
                 //m_ShapeLightStyle = CookieStyles.Parametric;
-                m_Lights[(int)m_LightOperation].Remove(this);
+                m_Lights[(int)m_LightOperationIndex].Remove(this);
                 InsertLight(this);
             }
 
@@ -388,8 +353,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 rebuildMaterial = false;
             }
 
-            UpdateLightProjectionType(m_LightProjectionType);
-            UpdateLightOperation(m_LightOperation);
+            UpdateLightProjectionType(m_LightType);
+            UpdateLightOperation(m_LightOperationIndex);
         }
 
         private void OnDrawGizmos()

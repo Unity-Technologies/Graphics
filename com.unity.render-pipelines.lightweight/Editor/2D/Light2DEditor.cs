@@ -159,12 +159,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         private void OnEnable()
         {
-            m_LightProjectionType = serializedObject.FindProperty("m_LightProjectionType");
+            m_LightProjectionType = serializedObject.FindProperty("m_LightType");
             m_LightColor = serializedObject.FindProperty("m_Color");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
 
-            m_LightOperation = serializedObject.FindProperty("m_LightOperation");
+            m_LightOperation = serializedObject.FindProperty("m_LightOperationIndex");
 
             var light = target as Light2D;
 
@@ -494,7 +494,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (lt == null)
                 return;
 
-            if (lt.LightProjectionType == Light2D.LightType.Point)
+            if (lt.lightType == Light2D.LightType.Point)
             {
 
                 Undo.RecordObject(lt, "Edit Target Light");
@@ -511,7 +511,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 Transform t = lt.transform;
                 Vector3 posOffset = lt.shapeLightOffset;
 
-                if (lt.lightProjectionType == Light2D.LightType.Sprite)
+                if (lt.lightType == Light2D.LightType.Sprite)
                 {
                     Vector3 v0 = t.TransformPoint(new Vector3(-0.5f, -0.5f));
                     Vector3 v1 = t.TransformPoint(new Vector3(0.5f, -0.5f));
@@ -522,7 +522,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     Handles.DrawLine(v2, v3);
                     Handles.DrawLine(v3, v0);
                 }
-                else if (lt.lightProjectionType == Light2D.LightType.Parametric)
+                else if (lt.lightType == Light2D.LightType.Parametric)
                 {
                     float radius = 0.5f;
                     float sides = lt.shapeLightParametricSides;
@@ -595,7 +595,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             OnTargetSortingLayers();
 
-            if (lightObject.lightProjectionType == Light2D.LightType.Freeform )
+            if (lightObject.lightType == Light2D.LightType.Freeform )
             {
                 // Draw the edit shape tool button here.
             }

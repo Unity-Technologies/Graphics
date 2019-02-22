@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             foreach (var light in lights)
             {
-                if (light != null && Light2D.IsShapeLight(light.LightProjectionType) == isShapeLight  && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null && Light2D.IsShapeLight(light.lightType) == isShapeLight  && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
                     Material shapeLightMaterial = light.GetMaterial();
                     if (shapeLightMaterial != null)
@@ -133,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = lights[i];
 
-                    if (light != null && Light2D.IsShapeLight(light.lightProjectionType) == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                    if (light != null && Light2D.IsShapeLight(light.lightType) == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                     {
                         Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
                         if (shapeLightVolumeMaterial != null)
@@ -211,7 +211,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             cmdBuffer.SetGlobalColor("_LightColor", light.color);
 
-            if (light.pointLightQuality == Light2D.LightQuality.Fast)
+            if (light.pointLightQuality == Light2D.PointLightQuality.Fast)
             {
                 cmdBuffer.EnableShaderKeyword("LIGHT_QUALITY_FAST");
                 cmdBuffer.DisableShaderKeyword("LIGHT_QUALITY_ACCURATE");

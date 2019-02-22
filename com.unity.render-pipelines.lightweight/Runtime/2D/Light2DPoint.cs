@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +8,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
     sealed public partial class Light2D : MonoBehaviour
     {
+        public enum PointLightQuality
+        {
+            Fast,
+            Accurate
+        }
+
         //------------------------------------------------------------------------------------------
         //                                      Static
         //------------------------------------------------------------------------------------------
@@ -58,13 +64,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField]
         private float m_PointLightDistance = 3;
 
-        public LightQuality pointLightQuality
+        public PointLightQuality pointLightQuality
         {
             get { return m_PointLightQuality; }
             set { m_PointLightQuality = value; }
         }
         [SerializeField]
-        private LightQuality m_PointLightQuality = LightQuality.Accurate;
+        private PointLightQuality m_PointLightQuality = PointLightQuality.Accurate;
 
 
         //==========================================================================================
