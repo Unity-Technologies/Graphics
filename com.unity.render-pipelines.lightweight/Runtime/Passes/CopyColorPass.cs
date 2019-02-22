@@ -15,8 +15,7 @@ namespace UnityEngine.Rendering.LWRP
         Material m_SamplingMaterial;
         Downsampling m_DownsamplingMethod;
 
-        private RenderTargetHandle colorHandle { get; set; }
-        private RenderTargetHandle depthHandle { get; set; }
+        private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
 
         /// <summary>
@@ -36,10 +35,9 @@ namespace UnityEngine.Rendering.LWRP
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
-        public void Setup(RenderTargetHandle source, RenderTargetHandle depthHandle, RenderTargetHandle destination)
+        public void Setup(RenderTargetHandle source, RenderTargetHandle destination)
         {
-            this.colorHandle = source;
-            this.depthHandle = depthHandle;
+            this.source = source;
             this.destination = destination;
         }
 
@@ -62,7 +60,7 @@ namespace UnityEngine.Rendering.LWRP
             opaqueDesc.msaaSamples = 1;
             opaqueDesc.depthBufferBits = 0;
 
-            RenderTargetIdentifier colorRT = colorHandle.Identifier();
+            RenderTargetIdentifier colorRT = source.Identifier();
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
             cmd.GetTemporaryRT(destination.id, opaqueDesc, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
@@ -83,7 +81,6 @@ namespace UnityEngine.Rendering.LWRP
                     break;
             }
 
-            cmd.SetRenderTarget(colorHandle.Identifier(), depthHandle.Identifier());
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

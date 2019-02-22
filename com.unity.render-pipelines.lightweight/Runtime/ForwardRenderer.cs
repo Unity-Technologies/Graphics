@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.LWRP
 
             if (m_CopyColorPass.ShouldExecute(ref renderingData))
             {
-                m_CopyColorPass.Setup(colorHandle, depthHandle, m_OpaqueColor);
+                m_CopyColorPass.Setup(colorHandle, m_OpaqueColor);
                 EnqueuePass(m_CopyColorPass);
             }
 

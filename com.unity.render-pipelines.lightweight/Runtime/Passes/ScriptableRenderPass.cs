@@ -34,7 +34,6 @@ namespace UnityEngine.Rendering.LWRP
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
         }
 
-#region PrivateFields
         List<ShaderTagId> m_ShaderTagIDs = new List<ShaderTagId>();
 
         static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
@@ -60,7 +59,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         static Mesh s_FullscreenMesh = null;
-        internal static Mesh fullscreenMesh
+        public static Mesh fullscreenMesh
         {
             get
             {
@@ -104,7 +103,6 @@ namespace UnityEngine.Rendering.LWRP
                 return m_PostProcessRenderContext;
             }
         }
-#endregion
 
         /// <summary>
         /// Cleanup any allocated data that was created during the execution of the pass.
@@ -140,17 +138,6 @@ namespace UnityEngine.Rendering.LWRP
         protected void RegisterShaderPassName(string passName)
         {
             m_ShaderTagIDs.Add(new ShaderTagId(passName));
-        }
-
-        protected void DrawFullscreen(ScriptableRenderContext context, ref CameraData cameraData, Material material, MaterialPropertyBlock properties = null, int shaderPassId = 0)
-        {
-            Camera camera = cameraData.camera;
-            var cmd = CommandBufferPool.Get("DrawFullscreen");
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
-            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         /// <summary>
