@@ -20,6 +20,8 @@ Your Unity Project’s [HDRP Asset](HDRP-Asset.html#SkyLighting) has the followi
 - **Reflection Size**: Controls the resolution of the sky cube map. This handles fallback reflection when there are no local reflection probes present, and has no effect on the quality of the sky itself.
 - **Lighting Override Mask**: A LayerMask that allows you to decouple the sky from the lighting. For example, when you have a dark sky at night time but want to have brighter lighting so that you can still see clearly.
 
+<a name="BakingEnvironment"></a>
+
 ## Baking environment
 
 The [Static Lighting Sky](Static-Lighting-Sky.html) component specifies the type of sky that the light baking process uses to bake environmental lighting. This component has two properties:
