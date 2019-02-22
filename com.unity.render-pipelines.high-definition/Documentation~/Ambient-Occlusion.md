@@ -2,9 +2,13 @@
 
 HDRP uses ambient occlusion to approximate the intensity and position of ambient light on a GameObject’s surface, based on the light in the Scene and the environment around the GameObject. In HDRP, ambient occlusion only affects indirect diffuse lighting (lighting from Lightsmaps, Light Probes, and Light Probe Proxy Volumes).
 
+HDRP calculates the ambient occlusion effect using a map. You create and apply this map using the green channel of the mask map. HDRP uses the ambient occlusion map for specular occlusion, which it applies on indirect specular lighting. HDRP does not expose specular occlusion options in the Lit Shader. Instead, it automatically calculates specular occlusion from the Camera’s view vector and the ambient occlusion.
+
 Note: Ambient occlusion in a Lit Shader using deferred rendering affects emission due to a technical constraint. Lit Shaders that use forward rendering do not have this constraint and do not affect emission.
 
-HDRP calculates the ambient occlusion effect using a map. You create and apply this map using the green channel of the mask map. HDRP uses the ambient occlusion map for specular occlusion, which it applies on indirect specular lighting. HDRP does not expose specular occlusion options in the Lit Shader.Instead, it automatically calculates specular occlusion from the Camera’s view vector and the ambient occlusion.
+## Properties
+
+The ambient occlusion properties are in the **Surface Inputs** drop-down of your Shader.
 
 | Property                        | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ |
