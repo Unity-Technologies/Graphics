@@ -95,6 +95,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_DecalProjectorComponent.m_UVBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(1e-5f, boundsSizeCurrentOS.x) * m_DecalProjectorComponent.m_UVScale.x;
                     m_DecalProjectorComponent.m_UVBias.y += (boundsMinCurrentOS.z - boundsMinPreviousOS.z) / Mathf.Max(1e-5f, boundsSizeCurrentOS.z) * m_DecalProjectorComponent.m_UVScale.y;
                 }
+                if (PrefabUtility.IsPartOfNonAssetPrefabInstance(m_DecalProjectorComponent))
+                {
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(m_DecalProjectorComponent);
+                }
             }
 
             // Automatically recenter our transform component if necessary.
@@ -103,7 +107,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Both the DecalProjectorComponent, and the transform will be modified.
                 // The undo system will automatically group all RecordObject() calls here into a single action.
-                Undo.RecordObject(m_DecalProjectorComponent.transform, "Decal Projector Change");
+                Undo.RecordObject(m_DecalProjectorComponent, "Decal Projector Change");
 
                 // Re-center the transform to the center of the decal projector bounds,
                 // while maintaining the world-space coordinates of the decal projector boundings vertices.
@@ -113,6 +117,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 );
 
                 m_DecalProjectorComponent.m_Offset = Vector3.zero;
+                if (PrefabUtility.IsPartOfNonAssetPrefabInstance(m_DecalProjectorComponent))
+                {
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(m_DecalProjectorComponent);
+                }
             }
 
             Handles.matrix = mat;
