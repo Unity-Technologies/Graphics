@@ -7,13 +7,12 @@ namespace UnityEngine.Rendering.LWRP
         Material m_ScreenSpaceShadowsMaterial;
         RenderTargetHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
-
+        string m_ProfilerTag = "Resolve Shadows";
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
             m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
             renderPassEvent = evt;
-            profilerTag = "Resolve Shadows";
         }
 
         public void Setup(RenderTextureDescriptor baseDescriptor)
@@ -42,7 +41,7 @@ namespace UnityEngine.Rendering.LWRP
             if (renderingData.lightData.mainLightIndex == -1)
                 return;
 
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
             cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
 

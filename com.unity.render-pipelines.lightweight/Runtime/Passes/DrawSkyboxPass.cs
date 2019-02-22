@@ -12,11 +12,11 @@ namespace UnityEngine.Rendering.LWRP
         RenderTextureDescriptor descriptor { get; set; }
 
         bool m_CombineWithRenderOpaquesPass = false;
+        string m_ProfilerTag = "Draw Skybox (Set RT's)";
 
         public DrawSkyboxPass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
-            profilerTag = "Draw Skybox (Set RT's)";
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.LWRP
             // between them.
             if (!m_CombineWithRenderOpaquesPass)
             {
-                CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+                CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
                 RenderBufferLoadAction loadOp = RenderBufferLoadAction.Load;
                 RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;

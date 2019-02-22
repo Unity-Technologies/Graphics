@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.LWRP
 
         RenderTargetHandle m_TemporaryColorTexture;
         bool m_IsOpaquePostProcessing;
+        string m_ProfilerTag = "Render PostProcess Effects";
 
         public PostProcessPass(RenderPassEvent evt, bool renderOpaques = false)
         {
@@ -25,7 +26,6 @@ namespace UnityEngine.Rendering.LWRP
             m_TemporaryColorTexture.Init("_TemporaryColorTexture");
 
             renderPassEvent = evt;
-            profilerTag = "Render PostProcess Effects";
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.LWRP
             bool isLastRenderPass = (m_Destination == RenderTargetHandle.CameraTarget) && !cameraData.isStereoEnabled;
             bool flip = isLastRenderPass && cameraData.camera.targetTexture == null;
 
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
             var layer = renderingData.cameraData.postProcessLayer;
             int effectsCount;

@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.LWRP
         internal RenderTextureDescriptor descriptor { get; private set; }
 
         FilteringSettings m_FilteringSettings;
+        string m_ProfilerTag = "Depth Prepass";
 
         /// <summary>
         /// Create the DepthOnlyPass
@@ -25,7 +26,6 @@ namespace UnityEngine.Rendering.LWRP
             RegisterShaderPassName("DepthOnly");
             m_FilteringSettings = new FilteringSettings(renderQueueRange);
             renderPassEvent = evt;
-            profilerTag = "Depth Prepass";
         }
 
         /// <summary>
@@ -58,8 +58,8 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
-            using (new ProfilingSample(cmd, profilerTag))
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            using (new ProfilingSample(cmd, m_ProfilerTag))
             {
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
                 SetRenderTarget(

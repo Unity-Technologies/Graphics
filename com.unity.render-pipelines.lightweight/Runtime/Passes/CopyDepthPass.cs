@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
         Material m_CopyDepthMaterial;
+        string m_ProfilerTag = "Copy Depth";
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -32,7 +33,6 @@ namespace UnityEngine.Rendering.LWRP
         {
             this.source = source;
             this.destination = destination;
-            profilerTag = "Copy Depth";
         }
 
         /// <inheritdoc/>
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetIdentifier depthSurface = source.Identifier();
             RenderTargetIdentifier copyDepthSurface = destination.Identifier();
 

@@ -25,12 +25,12 @@ namespace UnityEngine.Rendering.LWRP
         ShadowSliceData[] m_AdditionalLightSlices;
         float[] m_AdditionalLightsShadowStrength;
         List<int> m_AdditionalShadowCastingLightIndices = new List<int>();
+        string m_ProfilerTag = "Render Additional Shadows";
 
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
             RegisterShaderPassName("ShadowCaster");
             renderPassEvent = evt;
-            profilerTag = "Render Additional Shadows";
 
             int maxLights = LightweightRenderPipeline.maxVisibleAdditionalLights;
             m_AdditionalLightShadowMatrices = new Matrix4x4[maxLights];
@@ -155,8 +155,8 @@ namespace UnityEngine.Rendering.LWRP
             NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
             bool additionalLightHasSoftShadows = false;
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
-            using (new ProfilingSample(cmd, profilerTag))
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            using (new ProfilingSample(cmd, m_ProfilerTag))
             {
                 int shadowmapWidth = shadowData.additionalLightsShadowmapWidth;
                 int shadowmapHeight = shadowData.additionalLightsShadowmapHeight;

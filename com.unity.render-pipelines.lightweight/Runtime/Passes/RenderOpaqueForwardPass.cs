@@ -16,14 +16,13 @@ namespace UnityEngine.Rendering.LWRP
         Color clearColor { get; set; }
 
         FilteringSettings m_FilteringSettings;
+        string m_ProfilerTag = "Render Opaques";
 
         public RenderOpaqueForwardPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
             renderPassEvent = evt;
-            profilerTag = "Render Opaques";
-
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
         }
 
@@ -53,8 +52,8 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
-            using (new ProfilingSample(cmd, profilerTag))
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            using (new ProfilingSample(cmd, m_ProfilerTag))
             {
                 // When ClearFlag.None that means this is not the first render pass to write to camera target.
                 // In that case we set loadOp for both color and depth as RenderBufferLoadAction.Load

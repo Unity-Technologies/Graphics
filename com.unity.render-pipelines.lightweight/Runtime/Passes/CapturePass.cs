@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.LWRP
     internal class CapturePass : ScriptableRenderPass
     {
         RenderTargetHandle m_CameraColorHandle;
-
+        string m_ProfilerTag = "Capture Pass";
         public CapturePass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering.LWRP
         public void Setup(RenderTargetHandle colorHandle)
         {
             m_CameraColorHandle = colorHandle;
-            profilerTag = "Capture Pass";
         }
 
         public override bool ShouldExecute(ref RenderingData renderingData)
@@ -36,7 +35,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmdBuf = CommandBufferPool.Get(profilerTag);
+            CommandBuffer cmdBuf = CommandBufferPool.Get(m_ProfilerTag);
             var colorAttachmentIdentifier = m_CameraColorHandle.Identifier();
             var captureActions = renderingData.cameraData.captureActions;
             for (captureActions.Reset(); captureActions.MoveNext();)

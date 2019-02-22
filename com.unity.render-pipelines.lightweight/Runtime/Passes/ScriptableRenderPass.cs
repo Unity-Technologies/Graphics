@@ -27,7 +27,6 @@ namespace UnityEngine.Rendering.LWRP
     public abstract class ScriptableRenderPass : IComparable<ScriptableRenderPass>
     {
         public RenderPassEvent renderPassEvent { get; set; }
-        public string profilerTag { get; set; }
 
         public ScriptableRenderPass()
         {

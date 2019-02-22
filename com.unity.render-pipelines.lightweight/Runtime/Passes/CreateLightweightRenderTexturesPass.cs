@@ -17,11 +17,11 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle depthAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
         private int samples { get; set; }
+        string m_ProfilerTag = "Create Render Textures";
 
         public CreateLightweightRenderTexturesPass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
-            profilerTag = "Create Render Textures";
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
                 bool useDepthRenderBuffer = depthAttachmentHandle == RenderTargetHandle.CameraTarget;
