@@ -192,11 +192,16 @@ namespace UnityEditor.Rendering.LWRP
                                      !myType.IsAbstract &&
                                      myType.IsSubclassOf(typeof(ScriptableRendererFeature))))
             {
-                var path = type.Namespace;
-                if (path == typeof(ScriptableRendererFeature).Namespace)
-                    path = path.Split('.').Last();
-                path = path.Replace('.', '/');
-                menu.AddItem(new GUIContent(path + "/" + type.Name), false, clickHandler, type.Name);
+                var path = type.Name;
+                if (type.Namespace != null)
+                {
+                    var nameSpace = type.Namespace;
+                    if (nameSpace == typeof(ScriptableRendererFeature).Namespace)
+                        nameSpace = nameSpace.Split('.').Last();
+                    nameSpace = nameSpace.Replace('.', '/');
+                    path = nameSpace + path;
+                }
+                menu.AddItem(new GUIContent(path), false, clickHandler, type.Name);
             }
             menu.ShowAsContext();
         }
