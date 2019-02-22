@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Addressing mode for Sequential blocks
 
+### Fixed
+- Undo Redo while changing space
+- Type declaration was unmodifiable due to exception during space intialization 
+
 ## [6.3.0-preview] - 2019-02-18
 
 ## [6.2.0-preview] - 2019-02-15
