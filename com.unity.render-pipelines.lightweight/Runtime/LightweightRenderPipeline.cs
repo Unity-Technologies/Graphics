@@ -70,8 +70,6 @@ namespace UnityEngine.Rendering.LWRP
         {
             SetSupportedRenderingFeatures();
 
-            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
-
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
@@ -108,6 +106,7 @@ namespace UnityEngine.Rendering.LWRP
             BeginFrameRendering(renderContext, cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();
 
             SortCameras(cameras);
