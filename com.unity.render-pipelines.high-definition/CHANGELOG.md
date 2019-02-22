@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.5.0-preview] - 2019-XX-XX
 
 ### Fixed
-- Fix diffusion profile upgrade breaking package when upgrading to a new version
+- Fixed diffusion profile upgrade breaking package when upgrading to a new version
+- Fixed decals cropped by gizmo not updating correctly if prefab
 
 ## [6.4.0-preview] - 2019-02-21
 
@@ -20,10 +21,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed Light explorer. The volume explorer used `profile` instead of `sharedProfile` which instantiate a custom volume profile instead of editing the asset itself.
 - Fixed UI issue where all is displayed using metric unit in shadow cascade and Percent is set in the unit field (happening when opening the inspector).
-- Fix inspector event error when double clicking on an asset (diffusion profile/material).
-- Fix nullref on layered material UI when the material is not an asset.
-- Fix nullref exception when undo/redo a light property.
-- Fix visual bug when area light handle size is 0.
+- Fixed inspector event error when double clicking on an asset (diffusion profile/material).
+- Fixed nullref on layered material UI when the material is not an asset.
+- Fixed nullref exception when undo/redo a light property.
+- Fixed visual bug when area light handle size is 0.
 
 ### Changed
 - Update UI for 32bit/16bit shadow precision settings in HDRP asset
