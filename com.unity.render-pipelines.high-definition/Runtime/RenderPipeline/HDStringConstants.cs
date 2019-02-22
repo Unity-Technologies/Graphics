@@ -506,8 +506,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TemporalAccumuationWeight       = Shader.PropertyToID("_TemporalAccumuationWeight");
         public static readonly int _SpatialFilterRadius             = Shader.PropertyToID("_SpatialFilterRadius");
 
-        public static readonly int _RayCountTexture                 = Shader.PropertyToID("_RayCountTexture");
         public static readonly int _RayCountEnabled                 = Shader.PropertyToID("_RayCountEnabled");
+        public static readonly int _RayCountTexture                 = Shader.PropertyToID("_RayCountTexture");
+        public static readonly int _InputRayCountTexture            = Shader.PropertyToID("_InputRayCountTexture");
+        public static readonly int _InputRayCountBuffer             = Shader.PropertyToID("_InputRayCountBuffer");
+        public static readonly int _OutputRayCountBuffer            = Shader.PropertyToID("_OutputRayCountBuffer");
+        public static readonly int _InputBufferDimension            = Shader.PropertyToID("_InputBufferDimension");
+        public static readonly int _OutputBufferDimension           = Shader.PropertyToID("_OutputBufferDimension");
 #else
         public static readonly int _RaytracedAreaShadow             = Shader.PropertyToID("_RaytracedAreaShadow");
 #endif

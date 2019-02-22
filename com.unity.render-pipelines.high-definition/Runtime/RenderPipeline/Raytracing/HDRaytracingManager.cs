@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RayCountManager m_RayCountManager = new RayCountManager();
         public RayCountManager rayCountManager { get { return m_RayCountManager; } }
 
-        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise, LightLoop lightloop, SharedRTManager sharedRTManager)
+        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise, LightLoop lightloop, SharedRTManager sharedRTManager, DebugDisplaySettings currentDebugDisplaySettings)
         {
             // Keep track of the resources
             m_Resources = resources;
@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Init the ray count manager
-            m_RayCountManager.Init(resources);
+            m_RayCountManager.Init(resources, currentDebugDisplaySettings);
 
 #if UNITY_EDITOR
             // We need to invalidate the acceleration structures in case the hierarchy changed

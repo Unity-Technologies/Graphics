@@ -141,7 +141,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader lightClusterBuildCS;
             public ComputeShader lightClusterDebugCS;
             public ComputeShader countTracedRays;
-            public Shader debugViewRayCountPS;
 #endif
         }
 
@@ -327,7 +326,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightClusterBuildCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute"),
                 lightClusterDebugCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute"),
 				countTracedRays = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/CountTracedRays.compute"),
-				debugViewRayCountPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugViewRayCount.shader")
 #endif
         };
 
