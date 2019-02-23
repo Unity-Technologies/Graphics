@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.7.0] - 2019-XX-XX
 
 ## [5.6.0] - 2019-02-21
-### Added
-- Enabled support for CBUFFER on OpenGL Core and OpenGL ES 3 backends.
 
 ## [5.5.0] - 2019-02-18
 
