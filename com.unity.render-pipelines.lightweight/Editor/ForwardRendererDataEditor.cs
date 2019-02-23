@@ -136,14 +136,18 @@ namespace UnityEditor.Rendering.LWRP
             };
 
             m_passesList.onAddCallback += AddPass;
-            m_passesList.onRemoveCallback = (list) =>
+            m_passesList.onRemoveCallback = list =>
             {
-                var obj = list.serializedProperty.GetArrayElementAtIndex(list.index).objectReferenceValue;
-                DestroyImmediate(obj, true);
-                AssetDatabase.SaveAssets();
-                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
-                ReorderableList.defaultBehaviours.DoRemoveButton(list);
-                serializedObject.ApplyModifiedProperties();
+                if (EditorUtility.DisplayDialog("Removing Render Pass Feature",
+                    $"Are you sure you want to remove the pass {m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue.name}, this operation cannot be undone",
+                    "Remove",
+                    "Cancel"))
+                {
+                    ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                    m_RenderPasses.DeleteArrayElementAtIndex(list.index);
+                    m_RenderPasses.serializedObject.ApplyModifiedProperties();
+                    m_ElementSOs.Clear();
+                }
             };
             m_passesList.onReorderCallbackWithDetails += ReorderPass;
 		    
