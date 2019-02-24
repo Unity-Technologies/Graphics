@@ -62,22 +62,22 @@ public class CameraCallbackTests : ScriptableRendererFeature
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, colorAttachmentHandle);
 
         var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial, m_DownsamplingMethod);
-        copyBeforeOpaquePass.Setup(colorAttachmentHandle, beforeAll);
+        copyBeforeOpaquePass.Setup(colorAttachmentHandle, depthAttachmentHandle, beforeAll);
 
         var copyAfterOpaquePass = new CopyColorPass(RenderPassEvent.AfterRenderingOpaques, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterOpaquePass.Setup(colorAttachmentHandle, afterOpaque);
+        copyAfterOpaquePass.Setup(colorAttachmentHandle, depthAttachmentHandle, afterOpaque);
 
         var copyAfterSkyboxPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox);
+        copyAfterSkyboxPass.Setup(colorAttachmentHandle, depthAttachmentHandle, afterSkybox);
 
         var copyAfterSkyboxPass2 = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox2);
+        copyAfterSkyboxPass.Setup(colorAttachmentHandle, depthAttachmentHandle, afterSkybox2);
 
         var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparentPasses, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterTransparents.Setup(colorAttachmentHandle, afterTransparent);
+        copyAfterTransparents.Setup(colorAttachmentHandle, depthAttachmentHandle, afterTransparent);
 
         var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRendering, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterEverything.Setup(colorAttachmentHandle, afterAll);
+        copyAfterEverything.Setup(colorAttachmentHandle, depthAttachmentHandle, afterAll);
 
         var BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, colorAttachmentHandle);
 
@@ -108,7 +108,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
         {
             ref CameraData cameraData = ref renderingData.cameraData;
 			CommandBuffer cmd = CommandBufferPool.Get("Blit Pass");
-			cmd.SetRenderTarget(colorHandle.id);
+			cmd.SetRenderTarget(colorHandle.Identifier());
 			cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
 			cmd.SetViewport(new Rect(0, renderingData.cameraData.camera.pixelRect.height / 2.0f, renderingData.cameraData.camera.pixelRect.width / 3.0f, renderingData.cameraData.camera.pixelRect.height / 2.0f));
