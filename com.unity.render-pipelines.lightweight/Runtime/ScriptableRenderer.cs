@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.LWRP
                 BeginXRRendering(context, camera);
             
             // In this block the bulk of render passes execute.
-            ExecuteBlock(RenderPassEvent.AfterRenderingTransparentPasses, context, ref renderingData);
+            ExecuteBlock(RenderPassEvent.AfterRendering, context, ref renderingData);
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
