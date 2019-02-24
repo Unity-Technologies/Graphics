@@ -27,16 +27,12 @@ public class CustomLWPipe : ScriptableRenderer
 
         for (int i = 0; i < m_RendererFeatures.Count; ++i)
         {
-            m_RendererFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, baseDescriptor, cameraColorHandle, cameraDepthHandle);
+            m_RendererFeatures[i].AddRenderPasses(m_ActiveRenderPassQueue, baseDescriptor, cameraColorHandle, cameraDepthHandle);
         }
-        m_AdditionalRenderPasses.Sort( (lhs, rhs)=>lhs.renderPassEvent.CompareTo(rhs.renderPassEvent));
-        int customRenderPassIndex = 0;
+        m_ActiveRenderPassQueue.Sort();
 
         m_RenderOpaqueForwardPass.Setup(baseDescriptor, cameraColorHandle, cameraDepthHandle, GetCameraClearFlag(camera.clearFlags), camera.backgroundColor);
         EnqueuePass(m_RenderOpaqueForwardPass);
-
-        EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
-            ref renderingData);
     }
 
     public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)

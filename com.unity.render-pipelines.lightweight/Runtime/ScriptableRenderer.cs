@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.LWRP
 
         protected List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         protected List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
-        protected List<ScriptableRenderPass> m_AdditionalRenderPasses = new List<ScriptableRenderPass>(10);
         int m_ExecuteRenderPassIndex;
 
         const string k_ClearRenderStateTag = "Clear Render State";
@@ -84,7 +83,7 @@ namespace UnityEngine.Rendering.LWRP
 
             // Before Render Block
             // In this block inputs passes should execute. e.g, shadowmaps
-            ExecuteBlock(RenderPassEvent.AfterRenderingPrePasses, context, ref renderingData, true);
+            ExecuteBlock(RenderPassEvent.AfterRenderingShadows, context, ref renderingData);
 
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
@@ -101,6 +100,7 @@ namespace UnityEngine.Rendering.LWRP
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
 
+            // In this block pre-passes that require stereo and camera setup will execute. f.ex depth prepass.
             ExecuteBlock(RenderPassEvent.BeforeRenderingOpaques, context, ref renderingData);
             SetupCameraRenderTarget(context, ref renderingData.cameraData);
 
@@ -126,7 +126,6 @@ namespace UnityEngine.Rendering.LWRP
         public void Clear()
         {
             m_ActiveRenderPassQueue.Clear();
-            m_AdditionalRenderPasses.Clear();
             m_ExecuteRenderPassIndex = 0;
         }
 
@@ -137,37 +136,6 @@ namespace UnityEngine.Rendering.LWRP
         protected void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
-        }
-
-        /// <summary>
-        /// Enqueues additional render passes for execution. 
-        /// </summary>
-        /// <param name="renderPassEvent"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="renderingData"></param>
-        /// <returns></returns>
-        protected bool EnqueueAdditionalRenderPasses(RenderPassEvent renderPassEvent, ref int startIndex, ref RenderingData renderingData)
-        {
-            if (startIndex >= m_AdditionalRenderPasses.Count)
-                return false;
-
-            int prevIndex = startIndex;
-            while (startIndex < m_AdditionalRenderPasses.Count && m_AdditionalRenderPasses[startIndex].renderPassEvent == renderPassEvent)
-            {
-                var renderPass = m_AdditionalRenderPasses[startIndex];
-
-                if (renderPass.renderPassEvent == renderPassEvent)
-                {
-                    if (renderPass.ShouldExecute(ref renderingData))
-                    {
-                        EnqueuePass(renderPass);
-                    }
-
-                    startIndex++;
-                }
-            }
-
-            return prevIndex != startIndex;
         }
 
         /// <summary>
