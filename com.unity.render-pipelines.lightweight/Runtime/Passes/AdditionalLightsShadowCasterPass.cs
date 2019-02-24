@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.LWRP
             m_AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
         }
 
-        public override bool ShouldExecute(ref RenderingData renderingData)
+        public bool Setup(ref RenderingData renderingData)
         {
             if (!renderingData.shadowData.supportsAdditionalLightShadows)
                 return false;

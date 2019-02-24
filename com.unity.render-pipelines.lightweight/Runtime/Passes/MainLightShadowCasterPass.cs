@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.LWRP
             m_MainLightShadowmap.Init("_MainLightShadowmapTexture");
         }
 
-        public override bool ShouldExecute(ref RenderingData renderingData)
+        public bool Setup(ref RenderingData renderingData)
         {
             if (!renderingData.shadowData.supportsMainLightShadows)
                 return false;

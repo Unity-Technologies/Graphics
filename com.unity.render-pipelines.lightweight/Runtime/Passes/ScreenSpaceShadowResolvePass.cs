@@ -24,11 +24,6 @@ namespace UnityEngine.Rendering.LWRP
                 : RenderTextureFormat.ARGB32;
         }
 
-        public override bool ShouldExecute(ref RenderingData renderingData)
-        {
-            return renderingData.shadowData.requiresScreenSpaceShadowResolve;
-        }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

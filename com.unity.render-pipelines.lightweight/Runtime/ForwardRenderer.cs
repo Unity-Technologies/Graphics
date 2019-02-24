@@ -69,9 +69,17 @@ namespace UnityEngine.Rendering.LWRP
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
             ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
 
-            bool mainLightShadows = m_MainLightShadowCasterPass.ShouldExecute(ref renderingData);
-            bool resolveShadowsInScreenSpace = mainLightShadows && m_ScreenSpaceShadowResolvePass.ShouldExecute(ref renderingData);
-            bool requiresDepthPrepass = resolveShadowsInScreenSpace || m_DepthPrepass.ShouldExecute(ref renderingData);
+            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            bool additionalLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
+
+            // Depth prepass is generated in the following cases:
+            // - We resolve shadows in screen space
+            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
+            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
+            bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
+                (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
+            requiresDepthPrepass |= resolveShadowsInScreenSpace;
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
                                       || m_RendererFeatures.Count != 0;
 
@@ -98,7 +106,7 @@ namespace UnityEngine.Rendering.LWRP
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
 
-            if (m_MainLightShadowCasterPass.ShouldExecute(ref renderingData))
+            if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
 
             if (requiresDepthPrepass)
@@ -233,6 +241,20 @@ namespace UnityEngine.Rendering.LWRP
             return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
                    isTargetTexture2DArray || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
                    || renderingData.killAlphaInFinalBlit;
+        }
+
+        bool CanCopyDepth(ref CameraData cameraData)
+        {
+            bool msaaEnabledForCamera = cameraData.cameraTargetDescriptor.msaaSamples > 1;
+            bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
+            bool supportsDepthTarget = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
+            bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
+
+            // TODO:  We don't have support to highp Texture2DMS currently and this breaks depth precision.
+            // currently disabling it until shader changes kick in.
+            //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
+            bool msaaDepthResolve = false;
+            return supportsDepthCopy || msaaDepthResolve;
         }
     }
 }

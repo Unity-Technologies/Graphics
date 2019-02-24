@@ -202,7 +202,12 @@ namespace UnityEngine.Rendering.LWRP
         {
             while (m_ExecuteRenderPassIndex < m_ActiveRenderPassQueue.Count &&
                    m_ActiveRenderPassQueue[m_ExecuteRenderPassIndex].renderPassEvent < maxEventIndex)
-                m_ActiveRenderPassQueue[m_ExecuteRenderPassIndex++].Execute(context, ref renderingData);
+            {
+                var renderPass = m_ActiveRenderPassQueue[m_ExecuteRenderPassIndex];
+                if (renderPass.ShouldExecute(ref  renderingData))
+                    renderPass.Execute(context, ref renderingData);
+                m_ExecuteRenderPassIndex++;
+            }
 
             if (submit)
                 context.Submit();

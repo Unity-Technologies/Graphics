@@ -45,16 +45,6 @@ namespace UnityEngine.Rendering.LWRP
             descriptor = baseDescriptor;
         }
 
-        public override bool ShouldExecute(ref RenderingData renderingData)
-        {
-            // Depth prepass is generated in the following cases:
-            // - We resolve shadows in screen space
-            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
-            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
-            return renderingData.cameraData.isSceneViewCamera ||
-                (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
-        }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -96,20 +86,6 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.ReleaseTemporaryRT(depthAttachmentHandle.id);
                 depthAttachmentHandle = RenderTargetHandle.CameraTarget;
             }
-        }
-
-        bool CanCopyDepth(ref CameraData cameraData)
-        {
-            bool msaaEnabledForCamera = cameraData.cameraTargetDescriptor.msaaSamples > 1;
-            bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
-            bool supportsDepthTarget = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
-            bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
-
-            // TODO:  We don't have support to highp Texture2DMS currently and this breaks depth precision.
-            // currently disabling it until shader changes kick in.
-            //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
-            bool msaaDepthResolve = false;
-            return supportsDepthCopy || msaaDepthResolve;
         }
     }
 }
