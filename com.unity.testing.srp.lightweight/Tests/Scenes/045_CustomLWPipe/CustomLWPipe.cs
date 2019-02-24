@@ -4,14 +4,12 @@ using UnityEngine.Rendering;
 
 public class CustomLWPipe : ScriptableRenderer
 {
-    private CreateLightweightRenderTexturesPass m_CreateLightweightRenderTexturesPass;
     private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
 
     ForwardLights m_ForwardLights;
 
     public CustomLWPipe(CustomRenderGraphData data) : base(data)
     {
-        m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass(RenderPassEvent.BeforeRendering);
         m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, -1);
         m_ForwardLights = new ForwardLights();
     }
@@ -22,23 +20,19 @@ public class CustomLWPipe : ScriptableRenderer
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;
         shadowDescriptor.dimension = TextureDimension.Tex2D;
 
-        RenderTargetHandle colorHandle = RenderTargetHandle.CameraTarget;
-        RenderTargetHandle depthHandle = RenderTargetHandle.CameraTarget;
-
-        int sampleCount = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
-        m_CreateLightweightRenderTexturesPass.Setup(baseDescriptor, colorHandle, depthHandle, sampleCount);
-        EnqueuePass(m_CreateLightweightRenderTexturesPass);
-
+        cameraColorHandle = RenderTargetHandle.CameraTarget;
+        cameraDepthHandle = RenderTargetHandle.CameraTarget;
+        
         Camera camera = renderingData.cameraData.camera;
 
         for (int i = 0; i < m_RendererFeatures.Count; ++i)
         {
-            m_RendererFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, baseDescriptor, colorHandle, depthHandle);
+            m_RendererFeatures[i].AddRenderPasses(m_AdditionalRenderPasses, baseDescriptor, cameraColorHandle, cameraDepthHandle);
         }
         m_AdditionalRenderPasses.Sort( (lhs, rhs)=>lhs.renderPassEvent.CompareTo(rhs.renderPassEvent));
         int customRenderPassIndex = 0;
 
-        m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, GetCameraClearFlag(camera.clearFlags), camera.backgroundColor);
+        m_RenderOpaqueForwardPass.Setup(baseDescriptor, cameraColorHandle, cameraDepthHandle, GetCameraClearFlag(camera.clearFlags), camera.backgroundColor);
         EnqueuePass(m_RenderOpaqueForwardPass);
 
         EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,

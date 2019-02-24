@@ -20,12 +20,17 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     public abstract class ScriptableRenderer
     {
+        const int k_DepthStencilBufferBits = 32;
+        public RenderTargetHandle cameraColorHandle { get; set; }
+        public RenderTargetHandle cameraDepthHandle { get; set; }
+
         protected List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         protected List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         protected List<ScriptableRenderPass> m_AdditionalRenderPasses = new List<ScriptableRenderPass>(10);
         int m_ExecuteRenderPassIndex;
 
         const string k_ClearRenderStateTag = "Clear Render State";
+        const string k_CreateCameraTextures = "Create Camera Textures";
         const string k_RenderOcclusionMesh = "Render Occlusion Mesh";
         const string k_ReleaseResourcesTag = "Release Resources";
 
@@ -33,6 +38,8 @@ namespace UnityEngine.Rendering.LWRP
         {
             m_RendererFeatures.AddRange(data.rendererFeatures.Where(x => x != null));
             m_ExecuteRenderPassIndex = 0;
+            cameraColorHandle = RenderTargetHandle.CameraTarget;
+            cameraDepthHandle = RenderTargetHandle.CameraTarget;
         }
 
         /// <summary>
@@ -73,9 +80,11 @@ namespace UnityEngine.Rendering.LWRP
             Camera camera = renderingData.cameraData.camera;
             ClearRenderState(context);
 
+            m_ActiveRenderPassQueue.Sort();
+
             // Before Render Block
             // In this block inputs passes should execute. e.g, shadowmaps
-            ExecuteBlock(RenderPassEvent.BeforeRenderingOpaques, context, ref renderingData, true);
+            ExecuteBlock(RenderPassEvent.AfterRenderingPrePasses, context, ref renderingData, true);
 
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
@@ -91,7 +100,10 @@ namespace UnityEngine.Rendering.LWRP
 
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
-            
+
+            ExecuteBlock(RenderPassEvent.BeforeRenderingOpaques, context, ref renderingData);
+            SetupCameraRenderTarget(context, ref renderingData.cameraData);
+
             // In this block the bulk of render passes execute.
             ExecuteBlock(RenderPassEvent.AfterRendering, context, ref renderingData);
 
@@ -243,6 +255,80 @@ namespace UnityEngine.Rendering.LWRP
             context.StereoEndRender(camera);
         }
 
+        void SetupCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData)
+        {
+            var descriptor = cameraData.cameraTargetDescriptor;
+            int msaaSamples = descriptor.msaaSamples;
+            CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
+            if (cameraColorHandle != RenderTargetHandle.CameraTarget)
+            {
+                bool useDepthRenderBuffer = cameraDepthHandle == RenderTargetHandle.CameraTarget;
+                var colorDescriptor = descriptor;
+                colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+                cmd.GetTemporaryRT(cameraColorHandle.id, colorDescriptor, FilterMode.Bilinear);
+            }
+
+            if (cameraDepthHandle != RenderTargetHandle.CameraTarget)
+            {
+                var depthDescriptor = descriptor;
+                depthDescriptor.colorFormat = RenderTextureFormat.Depth;
+                depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
+                depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+                cmd.GetTemporaryRT(cameraDepthHandle.id, depthDescriptor, FilterMode.Point);
+            }
+
+            Camera camera = cameraData.camera;
+            ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+            SetRenderTarget(cmd, cameraColorHandle.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                cameraDepthHandle.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag,
+                CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor), descriptor.dimension);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        void SetRenderTarget(
+            CommandBuffer cmd,
+            RenderTargetIdentifier colorAttachment,
+            RenderBufferLoadAction colorLoadAction,
+            RenderBufferStoreAction colorStoreAction,
+            ClearFlag clearFlags,
+            Color clearColor,
+            TextureDimension dimension)
+        {
+            if (dimension == TextureDimension.Tex2DArray)
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
+            else
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
+        }
+
+        void SetRenderTarget(
+            CommandBuffer cmd,
+            RenderTargetIdentifier colorAttachment,
+            RenderBufferLoadAction colorLoadAction,
+            RenderBufferStoreAction colorStoreAction,
+            RenderTargetIdentifier depthAttachment,
+            RenderBufferLoadAction depthLoadAction,
+            RenderBufferStoreAction depthStoreAction,
+            ClearFlag clearFlags,
+            Color clearColor,
+            TextureDimension dimension)
+        {
+            if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
+            {
+                SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor,
+                    dimension);
+            }
+            else
+            {
+                if (dimension == TextureDimension.Tex2DArray)
+                    CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment,
+                        clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
+                else
+                    CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                        depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
+            }
+        }
+
         [Conditional("UNITY_EDITOR")]
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
         {
@@ -258,6 +344,19 @@ namespace UnityEngine.Rendering.LWRP
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
+
+            if (cameraColorHandle != RenderTargetHandle.CameraTarget)
+            {
+                cmd.ReleaseTemporaryRT(cameraColorHandle.id);
+                cameraColorHandle = RenderTargetHandle.CameraTarget;
+            }
+
+            if (cameraDepthHandle != RenderTargetHandle.CameraTarget)
+            {
+                cmd.ReleaseTemporaryRT(cameraDepthHandle.id);
+                cameraDepthHandle = RenderTargetHandle.CameraTarget;
+            }
+    
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

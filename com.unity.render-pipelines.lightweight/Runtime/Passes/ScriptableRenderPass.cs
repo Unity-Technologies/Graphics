@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.LWRP
     public enum RenderPassEvent
     {
         BeforeRendering = 0,
+        AfterRenderingPrePasses = 5,
         BeforeRenderingOpaques = 10,
         AfterRenderingOpaques = 20,
         AfterRenderingSkybox = 30,
