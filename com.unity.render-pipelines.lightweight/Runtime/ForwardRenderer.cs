@@ -89,6 +89,13 @@ namespace UnityEngine.Rendering.LWRP
             }
             m_AdditionalRenderPasses.Sort();
 
+            bool hasBeforeRenderingOpaques =
+                m_AdditionalRenderPasses.Find(x => x.renderPassEvent == RenderPassEvent.BeforeRenderingOpaques) != null;
+            bool hasAfterRenderingOpaques =
+                m_AdditionalRenderPasses.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingOpaques) != null;
+            bool hasAfterRendering =
+                m_AdditionalRenderPasses.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+
             EnqueueAdditionalRenderPasses(RenderPassEvent.BeforeRendering, ref customRenderPassIndex, ref renderingData);
 
             if (mainLightShadows)
@@ -112,10 +119,12 @@ namespace UnityEngine.Rendering.LWRP
             EnqueueAdditionalRenderPasses(RenderPassEvent.BeforeRenderingOpaques, ref customRenderPassIndex,
                 ref renderingData);
 
+            if (hasBeforeRenderingOpaques)
+                clearFlag = ClearFlag.None;
             m_RenderOpaqueForwardPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle, clearFlag, camera.backgroundColor);
             EnqueuePass(m_RenderOpaqueForwardPass);
 
-            bool afterOpaques = EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
+            EnqueueAdditionalRenderPasses(RenderPassEvent.AfterRenderingOpaques, ref customRenderPassIndex,
                 ref renderingData);
 
             if (m_OpaquePostProcessPass.ShouldExecute(ref renderingData))
@@ -127,7 +136,7 @@ namespace UnityEngine.Rendering.LWRP
                 // them. Ideally we need a render graph here that each render pass declares inputs and output
                 // attachments and their Load/Store action so we figure out properly if we can combine passes
                 // and move to interleaved rendering with RenderPass API.
-                m_DrawSkyboxPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle, !afterOpaques);
+                m_DrawSkyboxPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle, !hasAfterRenderingOpaques);
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
@@ -155,7 +164,7 @@ namespace UnityEngine.Rendering.LWRP
 
 
             bool afterRenderExists = renderingData.cameraData.captureActions != null ||
-                                     AfterRenderExists(customRenderPassIndex);
+                                     hasAfterRendering;
 
             // if we have additional filters
             // we need to stay in a RT
@@ -243,17 +252,6 @@ namespace UnityEngine.Rendering.LWRP
             return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
                    isTargetTexture2DArray || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
                    || renderingData.killAlphaInFinalBlit;
-        }
-
-        bool AfterRenderExists(int currIndex)
-        {
-            for (int i = currIndex; i < m_AdditionalRenderPasses.Count; ++i)
-            {
-                if (m_AdditionalRenderPasses[i].renderPassEvent == RenderPassEvent.AfterRendering)
-                    return true;
-            }
-
-            return false;
         }
     }
 }
