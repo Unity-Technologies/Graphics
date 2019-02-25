@@ -172,6 +172,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, _UNBuffer, m_UNBuffer);
                     cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, _UBuffer, m_UBuffer);
 
+                    // Bind the area cookie textures to the raytracing shader
+                    cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._AreaCookieTextures, m_LightLoop.areaLightCookieManager.GetTexCache());
 
                     // Run the shadow evaluation
                     cmd.DispatchRays(shadowsShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
