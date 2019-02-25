@@ -21,6 +21,9 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle m_AdditionalLightsShadowmap;
         RenderTexture m_AdditionalLightsShadowmapTexture;
 
+        int m_ShadowmapWidth;
+        int m_ShadowmapHeight;
+
         Matrix4x4[] m_AdditionalLightShadowMatrices;
         ShadowSliceData[] m_AdditionalLightSlices;
         float[] m_AdditionalLightsShadowStrength;
@@ -53,6 +56,9 @@ namespace UnityEngine.Rendering.LWRP
                 return false;
 
             Clear();
+
+            m_ShadowmapWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
+            m_ShadowmapHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
 
             Bounds bounds;
             var visibleLights = renderingData.lightData.visibleLights;
@@ -116,6 +122,13 @@ namespace UnityEngine.Rendering.LWRP
             return anyShadows;
         }
 
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
+            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture));
+            ConfigureClear(ClearFlag.All, Color.black);
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -158,13 +171,8 @@ namespace UnityEngine.Rendering.LWRP
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
-                int shadowmapWidth = shadowData.additionalLightsShadowmapWidth;
-                int shadowmapHeight = shadowData.additionalLightsShadowmapHeight;
-
-                m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(shadowmapWidth, shadowmapHeight, k_ShadowmapBufferBits);
-
-                SetRenderTarget(cmd, m_AdditionalLightsShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    ClearFlag.Depth, Color.black, TextureDimension.Tex2D);
+                int shadowmapWidth = m_ShadowmapWidth;
+                int shadowmapHeight = m_ShadowmapHeight;
 
                 for (int i = 0; i < m_AdditionalShadowCastingLightIndices.Count; ++i)
                 {

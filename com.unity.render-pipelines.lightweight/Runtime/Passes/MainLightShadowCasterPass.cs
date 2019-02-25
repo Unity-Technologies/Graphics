@@ -106,6 +106,14 @@ namespace UnityEngine.Rendering.LWRP
             return true;
         }
 
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
+                    m_ShadowmapHeight, k_ShadowmapBufferBits);
+            ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture));
+            ConfigureClear(ClearFlag.All, Color.black);
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -151,11 +159,6 @@ namespace UnityEngine.Rendering.LWRP
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
-
-                m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
-                    m_ShadowmapHeight, k_ShadowmapBufferBits);
-                SetRenderTarget(cmd, m_MainLightShadowmapTexture, RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store, ClearFlag.Depth, Color.black, TextureDimension.Tex2D);
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {

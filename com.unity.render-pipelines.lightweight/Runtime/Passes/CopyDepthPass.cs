@@ -35,6 +35,16 @@ namespace UnityEngine.Rendering.LWRP
             this.destination = destination;
         }
 
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            var descriptor = cameraTextureDescriptor;
+            descriptor.colorFormat = RenderTextureFormat.Depth;
+            descriptor.depthBufferBits = 32; //TODO: fix this ;
+            descriptor.msaaSamples = 1;
+            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+            ConfigureTargetForBlit(destination.Identifier());
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -50,11 +60,6 @@ namespace UnityEngine.Rendering.LWRP
 
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             int cameraSamples = descriptor.msaaSamples;
-            descriptor.colorFormat = RenderTextureFormat.Depth;
-            descriptor.depthBufferBits = 32; //TODO: fix this ;
-            descriptor.msaaSamples = 1;
-            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
-
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 
             if (cameraSamples > 1)

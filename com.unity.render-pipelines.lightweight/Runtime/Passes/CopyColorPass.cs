@@ -39,12 +39,20 @@ namespace UnityEngine.Rendering.LWRP
         {
             this.source = source;
             this.destination = destination;
-            ConfigureTarget(destination.Identifier(), BuiltinRenderTextureType.CameraTarget);
         }
 
         public override bool ShouldExecute(ref RenderingData renderingData)
         {
             return renderingData.cameraData.requiresOpaqueTexture;
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
+        {
+            RenderTextureDescriptor descriptor = cameraTextureDescripor;
+            descriptor.msaaSamples = 1;
+            descriptor.depthBufferBits = 0;
+            cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+            ConfigureTargetForBlit(destination.Identifier());
         }
 
         /// <inheritdoc/>
@@ -57,14 +65,9 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
-            opaqueDesc.msaaSamples = 1;
-            opaqueDesc.depthBufferBits = 0;
-
             RenderTargetIdentifier colorRT = source.Identifier();
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
-            cmd.GetTemporaryRT(destination.id, opaqueDesc, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
             switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:

@@ -44,22 +44,19 @@ namespace UnityEngine.Rendering.LWRP
             descriptor = baseDescriptor;
         }
 
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
+            ConfigureTarget(depthAttachmentHandle.Identifier());
+            ConfigureClear(ClearFlag.All, Color.black);
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
-                cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
-                SetRenderTarget(
-                    cmd,
-                    depthAttachmentHandle.Identifier(),
-                    RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store,
-                    ClearFlag.Depth,
-                    Color.black,
-                    descriptor.dimension);
-
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.LWRP
             ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
-            bool additionalLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
 
             // Depth prepass is generated in the following cases:

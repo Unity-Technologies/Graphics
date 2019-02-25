@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.LWRP
         protected List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         
         const string k_ClearRenderStateTag = "Clear Render State";
-        const string k_CreateCameraTextures = "Create Camera Textures";
+        const string k_CreateCameraTextures = "Set Render Target";
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_RenderOcclusionMesh = "Render Occlusion Mesh";
         const string k_ReleaseResourcesTag = "Release Resources";
@@ -213,6 +213,9 @@ namespace UnityEngine.Rendering.LWRP
 
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData, bool isStereo)
         {
+            CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+            renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+
             RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
 
@@ -224,13 +227,18 @@ namespace UnityEngine.Rendering.LWRP
                 passDepthAttachment = cameraDepthHandle.Identifier();
             }
 
-            // Only setup render target if they are different. 
-            if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+            // Blit changes render target implicitly. We update pipeline state only.
+            if (renderPass.isBlitRenderPass)
+            {
+                m_ActiveColorAttachment = renderPass.colorAttachment;
+                m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            }
+            // Otherwise only setup render target if current render pass attachments are different from the active ones
+            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
             {
                 m_ActiveColorAttachment = passColorAttachment;
                 m_ActiveDepthAttachment = passDepthAttachment;
-                CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
-
+                
                 RenderBufferLoadAction colorLoadAction = renderPass.clearFlag != ClearFlag.None ?
                     RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
@@ -241,9 +249,9 @@ namespace UnityEngine.Rendering.LWRP
                 SetRenderTarget(cmd, passColorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
                     passDepthAttachment, depthLoadAction, RenderBufferStoreAction.Store, renderPass.clearFlag, renderPass.clearColor,
                     dimension);
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
             renderPass.Execute(context, ref renderingData);
         }
 

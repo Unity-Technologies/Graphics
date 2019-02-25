@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.LWRP
         public Color clearColor { get; set; }
 
         internal bool overrideCameraTarget { get; set; }
+        internal bool isBlitRenderPass { get; set; }
 
         public ScriptableRenderPass()
         {
@@ -44,6 +45,7 @@ namespace UnityEngine.Rendering.LWRP
             clearFlag = ClearFlag.None;
             clearColor = Color.black;
             overrideCameraTarget = false;
+            isBlitRenderPass = false;
         }
 
         List<ShaderTagId> m_ShaderTagIDs = new List<ShaderTagId>();
@@ -130,10 +132,20 @@ namespace UnityEngine.Rendering.LWRP
             this.depthAttachment = BuiltinRenderTextureType.CameraTarget;
         }
 
+        public void ConfigureTargetForBlit(RenderTargetIdentifier destination)
+        {
+            isBlitRenderPass = true;
+            colorAttachment = destination;
+        }
+
         public void ConfigureClear(ClearFlag clearFlag, Color clearColor)
         {
             this.clearFlag = clearFlag;
             this.clearColor = clearColor;
+        }
+
+        public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
         }
 
         /// <summary>
@@ -222,7 +234,8 @@ namespace UnityEngine.Rendering.LWRP
             return settings;
         }
 
-        protected static void SetRenderTarget(
+        // TODO: Should remove this. Only left here due to Shadowmap textures.
+        internal void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -237,7 +250,8 @@ namespace UnityEngine.Rendering.LWRP
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
-        protected static void SetRenderTarget(
+        // TODO: Should remove this. Only left here due to Shadowmap textures.
+        internal void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,

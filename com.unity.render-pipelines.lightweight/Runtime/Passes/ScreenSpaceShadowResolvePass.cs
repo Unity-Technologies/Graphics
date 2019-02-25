@@ -24,6 +24,20 @@ namespace UnityEngine.Rendering.LWRP
                 : RenderTextureFormat.ARGB32;
         }
 
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
+
+            // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that
+            // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
+            // stereo functionality, we use the screen-space shadow map as the source (until we have
+            // a better solution).
+            // An alternative would be DrawProcedural, but that would require further changes in the shader.
+            RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
+            ConfigureTarget(screenSpaceOcclusionTexture);
+            ConfigureClear(ClearFlag.All, Color.white);
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -38,22 +52,12 @@ namespace UnityEngine.Rendering.LWRP
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
-            cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
-
-            // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that
-            // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
-            // stereo functionality, we use the screen-space shadow map as the source (until we have
-            // a better solution).
-            // An alternative would be DrawProcedural, but that would require further changes in the shader.
-            RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-            SetRenderTarget(cmd, screenSpaceOcclusionTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                ClearFlag.Color | ClearFlag.Depth, Color.white, m_RenderTextureDescriptor.dimension);
-
             // This blit is troublesome. When MSAA is enabled it will render a fullscreen quad + store resolved MSAA + extra blit
             // This consumes about 10MB of extra unnecessary bandwidth on boat attack.
             // In order to avoid it we can do a cmd.DrawMesh instead, however because LWRP doesn't setup camera matrices itself,
             // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
             // We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP.
+            RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
             cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
