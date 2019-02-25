@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.LWRP
             return settings;
         }
 
-        // TODO: Should remove this. Only left here due to Shadowmap textures.
+        // TODO: Remove this. Currently only used by FinalBlit pass.
         internal void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
@@ -248,35 +248,6 @@ namespace UnityEngine.Rendering.LWRP
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
             else
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
-        }
-
-        // TODO: Should remove this. Only left here due to Shadowmap textures.
-        internal void SetRenderTarget(
-            CommandBuffer cmd,
-            RenderTargetIdentifier colorAttachment,
-            RenderBufferLoadAction colorLoadAction,
-            RenderBufferStoreAction colorStoreAction,
-            RenderTargetIdentifier depthAttachment,
-            RenderBufferLoadAction depthLoadAction,
-            RenderBufferStoreAction depthStoreAction,
-            ClearFlag clearFlags,
-            Color clearColor,
-            TextureDimension dimension)
-        {
-            if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
-            {
-                SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor,
-                    dimension);
-            }
-            else
-            {
-                if (dimension == TextureDimension.Tex2DArray)
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment,
-                        clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
-                else
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
-                        depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
-            }
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
