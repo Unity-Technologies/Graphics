@@ -37,7 +37,6 @@ namespace UnityEngine.Rendering.LWRP
 
         public MainLightShadowCasterPass(RenderPassEvent evt)
         {
-            RegisterShaderPassName("ShadowCaster");
             renderPassEvent = evt;
 
             m_MainLightShadowMatrices = new Matrix4x4[k_MaxCascades + 1];

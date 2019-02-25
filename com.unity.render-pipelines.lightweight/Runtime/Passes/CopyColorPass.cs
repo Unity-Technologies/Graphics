@@ -41,11 +41,6 @@ namespace UnityEngine.Rendering.LWRP
             this.destination = destination;
         }
 
-        public override bool ShouldExecute(ref RenderingData renderingData)
-        {
-            return renderingData.cameraData.requiresOpaqueTexture;
-        }
-
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
         {
             RenderTextureDescriptor descriptor = cameraTextureDescripor;

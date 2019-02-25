@@ -32,7 +32,6 @@ namespace UnityEngine.Rendering.LWRP
 
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
-            RegisterShaderPassName("ShadowCaster");
             renderPassEvent = evt;
 
             int maxLights = LightweightRenderPipeline.maxVisibleAdditionalLights;

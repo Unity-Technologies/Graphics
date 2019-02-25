@@ -202,8 +202,7 @@ namespace UnityEngine.Rendering.LWRP
                    m_ActiveRenderPassQueue[m_ExecuteRenderPassIndex].renderPassEvent < maxEventIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[m_ExecuteRenderPassIndex];
-                if (renderPass.ShouldExecute(ref renderingData))
-                    ExecuteRenderPass(context, renderPass, ref renderingData, isStereoBlock);
+                ExecuteRenderPass(context, renderPass, ref renderingData, isStereoBlock);
                 m_ExecuteRenderPassIndex++;
             }
 

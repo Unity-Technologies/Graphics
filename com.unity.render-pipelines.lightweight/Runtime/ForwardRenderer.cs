@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.LWRP
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRendering);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.AfterRenderingShadows, RenderQueueRange.opaque);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.AfterRenderingShadows, screenspaceShadowsMaterial);
-            m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
             m_OpaquePostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingOpaques, true);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.AfterRenderingOpaques);
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.LWRP
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
-
+            
             // Depth prepass is generated in the following cases:
             // - We resolve shadows in screen space
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
@@ -86,6 +86,9 @@ namespace UnityEngine.Rendering.LWRP
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
             bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
+            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
+            bool hasOpaquePostProcess = postProcessEnabled &&
+                renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(RenderingUtils.postProcessRenderContext);
 
             cameraColorHandle = (createColorTexture) ? m_ColorAttachment : RenderTargetHandle.CameraTarget;
             cameraDepthHandle = (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget;
@@ -96,12 +99,7 @@ namespace UnityEngine.Rendering.LWRP
             }
             m_ActiveRenderPassQueue.Sort();
 
-            bool hasBeforeRenderingOpaques =
-                m_ActiveRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.BeforeRenderingOpaques) != null;
-            bool hasAfterRenderingOpaques =
-                m_ActiveRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingOpaques) != null;
-            bool hasAfterRendering =
-                m_ActiveRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+            bool hasAfterRendering = m_ActiveRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -123,10 +121,10 @@ namespace UnityEngine.Rendering.LWRP
 
             EnqueuePass(m_RenderOpaqueForwardPass);
 
-            if (m_OpaquePostProcessPass.ShouldExecute(ref renderingData))
+            if (hasOpaquePostProcess)
                 m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraColorHandle);
 
-            if (m_DrawSkyboxPass.ShouldExecute(ref renderingData))
+            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
@@ -136,7 +134,7 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_CopyDepthPass);
             }
 
-            if (m_CopyColorPass.ShouldExecute(ref renderingData))
+            if (renderingData.cameraData.requiresOpaqueTexture)
             {
                 m_CopyColorPass.Setup(cameraColorHandle, m_OpaqueColor);
                 EnqueuePass(m_CopyColorPass);
@@ -152,7 +150,7 @@ namespace UnityEngine.Rendering.LWRP
             if (afterRenderExists)
             {
                 // perform post with src / dest the same
-                if (m_PostProcessPass.ShouldExecute(ref renderingData))
+                if (postProcessEnabled)
                 {
                     m_PostProcessPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraColorHandle);
                     EnqueuePass(m_PostProcessPass);
@@ -161,7 +159,7 @@ namespace UnityEngine.Rendering.LWRP
                 //now blit into the final target
                 if (cameraColorHandle != RenderTargetHandle.CameraTarget)
                 {
-                    if (m_CapturePass.ShouldExecute(ref renderingData))
+                    if (renderingData.cameraData.captureActions != null)
                     {
                         m_CapturePass.Setup(cameraColorHandle);
                         EnqueuePass(m_CapturePass);
@@ -173,7 +171,7 @@ namespace UnityEngine.Rendering.LWRP
             }
             else
             {
-                if (m_PostProcessPass.ShouldExecute(ref renderingData))
+                if (postProcessEnabled)
                 {
                     m_PostProcessPass.Setup(cameraTargetDescriptor, cameraColorHandle, RenderTargetHandle.CameraTarget);
                     EnqueuePass(m_PostProcessPass);
@@ -186,7 +184,7 @@ namespace UnityEngine.Rendering.LWRP
             }
 
 #if UNITY_EDITOR
-            if (m_SceneViewDepthCopyPass.ShouldExecute(ref renderingData))
+            if (renderingData.cameraData.isSceneViewCamera)
             {
                 m_SceneViewDepthCopyPass.Setup(m_DepthTexture);
                 EnqueuePass(m_SceneViewDepthCopyPass);

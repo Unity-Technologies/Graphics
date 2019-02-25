@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
-                cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
             }
 
             context.ExecuteCommandBuffer(cmd);

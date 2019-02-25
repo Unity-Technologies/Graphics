@@ -12,11 +12,6 @@ namespace UnityEngine.Rendering.LWRP
             renderPassEvent = evt;
         }
 
-        public override bool ShouldExecute(ref RenderingData renderingData)
-        {
-            return renderingData.cameraData.camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null;
-        }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

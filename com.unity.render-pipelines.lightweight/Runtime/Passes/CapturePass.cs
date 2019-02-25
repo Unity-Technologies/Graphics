@@ -27,11 +27,6 @@ namespace UnityEngine.Rendering.LWRP
             m_CameraColorHandle = colorHandle;
         }
 
-        public override bool ShouldExecute(ref RenderingData renderingData)
-        {
-            return renderingData.cameraData.captureActions != null;
-        }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

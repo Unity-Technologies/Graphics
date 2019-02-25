@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
@@ -11,11 +13,12 @@ namespace UnityEngine.Rendering.LWRP
     {
         FilteringSettings m_FilteringSettings;
         string m_ProfilerTag = "Render Opaques";
+        private List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
         public RenderOpaqueForwardPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
-            RegisterShaderPassName("LightweightForward");
-            RegisterShaderPassName("SRPDefaultUnlit");
+            m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
+            m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
             renderPassEvent = evt;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
         }
@@ -31,11 +34,11 @@ namespace UnityEngine.Rendering.LWRP
 
                 Camera camera = renderingData.cameraData.camera;
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(ref renderingData, sortFlags);
+                var drawSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
+                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

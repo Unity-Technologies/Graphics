@@ -17,13 +17,13 @@ namespace UnityEngine.Rendering.LWRP
 
         FilteringSettings m_FilteringSettings;
         string m_ProfilerTag = "Depth Prepass";
+        ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
 
         /// <summary>
         /// Create the DepthOnlyPass
         /// </summary>
         public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange)
         {
-            RegisterShaderPassName("DepthOnly");
             m_FilteringSettings = new FilteringSettings(renderQueueRange);
             renderPassEvent = evt;
         }
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 m_FilteringSettings.layerMask = renderingData.cameraData.camera.cullingMask;
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(ref renderingData, sortFlags);
+                var drawSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
