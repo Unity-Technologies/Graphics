@@ -14,6 +14,7 @@
 #define SHADER_TARGET 50
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_RAYTRACING
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
@@ -38,9 +39,7 @@ float4x4                                _RaytracingAreaWorldToLocal;
 TEXTURE2D(_DepthTexture);
 
 // Output structure of the shadows raytrace shader
-RWTexture2D<float4>     _SNTextureUAV;
-RWTexture2D<float4>     _UNTextureUAV;
-RWTexture2D<float4>     _UTextureUAV;
+RWTexture2D<float4> _DenoiseTextureUAV;
 
 struct MISSamplingInput
 {
@@ -155,7 +154,7 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphericalRectangle sr, f
 
     if (misInput.mis < 0.5f)
     {
-        // This means we will be sampling using the BRDF, we need to pick if it is gonna be a diffuse or specular IS 
+        // This means we will be sampling using the BRDF, we need to pick if it is gonna be a diffuse or specular IS
         EvaluateMISBRDFTechnique(misInput);
 
         // Compute the output light direction
@@ -244,12 +243,11 @@ void RayGenShadows()
 
     // Get the scramblingValue of this pixel
     uint2 scramblingValue = ScramblingValue(currentPixelCoord.x, currentPixelCoord.y);
-    
-    // Reset the value of the buffer
-    _UNTextureUAV[currentPixelCoord] = float4(0.0f, 0.0, 0.0, 1.0f);
-    _SNTextureUAV[currentPixelCoord] = float4(0.0f, 0.0, 0.0, 1.0f);
-    _UTextureUAV[currentPixelCoord] = float4(0.0f, 0.0, 0.0, 1.0f);
-    
+
+    // Initialize Sn and Un
+    float3 Sn = 0.0f;
+    float3 Un = 0.0f;
+
     // Read the depth value
     float depthValue  = _DepthTexture[currentPixelCoord].x;
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -286,7 +284,7 @@ void RayGenShadows()
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
 
     // Decode the world space normal
-    NormalData normalData;  
+    NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Compute the local frame that matches the normal
@@ -318,9 +316,6 @@ void RayGenShadows()
     misInput.lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
     misInput.lighting.diffuse = misInput.lighting.diffuse * bsdfData.diffuseColor;
     lightData.cookieIndex = cookieIndex;
-
-    // Copy the full lighting to the buffer
-    _UTextureUAV[currentPixelCoord] = float4(misInput.lighting.diffuse + misInput.lighting.specular, 1.0f);
 
     // NOTE: Due to a VGPR optimisation in we need to restore the previous value (position, dimmer, and other thing are overriden)
     lightData = _LightDatas[_RaytracingTargetAreaLight];
@@ -381,7 +376,7 @@ void RayGenShadows()
         RayIntersection rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
         rayIntersection.incidentDirection = rayDescriptor.Direction;
-        
+
         // Evaluate the ray visibility term and PDF
         TraceRay(_RaytracingAccelerationStructure, rayFlag, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 
@@ -405,12 +400,16 @@ void RayGenShadows()
         float misPDF = lerp(misOutput.lightPDF, misOutput.brdfPDF, misInput.brdfProb);
         float3 radiance = (diffuseLighting + specularLighting) / misPDF;
 
-        _SNTextureUAV[currentPixelCoord] += float4(radiance * rayIntersection.color, 1.0f);
-        _UNTextureUAV[currentPixelCoord] += float4(radiance, 1.0f);
+        // Accumulate
+        Sn += radiance * rayIntersection.color;
+        Un += radiance;
     }
 
-    _SNTextureUAV[currentPixelCoord] *= 1.0f / _RaytracingNumSamples;
-    _UNTextureUAV[currentPixelCoord] *= 1.0f / _RaytracingNumSamples;
+    // Pass on the values to the output buffer (Sn, Un, U, 1)
+    _DenoiseTextureUAV[currentPixelCoord] = float4(Luminance(Sn) / _RaytracingNumSamples,
+                                                      Luminance(Un) / _RaytracingNumSamples,
+                                                      Luminance(misInput.lighting.diffuse + misInput.lighting.specular),
+                                                      1.0f);
 }
 
 // Fallback default any hit shader for this raytrace shader
