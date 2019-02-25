@@ -11,7 +11,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             First,
             SeparatePassThrough,
             UpgradingFrameSettingsToStruct,
-            AddAfterPostProcessFrameSetting
+            AddAfterPostProcessFrameSetting,
+            AddFrameSettingSpecularLighting
         }
 
         [SerializeField, FormerlySerializedAs("version")]
@@ -48,7 +49,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MigrationStep.New(Version.AddAfterPostProcessFrameSetting, (HDAdditionalCameraData data) =>
             {
                 FrameSettings.MigrateToAfterPostprocess(ref data.renderingPathCustomFrameSettings);
-            })
+            }),
+            MigrationStep.New(Version.AddFrameSettingSpecularLighting, (HDAdditionalCameraData data) =>
+                FrameSettings.MigrateToSpecularLighting(ref data.renderingPathCustomFrameSettings)
+            )
 
         );
 

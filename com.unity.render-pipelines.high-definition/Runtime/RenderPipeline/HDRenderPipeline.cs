@@ -808,6 +808,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Off screen rendering is disabled for most of the frame by default.
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting) ? 0 : 1);
             }
         }
 
@@ -2099,6 +2100,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_LightLoop.UpdateCullingParameters(ref cullingParams);
             hdCamera.UpdateStereoDependentState(ref cullingParams);
+
+            // If we don't use environment light (like when rendering reflection probes)
+            //   we don't have to cull them.
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting))
+                cullingParams.cullingOptions |= CullingOptions.NeedsReflectionProbes;
+            else
+                cullingParams.cullingOptions &= ~CullingOptions.NeedsReflectionProbes;
             return true;
         }
 
@@ -2118,6 +2126,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
+            var includeEnvLights = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting);
+
             DecalSystem.CullRequest decalCullRequest = null;
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
@@ -2129,13 +2139,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // TODO: use a parameter to select probe types to cull depending on what is enabled in framesettings
             var hdProbeCullState = new HDProbeCullState();
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
                 hdProbeCullState = HDProbeSystem.PrepareCull(camera);
 
             using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
                 cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
                 HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
             else
                 cullingResults.hdProbeCullingResults = default;
