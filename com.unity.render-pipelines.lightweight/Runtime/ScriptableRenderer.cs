@@ -23,22 +23,29 @@ namespace UnityEngine.Rendering.LWRP
         const int k_DepthStencilBufferBits = 32;
         public RenderTargetHandle cameraColorHandle { get; set; }
         public RenderTargetHandle cameraDepthHandle { get; set; }
-
+               
         protected List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         protected List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
-        int m_ExecuteRenderPassIndex;
-
+        
         const string k_ClearRenderStateTag = "Clear Render State";
         const string k_CreateCameraTextures = "Create Camera Textures";
+        const string k_SetRenderTarget = "Set RenderTarget";
         const string k_RenderOcclusionMesh = "Render Occlusion Mesh";
         const string k_ReleaseResourcesTag = "Release Resources";
 
+        int m_ExecuteRenderPassIndex;
+
+        RenderTargetIdentifier m_ActiveColorAttachment;
+        RenderTargetIdentifier m_ActiveDepthAttachment;
+        
         public ScriptableRenderer(ScriptableRendererData data)
         {
             m_RendererFeatures.AddRange(data.rendererFeatures.Where(x => x != null));
             m_ExecuteRenderPassIndex = 0;
             cameraColorHandle = RenderTargetHandle.CameraTarget;
             cameraDepthHandle = RenderTargetHandle.CameraTarget;
+            m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
         }
 
         /// <summary>
@@ -83,7 +90,7 @@ namespace UnityEngine.Rendering.LWRP
 
             // Before Render Block
             // In this block inputs passes should execute. e.g, shadowmaps
-            ExecuteBlock(RenderPassEvent.AfterRenderingShadows, context, ref renderingData);
+            ExecuteBlock(RenderPassEvent.AfterRenderingShadows, context, ref renderingData, false);
 
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
@@ -101,32 +108,23 @@ namespace UnityEngine.Rendering.LWRP
                 BeginXRRendering(context, camera);
 
             // In this block pre-passes that require stereo and camera setup will execute. f.ex depth prepass.
-            ExecuteBlock(RenderPassEvent.BeforeRenderingOpaques, context, ref renderingData);
+            ExecuteBlock(RenderPassEvent.BeforeRenderingOpaques, context, ref renderingData, stereoEnabled);
             SetupCameraRenderTarget(context, ref renderingData.cameraData);
 
             // In this block the bulk of render passes execute.
-            ExecuteBlock(RenderPassEvent.AfterRendering, context, ref renderingData);
+            ExecuteBlock(RenderPassEvent.AfterRendering, context, ref renderingData, stereoEnabled);
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock((RenderPassEvent)Int32.MaxValue, context, ref renderingData);
+            ExecuteBlock((RenderPassEvent)Int32.MaxValue, context, ref renderingData, stereoEnabled);
 
             if (stereoEnabled)
                 EndXRRendering(context, camera);
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
-            DisposePasses(context);
-        }
-
-        /// <summary>
-        /// Clears renderer state.
-        /// </summary>
-        public void Clear()
-        {
-            m_ActiveRenderPassQueue.Clear();
-            m_ExecuteRenderPassIndex = 0;
+            FinishRendering(context);
         }
 
         /// <summary>
@@ -198,19 +196,55 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         void ExecuteBlock(RenderPassEvent maxEventIndex,
-            ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
+            ScriptableRenderContext context, ref RenderingData renderingData, bool isStereoBlock, bool submit = false)
         {
             while (m_ExecuteRenderPassIndex < m_ActiveRenderPassQueue.Count &&
                    m_ActiveRenderPassQueue[m_ExecuteRenderPassIndex].renderPassEvent < maxEventIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[m_ExecuteRenderPassIndex];
-                if (renderPass.ShouldExecute(ref  renderingData))
-                    renderPass.Execute(context, ref renderingData);
+                if (renderPass.ShouldExecute(ref renderingData))
+                    ExecuteRenderPass(context, renderPass, ref renderingData, isStereoBlock);
                 m_ExecuteRenderPassIndex++;
             }
 
             if (submit)
                 context.Submit();
+        }
+
+        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData, bool isStereo)
+        {
+            RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
+            RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+
+            // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
+            // which might be backbuffer or the framebuffer render textures. 
+            if (!renderPass.overrideCameraTarget)
+            {
+                passColorAttachment = cameraColorHandle.Identifier();
+                passDepthAttachment = cameraDepthHandle.Identifier();
+            }
+
+            // Only setup render target if they are different. 
+            if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+            {
+                m_ActiveColorAttachment = passColorAttachment;
+                m_ActiveDepthAttachment = passDepthAttachment;
+                CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+
+                RenderBufferLoadAction colorLoadAction = renderPass.clearFlag != ClearFlag.None ?
+                    RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+                RenderBufferLoadAction depthLoadAction = CoreUtils.HasFlag(renderPass.clearFlag, ClearFlag.Depth) ?
+                    RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+                TextureDimension dimension = (isStereo) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
+                SetRenderTarget(cmd, passColorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
+                    passDepthAttachment, depthLoadAction, RenderBufferStoreAction.Store, renderPass.clearFlag, renderPass.clearColor,
+                    dimension);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+            renderPass.Execute(context, ref renderingData);
         }
 
         void BeginXRRendering(ScriptableRenderContext context, Camera camera)
@@ -249,6 +283,9 @@ namespace UnityEngine.Rendering.LWRP
                 depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
                 cmd.GetTemporaryRT(cameraDepthHandle.id, depthDescriptor, FilterMode.Point);
             }
+
+            m_ActiveColorAttachment = cameraColorHandle.Identifier();
+            m_ActiveDepthAttachment = cameraDepthHandle.Identifier();
 
             Camera camera = cameraData.camera;
             ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
@@ -311,7 +348,7 @@ namespace UnityEngine.Rendering.LWRP
 #endif
         }
 
-        void DisposePasses(ScriptableRenderContext context)
+        void FinishRendering(ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
 
@@ -329,7 +366,12 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.ReleaseTemporaryRT(cameraDepthHandle.id);
                 cameraDepthHandle = RenderTargetHandle.CameraTarget;
             }
-    
+
+            m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
+
+            m_ActiveRenderPassQueue.Clear();
+            m_ExecuteRenderPassIndex = 0;
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

@@ -9,10 +9,6 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     internal class RenderTransparentForwardPass : ScriptableRenderPass
     {
-        RenderTargetHandle colorAttachmentHandle { get; set; }
-        RenderTargetHandle depthAttachmentHandle { get; set; }
-        RenderTextureDescriptor descriptor { get; set; }
-
         FilteringSettings m_FilteringSettings;
         string m_ProfilerTag = "Render Transparents";
 
@@ -25,34 +21,12 @@ namespace UnityEngine.Rendering.LWRP
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
         }
 
-        /// <summary>
-        /// Configure the pass before execution
-        /// </summary>
-        /// <param name="baseDescriptor">Current target descriptor</param>
-        /// <param name="colorAttachmentHandle">Color attachment to render into</param>
-        /// <param name="depthAttachmentHandle">Depth attachment to render into</param>
-        /// <param name="configuration">Specific render configuration</param>
-        public void Setup(
-            RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle colorAttachmentHandle,
-            RenderTargetHandle depthAttachmentHandle)
-        {
-            this.colorAttachmentHandle = colorAttachmentHandle;
-            this.depthAttachmentHandle = depthAttachmentHandle;
-            descriptor = baseDescriptor;
-        }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
-                RenderBufferLoadAction loadOp = RenderBufferLoadAction.Load;
-                RenderBufferStoreAction storeOp = RenderBufferStoreAction.Store;
-                SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), loadOp, storeOp,
-                    depthAttachmentHandle.Identifier(), loadOp, storeOp, ClearFlag.None, Color.black, descriptor.dimension);
-
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

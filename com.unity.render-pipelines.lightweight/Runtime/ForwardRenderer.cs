@@ -121,23 +121,13 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
-            if (hasBeforeRenderingOpaques)
-                clearFlag = ClearFlag.None;
-            m_RenderOpaqueForwardPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle, clearFlag, camera.backgroundColor);
             EnqueuePass(m_RenderOpaqueForwardPass);
 
             if (m_OpaquePostProcessPass.ShouldExecute(ref renderingData))
                 m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraColorHandle);
 
             if (m_DrawSkyboxPass.ShouldExecute(ref renderingData))
-            {
-                // We can't combine skybox and render opaques passes if there's a custom render pass in between
-                // them. Ideally we need a render graph here that each render pass declares inputs and output
-                // attachments and their Load/Store action so we figure out properly if we can combine passes
-                // and move to interleaved rendering with RenderPass API.
-                m_DrawSkyboxPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle, !hasAfterRenderingOpaques);
                 EnqueuePass(m_DrawSkyboxPass);
-            }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (createDepthTexture)
@@ -148,11 +138,10 @@ namespace UnityEngine.Rendering.LWRP
 
             if (m_CopyColorPass.ShouldExecute(ref renderingData))
             {
-                m_CopyColorPass.Setup(cameraColorHandle, cameraDepthHandle, m_OpaqueColor);
+                m_CopyColorPass.Setup(cameraColorHandle, m_OpaqueColor);
                 EnqueuePass(m_CopyColorPass);
             }
 
-            m_RenderTransparentForwardPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle);
             EnqueuePass(m_RenderTransparentForwardPass);
 
             bool afterRenderExists = renderingData.cameraData.captureActions != null ||

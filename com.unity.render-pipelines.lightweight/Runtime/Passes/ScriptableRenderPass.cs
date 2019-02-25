@@ -29,10 +29,21 @@ namespace UnityEngine.Rendering.LWRP
     public abstract class ScriptableRenderPass : IComparable<ScriptableRenderPass>
     {
         public RenderPassEvent renderPassEvent { get; set; }
+        public RenderTargetIdentifier colorAttachment { get; set; }
+        public RenderTargetIdentifier depthAttachment { get; set; }
+        public ClearFlag clearFlag { get; set; }
+        public Color clearColor { get; set; }
+
+        internal bool overrideCameraTarget { get; set; }
 
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+            colorAttachment = BuiltinRenderTextureType.CameraTarget;
+            depthAttachment = BuiltinRenderTextureType.CameraTarget;
+            clearFlag = ClearFlag.None;
+            clearColor = Color.black;
+            overrideCameraTarget = false;
         }
 
         List<ShaderTagId> m_ShaderTagIDs = new List<ShaderTagId>();
@@ -103,6 +114,26 @@ namespace UnityEngine.Rendering.LWRP
 
                 return m_PostProcessRenderContext;
             }
+        }
+
+        public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
+        {
+            overrideCameraTarget = true;
+            this.colorAttachment = colorAttachment;
+            this.depthAttachment = depthAttachment;
+        }
+
+        public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
+        {
+            overrideCameraTarget = true;
+            this.colorAttachment = colorAttachment;
+            this.depthAttachment = BuiltinRenderTextureType.CameraTarget;
+        }
+
+        public void ConfigureClear(ClearFlag clearFlag, Color clearColor)
+        {
+            this.clearFlag = clearFlag;
+            this.clearColor = clearColor;
         }
 
         /// <summary>

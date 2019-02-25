@@ -62,22 +62,22 @@ public class CameraCallbackTests : ScriptableRendererFeature
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, colorAttachmentHandle);
 
         var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial, m_DownsamplingMethod);
-        copyBeforeOpaquePass.Setup(colorAttachmentHandle, depthAttachmentHandle, beforeAll);
+        copyBeforeOpaquePass.Setup(colorAttachmentHandle, beforeAll);
 
         var copyAfterOpaquePass = new CopyColorPass(RenderPassEvent.AfterRenderingOpaques, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterOpaquePass.Setup(colorAttachmentHandle, depthAttachmentHandle, afterOpaque);
+        copyAfterOpaquePass.Setup(colorAttachmentHandle, afterOpaque);
 
         var copyAfterSkyboxPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterSkyboxPass.Setup(colorAttachmentHandle, depthAttachmentHandle, afterSkybox);
+        copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox);
 
         var copyAfterSkyboxPass2 = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterSkyboxPass.Setup(colorAttachmentHandle, depthAttachmentHandle, afterSkybox2);
+        copyAfterSkyboxPass.Setup(colorAttachmentHandle, afterSkybox2);
 
         var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparentPasses, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterTransparents.Setup(colorAttachmentHandle, depthAttachmentHandle, afterTransparent);
+        copyAfterTransparents.Setup(colorAttachmentHandle, afterTransparent);
 
         var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRendering, m_SamplingMaterial, m_DownsamplingMethod);
-        copyAfterEverything.Setup(colorAttachmentHandle, depthAttachmentHandle, afterAll);
+        copyAfterEverything.Setup(colorAttachmentHandle, afterAll);
 
         var BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, colorAttachmentHandle);
 

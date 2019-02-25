@@ -41,7 +41,6 @@ namespace UnityEngine.Rendering.LWRP
 
             // Depth-Only pass don't use MSAA
             baseDescriptor.msaaSamples = 1;
-
             descriptor = baseDescriptor;
         }
 

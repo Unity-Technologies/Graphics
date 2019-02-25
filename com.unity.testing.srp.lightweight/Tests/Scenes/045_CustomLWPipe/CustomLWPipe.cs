@@ -17,8 +17,6 @@ public class CustomLWPipe : ScriptableRenderer
     public override void Setup(ref RenderingData renderingData)
     {
         RenderTextureDescriptor baseDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-        RenderTextureDescriptor shadowDescriptor = baseDescriptor;
-        shadowDescriptor.dimension = TextureDimension.Tex2D;
 
         cameraColorHandle = RenderTargetHandle.CameraTarget;
         cameraDepthHandle = RenderTargetHandle.CameraTarget;
@@ -30,8 +28,6 @@ public class CustomLWPipe : ScriptableRenderer
             m_RendererFeatures[i].AddRenderPasses(m_ActiveRenderPassQueue, baseDescriptor, cameraColorHandle, cameraDepthHandle);
         }
         m_ActiveRenderPassQueue.Sort();
-
-        m_RenderOpaqueForwardPass.Setup(baseDescriptor, cameraColorHandle, cameraDepthHandle, GetCameraClearFlag(camera.clearFlags), camera.backgroundColor);
         EnqueuePass(m_RenderOpaqueForwardPass);
     }
 
