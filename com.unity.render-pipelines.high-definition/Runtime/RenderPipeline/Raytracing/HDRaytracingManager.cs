@@ -496,7 +496,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Also, we need to contribute to the maximal number of submeshes
                     MeshFilter currentFilter = currentRenderer.GetComponent<MeshFilter>();
-                    maxNumSubMeshes = Mathf.Max(maxNumSubMeshes, currentFilter.sharedMesh.subMeshCount);
+                    if (currentFilter != null && currentFilter.sharedMesh != null)
+                    {
+                        maxNumSubMeshes = Mathf.Max(maxNumSubMeshes, currentFilter.sharedMesh.subMeshCount);
+                    }
                 }
 
                 bool[] subMeshFlagArray = new bool[maxNumSubMeshes];
