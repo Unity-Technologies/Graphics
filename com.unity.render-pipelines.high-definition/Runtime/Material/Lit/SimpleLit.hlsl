@@ -709,12 +709,15 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // Subsurface scattering mode
     float3 modifiedDiffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
 
-    // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
-    // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
+    // Note: Unlike Lit material, the SimpleLit material don't have ModifyBakedDiffuseLighting() function
+    // So we need to multiply by the diffuse albedo here.
     // Note: In deferred bakeDiffuseLighting also contain emissive and in this case emissiveColor is 0
     diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.emissiveColor;
     #ifdef HDRP_ENABLE_ENV_LIGHT
-    diffuseLighting += builtinData.bakeDiffuseLighting;
+    // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
+    diffuseLighting += ReplaceDiffuseForReflectionPass(bsdfData.fresnel0)
+        ? bsdfData.fresnel0
+        : builtinData.bakeDiffuseLighting * modifiedDiffuseColor;
     #endif
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 

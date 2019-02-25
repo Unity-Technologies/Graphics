@@ -64,7 +64,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influencePositionRWS = float3(0.0, 0.0, 0.0);
 
     output.weight = 1.0;
-    output.multiplier = 1.0;
+    output.multiplier = _EnableSpecularLighting.x > 0 ? 0.0 : 1.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
