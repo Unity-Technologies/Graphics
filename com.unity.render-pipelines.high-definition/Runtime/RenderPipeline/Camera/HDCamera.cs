@@ -35,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool colorPyramidHistoryIsValid = false;
         public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
+        public int  colorPyramidHistoryMipCount = 0;
         public VolumetricLightingSystem.VBufferParameters[] vBufferParams; // Double-buffered
 
         public Matrix4x4[]  viewMatrixStereo;
