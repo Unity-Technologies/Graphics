@@ -36,8 +36,11 @@ namespace UnityEngine.Rendering.LWRP
             Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
             Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.screenSpaceShadowShader);
 
-            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRendering + 1);
-            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRendering + 1);
+            // Note: Why the +1 in render block? Because if use these events for the built-in passes as well.
+            // F.ex the main light shadow map pass. We set it to inject at BeforeRenderingShadows + 1 so it render
+            // between before and after shadows.
+            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows + 1);
+            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows + 1);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses + 1, RenderQueueRange.opaque);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses + 1, screenspaceShadowsMaterial);
             m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, data.opaqueLayerMask);
