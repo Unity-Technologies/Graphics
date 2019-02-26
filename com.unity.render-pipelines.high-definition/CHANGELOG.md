@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals cropped by gizmo not updating correctly if prefab
 - Fixed an issue when enabling SSR on multiple view
 
+### Added
+- Added support for overriding Shaders that render terrain details. You can override them via the render pipeline editor resources asset.
+
 ## [5.6.0-preview] - 2019-02-21
 
 ### Added
