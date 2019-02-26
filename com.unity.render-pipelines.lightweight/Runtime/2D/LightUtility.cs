@@ -68,18 +68,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
 
         // Takes in a mesh that
-        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, Vector2 offset, int sides, float feathering, Color color, float volumeOpacity)
+        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, Vector2 offset, float angle, int sides, float feathering, Color color, float volumeOpacity)
         {
             if (mesh == null)
                 mesh = new Mesh();
 
-            float angleOffset = Mathf.PI / 2.0f;
+            float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
             if (sides < 3)
             {
                 radius = 0.70710678118654752440084436210485f * radius;
-                angleOffset = Mathf.PI / 4.0f;
                 sides = 4;
             }
+
+            if(sides == 4)
+            {
+                angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * angle;
+            }
+
+
 
             // Return a shape with radius = 1
             Vector3[] vertices;

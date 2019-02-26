@@ -38,7 +38,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private float m_ShapeLightFeathering = 0.50f;
         private float m_PreviousShapeLightFeathering = -1;
 
-
         public int shapeLightParametricSides
         {
             get { return m_ShapeLightParametricSides; }
@@ -46,8 +45,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ParametricSides")]
-        private int m_ShapeLightParametricSides = 128;
+        private int m_ShapeLightParametricSides = 6;
         private int m_PreviousShapeLightParametricSides = -1;
+
+        public float shapeLightParametricAngleOffset
+        {
+            get { return m_ShapeLightParametricAngleOffset; }
+            set { m_ShapeLightParametricAngleOffset = value; }
+        }
+        [SerializeField]
+        private float m_ShapeLightParametricAngleOffset = 0;
+        private float m_PreviousShapeLightParametricAngleOffset = -1;
 
         public Vector2 shapeLightOffset
         {
@@ -208,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 localBounds = UpdateShapeLightMesh(m_Color);
             else if(m_LightType == LightType.Parametric)
             {
-                localBounds = LightUtility.GenerateParametricMesh(ref mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricSides, m_ShapeLightFeathering, m_Color, m_LightVolumeOpacity);
+                localBounds = LightUtility.GenerateParametricMesh(ref mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, m_ShapeLightFeathering, m_Color, m_LightVolumeOpacity);
             }
             else if (m_LightType == LightType.Sprite)
             {

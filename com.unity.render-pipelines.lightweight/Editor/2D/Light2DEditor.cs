@@ -268,6 +268,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             bool updateMesh = false;
             SerializedProperty shapeLightFeathering = serializedObject.FindProperty("m_ShapeLightFeathering");
             SerializedProperty shapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
+            SerializedProperty shapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
             SerializedProperty shapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
             SerializedProperty shapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             SerializedProperty shapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
@@ -289,7 +290,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 if (changedType)
                 {
                     int sides = shapeLightParametricSides.intValue;
-                    if (lightProjectionType == Light2D.LightType.Parametric) sides = 128;
+                    if (lightProjectionType == Light2D.LightType.Parametric) sides = 6;
                     else if (lightProjectionType == Light2D.LightType.Freeform) sides = 4; // This one should depend on if this has data at the moment
                     shapeLightParametricSides.intValue = sides;
                 }
@@ -297,9 +298,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 m_ModifiedMesh = false;
 
                 if (lightProjectionType == Light2D.LightType.Parametric)
-                    EditorGUILayout.IntSlider(shapeLightParametricSides, 3, 128, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.IntSlider(shapeLightParametricSides, 3, 24, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
+                    EditorGUILayout.Slider(shapeLightParametricAngleOffset, 0, 359, EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object"));
+                    updateMesh |= EditorGUI.EndChangeCheck();
+                }
 
-                EditorGUILayout.Slider(shapeLightFeathering, 0, 5, EditorGUIUtility.TrTextContent("Feathering", "Specify the shapes number of sides"));
+                EditorGUILayout.Slider(shapeLightFeathering, 0, 5, EditorGUIUtility.TrTextContent("Feathering", "Specify the amount of feathering"));
                 Vector2 lastOffset = shapeLightOffset.vector2Value;
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
             }
@@ -526,15 +532,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 {
                     float radius = 0.5f;
                     float sides = lt.shapeLightParametricSides;
-                    float angleOffset = Mathf.PI / 2.0f;
+                    float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * lt.shapeLightParametricAngleOffset;
 
-                    if (sides < 2)
+                    if (sides < 3)
                     {
                         sides = 4;
-                        angleOffset = Mathf.PI / 4.0f;
                         radius = radius * 0.70710678118654752440084436210485f;
 
                     }
+                    if (sides == 4)
+                    {
+                        angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * lt.shapeLightParametricAngleOffset;
+                    }
+
 
                     Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
                     Vector3 featherStartPoint = (1 + lt.shapeLightFeathering * 2.0f) * startPoint;
