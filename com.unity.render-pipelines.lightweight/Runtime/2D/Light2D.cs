@@ -235,7 +235,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
                 else if(m_LightType == LightType.Point)
                 {
-                     m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 4, 0, m_Color, m_LightVolumeOpacity);
+                     m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 0, 4, 0, m_Color, m_LightVolumeOpacity);
                 }
             }
 
