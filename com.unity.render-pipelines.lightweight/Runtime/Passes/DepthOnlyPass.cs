@@ -65,7 +65,13 @@ namespace UnityEngine.Rendering.LWRP
                 var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
+                ref CameraData cameraData = ref renderingData.cameraData;
+                Camera camera = cameraData.camera;
+                if (cameraData.isStereoEnabled)
+                    context.StartMultiEye(camera);
+
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

@@ -260,10 +260,6 @@ namespace UnityEngine.Rendering.LWRP
         void BeginXRRendering(ScriptableRenderContext context, Camera camera)
         {
             context.StartMultiEye(camera);
-            var cmd = CommandBufferPool.Get(k_RenderOcclusionMesh);
-            XRUtils.DrawOcclusionMesh(cmd, camera, true);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         void EndXRRendering(ScriptableRenderContext context, Camera camera)
@@ -302,6 +298,15 @@ namespace UnityEngine.Rendering.LWRP
             SetRenderTarget(cmd, cameraColorHandle.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 cameraDepthHandle.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag,
                 CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor), descriptor.dimension);
+
+            if (cameraData.isStereoEnabled)
+            {
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                context.StartMultiEye(camera);
+                XRUtils.DrawOcclusionMesh(cmd, camera);
+            }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
