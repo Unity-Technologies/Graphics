@@ -36,19 +36,19 @@ namespace UnityEngine.Rendering.LWRP
             Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
             Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.screenSpaceShadowShader);
 
-            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRendering);
-            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRendering);
-            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.AfterRenderingShadows, RenderQueueRange.opaque);
-            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.AfterRenderingShadows, screenspaceShadowsMaterial);
+            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRendering + 1);
+            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRendering + 1);
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses + 1, RenderQueueRange.opaque);
+            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses + 1, screenspaceShadowsMaterial);
             m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, data.opaqueLayerMask);
-            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
-            m_OpaquePostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingOpaques, true);
-            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.AfterRenderingOpaques);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingOpaques, samplingMaterial, downsamplingMethod);
-            m_RenderTransparentForwardPass = new RenderTransparentForwardPass(RenderPassEvent.AfterRenderingSkybox, RenderQueueRange.transparent, data.transparentLayerMask);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering);
-            m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering + 9);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 9, blitMaterial);
+            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, copyDepthMaterial);
+            m_OpaquePostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingOpaques + 1, true);
+            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox + 1);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingSkybox + 1, samplingMaterial, downsamplingMethod);
+            m_RenderTransparentForwardPass = new RenderTransparentForwardPass(RenderPassEvent.BeforeRenderingTransparents + 1, RenderQueueRange.transparent, data.transparentLayerMask);
+            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing + 1);
+            m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering + 1);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, blitMaterial);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, copyDepthMaterial);

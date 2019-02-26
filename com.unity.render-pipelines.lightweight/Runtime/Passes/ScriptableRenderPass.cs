@@ -22,6 +22,8 @@ namespace UnityEngine.Rendering.LWRP
         AfterRenderingSkybox = 400,
         BeforeRenderingTransparents = 450,
         AfterRenderingTransparents = 500,
+        BeforeRenderingPostProcessing = 550,
+        AfterRenderingPostProcessing = 600,
         AfterRendering = 1000,
     }
 
@@ -121,7 +123,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <seealso cref="ScriptableRenderer"/>
         public static void Blit(ScriptableRenderContext context, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0, string profilerTag = "Blit")
         {
-            CommandBuffer cmd = CommandBufferPool.Get("Blit");
+            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
             cmd.Blit(source, destination, material, passIndex);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
