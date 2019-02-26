@@ -124,6 +124,30 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             s_CullingGroup.SetBoundingSphereCount(currentLightCullingIndex);
         }
 
+        internal int GetTopMostLitLayer()
+        {
+            int largestIndex = -1;
+            int largestLayer = 0;
+
+            SortingLayer[] layers = SortingLayer.layers;
+            for(int i=0;i< m_ApplyToSortingLayers.Length;i++)
+            {
+                for(int layer=layers.Length-1;layer>=largestLayer; layer--)
+                {
+                    if (layers[layer].id == m_ApplyToSortingLayers[i])
+                    {
+                        largestIndex = i;
+                        largestLayer = layer;
+                    }
+                }
+            }
+
+            if (largestIndex >= 0)
+                return m_ApplyToSortingLayers[largestIndex];
+            else
+                return -1;
+        }
+
         internal static List<Light2D> GetLightsByLightOperation(int lightOpIndex)
         {
             return s_Lights[lightOpIndex];

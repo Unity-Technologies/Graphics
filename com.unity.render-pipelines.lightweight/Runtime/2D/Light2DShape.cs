@@ -87,9 +87,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //                              Functions
         //==========================================================================================
 
-        internal static bool IsShapeLight(LightType lightProjectionType)
+        internal static bool IsShapeLight(LightType lightType)
         {
-            return lightProjectionType != LightType.Point;
+            return lightType != LightType.Point;
         }
 
         Material GetShapeLightVolumeMaterial()
