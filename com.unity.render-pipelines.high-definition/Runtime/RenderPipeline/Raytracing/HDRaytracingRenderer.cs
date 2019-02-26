@@ -123,7 +123,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Check the validity of the state before computing the effect
             bool invalidState = rtEnvironement == null || !rtEnvironement.raytracedObjects
                 || forwardShader == null || raytracingMask == null
-                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
+                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null
+                || ((hdCamera.camera.cameraType == CameraType.SceneView) && !rtEnvironement.raytraceSceneCamera);
 
             // If any resource or game-object is missing We stop right away
             if (invalidState)

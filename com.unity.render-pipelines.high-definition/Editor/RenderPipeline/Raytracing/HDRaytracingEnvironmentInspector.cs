@@ -15,6 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Generic
             public static readonly GUIContent genericSectionText = EditorGUIUtility.TrTextContent("Generic Attributes");
             public static readonly GUIContent rayBiasText = EditorGUIUtility.TrTextContent("Ray Bias");
+            public static readonly GUIContent raytraceSceneText = EditorGUIUtility.TrTextContent("Raytrace SceneView");
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Ambient Occlusion
@@ -116,6 +117,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             // AO Specific fields
             EditorGUILayout.PropertyField(rtEnv.rayBias, Styles.rayBiasText);
+            EditorGUILayout.PropertyField(rtEnv.rayTraceSceneView, Styles.raytraceSceneText);
         }
 
         static void UpdateEnvironmentSubScenes(SerializedHDRaytracingEnvironment rtEnv)
