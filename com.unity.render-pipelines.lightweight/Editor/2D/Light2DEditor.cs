@@ -519,10 +519,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                 if (lt.lightType == Light2D.LightType.Sprite)
                 {
-                    Vector3 v0 = t.TransformPoint(new Vector3(-0.5f, -0.5f));
-                    Vector3 v1 = t.TransformPoint(new Vector3(0.5f, -0.5f));
-                    Vector3 v2 = t.TransformPoint(new Vector3(0.5f, 0.5f));
-                    Vector3 v3 = t.TransformPoint(new Vector3(-0.5f, 0.5f));
+                    Vector3 min = lt.lightCookieSprite.bounds.min;
+                    Vector3 max = lt.lightCookieSprite.bounds.max;
+
+                    Vector3 v0 = t.TransformPoint(new Vector3(min.x, min.y));
+                    Vector3 v1 = t.TransformPoint(new Vector3(max.x, min.y));
+                    Vector3 v2 = t.TransformPoint(new Vector3(max.x, max.y));
+                    Vector3 v3 = t.TransformPoint(new Vector3(min.x, max.y));
                     Handles.DrawLine(v0, v1);
                     Handles.DrawLine(v1, v2);
                     Handles.DrawLine(v2, v3);

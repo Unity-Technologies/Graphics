@@ -199,7 +199,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 for (int vertexIdx = 0; vertexIdx < vertices2d.Length; vertexIdx++)
                 {
                     Vector3 pos = new Vector3(vertices2d[vertexIdx].x, vertices2d[vertexIdx].y) - center;
-                    pos = new Vector3(vertices2d[vertexIdx].x / sprite.bounds.size.x, vertices2d[vertexIdx].y / sprite.bounds.size.y);
                     vertices3d[vertexIdx] = scale * pos;
                     colors[vertexIdx] = color;
                     volumeColor[vertexIdx] = new Vector4(1, 1, 1, volumeOpacity);
