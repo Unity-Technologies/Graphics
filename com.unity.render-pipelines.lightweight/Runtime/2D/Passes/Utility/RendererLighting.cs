@@ -304,7 +304,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     i,
                     cmdBuffer,
                     layerToRender,
-                    Light2D.GetShapeLights(i),
+                    Light2D.GetLightsByLightOperation(i),
                     true
                 );
 
@@ -313,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     i,
                     cmdBuffer,
                     layerToRender,
-                    Light2D.GetShapeLights(i),
+                    Light2D.GetLightsByLightOperation(i),
                     false
                 );
 
@@ -340,7 +340,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmdBuffer,
                     layerToRender,
                     s_RenderTargets[i].Identifier(),
-                    Light2D.GetShapeLights(i),
+                    Light2D.GetLightsByLightOperation(i),
                     renderShapeLights
                 );
 

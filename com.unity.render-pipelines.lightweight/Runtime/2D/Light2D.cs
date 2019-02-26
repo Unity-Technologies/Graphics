@@ -2,10 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     // TODO: 
@@ -82,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //                              Functions
         //==========================================================================================
 
-        static internal List<Light2D>[] SetupLightArray()
+        internal static List<Light2D>[] SetupLightArray()
         {
             List<Light2D>[] retArray = new List<Light2D>[k_LightOperationCount];
 
@@ -92,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return retArray;
         }
 
-        static internal void SetupCulling(Camera camera)
+        internal static void SetupCulling(Camera camera)
         {
             if (s_CullingGroup == null)
                 return;
@@ -126,6 +122,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             s_CullingGroup.SetBoundingSpheres(s_BoundingSpheres);
             s_CullingGroup.SetBoundingSphereCount(currentLightCullingIndex);
+        }
+
+        internal static List<Light2D> GetLightsByLightOperation(int lightOpIndex)
+        {
+            return s_Lights[lightOpIndex];
         }
 
         internal int GetTopMostLitLayer()
@@ -235,31 +236,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return m_Mesh;
         }
 
-        internal static List<Light2D> GetShapeLights(int lightOpIndex)
-        {
-            return s_Lights[lightOpIndex];
-        }
-
         internal bool IsLightVisible(Camera camera)
         {
             bool isVisible = (s_CullingGroup == null || s_CullingGroup.IsVisible(m_LightCullingIndex)) && isActiveAndEnabled;
 
-            #if UNITY_EDITOR
-                isVisible = isVisible && UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(gameObject, camera);
-            #endif
+#if UNITY_EDITOR
+            isVisible &= UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(gameObject, camera);
+#endif
 
             return isVisible;
-        }
-
-
-        private void RegisterLight()
-        {
-            if (s_Lights != null)
-            {
-                int index = (int)m_LightOperationIndex;
-                if (!s_Lights[index].Contains(this))
-                    InsertLight();
-            }
         }
 
         private void Awake()
@@ -275,31 +260,29 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private void OnEnable()
         {
-            m_PreviousLightOperationIndex = m_LightOperationIndex;
-
+            // This has to stay in OnEnable() because we need to re-initialize the static variables after a domain reload.
             if (s_CullingGroup == null)
             {
                 s_CullingGroup = new CullingGroup();
                 RenderPipeline.beginCameraRendering += SetupCulling;
             }
 
-            RegisterLight();
+            if (!s_Lights[m_LightOperationIndex].Contains(this))
+                InsertLight();
+
+            m_PreviousLightOperationIndex = m_LightOperationIndex;
         }
 
         private void OnDisable()
         {
             bool anyLightLeft = false;
 
-            if (s_Lights != null)
+            for (int i = 0; i < s_Lights.Length; ++i)
             {
-                for (int i = 0; i < s_Lights.Length; i++)
-                {
-                    if (s_Lights[i].Contains(this))
-                        s_Lights[i].Remove(this);
+                s_Lights[i].Remove(this);
 
-                    if (s_Lights[i].Count > 0)
-                        anyLightLeft = true;
-                }
+                if (s_Lights[i].Count > 0)
+                    anyLightLeft = true;
             }
 
             if (!anyLightLeft && s_CullingGroup != null)
@@ -361,7 +344,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private void OnDrawGizmos()
         {
 #if UNITY_EDITOR
-            if (Selection.activeGameObject != transform.gameObject)
+            if (UnityEditor.Selection.activeGameObject != transform.gameObject)
                 Gizmos.DrawIcon(transform.position, "PointLight Gizmo", true);
 #endif
         }
