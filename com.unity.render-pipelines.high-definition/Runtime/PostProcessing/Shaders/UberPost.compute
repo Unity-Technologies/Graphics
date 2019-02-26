@@ -15,14 +15,14 @@
 #pragma kernel KMain_Variant6 MAIN=KMain_Variant6 VARIANT=6
 #pragma kernel KMain_Variant7 MAIN=KMain_Variant7 VARIANT=7
 
-TEXTURE2D(_InputTexture);
-TEXTURE2D(_BloomTexture);
+TEXTURE2D_X(_InputTexture);
+TEXTURE2D_X(_BloomTexture);
 TEXTURE2D(_BloomDirtTexture);
 TEXTURE2D(_ChromaSpectralLut);
 TEXTURE3D(_LogLut3D);
 TEXTURE2D(_VignetteMask);
 
-RW_TEXTURE2D(float3, _OutputTexture);
+RW_TEXTURE2D_X(float3, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
 SAMPLER(sampler_ChromaSpectralLut);
@@ -102,9 +102,10 @@ float2 DistortUV(float2 uv)
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
     float2 uvDistorted = DistortUV(uv);
     float3 color = 0.0;
@@ -125,7 +126,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
         for (int i = 0; i < samples; i++)
         {
             float t = (i + 0.5) / samples;
-            float3 s = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
+            float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
             float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
 
             sum += s * filter;
@@ -137,7 +138,7 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     }
     else
     {
-        color = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
+        color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
     }
 
     // Bloom
@@ -145,9 +146,9 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     if (BloomEnabled)
     {
         #if 0 // Bilinear
-        float3 bloom = SAMPLE_TEXTURE2D_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
+        float3 bloom = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
         #else
-        float3 bloom = SampleTexture2DBicubic(TEXTURE2D_ARGS(_BloomTexture, sampler_LinearClamp), uvDistorted * _ScreenToTargetScale.xy, _BloomBicubicParams, _ScreenToTargetScale.xy).xyz;
+        float3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), uvDistorted * _ScreenToTargetScale.xy, _BloomBicubicParams, _ScreenToTargetScale.xy, unity_StereoEyeIndex).xyz;
         #endif
 
         color = lerp(color, bloom * BloomTint, BloomIntensity);
@@ -198,5 +199,5 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // Done
-    _OutputTexture[posInputs.positionSS] = color;
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = color;
 }

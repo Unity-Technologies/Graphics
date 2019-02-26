@@ -31,7 +31,7 @@ float square(float value)
 float3 ReadNormalValue(uint2 positionSS)
 {
     NormalData normalData;
-    float4 normalBuffer  = _NormalBufferTexture[positionSS];
+    float4 normalBuffer  = _NormalBufferTexture[COORD_TEXTURE2D_X(positionSS)];
     DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
     return normalData.normalWS;
 }

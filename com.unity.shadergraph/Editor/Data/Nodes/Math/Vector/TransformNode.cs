@@ -151,12 +151,12 @@ namespace UnityEditor.ShaderGraph
                 if (conversion.to == CoordinateSpace.World)
                 {
                     requiresTransposeTangentTransform = true;
-                    transformString = string.Format("mul({0}, {1}).xyz", inputValue, transposeTargetTransformString);
+                    transformString = string.Format("mul({0}, {1}).xyz", transposeTargetTransformString, inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
                     requiresTransposeTangentTransform = true;
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir(mul({0}, {1}).xyz)" : "TransformWorldToObject(mul({0}, {1}).xyz)", inputValue, transposeTargetTransformString);
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToObjectDir(mul({0}, {1}).xyz)" : "TransformWorldToObject(mul({0}, {1}).xyz)", transposeTargetTransformString, inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph
                 else if (conversion.to == CoordinateSpace.View)
                 {
                     requiresTransposeTangentTransform = true;
-                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir(mul({0}, {1}).xyz)" : "TransformWorldToView(mul({0}, {1}).xyz)", inputValue, transposeTargetTransformString);
+                    transformString = string.Format(conversionType == ConversionType.Direction ? "TransformWorldToViewDir(mul({0}, {1}).xyz)" : "TransformWorldToView(mul({0}, {1}).xyz)", transposeTargetTransformString, inputValue);
                 }
             }
             else if (conversion.from == CoordinateSpace.View)

@@ -1,6 +1,7 @@
+using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -10,16 +11,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
     public class HDRaytracingManager
     {
-        // The list of raytracing environments that have been registered
-        List<HDRaytracingEnvironment> m_Environments = null;
-        RayCountManager m_RayCountManager = new RayCountManager();
-        public RayCountManager rayCountManager
-        {
-            get
-            {
-                return m_RayCountManager;
-            }
-        }
+        // The list of ray-tracing environments that have been registered
+        List<HDRaytracingEnvironment> m_Environments = new List<HDRaytracingEnvironment>();
 
         // Flag that defines if we should rebuild everything (when adding or removing an environment)
         bool m_DirtyEnvironment = false;
@@ -28,8 +21,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!m_Environments.Contains(targetEnvironment))
             {
+                // Add this env to the list of environments
                 m_Environments.Add(targetEnvironment);
                 m_DirtyEnvironment = true;
+
+                // Now that a new environment has been set, we need to update
+                UpdateEnvironmentSubScenes();
             }
         }
 
@@ -40,10 +37,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Add this graph
                 m_Environments.Remove(targetEnvironment);
                 m_DirtyEnvironment = true;
+
+                // Now that a new environement has been removed, we need to update
+                UpdateEnvironmentSubScenes();
             }
         }
 
-        // This class holds everything regarding the state of the ray tracing structure of a sub scene filtered by a layermask
+        // This class holds everything regarding the state of the ray tracing structure of a sub scene filtered by a layer mask
         public class HDRayTracingSubScene
         {
             // The mask that defines which part of the sub-scene is targeted by this
@@ -51,6 +51,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // The native acceleration structure that matches this sub-scene
             public RaytracingAccelerationStructure accelerationStructure = null;
+
+            // Flag that tracks if the acceleration needs to be updated
+            public bool needUpdate = false;
 
             // The list of renderers in the sub-scene
             public List<Renderer> targetRenderers = null;
@@ -61,12 +64,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The list of directional lights in the sub-scene
             public List<HDAdditionalLightData> hdDirectionalLightArray = null;
 
-            // The list of ray-tracing graphs that reference this sub-scene
-            public List<HDRayTracingFilter> referenceFilters = new List<HDRayTracingFilter>();
-
-            // Flag that defines if this sub-scene should be persistent even if there isn't any explicit graph referencing it
-            public bool persistent = false;
-
             // Flag that defines if this sub-scene should be re-evaluated
             public bool obsolete = false;
 
@@ -75,81 +72,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Light cluster used for some effects
             public HDRaytracingLightCluster lightCluster = null;
+
+            // Integer that tracks the number of passes that reference this sub-scene
+            public int references = 0;
         }
 
-        // The list of graphs that have been referenced
-        List<HDRayTracingFilter> m_Filters = null;
+        // The current set of sub-scenes that we have
+        Dictionary<int, HDRayTracingSubScene> m_SubScenes = new Dictionary<int, HDRayTracingSubScene>();
 
-        // The list of sub-scenes that exist
-        Dictionary<int, HDRayTracingSubScene> m_SubScenes = null;
-
-        // The list of layer masks that exist
-        List<int> m_LayerMasks = null;
+        // This list tracks for each effect of the current layer mask index that is assigned to them
+        int[] m_EffectsMaks = new int[HDRaytracingEnvironment.numRaytracingPasses];
 
         // The HDRPAsset data that needs to be 
         RenderPipelineResources m_Resources = null;
         RenderPipelineSettings m_Settings;
         LightLoop m_LightLoop = null;
         SharedRTManager m_SharedRTManager = null;
-
-        // Noise texture manager
         BlueNoise m_BlueNoise = null;
 
-        public void RegisterFilter(HDRayTracingFilter targetFilter)
-        {
-            if (!m_Filters.Contains(targetFilter))
-            {
-                // Add this graph
-                m_Filters.Add(targetFilter);
-
-                // Try to get the sub-scene
-                HDRayTracingSubScene currentSubScene = null;
-                if (!m_SubScenes.TryGetValue(targetFilter.layermask.value, out currentSubScene))
-                {
-                    // Create the ray-tracing sub-scene
-                    currentSubScene = new HDRayTracingSubScene();
-                    currentSubScene.mask = targetFilter.layermask.value;
-
-                    // If this is a new graph, we need to build its data
-                    BuildSubSceneStructure(ref currentSubScene);
-
-                    // register this sub-scene and this layer mask
-                    m_SubScenes.Add(targetFilter.layermask.value, currentSubScene);
-                    m_LayerMasks.Add(targetFilter.layermask.value);
-                }
-
-                // Add this graph to the reference graphs
-                currentSubScene.referenceFilters.Add(targetFilter);
-            }
-        }
-
-        public void UnregisterFilter(HDRayTracingFilter targetFilter)
-        {
-            if (m_Filters.Contains(targetFilter))
-            {
-                // Add this graph
-                m_Filters.Remove(targetFilter);
-
-                // Match the sub-matching sub-scene
-                HDRayTracingSubScene currentSubScene = null;
-                if (m_SubScenes.TryGetValue(targetFilter.layermask.value, out currentSubScene))
-                {
-                    // Remove the reference to this graph
-                    currentSubScene.referenceFilters.Remove(targetFilter);
-
-                    // Is there is no one referencing this sub-scene and it is not persistent, then we need to delete its
-                    if (currentSubScene.referenceFilters.Count == 0 && !currentSubScene.persistent)
-                    {
-                        // If this is a new graph, we need to build its data
-                        DestroySubSceneStructure(ref currentSubScene);
-
-                        // Remove it from the list of the sub-scenes
-                        m_SubScenes.Remove(targetFilter.layermask.value);
-                        m_LayerMasks.Remove(targetFilter.layermask.value);
-                    }
-                }
-            }
-        }
+        // Ray-count manager data
+        RayCountManager m_RayCountManager = new RayCountManager();
+        public RayCountManager rayCountManager { get { return m_RayCountManager; } }
 
         public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise, LightLoop lightloop, SharedRTManager sharedRTManager)
         {
@@ -178,30 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RegisterEnvironment(environmentArray[envIdx]);
             }
 
-            // keep track of all the graphs that are to be supported
-            m_Filters = new List<HDRayTracingFilter>();
-
-            // Create the sub-scenes structure
-            m_SubScenes = new Dictionary<int, HDRayTracingSubScene>();
-
-            // The list of masks that are currently requested
-            m_LayerMasks = new List<int>();
-
-            // Let's start by building the "default" sub-scene (used by the scene camera)
-            HDRayTracingSubScene defaultSubScene = new HDRayTracingSubScene();
-            defaultSubScene.mask = m_Settings.editorRaytracingFilterLayerMask.value;
-            defaultSubScene.persistent = true;
-            BuildSubSceneStructure(ref defaultSubScene);
-            m_SubScenes.Add(m_Settings.editorRaytracingFilterLayerMask.value, defaultSubScene);
-            m_LayerMasks.Add(m_Settings.editorRaytracingFilterLayerMask.value);
-
-            // Grab all the ray-tracing graphs that have been created before
-            HDRayTracingFilter[] filterArray = Object.FindObjectsOfType<HDRayTracingFilter>();
-            for (int filterIdx = 0; filterIdx < filterArray.Length; ++filterIdx)
-            {
-                RegisterFilter(filterArray[filterIdx]);
-            }
-
+            // Init the ray count manager
             m_RayCountManager.Init(resources);
 
 #if UNITY_EDITOR
@@ -220,30 +140,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 #endif
-
         public void SetDirty()
         {
-            int numFilters = m_Filters.Count;
-            for (int filterIdx = 0; filterIdx < numFilters; ++filterIdx)
-            {
-                // Grab the target graph component
-                HDRayTracingFilter filterComponent = m_Filters[filterIdx];
-
-                // If this camera had a graph component had an obsolete flag
-                if (filterComponent != null)
-                {
-                    filterComponent.SetDirty();
-                }
-            }
+            m_DirtyEnvironment = true;
         }
 
         public void Release()
         {
-            for (var subSceneIndex = 0; subSceneIndex < m_LayerMasks.Count; subSceneIndex++)
+            // Destroy all the sub-scenes
+            foreach (var subScene in m_SubScenes)
             {
-                HDRayTracingSubScene currentSubScene = m_SubScenes[m_LayerMasks[subSceneIndex]];
+                HDRayTracingSubScene currentSubScene = subScene.Value;
                 DestroySubSceneStructure(ref currentSubScene);
             }
+
+            // Clear the sub-scenes list
+            m_SubScenes.Clear();
             m_RayCountManager.Release();
         }
 
@@ -259,62 +171,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 subScene.lightCluster = null;
             }
         }
+
+        // This function is in charge of rebuilding the Subscenes in case the environment is flagged as obsolete
         public void CheckSubScenes()
         {
-            // Here there is two options, either the full things needs to be rebuilded or we should only rebuild the ones that have been flagged obsolete
+            // If the environement is dirty we needs to destroy and rebuild all the sub-scenes
             if (m_DirtyEnvironment)
             {
-                // First of let's reset all the obsolescence flags
-                int numFilters = m_Filters.Count;
-                for (int filterIdx = 0; filterIdx < numFilters; ++filterIdx)
+                // Let's lag all the sub-scenes as obsolete
+                foreach (var subScene in m_SubScenes)
                 {
-                    // Grab the target graph component
-                    HDRayTracingFilter filterComponent = m_Filters[filterIdx];
-
-                    // If this camera had a graph component had an obsolete flag
-                    if (filterComponent != null)
-                    {
-                        filterComponent.ResetDirty();
-                    }
-                }
-
-                // Also let's mark all the sub-scenes as obsolete
-                for (var subSceneIndex = 0; subSceneIndex < m_LayerMasks.Count; subSceneIndex++)
-                {
-                    HDRayTracingSubScene currentSubScene = m_SubScenes[m_LayerMasks[subSceneIndex]];
-                    currentSubScene.obsolete = true;
+                    subScene.Value.obsolete = true;
                 }
                 m_DirtyEnvironment = false;
             }
-            else
-            {
-                // First of all propagate the obsolete flags to the sub scenes
-                int numGraphs = m_Filters.Count;
-                for (int filterIdx = 0; filterIdx < numGraphs; ++filterIdx)
-                {
-                    // Grab the target graph component
-                    HDRayTracingFilter filterComponent = m_Filters[filterIdx];
-
-                    // If this camera had a graph component had an obsolete flag
-                    if (filterComponent != null && filterComponent.IsDirty())
-                    {
-                        // Get the sub-scene  that matches
-                        HDRayTracingSubScene currentSubScene = null;
-                        if (m_SubScenes.TryGetValue(filterComponent.layermask, out currentSubScene))
-                        {
-                            currentSubScene.obsolete = true;
-                        }
-                        filterComponent.ResetDirty();
-                    }
-                }
-            }
-
 
             // Rebuild all the obsolete scenes
-            for (var subSceneIndex = 0; subSceneIndex < m_LayerMasks.Count; subSceneIndex++)
+            foreach (var subScenePair in m_SubScenes)
             {
                 // Grab the current sub-scene
-                HDRayTracingSubScene subScene = m_SubScenes[m_LayerMasks[subSceneIndex]];
+                HDRayTracingSubScene subScene = subScenePair.Value;
 
                 // Does this scene need rebuilding?
                 if (subScene.obsolete)
@@ -326,26 +202,206 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void UpdateSubSceneData(CommandBuffer cmd, HDCamera hdCamera)
+        void UpdateEffectSubScene(int layerMaskIndex, int effectIndex)
         {
-            HDRayTracingSubScene subScene = RequestSubScene(hdCamera);
-            if (subScene != null)
+            // Grab the previous sub-scene (try)
+            HDRayTracingSubScene previousScene = null;
+            bool previousSceneFound = m_SubScenes.TryGetValue(m_EffectsMaks[effectIndex], out previousScene);
+
+            // Did the layer mask change for this effect ?
+            if (layerMaskIndex != m_EffectsMaks[effectIndex])
             {
-                // Update the acceleration structure
-                if (subScene.accelerationStructure != null)
+                // If the previous scene was allocated
+                if(previousSceneFound)
                 {
-                    for (var i = 0; i < subScene.targetRenderers.Count; i++)
-                    {
-                        if (subScene.targetRenderers[i] != null)
-                        {
-                            subScene.accelerationStructure.UpdateInstanceTransform(subScene.targetRenderers[i]);
-                        }
-                    }
-                    subScene.accelerationStructure.Update();
+                    // Decrease the number of references for the old sub-scene
+                    previousScene.references -= 1;
                 }
 
-                // Evaluate the light cluster
-                subScene.lightCluster.EvaluateLightClusters(cmd, hdCamera, subScene.hdLightArray);
+                // Does the new sub-scene assigned to this effect already exist?
+                HDRayTracingSubScene currentSubScene = null;
+                if (!m_SubScenes.TryGetValue(layerMaskIndex, out currentSubScene))
+                {
+                    // Create the ray-tracing sub-scene
+                    currentSubScene = new HDRayTracingSubScene();
+                    currentSubScene.mask = layerMaskIndex;
+
+                    // If this is a new graph, we need to build its data
+                    BuildSubSceneStructure(ref currentSubScene);
+
+                    // Push it to the list of sub-scenes
+                    m_SubScenes.Add(layerMaskIndex, currentSubScene);
+                }
+
+                // Ok this sub-scene is already existing, let's simply track it and increase the number of references to it
+                m_EffectsMaks[effectIndex] = layerMaskIndex;
+
+                // Increase the number of references to this sub-scene
+                currentSubScene.references += 1;
+            }
+            else
+            {
+                // Ok, it is the same value as it was before, but does this sub scene exist?
+                if(!previousSceneFound)
+                {
+                    // Create the ray-tracing sub-scene
+                    previousScene = new HDRayTracingSubScene();
+                    previousScene.mask = layerMaskIndex;
+
+                    // If this is a new graph, we need to build its data
+                    BuildSubSceneStructure(ref previousScene);
+
+                    // Push it to the list of sub-scenes
+                    m_SubScenes.Add(layerMaskIndex, previousScene);
+
+                    // Increase the number of references to this sub-scene
+                    previousScene.references += 1;
+                }
+            }
+        }
+
+        // This function is to be called when the layers used for an effect have changed. It is called either through the inspector or using the scripting API
+        public void UpdateEnvironmentSubScenes()
+        {
+            // Grab the current environment
+            HDRaytracingEnvironment rtEnv = CurrentEnvironment();
+
+            // We do not have any current environment, we need to clear all the subscenes we have and leave.
+            if(rtEnv == null)
+            {
+                foreach (var subScene in m_SubScenes)
+                {
+                    // Destroy the sub-scene to remove
+                    HDRayTracingSubScene currentSubscene = subScene.Value;
+                    DestroySubSceneStructure(ref currentSubscene);
+                }
+                m_SubScenes.Clear();
+                return;
+            }
+
+            // Update the references for the sub-scenes
+            UpdateEffectSubScene(rtEnv.aoLayerMask.value, 0);
+            UpdateEffectSubScene(rtEnv.reflLayerMask.value, 1);
+            UpdateEffectSubScene(rtEnv.shadowLayerMask.value, 2);
+            UpdateEffectSubScene(rtEnv.raytracedLayerMask.value, 3);
+
+            // Let's now go through all the sub-scenes and delete the ones that are not referenced by anyone
+            var nonReferencedSubScenes = m_SubScenes.Where(x => x.Value.references == 0).ToArray();
+            foreach(var subScene in nonReferencedSubScenes)
+            {
+                // Destroy the sub-scene to remove
+                HDRayTracingSubScene currentSubscene = subScene.Value;
+                DestroySubSceneStructure(ref currentSubscene);
+
+                // Remove it from the array
+                m_SubScenes.Remove(subScene.Key);
+            }
+        }
+
+        // This function defines which acceleration structures are going to be used during the following frame
+        // and updates their RAS
+        public void UpdateFrameData()
+        {
+            // Set all the acceleration structures that are currently allocated to not updated
+            foreach (var subScene in m_SubScenes)
+            {
+                subScene.Value.needUpdate = false;
+            }
+
+            // Grab the current environment
+            HDRaytracingEnvironment rtEnv = CurrentEnvironment();
+            if (rtEnv == null) return;
+
+            // If AO is on flag its RAS needUpdate
+            if (rtEnv.raytracedAO)
+            {
+                HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.aoLayerMask);
+                currentSubScene.needUpdate = true;
+            }
+
+            // If Reflection is on flag its RAS needUpdate
+            if (rtEnv.raytracedReflections)
+            {
+                HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.reflLayerMask);
+                currentSubScene.needUpdate = true;
+            }
+
+            // If Area Shadow is on flag its RAS needUpdate
+            if (rtEnv.raytracedShadows)
+            {
+                HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.shadowLayerMask);
+                currentSubScene.needUpdate = true;
+            }
+
+            // If Primary Visibility is on flag its RAS needUpdate
+            if (rtEnv.raytracedObjects)
+            {
+                HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.raytracedLayerMask);
+                currentSubScene.needUpdate = true;
+            }
+
+            // Let's go through all the sub-scenes that are flagged needUpdate and update their RAS
+            foreach (var subScene in m_SubScenes)
+            {
+                HDRayTracingSubScene currentSubScene = subScene.Value;
+                if (currentSubScene.accelerationStructure != null && currentSubScene.needUpdate)
+                {
+                    for (var i = 0; i < currentSubScene.targetRenderers.Count; i++)
+                    {
+                        if (currentSubScene.targetRenderers[i] != null)
+                        {
+                            currentSubScene.accelerationStructure.UpdateInstanceTransform(currentSubScene.targetRenderers[i]);
+                        }
+                    }
+                    currentSubScene.accelerationStructure.Update();
+
+                    // It doesn't need RAS update anymore
+                    currentSubScene.needUpdate = false;
+                }
+            }
+        }
+
+        // This function finds which subscenes are going to be used for the camera and computes their light clusters
+        public void UpdateCameraData(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            // Set all the acceleration structures that are currently allocated to not updated
+            foreach (var subScene in m_SubScenes)
+            {
+                subScene.Value.needUpdate = false;
+            }
+
+            // Grab the current environment
+            HDRaytracingEnvironment rtEnv = CurrentEnvironment();
+            if (rtEnv == null) return;
+
+            // If Reflection is on flag its light cluster
+            if (rtEnv.raytracedReflections)
+            {
+                HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.reflLayerMask);
+                currentSubScene.needUpdate = true;
+            }
+
+            // If Primary Visibility is on flag its light cluster
+            if (rtEnv.raytracedObjects)
+            {
+                HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.raytracedLayerMask);
+                currentSubScene.needUpdate = true;
+            }
+
+            // Let's go through all the sub-scenes that are flagged needUpdate and update their light clusters
+            foreach (var subScene in m_SubScenes)
+            {
+                HDRayTracingSubScene currentSubScene = subScene.Value;
+
+                // If it need update, go through it
+                if (currentSubScene.needUpdate)
+                {
+                    // Evaluate the light cluster
+                    currentSubScene.lightCluster.EvaluateLightClusters(cmd, hdCamera, currentSubScene.hdLightArray);
+
+                    // It doesn't need RAS update anymore
+                    currentSubScene.needUpdate = false;
+                }
             }
         }
 
@@ -564,51 +620,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
             {
                 subScene.valid = false;
-            }
-        }
-
-        public RaytracingAccelerationStructure RequestAccelerationStructure(HDCamera hdCamera)
-        {
-            bool editorCamera = hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview;
-            if (editorCamera)
-            {
-                // For the scene view, we want to use the default acceleration structure
-                return RequestAccelerationStructure(m_Settings.editorRaytracingFilterLayerMask);
-            }
-            else
-            {
-                HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
-                return raytracingFilter ? RequestAccelerationStructure(raytracingFilter.layermask) : null;
-            }
-        }
-
-        public HDRaytracingLightCluster RequestLightCluster(HDCamera hdCamera)
-        {
-            bool editorCamera = hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview;
-            if (editorCamera)
-            {
-                // For the scene view, we want to use the default acceleration structure
-                return RequestLightCluster(m_Settings.editorRaytracingFilterLayerMask);
-            }
-            else
-            {
-                HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
-                return raytracingFilter ? RequestLightCluster(raytracingFilter.layermask) : null;
-            }
-        }
-
-        public HDRayTracingSubScene RequestSubScene(HDCamera hdCamera)
-        {
-            bool editorCamera = hdCamera.camera.cameraType == CameraType.SceneView || hdCamera.camera.cameraType == CameraType.Preview;
-            if (editorCamera)
-            {
-                // For the scene view, we want to use the default acceleration structure
-                return RequestSubScene(m_Settings.editorRaytracingFilterLayerMask);
-            }
-            else
-            {
-                HDRayTracingFilter raytracingFilter = hdCamera.camera.gameObject.GetComponent<HDRayTracingFilter>();
-                return raytracingFilter ? RequestSubScene(raytracingFilter.layermask) : null;
             }
         }
 

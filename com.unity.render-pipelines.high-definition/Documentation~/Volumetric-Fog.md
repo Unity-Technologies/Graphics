@@ -4,7 +4,7 @@ Volumetric fog is the most advanced implementation of fog available in the High 
 
 ## Adding Fog to your Scene
 
-To use volumetric fog in your Scene,create a Scene Settings GameObect (menu: __GameObject > Rendering > Scene Settings__). This contains a Volume component that has a [Visual Environment](Visual-Environment.html) override component that you can use to override HDRP’s default environment settings.
+To use volumetric fog in your Scene, create a Scene Settings GameObect (menu: __GameObject > Rendering > Scene Settings__). This contains a Volume component that has a [Visual Environment](Visual-Environment.html) override that you can use to override HDRP’s default environment settings.
 
 Configure the Visual Environment override so that it uses __Volumetric Fog__ as its __Fog Type__.
 

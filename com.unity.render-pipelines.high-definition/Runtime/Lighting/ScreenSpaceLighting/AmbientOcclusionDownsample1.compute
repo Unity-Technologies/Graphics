@@ -28,21 +28,21 @@
 #pragma kernel KMain            MAIN=KMain
 #pragma kernel KMain_MSAA       MAIN=KMain_MSAA      MSAA
 
-TEXTURE2D(_Depth);
+TEXTURE2D_X(_Depth);
 
 #if MSAA
-RW_TEXTURE2D(float2, _LinearZ);
-RW_TEXTURE2D(float2, _DS2x);
+RW_TEXTURE2D_X(float2, _LinearZ);
+RW_TEXTURE2D_X(float2, _DS2x);
 RW_TEXTURE2D_ARRAY(float2, _DS2xAtlas);
-RW_TEXTURE2D(float2, _DS4x);
+RW_TEXTURE2D_X(float2, _DS4x);
 RW_TEXTURE2D_ARRAY(float2, _DS4xAtlas);
 
 groupshared float2 gs_cacheW[256];
 #else
-RW_TEXTURE2D(float, _LinearZ);
-RW_TEXTURE2D(float, _DS2x);
+RW_TEXTURE2D_X(float, _LinearZ);
+RW_TEXTURE2D_X(float, _DS2x);
 RW_TEXTURE2D_ARRAY(float, _DS2xAtlas);
-RW_TEXTURE2D(float, _DS4x);
+RW_TEXTURE2D_X(float, _DS4x);
 RW_TEXTURE2D_ARRAY(float, _DS4xAtlas);
 
 groupshared float gs_cacheW[256];
@@ -51,8 +51,8 @@ groupshared float gs_cacheW[256];
 #ifdef MSAA
 float2 Linearize(uint2 st)
 {
-    float depthMin = _Depth[st].y;
-    float depthMax = _Depth[st].x;
+    float depthMin = _Depth[COORD_TEXTURE2D_X(st)].y;
+    float depthMax = _Depth[COORD_TEXTURE2D_X(st)].x;
 
     float2 depth = float2(depthMin, depthMax);
     float2 dist = 1.0 / (_ZBufferParams.x * depth + _ZBufferParams.y);
@@ -63,27 +63,29 @@ float2 Linearize(uint2 st)
     if (depth.x == 1) dist.x = 1e5;
     if (depth.y == 1) dist.y = 1e5;
 #endif
-    _LinearZ[st] = dist;
+    _LinearZ[COORD_TEXTURE2D_X(st)] = dist;
     return dist;
 }
 #else
 float Linearize(uint2 st)
 {
-    float depth = _Depth[st].x;
+    float depth = _Depth[COORD_TEXTURE2D_X(st)].x;
     float dist = 1.0 / (_ZBufferParams.x * depth + _ZBufferParams.y);
 #ifdef UNITY_REVERSED_Z
     if (depth == 0) dist = 1e5;
 #else
     if (depth == 1) dist = 1e5;
 #endif
-    _LinearZ[st] = dist;
+    _LinearZ[COORD_TEXTURE2D_X(st)] = dist;
     return dist;
 }
 #endif
 
 [numthreads(8, 8, 1)]
-void MAIN(uint2 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint2 GTid : SV_GroupThreadID, uint2 DTid : SV_DispatchThreadID)
+void MAIN(uint2 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint2 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(DTid.z);
+
     uint2 startST = Gid << 4 | GTid;
     uint destIdx = GTid.y << 4 | GTid.x;
     gs_cacheW[destIdx +  0 ] = Linearize(startST | uint2(0, 0));
@@ -101,16 +103,22 @@ void MAIN(uint2 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint2 GTid : SV_Group
     float w1 = gs_cacheW[ldsIndex];
 #endif
 
-    uint2 st = DTid;
+    uint2 st = DTid.xy;
     uint slice = ((st.x & 3) | (st.y << 2)) & 15;
-    _DS2x[st] = w1;
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    slice += DTid.z << 4; // stereo eye indexing (16 slices per eye)
+#endif
+    _DS2x[COORD_TEXTURE2D_X(st)] = w1;
     _DS2xAtlas[uint3(st >> 2, slice)] = w1;
 
     if ((GI & 011) == 0)
     {
-        st = DTid >> 1;
+        st = DTid.xy >> 1;
         slice = ((st.x & 3) | (st.y << 2)) & 15;
-        _DS4x[st] = w1;
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+        slice += DTid.z << 4; // stereo eye indexing (16 slices per eye)
+#endif
+        _DS4x[COORD_TEXTURE2D_X(st)] = w1;
         _DS4xAtlas[uint3(st >> 2, slice)] = w1;
     }
 

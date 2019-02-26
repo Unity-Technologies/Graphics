@@ -130,7 +130,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     surfaceData.anisotropy *= _Anisotropy;
 
     // Default specular color
-    surfaceData.diffusionProfileIndex = FindDiffusionProfileIndex(asuint(_DiffusionProfileHash));
+    surfaceData.diffusionProfileHash = asuint(_DiffusionProfileHash);
 
     // Default subsurface mask
     surfaceData.subsurfaceMask = 0.0;

@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 for (int i = 0; i < m_BufferCount; ++i)
                 {
-                    cmd.SetGlobalTexture(m_TextureShaderIDs[i], Texture2D.blackTexture);
+                    cmd.SetGlobalTexture(m_TextureShaderIDs[i], TextureXR.GetBlackTexture());
                 }
             }
         }

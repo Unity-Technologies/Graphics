@@ -4,18 +4,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.4.0-preview] - 2019-XX-XX
+## [6.5.0-preview] - 2019-XX-XX
 ### Added
 - Addressing mode for Sequential blocks
 
 ### Fixed
 - Undo Redo while changing space
-- Type declaration was unmodifiable due to exception during space intialization 
+- Type declaration was unmodifiable due to exception during space intialization
+
+## [6.4.0-preview] - 2019-02-21 
 
 ## [6.3.0-preview] - 2019-02-18
 
 ## [6.2.0-preview] - 2019-02-15
-
 ### Changed
 - Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
 

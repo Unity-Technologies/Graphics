@@ -40,9 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_CascadeShadowBorders[2] = Unpack(o.Find(x => x.cascadeShadowBorder2));
             m_CascadeShadowBorders[3] = Unpack(o.Find(x => x.cascadeShadowBorder3));
 
-            //var settings = serializedObject.targetObject as HDShadowSettings;
-            //settings.InitParameterLinks();
-            //settings.InitNormalized(m_State.value == Unit.Percent);
+            (serializedObject.targetObject as HDShadowSettings).InitNormalized(m_State.value == Unit.Percent);
         }
 
         public override void OnInspectorGUI()

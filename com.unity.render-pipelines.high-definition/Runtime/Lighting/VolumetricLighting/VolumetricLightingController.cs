@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [VolumeComponentMenu("Lighting/Volumetric Lighting Controller")]
+    [VolumeComponentMenu("Lighting/Volumetric fog quality")]
     public class VolumetricLightingController : VolumeComponent
     {
         [Tooltip("Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.")]
@@ -11,5 +11,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
         [FormerlySerializedAs("depthDistributionUniformity")]
         public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0.75f, 0, 1);
+
+        VolumetricLightingController()
+        {
+            displayName = "Volumetric fog quality";
+        }        
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline
