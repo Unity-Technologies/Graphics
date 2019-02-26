@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -47,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ShapeLightType")]
         [Serialization.FormerlySerializedAs("m_LightOperation")]
-        int m_LightOperationIndex;
+        int m_LightOperationIndex = 0;
 
         [ColorUsage(false, true)]
         [SerializeField]
@@ -92,23 +93,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return retArray;
         }
 
-        // TODO: This is used in the editor, make internal somehow
-        public void UpdateMesh()
-        {
-            GetMesh(true);
-        }
-
-        // TODO: This is used in the editor, make internal somehow
-        public void UpdateMaterial()
-        {
-            m_ShapeCookieSpriteAdditiveMaterial = null;
-            m_ShapeCookieSpriteAlphaBlendMaterial = null;
-            m_ShapeCookieSpriteVolumeMaterial = null;
-            m_PointLightMaterial = null;
-            m_PointLightVolumeMaterial = null;
-            GetMaterial();
-        }
-
         static internal void SetupCulling(Camera camera)
         {
             if (s_CullingGroup == null)
@@ -145,30 +129,45 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             s_CullingGroup.SetBoundingSphereCount(currentLightCullingIndex);
         }
 
+        internal void UpdateMesh()
+        {
+            GetMesh(true);
+        }
+
+        internal void UpdateMaterial()
+        {
+            m_ShapeCookieSpriteAdditiveMaterial = null;
+            m_ShapeCookieSpriteAlphaBlendMaterial = null;
+            m_ShapeCookieSpriteVolumeMaterial = null;
+            m_PointLightMaterial = null;
+            m_PointLightVolumeMaterial = null;
+            GetMaterial();
+        }
+
         internal bool IsLitLayer(int layer)
         {
-            return m_ApplyToSortingLayers != null ? m_ApplyToSortingLayers.Contains(layer) : false;
+            return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
         }
 
-        internal void InsertLight(Light2D light)
+        void InsertLight()
         {
+            var lightList = s_Lights[m_LightOperationIndex];
             int index = 0;
-            int lightType = (int)m_LightOperationIndex;
-            while (index < s_Lights[lightType].Count && m_ShapeLightOrder > s_Lights[lightType][index].m_ShapeLightOrder)
+
+            while (index < lightList.Count && m_ShapeLightOrder > lightList[index].m_ShapeLightOrder)
                 index++;
 
-            s_Lights[lightType].Insert(index, this);
+            lightList.Insert(index, this);
         }
 
-        internal void UpdateLightOperation(int lightOpIndex)
+        void UpdateLightOperation()
         {
-            if (lightOpIndex != m_PreviousLightOperationIndex)
-            {
-                s_Lights[(int)m_LightOperationIndex].Remove(this);
-                m_LightOperationIndex = lightOpIndex;
-                m_PreviousLightOperationIndex = m_LightOperationIndex;
-                InsertLight(this);
-            }
+            if (m_LightOperationIndex == m_PreviousLightOperationIndex)
+                return;
+
+            s_Lights[m_PreviousLightOperationIndex].Remove(this);
+            m_PreviousLightOperationIndex = m_LightOperationIndex;
+            InsertLight();
         }
 
         internal void UpdateLightProjectionType(LightType type)
@@ -265,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 int index = (int)m_LightOperationIndex;
                 if (!s_Lights[index].Contains(this))
-                    InsertLight(this);
+                    InsertLight();
             }
         }
 
@@ -282,6 +281,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private void OnEnable()
         {
+            m_PreviousLightOperationIndex = m_LightOperationIndex;
+
             if (s_CullingGroup == null)
             {
                 s_CullingGroup = new CullingGroup();
@@ -322,7 +323,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 //m_ShapeLightStyle = CookieStyles.Parametric;
                 s_Lights[(int)m_LightOperationIndex].Remove(this);
-                InsertLight(this);
+                InsertLight();
             }
 
             // If we changed blending modes then we need to clear our material
@@ -361,7 +362,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             UpdateLightProjectionType(m_LightType);
-            UpdateLightOperation(m_LightOperationIndex);
+            UpdateLightOperation();
         }
 
         private void OnDrawGizmos()
