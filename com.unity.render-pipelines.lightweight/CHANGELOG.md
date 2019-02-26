@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.7.0] - 2019-XX-XX
 
+### Added
+- Added support for overriding terrain detail rendering shaders, via the render pipeline editor resources asset
+
+### Fixed
+- Terrain detail rendering now works correctly when LWRP is installed but inactive.
+
 ## [5.6.0] - 2019-02-21
 
 ## [5.5.0] - 2019-02-18
@@ -17,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the SRP Batcher, so it now works with MacOS and iOS.
 
 ## [5.3.1] - 2019-01-28
+
 ### Fixed
 - Fixed Per-object reflection probes.
 
