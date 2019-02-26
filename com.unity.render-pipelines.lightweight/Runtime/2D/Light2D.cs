@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //                              Functions
         //==========================================================================================
 
-        static internal List<Light2D>[] SetupLightArray()
+        internal static List<Light2D>[] SetupLightArray()
         {
             List<Light2D>[] retArray = new List<Light2D>[k_LightOperationCount];
 
@@ -88,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return retArray;
         }
 
-        static internal void SetupCulling(Camera camera)
+        internal static void SetupCulling(Camera camera)
         {
             if (s_CullingGroup == null)
                 return;
@@ -124,6 +124,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             s_CullingGroup.SetBoundingSphereCount(currentLightCullingIndex);
         }
 
+        internal static List<Light2D> GetLightsByLightOperation(int lightOpIndex)
+        {
+            return s_Lights[lightOpIndex];
+        }
+
         internal int GetTopMostLitLayer()
         {
             int largestIndex = -1;
@@ -146,11 +151,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 return m_ApplyToSortingLayers[largestIndex];
             else
                 return -1;
-        }
-
-        internal static List<Light2D> GetLightsByLightOperation(int lightOpIndex)
-        {
-            return s_Lights[lightOpIndex];
         }
 
         internal void UpdateMesh()
