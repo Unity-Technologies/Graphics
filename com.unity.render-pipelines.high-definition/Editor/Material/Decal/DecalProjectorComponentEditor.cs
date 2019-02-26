@@ -19,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private SerializedProperty m_AffectsTransparencyProperty;
         private SerializedProperty m_Size;
         private SerializedProperty m_IsCropModeEnabledProperty;
+        private SerializedProperty m_IsDynamic;
         private SerializedProperty m_FadeFactor;
 
         private DecalProjectorComponentHandle m_Handle = new DecalProjectorComponentHandle();
@@ -40,6 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
             m_Size = serializedObject.FindProperty("m_Size");
             m_IsCropModeEnabledProperty = serializedObject.FindProperty("m_IsCropModeEnabled");
+            m_IsDynamic = serializedObject.FindProperty("m_IsDynamic");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
         }
 
@@ -145,6 +147,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 EditorGUILayout.PropertyField(m_AffectsTransparencyProperty, new GUIContent("Affects Transparent Material"));
             }
+
+            EditorGUILayout.PropertyField(m_IsDynamic);
 
             if (EditorGUI.EndChangeCheck())
             {
