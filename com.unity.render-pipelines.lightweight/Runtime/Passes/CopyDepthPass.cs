@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
         Material m_CopyDepthMaterial;
+        string m_ProfilerTag = "Copy Depth";
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -32,7 +33,16 @@ namespace UnityEngine.Rendering.LWRP
         {
             this.source = source;
             this.destination = destination;
-            profilerTag = "Copy Depth";
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            var descriptor = cameraTextureDescriptor;
+            descriptor.colorFormat = RenderTextureFormat.Depth;
+            descriptor.depthBufferBits = 32; //TODO: fix this ;
+            descriptor.msaaSamples = 1;
+            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+            ConfigureTargetForBlit(destination.Identifier());
         }
 
         /// <inheritdoc/>
@@ -44,17 +54,12 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetIdentifier depthSurface = source.Identifier();
             RenderTargetIdentifier copyDepthSurface = destination.Identifier();
 
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             int cameraSamples = descriptor.msaaSamples;
-            descriptor.colorFormat = RenderTextureFormat.Depth;
-            descriptor.depthBufferBits = 32; //TODO: fix this ;
-            descriptor.msaaSamples = 1;
-            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
-
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 
             if (cameraSamples > 1)

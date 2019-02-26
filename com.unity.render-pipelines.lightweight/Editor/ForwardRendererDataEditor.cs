@@ -1,10 +1,14 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using UnityEditor;
+using System.Reflection;
 using UnityEditorInternal;
-using UnityEditor.Rendering;
+using UnityEngine;
+using UnityEngine.Rendering.LWRP;
+using Object = UnityEngine.Object;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEditor.Rendering.LWRP
 {
     [CustomEditor(typeof(ForwardRendererData))]
     public class ForwardRendererDataEditor : Editor
@@ -32,7 +36,7 @@ namespace UnityEngine.Rendering.LWRP
         
         private ReorderableList m_passesList;
         List<SerializedObject> m_ElementSOs = new List<SerializedObject>();
-
+        
         SerializedObject GetElementSO(int index)
         {
             if (m_ElementSOs.Count != m_RenderPasses.arraySize || m_ElementSOs[index] == null)
@@ -66,18 +70,18 @@ namespace UnityEngine.Rendering.LWRP
                 if (element.objectReferenceValue != null)
                 {
                     Styles.header.text = element.objectReferenceValue.name;
+                    Styles.header.tooltip = element.objectReferenceValue.GetType().Name;
                     m_Foldouts[index].value =
                         EditorGUI.BeginFoldoutHeaderGroup(headerRect, m_Foldouts[index].value, Styles.header);
                     if (m_Foldouts[index].value)
                     {
                         propRect.y += Styles.defaultLineSpace;
                         EditorGUI.BeginChangeCheck();
-                        EditorGUI.ObjectField(propRect, element, GUIContent.none);
+                        element.objectReferenceValue.name =
+                            EditorGUI.DelayedTextField(propRect, "Pass Name", element.objectReferenceValue.name);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            m_ElementSOs[index] = element.objectReferenceValue == null
-                                ? null
-                                : new SerializedObject(element.objectReferenceValue);
+                            AssetDatabase.SaveAssets();
                         }
 
                         var elementSO = GetElementSO(index);
@@ -132,11 +136,18 @@ namespace UnityEngine.Rendering.LWRP
             };
 
             m_passesList.onAddCallback += AddPass;
-            m_passesList.onRemoveCallback += list =>
+            m_passesList.onRemoveCallback = list =>
             {
-                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
-                m_RenderPasses.serializedObject.ApplyModifiedProperties();
-                m_ElementSOs.Clear();
+                if (EditorUtility.DisplayDialog("Removing Render Pass Feature",
+                    $"Are you sure you want to remove the pass {m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue.name}, this operation cannot be undone",
+                    "Remove",
+                    "Cancel"))
+                {
+                    ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                    m_RenderPasses.DeleteArrayElementAtIndex(list.index);
+                    m_RenderPasses.serializedObject.ApplyModifiedProperties();
+                    m_ElementSOs.Clear();
+                }
             };
             m_passesList.onReorderCallbackWithDetails += ReorderPass;
 		    
@@ -171,25 +182,37 @@ namespace UnityEngine.Rendering.LWRP
             m_Foldouts = new SavedBool[m_RenderPasses.arraySize];
             for (var i = 0; i < m_RenderPasses.arraySize; i++)
             {
-                m_Foldouts[i] = new SavedBool($"{serializedObject.targetObject.name}.ELEMENT{i}.PassFoldout", true);
+                m_Foldouts[i] = new SavedBool($"{serializedObject.targetObject.name}.ELEMENT{i}.PassFoldout", false);
             }
         }
 
         private void AddPass(ReorderableList list)
         {
-            if (list.serializedProperty != null)
+            var menu = new GenericMenu();
+
+            foreach (Type type in 
+                AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())
+                    .Where(myType => myType.IsClass &&
+                                     !myType.IsAbstract &&
+                                     myType.IsSubclassOf(typeof(ScriptableRendererFeature))))
             {
-                ++list.serializedProperty.arraySize;
-                list.index = list.serializedProperty.arraySize - 1;
-                list.serializedProperty.serializedObject.ApplyModifiedProperties();
+                var path = type.Name;
+                if (type.Namespace != null)
+                {
+                    var nameSpace = type.Namespace;
+                    if (nameSpace == typeof(ScriptableRendererFeature).Namespace)
+                        nameSpace = nameSpace.Split('.').Last();
+                    nameSpace = nameSpace.Replace('.', '/');
+                    path = nameSpace + path;
+                }
+                menu.AddItem(new GUIContent(path), false, clickHandler, type.Name);
             }
-            m_ElementSOs.Clear();
-            CreateFoldoutBools();
-            EditorUtility.SetDirty(target);
+            menu.ShowAsContext();
         }
         
         private void ReorderPass(ReorderableList list, int oldIndex, int newIndex)
         {
+            Debug.LogWarning("reordering from" + oldIndex + " to " + newIndex);
             var item = m_ElementSOs[oldIndex];
             m_ElementSOs.RemoveAt(oldIndex);
             m_ElementSOs.Insert(newIndex, item);
@@ -198,6 +221,29 @@ namespace UnityEngine.Rendering.LWRP
             var newHeaderState = m_Foldouts[newIndex].value;
             m_Foldouts[oldIndex].value = newHeaderState;
             m_Foldouts[newIndex].value = oldHeaderState;
+        }
+        
+        private void clickHandler(object pass)
+        {
+            serializedObject.ApplyModifiedProperties();
+            
+            if (m_passesList.serializedProperty != null)
+            {
+                var asset = AssetDatabase.GetAssetOrScenePath(target);
+                var obj = CreateInstance((string)pass);
+                obj.name = "New " + obj.GetType().Name;
+                AssetDatabase.AddObjectToAsset(obj, asset);
+                
+                ++m_passesList.serializedProperty.arraySize;
+                m_passesList.index = m_passesList.serializedProperty.arraySize - 1;
+                m_passesList.serializedProperty.serializedObject.ApplyModifiedProperties();
+                m_passesList.serializedProperty.GetArrayElementAtIndex(m_passesList.index).objectReferenceValue = obj;
+                m_passesList.serializedProperty.serializedObject.ApplyModifiedProperties();
+                AssetDatabase.SaveAssets();
+            }
+            GetElementSO(m_passesList.index);
+            CreateFoldoutBools();
+            EditorUtility.SetDirty(target);
         }
     }
 }

@@ -12,12 +12,12 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
+        string m_ProfilerTag = "Final Blit Pass";
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
-            profilerTag = "Final Blit Pass";
         }
 
         /// <summary>
@@ -29,6 +29,11 @@ namespace UnityEngine.Rendering.LWRP
         {
             m_Source = colorHandle;
             m_TargetDimension = baseDescriptor.dimension;
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            ConfigureTargetForBlit(BuiltinRenderTextureType.CameraTarget);
         }
 
         /// <inheritdoc/>
@@ -43,7 +48,7 @@ namespace UnityEngine.Rendering.LWRP
             bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
             bool killAlpha = renderingData.killAlphaInFinalBlit;
 
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
             if (requiresSRGBConvertion)
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
@@ -74,7 +79,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
-                cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
             }
 
             context.ExecuteCommandBuffer(cmd);
