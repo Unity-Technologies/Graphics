@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         internal enum TextureChannel
         {
-            None, R, G, B, A
+            None, R, G, B, A, OneMinusR, OneMinusG, OneMinusB, OneMinusA
         }
 
         internal struct MaskChannelFilter
@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public string name;
         [ColorUsageAttribute(false, true)]
         [SerializeField] internal Color globalColor;
-        [SerializeField] internal string maskTextureChannel;
+        [SerializeField] internal TextureChannel maskTextureChannel;
         [SerializeField] internal BlendMode blendMode;
         [SerializeField] internal float renderTextureScale;
         [SerializeField] internal BlendFactors customBlendFactors;
@@ -87,23 +87,23 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 switch (maskTextureChannel)
                 {
-                    case "R":
+                    case TextureChannel.R:
                         return new MaskChannelFilter(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 0, 0));
-                    case "1-R":
+                    case TextureChannel.OneMinusR:
                         return new MaskChannelFilter(new Vector4(1, 0, 0, 0), new Vector4(1, 0, 0, 0));
-                    case "G":
+                    case TextureChannel.G:
                         return new MaskChannelFilter(new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0, 0));
-                    case "1-G":
+                    case TextureChannel.OneMinusG:
                         return new MaskChannelFilter(new Vector4(0, 1, 0, 0), new Vector4(0, 1, 0, 0));
-                    case "B":
+                    case TextureChannel.B:
                         return new MaskChannelFilter(new Vector4(0, 0, 1, 0), new Vector4(0, 0, 0, 0));
-                    case "1-B":
+                    case TextureChannel.OneMinusB:
                         return new MaskChannelFilter(new Vector4(0, 0, 1, 0), new Vector4(0, 0, 1, 0));
-                    case "A":
+                    case TextureChannel.A:
                         return new MaskChannelFilter(new Vector4(0, 0, 0, 1), new Vector4(0, 0, 0, 0));
-                    case "1-A":
+                    case TextureChannel.OneMinusA:
                         return new MaskChannelFilter(new Vector4(0, 0, 0, 1), new Vector4(0, 0, 0, 1));
-                    case "None":
+                    case TextureChannel.None:
                     default:
                         return new MaskChannelFilter(Vector4.zero, Vector4.zero);
                 }
