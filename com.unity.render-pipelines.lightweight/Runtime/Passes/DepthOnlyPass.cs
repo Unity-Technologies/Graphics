@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.LWRP
 
                 m_FilteringSettings.layerMask = renderingData.cameraData.camera.cullingMask;
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
+                var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);

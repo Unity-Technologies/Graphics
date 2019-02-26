@@ -35,8 +35,15 @@ namespace UnityEngine.Rendering.LWRP
 
         int m_ExecuteRenderPassIndex;
 
-        RenderTargetIdentifier m_ActiveColorAttachment;
-        RenderTargetIdentifier m_ActiveDepthAttachment;
+        static RenderTargetIdentifier m_ActiveColorAttachment;
+        static RenderTargetIdentifier m_ActiveDepthAttachment;
+
+        internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
+            RenderTargetIdentifier depthAttachment)
+        {
+            m_ActiveColorAttachment = colorAttachment;
+            m_ActiveDepthAttachment = depthAttachment;
+        }
         
         public ScriptableRenderer(ScriptableRendererData data)
         {
@@ -226,14 +233,8 @@ namespace UnityEngine.Rendering.LWRP
                 passDepthAttachment = cameraDepthHandle.Identifier();
             }
 
-            // Blit changes render target implicitly. We update pipeline state only.
-            if (renderPass.isBlitRenderPass)
-            {
-                m_ActiveColorAttachment = renderPass.colorAttachment;
-                m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
-            }
-            // Otherwise only setup render target if current render pass attachments are different from the active ones
-            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+            // Only setup render target if current render pass attachments are different from the active ones
+            if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
             {
                 m_ActiveColorAttachment = passColorAttachment;
                 m_ActiveDepthAttachment = passDepthAttachment;

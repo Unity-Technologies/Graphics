@@ -31,11 +31,6 @@ namespace UnityEngine.Rendering.LWRP
             m_TargetDimension = baseDescriptor.dimension;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {
-            ConfigureTargetForBlit(BuiltinRenderTextureType.CameraTarget);
-        }
-
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {

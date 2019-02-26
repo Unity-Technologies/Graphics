@@ -6,6 +6,9 @@ namespace UnityEngine.Rendering.LWRP
 {
     public static class RenderingUtils
     {
+        static readonly string k_RenderPostProcessingTag = "Render PostProcessing Effects";
+        static int m_PostProcessingTemporaryTargetId = Shader.PropertyToID("_TemporaryColorTexture");
+
         static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
         {
             new ShaderTagId("Always"),
@@ -74,77 +77,64 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
-        /// <summary>
-        /// Renders PostProcessing.
-        /// </summary>
-        /// <param name="cmd">A command buffer to execute post processing commands.</param>
-        /// <param name="cameraData">Camera rendering data.</param>
-        /// <param name="colorFormat">Color format of the source render target id.</param>
-        /// <param name="source">Source render target id.</param>
-        /// <param name="dest">Destination render target id.</param>
-        /// <param name="opaqueOnly">Should only execute after opaque post processing effects.</param>
-        /// <param name="flip">Should flip the image vertically.</param>
-        public static void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly, bool flip)
+        internal static void RenderPostProcess(ScriptableRenderContext context, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor,
+            RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
         {
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPostProcessingTag);
+
+            var layer = cameraData.postProcessLayer;
+            int effectsCount;
+            if (opaqueOnly)
+            {
+                effectsCount = layer.sortedBundles[PostProcessEvent.BeforeTransparent].Count;
+            }
+            else
+            {
+                effectsCount = layer.sortedBundles[PostProcessEvent.BeforeStack].Count +
+                               layer.sortedBundles[PostProcessEvent.AfterStack].Count;
+            }
+
             Camera camera = cameraData.camera;
             var postProcessRenderContext = RenderingUtils.postProcessRenderContext;
             postProcessRenderContext.Reset();
             postProcessRenderContext.camera = camera;
             postProcessRenderContext.source = source;
-            postProcessRenderContext.sourceFormat = colorFormat;
-            postProcessRenderContext.destination = dest;
+            postProcessRenderContext.sourceFormat = sourceDescriptor.colorFormat;
+            postProcessRenderContext.destination = destination;
             postProcessRenderContext.command = cmd;
             postProcessRenderContext.flip = flip;
 
-            if (opaqueOnly)
-                cameraData.postProcessLayer.RenderOpaqueOnly(postProcessRenderContext);
+            // If there's only one effect in the stack and soure is same as dest we
+            // create an intermediate blit rendertarget to handle it.
+            // Otherwise, PostProcessing system will create the intermediate blit targets itself.
+            if (effectsCount == 1 && source == destination)
+            {
+                RenderTargetIdentifier rtId = new RenderTargetIdentifier(m_PostProcessingTemporaryTargetId);
+                RenderTextureDescriptor descriptor = sourceDescriptor;
+                descriptor.msaaSamples = 1;
+                descriptor.depthBufferBits = 0;
+
+                postProcessRenderContext.destination = rtId;
+                cmd.GetTemporaryRT(m_PostProcessingTemporaryTargetId, descriptor, FilterMode.Point);
+
+                if (opaqueOnly)
+                    cameraData.postProcessLayer.RenderOpaqueOnly(postProcessRenderContext);
+                else
+                    cameraData.postProcessLayer.Render(postProcessRenderContext);
+
+                cmd.Blit(rtId, source);
+                cmd.ReleaseTemporaryRT(m_PostProcessingTemporaryTargetId);
+            }
             else
-                cameraData.postProcessLayer.Render(postProcessRenderContext);
-        }
-
-        /// <summary>
-        /// Creates <c>DrawingSettings</c> based on current rendering state.
-        /// </summary>
-        /// <param name="shaderTagId">Shader pass tag to render.</param>
-        /// <param name="renderingData">Current rendering state.</param>
-        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
-        /// <returns></returns>
-        /// <seealso cref="DrawingSettings"/>
-        public static DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
-        {
-            Camera camera = renderingData.cameraData.camera;
-            SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
-            DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
             {
-                perObjectData = renderingData.perObjectData,
-                enableInstancing = true,
-                mainLightIndex = renderingData.lightData.mainLightIndex,
-                enableDynamicBatching = renderingData.supportsDynamicBatching,
-            };
-            return settings;
-        }
-
-        /// <summary>
-        /// Creates <c>DrawingSettings</c> based on current rendering state.
-        /// </summary>
-        /// /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
-        /// <param name="renderingData">Current rendering state.</param>
-        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
-        /// <returns></returns>
-        /// <seealso cref="DrawingSettings"/>
-        public static DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
-            ref RenderingData renderingData, SortingCriteria sortingCriteria)
-        {
-            if (shaderTagIdList == null || shaderTagIdList.Count == 0)
-            {
-                Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
-                return CreateDrawingSettings(new ShaderTagId("LightweightPipeline"), ref renderingData, sortingCriteria);
+                if (opaqueOnly)
+                    cameraData.postProcessLayer.RenderOpaqueOnly(postProcessRenderContext);
+                else
+                    cameraData.postProcessLayer.Render(postProcessRenderContext);
             }
 
-            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
-            for (int i = 1; i < shaderTagIdList.Count; ++i)
-                settings.SetShaderPassName(i, shaderTagIdList[i]);
-            return settings;
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
