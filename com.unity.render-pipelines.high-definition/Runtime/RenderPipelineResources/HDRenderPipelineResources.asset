@@ -146,6 +146,28 @@ MonoBehaviour:
     bloomUpsampleCS: {fileID: 7200000, guid: 5dbb0ac12cb11f84084b7e5633481bd1, type: 3}
     FXAACS: {fileID: 7200000, guid: 1535d29f35ea86b4282b6ca652002e2a, type: 3}
     finalPassPS: {fileID: 4800000, guid: 5ac9ef0c50282754b93c7692488e7ee7, type: 3}
+    aoRaytracing: {fileID: 4807578003741378534, guid: 82dc8cd069971d2488c502b0f32b94fb,
+      type: 3}
+    reflectionRaytracing: {fileID: 4807578003741378534, guid: 1a500e5079fba734aa90fe92e70ea131,
+      type: 3}
+    shadowsRaytracing: {fileID: 4807578003741378534, guid: 562bbaa310be359439258321ea2e6b3b,
+      type: 3}
+    raytracingFlagMask: {fileID: 4800000, guid: 7822c8a69a1f21144a20cf6d84e5e706,
+      type: 3}
+    forwardRaytracing: {fileID: 4807578003741378534, guid: d3a89a2d3f73b3e4da6f191e844fe68c,
+      type: 3}
+    areaBillateralFilterCS: {fileID: 7200000, guid: 757ff50c499f3c44ba741a41c7ab8510,
+      type: 3}
+    jointBilateralFilterCS: {fileID: 7200000, guid: eaf971fd1c5d09b4d8736cf54f0ed768,
+      type: 3}
+    reflectionBilateralFilterCS: {fileID: 7200000, guid: 07c445e7aa373284a9cc1584ca9b3f84,
+      type: 3}
+    lightClusterBuildCS: {fileID: 7200000, guid: c0625ea908b52854bbf1d456e34026e4,
+      type: 3}
+    lightClusterDebugCS: {fileID: 7200000, guid: d48a3a5496d98a44c89f335934805d10,
+      type: 3}
+    countTracedRays: {fileID: 0}
+    debugViewRayCountPS: {fileID: 0}
   materials:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
@@ -220,15 +242,8 @@ MonoBehaviour:
     - {fileID: 2800000, guid: 7641a2b116fafd64d9c3d6459fdfe801, type: 3}
     - {fileID: 2800000, guid: c6a5e40e6746fef4fa486e8f620ee8d4, type: 3}
     - {fileID: 2800000, guid: fd4189357c6dfb94fa2d36afbce72086, type: 3}
-    coherentRGNoise128:
-    - {fileID: 2800000, guid: 5fb5a79c1155ae84fa1632dd1f1901f9, type: 3}
-    - {fileID: 2800000, guid: 285d8cf883f533c459dc8b18092689b1, type: 3}
-    - {fileID: 2800000, guid: 962df42d66c41c047bb6e90d99696cfa, type: 3}
-    - {fileID: 2800000, guid: f0600ce4f66469b418065a1657b3f631, type: 3}
-    - {fileID: 2800000, guid: 51e96850e2079014ba1e6cff236df874, type: 3}
-    - {fileID: 2800000, guid: ed17bcb607e01fd4ca4ece9a3b4baf3d, type: 3}
-    - {fileID: 2800000, guid: eefe2c3957d0d1c40a6d46c566254f56, type: 3}
-    - {fileID: 2800000, guid: c41231daef6e35d4095f1af8631f65c5, type: 3}
+    owenScrambledTex: {fileID: 2800000, guid: 6e514bb686606e44789fe2c54a8e94f5, type: 3}
+    scramblingTex: {fileID: 2800000, guid: bf25cd6288e2c8d43854a61a8496a830, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}

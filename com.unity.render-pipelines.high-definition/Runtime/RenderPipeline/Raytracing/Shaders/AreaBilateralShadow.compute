@@ -16,7 +16,8 @@
 // FIXME: Inputs could be scalars instead of colors
 
 // Input/intermediate integration texture (containing Sn, Un, U, 1)
-RWTexture2D<float4>     _DenoiseTextureUAV;
+Texture2D<float4>       _DenoiseInputTexture;
+RWTexture2D<float4>     _DenoiseOutputTextureRW;
 
 // ScreenSpace buffers
 Texture2D<float>        _DepthTexture;
@@ -51,17 +52,17 @@ float gaussian(float radius, float sigma)
 // Sample the signal used for the noise estimation at coordSS
 float TapRatio(uint2 coordSS)
 {
-    const float Sn = _DenoiseTextureUAV[coordSS].x;
-    const float Un = _DenoiseTextureUAV[coordSS].y;
+    const float Sn = _DenoiseInputTexture[coordSS].x;
+    const float Un = _DenoiseInputTexture[coordSS].y;
 
-    return (Un > EPSILON) ? (Sn / Un) : 1.0f;
+    return (Un > EPSILON) ? (Sn / Un) : 0.0f;
 }
 
 // Estimate desired radius from the second derivative of the signal
 float EstimateNoise(uint2 coordSS, float2 axis)
 {
     // Radius is supposed to be always >= 1
-    const int NOISE_ESTIMATION_RADIUS = min(_DenoiseRadius, 10);
+    const int NOISE_ESTIMATION_RADIUS = min(_DenoiseRadius, 1);
     float v2 = TapRatio(coordSS - NOISE_ESTIMATION_RADIUS * axis);
     float v1 = TapRatio(coordSS - (NOISE_ESTIMATION_RADIUS - 1) * axis);
 
@@ -106,7 +107,7 @@ void AreaShadowEstimateNoise(uint2 groupThreadId : SV_GroupThreadID, uint2 group
         maxNoise = max(EstimateNoise(centerCoord, axis), maxNoise);
     }
 
-    _DenoiseTextureUAV[centerCoord] = float4(_DenoiseTextureUAV[centerCoord].xyz, maxNoise);
+    _DenoiseOutputTextureRW[centerCoord] = float4(_DenoiseInputTexture[centerCoord].xyz, maxNoise);
 }
 
 /********************************* Denoising Kernel *********************************/
@@ -147,7 +148,7 @@ BilateralData TapBilateralData(uint2 coordSS)
 
     if (ANALYTIC_WEIGHT > 0.0f)
     {
-        key.analytic = _DenoiseTextureUAV[coordSS].z;
+        key.analytic = _DenoiseInputTexture[coordSS].z;
     }
 
     return key;
@@ -190,7 +191,7 @@ float ComputeBilateralWeight(BilateralData center, BilateralData tap)
 
     if (ANALYTIC_WEIGHT > 0.0f)
     {
-        const float aDiff = abs(tap.analytic - center.analytic) * 10.0f;
+        const float aDiff = abs(tap.analytic - center.analytic);
         analyticWeight = max(0.0f, 1.0f - (aDiff * ANALYTIC_WEIGHT));
     }
 
@@ -207,7 +208,7 @@ float FilterNoiseEstimate(uint2 coordSS)
     {
         for (int i = -R; i <= R; ++i)
         {
-            result += _DenoiseTextureUAV[coordSS + int2(i, j)].w;
+            result += _DenoiseInputTexture[coordSS + int2(i, j)].w;
         }
     }
 
@@ -226,7 +227,8 @@ void AreaShadowDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
     float wSum = 0.0f;
 
     const uint2 passIncr = _DenoisePass ? uint2(1, 0) : uint2(0, 1);
-    const float noiseEstimate = _DenoisePass ? _DenoiseTextureUAV[centerCoord].w : FilterNoiseEstimate(centerCoord);
+    //const float noiseEstimate = _DenoisePass ? _DenoiseInputTexture[centerCoord].w : FilterNoiseEstimate(centerCoord);
+    const float noiseEstimate =  _DenoiseInputTexture[centerCoord].w;
     const int denoiseRadius = ceil(noiseEstimate * _DenoiseRadius);
     const BilateralData center  = TapBilateralData(centerCoord);
 
@@ -236,19 +238,19 @@ void AreaShadowDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
         // Compute the weight (skip computation for the center)
         const float w = r ? gaussian(r, denoiseRadius) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0f;
 
-        SU += _DenoiseTextureUAV[tapCoord].xy * w;
+        SU += _DenoiseInputTexture[tapCoord].xy * w;
         wSum += w;
     }
 
     if (!_DenoisePass) // First pass
     {
         // Store the intermediate result
-        _DenoiseTextureUAV[centerCoord] = float4(SU / wSum, _DenoiseTextureUAV[centerCoord].z, noiseEstimate);
+        _DenoiseOutputTextureRW[centerCoord] = float4(SU / wSum, _DenoiseInputTexture[centerCoord].z, noiseEstimate);
     }
     else // Second (and final) pass
     {
-        // For the final ratio, we want the 0/0 case to produce a value of 1
+        // For the final ratio, we want the 0/0 case to produce a value of 0
         _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] =
-            (wSum > EPSILON && SU.y / wSum > EPSILON) ? clamp(SU.x / SU.y, 0.0f, 1.0f) : 1.0f;
+            (wSum > EPSILON && SU.y / wSum > EPSILON) ? clamp(SU.x / SU.y, 0.0f, 1.0f) : 0.0f;
     }
 }
