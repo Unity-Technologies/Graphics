@@ -202,6 +202,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Use Light Facing Normal", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.useLightFacingNormal.isOn;
+                    toggle.OnToggleChanged(ChangeUseLightFacingNormal);
+                });
+            });
+
             Add(ps);
         }
 
@@ -332,6 +341,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.receiveSSR;
             td.isOn = evt.newValue;
             m_Node.receiveSSR = td;
+        }
+
+        void ChangeUseLightFacingNormal(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Use Light Facing Normal Change");
+            ToggleData td = m_Node.useLightFacingNormal;
+            td.isOn = evt.newValue;
+            m_Node.useLightFacingNormal = td;
         }
 
         void ChangeSpecularAA(ChangeEvent<bool> evt)

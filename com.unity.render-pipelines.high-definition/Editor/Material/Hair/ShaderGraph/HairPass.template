@@ -49,6 +49,7 @@ Pass
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DoubleSided:                       #define _DOUBLESIDED_ON 1
+    $UseLightFacingNormal:              #define _USE_LIGHT_FACING_NORMAL 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -240,9 +241,10 @@ $include("SharedCode.template.hlsl")
         // the way we compute and use normals is a bit complicated.
         // We need 4 separate sets of normals.
         // For shadow bias, we use the geometric normal.
-        // For direct lighting, we (conceptually) use the "light-facing" normal.
+        // For direct lighting, we either (conceptually) use the "light-facing" normal
+        // or the user-provided normal.
         // For reflected GI (light probes and reflection probes), we use the normal most aligned
-        // with the view vector (the "view-facing" normal).
+        // with the view vector (the "view-facing" normal), or the user-provided normal.
         // We reflect this normal for transmitted GI.
         // For the highlight shift hack (along the tangent), we use the user-provided normal.
 
@@ -255,9 +257,13 @@ $include("SharedCode.template.hlsl")
         // compute world space (user-provided) normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
+    #if defined (_USE_LIGHT_FACING_NORMAL)
         float3 viewFacingNormalWS = ComputeViewFacingNormal(V, surfaceData.hairStrandDirectionWS);
-
         bentNormalWS = viewFacingNormalWS;
+    #else
+        bentNormalWS = surfaceData.normalWS;
+    #endif
+
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
@@ -332,9 +338,12 @@ $include("SharedCode.template.hlsl")
         // We also don't perform any normalization for energy conservation (since it's all a big hack).
 
         // Builtin Data
-        // For back lighting we use the reversed view-facing normal.
-        float3 viewFacingNormalWS = ComputeViewFacingNormal(V, surfaceData.hairStrandDirectionWS);
-        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -viewFacingNormalWS, fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+
+        // We use the reflected bent normal for back lighting.
+        // It allows us to preserve the symmetry of geometry.
+        float3 backBentNormalWS = reflect(-bentNormalWS, surfaceData.hairStrandDirectionWS);
+
+        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, backBentNormalWS, fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;

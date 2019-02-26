@@ -586,6 +586,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 activeFields.Add("HairStrandDirection");
             }
 
+            if (masterNode.useLightFacingNormal.isOn)
+            {
+                activeFields.Add("UseLightFacingNormal");
+            }
+
             if (masterNode.transmission.isOn)
             {
                 activeFields.Add("Material.Transmission");

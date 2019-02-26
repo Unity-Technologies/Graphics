@@ -25,7 +25,12 @@
 
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
+#if defined (_USE_LIGHT_FACING_NORMAL)
+    // TODO: should probably bias towards the light for splines...
     return bsdfData.geomNormalWS;
+#else
+    return bsdfData.geomNormalWS;
+#endif
 }
 
 void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
@@ -261,10 +266,15 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     PreLightData preLightData;
     // Don't init to zero to allow to track warning about uninitialized data
 
+#if defined (_USE_LIGHT_FACING_NORMAL)
     float3 N = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
+#else
+    float3 N = bsdfData.normalWS;
+#endif
 
     float NdotV = dot(N, V);
     preLightData.NdotV = NdotV;
+    NdotV = abs(NdotV); // Support transmission
 
     float unused;
 
@@ -273,8 +283,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // Note: For Kajiya hair we currently rely on a single cubemap sample instead of two, as in practice smoothness of both lobe aren't too far from each other.
         // and we take smoothness of the secondary lobe as it is often more rough (it is the colored one).
         preLightData.iblPerceptualRoughness = bsdfData.secondaryPerceptualRoughness;
+        // TODO: adjust for Blinn-Phong here?
         GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
         // We used lambert for hair for now
+        // Note: this normalization term is wrong, correct one is (1/(Pi^2)).
         preLightData.diffuseFGD = 1.0;
     }
     else
@@ -439,13 +451,18 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 L = -lightData.forward;
 
+#ifdef _USE_LIGHT_FACING_NORMAL
     // The Kajiya-Kay model has a "built-in" transmission, and the 'NdotL' is always positive.
     float cosTL = dot(bsdfData.hairStrandDirectionWS, L);
     float sinTL = sqrt(saturate(1 - cosTL * cosTL));
     float NdotL = sinTL; // Corresponds to the cosine w.r.t. the light-facing normal
+#else
+    // Double-sided Lambert.
+    float NdotL = abs(dot(bsdfData.normalWS, L));
+#endif
 
-    float shadowBiasNormal  = GetNormalForShadowBias(bsdfData);
-          shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
+    float3 shadowBiasNormal  = GetNormalForShadowBias(bsdfData);
+           shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
 
     float3 color; float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, NdotL,
@@ -457,11 +474,10 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         float3 diffuseBsdf, specularBsdf;
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
 
-        attenuation    *= ComputeMicroShadowing(bsdfData, NdotL);
-        float intensity = attenuation * NdotL;
+        attenuation *= ComputeMicroShadowing(bsdfData, NdotL);
 
-        lighting.diffuse  = diffuseBsdf  * (intensity * lightData.diffuseDimmer);
-        lighting.specular = specularBsdf * (intensity * lightData.specularDimmer);
+        lighting.diffuse  = diffuseBsdf  * ((attenuation * NdotL) * lightData.diffuseDimmer);
+        lighting.specular = specularBsdf * ((attenuation        ) * lightData.specularDimmer);
 
         // Save ALU by applying light and cookie colors only once.
         lighting.diffuse  *= color;
@@ -500,13 +516,18 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float4 distances; // {d, d^2, 1/d, d_proj}
     GetPunctualLightVectors(posInput.positionWS, lightData, L, lightToSample, distances);
 
+#ifdef _USE_LIGHT_FACING_NORMAL
     // The Kajiya-Kay model has a "built-in" transmission, and the 'NdotL' is always positive.
     float cosTL = dot(bsdfData.hairStrandDirectionWS, L);
     float sinTL = sqrt(saturate(1 - cosTL * cosTL));
     float NdotL = sinTL; // Corresponds to the cosine w.r.t. the light-facing normal
+#else
+    // Double-sided Lambert.
+    float NdotL = abs(dot(bsdfData.normalWS, L));
+#endif
 
-    float shadowBiasNormal  = GetNormalForShadowBias(bsdfData);
-          shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
+    float3 shadowBiasNormal  = GetNormalForShadowBias(bsdfData);
+           shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
 
     float3 color; float attenuation;
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, NdotL, lightToSample, distances,
@@ -517,10 +538,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         float3 diffuseBsdf, specularBsdf;
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
 
-        float intensity = attenuation * NdotL;
-
-        lighting.diffuse  = diffuseBsdf  * (intensity * lightData.diffuseDimmer);
-        lighting.specular = specularBsdf * (intensity * lightData.specularDimmer);
+        lighting.diffuse  = diffuseBsdf  * ((attenuation * NdotL) * lightData.diffuseDimmer);
+        lighting.specular = specularBsdf * ((attenuation        ) * lightData.specularDimmer);
 
         // Save ALU by applying light and cookie colors only once.
         lighting.diffuse  *= color;

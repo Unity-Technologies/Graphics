@@ -384,6 +384,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
+        bool m_UseLightFacingNormal = false;
+        public ToggleData useLightFacingNormal
+        {
+            get { return new ToggleData(m_UseLightFacingNormal); }
+            set
+            {
+                if (m_UseLightFacingNormal == value.isOn)
+                    return;
+                m_UseLightFacingNormal = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_SpecularAA;
 
         public ToggleData specularAA
