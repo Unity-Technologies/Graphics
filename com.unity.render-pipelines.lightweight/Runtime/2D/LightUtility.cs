@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.RenderPipeline2D.External.LibTessDotNet;
 using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
@@ -222,5 +224,123 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return new Bounds(Vector3.zero, Vector3.zero);
         }
 
+        static List<Vector2> UpdateFeatheredShapeLightMesh(ContourVertex[] contourPoints, int contourPointCount, float feathering)
+        {
+            List<Vector2> feathered = new List<Vector2>();
+            for (int i = 0; i < contourPointCount; ++i)
+            {
+                int h = (i == 0) ? (contourPointCount - 1) : (i - 1);
+                int j = (i + 1) % contourPointCount;
+
+                Vector2 pp = new Vector2(contourPoints[h].Position.X, contourPoints[h].Position.Y);
+                Vector2 cp = new Vector2(contourPoints[i].Position.X, contourPoints[i].Position.Y);
+                Vector2 np = new Vector2(contourPoints[j].Position.X, contourPoints[j].Position.Y);
+
+                Vector2 cpd = cp - pp;
+                Vector2 npd = np - cp;
+                if (cpd.magnitude < 0.001f || npd.magnitude < 0.001f)
+                    continue;
+
+                Vector2 vl = cpd.normalized;
+                Vector2 vr = npd.normalized;
+
+                vl = new Vector2(-vl.y, vl.x);
+                vr = new Vector2(-vr.y, vr.x);
+
+                Vector2 va = vl.normalized + vr.normalized;
+                Vector2 vn = -va.normalized;
+
+                if (va.magnitude > 0 && vn.magnitude > 0)
+                {
+                    var t = cp + (vn * feathering);
+                    feathered.Add(t);
+                }
+            }
+
+            return feathered;
+        }
+
+        static object InterpCustomVertexData(Vec3 position, object[] data, float[] weights)
+        {
+            return data[0];
+        }
+
+        public static Bounds GenerateShapeMesh(ref Mesh mesh, Color color, Vector3[] shapePath, float volumeOpacity, float feathering)
+        {
+            Bounds localBounds;
+            Color meshInteriorColor = color;
+            Color meshFeatherColor = new Color(color.r, color.g, color.b, 0);
+
+            int pointCount = shapePath.Length;
+            var inputs = new ContourVertex[pointCount];
+            for (int i = 0; i < pointCount; ++i)
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshFeatherColor };
+
+            var feathered = UpdateFeatheredShapeLightMesh(inputs, pointCount, feathering);
+            int featheredPointCount = feathered.Count + pointCount;
+
+            Tess tessI = new Tess();  // Interior
+            Tess tessF = new Tess();  // Feathered Edge
+
+            var inputsI = new ContourVertex[pointCount];
+            for (int i = 0; i < pointCount - 1; ++i)
+            {
+                var inputsF = new ContourVertex[4];
+                inputsF[0] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
+                inputsF[1] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = meshFeatherColor };
+                inputsF[2] = new ContourVertex() { Position = new Vec3() { X = feathered[i + 1].x, Y = feathered[i + 1].y }, Data = meshFeatherColor };
+                inputsF[3] = new ContourVertex() { Position = new Vec3() { X = shapePath[i + 1].x, Y = shapePath[i + 1].y }, Data = meshInteriorColor };
+                tessF.AddContour(inputsF, ContourOrientation.Original);
+
+                inputsI[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
+            }
+
+            var inputsL = new ContourVertex[4];
+            inputsL[0] = new ContourVertex() { Position = new Vec3() { X = shapePath[pointCount - 1].x, Y = shapePath[pointCount - 1].y }, Data = meshInteriorColor };
+            inputsL[1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = meshFeatherColor };
+            inputsL[2] = new ContourVertex() { Position = new Vec3() { X = feathered[0].x, Y = feathered[0].y }, Data = meshFeatherColor };
+            inputsL[3] = new ContourVertex() { Position = new Vec3() { X = shapePath[0].x, Y = shapePath[0].y }, Data = meshInteriorColor };
+            tessF.AddContour(inputsL, ContourOrientation.Original);
+
+            inputsI[pointCount - 1] = new ContourVertex() { Position = new Vec3() { X = shapePath[pointCount - 1].x, Y = shapePath[pointCount - 1].y }, Data = meshInteriorColor };
+            tessI.AddContour(inputsI, ContourOrientation.Original);
+
+            tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
+            tessF.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
+
+            var indicesI = tessI.Elements.Select(i => i).ToArray();
+            var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
+            var colorsI = tessI.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
+
+            var indicesF = tessF.Elements.Select(i => i + verticesI.Length).ToArray();
+            var verticesF = tessF.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
+            var colorsF = tessF.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
+
+
+            List<Vector3> finalVertices = new List<Vector3>();
+            List<int> finalIndices = new List<int>();
+            List<Color> finalColors = new List<Color>();
+            finalVertices.AddRange(verticesI);
+            finalVertices.AddRange(verticesF);
+            finalIndices.AddRange(indicesI);
+            finalIndices.AddRange(indicesF);
+            finalColors.AddRange(colorsI);
+            finalColors.AddRange(colorsF);
+
+            var volumeColors = new Vector4[finalColors.Count];
+            for (int i = 0; i < volumeColors.Length; i++)
+                volumeColors[i] = new Vector4(1, 1, 1, volumeOpacity);
+
+            Vector3[] vertices = finalVertices.ToArray();
+            mesh.Clear();
+            mesh.vertices = vertices;
+            mesh.tangents = volumeColors;
+            mesh.colors = finalColors.ToArray();
+            mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
+
+            localBounds = CalculateBoundingSphere(ref vertices);
+
+            return localBounds;
+        }
     }
 }
