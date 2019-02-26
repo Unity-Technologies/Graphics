@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.LWRP
     /// <summary>
     /// Inherit from this class to perform custom rendering in the Lightweight Render Pipeline.
     /// </summary>
-    public abstract class ScriptableRenderPass : IComparable<ScriptableRenderPass>
+    public abstract class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
@@ -191,11 +191,16 @@ namespace UnityEngine.Rendering.LWRP
             return settings;
         }
 
-        public int CompareTo(ScriptableRenderPass other)
+        public static bool operator <(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
-            return (int)renderPassEvent - (int)other.renderPassEvent;
+            return lhs.renderPassEvent < rhs.renderPassEvent;
         }
-        
+
+        public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        {
+            return lhs.renderPassEvent > rhs.renderPassEvent;
+        }
+
         // TODO: Remove this. Currently only used by FinalBlit pass.
         internal void SetRenderTarget(
             CommandBuffer cmd,

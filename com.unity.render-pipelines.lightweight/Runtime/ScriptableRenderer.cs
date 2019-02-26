@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.LWRP
             Camera camera = renderingData.cameraData.camera;
             ClearRenderState(context);
 
-            m_ActiveRenderPassQueue.Sort();
+            SortStable(m_ActiveRenderPassQueue);
 
             // Before Render Block. This render blocks always execute in mono rendering.
             // Camera is not setup. Lights are not setup.
@@ -384,6 +384,21 @@ namespace UnityEngine.Rendering.LWRP
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        internal static void SortStable(List<ScriptableRenderPass> list)
+        {
+            int j;
+            for (int i = 1; i < list.Count; ++i)
+            {
+                ScriptableRenderPass curr = list[i];
+
+                j = i - 1;
+                for (; j >= 0 && curr < list[j]; --j)
+                    list[j + 1] = list[j];
+
+                list[j + 1] = curr;
+            }
         }
     }
 }

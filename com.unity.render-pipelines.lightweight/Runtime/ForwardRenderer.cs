@@ -36,22 +36,21 @@ namespace UnityEngine.Rendering.LWRP
             Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
             Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.screenSpaceShadowShader);
 
-            // Note: Why the +1 in render block? Because if use these events for the built-in passes as well.
-            // F.ex the main light shadow map pass. We set it to inject at BeforeRenderingShadows + 1 so it render
-            // between before and after shadows.
-            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows + 1);
-            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows + 1);
-            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses + 1, RenderQueueRange.opaque);
-            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses + 1, screenspaceShadowsMaterial);
-            m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, data.opaqueLayerMask);
-            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, copyDepthMaterial);
-            m_OpaquePostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingOpaques + 1, true);
-            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox + 1);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingSkybox + 1, samplingMaterial, downsamplingMethod);
-            m_RenderTransparentForwardPass = new RenderTransparentForwardPass(RenderPassEvent.BeforeRenderingTransparents + 1, RenderQueueRange.transparent, data.transparentLayerMask);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing + 1);
-            m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering + 1);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, blitMaterial);
+            // Note: Since all custom render passes inject first and we have stable sort,
+            // we inject the builtin passes in the before events.
+            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque);
+            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, screenspaceShadowsMaterial);
+            m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
+            m_OpaquePostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingOpaques, true);
+            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingSkybox, samplingMaterial, downsamplingMethod);
+            m_RenderTransparentForwardPass = new RenderTransparentForwardPass(RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask);
+            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
+            m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, copyDepthMaterial);
@@ -70,7 +69,6 @@ namespace UnityEngine.Rendering.LWRP
         {
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-            ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
@@ -100,7 +98,6 @@ namespace UnityEngine.Rendering.LWRP
             {
                 m_RendererFeatures[i].AddRenderPasses(m_ActiveRenderPassQueue, cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle);
             }
-            m_ActiveRenderPassQueue.Sort();
 
             bool hasAfterRendering = m_ActiveRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
