@@ -10,6 +10,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             None, R, G, B, A
         }
 
+        internal struct MaskChannelFilter
+        {
+            public Vector4 mask { get; private set; }
+            public Vector4 inverted { get; private set; }
+
+            public MaskChannelFilter(Vector4 m, Vector4 i)
+            {
+                mask = m;
+                inverted = i;
+            }
+        }
+
         internal enum BlendMode
         {
             Additive = 0,
@@ -29,10 +41,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public string name;
         [ColorUsageAttribute(false, true)]
         [SerializeField] internal Color globalColor;
-        [SerializeField] internal TextureChannel maskTextureChannel;
+        [SerializeField] internal string maskTextureChannel;
         [SerializeField] internal BlendMode blendMode;
         [SerializeField] internal float renderTextureScale;
         [SerializeField] internal BlendFactors customBlendFactors;
+
+
 
         internal Vector2 blendFactors
         {
@@ -67,23 +81,31 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        internal Vector4 maskTextureChannelFilter
+        internal MaskChannelFilter maskTextureChannelFilter
         {
             get
             {
-                switch(maskTextureChannel)
+                switch (maskTextureChannel)
                 {
-                    case TextureChannel.R:
-                        return new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
-                    case TextureChannel.G:
-                        return new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
-                    case TextureChannel.B:
-                        return new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-                    case TextureChannel.A:
-                        return new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-                    case TextureChannel.None:
+                    case "R":
+                        return new MaskChannelFilter(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 0, 0));
+                    case "1-R":
+                        return new MaskChannelFilter(new Vector4(1, 0, 0, 0), new Vector4(1, 0, 0, 0));
+                    case "G":
+                        return new MaskChannelFilter(new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0, 0));
+                    case "1-G":
+                        return new MaskChannelFilter(new Vector4(0, 1, 0, 0), new Vector4(0, 1, 0, 0));
+                    case "B":
+                        return new MaskChannelFilter(new Vector4(0, 0, 1, 0), new Vector4(0, 0, 0, 0));
+                    case "1-B":
+                        return new MaskChannelFilter(new Vector4(0, 0, 1, 0), new Vector4(0, 0, 1, 0));
+                    case "A":
+                        return new MaskChannelFilter(new Vector4(0, 0, 0, 1), new Vector4(0, 0, 0, 0));
+                    case "1-A":
+                        return new MaskChannelFilter(new Vector4(0, 0, 0, 1), new Vector4(0, 0, 0, 1));
+                    case "None":
                     default:
-                        return Vector4.zero;
+                        return new MaskChannelFilter(Vector4.zero, Vector4.zero);
                 }
             }
         }
