@@ -41,6 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+
         private const int kDefaultDrawDistance = 1000;
         public int DrawDistance
         {
@@ -120,6 +121,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private Texture2DAtlas m_Atlas = null;
         public bool m_AllocationSuccess = true;
         public bool m_PrevAllocationSuccess = true;
+
+        public List<DecalProjectorComponent> m_DynamicProjectors = new List<DecalProjectorComponent>();
 
         public Texture2DAtlas Atlas
         {
@@ -740,6 +743,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        void UpdateDynamicProjectors()
+        {
+            foreach (DecalProjectorComponent decalProjectorComponent in m_DynamicProjectors)
+            {
+                decalProjectorComponent.CheckTransformChanged();
+            }
+        }
+
         public void RenderIntoDBuffer(CommandBuffer cmd)
         {
             if (m_DecalMesh == null)
@@ -834,6 +845,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void CreateDrawData()
         {
+            UpdateDynamicProjectors();
             m_DecalDatasCount = 0;
             // reallocate if needed
             if (m_DecalsVisibleThisFrame > m_DecalDatas.Length)
@@ -892,7 +904,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                     HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0 , 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.decalsDebugSettings.m_MipLevel, true);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
-        }
+                }
             }
         }
     }

@@ -22,6 +22,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private Material m_OldMaterial = null;
         private DecalSystem.DecalHandle m_Handle = null;
         public bool m_IsCropModeEnabled = false;
+        public bool m_IsDynamic = false;
+        public bool m_IsDynamicPrev = false;
         public float m_FadeFactor = 1.0f;
 
         public DecalSystem.DecalHandle Handle
@@ -62,6 +64,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
             Matrix4x4 sizeOffset = Matrix4x4.Translate(m_Offset) * Matrix4x4.Scale(m_Size);
             m_Handle = DecalSystem.instance.AddDecal(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+            if(m_IsDynamic)
+            {
+                DecalSystem.instance.m_DynamicProjectors.Add(this);
+            }
         }
 
         public void OnDisable()
@@ -70,6 +76,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 DecalSystem.instance.RemoveDecal(m_Handle);
                 m_Handle = null;
+                if (m_IsDynamic)
+                {
+                    DecalSystem.instance.m_DynamicProjectors.Remove(this);
+                }
             }
         }
 
@@ -107,10 +117,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor);
                 }
+
+                if(m_IsDynamicPrev != m_IsDynamic)
+                {
+                    if (m_IsDynamic)
+                        DecalSystem.instance.m_DynamicProjectors.Add(this);
+                    else
+                        DecalSystem.instance.m_DynamicProjectors.Remove(this);
+
+                    m_IsDynamicPrev = m_IsDynamic;
+                }                
             }
         }
 
-        public void LateUpdate()
+        public void CheckTransformChanged()
         {
             if (m_Handle != null)
             {
