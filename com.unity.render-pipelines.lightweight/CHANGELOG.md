@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The __Double sided__ property is now __Render Face__. This means you can also do front face culling.
 - Changed the docs for Lit Shader, Simple Lit Shader and Unlit Shader according to Shader GUI changes.
 - When you create a new LWRP Asset, it will now be initialized with settings that favor performance on mobile platforms.
+- Updated the [FAQ](faq.md) and the [Built-in/LWRP feature comparison table](lwrp-builtin-feature-comparison.md).
 
 ### Fixed
 - Several tweaks to reduce bandwidth consumption on mobile devices.
@@ -331,7 +332,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ### Added
  - Added Cascade Split selection UI
  - Added SHADER_HINT_NICE_QUALITY. If user defines this to 1 in the shader Lightweight pipeline will favor quality even on mobile platforms.
- 
+
 ### Changed
  - Shadowmap uses 16bit format instead of 32bit.
  - Small shader performance improvements
@@ -340,7 +341,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Subtractive Mode
  - Shadow Distance does not accept negative values anymore
 
- 
+
 ## [0.1.24]
 
 ### Added
@@ -348,7 +349,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Added HDR global setting on pipeline asset. 
  - Added Soft Particles settings on pipeline asset.
  - Ported particles shaders to SRP library
- 
+
 ### Changed
  - HDR RT now uses what format is configured in Tier settings.
  - Refactored lightweight standard shaders and shader library to improve ease of use.
@@ -356,7 +357,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Reduced GC pressure
  - Reduced shader variant count by ~56% by improving fog and lightmap keywords
  - Converted LW shader library files to use real/half when necessary.
- 
+
 ### Fixed
  - Realtime shadows on OpenGL
  - Shader compiler errors in GLES 2.0
