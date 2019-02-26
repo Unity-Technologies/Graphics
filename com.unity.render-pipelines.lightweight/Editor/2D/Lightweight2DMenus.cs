@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
+using UnityEngine.Rendering.LWRP;
+
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
@@ -16,11 +18,32 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 go.transform.parent = Selection.activeGameObject.transform;
         }
 
+        static bool CreateLightValidation()
+        {
+            LightweightRenderPipeline pipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as LightweightRenderPipeline;
+            if (pipeline != null)
+            {
+                LightweightRenderPipelineAsset asset = LightweightRenderPipeline.asset;
+                _2DRendererData assetData = asset.rendererData as _2DRendererData;
+                if (assetData != null)
+                    return true;
+            }
 
+            return false;
+        }
+
+
+        //[MenuItem("GameObject/Light/2D/Freeform Light 2D", false, -100, true)]
         [MenuItem("GameObject/Light/2D/Freeform Light 2D", false, -100)]
         static void CreateFreeformLight2D()
         {
             CreateLight("Freeform Light 2D", Light2D.LightType.Freeform);
+        }
+
+        [MenuItem("GameObject/Light/2D/Freeform Light 2D", true, -100)]
+        static bool CreateFreeformLight2DValidation()
+        {
+            return CreateLightValidation();
         }
 
         [MenuItem("GameObject/Light/2D/Sprite Light 2D", false, -100)]
@@ -28,17 +51,33 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             CreateLight("Sprite Light 2D", Light2D.LightType.Sprite);
         }
+        [MenuItem("GameObject/Light/2D/Sprite Light 2D", true, -100)]
+        static bool CreateSpriteLight2DValidation()
+        {
+            return CreateLightValidation();
+        }
 
         [MenuItem("GameObject/Light/2D/Parametric Light2D", false, -100)]
         static void CreateParametricLight2D()
         {
             CreateLight("Parametric Light 2D", Light2D.LightType.Parametric);
         }
+        [MenuItem("GameObject/Light/2D/Parametric Light2D", true, -100)]
+        static bool CreateParametricLight2DValidation()
+        {
+            return CreateLightValidation();
+        }
 
         [MenuItem("GameObject/Light/2D/Point Light 2D", false, -100)]
         static void CreatePointLight2D()
         {
             CreateLight("Point Light 2D", Light2D.LightType.Point);
+        }
+
+        [MenuItem("GameObject/Light/2D/Point Light 2D", true, -100)]
+        static bool CreatePointLight2DValidation()
+        {
+            return CreateLightValidation();
         }
     }
 }

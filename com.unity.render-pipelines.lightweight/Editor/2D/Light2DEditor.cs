@@ -573,6 +573,22 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         public override void OnInspectorGUI()
         {
+            LightweightRenderPipeline pipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as LightweightRenderPipeline;
+            if (pipeline == null)
+            {
+                EditorGUILayout.HelpBox("Lightweight scriptable renderpipeline asset must be assigned in graphics settings", MessageType.Warning);
+                return;
+            }
+
+            LightweightRenderPipelineAsset asset = LightweightRenderPipeline.asset;
+            _2DRendererData assetData = asset.rendererData as _2DRendererData; 
+            if(assetData == null)
+            {
+                EditorGUILayout.HelpBox("2D renderer data must be assigned to your lightweight render pipeline asset", MessageType.Warning);
+                return;
+            }
+
+
             bool updateMesh = false;
             
 
