@@ -133,25 +133,29 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 {
                     Light2D light = lights[i];
 
-                    if (light != null && Light2D.IsShapeLight(light.lightType) == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                    int topMostLayer = light.GetTopMostLitLayer();
+                    if (layerToRender == topMostLayer)
                     {
-                        Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
-                        if (shapeLightVolumeMaterial != null)
+                        if (light != null && Light2D.IsShapeLight(light.lightType) == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
-                            Mesh lightMesh = light.GetMesh();
-                            if (lightMesh != null)
+                            Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
+                            if (shapeLightVolumeMaterial != null)
                             {
-                                if (renderShapeLights)
+                                Mesh lightMesh = light.GetMesh();
+                                if (lightMesh != null)
                                 {
-                                    cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
-                                }
-                                else
-                                {
-                                    RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
-                                    //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
-                                    Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
-                                    Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                    cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightVolumeMaterial);
+                                    if (renderShapeLights)
+                                    {
+                                        cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
+                                    }
+                                    else
+                                    {
+                                        RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
+                                        //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
+                                        Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
+                                        Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
+                                        cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightVolumeMaterial);
+                                    }
                                 }
                             }
                         }
@@ -287,7 +291,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     continue;
                 }
 
-                string sampleName = "2D Point Lights - " + s_LightOperations[i].name;
+                string sampleName = "2D Lights - " + s_LightOperations[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
                 cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());

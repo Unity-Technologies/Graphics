@@ -75,8 +75,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 cmd.Clear();
                 RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, true);
-                RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, false);
+                //RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, false);
                 context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
             }
 
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
