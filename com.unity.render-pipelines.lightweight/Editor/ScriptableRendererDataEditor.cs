@@ -17,7 +17,6 @@ namespace UnityEditor.Rendering.LWRP
             public static GUIContent header = new GUIContent("Null Pass", "Null.");
         }
 
-        private bool m_FirstTime = true;
         SavedBool[] m_Foldouts;
         private SerializedProperty m_RenderPasses;
         
@@ -134,8 +133,6 @@ namespace UnityEditor.Rendering.LWRP
             m_PassesList.drawHeaderCallback = (Rect testHeaderRect) => {
                 EditorGUI.LabelField(testHeaderRect, Styles.renderPasses);
             };
-            
-            m_FirstTime = false;
         }
 
         public override void OnInspectorGUI()
