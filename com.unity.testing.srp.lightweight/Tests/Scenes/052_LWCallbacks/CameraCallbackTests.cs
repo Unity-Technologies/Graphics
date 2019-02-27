@@ -54,7 +54,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
     }
-    public override void AddRenderPasses(List<ScriptableRenderPass> renderPasses,
+    public override void AddRenderPasses(ScriptableRenderer renderer,
         RenderTextureDescriptor baseDescriptor,
         RenderTargetHandle colorAttachmentHandle,
         RenderTargetHandle depthAttachmentHandle)
@@ -82,14 +82,14 @@ public class CameraCallbackTests : ScriptableRendererFeature
         var BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, colorAttachmentHandle);
 
         // Inserts out of order so we also test render passes sort correctly
-        renderPasses.Add(copyAfterEverything);
-        renderPasses.Add(BlitRenderPassesToScreen);
-        renderPasses.Add(copyAfterOpaquePass);
-        renderPasses.Add(copyAfterSkyboxPass);
-        renderPasses.Add(copyAfterSkyboxPass2);
-        renderPasses.Add(copyAfterTransparents);
-        renderPasses.Add(clearRenderPass);
-        renderPasses.Add(copyBeforeOpaquePass);
+        renderer.EnqueuePass(copyAfterEverything);
+        renderer.EnqueuePass(BlitRenderPassesToScreen);
+        renderer.EnqueuePass(copyAfterOpaquePass);
+        renderer.EnqueuePass(copyAfterSkyboxPass);
+        renderer.EnqueuePass(copyAfterSkyboxPass2);
+        renderer.EnqueuePass(copyAfterTransparents);
+        renderer.EnqueuePass(clearRenderPass);
+        renderer.EnqueuePass(copyBeforeOpaquePass);
     }
 
 	class BlitPass : ScriptableRenderPass

@@ -24,13 +24,22 @@ namespace UnityEngine.Rendering.LWRP
         public RenderTargetHandle cameraColorHandle { get; set; }
         public RenderTargetHandle cameraDepthHandle { get; set; }
 
-        protected List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
-        protected List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
-        
+        protected List<ScriptableRendererFeature> rendererFeatures
+        {
+            get => m_RendererFeatures;
+        }
+
+        protected List<ScriptableRenderPass> activeRenderPassQueue
+        {
+            get => m_ActiveRenderPassQueue;
+        }
+
+        List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
+        List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
+
         const string k_ClearRenderStateTag = "Clear Render State";
         const string k_CreateCameraTextures = "Set Render Target";
         const string k_SetRenderTarget = "Set RenderTarget";
-        const string k_RenderOcclusionMesh = "Render Occlusion Mesh";
         const string k_ReleaseResourcesTag = "Release Resources";
 
         static RenderTargetIdentifier m_ActiveColorAttachment;
@@ -53,10 +62,12 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         /// <summary>
-        /// Override this method to implement the list of <c>ScriptableRenderPass</c> this renderer should execute on a frame.
-        /// This method is called every frame by the LWRP.
+        /// Configures the render passes that will execute for this renderer.
+        /// This method is called per-camera every frame.
         /// </summary>
         /// <param name="renderingData">Current render state information.</param>
+        /// <seealso cref="ScriptableRenderPass"/>
+        /// <seealso cref="ScriptableRendererFeature"/>
         public abstract void Setup(ref RenderingData renderingData);
 
         /// <summary>
@@ -137,7 +148,7 @@ namespace UnityEngine.Rendering.LWRP
         /// Enqueues a render pass for execution.
         /// </summary>
         /// <param name="pass">Render pass to be enqueued.</param>
-        protected void EnqueuePass(ScriptableRenderPass pass)
+        public void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
         }
