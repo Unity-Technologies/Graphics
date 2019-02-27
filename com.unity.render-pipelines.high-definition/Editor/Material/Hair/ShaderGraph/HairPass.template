@@ -257,12 +257,14 @@ $include("SharedCode.template.hlsl")
         // compute world space (user-provided) normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-    #if defined (_USE_LIGHT_FACING_NORMAL)
+    #if (_USE_LIGHT_FACING_NORMAL)
         float3 viewFacingNormalWS = ComputeViewFacingNormal(V, surfaceData.hairStrandDirectionWS);
-        bentNormalWS = viewFacingNormalWS;
+        float3 N = viewFacingNormalWS;
     #else
-        bentNormalWS = surfaceData.normalWS;
+        float3 N = surfaceData.normalWS;
     #endif
+
+        bentNormalWS = N;
 
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
@@ -274,9 +276,9 @@ $include("SharedCode.template.hlsl")
         // Just use the value passed through via the slot (not active otherwise)
 #elif defined(_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL)
         // If we have bent normal and ambient occlusion, process a specular occlusion
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, viewFacingNormalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, N, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
 #elif defined(_AMBIENT_OCCLUSION) && defined(_SPECULAR_OCCLUSION_FROM_AO)
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(viewFacingNormalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(N, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #else
         surfaceData.specularOcclusion = 1.0;
 #endif
