@@ -54,6 +54,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
+        void Awake() => k_Migration.Migrate(this);
+
 #pragma warning disable 649 // Field never assigned
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
         int m_ObsoleteRenderingPath;
