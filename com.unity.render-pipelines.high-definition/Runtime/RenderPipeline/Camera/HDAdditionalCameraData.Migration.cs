@@ -53,10 +53,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MigrationStep.New(Version.AddFrameSettingSpecularLighting, (HDAdditionalCameraData data) =>
                 FrameSettings.MigrateToSpecularLighting(ref data.renderingPathCustomFrameSettings)
             )
-
         );
 
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
+
+        void Awake() => k_Migration.Migrate(this);
 
 #pragma warning disable 649 // Field never assigned
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
