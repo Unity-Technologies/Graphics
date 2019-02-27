@@ -42,7 +42,6 @@ namespace UnityEngine.Rendering.LWRP
             descriptor.depthBufferBits = 32; //TODO: fix this ;
             descriptor.msaaSamples = 1;
             cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
-            ConfigureTargetForBlit(destination.Identifier());
         }
 
         /// <inheritdoc/>
@@ -60,6 +59,8 @@ namespace UnityEngine.Rendering.LWRP
 
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             int cameraSamples = descriptor.msaaSamples;
+
+            // TODO: we don't need a command buffer here. We can set these via Material.Set* API
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 
             if (cameraSamples > 1)
@@ -75,29 +76,27 @@ namespace UnityEngine.Rendering.LWRP
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
                 }
-                cmd.Blit(depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                context.ExecuteCommandBuffer(cmd);
+                Blit(context, depthSurface, copyDepthSurface, m_CopyDepthMaterial, 0, m_ProfilerTag);
             }
             else
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                context.ExecuteCommandBuffer(cmd);
+                CopyTexture(context, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
-            context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
+        void CopyTexture(ScriptableRenderContext context, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
         {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
             // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
             //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
             //    cmd.CopyTexture(source, dest);
             //else
-            cmd.Blit(source, dest, material);
+            Blit(context, source, dest, material);
         }
 
         /// <inheritdoc/>

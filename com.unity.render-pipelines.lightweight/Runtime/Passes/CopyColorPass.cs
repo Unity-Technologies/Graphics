@@ -47,7 +47,6 @@ namespace UnityEngine.Rendering.LWRP
             descriptor.msaaSamples = 1;
             descriptor.depthBufferBits = 0;
             cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
-            ConfigureTargetForBlit(destination.Identifier());
         }
 
         /// <inheritdoc/>
@@ -59,29 +58,25 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetIdentifier colorRT = source.Identifier();
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
             switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
-                    cmd.Blit(colorRT, opaqueColorRT);
+                    Blit(context, colorRT, opaqueColorRT, null, 0, m_ProfilerTag);
                     break;
                 case Downsampling._2xBilinear:
-                    cmd.Blit(colorRT, opaqueColorRT);
+                    Blit(context, colorRT, opaqueColorRT, null, 0, m_ProfilerTag);
                     break;
                 case Downsampling._4xBox:
                     m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                    cmd.Blit(colorRT, opaqueColorRT, m_SamplingMaterial, 0);
+                    Blit(context, colorRT, opaqueColorRT, m_SamplingMaterial, 0, m_ProfilerTag);
                     break;
                 case Downsampling._4xBilinear:
-                    cmd.Blit(colorRT, opaqueColorRT);
+                    Blit(context, colorRT, opaqueColorRT, null, 0, m_ProfilerTag);
                     break;
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>
