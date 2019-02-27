@@ -108,6 +108,7 @@ namespace UnityEditor.VFX.UI
         }
 
 
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
         bool IPropertyRMProvider.expanded {get {return false;}}
 
         bool IPropertyRMProvider.expandable { get { return false; } }

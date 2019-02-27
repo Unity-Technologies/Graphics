@@ -1,4 +1,4 @@
-﻿//#define USE_SHADER_AS_SUBASSET
+//#define USE_SHADER_AS_SUBASSET
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -173,9 +173,9 @@ namespace UnityEditor.VFX
             if( ! VFXConverter.TryConvertTo(oldValue,VFXExpression.TypeToType(newType),out newValue) )
                 newValue = Activator.CreateInstance(VFXExpression.TypeToType(newType));
 
-            defaultValue.Set(newValue);
+            var newDefaultValue = new VFXSerializableObject(VFXExpression.TypeToType(newType), newValue);// defaultValue.Set(newValue);
 
-            m_CustomAttributes[index] = new CustomAttribute { name = m_CustomAttributes[index].name, type = newType, defaultValue = defaultValue };
+            m_CustomAttributes[index] = new CustomAttribute { name = m_CustomAttributes[index].name, type = newType, defaultValue = newDefaultValue };
 
             string name = m_CustomAttributes[index].name;
             ForEachSettingUsingAttribute((model, setting) =>
