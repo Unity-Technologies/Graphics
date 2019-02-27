@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.LWRP
                 else
                     cameraData.postProcessLayer.Render(postProcessRenderContext);
 
-                cmd.Blit(rtId, source);
+                cmd.Blit(rtId, destination);
                 cmd.ReleaseTemporaryRT(m_PostProcessingTemporaryTargetId);
             }
             else
