@@ -18,3 +18,5 @@
   * [Particles Unlit](particles-unlit-shader.md)
   * [Upgrading shaders](upgrading-your-shaders.md)
 
+* [Frequently asked questions (FAQ)](faq.md)
+
