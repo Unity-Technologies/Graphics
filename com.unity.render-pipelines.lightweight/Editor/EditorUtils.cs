@@ -1,9 +1,20 @@
 using System;
+using System.Linq;
+using UnityEditorInternal;
 using UnityEngine;
-namespace UnityEditor.Experimental.Rendering
+using UnityEngine.Rendering.LWRP;
+
+namespace UnityEditor.Rendering.LWRP
 {
-    static class LightweightRenderPipelineEditorUtils
+    static class EditorUtils
     {
+        internal class Styles
+        {
+            //Measurements
+            public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            public static float defaultIndentWidth = 12;
+        }
+        
         public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit)
         {
             float[] cascadePartitionSizes = null;
