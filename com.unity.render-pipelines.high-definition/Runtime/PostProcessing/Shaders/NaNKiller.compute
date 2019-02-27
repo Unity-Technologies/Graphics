@@ -1,0 +1,18 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel KMain
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+TEXTURE2D(_InputTexture);
+RW_TEXTURE2D(float3, _OutputTexture);
+
+[numthreads(8, 8, 1)]
+void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    float3 color = _InputTexture[dispatchThreadId].xyz;
+
+    if (AnyIsNaN(color) || AnyIsInf(color))
+        color = (0.0).xxx;
+
+    _OutputTexture[dispatchThreadId] = color;
+}

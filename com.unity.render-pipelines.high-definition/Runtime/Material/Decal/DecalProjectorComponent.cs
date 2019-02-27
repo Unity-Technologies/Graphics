@@ -11,16 +11,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
     public class DecalProjectorComponent : MonoBehaviour
     {
+        [Tooltip("Specifies the Material this component projects as a decal.")]
         public Material m_Material = null;
+        [Tooltip("Sets the distance from the Camera at which HDRP stop rendering the decal.")]
         public float m_DrawDistance = 1000.0f;
+        [Tooltip("Controls the distance from the Camera at which this component begins to fade the decal out. Expressed as a percentage of Fade Distance.")]
         public float m_FadeScale = 0.9f;
+        [Tooltip("Sets the scale for the decal Material. Scales the decal along its UV axes.")]
         public Vector2 m_UVScale = new Vector2(1, 1);
+        [Tooltip("Sets the offset for the decal Material. Moves the decal along its UV axes.")]
         public Vector2 m_UVBias = new Vector2(0, 0);
+        [Tooltip("When enabled, HDRP draws this projector's decal on top of transparent surfaces.")]
         public bool m_AffectsTransparency = false;
         public Vector3 m_Offset = new Vector3(0, -0.5f, 0);
+        [Tooltip("Sets the size of the projector.")]
         public Vector3 m_Size = new Vector3(1, 1, 1);
         private Material m_OldMaterial = null;
         private DecalSystem.DecalHandle m_Handle = null;
+        [Tooltip("When enabled, the Scene view gizmo crops the decal instead of scaling it.")]
         public bool m_IsCropModeEnabled = false;
         public float m_FadeFactor = 1.0f;
 

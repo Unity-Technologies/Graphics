@@ -695,7 +695,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float tangent;
 
             if (Mathf.Approximately(pos.x, 0f))
-                tangent = pos.y < 0f ? float.PositiveInfinity : float.NegativeInfinity;
+                tangent = float.PositiveInfinity;
             else
                 tangent = pos.y / pos.x;
 
@@ -744,7 +744,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return new Vector3(1f, -tangent / ratio).normalized;
             }
 
-            return float.IsPositiveInfinity(tangent) ? Vector3.up : Vector3.down;
+            return Vector3.up; // Positive infinity
         }
 
         Vector3[] BezierSegment(Keyframe start, Keyframe end)
@@ -806,7 +806,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float vn = curve.Evaluate(tn);
 
             if (Mathf.Approximately(tn, tp))
-                return (vn - vp > 0f) ? float.PositiveInfinity : float.NegativeInfinity;
+                return float.PositiveInfinity;
 
             return (vn - vp) / (tn - tp);
         }

@@ -168,6 +168,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2306_Contact_Shadow_SpotLight.unity
     guid: a8ecf1e3cee864a48bd6bca2c797fdb3
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2307_ShadowVeryHigh.unity
+    guid: c110cc3f909bb664b82eb554f0494597
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
     guid: 3f6529c22f7d2ca46814b2e7afd04ef9
   - enabled: 1
@@ -182,9 +185,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2701_TexturedAreaLights.unity
     guid: 3b6ce72f472558240a2a8d61a932c6d0
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2307_ShadowVeryHigh.unity
-    guid: c110cc3f909bb664b82eb554f0494597
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2801_SSR.unity
+    guid: 62f2b88cccb280246a9211bbcf0c8245
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
     guid: 21522d96110c8dd41ab353d89fd740c3
@@ -216,14 +219,14 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8101_Opaque.unity
     guid: 3f9e911b4dbc9464e85add595c37cb89
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8104_Unlit.unity
-    guid: 7529f10e11b78924b9c1ee1727b1405f
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8102_Transparent.unity
     guid: c2f6e1c5441279d42b05dbe99212bf2d
   - enabled: 0
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8103_PrePostPass.unity
     guid: 92280049d357c564b9a9297b39e02a92
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8104_Unlit.unity
+    guid: 7529f10e11b78924b9c1ee1727b1405f
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8201_VertexAnimation.unity
     guid: 328570ab5ddac484bbf26d8504f7f417

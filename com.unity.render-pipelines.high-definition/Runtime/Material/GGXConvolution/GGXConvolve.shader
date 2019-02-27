@@ -69,7 +69,7 @@ Shader "Hidden/HDRP/GGXConvolve"
                 uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level);
 
             #ifdef USE_MIS
-                float4 val = IntegrateLD_MIS(TEXTURECUBE_PARAM(_MainTex, s_trilinear_clamp_sampler),
+                float4 val = IntegrateLD_MIS(TEXTURECUBE_ARGS(_MainTex, s_trilinear_clamp_sampler),
                                              _MarginalRowDensities, _ConditionalDensities,
                                              V, N,
                                              roughness,
@@ -79,7 +79,7 @@ Shader "Hidden/HDRP/GGXConvolve"
                                              1024,
                                              false);
             #else
-                float4 val = IntegrateLD(TEXTURECUBE_PARAM(_MainTex, s_trilinear_clamp_sampler),
+                float4 val = IntegrateLD(TEXTURECUBE_ARGS(_MainTex, s_trilinear_clamp_sampler),
                                          _GgxIblSamples,
                                          V, N,
                                          roughness,

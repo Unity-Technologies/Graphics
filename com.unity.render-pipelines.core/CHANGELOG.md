@@ -4,7 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.3.0] - 2019-XX-XX
+## [6.5.0] - 2019-XX-XX
+
+## [6.4.0] - 2019-02-21
+### Added
+- Enabled support for CBUFFER on OpenGL Core and OpenGL ES 3 backends.
+
+## [6.3.0] - 2019-02-18
 
 ## [6.2.0] - 2019-02-15
 

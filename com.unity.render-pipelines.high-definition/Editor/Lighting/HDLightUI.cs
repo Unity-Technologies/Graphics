@@ -218,7 +218,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
-                serialized.serializedLightData.lightLayers.intValue = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)serialized.serializedLightData.lightLayers.intValue));
+                var renderingLayerMask = serialized.serializedLightData.renderingLayerMask.intValue;
+                var lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
+                EditorGUI.BeginChangeCheck();
+                lightLayer = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)lightLayer));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Overwrite only first byte
+                    lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
+                    serialized.serializedLightData.renderingLayerMask.intValue = lightLayer;
+                }
             }
         }
 
@@ -353,12 +362,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 serialized.serializedLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
         }
 
-        static LightUnit LightIntensityUnitPopup(SerializedHDLight serialized, Editor owner)
+        static void DrawLightIntensityUnitPopup(SerializedHDLight serialized, Editor owner)
         {
             LightShape shape = serialized.editorLightShape;
             LightUnit selectedLightUnit;
             LightUnit oldLigthUnit = (LightUnit)serialized.serializedLightData.lightUnit.enumValueIndex;
 
+            EditorGUI.showMixedValue = serialized.serializedLightData.lightUnit.hasMultipleDifferentValues;
             EditorGUI.BeginChangeCheck();
             switch (shape)
             {
@@ -378,10 +388,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((AreaLightUnit)serialized.serializedLightData.lightUnit.enumValueIndex);
                     break;
             }
-            if (EditorGUI.EndChangeCheck())
-                ConvertLightIntensity(oldLigthUnit, selectedLightUnit, serialized, owner);
 
-            return selectedLightUnit;
+            EditorGUI.showMixedValue = false;
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                ConvertLightIntensity(oldLigthUnit, selectedLightUnit, serialized, owner);
+                serialized.serializedLightData.lightUnit.enumValueIndex = (int)selectedLightUnit;
+            }
         }
 
         static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, SerializedHDLight serialized, Editor owner)
@@ -465,7 +479,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(serialized.serializedLightData.intensity, s_Styles.lightIntensity);
-            serialized.serializedLightData.lightUnit.enumValueIndex = (int)LightIntensityUnitPopup(serialized, owner);
+            DrawLightIntensityUnitPopup(serialized, owner);
             EditorGUILayout.EndHorizontal();
             if (EditorGUI.EndChangeCheck())
             {

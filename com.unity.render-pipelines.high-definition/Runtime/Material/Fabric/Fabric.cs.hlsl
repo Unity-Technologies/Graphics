@@ -24,7 +24,7 @@
 #define DEBUGVIEW_FABRIC_SURFACEDATA_SMOOTHNESS (1307)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_AMBIENT_OCCLUSION (1308)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_TINT (1309)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_DIFFUSION_PROFILE (1310)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_DIFFUSION_PROFILE_HASH (1310)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_SUBSURFACE_MASK (1311)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_THICKNESS (1312)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_TANGENT (1313)
@@ -43,7 +43,7 @@
 #define DEBUGVIEW_FABRIC_BSDFDATA_GEOMETRIC_NORMAL (1357)
 #define DEBUGVIEW_FABRIC_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1358)
 #define DEBUGVIEW_FABRIC_BSDFDATA_PERCEPTUAL_ROUGHNESS (1359)
-#define DEBUGVIEW_FABRIC_BSDFDATA_DIFFUSION_PROFILE (1360)
+#define DEBUGVIEW_FABRIC_BSDFDATA_DIFFUSION_PROFILE_INDEX (1360)
 #define DEBUGVIEW_FABRIC_BSDFDATA_SUBSURFACE_MASK (1361)
 #define DEBUGVIEW_FABRIC_BSDFDATA_THICKNESS (1362)
 #define DEBUGVIEW_FABRIC_BSDFDATA_USE_THICK_OBJECT_MODE (1363)
@@ -66,7 +66,7 @@ struct SurfaceData
     float perceptualSmoothness;
     float ambientOcclusion;
     float3 specularColor;
-    uint diffusionProfile;
+    uint diffusionProfileHash;
     float subsurfaceMask;
     float thickness;
     float3 tangentWS;
@@ -85,7 +85,7 @@ struct BSDFData
     float3 normalWS;
     float3 geomNormalWS;
     float perceptualRoughness;
-    uint diffusionProfile;
+    uint diffusionProfileIndex;
     float subsurfaceMask;
     float thickness;
     bool useThickObjectMode;
@@ -136,8 +136,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.specularColor;
             needLinearToSRGB = true;
             break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_DIFFUSION_PROFILE:
-            result = GetIndexColor(surfacedata.diffusionProfile);
+        case DEBUGVIEW_FABRIC_SURFACEDATA_DIFFUSION_PROFILE_HASH:
+            result = GetIndexColor(surfacedata.diffusionProfileHash);
             break;
         case DEBUGVIEW_FABRIC_SURFACEDATA_SUBSURFACE_MASK:
             result = surfacedata.subsurfaceMask.xxx;
@@ -192,8 +192,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_FABRIC_BSDFDATA_PERCEPTUAL_ROUGHNESS:
             result = bsdfdata.perceptualRoughness.xxx;
             break;
-        case DEBUGVIEW_FABRIC_BSDFDATA_DIFFUSION_PROFILE:
-            result = GetIndexColor(bsdfdata.diffusionProfile);
+        case DEBUGVIEW_FABRIC_BSDFDATA_DIFFUSION_PROFILE_INDEX:
+            result = GetIndexColor(bsdfdata.diffusionProfileIndex);
             break;
         case DEBUGVIEW_FABRIC_BSDFDATA_SUBSURFACE_MASK:
             result = bsdfdata.subsurfaceMask.xxx;

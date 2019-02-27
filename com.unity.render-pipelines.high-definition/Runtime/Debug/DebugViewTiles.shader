@@ -159,7 +159,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 int2 offsetInTile = pixelCoord - tileCoord * GetTileSize();
 
                 int n = 0;
-#ifdef SHOW_LIGHT_CATEGORIES
+#if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
                 for (int category = 0; category < LIGHTCATEGORY_COUNT; category++)
                 {
                     uint mask = 1u << category;
@@ -185,7 +185,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     result = OverlayHeatMap(int2(posInput.positionSS.xy) & (GetTileSize() - 1), n);
                 }
 
-#ifdef SHOW_LIGHT_CATEGORIES
+#if defined(SHOW_LIGHT_CATEGORIES) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER)
                 // Highlight selected tile
                 if (all(mouseTileCoord == tileCoord))
                 {

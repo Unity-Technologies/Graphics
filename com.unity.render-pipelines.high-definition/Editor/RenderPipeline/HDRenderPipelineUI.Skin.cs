@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineSettings;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -49,7 +50,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_SupportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "When disabled, HDRP removes all transparent depth prepass Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "When disabled, HDRP removes all transparent depth postpass Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing");
-        static readonly GUIContent k_EditorRaytracingFilterLayerMask = EditorGUIUtility.TrTextContent("Raytracing Filter Layer Mask for SceneView and Preview");
 
         const string k_CacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
         const string k_CacheInfoFormat = "Reserving {0} in memory at runtime.";
@@ -81,7 +81,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_MaxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
 
         static readonly GUIContent k_ResolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
-        static readonly GUIContent k_Map16bContent = EditorGUIUtility.TrTextContent("16-bit", "When enabled, this forces HDRP to use 16-bit shadow maps.");
+        static readonly GUIContent k_PrecisionContent = EditorGUIUtility.TrTextContent("Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
         static readonly GUIContent k_DynamicRescaleContent = EditorGUIUtility.TrTextContent("Dynamic Rescale", "When enabled, scales the shadow map size using the screen size of the Light to leave more space for other shadows in the atlas.");
         static readonly GUIContent k_MaxRequestContent = EditorGUIUtility.TrTextContent("Maximum Shadow on Screen", "Sets the maximum number of shadows HDRP can handle on screen at once. See the documentation for details on how many shadows each light type casts.");
 
@@ -101,6 +101,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly GUIContent k_LutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");
         static readonly GUIContent k_LutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");
+
+        static readonly GUIContent[] k_ShadowBitDepthNames = { new GUIContent("32 bit"),  new GUIContent("16 bit") };
+        static readonly int[] k_ShadowBitDepthValues = { (int) DepthBits.Depth32, (int) DepthBits.Depth16};
 
         const string memoryDrawback = "Adds GPU memory";
         const string shaderVariantDrawback = "Adds Shader Variants";

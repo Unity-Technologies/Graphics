@@ -6,9 +6,9 @@
 #pragma kernel KMainGeneric         MAIN=KMainGeneric           GENERIC
 #pragma kernel KMainUnitDistance    MAIN=KMainUnitDistance      UNITDISTANCE
 
-TEXTURE2D(_InputTexture);
+TEXTURE2D_X(_InputTexture);
 
-RW_TEXTURE2D(float3, _OutputTexture);
+RW_TEXTURE2D_X(float3, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
 
@@ -102,9 +102,11 @@ float2 Panini_Generic(float2 view_pos, float d)
 }
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
 
 #if GENERIC
@@ -118,11 +120,11 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
 
     if (any(coords < 0.0) || any(coords > 1.0))
     {
-        _OutputTexture[posInputs.positionSS] = 0.0;
+        _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = 0.0;
     }
     else
     {
-        float3 smp = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(coords), 0.0).xyz;
-        _OutputTexture[posInputs.positionSS] = smp;
+        float3 smp = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(coords), 0.0).xyz;
+        _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = smp;
     }
 }

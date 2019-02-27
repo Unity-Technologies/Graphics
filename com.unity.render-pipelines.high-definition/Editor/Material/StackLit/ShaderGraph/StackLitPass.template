@@ -301,7 +301,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.BaseColor:                 surfaceData.baseColor =                surfaceDescription.BaseColor;
         $SurfaceDescription.SubsurfaceMask:            surfaceData.subsurfaceMask =           surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                 surfaceData.thickness =                surfaceDescription.Thickness;
-        $SurfaceDescription.DiffusionProfile:          surfaceData.diffusionProfile =         surfaceDescription.DiffusionProfile;
+        $SurfaceDescription.DiffusionProfileHash:      surfaceData.diffusionProfileHash =     asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.IridescenceMask:           surfaceData.iridescenceMask =          surfaceDescription.IridescenceMask;
         $SurfaceDescription.IridescenceThickness:      surfaceData.iridescenceThickness =     surfaceDescription.IridescenceThickness;
         $SurfaceDescription.SpecularColor:             surfaceData.specularColor =            surfaceDescription.SpecularColor;

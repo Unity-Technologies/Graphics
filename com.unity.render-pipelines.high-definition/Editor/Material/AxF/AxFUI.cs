@@ -202,10 +202,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Stencil refs and masks
         protected const string kStencilRef = "_StencilRef";
         protected const string kStencilWriteMask = "_StencilWriteMask";
+        protected const string kStencilRefDepth = "_StencilRefDepth";
+        protected const string kStencilWriteMaskDepth = "_StencilWriteMaskDepth";
         protected const string kStencilRefMV = "_StencilRefMV";
         protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
-        protected const string kStencilDepthPrepassRef = "_StencilDepthPrepassRef";
-        protected const string kStencilDepthPrepassWriteMask = "_StencilDepthPrepassWriteMask";
 
         // Decals and SSR
         protected const string kEnableDecals = "_SupportDecals";
@@ -288,7 +288,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        protected unsafe override void MaterialPropertiesGUI(Material _material)
+        protected unsafe override void MaterialPropertiesGUI(Material material)
         {
             EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
 
@@ -482,7 +482,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        protected override void MaterialPropertiesAdvanceGUI(Material _material)
+        protected override void MaterialPropertiesAdvanceGUI(Material material)
         {
         }
 
@@ -490,76 +490,78 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
         }
 
-        protected override bool ShouldEmissionBeEnabled(Material _material)
+        protected override bool ShouldEmissionBeEnabled(Material material)
         {
             return false;
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material _material)
+        protected override void SetupMaterialKeywordsAndPassInternal(Material material)
         {
-            SetupMaterialKeywordsAndPass(_material);
+            SetupMaterialKeywordsAndPass(material);
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material _material)
+        static public void SetupMaterialKeywordsAndPass(Material material)
         {
-            SetupBaseUnlitKeywords(_material);
-            SetupBaseUnlitMaterialPass(_material);
+            SetupBaseUnlitKeywords(material);
+            SetupBaseUnlitMaterialPass(material);
 
-            AxfBrdfType   BRDFType = (AxfBrdfType)_material.GetFloat(m_AxF_BRDFTypeText);
+            AxfBrdfType   BRDFType = (AxfBrdfType)material.GetFloat(m_AxF_BRDFTypeText);
 
-            CoreUtils.SetKeyword(_material, "_AXF_BRDF_TYPE_SVBRDF", BRDFType == AxfBrdfType.SVBRDF);
-            CoreUtils.SetKeyword(_material, "_AXF_BRDF_TYPE_CAR_PAINT", BRDFType == AxfBrdfType.CAR_PAINT);
-            CoreUtils.SetKeyword(_material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
+            CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_SVBRDF", BRDFType == AxfBrdfType.SVBRDF);
+            CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_CAR_PAINT", BRDFType == AxfBrdfType.CAR_PAINT);
+            CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
 
             // Keywords for opt-out of decals and SSR:
-            bool decalsEnabled = _material.HasProperty(kEnableDecals) && _material.GetFloat(kEnableDecals) > 0.0f;
-            CoreUtils.SetKeyword(_material, "_DISABLE_DECALS", decalsEnabled == false);
-            bool ssrEnabled = _material.HasProperty(kEnableSSR) && _material.GetFloat(kEnableSSR) > 0.0f;
-            CoreUtils.SetKeyword(_material, "_DISABLE_SSR", ssrEnabled == false);
+            bool decalsEnabled = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", decalsEnabled == false);
+            bool ssrEnabled = material.HasProperty(kEnableSSR) && material.GetFloat(kEnableSSR) > 0.0f;
+            CoreUtils.SetKeyword(material, "_DISABLE_SSR", ssrEnabled == false);
 
-            //
-            // Set the reference values for the stencil test - required for SSS, decals, motion vectors 
-            // and TODOTODO disabling wasteful SSR tracing in compute shader
-            //
+            // Set the reference values for the stencil test
 
-            // We tag during velocity pass, forwardonly pass, and depth forwardonly prepass
-            // so we need a separate state and we need to use the write mask:
+            // Stencil usage rules:
+            // DoesntReceiveSSR and DecalsForwardOutputNormalBuffer need to be tagged during depth prepass
+            // LightingMask need to be tagged during either GBuffer or Forward pass
+            // ObjectVelocity need to be tagged in velocity pass.
+            // As velocity pass can be use as a replacement of depth prepass it also need to have DoesntReceiveSSR and DecalsForwardOutputNormalBuffer
+            // Object velocity is always render after a full depth buffer (if there is no depth prepass for GBuffer all object motion vectors are render after GBuffer)
+            // so we have a guarantee than when we write object velocity no other object will be draw on top (and so would have require to overwrite velocity).
+            // Final combination is:
+            // Prepass: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer
+            // Motion vectors: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer, ObjectVelocity
+            // GBuffer: LightingMask, DecalsForwardOutputNormalBuffer, ObjectVelocity
+            // Forward: LightingMask
+
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
             int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            //if (sssEnabled)
-            //{
-            //    stencilRef = (int)StencilLightingUsage.SplitLighting;
-            //}
+            int stencilRefDepth = 0;
+            int stencilWriteMaskDepth = 0;
+            int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
+            int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
 
-            // For depth only pass, we also tag: when the renderpipeline itself is set in deferred mode,
-            // this is needed for decal to normal buffer compositing to still happen for forward only _materials (like stacklit).
-            // When the renderpipeline is in full forward, it automatically do compositing for all pixels
-            // tagged with the decal bit as they all need compositing since it knows every opaque was rendered in forward.
-            int stencilDepthPrepassRef = decalsEnabled ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer : 0;
-            int stencilDepthPrepassWriteMask = decalsEnabled ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer : 0;
+            if (!ssrEnabled)
+            {
+                stencilRefDepth |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+                stencilRefMV |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+            }
 
-            // TODOTODO enable this and test, when RenderPipeline is modified to copy the stencil to UAV not
-            // only on feature variants, but if we render any depth forward only prepasses and have SSR,
-            // as in this case, it might be worth it to save SSR tracing for full forward materials that escape
-            // it. 
-            // (If the pipeline is itself in fullforward, then depth only prepasses (eg in Lit) should also tag,
-            // like we plan to do here:)
-            //if (!ssrEnabled)
-            //{
-            //    stencilDepthPrepassRef |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            //    stencilDepthPrepassWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
-            //}
+            if (decalsEnabled)
+            {
+                stencilRefDepth |= (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+                stencilRefMV |= (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+            }
 
-            // We tag during velocity pass, forwardonly pass, so we need a separate state and we need to use the write mask
-            _material.SetInt(kStencilRef, stencilRef);
-            _material.SetInt(kStencilWriteMask, stencilWriteMask);
-            _material.SetInt(kStencilRefMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
-            _material.SetInt(kStencilWriteMaskMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
+            stencilWriteMaskDepth |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+            stencilWriteMaskMV |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
 
-            _material.SetInt(kStencilDepthPrepassRef, stencilDepthPrepassRef);
-            _material.SetInt(kStencilDepthPrepassWriteMask, stencilDepthPrepassWriteMask);
-
+            // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
+            material.SetInt(kStencilRef, stencilRef);
+            material.SetInt(kStencilWriteMask, stencilWriteMask);
+            material.SetInt(kStencilRefDepth, stencilRefDepth);
+            material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
+            material.SetInt(kStencilRefMV, stencilRefMV);
+            material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
         }
     }
 } // namespace UnityEditor

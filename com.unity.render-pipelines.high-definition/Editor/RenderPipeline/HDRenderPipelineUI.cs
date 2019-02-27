@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         readonly static ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
-                
+
         enum ShadowResolutionValue
         {
             ShadowResolution128 = 128,
@@ -49,6 +49,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BakedOrCustomReflection,
             RealtimeReflection
         }
+
+        internal static DiffusionProfileSettingsListUI diffusionProfileUI = new DiffusionProfileSettingsListUI();
 
         internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
 
@@ -122,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     k_ExpandedState.SetExpandedAreas(Expandable.RealtimeProbeFrameSettings, true);
                     break;
             }
-        }            
+        }
 
         static void Drawer_TitleDefaultFrameSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
@@ -256,12 +258,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(k_ShadowAtlasSubTitle);
             ++EditorGUI.indentLevel;
             serialized.renderPipelineSettings.hdShadowInitParams.shadowAtlasResolution.intValue = (int)(ShadowResolutionValue)EditorGUILayout.EnumPopup(k_ResolutionContent, (ShadowResolutionValue)serialized.renderPipelineSettings.hdShadowInitParams.shadowAtlasResolution.intValue);
-
-            bool shadowMap16Bits = (DepthBits)serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue == DepthBits.Depth16;
-            EditorGUI.BeginChangeCheck();
-            shadowMap16Bits = EditorGUILayout.Toggle(k_Map16bContent, shadowMap16Bits);
-            if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue = (shadowMap16Bits) ? (int)DepthBits.Depth16 : (int)DepthBits.Depth32;
+            serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue = EditorGUILayout.IntPopup(k_PrecisionContent, serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue, k_ShadowBitDepthNames, k_ShadowBitDepthValues);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.useDynamicViewportRescale, k_DynamicRescaleContent);
             --EditorGUI.indentLevel;
             
@@ -382,12 +379,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if(UnityEngine.SystemInfo.supportsRayTracing)
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
-                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
-                {
-                    ++EditorGUI.indentLevel;
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.editorRaytracingFilterLayerMask, k_EditorRaytracingFilterLayerMask);
-                    --EditorGUI.indentLevel;
-                }
             }
             else
 #endif
@@ -419,8 +410,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDistortion, k_SupportDistortion);
 
-            EditorGUILayout.PropertyField(serialized.diffusionProfileSettings, k_DiffusionProfileSettingsContent);
-
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSubsurfaceScattering, k_SupportedSSSContent);
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue))
             {
@@ -430,6 +419,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution, k_SupportFabricBSDFConvolutionContent);
+
+            diffusionProfileUI.drawElement = DrawDiffusionProfileElement;
+            diffusionProfileUI.OnGUI(serialized.diffusionProfileSettingsList);
+        }
+
+        static void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
+        {
+            EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
         }
 
         const string supportedFormaterMultipleValue = "\u2022 {0} --Multiple different values--";

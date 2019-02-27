@@ -91,7 +91,7 @@ void BiquadraticFilter(float2 fracCoord, out float2 weights[2], out float2 offse
 }
 
 // texSize = (width, height, 1/width, 1/height)
-float4 SampleTexture2DBiquadratic(TEXTURE2D_ARGS(tex, smp), float2 coord, float4 texSize)
+float4 SampleTexture2DBiquadratic(TEXTURE2D_PARAM(tex, smp), float2 coord, float4 texSize)
 {
     float2 xy = coord * texSize.xy;
     float2 ic = floor(xy);
@@ -108,7 +108,7 @@ float4 SampleTexture2DBiquadratic(TEXTURE2D_ARGS(tex, smp), float2 coord, float4
 }
 
 // texSize = (width, height, 1/width, 1/height)
-float4 SampleTexture2DBicubic(TEXTURE2D_ARGS(tex, smp), float2 coord, float4 texSize, float2 maxCoord)
+float4 SampleTexture2DBicubic(TEXTURE2D_PARAM(tex, smp), float2 coord, float4 texSize, float2 maxCoord, uint unused /* needed to match signature of texarray version below */)
 {
     float2 xy = coord * texSize.xy + 0.5;
     float2 ic = floor(xy);
@@ -121,6 +121,23 @@ float4 SampleTexture2DBicubic(TEXTURE2D_ARGS(tex, smp), float2 coord, float4 tex
                            weights[1].x * SAMPLE_TEXTURE2D_LOD(tex, smp, min((ic + float2(offsets[1].x, offsets[0].y) - 0.5) * texSize.zw, maxCoord), 0.0)) +
            weights[1].y * (weights[0].x * SAMPLE_TEXTURE2D_LOD(tex, smp, min((ic + float2(offsets[0].x, offsets[1].y) - 0.5) * texSize.zw, maxCoord), 0.0)  +
                            weights[1].x * SAMPLE_TEXTURE2D_LOD(tex, smp, min((ic + float2(offsets[1].x, offsets[1].y) - 0.5) * texSize.zw, maxCoord), 0.0));
+}
+
+// texSize = (width, height, 1/width, 1/height)
+// texture array version for stereo instancing
+float4 SampleTexture2DBicubic(TEXTURE2D_ARRAY_PARAM(tex, smp), float2 coord, float4 texSize, float2 maxCoord, uint slice)
+{
+    float2 xy = coord * texSize.xy + 0.5;
+    float2 ic = floor(xy);
+    float2 fc = frac(xy);
+
+    float2 weights[2], offsets[2];
+    BicubicFilter(fc, weights, offsets);
+
+    return weights[0].y * (weights[0].x * SAMPLE_TEXTURE2D_ARRAY_LOD(tex, smp, min((ic + float2(offsets[0].x, offsets[0].y) - 0.5) * texSize.zw, maxCoord), slice, 0.0)  +
+                           weights[1].x * SAMPLE_TEXTURE2D_ARRAY_LOD(tex, smp, min((ic + float2(offsets[1].x, offsets[0].y) - 0.5) * texSize.zw, maxCoord), slice, 0.0)) +
+           weights[1].y * (weights[0].x * SAMPLE_TEXTURE2D_ARRAY_LOD(tex, smp, min((ic + float2(offsets[0].x, offsets[1].y) - 0.5) * texSize.zw, maxCoord), slice, 0.0)  +
+                           weights[1].x * SAMPLE_TEXTURE2D_ARRAY_LOD(tex, smp, min((ic + float2(offsets[1].x, offsets[1].y) - 0.5) * texSize.zw, maxCoord), slice, 0.0));
 }
 
 #endif // UNITY_FILTERING_INCLUDED

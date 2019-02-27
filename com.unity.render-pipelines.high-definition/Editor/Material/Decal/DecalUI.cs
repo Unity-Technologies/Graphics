@@ -365,7 +365,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.indentLevel--;
 
                         EditorGUILayout.HelpBox(
-                            "Control of AO and Metal is based on option 'Enable Metal and AO properties' in HDRP Asset.\nThere is a performance cost of enabling this option.",
+                            "Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
                             MessageType.Info);
                     }
 

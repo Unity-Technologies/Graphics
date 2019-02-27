@@ -34,6 +34,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PhysicalPropertiesBased,
         }
 
+        enum ShutterSpeedUnit
+        {
+            Second,
+            OneOverSecond
+        }
+
+        static EditorPrefBoolFlags<ShutterSpeedUnit> m_ShutterSpeedState;
+
+        static readonly string[] k_ShutterSpeedUnitNames =
+        {
+            "Second",
+            "1 \u2215 Second" // Don't use a slash here else Unity will auto-create a submenu...
+        };
+
         static readonly string[] k_ApertureFormatNames =
         {
             "8mm",
@@ -79,6 +93,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 SectionOutputSettings,
                 SectionXRSettings
             };
+
+            string key = $"HDRP:{typeof(HDCameraUI).Name}:ShutterSpeedState";
+            m_ShutterSpeedState = new EditorPrefBoolFlags<ShutterSpeedUnit>(key);
         }
 
         public static readonly CED.IDrawer[] Inspector = null;
@@ -104,7 +121,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CED.space,
             CED.Group(
                 Drawer_Antialiasing,
-                Drawer_Dithering
+                Drawer_Dithering,
+                Drawer_StopNaNs
                 ),
             CED.space,
             CED.Group(
@@ -292,7 +310,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 EditorGUILayout.PropertyField(cam.sensorSize, sensorSizeContent);
                 EditorGUILayout.PropertyField(p.iso, isoContent);
-                EditorGUILayout.PropertyField(p.shutterSpeed, shutterSpeedContent);
+
+                // Custom layout for shutter speed
+                int unitMenuWidth = 80;
+                int offsetFix = 25;
+                float indentOffset = EditorGUI.indentLevel * 15f;
+                var lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+                var labelRect = new Rect(lineRect.x, lineRect.y, EditorGUIUtility.labelWidth - indentOffset, lineRect.height);
+                var fieldRect = new Rect(labelRect.xMax, lineRect.y, lineRect.width - labelRect.width - unitMenuWidth, lineRect.height);
+                var unitMenu = new Rect(fieldRect.xMax - offsetFix, lineRect.y, unitMenuWidth + offsetFix, lineRect.height);
+
+                m_ShutterSpeedState.value = (ShutterSpeedUnit)EditorGUI.Popup(unitMenu, (int)m_ShutterSpeedState.value, k_ShutterSpeedUnitNames);
+
+                EditorGUI.PrefixLabel(labelRect, shutterSpeedContent);
+
+                float shutterSpeed = p.shutterSpeed.floatValue;
+                if (shutterSpeed > 0f && m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond)
+                    shutterSpeed = 1f / shutterSpeed;
+
+                shutterSpeed = EditorGUI.FloatField(fieldRect, shutterSpeed);
+
+                if (shutterSpeed <= 0f)
+                    p.shutterSpeed.floatValue = 0f;
+                else if (m_ShutterSpeedState.value == ShutterSpeedUnit.OneOverSecond)
+                    p.shutterSpeed.floatValue = 1f / shutterSpeed;
+                else
+                    p.shutterSpeed.floatValue = shutterSpeed;
 
                 using (var horizontal = new EditorGUILayout.HorizontalScope())
                 using (var propertyScope = new EditorGUI.PropertyScope(horizontal.rect, gateFitContent, cam.gateFit))
@@ -387,6 +430,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_Dithering(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.dithering, ditheringContent);
+        }
+
+        static void Drawer_StopNaNs(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.stopNaNs, stopNaNsContent);
         }
 
         static void Drawer_FieldRenderingPath(SerializedHDCamera p, Editor owner)

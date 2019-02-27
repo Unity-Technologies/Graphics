@@ -103,6 +103,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader colorResolvePS;
 
             // Post-processing
+            public ComputeShader nanKillerCS;
             public ComputeShader exposureCS;
             public ComputeShader uberPostCS;
             public ComputeShader lutBuilder3DCS;
@@ -291,6 +292,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aoResolvePS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/MSAA/AmbientOcclusionResolve.shader"),
 
                 // Post-processing
+                nanKillerCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/NaNKiller.compute"),
                 exposureCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/Exposure.compute"),
                 uberPostCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/UberPost.compute"),
                 lutBuilder3DCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/LutBuilder3D.compute"),

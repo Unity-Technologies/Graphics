@@ -76,7 +76,7 @@ half3 Distortion(float4 baseColor, float3 normal, half strength, half blend, flo
 }
 
 // Sample a texture and do blending for texture sheet animation if needed
-half4 BlendTexture(TEXTURE2D_ARGS(_Texture, sampler_Texture), float2 uv, float3 blendUv)
+half4 BlendTexture(TEXTURE2D_PARAM(_Texture, sampler_Texture), float2 uv, float3 blendUv)
 {
     half4 color = SAMPLE_TEXTURE2D(_Texture, sampler_Texture, uv);
 #ifdef _FLIPBOOKBLENDING_ON
@@ -87,10 +87,10 @@ half4 BlendTexture(TEXTURE2D_ARGS(_Texture, sampler_Texture), float2 uv, float3 
 }
 
 // Sample a normal map in tangent space
-half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), half scale = 1.0h)
+half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = 1.0h)
 {
 #if defined(_NORMALMAP)
-    half4 n = BlendTexture(TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), uv, blendUv);
+    half4 n = BlendTexture(TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), uv, blendUv);
     #if BUMP_SCALE_NOT_SUPPORTED
         return UnpackNormal(n);
     #else

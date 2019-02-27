@@ -26,6 +26,7 @@
 #pragma kernel KMainInterleaved_MSAA        MAIN=KMainInterleaved_MSAA      INTERLEAVE_RESULT   MSAA
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
 #ifndef INTERLEAVE_RESULT
     #define WIDE_SAMPLING 1
@@ -46,15 +47,15 @@
 #ifdef INTERLEAVE_RESULT
 TEXTURE2D_ARRAY(_Depth);
 #else
-TEXTURE2D(_Depth);
+TEXTURE2D_X(_Depth);
 #endif
 
 #if MSAA
-RW_TEXTURE2D(float2, _Occlusion);
+RW_TEXTURE2D_X(float2, _Occlusion);
 
 groupshared float2 gs_depthSamples[TILE_DIM * TILE_DIM];
 #else
-RW_TEXTURE2D(float, _Occlusion);
+RW_TEXTURE2D_X(float, _Occlusion);
 
 groupshared float gs_depthSamples[TILE_DIM * TILE_DIM];
 #endif
@@ -188,6 +189,8 @@ float TestSamples(uint centerIdx, uint x, uint y, float invDepth, float invThick
 [numthreads(THREAD_COUNT_X, THREAD_COUNT_Y, 1)]
 void MAIN(uint2 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(DTid.z >> 4); // 16 slices per eye
+
 #if WIDE_SAMPLING
     float2 QuadCenterUV = int2(DTid.xy + GTid - 7) * _InvSliceDimension.xy;
 #else
@@ -200,8 +203,8 @@ void MAIN(uint2 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
         float4 depths0 = GATHER_RED_TEXTURE2D(_Depth, sampler_Depth, float3(QuadCenterUV, DTid.z));
         float4 depths1 = GATHER_GREEN_TEXTURE2D(_Depth, sampler_Depth, float3(QuadCenterUV, DTid.z));
     #else
-        float4 depths0 = GATHER_RED_TEXTURE2D(_Depth, sampler_Depth, QuadCenterUV);
-        float4 depths1 = GATHER_GREEN_TEXTURE2D(_Depth, sampler_Depth, QuadCenterUV);
+        float4 depths0 = GATHER_RED_TEXTURE2D_X(_Depth, sampler_Depth, QuadCenterUV);
+        float4 depths1 = GATHER_GREEN_TEXTURE2D_X(_Depth, sampler_Depth, QuadCenterUV);
     #endif
         int destIdx = GTid.x * 2 + GTid.y * 2 * TILE_DIM;
         gs_depthSamples[destIdx               ] = float2(depths0.w, depths1.w);
@@ -212,7 +215,7 @@ void MAIN(uint2 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
     #ifdef INTERLEAVE_RESULT
         float4 depths = GATHER_TEXTURE2D_ARRAY(_Depth, sampler_Depth, QuadCenterUV, DTid.z);
     #else
-        float4 depths = GATHER_TEXTURE2D(_Depth, sampler_Depth, QuadCenterUV);
+        float4 depths = GATHER_TEXTURE2D_X(_Depth, sampler_Depth, QuadCenterUV);
     #endif
 
         int destIdx = GTid.x * 2 + GTid.y * 2 * TILE_DIM;
@@ -266,10 +269,11 @@ void MAIN(uint2 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
 #endif
 
 #ifdef INTERLEAVE_RESULT
-    uint2 OutPixel = DTid.xy << 2 | uint2(DTid.z & 3, DTid.z >> 2);
+    uint dtidz = DTid.z & 15; // stereo eye indexing (16 slices per eye)
+    uint2 OutPixel = DTid.xy << 2 | uint2(dtidz & 3, dtidz >> 2);
 #else
     uint2 OutPixel = DTid.xy;
 #endif
 
-    _Occlusion[OutPixel] = lerp(1, ao, _Intensity);
+    _Occlusion[COORD_TEXTURE2D_X(OutPixel)] = lerp(1, ao, _Intensity);
 }

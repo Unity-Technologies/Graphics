@@ -202,6 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public TextureCacheCubemap cubeCookieTexArray { get { return m_CubeCookieTexArray; } }
         TextureCacheCubemap m_CubeCookieTexArray;
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
+        List<float> m_Env2DCaptureForward = new List<float>();
 
         // Structure for cookies used by area lights
         public LTCAreaLightCookieManager areaLightCookieManager { get { return m_AreaLightCookieManager; } }
@@ -505,9 +506,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_lightList = new LightList();
             m_lightList.Allocate();
             m_Env2DCaptureVP.Clear();
+            m_Env2DCaptureForward.Clear();
             for (int i = 0, c = Mathf.Max(1, lightLoopSettings.planarReflectionProbeCacheSize); i < c; ++i)
+            {
                 m_Env2DCaptureVP.Add(Matrix4x4.identity);
-
+                m_Env2DCaptureForward.Add(0);
+                m_Env2DCaptureForward.Add(0);
+                m_Env2DCaptureForward.Add(0);
+            }
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
             m_CookieTexArray = new TextureCache2D("Cookie");
@@ -1473,7 +1479,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 case PlanarReflectionProbe planarProbe:
                     {
-                        if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection))
+                        if (probe.mode == ProbeSettings.Mode.Realtime
+                            && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection))
                             break;
 
                         var fetchIndex = m_ReflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
@@ -1491,9 +1498,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // get the device dependent projection matrix
                         var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
                         var gpuView = worldToCameraRHSMatrix;
-
                         var vp = gpuProj * gpuView;
                         m_Env2DCaptureVP[fetchIndex] = vp;
+
+                        var capturedForwardWS = renderData.captureRotation * Vector3.forward;
+                        //capturedForwardWS.z *= -1; // Transform to RHS standard
+                        m_Env2DCaptureForward[fetchIndex * 3 + 0] = capturedForwardWS.x;
+                        m_Env2DCaptureForward[fetchIndex * 3 + 1] = capturedForwardWS.y;
+                        m_Env2DCaptureForward[fetchIndex * 3 + 2] = capturedForwardWS.z;
                         break;
                     }
                 case HDAdditionalReflectionData _:
@@ -2033,7 +2045,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (probeIndex < cullResults.visibleReflectionProbes.Length)
                         {
                             var probe = cullResults.visibleReflectionProbes[probeIndex];
-                            if (probe.reflectionProbe == null || probe.reflectionProbe.Equals(null))
+                            if (probe.reflectionProbe == null || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled)
                                 continue;
 
                             // Exclude env lights based on hdCamera.probeLayerMask
@@ -2044,10 +2056,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // probe.texture can be null when we are adding a reflection probe in the editor
                             if (additional.texture == null || envLightCount >= m_MaxEnvLightsOnScreen)
-                                continue;
-
-                            // Work around the culling issues. TODO: fix culling in C++.
-                            if (probe.reflectionProbe == null || !probe.reflectionProbe.isActiveAndEnabled)
                                 continue;
 
                             // Work around the data issues.
@@ -2559,6 +2567,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._CookieSizePOT, pot);
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
                 cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);
+                cmd.SetGlobalFloatArray(HDShaderIDs._Env2DCaptureForward, m_Env2DCaptureForward);
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_DirectionalLightDatas);
                 cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
@@ -2635,7 +2644,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool needsContactShadows = (m_CurrentSunLight != null && sunShadowData != null && sunShadowData.contactShadows) || m_DominantLightIndex != -1;
             if (!m_EnableContactShadow || !needsContactShadows)
             {
-                cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, Texture2D.blackTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, TextureXR.GetBlackTexture());
                 return;
             }
             cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, deferredShadowRT);
@@ -2696,7 +2705,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int numTilesX = (hdCamera.actualWidth  + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 int numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
-                cmd.DispatchCompute(screenSpaceShadowComputeShader, kernel, numTilesX, numTilesY, 1);
+                cmd.DispatchCompute(screenSpaceShadowComputeShader, kernel, numTilesX, numTilesY, XRGraphics.computePassCount);
             }
         }
 
@@ -2779,7 +2788,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX, numTilesY, 1);
+                            cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX, numTilesY, XRGraphics.computePassCount);
                         }
                     }
                 }
