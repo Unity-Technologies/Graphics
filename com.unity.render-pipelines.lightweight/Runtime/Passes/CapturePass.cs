@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
@@ -12,7 +9,7 @@ namespace UnityEngine.Rendering.LWRP
     internal class CapturePass : ScriptableRenderPass
     {
         RenderTargetHandle m_CameraColorHandle;
-        string m_ProfilerTag = "Capture Pass";
+        const string m_ProfilerTag = "Capture Pass";
         public CapturePass(RenderPassEvent evt)
         {
             renderPassEvent = evt;

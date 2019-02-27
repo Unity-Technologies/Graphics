@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle source { get; set; }
 
         Material m_CopyDepthMaterial;
-        string m_Profiler = "Copy Depth for Scene View";
+        const string m_Profiler = "Copy Depth for Scene View";
 
         public SceneViewDepthCopyPass(RenderPassEvent evt, Material copyDepthMaterial)
         {

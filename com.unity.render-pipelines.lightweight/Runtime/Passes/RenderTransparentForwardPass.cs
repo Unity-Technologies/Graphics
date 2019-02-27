@@ -12,8 +12,8 @@ namespace UnityEngine.Rendering.LWRP
     internal class RenderTransparentForwardPass : ScriptableRenderPass
     {
         FilteringSettings m_FilteringSettings;
-        string m_ProfilerTag = "Render Transparents";
-        private List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
+        const string m_ProfilerTag = "Render Transparents";
+        List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
         public RenderTransparentForwardPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {

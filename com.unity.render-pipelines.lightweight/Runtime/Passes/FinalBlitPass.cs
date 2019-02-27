@@ -12,8 +12,7 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
-        string m_ProfilerTag = "Final Blit Pass";
-
+        const string m_ProfilerTag = "Final Blit Pass";
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;

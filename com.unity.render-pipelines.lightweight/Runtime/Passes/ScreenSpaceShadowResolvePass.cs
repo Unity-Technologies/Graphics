@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.LWRP
         Material m_ScreenSpaceShadowsMaterial;
         RenderTargetHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
-        string m_ProfilerTag = "Resolve Shadows";
+        const string m_ProfilerTag = "Resolve Shadows";
 
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.LWRP
             // This consumes about 10MB of extra unnecessary bandwidth on boat attack.
             // In order to avoid it we can do a cmd.DrawMesh instead, however because LWRP doesn't setup camera matrices itself,
             // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
-            // We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP.
+            // TODO: We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP.
             RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
             Blit(context, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial, 0, m_ProfilerTag);
         }

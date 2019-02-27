@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
-        internal static void RenderPostProcess(ScriptableRenderContext context, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor,
+        internal static void RenderPostProcessing(ScriptableRenderContext context, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor,
             RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderPostProcessingTag);

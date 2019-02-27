@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.LWRP
 
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
-        string m_ProfilerTag = "Copy Color";
+        const string m_ProfilerTag = "Copy Color";
 
         /// <summary>
         /// Create the CopyColorPass

@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.LWRP
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
         Material m_CopyDepthMaterial;
-        string m_ProfilerTag = "Copy Depth";
+        const string m_ProfilerTag = "Copy Depth";
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             var descriptor = cameraTextureDescriptor;
             descriptor.colorFormat = RenderTextureFormat.Depth;
-            descriptor.depthBufferBits = 32; //TODO: fix this ;
+            descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
             cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
         }

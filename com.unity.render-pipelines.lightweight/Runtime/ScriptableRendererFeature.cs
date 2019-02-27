@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.LWRP
     public abstract class ScriptableRendererFeature : ScriptableObject
     {
         /// <summary>
-        /// Initializes this features resources.
+        /// Initializes this feature's resources.
         /// </summary>
         public abstract void Create();
 
