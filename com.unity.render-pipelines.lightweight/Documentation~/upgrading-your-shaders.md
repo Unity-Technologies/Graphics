@@ -2,14 +2,16 @@
 
 # Upgrading your shaders
 
-If your Project uses shaders from the built-in render pipeline, and you want to switch your Project to use the Lightweight Render Pipeline instead, you must convert those shader to the LWRP shaders. This is because built-in Lit shaders are not compatible with LWRP shaders. For an overview of the mapping between built-in shaders and LWRP shaders, see [Shader mappings](#shader-mappings).
+If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Lightweight Render Pipeline instead](installing-lwrp-into-an-existing-project), you must convert those Shaders to the LWRP Shaders. This is because built-in Lit shaders are not compatible with LWRP Shaders. For an overview of the mapping between built-in shaders and LWRP Shaders, see [Shader mappings](#shader-mappings).
 
-To upgrade built-in shaders:
+To upgrade built-in Shaders:
 
 1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__. 
-2. According to your needs, select either __Upgrade Project Materials to Lightweight RP Materials__ or __Upgrade Scene Materials to Lightweight RP Materials__.
+2. According to your needs, select either __Upgrade Project Materials to LightweightRP Materials__ or __Upgrade Selected Materials to LightweightRP Materials__.
 
 **Note:** These changes cannot be undone. Backup your Project before you upgrade it.
+
+**Tip:** If the Preview thumbnails in Project View are incorrect after you've upgraded, try right-clicking anywhere in the Project View window and selecting __Reimport All__.
 
 ## Shader mappings
 
