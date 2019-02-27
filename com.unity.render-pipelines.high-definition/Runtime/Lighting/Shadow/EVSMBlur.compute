@@ -87,7 +87,8 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
 #if ALREADY_EVSM
 
                         // Read evsm result
-                        float2 moment = LOAD_TEXTURE2D(_InputTexture, srcIdx + (int2) _SrcOffset - BLUR_BORDER.xx).xy;
+                        int2 location = ((srcIdx.xy + (int2) _SrcOffset) - BLUR_BORDER.xx);
+                        float2 moment = _InputTexture[location];
 
 #else       // ALREADY_EVSM
                         float4 depths;
