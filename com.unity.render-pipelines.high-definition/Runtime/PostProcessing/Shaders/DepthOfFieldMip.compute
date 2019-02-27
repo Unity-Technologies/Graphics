@@ -29,9 +29,11 @@ CTYPE LoadPixel(uint index)
 
 // Generate four mips in one pass
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
 {
-    uint2 ul = dispatchThreadId << 1u;
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    uint2 ul = dispatchThreadId.xy << 1u;
 
     // First mip
     CTYPE color = _InputTexture[COORD_TEXTURE2D_X(ul)];
