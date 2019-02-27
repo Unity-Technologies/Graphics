@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         static SortingLayer[] s_SortingLayers;
         _2DRendererData m_RendererData;
-        ShaderTagId m_ShaderTagId = new ShaderTagId("CombinedShapeLight");
+        static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("CombinedShapeLight");
 
         public Render2DLightingPass(_2DRendererData rendererData)
         {
@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             context.ExecuteCommandBuffer(cmd);
 
             Profiler.BeginSample("RenderSpritesWithLighting - Prepare");
-            DrawingSettings drawSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagId, ref renderingData, SortingCriteria.CommonTransparent);
+            DrawingSettings drawSettings = RenderingUtils.CreateDrawingSettings(k_CombinedRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
             FilteringSettings filterSettings = new FilteringSettings();
             filterSettings.renderQueueRange = RenderQueueRange.all;
             filterSettings.layerMask = -1;
@@ -70,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 context.ExecuteCommandBuffer(cmd);
 
                 Profiler.BeginSample("RenderSpritesWithLighting - Draw Renderers");
+                //drawSettings.SetShaderPassName(0, k_CombinedRenderingPassName);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
                 Profiler.EndSample();
 
