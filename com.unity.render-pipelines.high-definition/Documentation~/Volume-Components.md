@@ -27,5 +27,3 @@ New Scene Settings GameObjects come with some default Volume Overrides, includin
 6. Override the values of the Exponential Fog Volume Override. 
 
 Now, whenever your Camera is within the bounds of this Collider, HDRP uses the Exponential Fog values from the Volume Override on the GameObject with that Collider.
-
-l
