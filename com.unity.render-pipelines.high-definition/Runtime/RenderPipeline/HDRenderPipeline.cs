@@ -1205,12 +1205,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (!visibleProbe.realtimeTexture.IsCreated())
                             visibleProbe.realtimeTexture.Create();
 
-                        visibleProbe.SetRenderData(ProbeSettings.Mode.Realtime, new HDProbe.RenderData
-                        {
-                            capturePosition = camera.transform.position,
-                            projectionMatrix = camera.projectionMatrix,
-                            worldToCameraRHS = camera.worldToCameraMatrix
-                        });
+                        visibleProbe.SetRenderData(
+                            ProbeSettings.Mode.Realtime,
+                            new HDProbe.RenderData(
+                                camera.worldToCameraMatrix,
+                                camera.projectionMatrix,
+                                camera.transform.position,
+                                camera.transform.rotation
+                            )
+                        );
 
                         // TODO: Assign the actual final target to render to.
                         //   Currently, we use a target for each probe, and then copy it into the cache before using it
