@@ -52,7 +52,7 @@ CBUFFER_END
 void MAIN(uint groupThreadId : SV_GroupThreadID)
 #else
 [numthreads(GROUP_RES, GROUP_RES, 1)]
-void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 {
 #if USE_TILES
@@ -67,12 +67,14 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
 
     // Compute the actual pixel coordinate we're working
     uint2 dispatchThreadId = gs_tileCoord + uint2(groupThreadId % GROUP_RES, groupThreadId / GROUP_RES);
+#else
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
 #endif
 
-    if (any(dispatchThreadId >= uint2(_TexelSize.xy)))
+    if (any(dispatchThreadId.xy >= uint2(_TexelSize.xy)))
         return; // Out of bounds, discard
 
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _TexelSize.zw, uint2(GROUP_RES, GROUP_RES));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw, uint2(GROUP_RES, GROUP_RES));
     float2 uv = posInputs.positionNDC;
     float2 barrelUV = (uv * 2.0 - 1.0) * BarrelClipping;
 

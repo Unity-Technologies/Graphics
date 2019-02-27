@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.5.0-preview] - 2019-XX-XX
 
+### Added
+- Added depth-of-field support with stereo instancing
+
 ### Fixed
 - Fixed diffusion profile upgrade breaking package when upgrading to a new version
 - Fixed decals cropped by gizmo not updating correctly if prefab
@@ -17,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed planar reflection when looking at mirror normal
 - Fixed mutiselection issue with HDLight Inspector
 - Fixed HDAdditionalCameraData data migration
+- Fixed failing builds when light explorer window is open
 
 ### Added
 - Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering

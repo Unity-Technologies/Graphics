@@ -23,9 +23,11 @@ CBUFFER_END
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
+void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
 
 #if 0
