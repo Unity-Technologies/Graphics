@@ -12,7 +12,91 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSplatCommon.hlsl"
+#ifndef UNITY_TERRAIN_CB_VARS
+    #define UNITY_TERRAIN_CB_VARS
+#endif
+
+#ifndef UNITY_TERRAIN_CB_DEBUG_VARS
+    #define UNITY_TERRAIN_CB_DEBUG_VARS
+#endif
+
+CBUFFER_START(UnityTerrain)
+    UNITY_TERRAIN_CB_VARS
+#ifdef UNITY_INSTANCING_ENABLED
+    float4 _TerrainHeightmapRecipSize;  // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
+    float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
+#endif
+#ifdef DEBUG_DISPLAY
+    UNITY_TERRAIN_CB_DEBUG_VARS
+#endif
+CBUFFER_END
+
+#ifdef UNITY_INSTANCING_ENABLED
+    TEXTURE2D(_TerrainHeightmapTexture);
+    TEXTURE2D(_TerrainNormalmapTexture);
+    #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+        SAMPLER(sampler_TerrainNormalmapTexture);
+    #endif
+#endif
+
+// Declare distortion variables just to make the code compile with the Debug Menu.
+// See LitBuiltinData.hlsl:73.
+TEXTURE2D(_DistortionVectorMap);
+SAMPLER(sampler_DistortionVectorMap);
+
+float _DistortionScale;
+float _DistortionVectorScale;
+float _DistortionVectorBias;
+float _DistortionBlurScale;
+float _DistortionBlurRemapMin;
+float _DistortionBlurRemapMax;
+
+// Vertex height displacement
+#ifdef HAVE_MESH_MODIFICATION
+
+UNITY_INSTANCING_BUFFER_START(Terrain)
+UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
+UNITY_INSTANCING_BUFFER_END(Terrain)
+
+AttributesMesh ApplyMeshModification(AttributesMesh input)
+{
+#ifdef UNITY_INSTANCING_ENABLED
+    float2 patchVertex = input.positionOS.xy;
+    float4 instanceData = UNITY_ACCESS_INSTANCED_PROP(Terrain, _TerrainPatchInstanceData);
+
+    float2 sampleCoords = (patchVertex.xy + instanceData.xy) * instanceData.z; // (xy + float2(xBase,yBase)) * skipScale
+    float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(int3(sampleCoords, 0)));
+
+    input.positionOS.xz = sampleCoords * _TerrainHeightmapScale.xz;
+    input.positionOS.y = height * _TerrainHeightmapScale.y;
+
+    #ifdef ATTRIBUTES_NEED_NORMAL
+        input.normalOS = _TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1;
+    #endif
+
+    #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
+        #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+            input.uv0 = sampleCoords;
+        #else
+            input.uv0 = sampleCoords * _TerrainHeightmapRecipSize.zw;
+        #endif
+    #endif
+#endif
+
+#ifdef ATTRIBUTES_NEED_TANGENT
+    // Consider a flat terrain. It should have tangent be (1, 0, 0) and bitangent be (0, 0, 1) as the UV of the terrain grid mesh is a scale of the world XZ position.
+    // In CreateWorldToTangent function (in SpaceTransform.hlsl), it is cross(normal, tangent) * sgn for the bitangent vector.
+    // It is not true in a left-handed coordinate system for the terrain bitangent, if we provide 1 as the tangent.w. It would produce (0, 0, -1) instead of (0, 0, 1).
+    // Also terrain's tangent calculation was wrong in a left handed system because cross((0,0,1), terrainNormalOS) points to the wrong direction as negative X.
+    // Therefore all the 4 xyzw components of the tangent needs to be flipped to correct the tangent frame.
+    // (See TerrainLitData.hlsl - GetSurfaceAndBuiltinData)
+    input.tangentOS.xyz = cross(input.normalOS, float3(0, 0, 1));
+    input.tangentOS.w = -1;
+#endif
+    return input;
+}
+
+#endif // HAVE_MESH_MODIFICATION
 
 // We don't use emission for terrain
 #define _EmissiveColor float3(0,0,0)
@@ -26,6 +110,26 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
 
+void TerrainLitShade(float2 uv, out float3 outAlbedo, out float3 outNormalData, out float outSmoothness, out float outMetallic, out float outAO);
+void TerrainLitDebug(float2 uv, inout float3 baseColor);
+
+float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS)
+{
+#ifdef _NORMALMAP
+    #ifdef SURFACE_GRADIENT
+        return SurfaceGradientFromTBN(normalData.xy, tangentWS, bitangentWS);
+    #else
+        return normalData;
+    #endif
+#else
+    #ifdef SURFACE_GRADIENT
+        return float3(0.0, 0.0, 0.0); // No gradient
+    #else
+        return float3(0.0, 0.0, 1.0);
+    #endif
+#endif
+}
+
 void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
@@ -36,7 +140,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
         // Also terrain's tangent calculation was wrong in a left handed system because I used `cross((0,0,1), terrainNormalOS)`. It points to the wrong direction as negative X.
         // Therefore all the 4 xyzw components of the tangent needs to be flipped to correct the tangent frame.
         // (See ApplyMeshModification in TerrainLitDataMeshModification.hlsl)
-        float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_Control0, (input.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy).rgb * 2 - 1;
+        float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, (input.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy).rgb * 2 - 1;
         float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
         float4 tangentWS;
         tangentWS.xyz = cross(normalWS, GetObjectToWorldMatrix()._13_23_33);
@@ -51,9 +155,8 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
 
-    float3 normalTS;
-    TerrainSplatBlend(input.texCoord0.xy, input.worldToTangent[0], input.worldToTangent[1],
-        surfaceData.baseColor, normalTS, surfaceData.perceptualSmoothness, surfaceData.metallic, surfaceData.ambientOcclusion);
+    float3 normalData;
+    TerrainLitShade(input.texCoord0.xy, surfaceData.baseColor, normalData, surfaceData.perceptualSmoothness, surfaceData.metallic, surfaceData.ambientOcclusion);
 
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = 0;
@@ -76,6 +179,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
+    float3 normalTS = ConvertToNormalTS(normalData, input.worldToTangent[0], input.worldToTangent[1]);
     GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
 
     surfaceData.geomNormalWS = input.worldToTangent[2];
@@ -101,26 +205,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 #ifdef DEBUG_DISPLAY
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_CONTROL)
-            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy, _Control0, _Control0_TexelSize, _Control0_MipInfo, surfaceData.baseColor);
-        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER0)
-            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy * _Splat0_ST.xy + _Splat0_ST.zw, _Splat0, _Splat0_TexelSize, _Splat0_MipInfo, surfaceData.baseColor);
-        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER1)
-            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy * _Splat1_ST.xy + _Splat1_ST.zw, _Splat1, _Splat1_TexelSize, _Splat1_MipInfo, surfaceData.baseColor);
-        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER2)
-            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy * _Splat2_ST.xy + _Splat2_ST.zw, _Splat2, _Splat2_TexelSize, _Splat2_MipInfo, surfaceData.baseColor);
-        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER3)
-            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy * _Splat3_ST.xy + _Splat3_ST.zw, _Splat3, _Splat3_TexelSize, _Splat3_MipInfo, surfaceData.baseColor);
-    #ifdef _TERRAIN_8_LAYERS
-        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER4)
-            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy * _Splat4_ST.xy + _Splat4_ST.zw, _Splat4, _Splat4_TexelSize, _Splat4_MipInfo, surfaceData.baseColor);
-        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER5)
-            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy * _Splat5_ST.xy + _Splat5_ST.zw, _Splat5, _Splat5_TexelSize, _Splat5_MipInfo, surfaceData.baseColor);
-        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER6)
-            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy * _Splat6_ST.xy + _Splat6_ST.zw, _Splat6, _Splat6_TexelSize, _Splat6_MipInfo, surfaceData.baseColor);
-        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER7)
-            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0.xy * _Splat7_ST.xy + _Splat7_ST.zw, _Splat7, _Splat7_TexelSize, _Splat7_MipInfo, surfaceData.baseColor);
-    #endif
+        TerrainLitDebug(input.texCoord0.xy, surfaceData.baseColor);
         surfaceData.metallic = 0;
     }
 #endif
