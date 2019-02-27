@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 public class LWGraphicsTests
 {
 
-    public const string lwPackagePath = "Packages/com.unity.testing.srp.lightweight/Tests/ReferenceImages";
+    public const string lwPackagePath = "Assets/ReferenceImages";
 
     [UnityTest, Category("LightWeightRP")]
     [PrebuildSetup("SetupGraphicsTestCases")]
