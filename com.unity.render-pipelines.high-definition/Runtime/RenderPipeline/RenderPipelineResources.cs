@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             
             // Shadow
             public Shader shadowClearPS;
-            public ComputeShader shadowBlurMomentsCS;
+            public ComputeShader evsmBlurCS;
             public Shader debugHDShadowMapPS;
             public ComputeShader momentShadowsCS;
 
@@ -272,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Shadow
                 shadowClearPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowClear.shader"),
-                shadowBlurMomentsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowBlurMoments.compute"),
+                evsmBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/EVSMBlur.compute"),
                 debugHDShadowMapPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/DebugDisplayHDShadowMap.shader"),
                 momentShadowsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/MomentShadows.compute"),
 

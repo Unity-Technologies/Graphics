@@ -957,7 +957,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.specularDimmer        = additionalLightData.affectSpecular ? additionalLightData.lightDimmer * m_FrameSettings.specularGlobalDimmer : 0;
             lightData.volumetricLightDimmer = additionalLightData.volumetricDimmer;
 
+            lightData.contactShadowIndex = -1;
             lightData.shadowIndex = lightData.cookieIndex = -1;
+#if ENABLE_RAYTRACING
+            lightData.rayTracedAreaShadowIndex = -1;
+#endif
 
             if (lightComponent != null && lightComponent.cookie != null)
             {
@@ -1017,8 +1021,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
-
-            lightData.contactShadowIndex = -1;
 
             // The first directional light with contact shadow enabled is always taken as dominant light
             if (GetDominantLightWithShadows(additionalShadowData, light, lightComponent))
@@ -1228,10 +1230,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.volumetricShadowDimmer = 1.0f;
             }
 
-            #if ENABLE_RAYTRACING
-            if(gpuLightType == GPULightType.Rectangle && lightComponent.shadows != LightShadows.None && areaShadowIndex < maxAreaLightShadows)
+#if ENABLE_RAYTRACING
+            if(gpuLightType == GPULightType.Rectangle && lightComponent.shadows != LightShadows.None && areaShadowIndex < maxAreaLightShadows && additionalLightData.useRayTracedShadows)
             {
-                lightData.shadowIndex = areaShadowIndex;
+                lightData.rayTracedAreaShadowIndex = areaShadowIndex;
                 additionalLightData.shadowIndex = -1;
                 areaShadowIndex++;
             }
@@ -1241,7 +1243,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.shadowIndex = shadowIndex;
                 additionalLightData.shadowIndex = shadowIndex;
             }
-            #else
+#else
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
             #endif
@@ -1933,7 +1935,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Manage shadow requests
                         #if ENABLE_RAYTRACING
-                        if (additionalLightData.WillRenderShadows() && gpuLightType != GPULightType.Rectangle)
+                        if (additionalLightData.WillRenderShadows() && !additionalLightData.useRayTracedShadows)
                         #else
                         if (additionalLightData.WillRenderShadows())
                         #endif
