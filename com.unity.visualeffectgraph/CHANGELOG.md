@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.4.0-preview] - 2019-XX-XX
 ### Added
 - Addressing mode for Sequential blocks
+- Invert transform available on GPU
 
 ### Fixed
 - Undo Redo while changing space
