@@ -433,7 +433,7 @@ bool ReplaceDiffuseForReflectionPass(float3 fresnel0)
 {
     // we want to use Fresnel0 instead diffuse when doing reflection (reflection probe, planar reflection,
     // DXR reflection). Dieletric are suppose to have a fresnel of around 0.04. Let's consider anything above 0.3 as metal.
-    return (_EnableSpecularLighting.x > 0) && Max3(fresnel0.r, fresnel0.g, fresnel0.b) > 0.3;
+    return (_EnableSpecularLighting.x == 0) && Max3(fresnel0.r, fresnel0.g, fresnel0.b) > 0.3;
 }
 
 // Define Model Matrix Macro

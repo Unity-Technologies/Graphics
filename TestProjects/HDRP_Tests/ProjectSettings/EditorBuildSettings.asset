@@ -150,6 +150,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2210_ReflectionProbes_CaptureAtVolumeAnchor.unity
     guid: 6abac8c2689f0ed48b18d05bc496d5c4
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2211_Probes_Specular.unity
+    guid: 39d1e1615890a9549ac33171a52cba4c
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2301_Shadow_Mask.unity
     guid: 1029947770f955b4290bbdd8b641f7f1
   - enabled: 1
