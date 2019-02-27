@@ -91,13 +91,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Currently area light shadows are not supported
-        public static void ExtractAreaLightData(VisibleLight visibleLight, LightTypeExtent lightTypeExtent, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+        public static void ExtractAreaLightData(HDCamera camera, VisibleLight visibleLight, LightTypeExtent lightTypeExtent, Vector3 shadowPosition, float areaLightShadowCone, float shadowNearPlane, Vector2 shapeSize, Vector2 viewportSize, float normalBiasMax, out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
-            view = Matrix4x4.identity;
-            invViewProjection = Matrix4x4.identity;
-            deviceProjection = Matrix4x4.identity;
-            projection = Matrix4x4.identity;
-            splitData = default(ShadowSplitData);
+            if (lightTypeExtent != LightTypeExtent.Rectangle)
+            {
+                view = Matrix4x4.identity;
+                invViewProjection = Matrix4x4.identity;
+                deviceProjection = Matrix4x4.identity;
+                projection = Matrix4x4.identity;
+                splitData = default(ShadowSplitData);
+            }
+            else
+            {
+
+                Vector4 lightDir;
+                float aspectRatio = shapeSize.x / shapeSize.y;
+                float spotAngle = areaLightShadowCone;
+                visibleLight.spotAngle = spotAngle;
+                float guardAngle = CalcGuardAnglePerspective(visibleLight.spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(camera, LightType.Rectangle), normalBiasMax, 180.0f - visibleLight.spotAngle);
+
+                ExtractSpotLightMatrix(visibleLight, shadowNearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
+            }
         }
 
         // Cubemap faces with flipped z coordinate.
