@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals cropped by gizmo not updating correctly if prefab
 - Fixed an issue when enabling SSR on multiple view
 - Fixed edition of the intensity's unit field while selecting multiple lights
+- Fixed wrong calculation in soft voxelization for density volume
+- Fixed gizmo not working correctly with pre-exposure
+- Fixed issue with setting a not available RT when disabling motion vectors
+- Fixed planar reflection when looking at mirror normal
+- Fixed mutiselection issue with HDLight Inspector
 
 ### Added
 - Added support for overriding Shaders that render terrain details. You can override them via the render pipeline editor resources asset.
