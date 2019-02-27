@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed planar reflection when looking at mirror normal
 - Fixed mutiselection issue with HDLight Inspector
 - Fixed HDAdditionalCameraData data migration
+- Fixed failing builds when light explorer window is open
 
 ## [6.4.0-preview] - 2019-02-21
 
