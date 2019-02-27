@@ -27,6 +27,12 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         MaterialSubGraphAsset m_SubGraph;
 
+        [SerializeField]
+        List<string> m_PropertyGuids = new List<string>();
+
+        [SerializeField]
+        List<int> m_PropertyIds = new List<int>();
+
         [Serializable]
         private class SubGraphHelper
         {
@@ -131,7 +137,7 @@ namespace UnityEditor.ShaderGraph
             var arguments = new List<string>();
             foreach (var prop in referencedGraph.properties)
             {
-                var inSlotId = prop.guid.GetHashCode();
+                var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
                 if (prop is TextureShaderProperty)
                     arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
@@ -226,7 +232,15 @@ namespace UnityEditor.ShaderGraph
                         throw new ArgumentOutOfRangeException();
                 }
 
-                var id = prop.guid.GetHashCode();
+                var propertyString = prop.guid.ToString();
+                var propertyIndex = m_PropertyGuids.IndexOf(propertyString);
+                if (propertyIndex < 0)
+                {
+                    propertyIndex = m_PropertyGuids.Count;
+                    m_PropertyGuids.Add(propertyString);
+                    m_PropertyIds.Add(prop.guid.GetHashCode());
+                }
+                var id = m_PropertyIds[propertyIndex];
                 MaterialSlot slot = MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue, ShaderStageCapability.All);
                 // copy default for texture for niceness
                 if (slotType == SlotValueType.Texture2D && propType == PropertyType.Texture2D)
