@@ -17,6 +17,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable]
         public sealed class ShaderResources
         {
+            public Shader defaultSpeedTree7Shader;
+            public Shader defaultSpeedTree8Shader;
         }
 
         [Serializable]
@@ -61,6 +63,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Shaders
             shaders = new ShaderResources
             {
+                defaultSpeedTree7Shader = Load<Shader>(HDRenderPipelinePath + "Material/Nature/SpeedTree7Lit.shader"),
+                defaultSpeedTree8Shader = Load<Shader>(HDRenderPipelinePath + "Material/Nature/SpeedTree7Lit.shader"),
             };
 
             // Materials

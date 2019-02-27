@@ -1,3 +1,6 @@
+#ifndef __VERTMESH_HLSL__
+#define __VERTMESH_HLSL__
+
 struct VaryingsToPS
 {
     VaryingsMeshToPS vmesh;
@@ -198,3 +201,5 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 }
 
 #endif // TESSELLATION_ON
+
+#endif // __VERTMESH_HLSL__

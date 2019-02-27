@@ -94,27 +94,31 @@ void InitializeCommonData(inout SpeedTreeVertexInput input, float lodValue)
     input.vertex.xyz = finalPosition;
 }
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
 {
-    PackedVaryingsType output;
+    PackedVaryingsType output = (PackedVaryingsType)0;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     // handle speedtree wind and lod
     InitializeCommonData(input, unity_LODFade.x);
+
+    float3 positionWS = TransformObjectToWorld(input.vertex.xyz);
+    float3 positionVS = TransformWorldToView(positionWS);
+    float4 positionCS = TransformWorldToHClip(positionWS);
     
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     float3 normalWS = TransformObjectToWorldNormal(input.normal);
-    float3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+    float3 viewDirWS = _WorldSpaceCameraPos - positionWS;
     
 #ifdef EFFECT_BUMP
     output.vmesh.interpolators1 = normalWS;
     output.vmesh.interpolators2 = TransformObjectToWorldDir(input.tangent.xyz);
 #else
     output.vmesh.interpolators1 = normalWS;
-    output.vmesh.interpolators2 = viewDirWS;
+    output.vmesh.interpolators2.xyz = viewDirWS;
 #endif    
 
     // uvHueVariation.xy
@@ -142,16 +146,12 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
         output.vmesh.interpolators4.z = 2.5f; // stay out of Blend's .z range
 #endif
 
-    float3 positionWS = TransformObjectToWorld(input.vertex.xyz);
-    float3 positionVS = TransformWorldToView(positionWS);
-    float3 positionCS = TransformWorldToHClip(positionWS);
-
 #ifdef _MAIN_LIGHT_SHADOWS
     // TODO ...  where to put this?
     //output.shadowCoord = GetShadowCoord(vertexInput);
 #endif    
 
-    output.vmesh.interpolators0 = positionWS;
+    output.vmesh.interpolators0.xyz = positionWS;
     output.vmesh.positionCS = positionCS;
 
     return output;
@@ -166,18 +166,31 @@ PackedVaryingsType SpeedTree7VertDepth(SpeedTreeVertexInput input)
     
     // handle speedtree wind and lod
     InitializeCommonData(input, unity_LODFade.x);
-    
+
+    float3 positionWS = TransformObjectToWorld(input.vertex.xyz);
     output.vmesh.interpolators3.xy = input.texcoord.xy;
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
-    output.vmesh.interpolators0 = vertexInput.positionWS;
+    output.vmesh.interpolators0 = positionWS;
     
 #ifdef SHADOW_CASTER
     float3 normalWS = TransformObjectToWorldNormal(input.normal);
-    output.vmesh.positionCS = TransformWorldToHClip(ApplyShadowBias(vertexInput.positionWS, normalWS, _LightDirection));
+    output.vmesh.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
 #else
-    output.vmesh.positionCS = vertexInput.positionCS;
+    output.vmesh.positionCS = TransformWorldToHClip(positionWS);
 #endif
     return output;
+}
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
+
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+{
+#ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+    uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
+    LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
+#endif
+
+    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+    GetNormalWS(input, float3(0.0, 0.0, 1.0), surfaceData.normalWS);
 }
 
 #endif

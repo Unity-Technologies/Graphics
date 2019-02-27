@@ -39,6 +39,11 @@ Shader "HDRP/Nature/SpeedTree7"
         #define ENABLE_WIND
         #define VARYINGS_NEED_POSITION_WS
         #define VARYINGS_NEED_TEXCOORD0         // Use for uvHueVariation
+        #define VARYINGS_NEED_TANGENT_TO_WORLD
+        #define ATTRIBUTES_NEED_NORMAL
+        #define ATTRIBUTES_NEED_TEXCOORD0
+
+        #define CUSTOM_UNPACK                   // Needed so we can interpret the packing properly
         // Because we need more than two components for certain values, we can't just share a single interpolator like we do with TEXCOORD0 and TEXCOORD1
         #ifdef GEOM_BRANCH_DETAIL
             #define VARYINGS_NEED_TEXCOORD3     // Use for detail
@@ -88,8 +93,6 @@ Shader "HDRP/Nature/SpeedTree7"
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
-            HLSLPROGRAM
-
             Cull[_CullMode]
 
             ZClip[_ZClip]
@@ -98,9 +101,9 @@ Shader "HDRP/Nature/SpeedTree7"
 
             ColorMask 0
 
-            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
-
             HLSLPROGRAM
+
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES

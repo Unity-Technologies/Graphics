@@ -263,6 +263,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultTerrainMat;
             }
         }
+
+        public override Shader defaultSpeedTree7Shader
+        {
+            get { return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.defaultSpeedTree7Shader; }
+        }
+
+        public override Shader defaultSpeedTree8Shader
+        {
+            get { return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.defaultSpeedTree8Shader; }
+        }
+
 #endif
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()

@@ -97,4 +97,7 @@ SAMPLER(sampler_MainTex);
 
 float4 _Color;
 
+// This include will define the various Attributes/Varyings structure
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
+
 #endif

@@ -18,6 +18,8 @@
 #define ATTRIBUTES_NEED_TEXCOORD1
 #endif
 
+#ifdef CUSTOM_UNPACK
+
 FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 {
     FragInputs output;
@@ -55,7 +57,11 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 #ifdef _MAIN_LIGHT_SHADOWS
     // TODO ...  where to put this?
     //output.shadowCoord = GetShadowCoord(vertexInput);
-#endif 
+#endif
+
+    return output;
 }
 
-#endif
+#endif // CUSTOM_UNPACK
+
+#endif // HDRP_SPEEDTREE7_COMMON_PASSES_INCLUDED
