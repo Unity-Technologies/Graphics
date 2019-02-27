@@ -48,15 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsActive()
         {
-            bool dofActive = focusMode.value != DepthOfFieldMode.Off && (IsNearLayerActive() || IsFarLayerActive());
-
-            if (dofActive && XRGraphics.enabled)
-            {
-                Debug.LogWarning("DepthOfField is not supported with VR.");
-                dofActive = false;
-            }
-
-            return dofActive;
+            return focusMode.value != DepthOfFieldMode.Off && (IsNearLayerActive() || IsFarLayerActive());
         }
 
         public bool IsNearLayerActive() => nearMaxBlur > 0f && nearFocusEnd > 0f;

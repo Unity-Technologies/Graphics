@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.7.0-preview] - 2019-XX-XX
 
+### Added
+- Added depth-of-field support with stereo instancing
+
 ### Fixed
 - Fixed diffusion profile upgrade breaking package when upgrading to a new version
 - Fixed decals cropped by gizmo not updating correctly if prefab
