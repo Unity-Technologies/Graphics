@@ -4,21 +4,21 @@ EnumControlView {
 }
 
 .unity-base-field {
-    width: 80;
+    width: 80px;
 	flex:1;
-    margin-top: 4;
-    margin-bottom: 4;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
 .unity-base-field__input {
 	flex:1;
 	margin-left: 0;
-    margin-right: 8;
+    margin-right: 8px;
 }
 
 EnumControlView > Label {
-    width: 94;
-    text-alignment: middle-left;
-    margin-left: 8;
-    margin-right: 8;
+    width: 94px;
+    -unity-text-align: middle-left;
+    margin-left: 8px;
+    margin-right: 8px;
 }

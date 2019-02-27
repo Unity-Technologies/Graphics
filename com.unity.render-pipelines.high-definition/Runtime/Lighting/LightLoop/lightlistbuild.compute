@@ -37,7 +37,6 @@ uniform int _EnvLightIndexShift;
 uniform int _DecalIndexShift;
 uniform uint g_BaseFeatureFlags;
 
-Texture2D g_depth_tex : register( t0 );
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
@@ -187,7 +186,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         {
             int idx = i * NR_THREADS + t;
             uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
-            const float fDepth = FetchDepth(g_depth_tex, uCrd);
+            const float fDepth = FetchDepth(uCrd);
             vLinDepths[i] = GetLinearDepth(uCrd+float2(0.5,0.5), fDepth);
             if(fDepth<VIEWPORT_SCALE_Z)     // if not skydome
             {

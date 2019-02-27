@@ -192,7 +192,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114498444751905048}
   m_Children: []
-  m_UIPosition: {x: -1414.0934, y: -9.042467}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -211,7 +211,14 @@ MonoBehaviour:
       m_SerializableType: 
     m_SerializableObject: 
   m_Tooltip: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114879092719112468}
+      inputSlot: {fileID: 114174283462304106}
+    position: {x: -1414.0934, y: -9.042467}
+    expandedSlots: []
+    expanded: 0
 --- !u!114 &114125815196396460
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1192,7 +1199,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: 
+  m_Name: 02_Gradient
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
@@ -1218,7 +1225,33 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114645787965093820}
-  m_ParameterInfo: []
+  m_ParameterInfo:
+  - name: gradient
+    path: gradient
+    tooltip: 
+    sheetType: m_Gradient
+    realType: Gradient
+    defaultValue:
+      m_Type:
+        m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"colorKeys":[{"color":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"time":0.0},{"color":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
+    min: -Infinity
+    max: Infinity
+    descendantCount: 0
+  - name: initialGradient
+    path: initialGradient
+    tooltip: 
+    sheetType: m_Gradient
+    realType: Gradient
+    defaultValue:
+      m_Type:
+        m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"colorKeys":[{"color":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"time":0.0},{"color":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
+    min: -Infinity
+    max: Infinity
+    descendantCount: 0
   m_GraphVersion: 1
   m_saved: 1
 --- !u!114 &114504190396488434
@@ -1339,7 +1372,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114498444751905048}
   m_Children: []
-  m_UIPosition: {x: -1323.6711, y: -1039.9192}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1347,7 +1380,7 @@ MonoBehaviour:
   - {fileID: 114597739427807632}
   m_exposedName: initialGradient
   m_exposed: 1
-  m_Order: 0
+  m_Order: 1
   m_Category: 
   m_Min:
     m_Type:
@@ -1358,7 +1391,14 @@ MonoBehaviour:
       m_SerializableType: 
     m_SerializableObject: 
   m_Tooltip: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114597739427807632}
+      inputSlot: {fileID: 114624854136236906}
+    position: {x: -1323.6711, y: -1039.9192}
+    expandedSlots: []
+    expanded: 0
 --- !u!114 &114616928884609912
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1547,6 +1587,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114773284975396716}
   - {fileID: 114256765480203324}

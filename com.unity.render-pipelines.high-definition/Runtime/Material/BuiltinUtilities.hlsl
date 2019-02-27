@@ -12,8 +12,6 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     // If there is no lightmap, it assume lightprobe
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
 
-// TODO: Confirm with Ionut but it seems that UNITY_LIGHT_PROBE_PROXY_VOLUME is always define for high end and
-// unity_ProbeVolumeParams always bind.
     if (unity_ProbeVolumeParams.x == 0.0)
     {
         // TODO: pass a tab of coefficient instead!
@@ -30,7 +28,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     }
     else
     {
-        return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
+        return SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
                                     unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
     }
 
@@ -52,21 +50,21 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 
     #ifdef LIGHTMAP_ON
         #ifdef DIRLIGHTMAP_COMBINED
-        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
-                                                        TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
+        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
+                                                        TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
                                                         uvStaticLightmap, unity_LightmapST, normalWS, useRGBMLightmap, decodeInstructions);
         #else
-        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, useRGBMLightmap, decodeInstructions);
+        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, useRGBMLightmap, decodeInstructions);
         #endif
     #endif
 
     #ifdef DYNAMICLIGHTMAP_ON
         #ifdef DIRLIGHTMAP_COMBINED
-        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_DynamicLightmap, samplerunity_DynamicLightmap),
-                                                        TEXTURE2D_PARAM(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
+        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+                                                        TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
                                                         uvDynamicLightmap, unity_DynamicLightmapST, normalWS, false, decodeInstructions);
         #else
-        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
+        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
         #endif
     #endif
 
@@ -84,7 +82,7 @@ float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS
     float4 rawOcclusionMask;
     if (unity_ProbeVolumeParams.x == 1.0)
     {
-        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, GetProbeVolumeWorldToObject(),
+        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, GetProbeVolumeWorldToObject(),
                                                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
     }
     else
@@ -102,7 +100,7 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 {
     // This test on define is required to remove warning of divide by 0 when initializing empty struct
     // TODO: Add forward opaque MRT case...
-#if (SHADERPASS == SHADERPASS_VELOCITY)
+#if (SHADERPASS == SHADERPASS_VELOCITY) || defined(_WRITE_TRANSPARENT_VELOCITY)
     // Encode velocity
     positionCS.xy = positionCS.xy / positionCS.w;
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;

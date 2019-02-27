@@ -13,11 +13,6 @@ namespace UnityEditor.ShaderGraph
             name = "Blend";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Blend-Node"; }
-        }
-
         string GetCurrentBlendName()
         {
             return System.Enum.GetName(typeof(BlendMode), m_BlendMode);
@@ -358,7 +353,7 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-        
+
         static string Unity_Blend_Overwrite(
             [Slot(0, Binding.None)] DynamicDimensionVector Base,
             [Slot(1, Binding.None)] DynamicDimensionVector Blend,

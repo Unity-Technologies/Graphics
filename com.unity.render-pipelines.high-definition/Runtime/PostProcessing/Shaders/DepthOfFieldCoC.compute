@@ -6,10 +6,10 @@
 #pragma kernel KMainPhysical
 #pragma kernel KMainManual
 
-TEXTURE2D(_InputCoCTexture);
-TEXTURE2D(_InputHistoryCoCTexture);
+TEXTURE2D_X(_InputCoCTexture);
+TEXTURE2D_X(_InputHistoryCoCTexture);
 
-RW_TEXTURE2D(float, _OutputCoCTexture);
+RW_TEXTURE2D_X(float, _OutputCoCTexture);
 
 CBUFFER_START(cb0)
     float4 _Params;
@@ -41,9 +41,11 @@ float GetFixedNearBlend(float linearEyeDepth)
 // Physical CoC
 // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void KMainPhysical(uint2 dispatchThreadId : SV_DispatchThreadID)
+void KMainPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    float depth = LoadCameraDepth(dispatchThreadId);
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    float depth = LoadCameraDepth(dispatchThreadId.xy);
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
     float coc = (1.0 - FocusDist / linearEyeDepth) * MaxCoC;
 
@@ -52,15 +54,16 @@ void KMainPhysical(uint2 dispatchThreadId : SV_DispatchThreadID)
     float nearCoC = clamp(coc * nearBlend, -1.0, 0.0);
     float farCoC = saturate(coc);
 
-    _OutputCoCTexture[dispatchThreadId] = farCoC + nearCoC;
+    _OutputCoCTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = farCoC + nearCoC;
 }
 
 // Manual CoC using near & far planes
 // This will accentuate rendering artifacts if used incorrectly
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void KMainManual(uint2 dispatchThreadId : SV_DispatchThreadID)
+void KMainManual(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    float depth = LoadCameraDepth(dispatchThreadId);
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    float depth = LoadCameraDepth(dispatchThreadId.xy);
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
     float nearBlend = GetFixedNearBlend(linearEyeDepth);
@@ -71,5 +74,5 @@ void KMainManual(uint2 dispatchThreadId : SV_DispatchThreadID)
     float farCoC = (linearEyeDepth - FarStart) / (FarEnd - FarStart);
     farCoC = saturate(farCoC);
 
-    _OutputCoCTexture[dispatchThreadId] = -nearCoC + farCoC;
+    _OutputCoCTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = -nearCoC + farCoC;
 }

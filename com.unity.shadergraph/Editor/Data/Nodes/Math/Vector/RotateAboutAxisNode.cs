@@ -30,10 +30,6 @@ namespace UnityEditor.ShaderGraph
             name = "Rotate About Axis";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rotate-About-Axis-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

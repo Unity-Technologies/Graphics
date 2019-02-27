@@ -19,9 +19,9 @@ Shader "Hidden/HDRP/FinalPass"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
 
-        TEXTURE2D(_InputTexture);
+        TEXTURE2D_X(_InputTexture);
         TEXTURE2D(_GrainTexture);
-        TEXTURE2D(_AfterPostProcessTexture);
+        TEXTURE2D_X(_AfterPostProcessTexture);
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
 
         SAMPLER(sampler_LinearClamp);
@@ -35,17 +35,21 @@ Shader "Hidden/HDRP/FinalPass"
         struct Attributes
         {
             uint vertexID : SV_VertexID;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
             float2 texcoord   : TEXCOORD0;
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         Varyings Vert(Attributes input)
         {
             Varyings output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
             return output;
@@ -70,13 +74,13 @@ Shader "Hidden/HDRP/FinalPass"
 
         float4 Frag(Varyings input) : SV_Target0
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
             float2 positionNDC = input.texcoord;
             uint2 positionSS = input.texcoord * _ScreenSize.xy;
 
             #if UNITY_SINGLE_PASS_STEREO
-            // TODO: This is wrong, fix me
-            positionNDC.x = positionNDC.x / 2.0 + unity_StereoEyeIndex * 0.5;
-            positionSS.x = positionSS.x / 2;
+                positionNDC.x = (positionNDC.x + unity_StereoEyeIndex) * 0.5;
             #endif
 
             // Flip logic
@@ -86,7 +90,7 @@ Shader "Hidden/HDRP/FinalPass"
             #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
             float3 outColor = UpscaledResult(positionNDC.xy);
             #else
-            float3 outColor = LOAD_TEXTURE2D(_InputTexture, positionSS).xyz;
+            float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
             #endif
 
             #if FXAA
@@ -132,7 +136,7 @@ Shader "Hidden/HDRP/FinalPass"
 
             // Apply AfterPostProcess target
             #if APPLY_AFTER_POST
-            float4 afterPostColor = SAMPLE_TEXTURE2D_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _ScreenToTargetScale.xy, 0);
+            float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _ScreenToTargetScale.xy, 0);
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif

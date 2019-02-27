@@ -4,7 +4,20 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.0.0] - 2019-xx-xx
+## [6.5.0] - 2019-XX-XX
+
+## [6.4.0] - 2019-02-21
+
+## [6.3.0] - 2019-02-18
+
+## [6.2.0] - 2019-02-15
+
+### Changed
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
+
+## [6.1.0] - 2019-02-13
+
+## [6.0.0] - 2019-02-23
 ### Added
 - You can now implement a custom renderer for LWRP. To do so, implement an `IRendererData` that contains all resources used in rendering. Then create an `IRendererSetup` that creates and queues `ScriptableRenderPass`. Change the renderer type either in the Pipeline Asset or in the Camera Inspector.
 - LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
@@ -32,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The __Double sided__ property is now __Render Face__. This means you can also do front face culling.
 - Changed the docs for Lit Shader, Simple Lit Shader and Unlit Shader according to Shader GUI changes.
 - When you create a new LWRP Asset, it will now be initialized with settings that favor performance on mobile platforms.
+- Updated the [FAQ](faq.md) and the [Built-in/LWRP feature comparison table](lwrp-builtin-feature-comparison.md).
 
 ### Fixed
 - Several tweaks to reduce bandwidth consumption on mobile devices.
@@ -317,7 +331,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ### Added
  - Added Cascade Split selection UI
  - Added SHADER_HINT_NICE_QUALITY. If user defines this to 1 in the shader Lightweight pipeline will favor quality even on mobile platforms.
- 
+
 ### Changed
  - Shadowmap uses 16bit format instead of 32bit.
  - Small shader performance improvements
@@ -326,7 +340,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Subtractive Mode
  - Shadow Distance does not accept negative values anymore
 
- 
+
 ## [0.1.24]
 
 ### Added
@@ -334,7 +348,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Added HDR global setting on pipeline asset. 
  - Added Soft Particles settings on pipeline asset.
  - Ported particles shaders to SRP library
- 
+
 ### Changed
  - HDR RT now uses what format is configured in Tier settings.
  - Refactored lightweight standard shaders and shader library to improve ease of use.
@@ -342,7 +356,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Reduced GC pressure
  - Reduced shader variant count by ~56% by improving fog and lightmap keywords
  - Converted LW shader library files to use real/half when necessary.
- 
+
 ### Fixed
  - Realtime shadows on OpenGL
  - Shader compiler errors in GLES 2.0

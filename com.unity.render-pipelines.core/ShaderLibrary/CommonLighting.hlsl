@@ -414,4 +414,10 @@ real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV, bool test
     return orthoBasisViewNormal;
 }
 
+// Move this here since it's used by both LightLoop.hlsl and RaytracingLightLoop.hlsl
+bool IsMatchingLightLayer(uint lightLayers, uint renderingLayers)
+{
+    return (lightLayers & renderingLayers) != 0;
+}
+
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

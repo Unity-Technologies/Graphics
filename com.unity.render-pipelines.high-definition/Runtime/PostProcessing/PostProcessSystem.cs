@@ -78,7 +78,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly TargetPool m_Pool;
 
-        readonly bool useSafePath;
+        readonly bool m_UseSafePath;
+        bool m_PostProcessEnabled;
+        bool m_AnimatedMaterialsEnabled;
 
         // Max guard band size is assumed to be 8 pixels
         const int k_RTGuardBandSize = 4;
@@ -93,12 +95,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
-            useSafePath = SystemInfo.graphicsDeviceVendor
+            m_UseSafePath = SystemInfo.graphicsDeviceVendor
                 .ToLowerInvariant().Contains("intel");
 
             // Project-wise LUT size for all grading operations - meaning that internal LUTs and
             // user-provided LUTs will have to be this size
-            var settings = hdAsset.renderPipelineSettings.postProcessSettings;
+            var settings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
             m_LutSize = settings.lutSize;
             var lutFormat = (GraphicsFormat)settings.lutFormat;
 
@@ -197,6 +199,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void BeginFrame(CommandBuffer cmd, HDCamera camera)
         {
+            m_PostProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess) && CoreUtils.ArePostProcessesEnabled(camera.camera);
+            m_AnimatedMaterialsEnabled = CoreUtils.AreAnimatedMaterialsEnabled(camera.camera);
+
             // Grab physical camera settings or a default instance if it's null (should only happen
             // in rare occasions due to how HDAdditionalCameraData is added to the camera)
             m_PhysicalCamera = camera.physicalParameters ?? m_DefaultPhysicalCamera;
@@ -245,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, bool flipY)
         {
-            HDDynamicResolutionHandler dynResHandler = HDDynamicResolutionHandler.instance;
+            var dynResHandler = HDDynamicResolutionHandler.instance;
 
             // We cleanup the pool at the beginning of the render function as resource deletion is immediate while
             // graphics command are deferred. If we delete at the end of the frame, the gfx commands will try to access
@@ -265,7 +270,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var source = colorBuffer;
 
-                if (camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess))
+                if (m_PostProcessEnabled)
                 {
                     // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
                     // content into smaller viewports with some effects like Bloom that rely on bilinear
@@ -274,26 +279,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int w = camera.actualWidth;
                         int h = camera.actualHeight;
                         cmd.SetRenderTarget(source);
-                        cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
-                        cmd.ClearRenderTarget(false, true, Color.black);
-                        cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
-                        cmd.ClearRenderTarget(false, true, Color.black);
-                    }
 
-                    // TODO: Do we want user effects before post?
-
-                    // Start with exposure - will be applied in the next frame
-                    if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
-                    {
-                        using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
+                        // Clear guard bands only if required
+                        // XR C++ code can issue a full clear if the viewport of the device is fullscreen, bypassing the viewport from the command buffer
+                        if (w < source.rt.width || h < source.rt.height)
                         {
-                            DoDynamicExposure(cmd, camera, colorBuffer, lightingBuffer);
+                            cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
+                            cmd.ClearRenderTarget(false, true, Color.black);
+                            cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
+                            cmd.ClearRenderTarget(false, true, Color.black);
                         }
                     }
 
+                    // Optional NaN killer before post-processing kicks in
+                    bool stopNaNs = camera.stopNaNs;
+
+                #if UNITY_EDITOR
+                    if (camera.camera.cameraType == CameraType.SceneView)
+                        stopNaNs = HDRenderPipelinePreferences.sceneViewStopNaNs;
+                #endif
+
+                    if (stopNaNs)
+                    {
+                        using (new ProfilingSample(cmd, "Stop NaNs", CustomSamplerId.StopNaNs.GetSampler()))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            DoStopNaNs(cmd, camera, source, destination);
+                            PoolSource(ref source, destination);
+                        }
+                    }
+                }
+
+                // Dynamic exposure - will be applied in the next frame
+                // Not considered as a post-process so it's not affected by its enabled state
+                if (!IsExposureFixed() && camera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                {
+                    using (new ProfilingSample(cmd, "Dynamic Exposure", CustomSamplerId.Exposure.GetSampler()))
+                    {
+                        DoDynamicExposure(cmd, camera, source, lightingBuffer);
+                    }
+                }
+
+                if (m_PostProcessEnabled)
+                {
+                    // TODO: Do we want user effects before post?
+
                     // Temporal anti-aliasing goes first
-                    bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing
-                        && camera.camera.cameraType == CameraType.Game;
+                    bool taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
 
                     if (taaEnabled)
                     {
@@ -319,7 +351,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
-                    if (m_MotionBlur.IsActive() && camera.camera.cameraType == CameraType.Game && !m_ResetHistory)
+                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !m_ResetHistory)
                     {
                         using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
                         {
@@ -364,7 +396,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomTexture, Texture2D.blackTexture);
+                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
                             cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomParams, Vector4.zero);
                         }
@@ -384,7 +416,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-                        cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+                        cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, XRGraphics.computePassCount);
 
                         // Cleanup
                         if (bloomActive) m_Pool.Recycle(m_BloomTexture);
@@ -410,8 +442,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Final pass
                 using (new ProfilingSample(cmd, "Final Pass", CustomSamplerId.FinalPost.GetSampler()))
                 {
+                    // XRTODO: remove once SPI is working
+                    bool restoreSinglePass = false;
+                    if (camera.camera.stereoEnabled && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
+                    {
+                        cmd.SetSinglePassStereo(SinglePassStereoMode.None);
+                        restoreSinglePass = true;
+                    }
+
                     DoFinalPass(cmd, camera, blueNoise, source, afterPostProcessTexture, finalRT, flipY);
                     PoolSource(ref source, null);
+
+                    // XRTODO: remove once SPI is working
+                    if (restoreSinglePass)
+                        cmd.SetSinglePassStereo(SinglePassStereoMode.SideBySide);
                 }
             }
 
@@ -458,6 +502,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cb = new ComputeBuffer(size, stride, type);
             }
         }
+
+        #region NaN Killer
+
+        void DoStopNaNs(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
+        {
+            var cs = m_Resources.shaders.nanKillerCS;
+            int kernel = cs.FindKernel("KMain");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+        }
+
+        #endregion
 
         #region Exposure
 
@@ -655,7 +712,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // On Scorpio, a group size of 16x16 is faster by around 20%, on Durango the cost is the same.
             int groupSize = SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ? 16 : 8;
 
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + (groupSize - 1)) / groupSize, (camera.actualHeight + (groupSize - 1)) / groupSize, 1);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + (groupSize - 1)) / groupSize, (camera.actualHeight + (groupSize - 1)) / groupSize, XRGraphics.computePassCount);
         }
 
         static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
@@ -665,7 +722,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return rtHandleSystem.Alloc(
                     Vector2.one, depthBufferBits: DepthBits.None,
                     filterMode: FilterMode.Bilinear, colorFormat: k_ColorFormat,
-                    enableRandomWrite: true, name: "TAA History"
+                    enableRandomWrite: true, xrInstancing: true, name: "TAA History"
                 );
             }
 
@@ -681,7 +738,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, history);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, XRGraphics.computePassCount);
         }
 
         #endregion
@@ -710,7 +767,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Assert.IsTrue(nearLayerActive || farLayerActive);
 
             bool bothLayersActive = nearLayerActive && farLayerActive;
-            bool useTiles = true;
+            bool useTiles = !camera.camera.stereoEnabled;
             bool hqFiltering = m_DepthOfField.highQualityFiltering.value;
 
             const uint kIndirectNearOffset = 0u * sizeof(uint);
@@ -850,7 +907,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, fullresCoC);
-                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, XRGraphics.computePassCount);
 
                 // -----------------------------------------------------------------------------
                 // Pass: re-project CoC if TAA is enabled
@@ -866,7 +923,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoCTex);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoCTex);
-                    cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+                    cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, XRGraphics.computePassCount);
 
                     // Cleanup the main CoC texture as we don't need it anymore and use the
                     // re-projected one instead for the following steps
@@ -905,7 +962,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputFarTexture, pingFarRGB);
                 }
 
-                cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, 1);
+                cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, XRGraphics.computePassCount);
             }
 
             if (farLayerActive)
@@ -920,7 +977,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int tx = ((targetWidth >> 1) + 7) / 8;
                     int ty = ((targetHeight >> 1) + 7) / 8;
 
-                    if (useSafePath)
+                    if (m_UseSafePath)
                     {
                         // The other compute fails hard on Intel because of texture format issues
                         cs = m_Resources.shaders.depthOfFieldMipSafeCS;
@@ -940,12 +997,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Downsample
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB);
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, mip);
-                            cmd.DispatchCompute(cs, kernel, gx, gy, 1);
+                            cmd.DispatchCompute(cs, kernel, gx, gy, XRGraphics.computePassCount);
 
                             // Copy to mip
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, mip);
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, pingFarRGB, i + 1);
-                            cmd.DispatchCompute(cs, kernel, gx, gy, 1);
+                            cmd.DispatchCompute(cs, kernel, gx, gy, XRGraphics.computePassCount);
 
                             m_Pool.Recycle(mip);
                         }
@@ -959,7 +1016,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, pingFarRGB, 2);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, pingFarRGB, 3);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, pingFarRGB, 4);
-                        cmd.DispatchCompute(cs, kernel, tx, ty, 1);
+                        cmd.DispatchCompute(cs, kernel, tx, ty, XRGraphics.computePassCount);
                     }
 
                     cs = m_Resources.shaders.depthOfFieldMipCS;
@@ -969,7 +1026,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, farCoC, 2);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, farCoC, 3);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, farCoC, 4);
-                    cmd.DispatchCompute(cs, kernel, tx, ty, 1);
+                    cmd.DispatchCompute(cs, kernel, tx, ty, XRGraphics.computePassCount);
                 }
             }
 
@@ -988,7 +1045,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, nearCoC);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, dilatedNearCoC);
-                    cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, 1);
+                    cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, XRGraphics.computePassCount);
 
                     if (passCount > 1)
                     {
@@ -1000,7 +1057,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, src);
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, dst);
-                            cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, 1);
+                            cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, XRGraphics.computePassCount);
                             CoreUtils.Swap(ref src, ref dst);
                         }
 
@@ -1082,7 +1139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, 1);
+                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, XRGraphics.computePassCount);
                     }
                 }
             }
@@ -1103,7 +1160,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputFarTexture, pongFarRGB);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, farCoC);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, pongNearRGB);
-                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, 1);
+                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, XRGraphics.computePassCount);
 
                         CoreUtils.Swap(ref pingNearRGB, ref pongNearRGB);
                     }
@@ -1145,7 +1202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, 1);
+                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, XRGraphics.computePassCount);
                     }
                 }
             }
@@ -1178,7 +1235,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, XRGraphics.computePassCount);
             }
 
             // -----------------------------------------------------------------------------
@@ -1210,7 +1267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return rtHandleSystem.Alloc(
                     Vector2.one, depthBufferBits: DepthBits.None, filterMode: FilterMode.Point,
-                    colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, name: "CoC History"
+                    colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, xrInstancing: true, name: "CoC History"
                 );
             }
 
@@ -1228,6 +1285,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // -----------------------------------------------------------------------------
 
             bool scattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, FormatUsage.LoadStore);
+            // TODO: Remove this line when atomic bug in HLSLcc is fixed. 
+            scattering = scattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan);
+            // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
+            scattering = scattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
+
             int tileSize = 32;
 
             if (scattering)
@@ -1309,7 +1371,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 threadGroupX = (camera.actualWidth + (tileSize - 1)) / tileSize;
                 threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, XRGraphics.computePassCount);
             }
 
             // -----------------------------------------------------------------------------
@@ -1344,7 +1406,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMax, tileToScatterMax);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMin, tileToScatterMin);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, XRGraphics.computePassCount);
             }
 
             // -----------------------------------------------------------------------------
@@ -1406,7 +1468,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS));
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, XRGraphics.computePassCount);
         }
 
         Vector2 CalcViewExtents(HDCamera camera)
@@ -1510,7 +1572,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (h < source.rt.height && h % 8 < k_RTGuardBandSize)
                     h += k_RTGuardBandSize;
 
-                cmd.DispatchCompute(shader, kernelId, (w + 7) / 8, (h + 7) / 8, 1);
+                cmd.DispatchCompute(shader, kernelId, (w + 7) / 8, (h + 7) / 8, XRGraphics.computePassCount);
             }
 
             // Pre-filtering
@@ -1950,22 +2012,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         #endregion
 
         #region FXAA
+
         void DoFXAA(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
         {
             var cs = m_Resources.shaders.FXAACS;
             int kernel = cs.FindKernel("FXAA");
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, XRGraphics.computePassCount);
         }
+
         #endregion
 
         #region Final Pass
 
         void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RenderTargetIdentifier destination, bool flipY)
         {
-            bool postProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess);
-
             // Final pass has to be done in a pixel shader as it will be the one writing straight
             // to the backbuffer eventually
 
@@ -1973,8 +2035,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_FinalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
             var dynResHandler = HDDynamicResolutionHandler.instance;
-            float dynamicResScale = dynResHandler.GetCurrentScale();
             bool swDynamicResIsOn = camera.isMainGameView && dynResHandler.SoftwareDynamicResIsEnabled();
+
             if (swDynamicResIsOn)
             {
                 switch(dynResHandler.filter)
@@ -1991,7 +2053,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (postProcessEnabled)
+            if (m_PostProcessEnabled)
             {
                 if (camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !swDynamicResIsOn)
                     m_FinalPassMaterial.EnableKeyword("FXAA");
@@ -2060,18 +2122,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
             {
-                m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, Texture2D.blackTexture);
+                m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
             }
 
-            // This assumes that for now, posts are always off when double wide is enabled
-            if (camera.camera.stereoEnabled && (XRGraphics.eyeTextureDesc.dimension == TextureDimension.Tex2D))
-            {
-                HDUtils.BlitCameraTextureStereoDoubleWide(cmd, source, destination);
-            }
-            else
-            {
-                HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
-            }
+            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
         }
 
         #endregion
@@ -2117,7 +2171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var rt = RTHandles.Alloc(
                     scaleFactor, depthBufferBits: DepthBits.None,
                     filterMode: FilterMode.Point, colorFormat: format, useMipMap: mipmap,
-                    enableRandomWrite: true, useDynamicScale: true, name: "Post-processing Target Pool " + m_Tracker
+                    enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, name: "Post-processing Target Pool " + m_Tracker
                 );
 
                 m_Tracker++;

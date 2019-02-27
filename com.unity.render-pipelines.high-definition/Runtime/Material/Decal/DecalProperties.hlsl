@@ -7,11 +7,14 @@ TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
 TEXTURE2D(_MaskMap);
 SAMPLER(sampler_MaskMap);
+TEXTURE2D(_EmissiveColorMap);
+SAMPLER(sampler_EmissiveColorMap);
 
 float _NormalBlendSrc;
 float _MaskBlendSrc;
 float _DecalBlend;
 float4 _BaseColor;
+float4 _EmissiveColor;
 float _DecalMeshDepthBias;
 float _SmoothnessRemapMin;
 float _SmoothnessRemapMax;

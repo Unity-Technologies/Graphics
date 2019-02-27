@@ -2,7 +2,9 @@
 
 The HD Shadow Settings Volume component override control the maximum distance at which HDRP renders shadow cascades and shadows from [punctual lights](Glossary.html#PunctualLight). It uses cascade splits to control the quality of shadows cast by Directional Lights over distance from the Camera.
 
-This HD Shadow Settings override comes as default when you create a __Scene Settings__ GameObject (Menu: __GameObject > Rendering > Scene Settings__).
+The **HD Shadow Settings** override comes as default when you create a __Scene Settings__ GameObject (Menu: __GameObject > Rendering > Scene Settings__). You can also manually add a **HD Shadow Settings** override to any [Volume](Volumes.html). Click on the Volume's **Add Override** button and select **HD Shadow Settings** from the list of overrides to add a **HD Shadow Settings** override to the Volume.
+
+## Properties
 
 ![](Images/SceneSettingsHDShadowSettings1.png)
 

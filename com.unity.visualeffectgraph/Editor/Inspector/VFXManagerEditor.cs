@@ -17,9 +17,17 @@ using UnityObject = UnityEngine.Object;
 [CustomEditor(typeof(UnityEditor.VFXManager))]
 public class VFXManagerEditor : Editor
 {
+
+    SerializedProperty m_PathProperty;
+    SerializedProperty[] m_TimeProperties;
+    SerializedProperty[] m_ShaderProperties;
     void OnEnable()
     {
+        m_PathProperty = serializedObject.FindProperty("m_RenderPipeSettingsPath");
+        m_TimeProperties = new SerializedProperty[]{ serializedObject.FindProperty("m_FixedTimeStep"), serializedObject.FindProperty("m_MaxDeltaTime")};
+        m_ShaderProperties = new SerializedProperty[]{ serializedObject.FindProperty("m_IndirectShader"), serializedObject.FindProperty("m_CopyBufferShader"), serializedObject.FindProperty("m_SortShader")};
         CheckVFXManager();
+        serializedObject.Update();
     }
 
     void OnDisable()
@@ -28,20 +36,23 @@ public class VFXManagerEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        // trying to detect a C++ reset by checking if all shaders have been reset to null and the path to ""
+        if( string.IsNullOrEmpty(m_PathProperty.stringValue) && ! m_ShaderProperties.Any(t=>t.objectReferenceValue != null))
+            CheckVFXManager();
         serializedObject.Update();
-        var pathProperty = serializedObject.FindProperty("m_RenderPipeSettingsPath");
+        
         EditorGUI.BeginChangeCheck();
-        EditorGUILayout.LabelField(ObjectNames.NicifyVariableName(pathProperty.name));
-        string resultPath = GUILayout.TextArea(pathProperty.stringValue, 500, GUILayout.Height(30));
+        EditorGUILayout.LabelField(ObjectNames.NicifyVariableName(m_PathProperty.name));
+        string resultPath = GUILayout.TextArea(m_PathProperty.stringValue, 500, GUILayout.Height(30));
         if (EditorGUI.EndChangeCheck())
         {
-            pathProperty.stringValue = resultPath;
+            m_PathProperty.stringValue = resultPath;
         }
 
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Default"))
         {
-            pathProperty.stringValue = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP";
+            m_PathProperty.stringValue = "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP";
         }
         if (GUILayout.Button("Reveal"))
         {
@@ -50,17 +61,15 @@ public class VFXManagerEditor : Editor
         GUILayout.EndHorizontal();
         GUILayout.Space(15);
 
-        foreach (var propertyName in new string[] { "m_FixedTimeStep", "m_MaxDeltaTime" })
+        foreach (var property in m_TimeProperties)
         {
-            var property = serializedObject.FindProperty(propertyName);
             EditorGUILayout.PropertyField(property);
         }
 
         GUILayout.Space(15);
 
-        foreach (var propertyName in new string[] { "m_IndirectShader", "m_CopyBufferShader", "m_SortShader" })
+        foreach (var property in m_ShaderProperties)
         {
-            var property = serializedObject.FindProperty(propertyName);
             EditorGUILayout.PropertyField(property);
         }
         serializedObject.ApplyModifiedProperties();

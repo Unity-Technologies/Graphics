@@ -1,0 +1,8 @@
+PropertyNodeView.hovered #selection-border{
+    background-color:rgba(68,192,255,0.4);
+    border-color:rgba(68,192,255,1);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+}

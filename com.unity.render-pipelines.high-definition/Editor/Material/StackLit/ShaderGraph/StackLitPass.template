@@ -220,6 +220,16 @@ Pass
     //-------------------------------------------------------------------------------------
     // End Defines
     //-------------------------------------------------------------------------------------
+#if !( (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT))
+    // StackLit.hlsl hooks the callback from PostInitBuiltinData() via #define MODIFY_BAKED_DIFFUSE_LIGHTING
+    // but in ShaderGraph, we don't evaluate/set all input ports when the values are not used by the pass.
+    // (In the material with the inspector UI, unused values were still normally set for all passes, here we
+    // don't, this saves compilation time, but these should always be pruned by compilation anyways).
+    // To prevent warnings, we disable our ModifyBakedDiffuseLighting() callback, while still leaving the
+    // call to PostInitBuiltinData() here along with avoiding putting SHADERPASS dependencies directly in
+    // StackLit.hlsl.
+    #define DISABLE_MODIFY_BAKED_DIFFUSE_LIGHTING
+#endif
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #ifdef DEBUG_DISPLAY
@@ -291,7 +301,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.BaseColor:                 surfaceData.baseColor =                surfaceDescription.BaseColor;
         $SurfaceDescription.SubsurfaceMask:            surfaceData.subsurfaceMask =           surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                 surfaceData.thickness =                surfaceDescription.Thickness;
-        $SurfaceDescription.DiffusionProfile:          surfaceData.diffusionProfile =         surfaceDescription.DiffusionProfile;
+        $SurfaceDescription.DiffusionProfileHash:      surfaceData.diffusionProfileHash =     asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.IridescenceMask:           surfaceData.iridescenceMask =          surfaceDescription.IridescenceMask;
         $SurfaceDescription.IridescenceThickness:      surfaceData.iridescenceThickness =     surfaceDescription.IridescenceThickness;
         $SurfaceDescription.SpecularColor:             surfaceData.specularColor =            surfaceDescription.SpecularColor;

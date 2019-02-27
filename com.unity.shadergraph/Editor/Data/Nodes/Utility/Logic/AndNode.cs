@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "And";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/And-Node"; }
-        }
 
         public override bool hasPreview
         {

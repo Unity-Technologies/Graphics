@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
             {UnityMatrixType.ViewProjection, "UNITY_MATRIX_VP"},
             {UnityMatrixType.InverseViewProjection, "UNITY_MATRIX_I_VP"},
         };
-        
+
         static Dictionary<TransformationMatrixType, UnityMatrixType> m_MatrixUpgrade = new Dictionary<TransformationMatrixType, UnityMatrixType>
         {
             {TransformationMatrixType.ModelView, UnityMatrixType.Model},
@@ -89,10 +89,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Transformation-Matrix-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

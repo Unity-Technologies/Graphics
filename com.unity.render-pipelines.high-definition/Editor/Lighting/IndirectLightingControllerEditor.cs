@@ -20,8 +20,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_IndirectDiffuseIntensity, EditorGUIUtility.TrTextContent("Indirect Diffuse Intensity", "Multiplier for the baked diffuse lighting."));
-            PropertyField(m_IndirectSpecularIntensity, EditorGUIUtility.TrTextContent("Indirect Specular Intensity", "Multiplier for the reflected specular light."));
+            PropertyField(m_IndirectDiffuseIntensity, EditorGUIUtility.TrTextContent("Indirect Diffuse Intensity", "Sets the multiplier for baked diffuse lighting."));
+            PropertyField(m_IndirectSpecularIntensity, EditorGUIUtility.TrTextContent("Indirect Specular Intensity", "Sets the multiplier for reflected specular lighting."));
         }
     }
 }

@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Radial Shear";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Radial-Shear-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

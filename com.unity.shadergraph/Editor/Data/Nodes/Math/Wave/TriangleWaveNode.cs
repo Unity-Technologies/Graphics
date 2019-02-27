@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Triangle Wave";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Triangle-Wave-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

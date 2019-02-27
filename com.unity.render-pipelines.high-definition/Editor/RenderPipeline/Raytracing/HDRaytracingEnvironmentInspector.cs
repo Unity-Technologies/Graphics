@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -19,8 +20,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Ambient Occlusion
             public static readonly GUIContent aoSectionText = EditorGUIUtility.TrTextContent("Ray-traced Ambient Occlusion");
             public static readonly GUIContent aoEnableText = EditorGUIUtility.TrTextContent("Enable");
+            public static readonly GUIContent aoLayerMaskText = EditorGUIUtility.TrTextContent("AO Layer Mask");
             public static readonly GUIContent aoRayLengthText = EditorGUIUtility.TrTextContent("Max AO Ray Length");
-            public static readonly GUIContent aoNumSamplesText = EditorGUIUtility.TrTextContent("AO Num Samples");
+            public static readonly GUIContent aoNumSamplesText = EditorGUIUtility.TrTextContent("AO Number of Samples");
             public static readonly GUIContent aoFilterModeText = EditorGUIUtility.TrTextContent("AO Filter Mode");
 
             // AO Bilateral Filter Data
@@ -36,16 +38,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Reflections
             public static GUIContent reflSectionText = new GUIContent("Ray-traced Reflections");
             public static GUIContent reflEnableText = new GUIContent("Enable");
+            public static GUIContent reflLayerMaskText = EditorGUIUtility.TrTextContent("Reflection Layer Mask");
             public static GUIContent reflRayLengthText = new GUIContent("Max Reflections Ray Length");
-            public static GUIContent reflNumSamplesText = new GUIContent("Reflections Num Samples");
-            public static GUIContent reflFilterModeText = new GUIContent("Reflections Filter Mode");
+            public static GUIContent reflBlendDistanceText = new GUIContent("Reflection Blend Distance");
+            public static GUIContent reflMinSmoothnessText = new GUIContent("Reflections Min Smoothness");
+            public static GUIContent reflClampValueText = new GUIContent("Reflections Clamp Value");
+            public static GUIContent reflQualityText = new GUIContent("Reflections Quality");
 
-            // Reflections Bilateral Filter Data
-            public static GUIContent reflBilateralRadius = new GUIContent("Reflections Bilateral Radius");
-            public static GUIContent reflBilateralSigma = new GUIContent("Reflections Bilateral Sigma");
+            // Reflections Quarter Res
+            public static GUIContent reflTemporalAccumulationWeight = new GUIContent("Reflections Temporal Accumulation Weight");
+            public static GUIContent reflSpatialFilterRadius = new GUIContent("Spatial Filter Radius");
+
+            // Relections Integration
+            public static GUIContent reflNumMaxSamplesText = new GUIContent("Reflections Num Samples");
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Area Light Shadow
             public static GUIContent shadowEnableText = new GUIContent("Enable");
+            public static GUIContent shadowLayerMaskText = EditorGUIUtility.TrTextContent("Shadow Layer Mask");
             public static GUIContent shadowSectionText = new GUIContent("Ray-traced Shadows");
             public static GUIContent shadowBilateralRadius = new GUIContent("Shadows Bilateral Radius");
             public static GUIContent shadowNumSamplesText = new GUIContent("Shadows Num Samples");
@@ -64,6 +73,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Primary visibility
             public static readonly GUIContent primaryRaytracingSectionText = EditorGUIUtility.TrTextContent("Primary Visiblity Raytracing");
             public static readonly GUIContent raytracingEnableText = new GUIContent("Enable");
+            public static readonly GUIContent raytracedLayerMaskText = EditorGUIUtility.TrTextContent("Primary Visibility Layer Mask");
             public static readonly GUIContent rayMaxDepth = new GUIContent("Raytracing Maximal Depth");
             public static readonly GUIContent raytracingRayLength = new GUIContent("Raytracing Ray Length");
         }
@@ -99,6 +109,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(rtEnv.rayBias, Styles.rayBiasText);
         }
 
+        static void UpdateEnvironmentSubScenes(SerializedHDRaytracingEnvironment rtEnv)
+        {
+            rtEnv.Apply();
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdPipeline != null)
+            {
+                hdPipeline.m_RayTracingManager.UpdateEnvironmentSubScenes();
+            }
+        }
+
         static void AmbientOcclusionSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
             // AO Specific fields
@@ -107,6 +127,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if(rtEnv.raytracedAO.boolValue)
             {
                 EditorGUI.indentLevel++;
+
+                // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+                // the non serialized object and update the subscenes
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(rtEnv.aoLayerMask, Styles.aoLayerMaskText);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    UpdateEnvironmentSubScenes(rtEnv);
+                }
 
                 EditorGUILayout.IntSlider(rtEnv.aoNumSamples, 1, 32, Styles.aoNumSamplesText);
                 EditorGUILayout.PropertyField(rtEnv.aoRayLength, Styles.aoRayLengthText);
@@ -142,20 +171,38 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (rtEnv.raytracedReflections.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(rtEnv.reflFilterMode, Styles.reflFilterModeText);
+
+                // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+                // the non serialized object and update the sub-scenes
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(rtEnv.reflLayerMask, Styles.reflLayerMaskText);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    UpdateEnvironmentSubScenes(rtEnv);
+                }
 
                 EditorGUILayout.PropertyField(rtEnv.reflRayLength, Styles.reflRayLengthText);
-                EditorGUILayout.PropertyField(rtEnv.reflNumMaxSamples, Styles.reflNumSamplesText);
+                EditorGUILayout.PropertyField(rtEnv.reflBlendDistance, Styles.reflBlendDistanceText);
+                EditorGUILayout.PropertyField(rtEnv.reflMinSmoothness, Styles.reflMinSmoothnessText);
+                EditorGUILayout.PropertyField(rtEnv.reflClampValue, Styles.reflClampValueText);
+
+                EditorGUILayout.PropertyField(rtEnv.reflQualityMode, Styles.reflQualityText);
 
                 EditorGUI.indentLevel++;
-                switch ((HDRaytracingEnvironment.ReflectionsFilterMode)rtEnv.reflFilterMode.enumValueIndex)
+                switch ((HDRaytracingEnvironment.ReflectionsQuality)rtEnv.reflQualityMode.enumValueIndex)
                 {
-                    case HDRaytracingEnvironment.ReflectionsFilterMode.Bilateral:
+                    case HDRaytracingEnvironment.ReflectionsQuality.QuarterRes:
                         {
-                            EditorGUILayout.PropertyField(rtEnv.reflBilateralRadius, Styles.reflBilateralRadius);
-                            EditorGUILayout.PropertyField(rtEnv.reflBilateralSigma, Styles.reflBilateralSigma);
+                            EditorGUILayout.PropertyField(rtEnv.reflTemporalAccumulationWeight, Styles.reflTemporalAccumulationWeight);
+                            EditorGUILayout.PropertyField(rtEnv.reflSpatialFilterRadius, Styles.reflSpatialFilterRadius);
                         }
-                        break;
+                    break;
+                    case HDRaytracingEnvironment.ReflectionsQuality.Integration:
+                        {
+                            EditorGUILayout.PropertyField(rtEnv.reflNumMaxSamples, Styles.reflNumMaxSamplesText);
+                            
+                        }
+                    break;
                 }
                 EditorGUI.indentLevel--;
                 EditorGUI.indentLevel--;
@@ -169,6 +216,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (rtEnv.raytracedObjects.boolValue)
             {
+                // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+                // the non serialized object and update the sub-scenes
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(rtEnv.raytracedLayerMask, Styles.raytracedLayerMaskText);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    UpdateEnvironmentSubScenes(rtEnv);
+                }
+
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(rtEnv.rayMaxDepth, Styles.rayMaxDepth);
                 EditorGUILayout.PropertyField(rtEnv.raytracingRayLength, Styles.raytracingRayLength);
@@ -188,6 +244,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (rtEnv.raytracedShadows.boolValue)
             {
+                // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+                // the non serialized object and update the sub-scenes
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(rtEnv.shadowLayerMask, Styles.shadowLayerMaskText);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    UpdateEnvironmentSubScenes(rtEnv);
+                }
+
                 EditorGUILayout.PropertyField(rtEnv.shadowNumSamples, Styles.shadowNumSamplesText);
                 EditorGUILayout.PropertyField(rtEnv.numAreaLightShadows, Styles.numAreaLightShadows);
                 EditorGUILayout.PropertyField(rtEnv.shadowFilterRadius, Styles.shadowBilateralRadius);

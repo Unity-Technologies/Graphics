@@ -20,10 +20,6 @@ namespace UnityEditor.ShaderGraph
             name = "Normal Blend";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Normal-Blend-Node"; }
-        }
 
         [SerializeField]
         private NormalBlendMode m_BlendMode = NormalBlendMode.Default;

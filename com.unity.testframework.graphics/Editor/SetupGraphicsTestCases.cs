@@ -46,6 +46,8 @@ namespace UnityEditor.TestTools.Graphics
             RuntimePlatform runtimePlatform;
             GraphicsDeviceType[] graphicsDevices;
 
+            UnityEditor.EditorPrefs.SetBool("AsynchronousShaderCompilation", false);
+
             // Figure out if we're preparing to run in Editor playmode, or if we're building to run outside the Editor
             if (IsBuildingForEditorPlaymode)
             {

@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedObject serializedObject;
 
         public SerializedProperty renderPipelineResources;
-        public SerializedProperty diffusionProfileSettings;
+        public SerializedProperty diffusionProfileSettingsList; 
         public SerializedProperty allowShaderVariantStripping;
         public SerializedProperty enableSRPBatcher;
         public SerializedProperty shaderVariantLogLevel; 
@@ -22,12 +22,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             this.serializedObject = serializedObject;
 
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
-            diffusionProfileSettings = serializedObject.Find((HDRenderPipelineAsset s) => s.diffusionProfileSettings);
+            diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineAsset s) => s.diffusionProfileSettingsList);
             allowShaderVariantStripping = serializedObject.Find((HDRenderPipelineAsset s) => s.allowShaderVariantStripping);
             enableSRPBatcher = serializedObject.Find((HDRenderPipelineAsset s) => s.enableSRPBatcher);
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineAsset s) => s.shaderVariantLogLevel);
 
-            renderPipelineSettings = new SerializedRenderPipelineSettings(serializedObject.Find((HDRenderPipelineAsset a) => a.renderPipelineSettings));
+            renderPipelineSettings = new SerializedRenderPipelineSettings(serializedObject.FindProperty("m_RenderPipelineSettings"));
             defaultFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset
             defaultBakedOrCustomReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), null); //no overrides in HDRPAsset
             defaultRealtimeReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), null); //no overrides in HDRPAsset

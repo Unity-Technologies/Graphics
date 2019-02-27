@@ -4,15 +4,12 @@
 #define UNITY_SHADER_VARIABLES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
 // CAUTION:
 // Currently the shaders compiler always include regualr Unity shaderVariables, so I get a conflict here were UNITY_SHADER_VARIABLES_INCLUDED is already define, this need to be fixed.
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
 // This need to be fixed.
-
-#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    #define USING_STEREO_MATRICES
-#endif
 
 #if defined(USING_STEREO_MATRICES)
     #define glstate_matrix_projection unity_StereoMatrixP[unity_StereoEyeIndex]
@@ -95,6 +92,7 @@ CBUFFER_START(UnityPerDraw)
     //X : Use last frame positions (right now skinned meshes are the only objects that use this
     //Y : Force No Motion
     //Z : Z bias value
+    //W : Camera only
     float4 unity_MotionVectorsParams;
 
 CBUFFER_END
@@ -116,29 +114,6 @@ CBUFFER_START(UnityStereoGlobals)
 CBUFFER_END
 #endif
 
-#if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-CBUFFER_START(UnityStereoEyeIndices)
-    float4 unity_StereoEyeIndices[2];
-CBUFFER_END
-#endif
-
-#if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
-    #define unity_StereoEyeIndex UNITY_VIEWID
-    UNITY_DECLARE_MULTIVIEW(2);
-#elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    static uint unity_StereoEyeIndex;
-#elif defined(UNITY_SINGLE_PASS_STEREO)
-#if SHADER_STAGE_COMPUTE
-    // Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
-    // Instead, we manually update _ComputeEyeIndex in SRP code.
-    #define unity_StereoEyeIndex _ComputeEyeIndex
-#else
-    CBUFFER_START(UnityStereoEyeIndex)
-        int unity_StereoEyeIndex;
-    CBUFFER_END
-#endif
-#endif
-
 CBUFFER_START(UnityPerDrawRare)
     float4x4 glstate_matrix_transpose_modelview0;
 CBUFFER_END
@@ -156,11 +131,11 @@ SAMPLER_CMP(s_linear_clamp_compare_sampler);
 
 // ----------------------------------------------------------------------------
 
-TEXTURE2D(_CameraDepthTexture);
+TEXTURE2D_X(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
 
 // Color pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_ColorPyramidTexture);
+TEXTURE2D_X(_ColorPyramidTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
@@ -203,7 +178,6 @@ CBUFFER_START(UnityGlobal)
         float4x4 unity_MatrixInvV;
         float4x4 unity_MatrixVP;
         float4 unity_StereoScaleOffset;
-        int unity_StereoEyeIndex;
     #endif
 
     // ================================
@@ -335,11 +309,6 @@ float4x4 _PrevViewProjMatrixStereo[2];
 float4   _WorldSpaceCameraPosStereo[2];
 float4   _WorldSpaceCameraPosStereoEyeOffset[2];
 float4   _PrevCamPosRWSStereo[2];
-#if SHADER_STAGE_COMPUTE
-// Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
-// Instead, we manually update _ComputeEyeIndex in SRP code.
-float _ComputeEyeIndex;
-#endif
 CBUFFER_END
 
 #endif // USING_STEREO_MATRICES
@@ -348,7 +317,7 @@ CBUFFER_END
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
 float LoadCameraDepth(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_LOD(_CameraDepthTexture, pixelCoords, 0).r;
+    return LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, pixelCoords, 0).r;
 }
 
 float SampleCameraDepth(float2 uv)
@@ -358,7 +327,7 @@ float SampleCameraDepth(float2 uv)
 
 float3 LoadCameraColor(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
+    return LOAD_TEXTURE2D_X_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
 }
 
 float3 SampleCameraColor(float2 uv)
@@ -406,7 +375,7 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 
 float GetCurrentExposureMultiplier()
 {
-#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+#if SHADEROPTIONS_PRE_EXPOSITION
     return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
 #else
     return 1.0;
@@ -415,7 +384,7 @@ float GetCurrentExposureMultiplier()
 
 float GetPreviousExposureMultiplier()
 {
-#if SHADEROPTIONS_PRE_EXPOSITION && !defined(DEBUG_DISPLAY)
+#if SHADEROPTIONS_PRE_EXPOSITION
     return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x;
 #else
     return 1.0;

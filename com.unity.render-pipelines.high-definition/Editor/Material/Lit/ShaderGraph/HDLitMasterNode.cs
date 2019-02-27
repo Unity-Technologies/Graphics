@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string TangentSlotName = "Tangent";
         public const string SubsurfaceMaskSlotName = "SubsurfaceMask";
         public const string ThicknessSlotName = "Thickness";
-        public const string DiffusionProfileSlotName = "DiffusionProfile";
+        public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
         public const string IridescenceMaskSlotName = "IridescenceMask";
         public const string IridescenceThicknessSlotName = "IridescenceThickness";
         public const string SpecularColorSlotName = "Specular";
@@ -59,7 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const int TangentSlotId = 4;
         public const int SubsurfaceMaskSlotId = 5;
         public const int ThicknessSlotId = 6;
-        public const int DiffusionProfileSlotId = 7;
+        public const int DiffusionProfileHashSlotId = 7;
         public const int IridescenceMaskSlotId = 8;
         public const int IridescenceThicknessSlotId = 9;
         public const int SpecularColorSlotId = 10;
@@ -115,7 +115,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Tangent = 1 << TangentSlotId,
             SubsurfaceMask = 1 << SubsurfaceMaskSlotId,
             Thickness = 1 << ThicknessSlotId,
-            DiffusionProfile = 1 << DiffusionProfileSlotId,
+            DiffusionProfile = 1 << DiffusionProfileHashSlotId,
             IridescenceMask = 1 << IridescenceMaskSlotId,
             IridescenceLayerThickness = 1 << IridescenceThicknessSlotId,
             Specular = 1 << SpecularColorSlotId,
@@ -372,6 +372,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
+        bool m_TransparentWritesVelocity;
+
+        public ToggleData transparentWritesVelocity
+        {
+            get { return new ToggleData(m_TransparentWritesVelocity); }
+            set
+            {
+                if (m_TransparentWritesVelocity == value.isOn)
+                    return;
+                m_TransparentWritesVelocity = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
         bool m_AlphaTestShadow;
 
         public ToggleData alphaTestShadow
@@ -603,6 +619,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        [SerializeField]
+        bool m_DOTSInstancing = false;
+        public ToggleData dotsInstancing
+        {
+            get { return new ToggleData(m_DOTSInstancing); }
+            set
+            {
+                if (m_DOTSInstancing == value.isOn)
+                    return;
+
+                m_DOTSInstancing = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public HDLitMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -612,7 +643,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/HD-Lit-Master-Node"; }
         }
-
+        
         public bool HasRefraction()
         {
             return (surfaceType == SurfaceType.Transparent && renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && refractionModel != ScreenSpaceRefraction.RefractionModel.None);
@@ -636,7 +667,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
             {
-                AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoDisplaySlotName, AlbedoSlotName, SlotType.Input, Color.grey, ColorMode.Default, ShaderStageCapability.Fragment));
+                AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoDisplaySlotName, AlbedoSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
                 validSlots.Add(AlbedoSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Normal))
@@ -671,8 +702,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile))
             {
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileSlotId, DiffusionProfileSlotName, DiffusionProfileSlotName, ShaderStageCapability.Fragment));
-                validSlots.Add(DiffusionProfileSlotId);
+                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
+                validSlots.Add(DiffusionProfileHashSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.IridescenceMask))
             {

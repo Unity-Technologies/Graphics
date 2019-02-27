@@ -199,7 +199,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114633874623567686}
-  m_exposedName: 
+  m_exposedName: parameter
   m_exposed: 0
   m_Order: 0
   m_Category: 
@@ -2973,7 +2973,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
+  m_Name: 05_MotionVectors
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
@@ -3007,25 +3007,27 @@ MonoBehaviour:
     descendantCount: 2
   - name: center
     path: Sphere_center
-    tooltip: 
+    tooltip: The centre of the sphere.
     sheetType: m_Vector3f
     realType: Vector3
     defaultValue:
       m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
+        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"x":1.5,"y":0.0,"z":0.0}'
     min: -Infinity
     max: Infinity
     descendantCount: 0
   - name: radius
     path: Sphere_radius
-    tooltip: 
+    tooltip: The radius of the sphere.
     sheetType: m_Float
     realType: Single
     defaultValue:
       m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 1
     min: -Infinity
     max: Infinity
     descendantCount: 0
@@ -3637,6 +3639,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
+  title: 
   m_Owners:
   - {fileID: 114280324403005594}
   - {fileID: 114967288652437010}

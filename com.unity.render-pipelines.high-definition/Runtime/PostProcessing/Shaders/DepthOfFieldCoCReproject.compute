@@ -6,10 +6,10 @@
 
 #pragma kernel KMain
 
-TEXTURE2D(_InputCoCTexture);
-TEXTURE2D(_InputHistoryCoCTexture);
+TEXTURE2D_X(_InputCoCTexture);
+TEXTURE2D_X(_InputHistoryCoCTexture);
 
-RW_TEXTURE2D(float, _OutputCoCTexture);
+RW_TEXTURE2D_X(float, _OutputCoCTexture);
 
 SAMPLER(sampler_LinearClamp);
 
@@ -23,29 +23,31 @@ CBUFFER_END
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
+void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
 
 #if 0
     // Using Gather4 here doesn't show any performance gain (profiled on Nvidia) compared to doing
     // four loads so it's disabled for the sake of maximum compatibility
-    float4 cocTL = GATHER_TEXTURE2D(_InputCoCTexture, sampler_LinearClamp, uv * _ScreenToTargetScale.xy - _ScreenSize.zw * 0.5); // Top-Left
-    float4 cocBR = GATHER_TEXTURE2D(_InputCoCTexture, sampler_LinearClamp, uv * _ScreenToTargetScale.xy + _ScreenSize.zw * 0.5); // Bottom-Right
+    float4 cocTL = GATHER_TEXTURE2D_X(_InputCoCTexture, sampler_LinearClamp, uv * _ScreenToTargetScale.xy - _ScreenSize.zw * 0.5); // Top-Left
+    float4 cocBR = GATHER_TEXTURE2D_X(_InputCoCTexture, sampler_LinearClamp, uv * _ScreenToTargetScale.xy + _ScreenSize.zw * 0.5); // Bottom-Right
     float coc1 = cocTL.x;
     float coc2 = cocTL.z;
     float coc3 = cocBR.x;
     float coc4 = cocBR.z;
 #else
-    float coc1 = LOAD_TEXTURE2D(_InputCoCTexture, posInputs.positionSS - uint2(1u, 0u)).x; // Left
-    float coc2 = LOAD_TEXTURE2D(_InputCoCTexture, posInputs.positionSS - uint2(0u, 1u)).x; // Top
-    float coc3 = LOAD_TEXTURE2D(_InputCoCTexture, posInputs.positionSS + uint2(0u, 1u)).x; // Bottom
-    float coc4 = LOAD_TEXTURE2D(_InputCoCTexture, posInputs.positionSS + uint2(1u, 0u)).x; // Right
+    float coc1 = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS - uint2(1u, 0u)).x; // Left
+    float coc2 = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS - uint2(0u, 1u)).x; // Top
+    float coc3 = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS + uint2(0u, 1u)).x; // Bottom
+    float coc4 = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS + uint2(1u, 0u)).x; // Right
 #endif
 
     // Dejittered center sample
-    float coc0 = SAMPLE_TEXTURE2D_LOD(_InputCoCTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uv - _TaaJitterStrength.zw), 0.0).x;
+    float coc0 = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uv - _TaaJitterStrength.zw), 0.0).x;
 
     // CoC dilation: determine the closest point in the four neighbors
     float3 closest = float3(0.0, 0.0, coc0);
@@ -56,8 +58,8 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
 
     // Sample the history buffer with the motion vector at the closest point
     float2 velocity;
-    DecodeVelocity(LOAD_TEXTURE2D(_CameraMotionVectorsTexture, max(int2(posInputs.positionSS) + int2(closest.xy), 0)), velocity);
-    float cocHis = SAMPLE_TEXTURE2D_LOD(_InputHistoryCoCTexture, sampler_LinearClamp, (uv - velocity) * ScreenToTargetScaleHistory.xy, 0.0).x;
+    DecodeVelocity(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, max(int2(posInputs.positionSS) + int2(closest.xy), 0)), velocity);
+    float cocHis = SAMPLE_TEXTURE2D_X_LOD(_InputHistoryCoCTexture, sampler_LinearClamp, (uv - velocity) * ScreenToTargetScaleHistory.xy, 0.0).x;
 
     // Neighborhood clamping
     float cocMin = closest.z;
@@ -65,5 +67,5 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
     cocHis = clamp(cocHis, cocMin, cocMax);
 
     // Blend with the history
-    _OutputCoCTexture[posInputs.positionSS] = lerp(coc0, cocHis, MotionBlending);
+    _OutputCoCTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = lerp(coc0, cocHis, MotionBlending);
 }

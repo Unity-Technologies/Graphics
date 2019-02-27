@@ -28,11 +28,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Normal-From-Texture-Node"; }
-        }
-
         string GetFunctionName()
         {
             return string.Format("Unity_NormalFromTexture_{0}", precision);

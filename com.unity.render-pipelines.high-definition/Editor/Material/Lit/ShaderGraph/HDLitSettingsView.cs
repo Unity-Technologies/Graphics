@@ -159,6 +159,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     });
                 });
 
+                ps.Add(new PropertyRow(CreateLabel("Transparent Writes Velocity", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.transparentWritesVelocity.isOn;
+                        toggle.OnToggleChanged(ChangeTransparentWritesVelocity);
+                    });
+                });
+
                 if (m_Node.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction)
                 {
                     ps.Add(new PropertyRow(CreateLabel("Refraction Model", indentLevel)), (row) =>
@@ -314,6 +323,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 {
                     toggle.value = m_Node.overrideBakedGI.isOn;
                     toggle.OnToggleChanged(ChangeoverrideBakedGI);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("DOTS instancing", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.dotsInstancing.isOn;
+                    toggle.OnToggleChanged(ChangeDotsInstancing);
                 });
             });
 
@@ -498,6 +516,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             td.isOn = evt.newValue;
             m_Node.alphaTestDepthPostpass = td;
         }
+        void ChangeTransparentWritesVelocity(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Writes Velocity Change");
+            ToggleData td = m_Node.transparentWritesVelocity;
+            td.isOn = evt.newValue;
+            m_Node.transparentWritesVelocity = td;
+        }
         void ChangeAlphaTestShadow(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Shadow Change");
@@ -554,6 +579,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             td.isOn = evt.newValue;
             m_Node.overrideBakedGI = td;
         }
+
+        void ChangeDotsInstancing(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
+            ToggleData td = m_Node.dotsInstancing;
+            td.isOn = evt.newValue;
+            m_Node.dotsInstancing = td;
+        }    
 
         public AlphaMode GetAlphaMode(HDLitMasterNode.AlphaModeLit alphaModeLit)
         {

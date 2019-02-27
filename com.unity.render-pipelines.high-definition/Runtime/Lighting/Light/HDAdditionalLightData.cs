@@ -68,8 +68,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteAlways]
     public class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        // TODO: Use proper migration toolkit
         // 3. Added ShadowNearPlane to HDRP additional light data, we don't use Light.shadowNearPlane anymore
-        private const int currentVersion = 3;
+        // 4. Migrate HDAdditionalLightData.lightLayer to Light.renderingLayerMask
+        private const int currentVersion = 4;
 
         [HideInInspector, SerializeField]
         [FormerlySerializedAs("m_Version")]
@@ -115,7 +117,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [Range(0.0f, 1.0f), SerializeField, FormerlySerializedAs("volumetricDimmer")]
         private float m_VolumetricDimmer = 1.0f;
-        
+
         public float volumetricDimmer
         {
             get { return useVolumetric ? m_VolumetricDimmer : 0f; }
@@ -141,7 +143,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public LightTypeExtent lightTypeExtent = LightTypeExtent.Punctual;
 
         // Only for Spotlight, should be hide for other light
-        public SpotLightShape spotLightShape = SpotLightShape.Cone;
+        public SpotLightShape spotLightShape { get { return m_SpotLightShape; } set { SetSpotLightShape(value); } }
+        [SerializeField, FormerlySerializedAs("spotLightShape")]
+        SpotLightShape m_SpotLightShape = SpotLightShape.Cone;
 
         // Only for Rectangle/Line/box projector lights
         public float shapeWidth = 0.5f;
@@ -174,17 +178,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool displayAreaLightEmissiveMesh = false;
 
         // Optional cookie for rectangular area lights
-        public Texture2D areaLightCookie = null;
-        
+        public Texture areaLightCookie = null;
+
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
+        [Obsolete("Use Light.renderingLayerMask instead")]
         public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
 
         // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         public uint GetLightLayers()
         {
-            int value = (int)(lightLayers);
+            int value = m_Light.renderingLayerMask;
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
@@ -250,11 +255,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Bounds bounds;
             float cameraDistance = Vector3.Distance(camera.transform.position, transform.position);
-            
+
             #if ENABLE_RAYTRACING
             m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow) && lightTypeExtent == LightTypeExtent.Punctual;
             #else
-            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow);
+            m_WillRenderShadows = m_Light.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow) && !IsAreaLight(lightTypeExtent);
             #endif
 
             m_WillRenderShadows &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
@@ -266,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!m_WillRenderShadows)
                 return;
-            
+
             // Create shadow requests array using the light type
             if (shadowRequests == null || m_ShadowRequestIndices == null)
             {
@@ -277,7 +282,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 for (int i = 0; i < maxLightShadowRequestsCount; i++)
                     shadowRequests[i] = new HDShadowRequest();
             }
-            
+
             Vector2 viewportSize = new Vector2(m_ShadowData.shadowResolution, m_ShadowData.shadowResolution);
 
             // Compute dynamic shadow resolution
@@ -544,6 +549,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public static bool IsAreaLight(LightTypeExtent lightType)
+        {
+            return lightType != LightTypeExtent.Punctual;
+        }
 
 #if UNITY_EDITOR
 
@@ -622,11 +631,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             intensity = displayLightIntensity;
         }
 
-        public static bool IsAreaLight(LightTypeExtent lightType)
-        {
-            return lightType != LightTypeExtent.Punctual;
-        }
-
         public static bool IsAreaLight(SerializedProperty lightType)
         {
             return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
@@ -637,7 +641,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
             MeshFilter emissiveMeshFilter = GetComponent<MeshFilter>();
 
-            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && lightTypeExtent != LightTypeExtent.Tube && displayAreaLightEmissiveMesh;
+            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && displayAreaLightEmissiveMesh;
 
             // Ensure that the emissive mesh components are here
             if (displayEmissiveMesh)
@@ -668,6 +672,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightSize = new Vector3(shapeWidth, shapeHeight, transform.localScale.z);
 
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
+            lightSize.z = k_MinAreaWidth;
             m_Light.transform.localScale = lightSize;
             m_Light.areaSize = lightSize;
 
@@ -676,6 +681,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case LightTypeExtent.Rectangle:
                     shapeWidth = lightSize.x;
                     shapeHeight = lightSize.y;
+                    break;
+                case LightTypeExtent.Tube:
+                    shapeWidth = lightSize.x;
                     break;
                 default:
                     break;
@@ -746,6 +754,76 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         }
 
+        void SetSpotLightShape(SpotLightShape shape)
+        {
+            m_SpotLightShape = shape;
+            UpdateBounds();
+        }
+
+        void UpdateAreaLightBounds()
+        {
+            m_Light.useShadowMatrixOverride = false;
+            m_Light.useBoundingSphereOverride = true;
+            m_Light.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, m_Light.range);
+        }
+
+        void UpdateBoxLightBounds()
+        {
+            m_Light.useShadowMatrixOverride = true;
+            m_Light.useBoundingSphereOverride = true;
+
+            // Need to inverse scale because culling != rendering convention apparently
+            Matrix4x4 scaleMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f));
+            m_Light.shadowMatrixOverride = HDShadowUtils.ExtractBoxLightProjectionMatrix(m_Light.range, shapeWidth, shapeHeight, shadowNearPlane) * scaleMatrix;
+
+            // Very conservative bounding sphere taking the diagonal of the shape as the radius
+            float diag = new Vector3(shapeWidth * 0.5f, shapeHeight * 0.5f, m_Light.range * 0.5f).magnitude;
+            m_Light.boundingSphereOverride = new Vector4(0.0f, 0.0f, m_Light.range * 0.5f, diag);
+        }
+
+        void UpdatePyramidLightBounds()
+        {
+            m_Light.useShadowMatrixOverride = true;
+            m_Light.useBoundingSphereOverride = true;
+
+            // Need to inverse scale because culling != rendering convention apparently
+            Matrix4x4 scaleMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f));
+            m_Light.shadowMatrixOverride = HDShadowUtils.ExtractSpotLightProjectionMatrix(m_Light.range, m_Light.spotAngle, shadowNearPlane, aspectRatio, 0.0f) * scaleMatrix;
+
+            // Very conservative bounding sphere taking the diagonal of the shape as the radius
+            float diag = new Vector3(shapeWidth * 0.5f, shapeHeight * 0.5f, m_Light.range * 0.5f).magnitude;
+            m_Light.boundingSphereOverride = new Vector4(0.0f, 0.0f, m_Light.range * 0.5f, diag);
+        }
+
+        void UpdateBounds()
+        {
+            if (lightTypeExtent == LightTypeExtent.Punctual && m_Light.type == LightType.Spot)
+            {
+                switch (spotLightShape)
+                {
+                    case SpotLightShape.Box:
+                        UpdateBoxLightBounds();
+                        break;
+                    case SpotLightShape.Pyramid:
+                        UpdatePyramidLightBounds();
+                        break;
+                    default: // Cone
+                        m_Light.useBoundingSphereOverride = false;
+                        m_Light.useShadowMatrixOverride = false;
+                        break;
+                }
+            }
+            else if (lightTypeExtent == LightTypeExtent.Rectangle || lightTypeExtent == LightTypeExtent.Tube)
+            {
+                UpdateAreaLightBounds();
+            }
+            else
+            {
+                m_Light.useBoundingSphereOverride = false;
+                m_Light.useShadowMatrixOverride = false;
+            }
+        }
+
         // As we have our own default value, we need to initialize the light intensity correctly
         public static void InitDefaultHDAdditionalLightData(HDAdditionalLightData lightData)
         {
@@ -762,6 +840,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case LightType.Rectangle: // Rectangle by default when light is created
                     lightData.lightUnit = LightUnit.Lumen;
                     lightData.intensity = k_DefaultAreaLightIntensity;
+                    // Disable shadows for area lights as it's not yet supported
+                    light.shadows = LightShadows.None;
                     break;
                 case LightType.Point:
                 case LightType.Spot:
@@ -784,7 +864,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             light.lightShadowCasterMode = LightShadowCasterMode.Everything;
         }
 
-        public void OnBeforeSerialize() { }
+        void OnValidate()
+        {
+            UpdateBounds();
+        }
+
+        public void OnBeforeSerialize()
+        {
+            UpdateBounds();
+        }
 
         public void OnAfterDeserialize()
         {
@@ -843,11 +931,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // ShadowNearPlane have been move to HDRP as default legacy unity clamp it to 0.1 and we need to be able to go below that
                 shadowNearPlane = m_Light.shadowNearPlane;
             }
+            if (m_Version <= 3)
+            {
+                m_Light.renderingLayerMask = LightLayerToRenderingLayerMask((int)lightLayers, m_Light.renderingLayerMask);
+            }
 
             m_Version = currentVersion;
             version = currentVersion;
 
 #pragma warning restore 0618
         }
+
+        /// <summary>
+        /// Converts a light layer into a rendering layer mask.
+        ///
+        /// Light layer is stored in the first 8 bit of the rendering layer mask.
+        ///
+        /// NOTE: light layers are obsolete, use directly renderingLayerMask.
+        /// </summary>
+        /// <param name="lightLayer">The light layer, only the first 8 bits will be used.</param>
+        /// <param name="renderingLayerMask">Current renderingLayerMask, only the last 24 bits will be used.</param>
+        /// <returns></returns>
+        internal static int LightLayerToRenderingLayerMask(int lightLayer, int renderingLayerMask)
+        {
+            var renderingLayerMask_u32 = (uint)renderingLayerMask;
+            var lightLayer_u8 = (byte)lightLayer;
+            return (int)((renderingLayerMask_u32 & 0xFFFFFF00) | lightLayer_u8);
+        }
+
+        /// <summary>
+        /// Converts a renderingLayerMask into a lightLayer.
+        ///
+        /// NOTE: light layers are obsolete, use directly renderingLayerMask.
+        /// </summary>
+        /// <param name="renderingLayerMask"></param>
+        /// <returns></returns>
+        internal static int RenderingLayerMaskToLightLayer(int renderingLayerMask)
+            => (byte)renderingLayerMask;
     }
 }

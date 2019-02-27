@@ -1,17 +1,8 @@
 // Engine includes
 #include "UnityRaytracingMeshUtils.cginc"
 
-// The target acceleration acceleration structure
-RaytracingAccelerationStructure         _RaytracingAccelerationStructure;
-
-// Ray data used for the intersections
-float                                   _RaytracingRayBias;
-float                                   _RaytracingRayMaxLength;
-int                                     _RaytracingNumSamples;
-int                                     _RaytracingMaxRecursion;
-
-// Camera data required that is not part of the classic information
-float                                   _PixelSpreadAngle;
+#define RAYTRACING_OPAQUE_FLAG      0x0f
+#define RAYTRACING_TRANSPARENT_FLAG 0xf0
 
 // Raycone structure that defines the stateof the ray
 struct RayCone

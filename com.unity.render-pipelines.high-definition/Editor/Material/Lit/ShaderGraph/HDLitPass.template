@@ -24,8 +24,7 @@ Pass
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     //#pragma enable_d3d11_debug_symbols
 
-    #pragma multi_compile_instancing
-    #pragma instancing_options renderinglayer
+    $splice(InstancingOptions)
 
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -55,6 +54,7 @@ Pass
     $DisableDecals:                      #define _DISABLE_DECALS 1
     $DisableSSR:                         #define _DISABLE_SSR 1
     $DoubleSided:                        #define _DOUBLESIDED_ON 1
+    $TransparentWritesVelocity:          #define _WRITE_TRANSPARENT_VELOCITY 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -167,7 +167,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Metallic:                   surfaceData.metallic =                  surfaceDescription.Metallic;
         $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
-        $SurfaceDescription.DiffusionProfile:           surfaceData.diffusionProfile =          surfaceDescription.DiffusionProfile;
+        $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
         $SurfaceDescription.CoatMask:                   surfaceData.coatMask =                  surfaceDescription.CoatMask;
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;

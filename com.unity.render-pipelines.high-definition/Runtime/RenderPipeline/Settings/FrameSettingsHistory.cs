@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 camera,
                 additionalData,
                 ref hdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
-                hdrpAsset.GetRenderPipelineSettings()
+                hdrpAsset.currentPlatformRenderPipelineSettings
                 );
 
         // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
@@ -232,7 +232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var camera = frameSettings.camera;
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
             widgets.AddRange(GenerateFrameSettingsPanelContent(hdrpAsset, ref frameSettings));
-            var panel = DebugManager.instance.GetPanel(menuName, true);
+            var panel = DebugManager.instance.GetPanel(menuName, true, 1);
             panel.children.Add(widgets.ToArray());
         }
 

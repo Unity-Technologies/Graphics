@@ -59,8 +59,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 specularColor;
 
             // SSS
-            [SurfaceDataAttributes("Diffusion Profile")]
-            public uint diffusionProfile;
+            [SurfaceDataAttributes("Diffusion Profile Hash")]
+            public uint diffusionProfileHash;
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
 
@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // SpecularColor fold into fresnel0
 
             // SSS
-            public uint diffusionProfile;
+            public uint diffusionProfileIndex;
             public float subsurfaceMask;
 
             // Transmission
@@ -170,8 +170,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
         {
             // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in 
-            supportShadowMask = asset.renderPipelineSettings.supportShadowMask;
-            supportLightLayers = asset.renderPipelineSettings.supportLightLayers;
+            supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
+            supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
             gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
         }
 

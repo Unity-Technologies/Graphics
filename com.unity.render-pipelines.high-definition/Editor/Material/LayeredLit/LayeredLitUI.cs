@@ -71,34 +71,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             public readonly GUIContent layerNameHeader = EditorGUIUtility.TrTextContent("Layer name");
             public readonly GUIContent materialToCopyHeader = EditorGUIUtility.TrTextContent("Material to copy");
-            public readonly GUIContent uvHeader = EditorGUIUtility.TrTextContent("UV", "Also copy UV when doing the copy.");
-            public readonly GUIContent copyButtonIcon = EditorGUIUtility.TrIconContent("d_UnityEditor.ConsoleWindow", "Copy parameters of material to layer. If UV is disabled, UV will not be copied.");
+
+            public readonly GUIContent uvHeader = EditorGUIUtility.TrTextContent("UV", "Also copy UV.");
+            public readonly GUIContent copyButtonIcon = EditorGUIUtility.IconContent("d_UnityEditor.ConsoleWindow", "Copy Material parameters to layer. If UV is disabled, this will not copy UV.");
             public readonly GUIContent layersText = EditorGUIUtility.TrTextContent("Surface Inputs");
             public readonly GUIContent emissiveText = EditorGUIUtility.TrTextContent("Emissive");
-            public readonly GUIContent layerMapMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask");
-            public readonly GUIContent layerInfluenceMapMaskText = EditorGUIUtility.TrTextContent("Layer Influence Mask", "Layer mask");
-            public readonly GUIContent vertexColorModeText = EditorGUIUtility.TrTextContent("Vertex Color Mode", "Mode multiply: vertex color is multiply with the mask. Mode additive: vertex color values are remapped between -1 and 1 and added to the mask (neutral at 0.5 vertex color).");
-            public readonly GUIContent layerCountText = EditorGUIUtility.TrTextContent("Layer Count", "Number of layers.");
-            public readonly GUIContent objectScaleAffectTileText = EditorGUIUtility.TrTextContent("Lock layers 0123 tiling with object Scale", "Tiling of each layers will be affected by the object scale.");
-            public readonly GUIContent objectScaleAffectTileText2 = EditorGUIUtility.TrTextContent("Lock layers  123 tiling with object Scale", "Tiling of each influenced layers (all except main layer) will be affected by the object scale.");
+            public readonly GUIContent layerMapMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Specifies the Layer Mask for this Material");
+            public readonly GUIContent layerInfluenceMapMaskText = EditorGUIUtility.TrTextContent("Layer Influence Mask", "Specifies the Layer Influence Mask for this Material.");
+            public readonly GUIContent vertexColorModeText = EditorGUIUtility.TrTextContent("Vertex Color Mode", "Specifies the method HDRP uses to color vertices.\nMultiply: Multiplies vertex color with the mask.\nAdditive: Remaps vertex color values between [-1, 1] and adds them to the mask (neutral value is 0.5 vertex color).");
+            public readonly GUIContent layerCountText = EditorGUIUtility.TrTextContent("Layer Count", "Controls the number of layers for this Material.");
+            public readonly GUIContent objectScaleAffectTileText = EditorGUIUtility.TrTextContent("Lock layers 0123 tiling with object Scale", "When enabled, tiling of each layer is affected by the Transform's Scale.");
+            public readonly GUIContent objectScaleAffectTileText2 = EditorGUIUtility.TrTextContent("Lock layers  123 tiling with object Scale", "When enabled, tiling of each influenced layer (except the main layer) is affected by the Transform's Scale.");
 
-            public readonly GUIContent layerTexWorldScaleText = EditorGUIUtility.TrTextContent("World Scale", "Tiling factor applied to Planar/Trilinear mapping");
-            public readonly GUIContent UVBlendMaskText = EditorGUIUtility.TrTextContent("BlendMask UV Mapping", "Base UV Mapping mode of the layer.");
+            public readonly GUIContent layerTexWorldScaleText = EditorGUIUtility.TrTextContent("World Scale", "Sets the tiling factor of the Planar/Trilinear mapping.");
+            public readonly GUIContent UVBlendMaskText = EditorGUIUtility.TrTextContent("BlendMask UV Mapping", "Specifies the UV Mapping mode of the layer.");
+
 
             public readonly GUIContent layeringOptionText = EditorGUIUtility.TrTextContent("Layering Options");
 
-            public readonly GUIContent useHeightBasedBlendText = EditorGUIUtility.TrTextContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
-            public readonly GUIContent useMainLayerInfluenceModeText = EditorGUIUtility.TrTextContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");
+            public readonly GUIContent useHeightBasedBlendText = EditorGUIUtility.TrTextContent("Use Height Based Blend", "When enabled, HDRP blends the layer with the underlying layer based on the height.");
+            public readonly GUIContent useMainLayerInfluenceModeText = EditorGUIUtility.TrTextContent("Main Layer Influence", "Switches between regular layers mode and base/layers mode.");
 
-            public readonly GUIContent opacityAsDensityText = EditorGUIUtility.TrTextContent("Use Opacity map as Density map", "Use opacity map as (alpha channel of base color) as Density map.");
-            public readonly GUIContent inheritBaseNormalText = EditorGUIUtility.TrTextContent("Normal influence", "Inherit the normal from the base layer.");
-            public readonly GUIContent inheritBaseHeightText = EditorGUIUtility.TrTextContent("Heightmap influence", "Inherit the height from the base layer.");
-            public readonly GUIContent inheritBaseColorText = EditorGUIUtility.TrTextContent("BaseColor influence", "Inherit the base color from the base layer.");
-            public readonly GUIContent heightTransition = EditorGUIUtility.TrTextContent("Height Transition", "Size in world units of the smooth transition between layers.");
+            public readonly GUIContent opacityAsDensityText = EditorGUIUtility.TrTextContent("Use Opacity map as Density map", "When enabled, HDRP uses the opacity map (alpha channel of Base Color) as the Density map.");
+            public readonly GUIContent inheritBaseNormalText = EditorGUIUtility.TrTextContent("Normal influence", "Controls the strength of the normals inherited from the base layer.");
+            public readonly GUIContent inheritBaseHeightText = EditorGUIUtility.TrTextContent("Heightmap influence", "Controls the strength of the height map inherited from the base layer.");
+            public readonly GUIContent inheritBaseColorText = EditorGUIUtility.TrTextContent("BaseColor influence", "Controls the strength of the Base Color inherited from the base layer.");
+            public readonly GUIContent heightTransition = EditorGUIUtility.TrTextContent("Height Transition", "Sets the size, in world units, of the smooth transition between layers.");
 
-            public readonly GUIContent perPixelDisplacementLayersWarning = EditorGUIUtility.TrTextContent("For pixel displacement to work correctly, all layers with a heightmap must use the same UV mapping");
+            public readonly GUIContent perPixelDisplacementLayersWarning = EditorGUIUtility.TrTextContent("For pixel displacement to work correctly, all layers with a heightmap must use the same UV mapping.");
+
 
             public readonly GUIContent materialReferencesText = EditorGUIUtility.TrTextContent("Material To Copy");
+
+            public readonly string materialImporterNotAvailable = "Can't display material layer options because the material is not an asset";
 
             public StylesLayer()
             {
@@ -242,7 +247,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
 
             Material[] layers = null;
-            InitializeMaterialLayers(materialImporter, ref layers);
+
+            // Material importer can be null when the selected material doesn't exists as asset (Material saved inside the scene)
+            if (materialImporter != null)
+                InitializeMaterialLayers(materialImporter, ref layers);
 
             // We could have no userData in the assets, so test if we have load something
             if (layers != null)
@@ -575,6 +583,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         bool DoLayersGUI(AssetImporter materialImporter)
         {
+            if (materialImporter == null)
+            {
+                EditorGUILayout.HelpBox(styles.materialImporterNotAvailable, MessageType.Warning);
+                return false;
+            }
+            
             bool layerChanged = false;
 
             GUI.changed = false;
@@ -751,9 +765,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
 
-            BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitTranslucent || (materialId == BaseLitGUI.MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
+            MaterialId materialId = (MaterialId)material.GetFloat(kMaterialID);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == MaterialId.LitTranslucent || (materialId == MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -772,7 +786,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Material material = m_MaterialEditor.target as Material;
             AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
 
-            InitializeMaterialLayers(materialImporter, ref m_MaterialLayers);
+            // Material importer can be null when the selected material doesn't exists as asset (Material saved inside the scene)
+            if (materialImporter != null)
+                InitializeMaterialLayers(materialImporter, ref m_MaterialLayers);
 
             bool optionsChanged = false;
             EditorGUI.BeginChangeCheck();
@@ -858,7 +874,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 // SaveAssetsProcessor the referenced material in the users data
-                SaveMaterialLayers(materialImporter);
+                if (materialImporter != null)
+                    SaveMaterialLayers(materialImporter);
             }
 
             // We should always do this call at the end

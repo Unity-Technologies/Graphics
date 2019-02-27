@@ -47,5 +47,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
-    public sealed class VignetteModeParameter : VolumeParameter<VignetteMode> { public VignetteModeParameter(VignetteMode value, bool overriden = false) : base(value, overriden) { } }
+    public sealed class VignetteModeParameter : VolumeParameter<VignetteMode> { public VignetteModeParameter(VignetteMode value, bool overrideState = false) : base(value, overrideState) { } }
 }

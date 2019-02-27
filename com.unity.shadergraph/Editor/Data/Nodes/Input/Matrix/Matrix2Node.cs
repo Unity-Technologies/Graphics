@@ -45,10 +45,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Matrix-2x2-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

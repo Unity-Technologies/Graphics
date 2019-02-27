@@ -14,8 +14,10 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
+  stringTagMap:
+    MotionVector: User
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -140,6 +142,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 4
+    - _DiffusionProfileHash: 2.0715158
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -249,6 +252,8 @@ Material:
     m_Colors:
     - _BaseColor: {r: 0.8207547, g: 0.3213332, b: 0.3213332, a: 1}
     - _Color: {r: 0.8207547, g: 0.32133317, b: 0.32133317, a: 1}
+    - _DiffusionProfileAsset: {r: 9.002416e+32, g: -2.4912824e+12, b: 3.1050093e+32,
+        a: 268232420}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}

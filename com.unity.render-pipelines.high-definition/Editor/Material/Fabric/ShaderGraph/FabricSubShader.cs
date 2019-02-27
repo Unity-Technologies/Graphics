@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AmbientOcclusionSlotId,
                 FabricMasterNode.SpecularColorSlotId,
-                FabricMasterNode.DiffusionProfileSlotId,
+                FabricMasterNode.DiffusionProfileHashSlotId,
                 FabricMasterNode.SubsurfaceMaskSlotId,
                 FabricMasterNode.ThicknessSlotId,
                 FabricMasterNode.TangentSlotId,
@@ -162,26 +162,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as FabricMasterNode;
-
-                int stencilDepthPrepassWriteMask = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer:0;
-                int stencilDepthPrepassRef = masterNode.receiveDecals.isOn ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer:0;
-                stencilDepthPrepassWriteMask |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-                stencilDepthPrepassRef |= !masterNode.receiveSSR.isOn ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
-
-                if (stencilDepthPrepassWriteMask != 0)
-                {
-                    pass.StencilOverride = new List<string>()
-                    {
-                        "// Stencil setup",
-                        "Stencil",
-                        "{",
-                        string.Format("   WriteMask {0}", stencilDepthPrepassWriteMask),
-                        string.Format("   Ref  {0}", stencilDepthPrepassRef),
-                        "   Comp Always",
-                        "   Pass Replace",
-                        "}"
-                    };
-                }
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(masterNode.receiveDecals.isOn, masterNode.receiveSSR.isOn, false, ref pass);
             }           
         };
 
@@ -231,21 +212,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as FabricMasterNode;
-
-                int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-                int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-
-                pass.StencilOverride = new List<string>()
-                {
-                    "// If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity",
-                    "Stencil",
-                    "{",
-                    string.Format("   WriteMask {0}", stencilWriteMaskMV),
-                    string.Format("   Ref  {0}", stencilRefMV),
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(masterNode.receiveDecals.isOn, masterNode.receiveSSR.isOn, true, ref pass);
             }
         };
 
@@ -288,7 +255,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AmbientOcclusionSlotId,
                 FabricMasterNode.SpecularColorSlotId,
-                FabricMasterNode.DiffusionProfileSlotId,
+                FabricMasterNode.DiffusionProfileHashSlotId,
                 FabricMasterNode.SubsurfaceMaskSlotId,
                 FabricMasterNode.ThicknessSlotId,
                 FabricMasterNode.TangentSlotId,
@@ -308,22 +275,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as FabricMasterNode;
-                pass.StencilOverride = new List<string>()
-                {
-                    "// Stencil setup",
-                    "Stencil",
-                    "{",
-                    string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
-                    string.Format("   Ref  {0}", masterNode.RequiresSplitLighting() ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting),
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
+                HDSubShaderUtilities.GetStencilStateForForward(masterNode.RequiresSplitLighting(), ref pass);
 
-                pass.ExtraDefines.Remove("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
+                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");                
+
                 if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
                 {
-                    pass.ExtraDefines.Add("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
+                    // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+                    // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+                    pass.ExtraDefines.Add("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
                     pass.ZTestOverride = "ZTest Equal";
                 }
                 else

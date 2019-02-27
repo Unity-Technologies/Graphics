@@ -1,183 +1,167 @@
 # The High Definition Render Pipeline Asset
 
-The High Definition Render Pipeline (HDRP) Asset controls the global rendering settings of your Project and creates an instance of the rendering pipeline. A rendering pipeline instance contains intermediate resources and an implementation of the render pipeline. For more information, see documentation on Rendering Pipelines.
+The High Definition Render Pipeline (HDRP) Asset controls the global rendering settings of your Project and creates an instance of the rendering pipeline. A rendering pipeline instance contains intermediate resources and an implementation of the render pipeline. 
+
+Unity does not allocate memory or build Shader variants for disabled features in your HDRP Asset. This means that you can disable settings that you are not using to save memory, but you can not enable disabled features at run time. You can toggle enabled features at run time on a per-Camera basis using [Frame-Settings](Frame-Settings.html).
 
 ## Creating an HDRP Asset
 
 A new Project using the HDRP template includes an HDRP Asset file named HDRenderPipelineAsset in the Assets/Settings folder.
 
-If you upgrade a Project to HDRP and therefore do not use the HDRP template, follow the steps below to create and customize your own HDRP Asset.
+If you [upgrade a Project to HDRP](Upgrading-To-HDRP.html) and therefore do not use the HDRP template, you need to add an HDRP Asset to your Project. To create and customize an HDRP Asset:
 
 1. In the Unity Editor, go to the Project window and navigate to the folder you want to create your HDRP Asset in. This folder must be inside the Assets folder; you can not create Assets in the Packages folder.
+2. In the main menu, go to **Assets > Create > Rendering** and click **High Definition Render Pipeline Asset** to create your HDRP Asset.
+3. Enter a name for the **HDRP Asset** and press the Return key to confirm it.
 
-2. In the menu, navigate to __Assets > Create > Rendering__ and click __High Definition Render Pipeline Asset__ to create your HDRP Asset.
+When you have created an HDRP Asset, you must assign it it to the pipeline:.
 
-3. Name the __HDRP Asset__ and press the Return key to confirm it.
+1. Select **Edit > Project Settings > Graphics** and locate the **Scriptable Render Pipeline Settings** property at the top.
+2. Either drag and drop the HDRP Asset into the property field, or use the object picker (located on the right of the field) to select it from a list of all HDRP Assets in your Project.
 
-When you have created a HDRP Asset, you must assign it it to pipeline:. 
+You can create multiple HDRP Assets containing different settings. This is useful for Project that support multiple platforms, such as PC, Xbox One and PlayStation 4. In each HDRP Asset, you can change settings to suite the hardware of each platform and then assign the relevant one when building your Project for each platform.
 
-1. Select __Edit > Project Settings > Graphics__ and locate the __Scriptable Render Pipeline Settings__ property at the top. 
+To change the HDRP Asset your render pipeline uses, either manually select an HDRP Asset in the Graphics Settings window (as shown above), or  use the GraphicsSettings.renderPipelineAsset property via script.
 
-2. Either drag and drop the HDRP Asset into the property field, or use the object picker (located on the right of the field) to select it from a list of all HDRP Assets in your Unity Project.
+When you create an HDRP Asset, open it in the Inspector to edit its properties. 
 
-You can create multiple HDRP Assets containing different settings. You can change the HDRP Asset your render pipeline uses by either manually selecting an HDRP Asset in the Graphics Settings window (as shown above), or by using the `GraphicsSettings.renderPipelineAsset` property via script.
+## HDRP Asset default Frame Settings
 
-Creating multiple HDRP Assets is useful when developing a Project that supports multiple platforms,for example, PC, Xbox One and PlayStation 4. In each HDRP Asset, you can change settings to suite the hardware of each platform and then assign the relevant one when building your Project for each platform.
+Frame Settings control the rendering passes made by the main Camera at run time. This section describes the Frame Settings that you set on an HDRP Asset. For information about general Frame Settings, and how to use them, see the [HDRP Frame Settings documentation](Frame-Settings.html). 
 
-## Render Pipeline Resources
+## General
 
-The HDRP Resources Asset stores references to Shaders and Materials used by HDRP.  When you build your Unity Project, HDRP embeds all of the resources that the HDRP Resources Asset references. This is the Scriptable Render Pipeline equivalent of the Legacy Resources folder mechanism of Unity. It is useful because it allows you to set up multiple render pipelines in a Unity Project and, when you build the Project, Unity only embeds Shaders and Materials relevant for that pipeline.
+| **Property**                         | **Description**                                              |
+| ------------------------------------ | ------------------------------------------------------------ |
+| **Render Pipeline Resources**        | Stores references to Shaders and Materials which HDRP uses.  When you build your Unity Project, HDRP embeds all of the resources that this Asset references. It allows you to set up multiple render pipelines in a Unity Project and, when you build the Project, Unity only embeds Shaders and Materials relevant for that pipeline. Unity creates an HDRP Resources Asset when you create an HDRP Asset and the HDRP Asset references it automatically. This is the Scriptable Render Pipeline equivalent of  Unity’s **Resources** folder mechanism. |
+| **Render Pipeline Editor Resources** | Stores reference resources for the Editor only. Unity does not include these when you build your Unity Project. Unity creates an HDRP Resources Asset when you create an HDRP Asset and the HDRP Asset references it automatically. |
+| **SPR Batcher**                      | Enable this checkbox to make HDRP use the SRP batcher optimization. The SRP batcher minimizes the number of parameters the Shaders receive between each draw call. This improves CPU performance. |
+| **Shader Variant Log Level**         | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project.<br />**Disabled**: Disables this feature, so HDRP doesn’t log any Shader variant information.<br />**Only HDRP Shaders**: Only logs Shader variant information for HDRP Shaders.<br />**All Shaders**: Logs Shader variant information for every Shader type. |
 
-Unity creates a HDRP Resources Asset when you create a HDRP Asset and references it automatically.
+## Rendering
 
-## Render Pipeline Editor Resources
+| **Property**                          | **Description**                                              |
+| ------------------------------------- | ------------------------------------------------------------ |
+| **Lit Shader Mode**                   | Use the drop-down to choose which mode HDRP uses for the [Lit Shader](Lit-Shader.html).<br />**Forward Only**: forces HDRP to only use forward rendering for Lit Shaders.<br />**Deferred Only**: forces HDRP to use deferred rendering for Lit Shaders (HDRP still renders advanced Materials using forward rendering).<br />**Both**: allows the Camera to use deferred and forward rendering.<br /><br />Select **Both** to allow you to switch between forward and deferred rendering for Lit Shaders at run time per Camera. Selecting a specific mode reduces build time and Shader memory because HDRP requires less Shader variants, but it is not possible to switch from one mode to the other at run time. |
+| **Multisample Anti-aliasing Quality** | Use the drop-down to set the number of samples HDRP uses for multisample anti-aliasing (MSAA). The larger the sample count, the better the quality. Select **None** to disable MSAA.This property is only visible when **Lit Shader Mode** is set to **Forward Only** or **Both**. |
+| **Motion Vectors**                    | Enable this checkbox to make HDRP support motion vectors. HDRP uses motion vectors for effects like screen space reflection (SSR) and motion blur. When disabled, motion blur has no effect and HDRP calculates SSR with lower quality. |
+| **Runtime Debug Display**             | Enable this checkbox to make HDRP display Material and Lighting properties at run time to help debugging.Disable this checkbox to reduce build time and Shader memory. This disables the following debug modes: All Material debug modes except GBuffer debug. The Lux meter, diffuse lighting only, and specular lighting only debug modes. The overriding option for overriding albedo. |
+| **Dithering Cross-fade**              | Enable this checkbox to make HDRP support dithering cross fade. This allows HDRP to implement smooth transitions between a GameObject’s LOD levels. When disabled, this reduces build time if you are not using LOD fade. |
+| **Transparent Backface**              | Enable this checkbox to make HDRP support transparent back-face render passes. If your Unity Project does not need to make a transparent back-face pass, disable this checkbox to reduce build time. |
+| **Transparent Depth Prepass**         | Enable this checkbox to make HDRP support transparent depth render prepasses. If your Unity Project does not need to make a transparent depth prepass, disable this checkbox to reduce build time . |
+| **Transparent Depth Postpass**        | Enable this checkbox to make HDRP support transparent depth render postpasses. If your Unity Project does not make use of a transparent depth postpass. Uncheck this checkbox to reduce build time . |
 
-## Diffusion Profile List
+<a name="Decals"></a>
 
-The [Diffusion Profile List](Diffusion-Profile.html) Asset stores Subsurface Scattering and Transmission Control profiles for your Project. Create a Diffusion Profile Settings Asset by navigating to __Assets > Create > Rendering__ and clicking __Diffusion Profile List__.
+### Decals
 
-## Render Pipeline Features
+These settings control the draw distance and resolution of the decals atlas that HDRP uses when it renders decals projected onto transparent surfaces.
 
-These settings enable or disable HDRP features in your Unity Project. Unity does not allocate memory or build Shader variants for disabled features, so disable settings that you are not using to save memory. You can not enable disabled features at run time.
+| **Property**                               | **Description**                                              |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| **Enable**                                 | Enable this checkbox to make HDRP support decals in your Unity Project. |
+| **Draw Distance**                          | The maximum distance from the Camera at which Unity draws Decals. |
+| **Atlas Width**                            | The Decal Atlas width. This atlas stores all decals that project onto transparent surfaces. |
+| **Atlas Height**                           | The Decal Atlas height. This atlas stores all decals that project onto transparent surfaces. |
+| **Metal and Ambient Occlusion properties** | Enable this checkbox to allow decals to affect metallic and ambient occlusion Material properties. Enabling this feature has a performance impact. |
+| **Maximum** **Decals on Screen**       | The maximum number of decals you can have on screen at one time. |
 
-![](Images/HDRPAsset1.png)
+<a name="DynamicResolution"></a>
+### Dynamic Resolution
 
-| Property| Description |
-|:---|:---|
-| **Shadow Mask** | Enables support for [Shadowmask](https://docs.unity3d.com/Manual/LightMode-Mixed-Shadowmask.html) in your Project. |
-| **SSR (screen space reflection)** | Enables support for [SSR](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html). SSR is a technique for calculating reflections by reusing screen space data. |
-| **SSAO (screen space ambient occlusion)** | Enables support for SSAO. SSAO is a technique for approximating ambient occlusion efficiently in realtime. |
-| **Subsurface Scattering** | Enables Subsurface Scattering (SSS). SSS describes light penetration of the surface of a translucent object. |
-| **Subsurface Scattering - High quality** | Increase the SSS Sample Count and enable ultra quality Subsurface Scattering. Be aware that increasing the sample count greatly increases the cost of the Subsurface Scattering effect. |
-| **Volumetrics** | Enables support for volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Visual-Environment.html). |
-| **Volumetrics - high quality** | Increases the resolution of volumetrics. This increases the quality of fog effects, but increases the cost of the effect greatly. |
-| **LightLayers** | Enables support for Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers with a matching rendering Layer. |
-| **Support Lit Shader Mode** | Choose which mode HDRP uses for the [Lit Shader](Lit-Shader.html). Select **Forward Only** to force the HDRP renderer to only use forward rendering. Select **Deferred Only** to force the HDRP renderer to use deferred rendering for Lit Shaders (HDRP still renders advanced Materials using forward rendering). Select **Both** to allow the Camera to use deferred and forward rendering. Selecting **Both** allows you to switch between forward and deferred rendering for Lit Shaders at run time or per Camera. Selecting a specific mode reduces build time and Shader memory because HDRP requires less Shader variants, but it is not possible to switch from one mode to the other at run time. |
-| **Support Multi Sampling Anti-Aliasing** | Enables support for Multi Sampling Anti-Aliasing (MSAA). This is only available when **Support Lit Shader Mode** is set to **Forward Only**. |
-| **MSAA Sample Count** | Sets the number of samples HDRP uses for with MSAA. |
-| **Decals** | Enable support for Decals. |
-| **Motion Vectors** | Enables support for Motion Vectors. HDRP uses Motion Vectors for effects like screen space reflection (SSR) and motion blur. When disabled, motion blur has no effect and HDRP calculates SSR with lower quality. |
-| **Runtime debug display** | Displays Material and Lighting properties at run time to help debugging. Disable this to reduce build time and Shader memory. Disables support for HDRP’s runtime debug display. This disables the following debug modes: All Material debug modes except GBuffer debug. The Lux meter, diffuse lighting only, and specular lighting only lighting debug modes. The overriding option for overriding albedo. |
-| **Dithering cross fade** | Enables support for dithering cross fade. This allows HDRP to implement smooth transitions between a GameObject’s LOD levels. When disabled, this reduces build time if you are not using LOD fade. |
-| **Distortion** | Enables support for distortion. If your Unity Project does not use distortion, disable this checkbox to reduce build time . |
-| **Transparent Backface** | Enables support for transparent back-face render passes. If your Unity Project does not need to make a transparent back-face pass, disable this checkbox to reduce build time. |
-| **Transparent Depth Prepass** | Enables support for transparent depth render prepasses. If your Unity Project does not need to make a transparent depth prepass, disable this checkbox to reduce build time . |
-| **Transparent Depth Postpass** | Enables support for transparent depth render postpasses. If your Unity Project does not make use of a transparent depth postpass. Uncheck this checkbox to reduce build time . |
+| **Property**                  | **Description**                                              |
+| ----------------------------- | ------------------------------------------------------------ |
+| **Enable**                    | Enable this checkbox to make HDRP support dynamic resolution in your Unity Project. |
+| **Dynamic Resolution Type**   | Use the drop-down to select the type of dynamic resolution HDRP uses:<br />**Software**: This option allocates render targets to accommodate the maximum resolution possible, then rescales the viewport accordingly. This allows the viewport to render at varying resolutions. |
+| **Upscale Filter**            | Use the drop-down to select the filter that HDRP uses for upscaling.<br />**Bilinear**: A low quality upsample. The least resource intensive option.<br />**Catmull-Rom**: A bicubic upsample with 4 taps.<br />**Lanczos**: A sharp upsample. This method can potentially introduce artifacts so you should not use it for extreme upsampling cases for example, when the screen percentage is less than 50%. |
+| **Minimum Screen Percentage** | The minimum screen percentage that dynamic resolution can reach. |
+| **Maximum Screen Percentage** | The maximum screen percentage that dynamic resolution can reach. This value must be higher than the **Min Screen Percentage**. |
+| **Force Screen Percentage**   | Enable this checkbox to force HDRP to use a specific screen percentage for dynamic resolution. This feature is useful for debugging dynamic resolution. |
+| **Forced Screen Percentage**  | The specific screen percentage that HDRP uses for dynamic resolution. This property is only visible when you enable the **Force Screen Percentage**.. |
 
+## Lighting
 
+| **Property**                       | **Description**                                              |
+| ---------------------------------- | ------------------------------------------------------------ |
+| **Screen Space Ambient Occlusion** | Enable this checkbox to make HDRP support screen space ambient occlusion (SSAO). SSAO is a technique for approximating ambient occlusion efficiently in real time. |
+| **Volumetrics**                    | Enable this checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Visual-Environment.html). |
+| **- high quality**                 | Enable this checkbox to increase the resolution of volumetrics. This increases the quality of fog effects, but increases the resource intensity greatly. |
+| **Light Layers**                   | Enable this checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers with a matching rendering Layer. |
 
-## HDRP Asset Default Frame Settings
-
-Frame Settings control the rendering passes made by the main Camera at run time. For more information about Frame Setting, and how to use them, see the [HDRP Frame Settings documentation](Frame-Settings.html).
-
-## Cookies
+### Cookies
 
 Use the Cookie settings to configure the maximum resolution of individual cookies and the maximum resolution of cookie texture arrays that define the number of cookies on screen at one time. Larger sizes use more memory, but result in higher quality images.
 
-| Property| Description |
-|:---|:---|
-| **Cookie Size** | The maximum individual cookie size for the 2D cookies that HDRP uses for Directional and Spot Lights.  |
-| **Texture Array Size** | The maximum Texture Array size for the 2D cookies that HDRP uses for Directional and Spot Lights. Increase this to increase the amount of 2D cookies HDRP can use concurrently on screen. |
-| **Point Cookie Size** | The maximum [Point Cookie](https://docs.unity3d.com/Manual/Cookies.html) size for the Cube cookies that HDRP uses for Point Lights. |
-| **Cubemap Array Size** | The maximum Cubemap Array size for the Cube cookies that HDRP uses for Point Lights. Increase this to increase the amount of cubemap cookies HDRP can use concurrently on screen.  |
+| **Property**           | **Description**                                              |
+| ---------------------- | ------------------------------------------------------------ |
+| **Cookie Size**        | Use the drop-down to select the maximum individual cookie size for 2D cookies. HDRP uses 2D cookies for Directional and Spot Lights. |
+| **Texture Array Size** | The maximum Texture Array size for the 2D cookies that HDRP uses for Directional and Spot Lights. Increase this to make HDRP support a greater number of 2D cookies concurrently on screen. |
+| **Point Cookie Size**  | Use the drop-down to select the maximum[ Point Cookie](https://docs.unity3d.com/Manual/Cookies.html) size for cubemap cookies. HDRP uses cubemap cookies for Point Lights. |
+| **Cubemap Array Size** | The maximum cube map Array size for the Cube cookies that HDRP uses for Point Lights. Increase this to make HDRP support a greater number of cube map cookies concurrently on screen. |
 
-
-
-## Reflection
+### Reflections
 
 Use the Reflection settings to configure the resolution of your reflections and whether Unity should compress the Reflection Probe caches or not.
 
-| Property| Description |
-|:---|:---|
-| **Compress Reflection Probe Cache** | Compresses the Reflection Probe Cache to save space on disk. |
-| **Reflection Cubemap Size** | The maximum resolution of the individual Reflection Probe [Cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
-| **Probe Cache Size** | The maximum resolution of the Probe Cache. Defines how many Probe Caches HDRP can save in cache. |
-| **Compress Planar Reflection Probe Cache** | Compresses the Planar Reflection Probe Cache. |
-| **Planar Reflection Texture Size** | The maximum resolution of the Planar Reflection texture. |
-| **Planar Probe Cache Size** | The maximum size of the Planer Reflection Probe cache. |
-| **Support Fabric BSDF Convolution** | By default, Fabric Materials reuse Reflection Probes HDRP calculates for the Lit Shader (GGX BRDF). If you enable this option, HDRP calculates another version of each Reflection Probe for the Fabric Shader, creating more accurate lighting effects. This increases the cost as HDRP must condition two Reflection Probes instead of one. It also reduces the number of visible Reflection Probes in the current view by half as the size of the cache storing Reflection Probe data does not change and now must store both versions of each Reflection Probe. |
+| **Property**                               | **Description**                                              |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| **Screen Space Reflection**                | Enable this checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html). SSR is a technique for calculating reflections by reusing screen space data. |
+| **Compress Reflection Probe Cache**        | Enable this checkbox to compress the [Reflection Probe](Reflection-Probe.html) cache in order to save space on disk. |
+| **Reflection Cubemap Size**                | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
+| **Probe Cache Size**                       | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
+| **Compress Planar Reflection Probe Cache** | Enable this checkbox to compress the [Planar Reflection Probe](Planar-Reflection-Probe.html) cache in order to save space on disk. |
+| **Planar Reflection Texture Size**         | Use the drop-down to select the maximum resolution of individual Planar Reflection textures. |
+| **Planar Probe Cache Size**                | The maximum size of the Planer Reflection Probe cache. Defines how many Probe textures HDRP can save in cache. |
 
+<a name=”SkyLighting”></a>
 
-
-## Sky
+### Sky
 
 These settings control skybox reflections and skybox lighting.
 
-| Property| Description |
-|:---|:---|
-| **Reflection Size** | The maximum resolution of the cubemap HDRP uses to represent the sky. |
-| **Lighting Override Mask** | The [Volume](Volumes.html) layer mask HDRP uses to override sky lighting. Use this to decouple the display sky and lighting. |
+| **Property**               | **Description**                                              |
+| -------------------------- | ------------------------------------------------------------ |
+| **Reflection Size**        | Use the drop-down to select the maximum resolution of the cube map HDRP uses to manage fallback reflection when no local reflection probes are present. This property has no effect on the quality of the sky itself. |
+| **Lighting Override Mask** | Use the drop-down to select the [Volume](Volumes.html) layer mask HDRP uses to override sky lighting. Use this to decouple the display sky and lighting. See the [Environment Lighting](Environment-Lighting.html#DecoupleVisualEnvironment) for information on how to decouple environment lighting from the sky background. |
 
+### Shadow
 
+These settings adjust the size of the shadow mask. Smaller values causes Unity to discard more distant shadows, while higher values lead to Unity displaying more shadows at longer distances from the Camera.
 
-## LightLoop
+| **Property**                     | **Description**                                              |
+| -------------------------------- | ------------------------------------------------------------ |
+| **Shadow Mask**                  | Enable this checkbox to make HDRP support [Shadowmask](https://docs.unity3d.com/Manual/LightMode-Mixed-Shadowmask.html) in your Unity Project. |
+| **Resolution**                   | Use the drop-down to select the resolution of shadow atlas.  |
+| **16-bit**                       | Enable this checkbox to force HDRP to use 16-bit shadow maps. |
+| **Dynamic Rescale**              | Enable this checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don’t currently fit onto it. |
+| **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](HD-Shadow-Settings.html) override. |
+| **Filtering Quality**            | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. Shadow quality only works for Cameras that use [forward rendering](Forward-And-Deferred-Rendering.html). **Deferred** mode uses Low. For information on each filtering quality preset, see the [Shadows in HDRP](Shadows-in-HDRP.html#FilteringQualities) documentation. |
 
-Use these settings to enable or disable settings relating to lighting in HDRP. 
+### Light Loop
 
-| Property| Description |
-|:---|:---|
-| **Max Directional Lights On Screen** | The maximum number of Directional Lights HDRP can handle on screen at once. |
-| **Max Punctual Lights On Screen** | The maximum number of [Point and Spot Lights](Glossary.html#PunctualLight) HDRP can handle on screen at once. |
-| **Max Area Lights On Screen** | The maximum number of area Lights HDRP can handle on screen at once. |
-| **Max Env Lights On Screen** | The maximum number of environment Lights HDRP can handle on screen at once.  |
-| **Max Decals On Screen** | The maximum number of Decals HDRP can handle on screen at once. |
+Use these settings to enable or disable settings relating to lighting in HDRP.
 
+| **Property**                      | **Description**                                              |
+| --------------------------------- | ------------------------------------------------------------ |
+| **Maximum Directional On Screen** | The maximum number of Directional Lights HDRP can manage on screen at once. |
+| **Maximum Punctual On Screen**    | The maximum number of [Point and Spot Lights](Glossary.html#PunctualLight) HDRP can manage on screen at once. |
+| **Maximum Area On Screen**        | The maximum number of area Lights HDRP can manage on screen at once. |
+| **Maximum Environment On Screen** | The maximum number of environment Lights HDRP can manage on screen at once. |
 
+## Material
 
-## Shadows
+| **Property**                    | **Description**                                              |
+| ------------------------------- | ------------------------------------------------------------ |
+| **Distortion**                  | Enable this checkbox to make HDRP support distortion. If your Unity Project does not use distortion, disable this checkbox to reduce build time. |
+| **Diffusion Profile List**      | Assign __Diffusion Profiles__ to this list to store Subsurface Scattering and Transmission profiles for your Project. To create a Diffusion Profile Asset, navigate to **Assets > Create > Rendering** and click **Diffusion Profile**. |
+| **Subsurface Scattering**       | Enable this checkbox to make HDRP support subsurface scattering (SSS). SSS describes light penetration of the surface of a translucent object |
+| **High Quality**                | Enable this checkbox to increase the SSS Sample Count and enable high quality subsurface scattering. Increasing the sample count greatly increases the performance cost of the Subsurface Scattering effect. |
+| **Fabric BSDF Convolution** | By default, Fabric Materials reuse the Reflection Probes that HDRP calculates for the Lit Shader (GGX BRDF). Enable this checkbox to make HDRP calculate another version of each Reflection Probe for the Fabric Shader, creating more accurate lighting effects. This increases the resource intensity because HDRP must condition two Reflection Probes instead of one. It also reduces the number of visible Reflection Probes in the current view by half because the size of the cache that store Reflection Probe data does not change and now must store both versions of each Reflection Probe. |
 
-These settings adjust the size of the shadow mask. Smaller values causes Unity to discard more distant shadows, while higher values lead to Unity displaying more shadows at longer distances from the camera.
+## Post-processing
 
-Higher values use more memory.
-
-### Atlas
-
-| Property| Description |
-|:---|:---|
-| **Resolution** | The resolution of the shadow atlas. |
-| **16-bit** | Forces HDRP to use 16-bit shadow maps. |
-| **Dynamic Rescale** | Allows HDRP to rescale the shadow atlas if all the shadows on the screen don’t fit onto the shadow atlas.  |
-
-
-
-### Max Requests
-
-| Property| Description |
-|:---|:---|
-| **Max Shadow on Screen** | The maximum number of shadows you can have in view. A  Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](HD-Shadow-Settings.html) override. |
-
-
-
-### Filtering Qualities
-
-| Property| Description |
-|:---|:---|
-| **Shadow Quality** | The filtering quality for Punctual Lights. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. HDRP 2018.3: Shadow quality only works when you set **Lit Shader Mode** to **Forward** in frame settings. **Deferred** mode uses Low. |
-
-
-
-#### Filtering Quality Presets
-
-| Preset| Algorithm |
-|:---|:---|
-| **Low** | Point/Spot: PCF 3x3 (4 taps). Directional: PCF Tent  5x5  (9 taps). |
-| **Medium** | Point/Spot: PCF 5x5 (9 taps). Directional: PCF Tent  7x7  (16 taps). |
-| **High** | Point/Spot: PCSS. Directional: PCSS. |
-
-
-
-Select __PCSS__ filtering to enable additional high quality filtering settings in the Light component.
-
-## Decals
-
-These settings control the draw distance and resolution of the decals atlas HDRP uses when it renders decals projected on transparent objects.
-
-| Property| Description |
-|:---|:---|
-| **Draw Distance** | The maximum distance from the Camera at which Unity draws Decals. |
-| **Atlas Width** | The Decal Atlas width. |
-| **Atlas Height** | The Decal Atlas height. |
-| **Enable Metal and AO properties** | Allows Decals to affect Metal and AO material properties. Enabling this option has a performance impact. |
-
-
+| **Property**           | **Description**                                              |
+| ---------------------- | ------------------------------------------------------------ |
+| **Grading LUT Size**   | The size of the internal and external color grading lookup textures (LUTs). This size is fixed for the Project. You can not mix and match LUT sizes, so decide on a size before you start the color grading process. The default value, **32**, provides a good balance of speed and quality. |
+| **Grading LUT Format** | Use the drop-down to select the format to encode the color grading LUTs with. Lower precision formats are faster and use less memory at the expense of color precision. These formats directly map to their equivalent in the built-in [GraphicsFormat](https://docs.unity3d.com/ScriptReference/Experimental.Rendering.GraphicsFormat.html) enum value. |
 

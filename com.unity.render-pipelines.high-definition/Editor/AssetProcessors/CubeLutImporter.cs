@@ -5,25 +5,31 @@ using System.Text;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [ScriptedImporter(0, "cube")]
     class CubeLutImporter : ScriptedImporter
     {
+        // In case PPv2 is still in the project for some reason, exclude these files
+        static readonly List<string> s_Excluded = new List<string>()
+        {
+            "Linear to sRGB r1",
+            "Linear to Unity Log r1",
+            "sRGB to Linear r1",
+            "sRGB to Unity Log r1",
+            "Unity Log to Linear r1",
+            "Unity Log to sRGB r1"
+        };
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            if (hdAsset == null)
-            {
-                ctx.LogImportError("No HD Render Pipeline set in Graphics Settings");
+            // Skip PPv2 files explicitly just in case
+            string filename = Path.GetFileNameWithoutExtension(ctx.assetPath);
+            if (s_Excluded.Contains(filename))
                 return;
-            }
 
-            var lutSize = hdAsset.renderPipelineSettings.postProcessSettings.lutSize;
-
-            bool success = ParseCubeData(ctx, lutSize, out var pixels);
+            bool success = ParseCubeData(ctx, out int lutSize, out Color[] pixels);
             if (!success)
                 return;
 
@@ -58,7 +64,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return filtered.ToString();
         }
 
-        bool ParseCubeData(AssetImportContext ctx, int lutSize, out Color[] pixels)
+        bool ParseCubeData(AssetImportContext ctx, out int lutSize, out Color[] pixels)
         {
             // Quick & dirty error utility
             bool Error(string msg)
@@ -69,6 +75,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             var lines = File.ReadAllLines(ctx.assetPath);
             pixels = null;
+            lutSize = -1;
 
             // Start parsing
             int sizeCube = -1;
@@ -105,9 +112,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (size < GlobalPostProcessSettings.k_MinLutSize || size > GlobalPostProcessSettings.k_MaxLutSize)
                         return Error("LUT size out of range");
 
-                    if (lutSize != size)
-                        return Error($"Lut size set to {lutSize} in HDRP settings, CUBE size is {sizeCube}");
-
+                    lutSize = size;
                     sizeCube = size * size * size;
 
                     continue;

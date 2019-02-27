@@ -49,6 +49,7 @@ Pass
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DoubleSided:                       #define _DOUBLESIDED_ON 1
+    $TransparentWritesVelocity:         #define _WRITE_TRANSPARENT_VELOCITY 1
     $UseLightFacingNormal:              #define _USE_LIGHT_FACING_NORMAL 1
 
     //-------------------------------------------------------------------------------------
@@ -182,7 +183,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
         $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;        
         $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
-        $SurfaceDescription.DiffusionProfile:               surfaceData.diffusionProfile =              surfaceDescription.DiffusionProfile;
+        $SurfaceDescription.DiffusionProfileHash:           surfaceData.diffusionProfileHash =          asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.SubsurfaceMask:                 surfaceData.subsurfaceMask =                surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                      surfaceData.thickness =                     surfaceDescription.Thickness;
 

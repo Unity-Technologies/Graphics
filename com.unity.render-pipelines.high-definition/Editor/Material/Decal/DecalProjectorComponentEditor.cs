@@ -19,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private SerializedProperty m_AffectsTransparencyProperty;
         private SerializedProperty m_Size;
         private SerializedProperty m_IsCropModeEnabledProperty;
+        private SerializedProperty m_FadeFactor;
 
         private DecalProjectorComponentHandle m_Handle = new DecalProjectorComponentHandle();
 
@@ -39,6 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
             m_Size = serializedObject.FindProperty("m_Size");
             m_IsCropModeEnabledProperty = serializedObject.FindProperty("m_IsCropModeEnabled");
+            m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
         }
 
         private void OnDisable()
@@ -93,6 +95,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_DecalProjectorComponent.m_UVBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(1e-5f, boundsSizeCurrentOS.x) * m_DecalProjectorComponent.m_UVScale.x;
                     m_DecalProjectorComponent.m_UVBias.y += (boundsMinCurrentOS.z - boundsMinPreviousOS.z) / Mathf.Max(1e-5f, boundsSizeCurrentOS.z) * m_DecalProjectorComponent.m_UVScale.y;
                 }
+                if (PrefabUtility.IsPartOfNonAssetPrefabInstance(m_DecalProjectorComponent))
+                {
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(m_DecalProjectorComponent);
+                }
             }
 
             // Automatically recenter our transform component if necessary.
@@ -101,7 +107,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Both the DecalProjectorComponent, and the transform will be modified.
                 // The undo system will automatically group all RecordObject() calls here into a single action.
-                Undo.RecordObject(m_DecalProjectorComponent.transform, "Decal Projector Change");
+                Undo.RecordObject(m_DecalProjectorComponent, "Decal Projector Change");
 
                 // Re-center the transform to the center of the decal projector bounds,
                 // while maintaining the world-space coordinates of the decal projector boundings vertices.
@@ -111,6 +117,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 );
 
                 m_DecalProjectorComponent.m_Offset = Vector3.zero;
+                if (PrefabUtility.IsPartOfNonAssetPrefabInstance(m_DecalProjectorComponent))
+                {
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(m_DecalProjectorComponent);
+                }
             }
 
             Handles.matrix = mat;
@@ -125,14 +135,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_Size);
             EditorGUILayout.PropertyField(m_MaterialProperty);
             EditorGUILayout.PropertyField(m_DrawDistanceProperty);
-            EditorGUILayout.Slider(m_FadeScaleProperty, 0.0f, 1.0f, new GUIContent("Fade scale"));
+            EditorGUILayout.Slider(m_FadeScaleProperty, 0.0f, 1.0f, new GUIContent("Distance fade scale"));
             EditorGUILayout.PropertyField(m_UVScaleProperty);
             EditorGUILayout.PropertyField(m_UVBiasProperty);
+            EditorGUILayout.Slider(m_FadeFactor, 0.0f, 1.0f);
 
             // only display the affects transparent property if material is HDRP/decal
             if (DecalSystem.IsHDRenderPipelineDecal(m_DecalProjectorComponent.Mat.shader.name))
             {
-                EditorGUILayout.PropertyField(m_AffectsTransparencyProperty);
+                EditorGUILayout.PropertyField(m_AffectsTransparencyProperty, new GUIContent("Affects Transparent Material"));
             }
 
             if (EditorGUI.EndChangeCheck())

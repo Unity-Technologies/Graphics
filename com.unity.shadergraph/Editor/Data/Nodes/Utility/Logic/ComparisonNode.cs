@@ -23,10 +23,6 @@ namespace UnityEditor.ShaderGraph
             name = "Comparison";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Comparison-Node"; }
-        }
 
         [SerializeField]
         private ComparisonType m_ComparisonType = ComparisonType.Equal;

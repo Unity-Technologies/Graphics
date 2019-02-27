@@ -11,14 +11,14 @@
 #pragma kernel KMainNearFullRes         MAIN=KMainNearFullRes       FULL_RES NEAR
 #pragma kernel KMainFarFullRes          MAIN=KMainFarFullRes        FULL_RES FAR
 
-TEXTURE2D(_InputTexture);
-TEXTURE2D(_InputCoCTexture);
+TEXTURE2D_X(_InputTexture);
+TEXTURE2D_X(_InputCoCTexture);
 
-RW_TEXTURE2D(float3, _OutputNearTexture);
-RW_TEXTURE2D(float, _OutputNearCoCTexture);
+RW_TEXTURE2D_X(float3, _OutputNearTexture);
+RW_TEXTURE2D_X(float, _OutputNearCoCTexture);
 
-RW_TEXTURE2D(float3, _OutputFarTexture);
-RW_TEXTURE2D(float, _OutputFarCoCTexture);
+RW_TEXTURE2D_X(float3, _OutputFarTexture);
+RW_TEXTURE2D_X(float, _OutputFarCoCTexture);
 
 SAMPLER(sampler_LinearClamp);
 
@@ -30,16 +30,18 @@ CBUFFER_END
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
     float2 texelSize = _ScreenSize.zw * _TargetScale.x;
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), texelSize, uint2(GROUP_SIZE, GROUP_SIZE));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), texelSize, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
 
 #if FULL_RES
 
-    float3 tapColor = LOAD_TEXTURE2D(_InputTexture, posInputs.positionSS).xyz;
-    float tapCoC = LOAD_TEXTURE2D(_InputCoCTexture, posInputs.positionSS).x;
+    float3 tapColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).xyz;
+    float tapCoC = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS).x;
 
     float nearCoC = saturate(abs(min(tapCoC, 0.0)));
     float3 nearColorAcc = tapColor;
@@ -81,8 +83,8 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
     {
         float2 tapCoord = texelSize * kTaps[i] + uv;
 
-        float3 tapColor = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(tapCoord, texelSize), 0.0).xyz;
-        float tapCoC = SAMPLE_TEXTURE2D_LOD(_InputCoCTexture, sampler_LinearClamp, min(tapCoord * _CoCTargetScale.xy, maxCoordCoC), 0.0).x;
+        float3 tapColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(tapCoord, texelSize), 0.0).xyz;
+        float tapCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, sampler_LinearClamp, min(tapCoord * _CoCTargetScale.xy, maxCoordCoC), 0.0).x;
 
         float nearCoC = saturate(abs(min(tapCoC, 0.0)));
         nearColorAcc += tapColor;
@@ -106,12 +108,12 @@ void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID)
 
     // Note: the shader compiler will discard any unused ALU/TEX
 #if NEAR
-    _OutputNearTexture[posInputs.positionSS] = nearColorAcc;
-    _OutputNearCoCTexture[posInputs.positionSS] = nearCoCAcc;
+    _OutputNearTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = nearColorAcc;
+    _OutputNearCoCTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = nearCoCAcc;
 #endif
 
 #if FAR
-    _OutputFarTexture[posInputs.positionSS] = farColorAcc;
-    _OutputFarCoCTexture[posInputs.positionSS] = farCoCAcc;
+    _OutputFarTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = farColorAcc;
+    _OutputFarCoCTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = farCoCAcc;
 #endif
 }

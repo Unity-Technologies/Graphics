@@ -3,9 +3,9 @@
 #pragma kernel MotionBlurCS
 //#pragma enable_d3d11_debug_symbols
 
-RW_TEXTURE2D(float3, _OutputTexture);
-TEXTURE2D(_InputTexture);
-TEXTURE2D(_TileMaxNeighbourhood);
+RW_TEXTURE2D_X(float3, _OutputTexture);
+TEXTURE2D_X(_InputTexture);
+TEXTURE2D_X(_TileMaxNeighbourhood);
 
 #define SOFT_Z_EXTENT 0.1   // TODO: Expose?
 
@@ -139,7 +139,7 @@ float3 ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount
     float  offsetLength = (sampleNumber + 0.5) + (dirSign * (randomVal - 0.5));
     float2 sampleUV = ClampAndScaleUVForBilinear(centralUV + (offsetLength*invSampleCount) * currDir);
 
-    float3 sampleColor    = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
+    float3 sampleColor    = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
 
     return sampleColor;
 }
@@ -151,8 +151,8 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
     float  offsetLength = (sampleNumber + 0.5) + (dirSign * (randomVal - 0.5));
     float2 sampleUV = ClampAndScaleUVForBilinear(centralUV + (offsetLength*invSampleCount) * currDir);
 
-    float3 sampleVelDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, sampleUV, 0).xyz;
-    float3 sampleColor    = SAMPLE_TEXTURE2D_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
+    float3 sampleVelDepth = SAMPLE_TEXTURE2D_X_LOD(_VelocityAndDepth, s_point_clamp_sampler, sampleUV, 0).xyz;
+    float3 sampleColor    = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_point_clamp_sampler, sampleUV, 0).xyz;
 
     outVelLength = VelocityLengthInPixelsFromEncoded(sampleVelDepth.xy);
     outDepth = sampleVelDepth.z;
@@ -175,16 +175,17 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
 [numthreads(16, 16, 1)]
 void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
 
     float3 debugColor = 1.0f;
 
     // Get central sample early.
-    float3 centralColor = _InputTexture[dispatchThreadId.xy].xyz;
+    float3 centralColor = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].xyz;
 
     float2 randomVals = float2(RandomValue(dispatchThreadId.xy, 0), RandomValue(dispatchThreadId.xy, 1));
 
     float2 tileUV = GetTileUV(dispatchThreadId.xy, randomVals);
-    float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0).xyz;
+    float3 tileMaxNeighbourhood = SAMPLE_TEXTURE2D_X_LOD(_TileMaxNeighbourhood, s_point_clamp_sampler, tileUV, 0.0).xyz;
 
     // Get velocity in pixels extents.
     float2 maxVel = DecodeVelocityFromPacked(tileMaxNeighbourhood.xy);
@@ -221,14 +222,14 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         debugColor = float3(1.0, 0.0, 0.0);
     }
 
-    _OutputTexture[dispatchThreadId.xy] = 0.25 * centralColor + 0.75 * debugColor.xyz;
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = 0.25 * centralColor + 0.75 * debugColor.xyz;
 
 #else
 
     float3 outVal = 1.0f;
     if (earlyOut)
     {
-        _OutputTexture[dispatchThreadId.xy] = centralColor;
+        _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = centralColor;
     }
     else
     {
@@ -262,7 +263,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         else
         {
             // Slow path.
-            float3 velocityAndDepth = SAMPLE_TEXTURE2D_LOD(_VelocityAndDepth, s_point_clamp_sampler, ClampAndScaleUVForPoint(centerSampleUV), 0).xyz;
+            float3 velocityAndDepth = SAMPLE_TEXTURE2D_X_LOD(_VelocityAndDepth, s_point_clamp_sampler, ClampAndScaleUVForPoint(centerSampleUV), 0).xyz;
 
             float pixelToSampleScale = _SampleCount * 0.5 * maxVelLength;
             float2 centralTapVelocity = DecodeVelocityFromPacked(velocityAndDepth.xy);
@@ -310,7 +311,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         colorAccumulation = colorAccumulation * 0.25 + 0.75 * lerp(float3(0.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), float(actualSampleCount) / _SampleCount);
 #endif
 
-        _OutputTexture[dispatchThreadId.xy] = colorAccumulation;
+        _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = colorAccumulation;
     }
 
 

@@ -247,9 +247,9 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
             minDiagPointBS = maxDiagPointBS = voxelCenterBS;
 
             bool  normalFwd  = dot(voxelAxisForwardBS, N) >= 0;
-            float mulForward = 0.5 * normalFwd ? dt : -dt;
-            float mulMin     = 0.5 * normalFwd ? t0 : t1;
-            float mulMax     = 0.5 * normalFwd ? t1 : t0;
+            float mulForward = 0.5 * (normalFwd ? dt : -dt);
+            float mulMin     = 0.5 * (normalFwd ? t0 : t1);
+            float mulMax     = 0.5 * (normalFwd ? t1 : t0);
 
             minDiagPointBS -= mulForward * voxelAxisForwardBS;
             maxDiagPointBS += mulForward * voxelAxisForwardBS;
