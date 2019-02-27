@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
         string m_ProfilerTag = "Resolve Shadows";
+
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
@@ -50,17 +51,13 @@ namespace UnityEngine.Rendering.LWRP
             if (renderingData.lightData.mainLightIndex == -1)
                 return;
 
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-
             // This blit is troublesome. When MSAA is enabled it will render a fullscreen quad + store resolved MSAA + extra blit
             // This consumes about 10MB of extra unnecessary bandwidth on boat attack.
             // In order to avoid it we can do a cmd.DrawMesh instead, however because LWRP doesn't setup camera matrices itself,
             // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
             // We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP.
             RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            Blit(context, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial, 0, m_ProfilerTag);
         }
 
         /// <inheritdoc/>

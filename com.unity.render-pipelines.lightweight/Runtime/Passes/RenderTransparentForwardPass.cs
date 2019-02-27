@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                var drawSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, SortingCriteria.CommonTransparent);
+                var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, SortingCriteria.CommonTransparent);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 
                 // Render objects that did not match any shader pass with error shader
