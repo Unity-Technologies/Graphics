@@ -151,7 +151,7 @@ Pass
 
     // StackLit shader_features:
 
-    $SpecularOcclusion:                                  #define _ENABLESPECULAROCCLUSION // directly for StackLit.hlsl
+    $SpecularOcclusion:                                  #define _ENABLESPECULAROCCLUSION // main enable
 
     $BaseParametrization.SpecularColor:                  #define _MATERIAL_FEATURE_SPECULAR_COLOR
     $Material.Anisotropy:                                #define _MATERIAL_FEATURE_ANISOTROPY
@@ -189,6 +189,12 @@ Pass
     $DataBasedSpecularOcclusionAOConeSize.UniformAO:                    #define _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_UNIFORM
     $DataBasedSpecularOcclusionAOConeSize.CosWeightedAO:                #define _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS
     $DataBasedSpecularOcclusionAOConeSize.CosWeightedBentCorrectAO:     #define _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION
+
+    // Cone fixup is only for cone methods and only for data based SO:
+    $SpecularOcclusionConeFixupMethod.Off:                              #define _BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_NONE
+    $SpecularOcclusionConeFixupMethod.BoostBSDFRoughness:               #define _BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS
+    $SpecularOcclusionConeFixupMethod.TiltDirectionToGeomNormal:        #define _BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM
+    $SpecularOcclusionConeFixupMethod.BoostAndTilt:                     #define _BENT_VISIBILITY_FIXUP_FLAGS (BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS|BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM)
 
     // The other predicates that don't directly map to inputs (the more abstract, called "specific" above)
     // are used in the surfaceData and builtinData functions.
@@ -333,7 +339,12 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.SmoothnessA:               surfaceData.perceptualSmoothnessA =    surfaceDescription.SmoothnessA;
         $SurfaceDescription.SmoothnessB:               surfaceData.perceptualSmoothnessB =    surfaceDescription.SmoothnessB;
         $SurfaceDescription.AmbientOcclusion:          surfaceData.ambientOcclusion =         surfaceDescription.AmbientOcclusion;
-        $SurfaceDescription.SpecularOcclusion:         surfaceData.specularOcclusion =        surfaceDescription.SpecularOcclusion; // if custom external port is opened
+        //TODO: if custom external values are wanted, we need one SO value per lobe.
+        //$SurfaceDescription.SpecularOcclusion:         surfaceData.specularOcclusion =        surfaceDescription.SpecularOcclusion;
+        $SurfaceDescription.SOConeFixupVisibilityThreshold: surfaceData.soFixupVisibilityRatioThreshold = surfaceDescription.SOConeFixupVisibilityThreshold;
+        $SurfaceDescription.SOConeFixupStrength:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOConeFixupStrength;
+        $SurfaceDescription.SOConeFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOConeFixupMaxAddedRoughness;
+
         $SurfaceDescription.AnisotropyA:               surfaceData.anisotropyA =              surfaceDescription.AnisotropyA;
         $SurfaceDescription.AnisotropyB:               surfaceData.anisotropyB =              surfaceDescription.AnisotropyB;
         $SurfaceDescription.CoatSmoothness:            surfaceData.coatPerceptualSmoothness = surfaceDescription.CoatSmoothness;
@@ -385,10 +396,9 @@ $include("SharedCode.template.hlsl")
 #ifdef _MATERIAL_FEATURE_HAZY_GLOSS
         surfaceData.hazyGlossMaxDielectricF0 = 1.0;
         $CapHazinessIfNotMetallic: surfaceData.hazyGlossMaxDielectricF0 = surfaceDescription.HazyGlossMaxDielectricF0;
-        // ...no need for SurfaceDescription.HazyGlossMaxDielectricF0:,
-        // CapHazinessIfNotMetallic:
-        // is only active if the pass wants the PixelShaderSlot HazyGlossMaxDielectricF0
-        // and if masterNode.capHazinessWrtMetallic.isOn: the later should ensure we're in hazygloss mode and thus,
+        // ...no need for the SurfaceDescription.HazyGlossMaxDielectricF0: predicate,
+        // the CapHazinessIfNotMetallic: predicate is only active if the pass wants the PixelShaderSlot HazyGlossMaxDielectricF0
+        // and if masterNode.capHazinessWrtMetallic.isOn:, the later should ensure we're in hazygloss mode and thus,
         // the masterNode has the HazyGlossMaxDielectricF0 material slot added.
 #endif
 

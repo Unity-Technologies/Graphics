@@ -341,6 +341,16 @@ int GetDataBasedSpecularOcclusionVisibilityFromAoWeight()
     return method;
 }
 
+uint GetSpecularOcclusionBentVisibilityFixupFlags()
+{
+    uint method = BENT_VISIBILITY_FIXUP_FLAGS_NONE;
+#ifdef _BENT_VISIBILITY_FIXUP_FLAGS
+    method = _BENT_VISIBILITY_FIXUP_FLAGS;
+#endif
+    return method;
+}
+
+
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropyA, float anisotropyB, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
@@ -769,6 +779,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     }
 
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+
+    bsdfData.soFixupVisibilityRatioThreshold = surfaceData.soFixupVisibilityRatioThreshold;
+    bsdfData.soFixupStrengthFactor = surfaceData.soFixupStrengthFactor;
+    bsdfData.soFixupMaxAddedRoughness = surfaceData.soFixupMaxAddedRoughness;
 
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
@@ -1975,7 +1989,10 @@ float3 PreLightData_GetCommbinedSpecularOcclusion(float screenSpaceSpecularOcclu
     float3 debugCoeff = float3(1.0,1.0,1.0);
     switch(dataBasedSpecularOcclusionAlgorithm)
     {
+    case SPECULAR_OCCLUSION_DISABLED:
+        break;
     case SPECULAR_OCCLUSION_FROM_AO:
+        //debugCoeff = float3(1.0,0.0,0.0);
         break;
     case SPECULAR_OCCLUSION_CONECONE:
         IF_DEBUG( if (_DebugSpecularOcclusion.w == -1.0) { debugCoeff = float3(1.0,0.0,0.0); } )
@@ -1995,7 +2012,9 @@ float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
                                         float perceptualRoughness,
                                         /* For advanced algorithms: */
                                         float3 bentNormalWS, int bentVisibilityAlgorithm,
-                                        float3x3 orthoBasisViewNormal, bool useHemisphereClip)
+                                        float3x3 orthoBasisViewNormal, bool useHemisphereClip,
+                                        uint bentFixup = BENT_VISIBILITY_FIXUP_FLAGS_NONE,
+                                        BSDFData bsdfData = (BSDFData)0) /* for reading info for bent cone fixup if needed */
 {
     SphereCap hemiSphere = GetSphereCap(normalWS, 0.0);
     //test: SphereCap hemiSphere = GetSphereCap(normalWS, cos(HALF_PI*0.4));
@@ -2004,11 +2023,18 @@ float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
     float specularOcclusion = 1.0;
     switch(specularOcclusionAlgorithm)
     {
+    case SPECULAR_OCCLUSION_DISABLED:
+        break;
     case SPECULAR_OCCLUSION_FROM_AO:
         specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(NdotV, ambientOcclusion, roughness);
         break;
     case SPECULAR_OCCLUSION_CONECONE:
-        specularOcclusion = GetSpecularOcclusionFromBentAOConeCone(V, bentNormalWS, normalWS, ambientOcclusion, roughness, bentVisibilityAlgorithm);
+        specularOcclusion = GetSpecularOcclusionFromBentAOConeCone(V, bentNormalWS, normalWS, ambientOcclusion, roughness, bentVisibilityAlgorithm,
+                                                                   bentFixup,
+                                                                   bsdfData.soFixupVisibilityRatioThreshold,
+                                                                   bsdfData.soFixupStrengthFactor,
+                                                                   bsdfData.soFixupMaxAddedRoughness,
+                                                                   bsdfData.geomNormalWS);
         break;
     case SPECULAR_OCCLUSION_SPTD:
         specularOcclusion = GetSpecularOcclusionFromBentAOPivot(V, bentNormalWS, normalWS,
@@ -2018,7 +2044,12 @@ float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
                                                                 /* useGivenBasis */ true,
                                                                 orthoBasisViewNormal,
                                                                 useHemisphereClip,
-                                                                hemiSphere);
+                                                                hemiSphere,
+                                                                bentFixup,
+                                                                bsdfData.soFixupVisibilityRatioThreshold,
+                                                                bsdfData.soFixupStrengthFactor,
+                                                                bsdfData.soFixupMaxAddedRoughness,
+                                                                bsdfData.geomNormalWS);
         break;
     }
 
@@ -2077,6 +2108,7 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
     int specularOcclusionAlgorithm = GetDataBasedSpecularOcclusionMethod();
     int bentVisibilityAlgorithm = GetDataBasedSpecularOcclusionVisibilityFromAoWeight();
     bool useHemisphereClip = true;
+    uint bentFixup = GetSpecularOcclusionBentVisibilityFixupFlags();
 
     // For SSAO based specular occlusion:
     int screenSpaceSpecularOcclusionAlgorithm = GetScreenSpaceSpecularOcclusionMethod();
@@ -2130,14 +2162,16 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                                                                    V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
                                                                                    preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
                                                                                    bsdfData.bentNormalWS, bentVisibilityAlgorithm,
-                                                                                   orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip);
+                                                                                   orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip,
+                                                                                   bentFixup, bsdfData);
 
     dataBasedSpecularOcclusion[BASE_LOBEB_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
                                                                                    bsdfData.ambientOcclusion,
                                                                                    V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
                                                                                    preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
                                                                                    bsdfData.bentNormalWS, bentVisibilityAlgorithm,
-                                                                                   orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip);
+                                                                                   orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip,
+                                                                                   bentFixup, bsdfData);
 
     preLightData.hemiSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetCommbinedSpecularOcclusion(screenSpaceSpecularOcclusion[BASE_LOBEA_IDX],
                                                                                                     dataBasedSpecularOcclusion[BASE_LOBEA_IDX],
@@ -2161,7 +2195,8 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                                                                       V, N[COAT_NORMAL_IDX], NdotV[COAT_NORMAL_IDX] /* clamped */,
                                                                                       preLightData.iblPerceptualRoughness[COAT_LOBE_IDX],
                                                                                       bsdfData.bentNormalWS, bentVisibilityAlgorithm,
-                                                                                      orthoBasisViewNormal[COAT_NORMAL_IDX], useHemisphereClip);
+                                                                                      orthoBasisViewNormal[COAT_NORMAL_IDX], useHemisphereClip,
+                                                                                      bentFixup, bsdfData);
 
         preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetCommbinedSpecularOcclusion(screenSpaceSpecularOcclusion[COAT_LOBE_IDX],
                                                                                                        dataBasedSpecularOcclusion[COAT_LOBE_IDX],

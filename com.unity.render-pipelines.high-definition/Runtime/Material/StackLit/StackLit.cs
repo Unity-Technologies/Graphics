@@ -163,6 +163,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // + Diffusion Profile
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
+
+            // Specular occlusion config: bent occlusion fixup
+            [SurfaceDataAttributes("Specular Occlusion Fixup Visibility Ratio Threshold")]
+            public float soFixupVisibilityRatioThreshold;
+            [SurfaceDataAttributes("Specular Occlusion Fixup Strength")]
+            public float soFixupStrengthFactor;
+            [SurfaceDataAttributes("Specular Occlusion Fixup Max Added Roughness")]
+            public float soFixupMaxAddedRoughness;
         };
 
         //-----------------------------------------------------------------------------
@@ -232,6 +240,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float thickness;
             public bool useThickObjectMode; // Read from the diffusion profile
             public Vector3 transmittance;   // Precomputation of transmittance
+
+            // Specular occlusion config: bent occlusion fixup
+            public float soFixupVisibilityRatioThreshold;
+            public float soFixupStrengthFactor;
+            public float soFixupMaxAddedRoughness;
         };
 
         //-----------------------------------------------------------------------------

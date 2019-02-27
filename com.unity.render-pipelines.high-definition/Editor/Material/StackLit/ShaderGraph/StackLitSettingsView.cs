@@ -313,76 +313,80 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (main enable)", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.specularOcclusion.isOn;
-                    toggle.OnToggleChanged(ChangeSpecularOcclusion);
-                });
-            });
+            //ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (main enable)", indentLevel)), (row) =>
+            //{
+            //    row.Add(new Toggle(), (toggle) =>
+            //    {
+            //        toggle.value = m_Node.specularOcclusion.isOn;
+            //        toggle.OnToggleChanged(ChangeSpecularOcclusion);
+            //    });
+            //});
 
-            if (m_Node.specularOcclusion.isOn)
+            ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (from SSAO)", indentLevel)), (row) =>
+            {
+                row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionBaseMode.DirectFromAO), (field) =>
+                {
+                    field.value = m_Node.screenSpaceSpecularOcclusionBaseMode;
+                    field.RegisterValueChangedCallback(ChangeScreenSpaceSpecularOcclusionBaseMode);
+                });
+
+            });
+            if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(m_Node.screenSpaceSpecularOcclusionBaseMode))
             {
                 ++indentLevel;
-                ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (from SSAO)", indentLevel)), (row) =>
+                ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (SS) AO Cone Weight", indentLevel)), (row) =>
+                {
+                    row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionAOConeSize.CosWeightedAO), (field) =>
+                    {
+                        field.value = m_Node.screenSpaceSpecularOcclusionAOConeSize;
+                        field.RegisterValueChangedCallback(ChangeScreenSpaceSpecularOcclusionAOConeSize);
+                    });
+                });
+                --indentLevel;
+            }
+
+            // TODO: we would ideally need one value per lobe
+            //ps.Add(new PropertyRow(CreateLabel("Specular Occlusion Custom Input", indentLevel)), (row) =>
+            //{
+            //    row.Add(new Toggle(), (toggle) =>
+            //    {
+            //        toggle.value = m_Node.specularOcclusionIsCustom.isOn;
+            //        toggle.OnToggleChanged(ChangeSpecularOcclusionIsCustom);
+            //    });
+            //});
+
+            //if (!m_Node.specularOcclusionIsCustom.isOn)
+            {
+                ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (from input AO)", indentLevel)), (row) =>
                 {
                     row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionBaseMode.DirectFromAO), (field) =>
                     {
-                        field.value = m_Node.screenSpaceSpecularOcclusionBaseMode;
-                        field.RegisterValueChangedCallback(ChangeScreenSpaceSpecularOcclusionBaseMode);
+                        field.value = m_Node.dataBasedSpecularOcclusionBaseMode;
+                        field.RegisterValueChangedCallback(ChangeDataBasedSpecularOcclusionBaseMode);
                     });
-
                 });
-                if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(m_Node.screenSpaceSpecularOcclusionBaseMode))
+                if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(m_Node.dataBasedSpecularOcclusionBaseMode))
                 {
                     ++indentLevel;
-                    ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (SS) AO Cone Weight", indentLevel)), (row) =>
+                    ps.Add(new PropertyRow(CreateLabel("Specular Occlusion AO Cone Weight", indentLevel)), (row) =>
                     {
-                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionAOConeSize.CosWeightedAO), (field) =>
+                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO), (field) =>
                         {
-                            field.value = m_Node.screenSpaceSpecularOcclusionAOConeSize;
-                            field.RegisterValueChangedCallback(ChangeScreenSpaceSpecularOcclusionAOConeSize);
+                            field.value = m_Node.dataBasedSpecularOcclusionAOConeSize;
+                            field.RegisterValueChangedCallback(ChangeDataBasedSpecularOcclusionAOConeSize);
+                        });
+                    });
+                    ps.Add(new PropertyRow(CreateLabel("Specular Occlusion Cone Fixup", indentLevel)), (row) =>
+                    {
+                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionConeFixupMethod.Off), (field) =>
+                        {
+                            field.value = m_Node.specularOcclusionConeFixupMethod;
+                            field.RegisterValueChangedCallback(ChangeSpecularOcclusionConeFixupMethod);
                         });
                     });
                     --indentLevel;
                 }
-
-                ps.Add(new PropertyRow(CreateLabel("Specular Occlusion Custom Input", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.specularOcclusionIsCustom.isOn;
-                        toggle.OnToggleChanged(ChangeSpecularOcclusionIsCustom);
-                    });
-                });
-
-                if (!m_Node.specularOcclusionIsCustom.isOn)
-                {
-                    ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (from input AO)", indentLevel)), (row) =>
-                    {
-                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionBaseMode.DirectFromAO), (field) =>
-                        {
-                            field.value = m_Node.dataBasedSpecularOcclusionBaseMode;
-                            field.RegisterValueChangedCallback(ChangeDataBasedSpecularOcclusionBaseMode);
-                        });
-                    });
-                    if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(m_Node.dataBasedSpecularOcclusionBaseMode))
-                    {
-                        ++indentLevel;
-                        ps.Add(new PropertyRow(CreateLabel("Specular Occlusion AO Cone Weight", indentLevel)), (row) =>
-                        {
-                            row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO), (field) =>
-                            {
-                                field.value = m_Node.dataBasedSpecularOcclusionAOConeSize;
-                                field.RegisterValueChangedCallback(ChangeDataBasedSpecularOcclusionAOConeSize);
-                            });
-                        });
-                        --indentLevel;
-                    }
-                }
-                --indentLevel;
-            }//if (m_Node.specularOcclusion.isOn)
+            }
 
             ps.Add(new PropertyRow(CreateLabel("Advanced Options", indentLevel)), (row) => {} );
             ++indentLevel;
@@ -655,13 +659,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.transmission = td;
         }
 
-        void ChangeSpecularOcclusion(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusion Change");
-            ToggleData td = m_Node.specularOcclusion;
-            td.isOn = evt.newValue;
-            m_Node.specularOcclusion = td;
-        }
+        //void ChangeSpecularOcclusion(ChangeEvent<bool> evt)
+        //{
+        //    m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusion Change");
+        //    ToggleData td = m_Node.specularOcclusion;
+        //    td.isOn = evt.newValue;
+        //    m_Node.specularOcclusion = td;
+        //}
 
         void ChangeScreenSpaceSpecularOcclusionBaseMode(ChangeEvent<Enum> evt)
         {
@@ -681,13 +685,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.screenSpaceSpecularOcclusionAOConeSize = (StackLitMasterNode.SpecularOcclusionAOConeSize)evt.newValue;
         }
 
-        void ChangeSpecularOcclusionIsCustom(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusionIsCustom Change");
-            ToggleData td = m_Node.specularOcclusionIsCustom;
-            td.isOn = evt.newValue;
-            m_Node.specularOcclusionIsCustom = td;
-        }
+        //void ChangeSpecularOcclusionIsCustom(ChangeEvent<bool> evt)
+        //{
+        //    m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusionIsCustom Change");
+        //    ToggleData td = m_Node.specularOcclusionIsCustom;
+        //    td.isOn = evt.newValue;
+        //    m_Node.specularOcclusionIsCustom = td;
+        //}
 
         void ChangeDataBasedSpecularOcclusionBaseMode(ChangeEvent<Enum> evt)
         {
@@ -705,6 +709,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("DataBasedSpecularOcclusionAOConeSize Change");
             m_Node.dataBasedSpecularOcclusionAOConeSize = (StackLitMasterNode.SpecularOcclusionAOConeSize)evt.newValue;
+        }
+
+        void ChangeSpecularOcclusionConeFixupMethod(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.specularOcclusionConeFixupMethod, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusionConeFixupMethod Change");
+            m_Node.specularOcclusionConeFixupMethod = (StackLitMasterNode.SpecularOcclusionConeFixupMethod)evt.newValue;
         }
 
         void ChangeAnisotropyForAreaLights(ChangeEvent<bool> evt)

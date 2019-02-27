@@ -279,17 +279,86 @@ SphereCap GetBentVisibility(float3 bentNormalWS, float ambientOcclusion, int alg
     return GetSphereCap(bentNormalWS, cosAv);
 }
 
-float GetSpecularOcclusionFromBentAOPivot(float3 V, float3 bentNormalWS, float3 normalWS, float ambientOcclusion, float perceptualRoughness, int bentconeAlgorithm = BENT_VISIBILITY_FROM_AO_COS,
-                                          bool useGivenBasis = false, float3x3 orthoBasisViewNormal = (float3x3)(0), bool useExtraCap = false, SphereCap extraCap = (SphereCap)(0))
+float GetSpecularOcclusionFixupLerpParam(SphereCap bentVisibility, float fixupVisibilityRatioThreshold = 0.0001, float fixupStrengthFactor = 0.0)
 {
-    SphereCap bentVisibility = GetBentVisibility(bentNormalWS, ambientOcclusion, bentconeAlgorithm, normalWS);
+    // visibilityRatio is the solid angle visible (according to the visibility cone)
+    // over total possible visible solid angle of the hemisphere (2*pi), and goes from 0 to 1:
+    float visibilityRatio = SphereCapSolidAngle(bentVisibility) / TWO_PI;
 
+    fixupVisibilityRatioThreshold = max(0.0001, fixupVisibilityRatioThreshold);
+    float lerpParam = max(fixupVisibilityRatioThreshold - visibilityRatio, 0.0) / fixupVisibilityRatioThreshold;
+
+    // Starting when visibilityRatio gets as low as the fixupVisibilityRatioThreshold,
+    // the lerpParam goes from 0 to 1 (when visibilityRatio reaches 0).
+    return lerpParam;
+}
+
+// Ideally, a bent normal fixup method could use the bent visibility ratio (from AO) value along with a threshold like we
+// do now but as a modulation source for LOD biasing the map itself. Then the averaged bent normal value could be used along
+// maybe with an additional step that use some measure of dispersion (like normal map AA) to do what we do now with AO.
+// In shadergraph, that algorithm would need to be external to the master node.
+// For now we just use AO directly.
+void ApplyBentSpecularOcclusionFixups(inout SphereCap bentVisibility, inout float perceptualRoughness,
+                                      float ambientOcclusion, int bentconeAlgorithm, float3 normalWS,
+                                      uint bentFixup = BENT_VISIBILITY_FIXUP_FLAGS_NONE, float fixupVisibilityRatioThreshold = 0.0001, float fixupStrengthFactor = 0.0, float fixupMaxAddedRoughness = 0.0, float3 geomNormalWS = float3(0,0,1))
+{
+    if (bentFixup != BENT_VISIBILITY_FIXUP_FLAGS_NONE)
+    {
+        SphereCap bentVisibilityForFixup = bentVisibility;
+        if (HasFlag(bentFixup, BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM)
+            && bentconeAlgorithm == BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION)
+        {
+            // We can't apply (if the option is there) bentnormal fixup before inferring bent visibility
+            // (solid angle visible in that direction inferred from the AO value)
+            // since the lerp factor depends on the ratio of the visible hemisphere vs fixupVisibilityRatioThreshold.
+            // But when the visibility cone solid angle is inferred with BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION,
+            // that solid angle is bentnormal dependent, which we would like to fixup, as the fixup is based on the
+            // assumption that at low visibility, the baked bentnormal becomes erratic (hence the tilting towards the
+            // geomNormalWS).
+            //
+            // Thus, for calculating the fixup lerpfactor (and only for it), we "cheat" (from user selected value) and
+            // we override (if selected) BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION to use BENT_VISIBILITY_FROM_AO_COS
+            // instead.
+            bentVisibilityForFixup = GetBentVisibility(bentVisibility.dir, ambientOcclusion, BENT_VISIBILITY_FROM_AO_COS, normalWS);
+        }
+        float lerpParam = GetSpecularOcclusionFixupLerpParam(bentVisibilityForFixup, fixupVisibilityRatioThreshold, fixupStrengthFactor);
+        // We also allow applying a custom slope (strength), but we still limit the param to a max of 1:
+        lerpParam = min(lerpParam * fixupStrengthFactor, 1.0);
+
+        if (HasFlag(bentFixup, BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM))
+        {
+            // TODO: fast slerp in unsafe cases ie when angle is large
+            bentVisibility.dir = normalize(lerp(bentVisibility.dir, geomNormalWS, lerpParam));
+
+            // See comment about bentVisibilityForFixup: also we permit ourselves to lerp cos as the solid angle is unknown in
+            // that case as either AO was computed with the integratal of cos() foreshortening or not, and if it was properly
+            // computed with it, the bent correction formula is the correct one, but we can't trust fully the bentnormal anyway:
+            if (bentconeAlgorithm == BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION)
+            {
+                bentVisibility.cosA = lerp(bentVisibility.cosA, bentVisibilityForFixup.cosA, lerpParam);
+            }
+        }
+        if (HasFlag(bentFixup, BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS))
+        {
+            float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+            perceptualRoughness = RoughnessToPerceptualRoughness(roughness + lerpParam * fixupMaxAddedRoughness);
+        }
+    }
+}
+
+float GetSpecularOcclusionFromBentAOPivot(float3 V, float3 bentNormalWS, float3 normalWS, float ambientOcclusion, float perceptualRoughness, int bentconeAlgorithm = BENT_VISIBILITY_FROM_AO_COS,
+                                          bool useGivenBasis = false, float3x3 orthoBasisViewNormal = (float3x3)(0), bool useExtraCap = false, SphereCap extraCap = (SphereCap)(0),
+                                          uint bentFixup = BENT_VISIBILITY_FIXUP_FLAGS_NONE, float fixupVisibilityRatioThreshold = 0.0001, float fixupStrengthFactor = 0.0, float fixupMaxAddedRoughness = 0.0, float3 geomNormalWS = float3(0,0,1))
+{
     //bentNormalWS = lerp(bentNormalWS, normalWS, pow((1.0-ambientOcclusion),5)); // TEST TODO, the bent direction becomes meaningless with AO = 0.
     //bentVisibility.dir = normalize(bentNormalWS);
 
-    //perceptualRoughness = max(perceptualRoughness, 0.01);
+    SphereCap bentVisibility = GetBentVisibility(bentNormalWS, ambientOcclusion, bentconeAlgorithm, normalWS);
 
-    if (useGivenBasis == false) 
+    ApplyBentSpecularOcclusionFixups(bentVisibility, perceptualRoughness, ambientOcclusion, bentconeAlgorithm, normalWS,
+                                     bentFixup, fixupVisibilityRatioThreshold, fixupStrengthFactor, fixupMaxAddedRoughness, geomNormalWS);
+
+    if (useGivenBasis == false)
     {
         //orthoBasisViewNormal = GetOrthoBasisViewNormal(V, normalWS, dot(normalWS, V), true); // true => avoid singularity when V == N by returning arbitrary tangent/bitangents
         orthoBasisViewNormal = GetOrthoBasisViewNormal(V, normalWS, dot(normalWS, V));
@@ -305,7 +374,8 @@ float GetSpecularOcclusionFromBentAOPivot(float3 V, float3 bentNormalWS, float3 
 }
 
 // Different tweaks to the cone-cone method:
-float GetSpecularOcclusionFromBentAOConeCone(float3 V, float3 bentNormalWS, float3 normalWS, float ambientOcclusion, float perceptualRoughness, int bentconeAlgorithm = BENT_VISIBILITY_FROM_AO_COS)
+float GetSpecularOcclusionFromBentAOConeCone(float3 V, float3 bentNormalWS, float3 normalWS, float ambientOcclusion, float perceptualRoughness, int bentconeAlgorithm = BENT_VISIBILITY_FROM_AO_COS,
+                                             uint bentFixup = BENT_VISIBILITY_FIXUP_FLAGS_NONE, float fixupVisibilityRatioThreshold = 0.0001, float fixupStrengthFactor = 0.0, float fixupMaxAddedRoughness = 0.0, float3 geomNormalWS = float3(0,0,1))
 {
     // Retrieve cone angle
     // Ambient occlusion is cosine weighted, thus use following equation. See slide 129
@@ -314,6 +384,10 @@ float GetSpecularOcclusionFromBentAOConeCone(float3 V, float3 bentNormalWS, floa
 
     float cosAv = bentVisibility.cosA;
     float roughness = max(PerceptualRoughnessToRoughness(perceptualRoughness), 0.01); // Clamp to 0.01 to avoid edge cases
+
+    ApplyBentSpecularOcclusionFixups(bentVisibility, perceptualRoughness, ambientOcclusion, bentconeAlgorithm, normalWS,
+                                     bentFixup, fixupVisibilityRatioThreshold, fixupStrengthFactor, fixupMaxAddedRoughness, geomNormalWS);
+
     float cosAs = exp2((-log(10.0)/log(2.0)) * Sq(roughness));
     float ReflectionLobeSolidAngle = (TWO_PI * (1.0 - cosAs));
 
@@ -324,10 +398,10 @@ float GetSpecularOcclusionFromBentAOConeCone(float3 V, float3 bentNormalWS, floa
 
     float cosB;
 #if 1
-    cosB = dot(bentNormalWS, R);
+    cosB = dot(bentVisibility.dir, R);
 #else
     // Test: offspecular modification
-    cosB = dot(bentNormalWS, modifiedR);
+    cosB = dot(bentVisibility.dir, modifiedR);
 #endif
 
     float HemiClippedReflectionLobeSolidAngle = SphericalCapIntersectionSolidArea(0.0, cosAs, cosB);
