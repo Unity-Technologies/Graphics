@@ -81,8 +81,10 @@ void VerticalPass(uint2 pixelCoord, uint topMostIndex)
 #define GROUP_SIZE 8
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
+void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
     // Upper-left pixel coordinate of quad that this thread will read
     int2 threadUL = (groupThreadId << 1) + (groupId << 3) - 4;
     uint2 uthreadUL = uint2(max(0, threadUL));
@@ -104,6 +106,6 @@ void KMain(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, u
 
     GroupMemoryBarrierWithGroupSync();
 
-    VerticalPass(dispatchThreadId, (groupThreadId.y << 3u) + groupThreadId.x);
+    VerticalPass(dispatchThreadId.xy, (groupThreadId.y << 3u) + groupThreadId.x);
 }
 
