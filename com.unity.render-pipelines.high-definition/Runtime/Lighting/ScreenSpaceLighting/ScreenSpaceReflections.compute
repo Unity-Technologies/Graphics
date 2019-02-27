@@ -49,7 +49,7 @@
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW); // ShaderVariablesScreenSpaceLighting.hlsl already pulls in a non-RW _SsrLightingTexture
 #endif
 
-    TEXTURE2D(              _SsrClearCoatMaskTexture);
+    TEXTURE2D_X(            _SsrClearCoatMaskTexture);
     StructuredBuffer<int2>  _SsrDepthPyramidMipLevelOffsets;
 
 CBUFFER_START(UnityScreenSpaceReflections)
@@ -80,7 +80,7 @@ void GetNormalAndPerceptualRoughness(uint2 positionSS, out float3 normalWS, out 
     NormalData normalData;
     DecodeFromNormalBuffer(positionSS, normalData);
     normalWS = normalData.normalWS;
-    float4 packedCoatMask = _SsrClearCoatMaskTexture[positionSS];
+    float4 packedCoatMask = _SsrClearCoatMaskTexture[COORD_TEXTURE2D_X(positionSS)];
     perceptualRoughness = HasClearCoatMask(packedCoatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
 }
 
