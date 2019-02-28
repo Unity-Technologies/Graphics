@@ -22,6 +22,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed mutiselection issue with HDLight Inspector
 - Fixed HDAdditionalCameraData data migration
 - Fixed failing builds when light explorer window is open
+- Fixed cascade shadows border sometime causing artefacts between cascades
+- Restored shadows in the Cascade Shadow debug visualization
+
+### Added
+- Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering
+
+### Changed
+- When rendering reflection probe disable all specular lighting and for metals use fresnelF0 as diffuse color for bake lighting.
+
 
 ### Added
 - Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering
