@@ -91,8 +91,8 @@ namespace UnityEngine.Rendering.LWRP
             bool hasOpaquePostProcess = postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(RenderingUtils.postProcessRenderContext);
 
-            cameraColorHandle = (createColorTexture) ? m_ColorAttachment : RenderTargetHandle.CameraTarget;
-            cameraDepthHandle = (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget;
+            ConfigureCameraTarget((createColorTexture) ? m_ColorAttachment : RenderTargetHandle.CameraTarget,
+                (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget);
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {

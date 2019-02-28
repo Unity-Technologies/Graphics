@@ -21,8 +21,16 @@ namespace UnityEngine.Rendering.LWRP
     public abstract class ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
-        public RenderTargetHandle cameraColorHandle { get; set; }
-        public RenderTargetHandle cameraDepthHandle { get; set; }
+
+        public RenderTargetHandle cameraColorHandle
+        {
+            get => m_CameraColorHandle;
+        }
+
+        public RenderTargetHandle cameraDepthHandle
+        {
+            get => m_CameraDepthHandle;
+        }
 
         protected List<ScriptableRendererFeature> rendererFeatures
         {
@@ -36,6 +44,8 @@ namespace UnityEngine.Rendering.LWRP
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
+        RenderTargetHandle m_CameraColorHandle;
+        RenderTargetHandle m_CameraDepthHandle;
 
         const string k_ClearRenderStateTag = "Clear Render State";
         const string k_CreateCameraTextures = "Set Render Target";
@@ -55,10 +65,21 @@ namespace UnityEngine.Rendering.LWRP
         public ScriptableRenderer(ScriptableRendererData data)
         {
             m_RendererFeatures.AddRange(data.rendererFeatures.Where(x => x != null));
-            cameraColorHandle = RenderTargetHandle.CameraTarget;
-            cameraDepthHandle = RenderTargetHandle.CameraTarget;
+            m_CameraColorHandle = RenderTargetHandle.CameraTarget;
+            m_CameraDepthHandle = RenderTargetHandle.CameraTarget;
             m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
+        }
+
+        /// <summary>
+        /// Configures the camera target.
+        /// </summary>
+        /// <param name="colorHandle">Camera color handle. Pass RenderTargetHandle.CameraTarget if rendering to backbuffer.</param>
+        /// <param name="depthHandle">Camera depth handle. Pass RenderTargetHandle.CameraTarget if color has depth or rendering to backbuffer.</param>
+        public void ConfigureCameraTarget(RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
+        {
+            m_CameraColorHandle = colorHandle;
+            m_CameraDepthHandle = depthHandle;
         }
 
         /// <summary>
@@ -384,13 +405,13 @@ namespace UnityEngine.Rendering.LWRP
             if (cameraColorHandle != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(cameraColorHandle.id);
-                cameraColorHandle = RenderTargetHandle.CameraTarget;
+                m_CameraColorHandle = RenderTargetHandle.CameraTarget;
             }
 
             if (cameraDepthHandle != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(cameraDepthHandle.id);
-                cameraDepthHandle = RenderTargetHandle.CameraTarget;
+                m_CameraDepthHandle = RenderTargetHandle.CameraTarget;
             }
 
             m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
