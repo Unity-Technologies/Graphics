@@ -57,6 +57,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         private float m_ShapeLightParametricAngleOffset = 0;
         private float m_PreviousShapeLightParametricAngleOffset = -1;
 
+        public float shapeLightRadius
+        {
+            get { return m_ShapeLightRadius; }
+            set { m_ShapeLightRadius = value; }
+        }
+        [SerializeField]
+        private float m_ShapeLightRadius;
+        private float m_PreviousShapeLightRadius;
+
         public Vector2 shapeLightOffset
         {
             get { return m_ShapeLightOffset; }

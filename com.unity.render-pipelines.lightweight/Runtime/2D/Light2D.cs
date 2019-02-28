@@ -228,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_Color, m_ShapePath, m_LightVolumeOpacity, m_ShapeLightFalloffSize);
                     break;
                 case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, m_ShapeLightFalloffSize, m_Color, m_LightVolumeOpacity);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightRadius, m_ShapeLightOffset, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, m_ShapeLightFalloffSize, m_Color, m_LightVolumeOpacity);
                     break;
                 case LightType.Sprite:
                     m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, m_Color, m_LightVolumeOpacity, 1);
@@ -314,6 +314,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             rebuildMesh |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightOffset, ref m_PreviousShapeLightOffset);
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightRadius, ref m_PreviousShapeLightRadius);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);

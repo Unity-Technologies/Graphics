@@ -268,6 +268,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             bool updateMesh = false;
+            SerializedProperty shapeLightRadius = serializedObject.FindProperty("m_ShapeLightRadius");
             SerializedProperty shapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
             SerializedProperty shapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             SerializedProperty shapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
@@ -303,15 +304,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 if (lightProjectionType == Light2D.LightType.Parametric)
                 {
                     EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.Slider(shapeLightRadius, 0, 20, EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object"));
                     EditorGUILayout.IntSlider(shapeLightParametricSides, 3, 24, EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides"));
-                    EditorGUILayout.Slider(shapeLightParametricAngleOffset, 0, 359, EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object"));
-                    updateMesh |= EditorGUI.EndChangeCheck();
                 }
 
                 EditorGUILayout.Slider(shapeLightFalloffSize, 0, 5, EditorGUIUtility.TrTextContent("Falloff Size", "Adjusts the falloff distance"));
                 EditorGUILayout.Slider(falloffCurve, 0, 1, EditorGUIUtility.TrTextContent("Falloff Intensity", "Adjusts the falloff curve"));
                 Vector2 lastOffset = shapeLightOffset.vector2Value;
+
                 EditorGUILayout.PropertyField(shapeLightOffset, EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset"));
+                if (lightProjectionType == Light2D.LightType.Parametric)
+                    EditorGUILayout.Slider(shapeLightParametricAngleOffset, 0, 359, EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object"));
             }
 
             EditorGUILayout.PropertyField(shapeLightOverlapMode, EditorGUIUtility.TrTextContent("Light Overlap Mode", "Specify what should happen when this light overlaps other lights"));
@@ -541,22 +544,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 }
                 else if (lt.lightType == Light2D.LightType.Parametric)
                 {
-                    float radius = 0.5f;
+                    float radius = lt.shapeLightRadius;
                     float sides = lt.shapeLightParametricSides;
                     float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * lt.shapeLightParametricAngleOffset;
 
                     if (sides < 3)
-                    {
                         sides = 4;
-                        radius = radius * 0.70710678118654752440084436210485f;
 
-                    }
                     if (sides == 4)
-                    {
                         angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * lt.shapeLightParametricAngleOffset;
-                    }
-
-
+    
                     Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
                     Vector3 featherStartPoint = (1 + lt.shapeLightFalloffSize * 2.0f) * startPoint;
                     float radiansPerSide = 2 * Mathf.PI / sides;
