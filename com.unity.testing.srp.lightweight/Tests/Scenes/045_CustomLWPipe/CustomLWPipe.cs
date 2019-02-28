@@ -18,8 +18,7 @@ public class CustomLWPipe : ScriptableRenderer
     {
         RenderTextureDescriptor baseDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-        cameraColorHandle = RenderTargetHandle.CameraTarget;
-        cameraDepthHandle = RenderTargetHandle.CameraTarget;
+        ConfigureCameraTarget(RenderTargetHandle.CameraTarget, RenderTargetHandle.CameraTarget);
 
         foreach (var feature in rendererFeatures)
             feature.AddRenderPasses(this, baseDescriptor, cameraColorHandle, cameraDepthHandle);
