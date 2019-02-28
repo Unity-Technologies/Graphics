@@ -105,7 +105,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         break;
                 }
                 if (emissiveMeshRenderer.sharedMaterial == null)
-                    emissiveMeshRenderer.material = new Material(Shader.Find("HDRP/Unlit"));
+                {
+                    emissiveMeshRenderer.sharedMaterial = new Material(Shader.Find("HDRP/Unlit"));
+                }
+                emissiveMeshRenderer.sharedMaterial.SetFloat("_IncludeIndirectLighting", 0.0f);
             }
 
             m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents = false;

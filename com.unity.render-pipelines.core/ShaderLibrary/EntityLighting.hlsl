@@ -115,13 +115,42 @@ float3 SampleProbeVolumeSH4(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), f
     // This avoid leaking
     texCoord.x = clamp(texCoord.x * 0.25, 0.5 * texelSizeX, 0.25 - 0.5 * texelSizeX);
 
-    float4 shAr = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
+    float4 shAr = SAMPLE_TEXTURE3D_LOD(SHVolumeTexture, SHVolumeSampler, texCoord, 0);
     texCoord.x += 0.25;
-    float4 shAg = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
+    float4 shAg = SAMPLE_TEXTURE3D_LOD(SHVolumeTexture, SHVolumeSampler, texCoord, 0);
     texCoord.x += 0.25;
-    float4 shAb = SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
+    float4 shAb = SAMPLE_TEXTURE3D_LOD(SHVolumeTexture, SHVolumeSampler, texCoord, 0);
 
     return SHEvalLinearL0L1(normalWS, shAr, shAg, shAb);
+}
+
+// The SphericalHarmonicsL2 coefficients are packed into 7 coefficients per color channel instead of 9.
+// The packing from 9 to 7 is done from engine code and will use the alpha component of the pixel to store an additional SH coefficient.
+// The 3D atlas texture will contain 7 SH coefficient parts.
+float3 SampleProbeVolumeSH9(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float3 normalWS, float4x4 WorldToTexture,
+                                           float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
+{
+    float3 position = (transformToLocal == 1.0f) ? mul(WorldToTexture, float4(positionWS, 1.0)).xyz : positionWS;
+    float3 texCoord = (position - probeVolumeMin) * probeVolumeSizeInv;
+
+    const uint shCoeffCount = 7;
+    const float invShCoeffCount = 1.0f / float(shCoeffCount);
+
+    // We need to compute proper X coordinate to sample into the atlas.
+    texCoord.x = texCoord.x / shCoeffCount;
+
+    // Clamp the x coordinate otherwise we'll have leaking between RGB coefficients.
+    float texCoordX = clamp(texCoord.x, 0.5f * texelSizeX, invShCoeffCount - 0.5f * texelSizeX);
+
+    float4 SHCoefficients[7];
+
+    for (uint i = 0; i < shCoeffCount; i++)
+    {
+        texCoord.x = texCoordX + i * invShCoeffCount;
+        SHCoefficients[i] = SAMPLE_TEXTURE3D_LOD(SHVolumeTexture, SHVolumeSampler, texCoord, 0);
+    }
+
+    return SampleSH9(SHCoefficients, normalize(normalWS));
 }
 
 float4 SampleProbeOcclusion(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float4x4 WorldToTexture,

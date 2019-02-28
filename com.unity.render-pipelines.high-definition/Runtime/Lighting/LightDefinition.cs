@@ -110,7 +110,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int     cookieIndex;             // -1 if unused
         public int     tileCookie;              // (TODO: use a bitfield)
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
-        public int     contactShadowIndex;      // -1 if unused (TODO: 16 bit)
+#if ENABLE_RAYTRACING
+        // We store the ray traced area shadow index as a negative value inside the contactShadowIndex.
+        // Contact shadows are disabled for area lights and setting the index as negative allows for still
+        // disabling contact shadows in the shader code (checks for => 0)
+        public int     rayTracedAreaShadowIndex { get => -contactShadowIndex; set => contactShadowIndex = -value; }
+#endif
+        public int contactShadowIndex;      // negative if unused (TODO: 16 bit)
 
         public float   shadowDimmer;
         public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'

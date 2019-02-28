@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             
             // Shadow
             public Shader shadowClearPS;
-            public ComputeShader shadowBlurMomentsCS;
+            public ComputeShader evsmBlurCS;
             public Shader debugHDShadowMapPS;
             public ComputeShader momentShadowsCS;
 
@@ -141,7 +141,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader lightClusterBuildCS;
             public ComputeShader lightClusterDebugCS;
             public ComputeShader countTracedRays;
-            public Shader debugViewRayCountPS;
 #endif
         }
 
@@ -273,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Shadow
                 shadowClearPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowClear.shader"),
-                shadowBlurMomentsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/ShadowBlurMoments.compute"),
+                evsmBlurCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/EVSMBlur.compute"),
                 debugHDShadowMapPS = Load<Shader>(HDRenderPipelinePath + "Lighting/Shadow/DebugDisplayHDShadowMap.shader"),
                 momentShadowsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/Shadow/MomentShadows.compute"),
 
@@ -327,7 +326,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightClusterBuildCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute"),
                 lightClusterDebugCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute"),
 				countTracedRays = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/CountTracedRays.compute"),
-				debugViewRayCountPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugViewRayCount.shader")
 #endif
         };
 

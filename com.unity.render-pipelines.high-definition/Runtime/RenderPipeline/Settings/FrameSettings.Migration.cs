@@ -357,5 +357,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.AfterPostprocess, true);
         }
+
+        internal static void MigrateToSpecularLighting(ref FrameSettings cameraFrameSettings)
+            => cameraFrameSettings.SetEnabled(FrameSettingsField.SpecularLighting, true);
     }
 }
