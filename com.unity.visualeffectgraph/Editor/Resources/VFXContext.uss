@@ -191,8 +191,6 @@ VFXContextUI #footer #icon
 }
 
 VFXContextUI #block-container {
-    -unity-text-align:upper-center;
-
     color:#8FC1DF;
 
     font-size:12;
