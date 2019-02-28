@@ -274,7 +274,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
 
-                if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
+                if (transmissionEnable != null && (int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
                 {
                     EditorGUI.indentLevel++;
                     m_MaterialEditor.ShaderProperty(transmissionEnable, StylesBaseLit.transmissionEnableText);

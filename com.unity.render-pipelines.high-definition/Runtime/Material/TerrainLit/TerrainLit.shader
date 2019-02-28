@@ -5,6 +5,10 @@ Shader "HDRP/TerrainLit"
         [HideInInspector] [ToggleUI] _EnableHeightBlend("EnableHeightBlend", Float) = 0.0
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
 
+        [HideInInspector] [Enum(Subsurface Scattering, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1
+        _DiffusionProfile("Diffusion Profile", Int) = 0
+        _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
+
         // TODO: support tri-planar?
         // TODO: support more maps?
         //[HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
@@ -55,6 +59,8 @@ Shader "HDRP/TerrainLit"
     #pragma shader_feature _TERRAIN_BLEND_HEIGHT
     // Sample normal in pixel shader when doing instancing
     #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
+
+    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
 
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1

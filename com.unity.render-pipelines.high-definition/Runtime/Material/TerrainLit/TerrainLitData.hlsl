@@ -22,6 +22,8 @@
 
 CBUFFER_START(UnityTerrain)
     UNITY_TERRAIN_CB_VARS
+    float _SubsurfaceMask;
+    int _DiffusionProfile;
 #ifdef UNITY_INSTANCING_ENABLED
     float4 _TerrainHeightmapRecipSize;  // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
     float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
@@ -159,11 +161,14 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     TerrainLitShade(input.texCoord0.xy, surfaceData.baseColor, normalData, surfaceData.perceptualSmoothness, surfaceData.metallic, surfaceData.ambientOcclusion);
 
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
-    surfaceData.subsurfaceMask = 0;
+    surfaceData.subsurfaceMask = _SubsurfaceMask;
     surfaceData.thickness = 1;
-    surfaceData.diffusionProfile = 0;
+    surfaceData.diffusionProfile = _DiffusionProfile;
 
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+    #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
+    #endif
 
     // Init other parameters
     surfaceData.anisotropy = 0.0;
@@ -176,7 +181,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // Use thickness from SSS
     surfaceData.ior = 1.0;
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
-    surfaceData.atDistance = 1000000.0;
+    surfaceData.atDistance = 1;
     surfaceData.transmittanceMask = 0.0;
 
     float3 normalTS = ConvertToNormalTS(normalData, input.worldToTangent[0], input.worldToTangent[1]);

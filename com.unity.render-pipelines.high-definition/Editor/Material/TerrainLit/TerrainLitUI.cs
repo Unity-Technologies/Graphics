@@ -67,6 +67,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     heightTransition = prop;
                 else if (prop.name == kEnableInstancedPerPixelNormal)
                     enableInstancedPerPixelNormal = prop;
+                else if (prop.name == kDiffusionProfileID)
+                    diffusionProfileID[0] = prop;
+                else if (prop.name == kSubsurfaceMask)
+                    subsurfaceMask[0] = prop;
                 else if ((prop.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) == 0)
                     customProperties.Add(prop);
             }
@@ -104,6 +108,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupBaseLitKeywords(material);
             SetupBaseLitMaterialPass(material);
 
+            var materialId = (MaterialId)material.GetFloat(kMaterialID);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
+
             // TODO: planar/triplannar supprt
             //SetupLayersMappingKeywords(material);
 
@@ -117,7 +124,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void MaterialPropertiesGUI(Material material)
         {
             // Don't draw the header if we have empty content
-            if (enableHeightBlend == null && enableInstancedPerPixelNormal == null && customProperties.Count == 0)
+            var materialId = (BaseLitGUI.MaterialId)materialID.floatValue;
+            if (enableHeightBlend == null && enableInstancedPerPixelNormal == null && materialId == MaterialId.LitStandard && customProperties.Count == 0)
                 return;
 
             using (var header = new HeaderScope(styles.terrainText, (uint)Expandable.Other, this))
@@ -140,8 +148,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.ShaderProperty(enableInstancedPerPixelNormal, styles.enableInstancedPerPixelNormal);
                         EditorGUI.EndDisabledGroup();
                     }
+                    if (materialId != MaterialId.LitStandard)
+                        ShaderSSSAndTransmissionInputGUI(material, materialId, 0);
                     foreach (var prop in customProperties)
-                        m_MaterialEditor.DefaultShaderProperty(prop, prop.displayName);
+                        m_MaterialEditor.ShaderProperty(prop, prop.displayName);
                 }
             }
         }

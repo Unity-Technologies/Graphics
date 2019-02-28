@@ -436,7 +436,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel--;
         }
 
-        protected void ShaderSSSAndTransmissionInputGUI(Material material, int layerIndex)
+        protected void ShaderSSSAndTransmissionInputGUI(Material material, BaseLitGUI.MaterialId materialId, int layerIndex)
         {
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
@@ -486,14 +486,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     diffusionProfileID[layerIndex].floatValue = profileID;
             }
 
-            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
+            if (materialId == BaseLitGUI.MaterialId.LitSSS)
             {
                 m_MaterialEditor.ShaderProperty(subsurfaceMask[layerIndex], Styles.subsurfaceMaskText);
-                m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[layerIndex]);
+                if (subsurfaceMaskMap[layerIndex] != null)
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.subsurfaceMaskMapText, subsurfaceMaskMap[layerIndex]);
             }
 
-            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitTranslucent ||
-                ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS && transmissionEnable.floatValue > 0.0f))
+            if (materialId == BaseLitGUI.MaterialId.LitTranslucent ||
+                (materialId == BaseLitGUI.MaterialId.LitSSS && transmissionEnable != null && transmissionEnable.floatValue > 0.0f))
             {
                 m_MaterialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[layerIndex]);
                 if (thicknessMap[layerIndex].textureValue != null)
@@ -595,7 +596,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected void DoLayerGUI(Material material, int layerIndex, bool isLayeredLit, bool showHeightMap, uint inputToggle = (uint)Expandable.Input, uint detailToggle = (uint)Expandable.Detail, Color colorDot = default(Color), bool subHeader = false)
         {
-            UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
+            var materialId = (BaseLitGUI.MaterialId)materialID.floatValue;
+            var uvBaseMapping = (UVBaseMapping)UVBase[layerIndex].floatValue;
             float X, Y, Z, W;
 
             using (var header = new HeaderScope(Styles.InputsText, inputToggle, this, colorDot: colorDot, subHeader: subHeader))
@@ -604,9 +606,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[layerIndex], baseColor[layerIndex]);
 
-                    if ((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitStandard ||
-                        (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitAniso ||
-                        (BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitIridescence)
+                    if (materialId == BaseLitGUI.MaterialId.LitStandard ||
+                        materialId == BaseLitGUI.MaterialId.LitAniso ||
+                        materialId == BaseLitGUI.MaterialId.LitIridescence)
                     {
                         m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
                     }
@@ -638,7 +640,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    m_MaterialEditor.TexturePropertySingleLine(((BaseLitGUI.MaterialId)materialID.floatValue == BaseLitGUI.MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
+                    m_MaterialEditor.TexturePropertySingleLine((materialId == BaseLitGUI.MaterialId.LitSpecular) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[layerIndex]);
 
                     m_MaterialEditor.ShaderProperty(normalMapSpace[layerIndex], Styles.normalMapSpaceText);
 
@@ -713,11 +715,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    switch ((BaseLitGUI.MaterialId)materialID.floatValue)
+                    switch (materialId)
                     {
                         case BaseLitGUI.MaterialId.LitSSS:
                         case BaseLitGUI.MaterialId.LitTranslucent:
-                            ShaderSSSAndTransmissionInputGUI(material, layerIndex);
+                            ShaderSSSAndTransmissionInputGUI(material, materialId, layerIndex);
                             break;
                         case BaseLitGUI.MaterialId.LitStandard:
                             // Nothing
