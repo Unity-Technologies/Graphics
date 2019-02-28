@@ -76,27 +76,27 @@ namespace UnityEngine.Rendering.LWRP
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                     cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
                 }
-                context.ExecuteCommandBuffer(cmd);
-                Blit(context, depthSurface, copyDepthSurface, m_CopyDepthMaterial, 0, m_ProfilerTag);
+                
+                Blit(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
             else
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                context.ExecuteCommandBuffer(cmd);
-                CopyTexture(context, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
             }
+            context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        void CopyTexture(ScriptableRenderContext context, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
+        void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
         {
             // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
             //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
             //    cmd.CopyTexture(source, dest);
             //else
-            Blit(context, source, dest, material);
+            Blit(cmd, source, dest, material);
         }
 
         /// <inheritdoc/>

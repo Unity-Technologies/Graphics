@@ -113,35 +113,31 @@ namespace UnityEngine.Rendering.LWRP
         /// Add a blit command to the context for execution. This changes the active render target in the ScriptableRenderer to
         /// destination.
         /// </summary>
-        /// <param name="context">Rendering context to record command for execution.</param>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
         /// <param name="source">Source texture or target identifier to blit from.</param>
         /// <param name="destination">Destination texture or target identifier to blit into. This becomes the renderer active render target.</param>
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
-        /// <param name="profilerTag">Name to display in FrameDebugger. Default is "Blit"</param>
         /// <seealso cref="ScriptableRenderer"/>
-        public static void Blit(ScriptableRenderContext context, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0, string profilerTag = "Blit")
+        public static void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
             cmd.Blit(source, destination, material, passIndex);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
             ScriptableRenderer.ConfigureActiveTarget(destination, BuiltinRenderTextureType.CameraTarget);
         }
 
         /// <summary>
         /// Adds a Render Post-processing command for execution. This changes the active render target in the ScriptableRenderer to destination.
         /// </summary>
-        /// <param name="context">Rendering context to record command for execution.</param>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
         /// <param name="cameraData">Camera rendering data.</param>
         /// <param name="sourceDescriptor">Render texture descriptor for source.</param>
         /// <param name="source">Source texture or render target identifier.</param>
         /// <param name="destination">Destination texture or render target identifier.</param>
         /// <param name="opaqueOnly">If true, only renders opaque post-processing effects. Otherwise, renders before and after stack post-processing effects.</param>
         /// <param name="flip">If true, flips image vertically.</param>
-        public static void RenderPostProcessing(ScriptableRenderContext context, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
+        public static void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
         {
-            RenderingUtils.RenderPostProcessing(context, ref cameraData, sourceDescriptor, source, destination, opaqueOnly, flip);
+            RenderingUtils.RenderPostProcessing(cmd, ref cameraData, sourceDescriptor, source, destination, opaqueOnly, flip);
             ScriptableRenderer.ConfigureActiveTarget(destination, BuiltinRenderTextureType.CameraTarget);
         }
 

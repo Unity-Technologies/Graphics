@@ -57,7 +57,11 @@ namespace UnityEngine.Rendering.LWRP
             // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
             // TODO: We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP.
             RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-            Blit(context, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial, 0, m_ProfilerTag);
+
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>
