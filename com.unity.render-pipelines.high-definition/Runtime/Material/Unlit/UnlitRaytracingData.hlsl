@@ -21,6 +21,8 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     builtinData.emissiveColor = _EmissiveColor;
 #endif
 
+    builtinData.emissiveColor *= _IncludeIndirectLighting;
+
 #if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
     float3 distortion = SAMPLE_TEXTURE2D_LOD(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0.xy, 0).rgb;
     distortion.rg = distortion.rg * _DistortionVectorScale.xx + _DistortionVectorBias.xx;

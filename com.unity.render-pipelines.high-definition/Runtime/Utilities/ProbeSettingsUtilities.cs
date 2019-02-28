@@ -93,6 +93,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cameraSettings.defaultFrameSettings = FrameSettingsRenderType.CustomOrBakedReflection;
                     break;
             }
+
+            switch (settings.type)
+            {
+                case ProbeSettings.ProbeType.ReflectionProbe:
+                    cameraSettings.customRenderingSettings = true;
+                    // Disable specular lighting for reflection probes, they must not have view dependent information when baking
+                    cameraSettings.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.SpecularLighting, false);
+                    cameraSettings.renderingPathCustomFrameSettingsOverrideMask.mask[(int)FrameSettingsField.SpecularLighting] = true;
+                    break;
+            }
         }
 
         internal static void ApplyMirroredReferenceTransform(
