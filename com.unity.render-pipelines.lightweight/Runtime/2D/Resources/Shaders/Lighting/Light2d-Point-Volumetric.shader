@@ -56,6 +56,10 @@
 			SAMPLER(sampler_PointLightCookieTex);
 			#endif
 
+			TEXTURE2D(_FalloffLookup);
+			SAMPLER(sampler_FalloffLookup);
+			uniform float _FalloffCurve;
+
 			TEXTURE2D(_LightLookup);
 			SAMPLER(sampler_LightLookup);
 
@@ -122,7 +126,11 @@
 				// Spotlight
 				half  spotAttenuation = saturate((_OuterAngle - lookupValue.g)*_InnerAngleMult);
 				attenuation = attenuation * spotAttenuation;
-				//attenuation = attenuation * attenuation;
+
+				half2 mappedUV;
+				mappedUV.x = attenuation;
+				mappedUV.y = _FalloffCurve;
+				attenuation = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
 
 
 				#if USE_POINT_LIGHT_COOKIES

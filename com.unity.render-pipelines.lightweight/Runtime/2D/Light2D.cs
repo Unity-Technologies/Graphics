@@ -46,6 +46,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [Serialization.FormerlySerializedAs("m_LightOperation")]
         int m_LightOperationIndex = 0;
 
+        [SerializeField]
+        float m_FalloffCurve = 0.5f;
+
         [ColorUsage(false, true)]
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_LightColor")]
@@ -73,6 +76,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public Color    color               => m_Color;
         public float    volumeOpacity       => m_LightVolumeOpacity;
         public Sprite   lightCookieSprite   => m_LightCookieSprite;
+        public float    falloffCurve        => m_FalloffCurve;
+
 
         //==========================================================================================
         //                              Functions
@@ -220,10 +225,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             switch (m_LightType)
             {
                 case LightType.Freeform:
-                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_Color, m_ShapePath, m_LightVolumeOpacity, m_ShapeLightFeathering);
+                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_Color, m_ShapePath, m_LightVolumeOpacity, m_ShapeLightFalloffSize);
                     break;
                 case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, m_ShapeLightFeathering, m_Color, m_LightVolumeOpacity);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 0.5f, m_ShapeLightOffset, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, m_ShapeLightFalloffSize, m_Color, m_LightVolumeOpacity);
                     break;
                 case LightType.Sprite:
                     m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, m_Color, m_LightVolumeOpacity, 1);
@@ -314,10 +319,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             bool rebuildMesh = false;
 
             rebuildMesh |= LightUtility.CheckForColorChange(m_Color, ref m_PreviousColor);
-            rebuildMesh |= LightUtility.CheckForChange<float>(m_ShapeLightFeathering, ref m_PreviousShapeLightFeathering);
+            rebuildMesh |= LightUtility.CheckForChange<float>(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
             rebuildMesh |= LightUtility.CheckForVector2Change(m_ShapeLightOffset, ref m_PreviousShapeLightOffset);
             rebuildMesh |= LightUtility.CheckForChange<int>(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange<float>(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
+            rebuildMesh |= LightUtility.CheckForChange<float>(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
 
 #if UNITY_EDITOR
             var shapePathHash = GetShapePathHash();

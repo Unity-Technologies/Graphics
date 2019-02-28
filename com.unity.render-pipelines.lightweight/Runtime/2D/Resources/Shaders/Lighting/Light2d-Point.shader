@@ -55,6 +55,10 @@
 			SAMPLER(sampler_PointLightCookieTex);
 			#endif
 
+			TEXTURE2D(_FalloffLookup);
+			SAMPLER(sampler_FalloffLookup);
+			uniform float _FalloffCurve;
+
 			TEXTURE2D(_LightLookup);
 			SAMPLER(sampler_LightLookup);
 
@@ -111,6 +115,7 @@
 				half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
 				half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
+
 				float usingDefaultNormalMap = (normal.x + normal.y + normal.z) == 0;  // 1 if using a black normal map, 0 if using a custom normal map
 				float3 normalUnpacked = UnpackNormal(normal);
 
@@ -120,10 +125,14 @@
 				// Spotlight
 				half  spotAttenuation = saturate((_OuterAngle - lookupValue.g)*_InnerAngleMult);
 				attenuation = attenuation * spotAttenuation;
-				//attenuation = attenuation * attenuation;
+
+				half2 mappedUV;
+				mappedUV.x = attenuation;
+				mappedUV.y = _FalloffCurve;
+				attenuation = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
+				
 
 				// Calculate final color
-
 				#if LIGHT_QUALITY_FAST
 					float3 dirToLight = input.lightDirection.xyz;  
 				#else

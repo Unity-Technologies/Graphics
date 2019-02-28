@@ -21,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static bool[] s_RenderTargetsDirty;
         static RenderTargetHandle s_NormalsTarget;
         static Texture s_LightLookupTexture;
+        static Texture s_FalloffLookupTexture;
 
         static public void Setup(_2DLightOperationDescription[] lightTypes)
         {
@@ -105,6 +106,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             if (!renderedAnyLight)
                                 renderedAnyLight = true;
 
+                            cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+
                             if (isShapeLight)
                             {
                                 cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
@@ -144,6 +147,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                 Mesh lightMesh = light.GetMesh();
                                 if (lightMesh != null)
                                 {
+                                    cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+
                                     if (renderShapeLights)
                                     {
                                         cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
@@ -175,14 +180,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_LightOperations[i].maskTextureChannelFilter.mask);
                 cmdBuffer.SetGlobalVector("_ShapeLightInvertedFilter" + i, s_LightOperations[i].maskTextureChannelFilter.inverted);
             }
+
+            cmdBuffer.SetGlobalTexture("_FalloffLookup", GetFalloffLookupTexture());
         }
 
         static Texture GetLightLookupTexture()
         {
             if (s_LightLookupTexture == null)
-                s_LightLookupTexture = Light2DLookupTexture.CreateLightLookupTexture();
+                s_LightLookupTexture = Light2DLookupTexture.CreatePointLightLookupTexture();
 
             return s_LightLookupTexture;
+        }
+
+        static Texture GetFalloffLookupTexture()
+        {
+            if (s_FalloffLookupTexture == null)
+                s_FalloffLookupTexture = Light2DLookupTexture.CreateFalloffLookupTexture();
+
+            return s_FalloffLookupTexture;
         }
 
         static public float GetNormalizedInnerRadius(Light2D light)
@@ -249,6 +264,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.SetGlobalFloat("_OuterAngle", outerAngle);
             cmdBuffer.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
             cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
+            cmdBuffer.SetGlobalTexture("_FalloffLookup", GetFalloffLookupTexture());
+            cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
 
             cmdBuffer.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
 

@@ -8,9 +8,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 {
     public class Light2DLookupTexture
     {
-        static Texture2D m_LightLookupTexture;
+        static Texture2D m_PointLightLookupTexture;
+        static Texture2D m_FalloffLookupTexture;
 
-        static public Texture2D CreateLightLookupTexture()
+        static public Texture2D CreatePointLightLookupTexture()
         {
             const float WIDTH = 256;
             const float HEIGHT = 256;
@@ -20,10 +21,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             else if (SystemInfo.SupportsTextureFormat(TextureFormat.RGBAFloat))
                 textureFormat = TextureFormat.RGBAFloat;
 
-            m_LightLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT, textureFormat, false);
-            m_LightLookupTexture.filterMode = FilterMode.Bilinear;
-            m_LightLookupTexture.wrapMode = TextureWrapMode.Clamp;
-            if (m_LightLookupTexture != null)
+            m_PointLightLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT, textureFormat, false);
+            m_PointLightLookupTexture.filterMode = FilterMode.Bilinear;
+            m_PointLightLookupTexture.wrapMode = TextureWrapMode.Clamp;
+            if (m_PointLightLookupTexture != null)
             {
                 Vector2 center = new Vector2(WIDTH / 2, HEIGHT / 2);
 
@@ -57,25 +58,72 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                         Color color = new Color(red, green, blue, alpha);
 
-                        
-                        m_LightLookupTexture.SetPixel(x, y, color);
+
+                        m_PointLightLookupTexture.SetPixel(x, y, color);
                     }
                 }
             }
-            m_LightLookupTexture.Apply();
+            m_PointLightLookupTexture.Apply();
 
-            return m_LightLookupTexture;
+            return m_PointLightLookupTexture;
+        }
+
+        static public Texture2D CreateFalloffLookupTexture()
+        {
+            const float WIDTH = 2048;
+            const float HEIGHT = 192;
+
+            TextureFormat textureFormat = TextureFormat.ARGB32;
+            m_FalloffLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT-64, textureFormat, false);
+            m_FalloffLookupTexture.filterMode = FilterMode.Bilinear;
+            m_FalloffLookupTexture.wrapMode = TextureWrapMode.Clamp;
+            if (m_FalloffLookupTexture != null)
+            {
+                for(int y=0;y<HEIGHT;y++)
+                {
+                    float baseValue = (float)(y+32) / (float)(HEIGHT+64);
+                    float lineValue = -baseValue + 1;
+                    float exponent = Mathf.Log(lineValue) / Mathf.Log(baseValue);
+
+                    if (y == HEIGHT - 1)
+                        textureFormat = TextureFormat.ARGB32;
+
+                    for (int x=0;x<WIDTH;x++)
+                    {
+                        float t = (float)x / (float)WIDTH;
+                        float red = Mathf.Pow(t, exponent);
+                        Color color = new Color(red, 0, 0, 1);
+                        if(y >= 32 && y < 160)
+                            m_FalloffLookupTexture.SetPixel(x, y-32, color);
+                    }
+                }
+            }
+            m_FalloffLookupTexture.Apply();
+
+            return m_FalloffLookupTexture;
         }
 
 #if UNITY_EDITOR
         [MenuItem("Light2D Debugging/Write Light Texture")]
         static public void WriteLightTexture()
         {
-            var path = EditorUtility.SaveFilePanel("Save texture as EXR", "", "LightLookupTexture.exr", "exr");
+            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "LightLookupTexture.exr", "png");
 
-            CreateLightLookupTexture();
+            CreatePointLightLookupTexture();
 
-            byte[] imgData = m_LightLookupTexture.EncodeToEXR(Texture2D.EXRFlags.CompressRLE);
+            byte[] imgData = m_PointLightLookupTexture.EncodeToEXR(Texture2D.EXRFlags.CompressRLE);
+            if (imgData != null)
+                File.WriteAllBytes(path, imgData);
+        }
+
+        [MenuItem("Light2D Debugging/Write Falloff Texture")]
+        static public void WriteCurveTexture()
+        {
+            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "FalloffLookupTexture.png", "png");
+
+            CreateFalloffLookupTexture();
+
+            byte[] imgData = m_FalloffLookupTexture.EncodeToPNG();
             if (imgData != null)
                 File.WriteAllBytes(path, imgData);
         }

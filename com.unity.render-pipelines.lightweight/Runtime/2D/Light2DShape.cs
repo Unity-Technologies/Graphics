@@ -28,14 +28,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
         //------------------------------------------------------------------------------------------
-        public float shapeLightFeathering
+        public float shapeLightFalloffSize
         {
-            get { return m_ShapeLightFeathering; }
-            set { m_ShapeLightFeathering = value; }
+            get { return m_ShapeLightFalloffSize; }
+            set { m_ShapeLightFalloffSize = value; }
         }
+
         [SerializeField]
-        private float m_ShapeLightFeathering = 0.50f;
-        private float m_PreviousShapeLightFeathering = -1;
+        private float m_ShapeLightFalloffSize = 0.50f;
+        private float m_PreviousShapeLightFalloffSize = -1;
 
         public int shapeLightParametricSides
         {
@@ -54,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
         [SerializeField]
         private float m_ShapeLightParametricAngleOffset = 0;
-        //private float m_PreviousShapeLightParametricAngleOffset = -1;
+        private float m_PreviousShapeLightParametricAngleOffset = -1;
 
         public Vector2 shapeLightOffset
         {
