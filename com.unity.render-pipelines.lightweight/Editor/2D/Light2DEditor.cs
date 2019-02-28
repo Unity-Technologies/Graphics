@@ -523,17 +523,21 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                 if (lt.lightType == Light2D.LightType.Sprite)
                 {
-                    Vector3 min = lt.lightCookieSprite.bounds.min;
-                    Vector3 max = lt.lightCookieSprite.bounds.max;
+                    var cookieSprite = lt.lightCookieSprite;
+                    if (cookieSprite != null)
+                    {
+                        Vector3 min = cookieSprite.bounds.min;
+                        Vector3 max = cookieSprite.bounds.max;
 
-                    Vector3 v0 = t.TransformPoint(new Vector3(min.x, min.y));
-                    Vector3 v1 = t.TransformPoint(new Vector3(max.x, min.y));
-                    Vector3 v2 = t.TransformPoint(new Vector3(max.x, max.y));
-                    Vector3 v3 = t.TransformPoint(new Vector3(min.x, max.y));
-                    Handles.DrawLine(v0, v1);
-                    Handles.DrawLine(v1, v2);
-                    Handles.DrawLine(v2, v3);
-                    Handles.DrawLine(v3, v0);
+                        Vector3 v0 = t.TransformPoint(new Vector3(min.x, min.y));
+                        Vector3 v1 = t.TransformPoint(new Vector3(max.x, min.y));
+                        Vector3 v2 = t.TransformPoint(new Vector3(max.x, max.y));
+                        Vector3 v3 = t.TransformPoint(new Vector3(min.x, max.y));
+                        Handles.DrawLine(v0, v1);
+                        Handles.DrawLine(v1, v2);
+                        Handles.DrawLine(v2, v3);
+                        Handles.DrawLine(v3, v0);
+                    }
                 }
                 else if (lt.lightType == Light2D.LightType.Parametric)
                 {
@@ -641,7 +645,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 {
                     Light2D light = (Light2D)targets[i];
                     light.UpdateMesh();
-                    light.UpdateMaterial();
+                    light.UpdateCookieSpriteMaterials();
                 }
             }
         }

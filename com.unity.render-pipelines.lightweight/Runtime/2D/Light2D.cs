@@ -139,10 +139,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             int largestIndex = -1;
             int largestLayer = 0;
 
-            SortingLayer[] layers = SortingLayer.layers;
-            for(int i=0;i< m_ApplyToSortingLayers.Length;i++)
+            // TODO: SortingLayer.layers allocates the memory for the returned array.
+            // An alternative to this is to keep m_ApplyToSortingLayers sorted by using SortingLayer.GetLayerValueFromID in the comparer.
+            SortingLayer[] layers = SortingLayer.layers;    
+            for(int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
             {
-                for(int layer=layers.Length-1;layer>=largestLayer; layer--)
+                for(int layer = layers.Length - 1; layer >= largestLayer; --layer)
                 {
                     if (layers[layer].id == m_ApplyToSortingLayers[i])
                     {
@@ -163,13 +165,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             GetMesh(true);
         }
 
-        internal void UpdateMaterial()
+        internal void UpdateCookieSpriteMaterials()
         {
             m_ShapeCookieSpriteAdditiveMaterial = null;
             m_ShapeCookieSpriteAlphaBlendMaterial = null;
             m_ShapeCookieSpriteVolumeMaterial = null;
-            m_PointLightMaterial = null;
-            m_PointLightVolumeMaterial = null;
             GetMaterial();
         }
 
@@ -300,62 +300,36 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private void LateUpdate()
         {
-            // Sorting
-            if(LightUtility.CheckForChange<int>(m_ShapeLightOrder, ref m_PreviousShapeLightOrder) && Light2D.IsShapeLight(this.m_LightType))
+            UpdateLightOperation();
+
+            // Sorting. InsertLight() will make sure the lights are sorted.
+            if (LightUtility.CheckForChange(m_ShapeLightOrder, ref m_PreviousShapeLightOrder))
             {
-                //m_ShapeLightStyle = CookieStyles.Parametric;
                 s_Lights[(int)m_LightOperationIndex].Remove(this);
                 InsertLight();
             }
 
-            // If we changed blending modes then we need to clear our material
-            //if(CheckForChange<BlendingModes>(m_ShapeLightOverlapMode, ref m_PreviousShapeLightBlending))
-            //{
-            //    m_ShapeCookieSpriteMaterial = null;
-            //    m_ShapeVertexColoredMaterial = null;
-            //}
-
             // Mesh Rebuilding
             bool rebuildMesh = false;
-
-            rebuildMesh |= LightUtility.CheckForColorChange(m_Color, ref m_PreviousColor);
-            rebuildMesh |= LightUtility.CheckForChange<float>(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
-            rebuildMesh |= LightUtility.CheckForVector2Change(m_ShapeLightOffset, ref m_PreviousShapeLightOffset);
-            rebuildMesh |= LightUtility.CheckForChange<int>(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
-            rebuildMesh |= LightUtility.CheckForChange<float>(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
-            rebuildMesh |= LightUtility.CheckForChange<float>(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
+            rebuildMesh |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightOffset, ref m_PreviousShapeLightOffset);
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
+            rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
 
 #if UNITY_EDITOR
-            var shapePathHash = GetShapePathHash();
-            rebuildMesh |= m_PrevShapePathHash != shapePathHash;
-            m_PrevShapePathHash = shapePathHash;
+            rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PrevShapePathHash);
 #endif
 
             if (rebuildMesh)
-            {
                 UpdateMesh();
-            }
 
-            bool rebuildMaterial = false;
-            rebuildMaterial |= LightUtility.CheckForSpriteChange(m_LightCookieSprite, ref m_PreviousLightCookieSprite);
-            if (rebuildMaterial)
-            {
-                UpdateMaterial();
-                rebuildMaterial = false;
-            }
-
-            UpdateLightOperation();
+            if (LightUtility.CheckForChange(m_LightCookieSprite, ref m_PreviousLightCookieSprite))
+                UpdateCookieSpriteMaterials();
         }
 
         private void OnDrawGizmos()
-        {
-#if UNITY_EDITOR
-            if (UnityEditor.Selection.activeGameObject != transform.gameObject)
-                Gizmos.DrawIcon(transform.position, "PointLight Gizmo", true);
-#endif
-        }
-
-        private void OnDrawGizmosSelected()
         {
             Gizmos.DrawIcon(transform.position, "PointLight Gizmo", true);
         }
