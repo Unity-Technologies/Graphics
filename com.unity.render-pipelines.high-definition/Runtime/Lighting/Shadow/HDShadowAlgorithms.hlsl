@@ -305,12 +305,17 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
     }
     int shadowSplitIndex = i < _CascadeShadowCount ? i : -1;
 
-    float3 cascadeDir = dsd.cascadeDirection.xyz;
-    cascadeCount     = dsd.cascadeDirection.w;
-    float border      = dsd.cascadeBorders[shadowSplitIndex];
-          alpha      = border <= 0.0 ? 0.0 : saturate((relDistance - (1.0 - border)) / border);
-    float  cascDot    = dot(cascadeDir, wposDir);
-          alpha      = lerp(alpha, 0.0, saturate(-cascDot * 4.0));
+    cascadeCount = dsd.cascadeDirection.w;
+    float border = dsd.cascadeBorders[shadowSplitIndex];
+    alpha = border <= 0.0 ? 0.0 : saturate((relDistance - (1.0 - border)) / border);
+
+    // The above code will generate transitions on the whole cascade sphere boundary.
+    // It means that depending on the light and camera direction, sometimes the transition appears on the wrong side of the cascade
+    // To avoid that we attenuate the effect (lerp to 0.0) when view direction and cascade center to pixel vector face opposite directions.
+    // This way you only get fade out on the right side of the cascade.
+    float3 viewDir = GetWorldSpaceViewDir(positionWS);
+    float  cascDot = dot(viewDir, wposDir);
+    alpha = lerp(alpha, 0.0, saturate(cascDot * 4.0));
 
     return shadowSplitIndex;
 }
