@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.LWRP
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
-            bool isLastRenderPass = (m_Destination == RenderTargetHandle.CameraTarget) && !cameraData.isStereoEnabled;
+            bool isLastRenderPass = (m_Destination == RenderTargetHandle.CameraTarget);
             bool flip = isLastRenderPass && cameraData.camera.targetTexture == null;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderPostProcessingTag);
