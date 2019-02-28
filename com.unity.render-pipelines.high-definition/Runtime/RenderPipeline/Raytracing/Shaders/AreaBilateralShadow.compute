@@ -9,13 +9,12 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 
 // Tile size of this compute
 #define AREA_BILLATERAL_TILE_SIZE 8
 
-// FIXME: Inputs could be scalars instead of colors
-
-// Input/intermediate integration texture (containing Sn, Un, U, 1)
+// Input/intermediate integration texture (containing Sn, Un, U, E)
 Texture2D<float4>       _DenoiseInputTexture;
 RWTexture2D<float4>     _DenoiseOutputTextureRW;
 
@@ -35,7 +34,6 @@ static const float NORMAL_WEIGHT   = 1.0f;
 static const float PLANE_WEIGHT    = 1.0f;
 static const float DEPTH_WEIGHT    = 1.0f;
 static const float ANALYTIC_WEIGHT = 1.0f;
-static const float EPSILON         = 0.001f;
 
 // Couple helper functions
 float sqr(float value)
@@ -55,14 +53,14 @@ float TapRatio(uint2 coordSS)
     const float Sn = _DenoiseInputTexture[coordSS].x;
     const float Un = _DenoiseInputTexture[coordSS].y;
 
-    return (Un > EPSILON) ? (Sn / Un) : 0.0f;
+    return (Un > 0.0f) ? (Sn / Un) : 1.0f;
 }
 
 // Estimate desired radius from the second derivative of the signal
 float EstimateNoise(uint2 coordSS, float2 axis)
 {
     // Radius is supposed to be always >= 1
-    const int NOISE_ESTIMATION_RADIUS = min(_DenoiseRadius, 1);
+    const int NOISE_ESTIMATION_RADIUS = min(_DenoiseRadius, 10);
     float v2 = TapRatio(coordSS - NOISE_ESTIMATION_RADIUS * axis);
     float v1 = TapRatio(coordSS - (NOISE_ESTIMATION_RADIUS - 1) * axis);
 
@@ -83,7 +81,7 @@ float EstimateNoise(uint2 coordSS, float2 axis)
         v2 = v1; v1 = v0;
     }
 
-    return clamp(d2mag / n, 0.0f, 1.0f);
+    return saturate(sqrt(d2mag / n));
 }
 
 // Estimate noise to drive denoising kernel radius
@@ -94,8 +92,8 @@ void AreaShadowEstimateNoise(uint2 groupThreadId : SV_GroupThreadID, uint2 group
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
-    // Cheap "random" angular offset, good enough to break pattern
-    float angle = centerCoord.x + centerCoord.y * 1999;
+    // Quasi-random angular offset, to break pattern
+    float angle = ScramblingValue(centerCoord.x, centerCoord.y) * (PI / 256);
 
     float maxNoise = 0.0f;
     float2 axis;
@@ -185,7 +183,7 @@ float ComputeBilateralWeight(BilateralData center, BilateralData tap)
         // How far off the expected plane (on the perpendicular) is this point? Max value is unbounded.
         const float planeError = max(abs(dot(dq, tap.normal)), abs(dot(dq, center.normal)));
 
-        planeWeight = (distance2 < EPSILON) ? 1.0f :
+        planeWeight = (distance2 < 0.0001f) ? 1.0f :
             pow(max(0.0f, 1.0f - 2.0f * PLANE_WEIGHT * planeError / sqrt(distance2)), 2.0f);
     }
 
@@ -203,7 +201,7 @@ float FilterNoiseEstimate(uint2 coordSS)
 {
     float result = 0.0f;
 
-    static const int R = 1;
+    static const int R = 1; // Box radius (add 0.5 for center pixel)
     for (int j = -R; j <= R; ++j)
     {
         for (int i = -R; i <= R; ++i)
@@ -227,16 +225,17 @@ void AreaShadowDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
     float wSum = 0.0f;
 
     const uint2 passIncr = _DenoisePass ? uint2(1, 0) : uint2(0, 1);
-    //const float noiseEstimate = _DenoisePass ? _DenoiseInputTexture[centerCoord].w : FilterNoiseEstimate(centerCoord);
-    const float noiseEstimate =  _DenoiseInputTexture[centerCoord].w;
-    const int denoiseRadius = ceil(noiseEstimate * _DenoiseRadius);
-    const BilateralData center  = TapBilateralData(centerCoord);
+    const float noiseEstimate = _DenoisePass ? _DenoiseInputTexture[centerCoord].w : FilterNoiseEstimate(centerCoord);
+    const float sigma = noiseEstimate * _DenoiseRadius;
+    const int effectiveRadius = min(sigma * 2.0f, _DenoiseRadius);
 
-    uint2 tapCoord = centerCoord - denoiseRadius * passIncr;
-    for (int r = -denoiseRadius; r <= denoiseRadius; ++r, tapCoord += passIncr)
+    const BilateralData center = TapBilateralData(centerCoord);
+
+    uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
+    for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
     {
         // Compute the weight (skip computation for the center)
-        const float w = r ? gaussian(r, denoiseRadius) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0f;
+        const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0f;
 
         SU += _DenoiseInputTexture[tapCoord].xy * w;
         wSum += w;
@@ -249,8 +248,8 @@ void AreaShadowDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
     }
     else // Second (and final) pass
     {
-        // For the final ratio, we want the 0/0 case to produce a value of 0
+        // Return the final ratio
         _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] =
-            (wSum > EPSILON && SU.y / wSum > EPSILON) ? clamp(SU.x / SU.y, 0.0f, 1.0f) : 0.0f;
+            (wSum > 0.0f && SU.y / wSum > 0.0f) ? saturate(SU.x / SU.y) : 1.0f;
     }
 }

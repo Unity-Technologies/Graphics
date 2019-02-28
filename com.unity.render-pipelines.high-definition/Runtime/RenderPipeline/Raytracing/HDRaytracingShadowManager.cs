@@ -91,9 +91,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
             RaytracingShader shadowsShader = m_PipelineAsset.renderPipelineResources.shaders.shadowsRaytracing;
             ComputeShader shadowFilter = m_PipelineAsset.renderPipelineResources.shaders.areaBillateralFilterCS;
-            bool invalidState = rtEnvironement == null || !rtEnvironement.raytracedShadows || hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred
-                || shadowsShader  == null || shadowFilter == null
-                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
+            bool invalidState = !rtEnvironement || !rtEnvironement.raytracedShadows
+                || hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred
+                || !shadowsShader || !shadowFilter || !m_PipelineResources.textures.owenScrambledTex || !m_PipelineResources.textures.scramblingTex;
 
             // If invalid state or ray-tracing acceleration structure, we stop right away
             if (invalidState)
@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Grab the acceleration structure for the target camera
             RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.shadowLayerMask);
-            
+
             // Define the shader pass to use for the reflection pass
             cmd.SetRaytracingShaderPass(shadowsShader, "VisibilityDXR");
 
@@ -172,34 +172,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.DispatchRays(shadowsShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
                 }
 
-                if(rtEnvironement.shadowFilterSigma < 0.5f)
+                using (new ProfilingSample(cmd, "Combine Area Shadow", CustomSamplerId.RaytracingShadowCombination.GetSampler()))
                 {
-                    using (new ProfilingSample(cmd, "Combine Area Shadow", CustomSamplerId.RaytracingShadowCombination.GetSampler()))
+                    // Fetch the filter kernels
+                    m_EstimateNoiseKernel = shadowFilter.FindKernel("AreaShadowEstimateNoise");
+                    m_DenoiseKernel = shadowFilter.FindKernel("AreaShadowDenoise");
+
+                    // Texture dimensions
+                    int texWidth = m_AreaShadowTextureArray.rt.width;
+                    int texHeight = m_AreaShadowTextureArray.rt.height;
+
+                    // Evaluate the dispatch parameters
+                    int areaTileSize = 8;
+                    int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
+                    int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
+
+                    // Global parameters
+                    cmd.SetComputeIntParam(shadowFilter, _DenoiseRadius, rtEnvironement.shadowFilterRadius);
+                    cmd.SetComputeIntParam(shadowFilter, HDShaderIDs._RaytracingShadowSlot, m_LightLoop.m_lightList.lights[lightIdx].shadowIndex);
+
+                    if (rtEnvironement.shadowFilterRadius > 0)
                     {
-                        // Fetch the filter kernels
-                        m_EstimateNoiseKernel = shadowFilter.FindKernel("AreaShadowEstimateNoise");
-                        m_DenoiseKernel = shadowFilter.FindKernel("AreaShadowDenoise");
-
-                        // Texture dimensions
-                        int texWidth = m_AreaShadowTextureArray.rt.width;
-                        int texHeight = m_AreaShadowTextureArray.rt.height;
-
-                        // Evaluate the dispatch parameters
-                        int areaTileSize = 8;
-                        int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
-                        int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
-
-                        // Global parameters
-                        cmd.SetComputeIntParam(shadowFilter, _DenoiseRadius, rtEnvironement.shadowFilterRadius);
-                        cmd.SetComputeIntParam(shadowFilter, HDShaderIDs._RaytracingShadowSlot, m_LightLoop.m_lightList.lights[lightIdx].shadowIndex);
-
                         // Inject parameters for noise estimation
-                        cmd.SetComputeTextureParam(shadowFilter, m_EstimateNoiseKernel, HDShaderIDs._DenoiseInputTexture, m_DenoiseBuffer0);
-                        cmd.SetComputeTextureParam(shadowFilter, m_EstimateNoiseKernel, HDShaderIDs._DenoiseOutputTextureRW, m_DenoiseBuffer1);
                         cmd.SetComputeTextureParam(shadowFilter, m_EstimateNoiseKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                         cmd.SetComputeTextureParam(shadowFilter, m_EstimateNoiseKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+                        cmd.SetComputeTextureParam(shadowFilter, m_EstimateNoiseKernel, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
 
                         // Noise estimation pre-pass
+                        cmd.SetComputeTextureParam(shadowFilter, m_EstimateNoiseKernel, HDShaderIDs._DenoiseInputTexture, m_DenoiseBuffer0);
+                        cmd.SetComputeTextureParam(shadowFilter, m_EstimateNoiseKernel, HDShaderIDs._DenoiseOutputTextureRW, m_DenoiseBuffer1);
                         cmd.DispatchCompute(shadowFilter, m_EstimateNoiseKernel, numTilesX, numTilesY, 1);
 
                         // Reinject parameters for denoising
@@ -212,13 +213,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeTextureParam(shadowFilter, m_DenoiseKernel, HDShaderIDs._DenoiseOutputTextureRW, m_DenoiseBuffer0);
                         cmd.SetComputeIntParam(shadowFilter, _DenoisePass, 0);
                         cmd.DispatchCompute(shadowFilter, m_DenoiseKernel, numTilesX, numTilesY, 1);
-
-                        // Second (and final) denoising pass
-                        // FIX ME
-                        cmd.SetComputeTextureParam(shadowFilter, m_DenoiseKernel, HDShaderIDs._DenoiseInputTexture, m_DenoiseBuffer0);
-                        cmd.SetComputeIntParam(shadowFilter, _DenoisePass, 1);
-                        cmd.DispatchCompute(shadowFilter, m_DenoiseKernel, numTilesX, numTilesY, 1);
                     }
+
+                    // Second (and final) denoising pass
+                    cmd.SetComputeTextureParam(shadowFilter, m_DenoiseKernel, HDShaderIDs._DenoiseInputTexture, m_DenoiseBuffer0);
+                    cmd.SetComputeIntParam(shadowFilter, _DenoisePass, 1);
+                    cmd.DispatchCompute(shadowFilter, m_DenoiseKernel, numTilesX, numTilesY, 1);
                 }
             }
             return true;
