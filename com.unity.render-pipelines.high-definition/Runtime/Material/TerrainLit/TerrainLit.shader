@@ -5,10 +5,6 @@ Shader "HDRP/TerrainLit"
         [HideInInspector] [ToggleUI] _EnableHeightBlend("EnableHeightBlend", Float) = 0.0
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
 
-        [HideInInspector] [Enum(Subsurface Scattering, 0, Standard, 1)] _MaterialID("MaterialId", Int) = 1
-        _DiffusionProfile("Diffusion Profile", Int) = 0
-        _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
-
         // TODO: support tri-planar?
         // TODO: support more maps?
         //[HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
@@ -44,6 +40,15 @@ Shader "HDRP/TerrainLit"
 
         [HideInInspector] [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [HideInInspector] [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
+
+        // Terrain engine finds all properties prefixed by "_TerrainLayer" and pull them from terrain layer materials.
+        [HideInInspector] _TerrainLayer_DiffusionProfile("", Int) = 0
+        [HideInInspector] _TerrainLayer_SubsurfaceMask("", Float) = 0.0
+        [HideInInspector] _TerrainLayer_SubsurfaceMaskMap("", 2D) = "black" {}
+        [HideInInspector] _TerrainLayer_StencilRef("", Int) = 2 // Used by SSS
+        [HideInInspector] _TerrainLayer_Thickness("", Float) = 1.0
+        [HideInInspector] _TerrainLayer_ThicknessMap("", 2D) = "black" {}
+        [HideInInspector] _TerrainLayer_ThicknessRemap("", Vector) = (0, 1, 0, 0)
     }
 
     HLSLINCLUDE
@@ -60,7 +65,11 @@ Shader "HDRP/TerrainLit"
     // Sample normal in pixel shader when doing instancing
     #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
-    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    // Terrain engine will pull this keyword from layer materials if they are enabled there
+    #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local _SUBSURFACE_MASK_MAP
+    #pragma shader_feature_local _THICKNESSMAP
 
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
@@ -95,6 +104,11 @@ Shader "HDRP/TerrainLit"
             "MaskMapA" = "Smoothness"
             "DiffuseA" = "Smoothness (becomes Density when Mask map is assigned)"   // when MaskMap is disabled
             "DiffuseA_MaskMapUsed" = "Density"                                      // when MaskMap is enabled
+
+            // Terrain engine will select the first 2 layers with a Material object and pull their keywords and properties into TerrainLit shader.
+            // Properties and textures are copied over to the same properties defined in TerrainLit with suffix "0" and "1". The index of the two layers
+            // will be _Index0 and _Index1.
+            "LayerMaterialCount" = "2"
         }
 
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
@@ -109,7 +123,7 @@ Shader "HDRP/TerrainLit"
             Stencil
             {
                 WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
+                Ref [_TerrainLayer_StencilRef]
                 Comp Always
                 Pass Replace
             }
@@ -187,7 +201,7 @@ Shader "HDRP/TerrainLit"
             Stencil
             {
                 WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
+                Ref [_TerrainLayer_StencilRef]
                 Comp Always
                 Pass Replace
             }
@@ -223,7 +237,7 @@ Shader "HDRP/TerrainLit"
             Stencil
             {
                 WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
+                Ref [_TerrainLayer_StencilRef]
                 Comp Always
                 Pass Replace
             }

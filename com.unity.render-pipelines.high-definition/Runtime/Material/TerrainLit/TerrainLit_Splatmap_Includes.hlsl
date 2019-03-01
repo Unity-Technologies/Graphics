@@ -19,17 +19,28 @@
     DECLARE_TERRAIN_LAYER_PROPS(2)          \
     DECLARE_TERRAIN_LAYER_PROPS(3)          \
 
+#define DECLARE_TERRAIN_LAYER_MATERIAL_PROPS(n) \
+    int _TerrainLayer_MaterialIndex##n;         \
+    int _TerrainLayer_DiffusionProfile##n;      \
+    float _TerrainLayer_SubsurfaceMask##n;      \
+    float4 _TerrainLayer_ThicknessRemap##n;     \
+    float _TerrainLayer_Thickness##n;
+
 #ifdef _TERRAIN_8_LAYERS
     #define UNITY_TERRAIN_CB_VARS \
-        DECLARE_TERRAIN_LAYER_PROPS_FIRST_4 \
-        DECLARE_TERRAIN_LAYER_PROPS(4)      \
-        DECLARE_TERRAIN_LAYER_PROPS(5)      \
-        DECLARE_TERRAIN_LAYER_PROPS(6)      \
-        DECLARE_TERRAIN_LAYER_PROPS(7)      \
+        DECLARE_TERRAIN_LAYER_PROPS_FIRST_4     \
+        DECLARE_TERRAIN_LAYER_PROPS(4)          \
+        DECLARE_TERRAIN_LAYER_PROPS(5)          \
+        DECLARE_TERRAIN_LAYER_PROPS(6)          \
+        DECLARE_TERRAIN_LAYER_PROPS(7)          \
+        DECLARE_TERRAIN_LAYER_MATERIAL_PROPS(0) \
+        DECLARE_TERRAIN_LAYER_MATERIAL_PROPS(1) \
         float _HeightTransition;
 #else
     #define UNITY_TERRAIN_CB_VARS \
-        DECLARE_TERRAIN_LAYER_PROPS_FIRST_4 \
+        DECLARE_TERRAIN_LAYER_PROPS_FIRST_4     \
+        DECLARE_TERRAIN_LAYER_MATERIAL_PROPS(0) \
+        DECLARE_TERRAIN_LAYER_MATERIAL_PROPS(1) \
         float _HeightTransition;
 #endif
 

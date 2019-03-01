@@ -124,8 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void MaterialPropertiesGUI(Material material)
         {
             // Don't draw the header if we have empty content
-            var materialId = (BaseLitGUI.MaterialId)materialID.floatValue;
-            if (enableHeightBlend == null && enableInstancedPerPixelNormal == null && materialId == MaterialId.LitStandard && customProperties.Count == 0)
+            if (enableHeightBlend == null && enableInstancedPerPixelNormal == null && customProperties.Count == 0)
                 return;
 
             using (var header = new HeaderScope(styles.terrainText, (uint)Expandable.Other, this))
@@ -148,8 +147,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         m_MaterialEditor.ShaderProperty(enableInstancedPerPixelNormal, styles.enableInstancedPerPixelNormal);
                         EditorGUI.EndDisabledGroup();
                     }
-                    if (materialId != MaterialId.LitStandard)
-                        ShaderSSSAndTransmissionInputGUI(material, materialId, 0);
                     foreach (var prop in customProperties)
                         m_MaterialEditor.ShaderProperty(prop, prop.displayName);
                 }

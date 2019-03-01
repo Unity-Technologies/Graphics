@@ -22,8 +22,6 @@
 
 CBUFFER_START(UnityTerrain)
     UNITY_TERRAIN_CB_VARS
-    float _SubsurfaceMask;
-    int _DiffusionProfile;
 #ifdef UNITY_INSTANCING_ENABLED
     float4 _TerrainHeightmapRecipSize;  // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
     float4 _TerrainHeightmapScale;      // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
@@ -111,8 +109,9 @@ AttributesMesh ApplyMeshModification(AttributesMesh input)
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl"
 
-void TerrainLitShade(float2 uv, out float3 outAlbedo, out float3 outNormalData, out float outSmoothness, out float outMetallic, out float outAO);
+void TerrainLitShade(float2 uv, inout TerrainLitSurfaceData terrainLitData);
 void TerrainLitDebug(float2 uv, inout float3 baseColor);
 
 float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS)
@@ -157,18 +156,27 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
 
-    float3 normalData;
-    TerrainLitShade(input.texCoord0.xy, surfaceData.baseColor, normalData, surfaceData.perceptualSmoothness, surfaceData.metallic, surfaceData.ambientOcclusion);
+    TerrainLitSurfaceData terrainLitSurfaceData;
+    InitializeTerrainLitSurfaceData(terrainLitSurfaceData);
+    TerrainLitShade(input.texCoord0.xy, terrainLitSurfaceData);
+
+    surfaceData.baseColor = terrainLitSurfaceData.albedo;
+    surfaceData.perceptualSmoothness = terrainLitSurfaceData.smoothness;
+    surfaceData.metallic = terrainLitSurfaceData.metallic;
+    surfaceData.ambientOcclusion = terrainLitSurfaceData.ao;
 
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
-    surfaceData.subsurfaceMask = _SubsurfaceMask;
-    surfaceData.thickness = 1;
-    surfaceData.diffusionProfile = _DiffusionProfile;
+    surfaceData.subsurfaceMask = terrainLitSurfaceData.subsurfaceMask;
+    surfaceData.thickness = terrainLitSurfaceData.thickness;
+    surfaceData.diffusionProfile = terrainLitSurfaceData.diffusionProfile;
 
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
-    #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
-    #endif
+#endif
+#ifdef _MATERIAL_FEATURE_TRANSMISSION
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+#endif
 
     // Init other parameters
     surfaceData.anisotropy = 0.0;
@@ -184,7 +192,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.atDistance = 1;
     surfaceData.transmittanceMask = 0.0;
 
-    float3 normalTS = ConvertToNormalTS(normalData, input.worldToTangent[0], input.worldToTangent[1]);
+    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.worldToTangent[0], input.worldToTangent[1]);
     GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
 
     surfaceData.geomNormalWS = input.worldToTangent[2];

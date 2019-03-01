@@ -19,6 +19,11 @@ DECLARE_TERRAIN_LAYER_TEXS(3);
 
 #undef DECLARE_TERRAIN_LAYER_TEXS
 
+TEXTURE2D(_TerrainLayer_SubsurfaceMaskMap0);
+TEXTURE2D(_TerrainLayer_SubsurfaceMaskMap1);
+TEXTURE2D(_TerrainLayer_ThicknessMap0);
+TEXTURE2D(_TerrainLayer_ThicknessMap1);
+
 SAMPLER(sampler_Splat0);
 SAMPLER(sampler_Control0);
 
@@ -68,17 +73,18 @@ float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 rema
     SAMPLER(OVERRIDE_SPLAT_SAMPLER_NAME);
 #endif
 
-void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, out float3 outAlbedo, out float3 outNormalData, out float outSmoothness, out float outMetallic, out float outAO)
+void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSurfaceData surfaceData)
 {
     // TODO: triplanar
     // TODO: POM
 
+    float2 splatuv[_LAYER_COUNT + 1];
     float4 albedo[_LAYER_COUNT];
     float3 normal[_LAYER_COUNT];
     float4 masks[_LAYER_COUNT];
 
 #ifdef _NORMALMAP
-    #define SampleNormal(i) SampleNormalGrad(_Normal##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv, _NormalScale##i)
+    #define SampleNormal(i) SampleNormalGrad(_Normal##i, sampler_Splat0, splatuv[i], splatdxuv, splatdyuv, _NormalScale##i)
 #else
     #define SampleNormal(i) float3(0, 0, 0)
 #endif
@@ -94,10 +100,10 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, out float3 outAlbed
 #define SampleResults(i, mask)                                                                                  \
     UNITY_BRANCH if (mask > 0)                                                                                  \
     {                                                                                                           \
-        float2 splatuv = splatBaseUV * _Splat##i##_ST.xy + _Splat##i##_ST.zw;                                   \
+        splatuv[i] = splatBaseUV * _Splat##i##_ST.xy + _Splat##i##_ST.zw;                                       \
         float2 splatdxuv = dxuv * _Splat##i##_ST.x;                                                             \
         float2 splatdyuv = dyuv * _Splat##i##_ST.y;                                                             \
-        albedo[i] = SAMPLE_TEXTURE2D_GRAD(_Splat##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv);            \
+        albedo[i] = SAMPLE_TEXTURE2D_GRAD(_Splat##i, sampler_Splat0, splatuv[i], splatdxuv, splatdyuv);         \
         albedo[i].rgb *= _DiffuseRemapScale##i.xyz;                                                             \
         normal[i] = SampleNormal(i);                                                                            \
         masks[i] = SampleMasks(i, mask);                                                                        \
@@ -134,8 +140,8 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, out float3 outAlbed
 #undef SampleMasks
 #undef SampleResults
 
-    float weights[_LAYER_COUNT];
-    ZERO_INITIALIZE_ARRAY(float, weights, _LAYER_COUNT);
+    float weights[_LAYER_COUNT + 1]; // the last weight is reserved for empty layer material selection
+    ZERO_INITIALIZE_ARRAY(float, weights, _LAYER_COUNT + 1);
 
     #ifdef _MASKMAP
         #ifdef _TERRAIN_BLEND_HEIGHT
@@ -209,23 +215,51 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, out float3 outAlbed
         weights[7] = blendMasks1.w;
     #endif
 
-    outAlbedo = 0;
-    outNormalData = 0;
+    surfaceData.albedo = 0;
+    surfaceData.normalData = 0;
     float3 outMasks = 0;
     UNITY_UNROLL for (int i = 0; i < _LAYER_COUNT; ++i)
     {
-        outAlbedo += albedo[i].rgb * weights[i];
-        outNormalData += normal[i].rgb * weights[i]; // no need to normalize
+        surfaceData.albedo += albedo[i].rgb * weights[i];
+        surfaceData.normalData += normal[i].rgb * weights[i]; // no need to normalize
         outMasks += masks[i].xyw * weights[i];
     }
-    outSmoothness = outMasks.z;
-    outMetallic = outMasks.x;
-    outAO = outMasks.y;
+    surfaceData.smoothness = outMasks.z;
+    surfaceData.metallic = outMasks.x;
+    surfaceData.ao = outMasks.y;
+
+    float layerWeight0 = weights[_TerrainLayer_MaterialIndex0];
+    float layerWeight1 = weights[_TerrainLayer_MaterialIndex1];
+#if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) || defined(_MATERIAL_FEATURE_TRANSMISSION)
+    if (layerWeight0 >= layerWeight1)
+        surfaceData.diffusionProfile = _TerrainLayer_DiffusionProfile0;
+    else
+        surfaceData.diffusionProfile = _TerrainLayer_DiffusionProfile1;
+#endif
+#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    float subsurfaceMask0 = _TerrainLayer_SubsurfaceMask0;
+    float subsurfaceMask1 = _TerrainLayer_SubsurfaceMask1;
+    #ifdef _SUBSURFACE_MASK_MAP
+        subsurfaceMask0 *= SAMPLE_TEXTURE2D(_TerrainLayer_SubsurfaceMaskMap0, sampler_Splat0, splatuv[_TerrainLayer_MaterialIndex0]).r;
+        subsurfaceMask1 *= SAMPLE_TEXTURE2D(_TerrainLayer_SubsurfaceMaskMap1, sampler_Splat0, splatuv[_TerrainLayer_MaterialIndex1]).r;
+    #endif
+    surfaceData.subsurfaceMask = subsurfaceMask0 * layerWeight0 + subsurfaceMask1 * layerWeight1;
+#endif
+#ifdef _MATERIAL_FEATURE_TRANSMISSION
+    #ifdef _THICKNESSMAP
+        float thickness0 = _TerrainLayer_ThicknessRemap0.x + _TerrainLayer_ThicknessRemap0.y * SAMPLE_TEXTURE2D(_TerrainLayer_ThicknessMap0, sampler_Splat0, splatuv[_TerrainLayer_MaterialIndex0]).r;
+        float thickness1 = _TerrainLayer_ThicknessRemap1.x + _TerrainLayer_ThicknessRemap1.y * SAMPLE_TEXTURE2D(_TerrainLayer_ThicknessMap1, sampler_Splat0, splatuv[_TerrainLayer_MaterialIndex1]).r;
+    #else
+        float thickness0 = _TerrainLayer_Thickness0;
+        float thickness1 = _TerrainLayer_Thickness1;
+    #endif
+    surfaceData.thickness = thickness0 * layerWeight0 + thickness1 * layerWeight1;
+#endif
 }
 
-void TerrainLitShade(float2 uv, out float3 outAlbedo, out float3 outNormalData, out float outSmoothness, out float outMetallic, out float outAO)
+void TerrainLitShade(float2 uv, inout TerrainLitSurfaceData surfaceData)
 {
-    TerrainSplatBlend(uv, uv, outAlbedo, outNormalData, outSmoothness, outMetallic, outAO);
+    TerrainSplatBlend(uv, uv, surfaceData);
 }
 
 void TerrainLitDebug(float2 uv, inout float3 baseColor)
