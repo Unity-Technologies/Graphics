@@ -54,7 +54,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty shadowNumSamples;
         public SerializedProperty numAreaLightShadows;
         public SerializedProperty shadowFilterRadius;
-        public SerializedProperty shadowFilterSigma;
 
         public SerializedHDRaytracingEnvironment(HDRaytracingEnvironment rtEnv)
         {
@@ -93,7 +92,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             shadowNumSamples = o.Find(x => x.shadowNumSamples);
             numAreaLightShadows = o.Find(x => x.numAreaLightShadows);
             shadowFilterRadius = o.Find(x => x.shadowFilterRadius);
-            shadowFilterSigma = o.Find(x => x.shadowFilterSigma);
 
             // Light Cluster Attributes
             maxNumLightsPercell = o.Find(x => x.maxNumLightsPercell);

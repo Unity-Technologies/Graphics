@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
         protected static class Styles
         {
-            // Generic 
+            // Generic
             public static readonly GUIContent genericSectionText = EditorGUIUtility.TrTextContent("Generic Attributes");
             public static readonly GUIContent rayBiasText = EditorGUIUtility.TrTextContent("Ray Bias");
 
@@ -61,7 +61,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Shadow Bilateral Filter Data
             public static GUIContent numAreaLightShadows = new GUIContent("Max Num Shadows");
-            public static GUIContent shadowBilateralSigma = new GUIContent("Shadows Bilateral Sigma");
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Light Cluster
@@ -256,7 +255,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(rtEnv.shadowNumSamples, Styles.shadowNumSamplesText);
                 EditorGUILayout.PropertyField(rtEnv.numAreaLightShadows, Styles.numAreaLightShadows);
                 EditorGUILayout.PropertyField(rtEnv.shadowFilterRadius, Styles.shadowBilateralRadius);
-                EditorGUILayout.PropertyField(rtEnv.shadowFilterSigma, Styles.shadowBilateralSigma);
             }
         }
 

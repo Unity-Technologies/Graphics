@@ -1630,7 +1630,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
                     areaShadowsRendered = m_RaytracingShadows.RenderAreaShadows(hdCamera, cmd, renderContext, m_FrameCount);
                     // Let's render the screen space area light shadows
-                    PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingShadows.GetShadowedIntegrationTexture(), FullScreenDebugMode.RaytracedAreaShadow);
+                    PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingShadows.GetIntegrationTexture(), FullScreenDebugMode.RaytracedAreaShadow);
 #endif
                     cmd.SetGlobalInt(HDShaderIDs._RaytracedAreaShadow, areaShadowsRendered ? 1 : 0);
 
