@@ -5,9 +5,12 @@ Shader "HDRP/Nature/SpeedTree7"
         _Color("Main Color", Color) = (1,1,1,1)
         _HueVariation("Hue Variation", Color) = (1.0,0.5,0.0,0.1)
         _MainTex("Base (RGB) Trans (A)", 2D) = "white" {}
+        _SpecTex("Intensity (RGB) Smoothness (A)", 2D) = "black" {}
         _DetailTex("Detail", 2D) = "black" {}
         _BumpMap("Normal Map", 2D) = "bump" {}
         _Cutoff("Alpha Cutoff", Range(0,1)) = 0.333
+
+        [HideInInspector] _EmissionColor("Color", Color) = (0, 0, 0)    // Base Lit material UI assumes there is an _EmissionColor, so we have it here as a placeholder.
         [MaterialEnum(Off,0,Front,1,Back,2)] _Cull("Cull", Int) = 2
         [MaterialEnum(None,0,Fastest,1,Fast,2,Better,3,Best,4,Palm,5)] _WindQuality("Wind Quality", Range(0,5)) = 0
     }
@@ -83,6 +86,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -113,6 +117,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
             ENDHLSL
         }
@@ -143,9 +148,11 @@ Shader "HDRP/Nature/SpeedTree7"
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ LIGHT_LAYERS
-            #pragma multi_compile _ VARYINGS_NEED_COLOR
+            //#pragma multi_compile _ VARYINGS_NEED_COLOR
 
+            #define VARYINGS_NEED_COLOR
             #define VARYINGS_NEED_TANGENT_TO_WORLD
+            #define ATTRIBUTES_NEED_COLOR
 
             #ifdef _ALPHATEST_ON
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -162,6 +169,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -189,6 +197,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
             ENDHLSL
         }
@@ -229,6 +238,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -254,8 +264,6 @@ Shader "HDRP/Nature/SpeedTree7"
             Cull [_CullModeForward]
 
             HLSLPROGRAM
-            #define VARYINGS_NEED_COLOR
-            
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
@@ -267,7 +275,9 @@ Shader "HDRP/Nature/SpeedTree7"
             #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
+            #define VARYINGS_NEED_COLOR
             #define VARYINGS_NEED_TANGENT_TO_WORLD
+            #define ATTRIBUTES_NEED_COLOR
 
             #define SHADERPASS SHADERPASS_FORWARD
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
@@ -298,6 +308,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Input.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7Passes.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree7LitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
             
             ENDHLSL

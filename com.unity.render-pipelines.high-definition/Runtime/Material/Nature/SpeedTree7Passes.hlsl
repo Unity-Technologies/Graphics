@@ -126,8 +126,14 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
 
     // Vertex Color
 #ifdef VARYINGS_NEED_COLOR
+#ifdef VERTEX_COLOR
+    output.vmesh.interpolators5 = input.color;
+#else
     output.vmesh.interpolators5 = _Color;
-    output.vmesh.interpolators5.rgb *= input.color.r; // ambient occlusion factor
+
+    //output.vmesh.interpolators5.rgb *= input.color.r; // ambient occlusion factor
+    output.vmesh.interpolators5.a = input.color.r; // ambient occlusion factor
+#endif
 #endif
 
     // Z component of uvHueVariation
@@ -180,17 +186,5 @@ PackedVaryingsType SpeedTree7VertDepth(SpeedTreeVertexInput input)
     return output;
 }
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-
-void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
-{
-#ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-    uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
-    LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
-#endif
-
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
-    GetNormalWS(input, float3(0.0, 0.0, 1.0), surfaceData.normalWS);
-}
 
 #endif

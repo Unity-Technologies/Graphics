@@ -15,6 +15,7 @@
 #endif
 
 #ifdef GEOM_TYPE_BRANCH_DETAIL
+#define VARYINGS_NEED_TEXCOORD1
 #define ATTRIBUTES_NEED_TEXCOORD1
 #endif
 
@@ -44,14 +45,14 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
     // Vertex Color
 #ifdef VARYINGS_NEED_COLOR
-    output.color.rgb = input.interpolators5.rgb;
+    output.color.rgba = input.interpolators5.rgba;
 #else
-    output.color.rgb = float3(1, 1, 1);
+    output.color.rgba = _Color;
 #endif
 
-    // Z component of uvHueVariation ...  TODO
+    // Z component of uvHueVariation
 #ifdef EFFECT_HUE_VARIATION
-//    output.vmesh.interpolators3.z = saturate(hueVariationAmount * _HueVariation.a);
+    output.texCoord0.z = output.vmesh.interpolators3.z;
 #endif
 
 #ifdef _MAIN_LIGHT_SHADOWS

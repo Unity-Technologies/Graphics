@@ -7,6 +7,16 @@
     #define _NORMALMAP
 #endif
 
+#ifdef VERTEX_COLOR
+    #define ATTRIBUTES_NEED_COLOR
+#endif
+
+#define ATTRIBUTES_NEED_TEXCOORD0
+#define ATTRIBUTES_NEED_TEXCOORD1
+#if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3) || defined(DYNAMICLIGHTMAP_ON) || defined(DEBUG_DISPLAY) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
+#define ATTRIBUTES_NEED_TEXCOORD2
+#endif
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
 ///////////////////////////////////////////////////////////////////////
@@ -67,13 +77,14 @@ struct Input
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
+TEXTURE2D(_SpecTex);
 
 #ifdef GEOM_TYPE_BRANCH_DETAIL
     #define GEOM_TYPE_BRANCH
 #endif
 
 #ifdef GEOM_TYPE_BRANCH_DETAIL
-    sampler2D _DetailTex;
+    TEXTURE2D(_DetailTex);
 #endif
 
 #if defined(GEOM_TYPE_FROND) || defined(GEOM_TYPE_LEAF) || defined(GEOM_TYPE_FACING_LEAF)
@@ -92,10 +103,11 @@ SAMPLER(sampler_MainTex);
 #endif
 
 #if defined(EFFECT_BUMP) && !defined(LIGHTMAP_ON)
-    sampler2D _BumpMap;
+    TEXTURE2D(_BumpMap);
 #endif
 
 float4 _Color;
+float3 _EmissiveColor;
 
 // This include will define the various Attributes/Varyings structure
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
