@@ -345,12 +345,14 @@ Shader "HDRP/Unlit"
     {
         Pass
         {
-            Name "ReflectionDXR"
-            Tags{ "LightMode" = "ReflectionDXR" }
+            Name "IndirectDXR"
+            Tags{ "LightMode" = "IndirectDXR" }
 
             HLSLPROGRAM
 
             #pragma raytracing test
+
+            #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
@@ -362,7 +364,7 @@ Shader "HDRP/Unlit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingReflection.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl"
 
             ENDHLSL
         }
@@ -373,8 +375,10 @@ Shader "HDRP/Unlit"
             Tags{ "LightMode" = "ForwardDXR" }
 
             HLSLPROGRAM
-
+            
             #pragma raytracing test
+
+            #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 

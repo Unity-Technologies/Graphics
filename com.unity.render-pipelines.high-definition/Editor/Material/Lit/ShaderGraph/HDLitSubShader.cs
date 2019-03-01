@@ -566,23 +566,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = true
         };
 
-        Pass m_PassRaytracingReflection = new Pass()
+        Pass m_PassRaytracingIndirect = new Pass()
         {
-            Name = "ReflectionDXR",
-            LightMode = "ReflectionDXR",
+            Name = "IndirectDXR",
+            LightMode = "IndirectDXR",
             TemplateName = "HDLitRaytracingPass.template",
             MaterialName = "Lit",
-            ShaderPassName = "SHADERPASS_RAYTRACING_REFLECTION",
+            ShaderPassName = "SHADERPASS_RAYTRACING_INDIRECT",
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#pragma multi_compile _ DIFFUSE_LIGHTNG_ONLY",
                 "#define SHADOW_LOW",
             },
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingReflection.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -627,7 +628,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingVisibility.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -679,7 +680,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingForward.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl\"",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -1094,7 +1095,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 subShader.AddShaderChunk("{", false);
                 subShader.Indent();
                 {
-                    GenerateShaderPassLit(masterNode, m_PassRaytracingReflection, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
                 }
