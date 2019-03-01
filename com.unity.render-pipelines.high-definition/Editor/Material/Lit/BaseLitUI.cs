@@ -436,6 +436,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void VertexAnimationPropertiesGUI()
         {
+            if (windEnable == null && enableMotionVectorForVertexAnimation == null)
+                return;
+
             using (var header = new HeaderScope(StylesBaseLit.vertexAnimation, (uint)Expandable.VertexAnimation, this))
             {
                 if (header.expanded)
