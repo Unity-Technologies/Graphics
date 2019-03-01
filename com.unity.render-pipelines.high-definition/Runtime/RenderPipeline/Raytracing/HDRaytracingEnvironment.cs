@@ -142,10 +142,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int shadowNumSamples = 4;
         [Range(0, 4)]
         public int numAreaLightShadows = 1;
-        [Range(1, 27)]
-        public int shadowFilterRadius = 1;
-        [Range(0.001f, 9.0f)]
-        public float shadowFilterSigma = 0.001f;
+        [Range(0, 32)]
+        public int shadowFilterRadius = 8;
 
         void Start()
         {
