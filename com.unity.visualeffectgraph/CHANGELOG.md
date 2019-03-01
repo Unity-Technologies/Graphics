@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Undo Redo while changing space
 - Type declaration was unmodifiable due to exception during space intialization
+- Fix unexpected issue when plugging per particle data into hash of per component fixed random
 
 ## [6.4.0-preview] - 2019-02-21 
 
@@ -19,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.2.0-preview] - 2019-02-15
 ### Changed
-- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named
 
 ### Fixed
 - Better Handling of Null or Missing Parameter Binders (Editor + Runtime)
