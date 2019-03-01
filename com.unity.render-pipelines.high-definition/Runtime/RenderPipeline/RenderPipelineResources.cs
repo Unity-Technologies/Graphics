@@ -133,6 +133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public RaytracingShader aoRaytracing;
             public RaytracingShader reflectionRaytracing;
             public RaytracingShader indirectDiffuseRaytracing;
+            public ComputeShader indirectDiffuseAccumulation;
             public RaytracingShader shadowsRaytracing;
             public Shader           raytracingFlagMask;
             public RaytracingShader forwardRaytracing;
@@ -321,6 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aoRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace"),
                 reflectionRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace"),
                 indirectDiffuseRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingIndirectDiffuse.raytrace"),
+                indirectDiffuseAccumulation = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAccumulation.compute"),
                 shadowsRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAreaShadows.raytrace"),
                 areaBillateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/AreaBilateralShadow.compute"),
                 jointBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/JointBilateralFilter.compute"),

@@ -13,6 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SkyManager m_SkyManager = null;
         HDRaytracingManager m_RaytracingManager = null;
         SharedRTManager m_SharedRTManager = null;
+        GBufferManager m_GBufferManager = null;
 
         // Intermediate buffer that stores the indirect diffuse pre-denoising
         RTHandleSystem.RTHandle m_IndirectDiffuseTexture = null;
@@ -26,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
         }
 
-        public void Init(HDRenderPipelineAsset asset, SkyManager skyManager, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
+        public void Init(HDRenderPipelineAsset asset, SkyManager skyManager, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager, GBufferManager gbufferManager)
         {
             // Keep track of the pipeline asset
             m_PipelineAsset = asset;
@@ -40,6 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Keep track of the shared rt manager
             m_SharedRTManager = sharedRTManager;
+            m_GBufferManager = gbufferManager;
 
             m_IndirectDiffuseTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "IndirectDiffuseBuffer");
         }
@@ -59,6 +61,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_IndirectDiffuseTexture;
         }
 
+        public bool ValidIndirectDiffuseState()
+        {
+            // First thing to check is: Do we have a valid ray-tracing environment?
+            HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
+            RaytracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineResources.shaders.indirectDiffuseRaytracing;
+
+            return !(rtEnvironement == null || !rtEnvironement.raytracedIndirectDiffuse
+                || indirectDiffuseShader == null 
+                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null);
+        }
+
         public bool RenderIndirectDiffuse(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, uint frameCount)
         {
             // Bind the indirect diffuse texture
@@ -67,13 +80,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
             RaytracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineResources.shaders.indirectDiffuseRaytracing;
+            ComputeShader indirectDiffuseAccumulation = m_PipelineAsset.renderPipelineResources.shaders.indirectDiffuseAccumulation;
 
             bool invalidState = rtEnvironement == null || !rtEnvironement.raytracedIndirectDiffuse
-                || indirectDiffuseShader == null 
+                || indirectDiffuseShader == null || indirectDiffuseAccumulation == null
                 || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // If no acceleration structure available, end it now
-            if (invalidState)
+            if (!ValidIndirectDiffuseState())
                 return false;
 
             // Grab the acceleration structures and the light cluster to use
@@ -129,13 +143,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingTextureParam(indirectDiffuseShader, m_MissShaderName, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
 
             // Compute the actual resolution that is needed base on the quality
-            uint widthResolution = (uint)hdCamera.actualWidth;
-            uint heightResolution = (uint)hdCamera.actualHeight;
+            int widthResolution = hdCamera.actualWidth;
+            int heightResolution = hdCamera.actualHeight;
 
             // Run the calculus
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTNG_ONLY", true);
-            cmd.DispatchRays(indirectDiffuseShader, targetRayGen, widthResolution, heightResolution, 1);
+            cmd.DispatchRays(indirectDiffuseShader, targetRayGen, (uint)widthResolution, (uint)heightResolution, 1);
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTNG_ONLY", false);
+
+            // If we are in deferred mode, we need to make sure to add the indirect diffuse (that we intentionally ignored during the gbuffer pass)
+            // Note that this discards the texture/object ambient occlusion. But we consider that okay given that the raytraced indirect diffuse
+            // is a physically correct evaluation of that quantity
+            if(hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
+            {
+                int indirectDiffuseKernel = indirectDiffuseAccumulation.FindKernel("IndirectDiffuseAccumulation");
+
+                // Bind the source texture
+                cmd.SetComputeTextureParam(indirectDiffuseAccumulation, indirectDiffuseKernel, HDShaderIDs._IndirectDiffuseTexture, m_IndirectDiffuseTexture);
+
+                // Bind the output texture
+                cmd.SetComputeTextureParam(indirectDiffuseAccumulation, indirectDiffuseKernel, HDShaderIDs._GBufferTexture[0], m_GBufferManager.GetBuffer(0));
+                cmd.SetComputeTextureParam(indirectDiffuseAccumulation, indirectDiffuseKernel, HDShaderIDs._GBufferTexture[3], m_GBufferManager.GetBuffer(3));
+
+                // Evaluate the dispatch parameters
+                int areaTileSize = 8;
+                int numTilesX = (widthResolution + (areaTileSize - 1)) / areaTileSize;
+                int numTilesY = (heightResolution + (areaTileSize - 1)) / areaTileSize;
+
+                // Add the indirect diffuse to the gbuffer
+                cmd.DispatchCompute(indirectDiffuseAccumulation, indirectDiffuseKernel, numTilesX, numTilesY, 1);
+            }
 
             return true;
         }
