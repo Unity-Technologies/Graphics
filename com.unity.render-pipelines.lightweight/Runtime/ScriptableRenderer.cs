@@ -233,6 +233,17 @@ namespace UnityEngine.Rendering.LWRP
             CommandBufferPool.Release(cmd);
         }
 
+        internal void Clear()
+        {
+            m_CameraColorHandle = RenderTargetHandle.CameraTarget;
+            m_CameraDepthHandle = RenderTargetHandle.CameraTarget;
+
+            m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
+
+            m_ActiveRenderPassQueue.Clear();
+        }
+
         void ExecuteBlock(RenderPassEvent startEvent, RenderPassEvent endEvent,
             ScriptableRenderContext context, ref RenderingData renderingData, bool isStereoBlock, bool submit = false)
         {
@@ -405,19 +416,14 @@ namespace UnityEngine.Rendering.LWRP
             if (cameraColorHandle != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(cameraColorHandle.id);
-                m_CameraColorHandle = RenderTargetHandle.CameraTarget;
             }
 
             if (cameraDepthHandle != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(cameraDepthHandle.id);
-                m_CameraDepthHandle = RenderTargetHandle.CameraTarget;
             }
-
-            m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
-            m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
-
-            m_ActiveRenderPassQueue.Clear();
+            
+            Clear();
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
