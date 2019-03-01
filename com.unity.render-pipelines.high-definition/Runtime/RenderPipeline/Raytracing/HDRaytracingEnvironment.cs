@@ -17,8 +17,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reflection = (1<<0),
             AreaShadow = (1<<1) ,
             PrimaryVisibility = (1<<2),
+            IndirectDiffuse = (1<<3),
         }
-        public readonly static int numRaytracingPasses = 4;
+        public readonly static int numRaytracingPasses = 5;
 
         // Generic Ray Data
         [Range(0.0f, 0.1f)]
@@ -144,6 +145,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int numAreaLightShadows = 1;
         [Range(0, 32)]
         public int shadowFilterRadius = 8;
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+        // Indirect diffuse
+        public bool raytracedIndirectDiffuse = false;
+
+        // Culling mask that defines the layers that the subscene used for this effect should use
+        public LayerMask indirectDiffuseLayerMask = -1;
+
+        [Range(1, 32)]
+        public int indirectDiffuseNumSamples = 4;
+        // Max Ray Length for the indirect diffuse
+        [Range(0.001f, 50.0f)]
+        public float indirectDiffuseRayLength = 20.0f;
+        // Value that is used to clamp the intensity to avoid fireflies
+        [Range(0.01f, 10.0f)]
+        public float indirectDiffuseClampValue = 1.0f;
 
         void Start()
         {

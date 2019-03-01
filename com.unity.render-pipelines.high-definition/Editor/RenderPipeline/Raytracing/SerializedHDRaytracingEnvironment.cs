@@ -55,6 +55,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty numAreaLightShadows;
         public SerializedProperty shadowFilterRadius;
 
+        // Indirect diffuse Properties
+        public SerializedProperty raytracedIndirectDiffuse;
+        public SerializedProperty indirectDiffuseLayerMask;
+        public SerializedProperty indirectDiffuseNumSamples;
+        public SerializedProperty indirectDiffuseRayLength;
+        public SerializedProperty indirectDiffuseClampValue;
+
         public SerializedHDRaytracingEnvironment(HDRaytracingEnvironment rtEnv)
         {
             serializedObject = new SerializedObject(rtEnv);
@@ -102,6 +109,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             raytracedLayerMask = o.Find(x => x.raytracedLayerMask);
             rayMaxDepth = o.Find(x => x.rayMaxDepth);
             raytracingRayLength = o.Find(x => x.raytracingRayLength);
+
+            // Indirect diffuse Properties
+            raytracedIndirectDiffuse = o.Find(x => x.raytracedIndirectDiffuse);
+            indirectDiffuseLayerMask = o.Find(x => x.indirectDiffuseLayerMask);
+            indirectDiffuseNumSamples = o.Find(x => x.indirectDiffuseNumSamples);
+            indirectDiffuseRayLength = o.Find(x => x.indirectDiffuseRayLength);
+            indirectDiffuseClampValue = o.Find(x => x.indirectDiffuseClampValue);
         }
 
         public void Update()

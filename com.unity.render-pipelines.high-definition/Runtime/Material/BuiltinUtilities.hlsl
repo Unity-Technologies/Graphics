@@ -129,13 +129,20 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 // 3. PostInitBuiltinData - Handle debug mode + allow the current lighting model to update the data with ModifyBakedDiffuseLighting
 
 // This method initialize BuiltinData usual values and after update of builtinData by the caller must be follow by PostInitBuiltinData
-void InitBuiltinData(   float alpha, float3 normalWS, float3 backNormalWS, float3 positionRWS, float4 texCoord1, float4 texCoord2,
+void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, float3 backNormalWS, float3 positionRWS, float4 texCoord1, float4 texCoord2,
                         out BuiltinData builtinData)
 {
     ZERO_INITIALIZE(BuiltinData, builtinData);
 
     builtinData.opacity = alpha;
 
+#if SHADEROPTIONS_RAYTRACING && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_FORWARD)
+    if (_RaytracedIndirectDiffuse == 1)
+    {
+        builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_IndirectDiffuseTexture, posInput.positionSS).xyz;
+    }
+    else
+#endif
     // Sample lightmap/lightprobe/volume proxy
     builtinData.bakeDiffuseLighting = SampleBakedGI(positionRWS, normalWS, texCoord1.xy, texCoord2.xy);
     // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler

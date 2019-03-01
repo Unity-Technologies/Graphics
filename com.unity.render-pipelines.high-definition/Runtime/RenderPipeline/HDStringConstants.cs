@@ -530,6 +530,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _OutputRayCountBuffer            = Shader.PropertyToID("_OutputRayCountBuffer");
         public static readonly int _InputBufferDimension            = Shader.PropertyToID("_InputBufferDimension");
         public static readonly int _OutputBufferDimension           = Shader.PropertyToID("_OutputBufferDimension");
+
+        // Indirect diffuse
+        public static readonly int _RaytracedIndirectDiffuse        = Shader.PropertyToID("_RaytracedIndirectDiffuse");
+        public static readonly int _IndirectDiffuseTexture          = Shader.PropertyToID("_IndirectDiffuseTexture");
+        public static readonly int _IndirectDiffuseTextureRW        = Shader.PropertyToID("_IndirectDiffuseTextureRW");
+        
 #else
         public static readonly int _RaytracedAreaShadow             = Shader.PropertyToID("_RaytracedAreaShadow");
 #endif
