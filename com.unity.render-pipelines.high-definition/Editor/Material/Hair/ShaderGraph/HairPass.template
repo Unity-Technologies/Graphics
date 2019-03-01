@@ -50,6 +50,7 @@ Pass
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DoubleSided:                       #define _DOUBLESIDED_ON 1
     $TransparentWritesVelocity:         #define _WRITE_TRANSPARENT_VELOCITY 1
+    $DepthOffset:                        #define _DEPTHOFFSET_ON 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -310,6 +311,8 @@ $include("SharedCode.template.hlsl")
         $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
         $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
 
+        $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
     
@@ -321,10 +324,9 @@ $include("SharedCode.template.hlsl")
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
-        $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+        $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
-        // TODO: Handle depth offset
-        //builtinData.depthOffset = 0.0;
+        $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
     }
