@@ -91,7 +91,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -119,7 +120,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -171,7 +173,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // see AddPixelShaderSlotsForWriteNormalBufferPasses
                 StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -224,7 +227,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // see AddPixelShaderSlotsForWriteNormalBufferPasses
                 StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -260,6 +264,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 StackLitMasterNode.AlphaClipThresholdSlotId,
                 StackLitMasterNode.DistortionSlotId,
                 StackLitMasterNode.DistortionBlurSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -361,6 +366,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
                 StackLitMasterNode.LightingSlotId,
                 StackLitMasterNode.BackLightingSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -778,6 +784,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("BackLightingGI");
             }
+
+        if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(StackLitMasterNode.DepthOffsetSlotId))
+                activeFields.Add("DepthOffset");
 
             return activeFields;
         }
