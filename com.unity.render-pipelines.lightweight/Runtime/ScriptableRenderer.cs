@@ -46,7 +46,8 @@ namespace UnityEngine.Rendering.LWRP
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetHandle m_CameraColorHandle;
         RenderTargetHandle m_CameraDepthHandle;
-
+        bool m_FirstCameraRenderPassExecuted = false;
+        
         const string k_ClearRenderStateTag = "Clear Render State";
         const string k_CreateCameraTextures = "Set Render Target";
         const string k_SetRenderTarget = "Set RenderTarget";
@@ -54,6 +55,7 @@ namespace UnityEngine.Rendering.LWRP
 
         static RenderTargetIdentifier m_ActiveColorAttachment;
         static RenderTargetIdentifier m_ActiveDepthAttachment;
+        static bool m_InsideStereoRenderBlock;
 
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
@@ -65,10 +67,7 @@ namespace UnityEngine.Rendering.LWRP
         public ScriptableRenderer(ScriptableRendererData data)
         {
             m_RendererFeatures.AddRange(data.rendererFeatures.Where(x => x != null));
-            m_CameraColorHandle = RenderTargetHandle.CameraTarget;
-            m_CameraDepthHandle = RenderTargetHandle.CameraTarget;
-            m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
-            m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            Clear();
         }
 
         /// <summary>
@@ -127,7 +126,7 @@ namespace UnityEngine.Rendering.LWRP
             // Before Render Block. This render blocks always execute in mono rendering.
             // Camera is not setup. Lights are not setup.
             // Used to render input textures like shadowmaps.
-            ExecuteBlock(RenderPassEvent.BeforeRendering, RenderPassEvent.BeforeRenderingPrepasses, context, ref renderingData, false);
+            ExecuteBlock(RenderPassEvent.BeforeRendering, RenderPassEvent.BeforeRenderingPrepasses, context, ref renderingData);
 
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
@@ -146,16 +145,15 @@ namespace UnityEngine.Rendering.LWRP
 
             // In this block stereo, camera matrices and lighting is setup, but camera target textures are not setup yet.
             // Use this to render prepasses that require stereo or camera matrices setup like depth prepass or screenspace shadow resolve.
-            ExecuteBlock(RenderPassEvent.BeforeRenderingPrepasses, RenderPassEvent.BeforeRenderingOpaques , context, ref renderingData, stereoEnabled);
-            SetupCameraRenderTarget(context, ref renderingData.cameraData);
+            ExecuteBlock(RenderPassEvent.BeforeRenderingPrepasses, RenderPassEvent.BeforeRenderingOpaques , context, ref renderingData);
 
             // In this block main rendering executes.
-            ExecuteBlock(RenderPassEvent.BeforeRenderingOpaques, RenderPassEvent.AfterRenderingPostProcessing, context, ref renderingData, stereoEnabled);
+            ExecuteBlock(RenderPassEvent.BeforeRenderingOpaques, RenderPassEvent.AfterRenderingPostProcessing, context, ref renderingData);
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock(RenderPassEvent.AfterRenderingPostProcessing, (RenderPassEvent)Int32.MaxValue, context, ref renderingData, stereoEnabled);
+            ExecuteBlock(RenderPassEvent.AfterRenderingPostProcessing, (RenderPassEvent)Int32.MaxValue, context, ref renderingData);
 
             if (stereoEnabled)
                 EndXRRendering(context, camera);
@@ -241,11 +239,13 @@ namespace UnityEngine.Rendering.LWRP
             m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
 
+            m_FirstCameraRenderPassExecuted = false;
+            m_InsideStereoRenderBlock = false;
             m_ActiveRenderPassQueue.Clear();
         }
 
         void ExecuteBlock(RenderPassEvent startEvent, RenderPassEvent endEvent,
-            ScriptableRenderContext context, ref RenderingData renderingData, bool isStereoBlock, bool submit = false)
+            ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
         {
             int currIndex = m_ActiveRenderPassQueue.FindIndex(x => (x.renderPassEvent >= startEvent && x.renderPassEvent < endEvent));
             if (currIndex == -1)
@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.LWRP
             while (currIndex < m_ActiveRenderPassQueue.Count && m_ActiveRenderPassQueue[currIndex].renderPassEvent < endEvent)
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
-                ExecuteRenderPass(context, renderPass, ref renderingData, isStereoBlock);
+                ExecuteRenderPass(context, renderPass, ref renderingData);
                 currIndex++;
             }
 
@@ -262,13 +262,14 @@ namespace UnityEngine.Rendering.LWRP
                 context.Submit();
         }
 
-        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData, bool isStereo)
+        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
 
             RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+            ref CameraData cameraData = ref renderingData.cameraData;
 
             // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
             // which might be backbuffer or the framebuffer render textures. 
@@ -278,44 +279,53 @@ namespace UnityEngine.Rendering.LWRP
                 passDepthAttachment = cameraDepthHandle.Identifier();
             }
 
-            // Only setup render target if current render pass attachments are different from the active ones
-            if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+            if (passColorAttachment == cameraColorHandle.Identifier() && !m_FirstCameraRenderPassExecuted)
             {
-                m_ActiveColorAttachment = passColorAttachment;
-                m_ActiveDepthAttachment = passDepthAttachment;
-                
-                RenderBufferLoadAction colorLoadAction = renderPass.clearFlag != ClearFlag.None ?
-                    RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+                m_FirstCameraRenderPassExecuted = true;
+                CreateCameraRenderTarget(cmd, ref cameraData);
 
-                RenderBufferLoadAction depthLoadAction = CoreUtils.HasFlag(renderPass.clearFlag, ClearFlag.Depth) ?
-                    RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+                Camera camera = cameraData.camera;
+                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+                SetRenderTarget(cmd, cameraColorHandle.Identifier(), cameraDepthHandle.Identifier(), clearFlag,
+                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
-                TextureDimension dimension = (isStereo) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
-                SetRenderTarget(cmd, passColorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
-                    passDepthAttachment, depthLoadAction, RenderBufferStoreAction.Store, renderPass.clearFlag, renderPass.clearColor,
-                    dimension);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                if (cameraData.isStereoEnabled)
+                {
+                    context.StartMultiEye(cameraData.camera);
+                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+                }
             }
+
+            // Only setup render target if current render pass attachments are different from the active ones
+            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+                SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+
             renderPass.Execute(context, ref renderingData);
         }
 
         void BeginXRRendering(ScriptableRenderContext context, Camera camera)
         {
             context.StartMultiEye(camera);
+            m_InsideStereoRenderBlock = true;
         }
 
         void EndXRRendering(ScriptableRenderContext context, Camera camera)
         {
             context.StopMultiEye(camera);
             context.StereoEndRender(camera);
+            m_InsideStereoRenderBlock = false;
         }
 
-        void SetupCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData)
+        void CreateCameraRenderTarget(CommandBuffer cmd, ref CameraData cameraData)
         {
             var descriptor = cameraData.cameraTargetDescriptor;
             int msaaSamples = descriptor.msaaSamples;
-            CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
             if (cameraColorHandle != RenderTargetHandle.CameraTarget)
             {
                 bool useDepthRenderBuffer = cameraDepthHandle == RenderTargetHandle.CameraTarget;
@@ -332,29 +342,25 @@ namespace UnityEngine.Rendering.LWRP
                 depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
                 cmd.GetTemporaryRT(cameraDepthHandle.id, depthDescriptor, FilterMode.Point);
             }
-
-            m_ActiveColorAttachment = cameraColorHandle.Identifier();
-            m_ActiveDepthAttachment = cameraDepthHandle.Identifier();
-
-            Camera camera = cameraData.camera;
-            ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-            SetRenderTarget(cmd, cameraColorHandle.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                cameraDepthHandle.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag,
-                CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor), descriptor.dimension);
-
-            if (cameraData.isStereoEnabled)
-            {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                context.StartMultiEye(camera);
-                XRUtils.DrawOcclusionMesh(cmd, camera);
-            }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
-        void SetRenderTarget(
+        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
+        {
+            m_ActiveColorAttachment = colorAttachment;
+            m_ActiveDepthAttachment = depthAttachment;
+
+            RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            RenderBufferLoadAction depthLoadAction = CoreUtils.HasFlag(clearFlag, ClearFlag.Depth) ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
+            SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
+                depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor, dimension);
+        }
+
+        static void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -369,7 +375,7 @@ namespace UnityEngine.Rendering.LWRP
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
-        void SetRenderTarget(
+        static void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,

@@ -119,10 +119,10 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
         /// <seealso cref="ScriptableRenderer"/>
-        public static void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
+        public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
+            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
-            ScriptableRenderer.ConfigureActiveTarget(destination, BuiltinRenderTextureType.CameraTarget);
         }
 
         /// <summary>
@@ -135,10 +135,10 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="destination">Destination texture or render target identifier.</param>
         /// <param name="opaqueOnly">If true, only renders opaque post-processing effects. Otherwise, renders before and after stack post-processing effects.</param>
         /// <param name="flip">If true, flips image vertically.</param>
-        public static void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
+        public void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
         {
-            RenderingUtils.RenderPostProcessing(cmd, ref cameraData, sourceDescriptor, source, destination, opaqueOnly, flip);
             ScriptableRenderer.ConfigureActiveTarget(destination, BuiltinRenderTextureType.CameraTarget);
+            RenderingUtils.RenderPostProcessing(cmd, ref cameraData, sourceDescriptor, source, destination, opaqueOnly, flip);
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public static DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
+        public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             Camera camera = renderingData.cameraData.camera;
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public static DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+        public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             if (shaderTagIdList == null || shaderTagIdList.Count == 0)
