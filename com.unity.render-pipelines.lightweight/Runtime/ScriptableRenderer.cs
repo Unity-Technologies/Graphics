@@ -20,16 +20,14 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     public abstract class ScriptableRenderer
     {
-        const int k_DepthStencilBufferBits = 32;
-
-        public RenderTargetHandle cameraColorHandle
+        public RenderTargetIdentifier cameraColorTarget
         {
-            get => m_CameraColorHandle;
+            get => m_CameraColorTarget;
         }
 
-        public RenderTargetHandle cameraDepthHandle
+        public RenderTargetIdentifier cameraDepth
         {
-            get => m_CameraDepthHandle;
+            get => m_CameraDepthTarget;
         }
 
         protected List<ScriptableRendererFeature> rendererFeatures
@@ -44,12 +42,11 @@ namespace UnityEngine.Rendering.LWRP
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
-        RenderTargetHandle m_CameraColorHandle;
-        RenderTargetHandle m_CameraDepthHandle;
+        RenderTargetIdentifier m_CameraColorTarget;
+        RenderTargetIdentifier m_CameraDepthTarget;
         bool m_FirstCameraRenderPassExecuted = false;
         
         const string k_ClearRenderStateTag = "Clear Render State";
-        const string k_CreateCameraTextures = "Set Render Target";
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
 
@@ -73,22 +70,23 @@ namespace UnityEngine.Rendering.LWRP
         /// <summary>
         /// Configures the camera target.
         /// </summary>
-        /// <param name="colorHandle">Camera color handle. Pass RenderTargetHandle.CameraTarget if rendering to backbuffer.</param>
-        /// <param name="depthHandle">Camera depth handle. Pass RenderTargetHandle.CameraTarget if color has depth or rendering to backbuffer.</param>
-        public void ConfigureCameraTarget(RenderTargetHandle colorHandle, RenderTargetHandle depthHandle)
+        /// <param name="colorTarget">Camera color target. Pass BuiltinRenderTextureType.CameraTarget if rendering to backbuffer.</param>
+        /// <param name="depthTarget">Camera depth target. Pass BuiltinRenderTextureType.CameraTarget if color has depth or rendering to backbuffer.</param>
+        public void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget)
         {
-            m_CameraColorHandle = colorHandle;
-            m_CameraDepthHandle = depthHandle;
+            m_CameraColorTarget = colorTarget;
+            m_CameraDepthTarget = depthTarget;
         }
 
         /// <summary>
         /// Configures the render passes that will execute for this renderer.
         /// This method is called per-camera every frame.
         /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
         /// <seealso cref="ScriptableRenderPass"/>
         /// <seealso cref="ScriptableRendererFeature"/>
-        public abstract void Setup(ref RenderingData renderingData);
+        public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
         /// Override this method to implement the lighting setup for the renderer. You can use this to 
@@ -108,6 +106,14 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="cameraData">Current render state information.</param>
         public virtual void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
             ref CameraData cameraData)
+        {
+        }
+
+        /// <summary>
+        /// Called upon finishing camera rendering. You can release any resources created on setup here.
+        /// </summary>
+        /// <param name="cmd"></param>
+        public virtual void FinishRendering(CommandBuffer cmd)
         {
         }
 
@@ -143,12 +149,8 @@ namespace UnityEngine.Rendering.LWRP
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
 
-            // In this block stereo, camera matrices and lighting is setup, but camera target textures are not setup yet.
-            // Use this to render prepasses that require stereo or camera matrices setup like depth prepass or screenspace shadow resolve.
-            ExecuteBlock(RenderPassEvent.BeforeRenderingPrepasses, RenderPassEvent.BeforeRenderingOpaques , context, ref renderingData);
-
             // In this block main rendering executes.
-            ExecuteBlock(RenderPassEvent.BeforeRenderingOpaques, RenderPassEvent.AfterRenderingPostProcessing, context, ref renderingData);
+            ExecuteBlock(RenderPassEvent.BeforeRenderingPrepasses, RenderPassEvent.AfterRenderingPostProcessing, context, ref renderingData);
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
@@ -160,7 +162,7 @@ namespace UnityEngine.Rendering.LWRP
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
-            FinishRendering(context);
+            InternalFinishRendering(context);
         }
 
         /// <summary>
@@ -233,8 +235,8 @@ namespace UnityEngine.Rendering.LWRP
 
         internal void Clear()
         {
-            m_CameraColorHandle = RenderTargetHandle.CameraTarget;
-            m_CameraDepthHandle = RenderTargetHandle.CameraTarget;
+            m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
+            m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
 
             m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
@@ -275,18 +277,17 @@ namespace UnityEngine.Rendering.LWRP
             // which might be backbuffer or the framebuffer render textures. 
             if (!renderPass.overrideCameraTarget)
             {
-                passColorAttachment = cameraColorHandle.Identifier();
-                passDepthAttachment = cameraDepthHandle.Identifier();
+                passColorAttachment = m_CameraColorTarget;
+                passDepthAttachment = m_CameraDepthTarget;
             }
 
-            if (passColorAttachment == cameraColorHandle.Identifier() && !m_FirstCameraRenderPassExecuted)
+            if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
             {
                 m_FirstCameraRenderPassExecuted = true;
-                CreateCameraRenderTarget(cmd, ref cameraData);
 
                 Camera camera = cameraData.camera;
                 ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-                SetRenderTarget(cmd, cameraColorHandle.Identifier(), cameraDepthHandle.Identifier(), clearFlag,
+                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
                     CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
                 context.ExecuteCommandBuffer(cmd);
@@ -320,28 +321,6 @@ namespace UnityEngine.Rendering.LWRP
             context.StopMultiEye(camera);
             context.StereoEndRender(camera);
             m_InsideStereoRenderBlock = false;
-        }
-
-        void CreateCameraRenderTarget(CommandBuffer cmd, ref CameraData cameraData)
-        {
-            var descriptor = cameraData.cameraTargetDescriptor;
-            int msaaSamples = descriptor.msaaSamples;
-            if (cameraColorHandle != RenderTargetHandle.CameraTarget)
-            {
-                bool useDepthRenderBuffer = cameraDepthHandle == RenderTargetHandle.CameraTarget;
-                var colorDescriptor = descriptor;
-                colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
-                cmd.GetTemporaryRT(cameraColorHandle.id, colorDescriptor, FilterMode.Bilinear);
-            }
-
-            if (cameraDepthHandle != RenderTargetHandle.CameraTarget)
-            {
-                var depthDescriptor = descriptor;
-                depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
-                depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
-                cmd.GetTemporaryRT(cameraDepthHandle.id, depthDescriptor, FilterMode.Point);
-            }
         }
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
@@ -412,23 +391,14 @@ namespace UnityEngine.Rendering.LWRP
 #endif
         }
 
-        void FinishRendering(ScriptableRenderContext context)
+        void InternalFinishRendering(ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
-            if (cameraColorHandle != RenderTargetHandle.CameraTarget)
-            {
-                cmd.ReleaseTemporaryRT(cameraColorHandle.id);
-            }
-
-            if (cameraDepthHandle != RenderTargetHandle.CameraTarget)
-            {
-                cmd.ReleaseTemporaryRT(cameraDepthHandle.id);
-            }
-            
+            FinishRendering(cmd);
             Clear();
 
             context.ExecuteCommandBuffer(cmd);

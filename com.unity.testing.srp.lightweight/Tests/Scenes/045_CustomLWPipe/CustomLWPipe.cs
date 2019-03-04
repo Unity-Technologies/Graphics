@@ -1,4 +1,3 @@
-using UnityEngine;
 using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
 
@@ -14,14 +13,12 @@ public class CustomLWPipe : ScriptableRenderer
         m_ForwardLights = new ForwardLights();
     }
 
-    public override void Setup(ref RenderingData renderingData)
+    public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
     {
-        RenderTextureDescriptor baseDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-
-        ConfigureCameraTarget(RenderTargetHandle.CameraTarget, RenderTargetHandle.CameraTarget);
+        ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
 
         foreach (var feature in rendererFeatures)
-            feature.AddRenderPasses(this, baseDescriptor, cameraColorHandle, cameraDepthHandle);
+            feature.AddRenderPasses(this, ref renderingData);
         EnqueuePass(m_RenderOpaqueForwardPass);
     }
 

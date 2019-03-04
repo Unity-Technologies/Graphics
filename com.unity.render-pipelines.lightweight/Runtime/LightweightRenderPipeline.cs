@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.LWRP
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(settings, ref cameraData, ref cullResults, out var renderingData);
 
-                renderer.Setup(ref renderingData);
+                renderer.Setup(context, ref renderingData);
                 renderer.Execute(context, ref renderingData);
             }
 
