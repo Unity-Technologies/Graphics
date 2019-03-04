@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.LWRP
 {
-    [CreateAssetMenu(fileName = "New Forward Renderer", menuName = "Rendering/Lightweight Render Pipeline/Forward Renderer", order = CoreUtils.assetCreateMenuPriority1)]
+    [CreateAssetMenu(fileName = "Custom Forward Renderer", menuName = "Rendering/Lightweight Render Pipeline/Forward Renderer", order = CoreUtils.assetCreateMenuPriority1)]
     public class ForwardRendererData : ScriptableRendererData
     {
         [SerializeField] Shader m_BlitShader = null;
@@ -16,27 +16,27 @@ namespace UnityEngine.Rendering.LWRP
             return new ForwardRenderer(this);
         }
 
-        public Shader blitShader
+        internal Shader blitShader
         {
             get => m_BlitShader;
         }
 
-        public Shader copyDepthShader
+        internal Shader copyDepthShader
         {
             get => m_CopyDepthShader;
         }
 
-        public Shader screenSpaceShadowShader
+        internal Shader screenSpaceShadowShader
         {
             get => m_ScreenSpaceShadowShader;
         }
 
-        public Shader samplingShader
+        internal Shader samplingShader
         {
             get => m_SamplingShader;
         }
 
-        public LayerMask opaqueLayerMask
+        internal LayerMask opaqueLayerMask
         {
             get => m_OpaqueLayerMask;
         }

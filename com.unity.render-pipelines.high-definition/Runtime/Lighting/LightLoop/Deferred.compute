@@ -65,12 +65,10 @@
 #   pragma warning( disable : 4714 ) // sum of temp registers and indexable temp registers times 256 threads exceeds the recommended total 16384.  Performance may be reduced at kernel
 #endif
 
-#define UNITY_SINGLE_PASS_STEREO 1
-
 // deferred opaque always use FPTL
 #define USE_FPTL_LIGHTLIST 1
 
-//#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 
 //-------------------------------------------------------------------------------------
 // Include
@@ -117,8 +115,8 @@ CBUFFER_END
 // variable declaration
 //-------------------------------------------------------------------------------------
 
-RWTexture2D<float3> diffuseLightingUAV;
-RWTexture2D<float4> specularLightingUAV;
+RW_TEXTURE2D_X(float3, diffuseLightingUAV);
+RW_TEXTURE2D_X(float4, specularLightingUAV);
 
 
 
@@ -177,11 +175,11 @@ void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
     {
-        specularLightingUAV[pixelCoord] = float4(specularLighting, 1.0);
-        diffuseLightingUAV[pixelCoord]  = TagLightingForSSS(diffuseLighting);
+        specularLightingUAV[COORD_TEXTURE2D_X(pixelCoord)] = float4(specularLighting, 1.0);
+        diffuseLightingUAV[COORD_TEXTURE2D_X(pixelCoord)]  = TagLightingForSSS(diffuseLighting);
     }
     else
     {
-        specularLightingUAV[pixelCoord] = float4(diffuseLighting + specularLighting, 1.0);
+        specularLightingUAV[COORD_TEXTURE2D_X(pixelCoord)] = float4(diffuseLighting + specularLighting, 1.0);
     }
 }

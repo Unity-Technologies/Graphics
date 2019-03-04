@@ -12,15 +12,15 @@ Subsurface scattering also handles the light that penetrates GameObjects from be
 
 To enable subsurface scattering in your [HDRP Asset](HDRP-Asset.html):
 
-* In the HDRP Asset’s Inspector window, in the __Render Pipeline Supported Features__ section, enable the __Subsurface Scattering__ checkbox .
+* In the HDRP Asset’s Inspector window, navigate to the __Material__ section and enable the __Subsurface Scattering__ checkbox.
 
-* When you enable subsurface scattering, HDRP displays a __High Quality __ option to increase the sample count and reduce the amount of visual noise the blur pass can cause by undersampling. This is about two and a half times more resource intensive as the default quality.
+* When you enable the __Subsurface Scattering__ checkbox, HDRP displays the __High Quality__ option. You can enable this checkbox to increase the sample count and reduce the amount of visual noise the blur pass can cause by undersampling. Note that this is around two and a half times more resource intensive than the default quality.
 
 * Within __HDRP Asset__, locate the __Default Frame Settings__. Under the __Lighting Settings__, enable __Subsurface Scattering__ and __Transmission__.
 
 HDRP stores most subsurface scattering settings in a [Diffusion Profile Settings](Diffusion-Profile.html) Asset. The __Diffusion Profile List Asset__ contains a set of 15 Diffusion Profiles you can edit and later assign to your Materials.
 
-To create a Diffusion Profile List Asset, navigate to __Assets > Create > Rendering > Diffusion Profile Settings__. To use it, open your HDRP Asset and assign the new Diffusion Profile List Asset to the __Diffusion Profile List__ property.
+To create a Diffusion Profile Asset, navigate to __Assets > Create > Rendering > Diffusion Profile Settings__. To use it, open your HDRP Asset and assign the new Diffusion Profile Asset to the __Diffusion Profile List__ property.
 
 ## Adding Subsurface Scattering to your Material
 
@@ -36,7 +36,7 @@ These parameters are:
 
 | Property| Description |
 |:---|:---|
-| **Diffusion Profile** | Select one of the 15 Diffusion Profiles from your HDRP Asset’s Diffusion Profile List. Selecting None disables the subsurface scattering effect. The profile you choose is the primary factor that drives the behavior of subsurface scattering. To quickly view the currently selected Diffusion Profile’s Inspector, click GoTo on the right of the Diffusion Profile combobox. |
+| **Diffusion Profile** | Assign a __Diffusion Profile__ to directly reference a Diffusion Profile Asset to this Material. If there is no Diffusion Profile Asset, HDRP does not process the subsurface scattering. The Diffusion Profile you choose is the primary factor that drives the behavior of subsurface scattering. To quickly view the currently selected Diffusion Profile’s Inspector, double click on the Diffusion Profile Asset. |
 | **Subsurface Mask** | Controls the strength of the screen-space blur effect. If you set a Subsurface Mask Map, this acts as a multiplier for that map. If you do not set a Subsurface Mask Map, this strengthens the entire subsurface scattering effect on this Material. |
 | **Subsurface Mask Map** | A grayscale texture, with values from 0 to 1, that controls the strength of the blur effect across the Material. Texels with the value of 1 correspond to full strength, while those with the value of 0 disable the Subsurface Scattering blur effect.|
 | **Thickness Map** | A grayscale texture, with values from 0 to 1, that controls the strength of the transmission effect. The values correspond to the average thickness of the Mesh at the location of the texel. Higher values mean thicker areas, and thicker areas transmit less light. |

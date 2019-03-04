@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -53,6 +54,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 base.OnInspectorGUI(); // Color
                 EditorGUI.indentLevel--;
+            }
+
+            if (!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
+                ?.currentPlatformRenderPipelineSettings.supportVolumetrics ?? false)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The current HDRP Asset does not support Volumetrics.", MessageType.Error, wide: true);
             }
         }
     }

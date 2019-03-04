@@ -117,20 +117,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
-            BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
             RaytracingShader forwardShader = m_PipelineAsset.renderPipelineResources.shaders.forwardRaytracing;
             Shader raytracingMask = m_PipelineAsset.renderPipelineResources.shaders.raytracingFlagMask;
 
-            // Try to grab the acceleration structure and the list of HD lights for the target camera
-            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
-            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(hdCamera);
-
-            bool missingResources = rtEnvironement == null || blueNoise == null || forwardShader == null || raytracingMask == null || accelerationStructure == null
-                                    || lightCluster == null || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
+            // Check the validity of the state before computing the effect
+            bool invalidState = rtEnvironement == null || !rtEnvironement.raytracedObjects
+                || forwardShader == null || raytracingMask == null
+                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // If any resource or game-object is missing We stop right away
-            if (missingResources || !rtEnvironement.raytracedObjects)
+            if (invalidState)
                 return;
+
+            // Grab the acceleration structure and the list of HD lights for the target camera
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.raytracedLayerMask);
+            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironement.raytracedLayerMask);
 
             if (m_RaytracingFlagMaterial == null)
                 m_RaytracingFlagMaterial = CoreUtils.CreateEngineMaterial(raytracingMask);

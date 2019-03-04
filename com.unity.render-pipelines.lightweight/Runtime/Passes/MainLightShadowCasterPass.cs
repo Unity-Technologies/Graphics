@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.LWRP
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
 
-        string m_ProfilerTag = "Render Main Shadowmap";
+        const string m_ProfilerTag = "Render Main Shadowmap";
 
         public MainLightShadowCasterPass(RenderPassEvent evt)
         {

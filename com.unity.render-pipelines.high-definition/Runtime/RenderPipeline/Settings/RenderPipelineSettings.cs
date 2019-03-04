@@ -44,7 +44,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             supportMotionVectors = true,
             supportRuntimeDebugDisplay = true,
             supportDitheringCrossFade = true,
-            editorRaytracingFilterLayerMask = -1,
             lightLoopSettings = GlobalLightLoopSettings.@default,
             hdShadowInitParams = HDShadowInitParameters.@default,
             decalSettings = GlobalDecalSettings.@default,
@@ -83,7 +82,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportRuntimeDebugDisplay;
         public bool supportDitheringCrossFade;
         public bool supportRayTracing;
-        public LayerMask editorRaytracingFilterLayerMask;
 
         public GlobalLightLoopSettings lightLoopSettings;
         public HDShadowInitParameters hdShadowInitParams;

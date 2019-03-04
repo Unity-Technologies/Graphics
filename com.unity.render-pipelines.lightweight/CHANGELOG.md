@@ -4,9 +4,41 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.3.0] - 2019-XX-XX
+## [6.5.0] - 2019-XX-XX
+### Added
+- You can now create a custom forward renderer by clicking on `Assets/Create/Rendering/Lightweight Render Pipeline/Forward Renderer`. This creates an asset in your project. You can add additional features to it and drag-n-drop the renderer to either the pipeline asset or to a camera.
+- `ScriptableRendererFeature` can now be added to the `ScriptableRenderer` to extend it with custom effects. A feature is an `ScriptableObject` that can be drag-n-dropped in the renderer and adds one or more `ScriptableRenderPass`es to the renderer.
+- `ScriptableRenderer` now exposes interface to configure lights. To do so, implement `SetupLights` when creating a new renderer.
+- `ScriptableRenderer` now exposes interface to configure culling. To do so, implement `SetupCullingParameters` when creating a new renderer.
+- `ScriptableRendererData` constains rendering resources for `ScriptableRenderer`. A renderer can be overriden globally for all camera or on a per-camera basis.
+- `ScriptableRenderPass` now has a `RenderPassEvents`. This controls where in the pipeline the render pass will be added.
+- `ScriptableRenderPass` now exposes `ConfigureTarget` and `ConfigureClear`. This allows the renderer to figure out automatically the current active rendering targets.
+- `ScriptableRenderPass` now exposes `Blit`. This performs a blit and set the active render target in the renderer.
+- `ScriptableRenderPass` now exposes `RenderPostProcessing`. This will render post-processing and set the active render target in the renderer.
+- `ScriptableRenderPass` now exposes `CreateDrawingSettings` as helper for render passes that need to call `ScriptableRenderContext.DrawRenderers`.
+
+### Changed
+- Removed `RegisterShaderPassName` from `ScriptableRenderPass`. Instead now `CreateDrawingSettings` take one or a list of `ShaderTagId`. 
+- Removed remaining experimental namespace from LWRP. All api related to `ScriptableRenderer`, `ScriptableRenderPass` and render pass injection it now out of preview.
+- Removed `SetRenderTarget` from `ScriptableRenderPass`. You should never call it. Instead, call `ConfigureTarget` and the renderer will automatically setup targets for you. 
+- Removed `RenderFullscreenQuad` from `ScriptableRenderer`. Use `CommandBuffer.DrawMesh` and `RenderingUtils.fullscreenMesh` instead.
+- Removed `RenderPostProcess` from `ScriptableRenderer`. Use `ScriptableRenderPass.RenderPostProcessing` instead.
+- Removed `postProcessingContext` property from `ScriptableRenderer`. This is exposed now in `RenderingUtils.postProcessingContext`.
+- Removed `GetCameraClearFlag` from `ScriptableRenderer`.
+
+### Fixed
+- Fixed occlusion mesh for VR not rendering before rendering opaques.
+- Enabling or disabling SRP batcher in runtime works now.
+- Fixed video player recorder when post-processing is enabled.
+
+## [6.4.0] - 2019-02-21
+
+## [6.3.0] - 2019-02-18
 
 ## [6.2.0] - 2019-02-15
+
+### Changed
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
 
 ## [6.1.0] - 2019-02-13
 
@@ -38,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The __Double sided__ property is now __Render Face__. This means you can also do front face culling.
 - Changed the docs for Lit Shader, Simple Lit Shader and Unlit Shader according to Shader GUI changes.
 - When you create a new LWRP Asset, it will now be initialized with settings that favor performance on mobile platforms.
+- Updated the [FAQ](faq.md) and the [Built-in/LWRP feature comparison table](lwrp-builtin-feature-comparison.md).
 
 ### Fixed
 - Several tweaks to reduce bandwidth consumption on mobile devices.
@@ -323,7 +356,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ### Added
  - Added Cascade Split selection UI
  - Added SHADER_HINT_NICE_QUALITY. If user defines this to 1 in the shader Lightweight pipeline will favor quality even on mobile platforms.
- 
+
 ### Changed
  - Shadowmap uses 16bit format instead of 32bit.
  - Small shader performance improvements
@@ -332,7 +365,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Subtractive Mode
  - Shadow Distance does not accept negative values anymore
 
- 
+
 ## [0.1.24]
 
 ### Added
@@ -340,7 +373,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Added HDR global setting on pipeline asset. 
  - Added Soft Particles settings on pipeline asset.
  - Ported particles shaders to SRP library
- 
+
 ### Changed
  - HDR RT now uses what format is configured in Tier settings.
  - Refactored lightweight standard shaders and shader library to improve ease of use.
@@ -348,7 +381,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Reduced GC pressure
  - Reduced shader variant count by ~56% by improving fog and lightmap keywords
  - Converted LW shader library files to use real/half when necessary.
- 
+
 ### Fixed
  - Realtime shadows on OpenGL
  - Shader compiler errors in GLES 2.0

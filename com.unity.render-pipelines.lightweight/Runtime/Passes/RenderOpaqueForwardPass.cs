@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.LWRP
     internal class RenderOpaqueForwardPass : ScriptableRenderPass
     {
         FilteringSettings m_FilteringSettings;
-        string m_ProfilerTag = "Render Opaques";
+        const string m_ProfilerTag = "Render Opaques";
         private List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
         public RenderOpaqueForwardPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)

@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.LWRP
         ShadowSliceData[] m_AdditionalLightSlices;
         float[] m_AdditionalLightsShadowStrength;
         List<int> m_AdditionalShadowCastingLightIndices = new List<int>();
-        string m_ProfilerTag = "Render Additional Shadows";
+        const string m_ProfilerTag = "Render Additional Shadows";
 
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
@@ -170,16 +170,13 @@ namespace UnityEngine.Rendering.LWRP
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
-                int shadowmapWidth = m_ShadowmapWidth;
-                int shadowmapHeight = m_ShadowmapHeight;
-
                 for (int i = 0; i < m_AdditionalShadowCastingLightIndices.Count; ++i)
                 {
                     int shadowLightIndex = m_AdditionalShadowCastingLightIndices[i];
                     VisibleLight shadowLight = visibleLights[shadowLightIndex];
 
                     if (m_AdditionalShadowCastingLightIndices.Count > 1)
-                        ShadowUtils.ApplySliceTransform(ref m_AdditionalLightSlices[i], shadowmapWidth, shadowmapHeight);
+                        ShadowUtils.ApplySliceTransform(ref m_AdditionalLightSlices[i], m_ShadowmapWidth, m_ShadowmapHeight);
 
                         var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
                         Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex,

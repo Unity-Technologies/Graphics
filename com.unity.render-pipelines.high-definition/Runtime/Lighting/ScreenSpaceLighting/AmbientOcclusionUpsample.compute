@@ -28,28 +28,29 @@
 #pragma kernel KMainBlendout_MSAA       MAIN=KMainBlendout_MSAA         MSAA BLEND_WITH_HIGHER_RESOLUTION
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
-TEXTURE2D(_LoResDB);
-TEXTURE2D(_HiResDB);
-TEXTURE2D(_LoResAO1);
+TEXTURE2D_X(_LoResDB);
+TEXTURE2D_X(_HiResDB);
+TEXTURE2D_X(_LoResAO1);
 
 SAMPLER(sampler_LoResDB);
 SAMPLER(sampler_HiResDB);
 SAMPLER(sampler_LoResAO1);
 
 #ifdef BLEND_WITH_HIGHER_RESOLUTION
-TEXTURE2D(_HiResAO);
+TEXTURE2D_X(_HiResAO);
 SAMPLER(sampler_HiResAO);
 #endif
 
 #if MSAA
-RW_TEXTURE2D(float2, _AoResult);
+RW_TEXTURE2D_X(float2, _AoResult);
 
 groupshared float2 gs_depthCache[256];
 groupshared float2 gs_aoCache1[256];
 groupshared float2 gs_aoCache2[256];
 #else
-RW_TEXTURE2D(float, _AoResult);
+RW_TEXTURE2D_X(float, _AoResult);
 
 groupshared float gs_depthCache[256];
 groupshared float gs_aoCache1[256];
@@ -70,29 +71,29 @@ CBUFFER_END
 void PrefetchData(uint index, float2 uv)
 {
 #ifdef MSAA
-    float4 AO1_0 = GATHER_RED_TEXTURE2D(_LoResAO1, sampler_LoResAO1, uv);
-    float4 AO1_1 = GATHER_GREEN_TEXTURE2D(_LoResAO1, sampler_LoResAO1, uv);
+    float4 AO1_0 = GATHER_RED_TEXTURE2D_X(_LoResAO1, sampler_LoResAO1, uv);
+    float4 AO1_1 = GATHER_GREEN_TEXTURE2D_X(_LoResAO1, sampler_LoResAO1, uv);
 
     gs_aoCache1[index     ] = float2(AO1_0.w, AO1_1.w);
     gs_aoCache1[index +  1] = float2(AO1_0.z, AO1_1.z);
     gs_aoCache1[index + 16] = float2(AO1_0.x, AO1_1.x);
     gs_aoCache1[index + 17] = float2(AO1_0.y, AO1_1.y);
 
-    float4 ID_0 = 1.0 / GATHER_RED_TEXTURE2D(_LoResDB, sampler_LoResDB, uv);
-    float4 ID_1 = 1.0 / GATHER_GREEN_TEXTURE2D(_LoResDB, sampler_LoResDB, uv);
+    float4 ID_0 = 1.0 / GATHER_RED_TEXTURE2D_X(_LoResDB, sampler_LoResDB, uv);
+    float4 ID_1 = 1.0 / GATHER_GREEN_TEXTURE2D_X(_LoResDB, sampler_LoResDB, uv);
     gs_depthCache[index     ] = float2(ID_0.w, ID_1.w);
     gs_depthCache[index +  1] = float2(ID_0.z, ID_1.z);
     gs_depthCache[index + 16] = float2(ID_0.x, ID_1.x);
     gs_depthCache[index + 17] = float2(ID_0.y, ID_1.y);
 #else
-    float4 AO1 = GATHER_TEXTURE2D(_LoResAO1, sampler_LoResAO1, uv);
+    float4 AO1 = GATHER_TEXTURE2D_X(_LoResAO1, sampler_LoResAO1, uv);
 
     gs_aoCache1[index     ] = AO1.w;
     gs_aoCache1[index +  1] = AO1.z;
     gs_aoCache1[index + 16] = AO1.x;
     gs_aoCache1[index + 17] = AO1.y;
 
-    float4 ID = 1.0 / GATHER_TEXTURE2D(_LoResDB, sampler_LoResDB, uv);
+    float4 ID = 1.0 / GATHER_TEXTURE2D_X(_LoResDB, sampler_LoResDB, uv);
     gs_depthCache[index     ] = ID.w;
     gs_depthCache[index +  1] = ID.z;
     gs_depthCache[index + 16] = ID.x;
@@ -304,12 +305,14 @@ float BilateralUpsample(float HiDepth, float HiAO, float4 LowDepths, float4 LowA
 }
 
 [numthreads(8, 8, 1)]
-void MAIN(uint GI : SV_GroupIndex, uint2 GTid : SV_GroupThreadID, uint2 DTid : SV_DispatchThreadID)
+void MAIN(uint GI : SV_GroupIndex, uint2 GTid : SV_GroupThreadID, uint3 DTid : SV_DispatchThreadID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(DTid.z);
+
     //
     // Load 4 pixels per thread into LDS to fill the 16x16 LDS cache with depth and AO
     //
-    PrefetchData(GTid.x << 1 | GTid.y << 5, int2(DTid + GTid - 2) * _InvLowResolution.xy);
+    PrefetchData(GTid.x << 1 | GTid.y << 5, int2(DTid.xy + GTid - 2) * _InvLowResolution.xy);
     GroupMemoryBarrierWithGroupSync();
 
     // Goal:  End up with a 9x9 patch that is blurred so we can upsample.  Blur radius is 2 pixels, so start with 13x13 area.
@@ -341,56 +344,56 @@ void MAIN(uint GI : SV_GroupIndex, uint2 GTid : SV_GroupThreadID, uint2 DTid : S
 #endif
 
     // We work on a quad of pixels at once because then we can gather 4 each of high and low-res depth values
-    float2 UV0 = DTid * _InvLowResolution.xy;
-    float2 UV1 = DTid * 2 * _InvHighResolution.xy;
+    float2 UV0 = DTid.xy * _InvLowResolution.xy;
+    float2 UV1 = DTid.xy * 2 * _InvHighResolution.xy;
 
 #ifdef MSAA
     #ifdef BLEND_WITH_HIGHER_RESOLUTION
-        float4 HiSSAOs0 = GATHER_RED_TEXTURE2D(_HiResAO, sampler_HiResAO, UV1);
-        float4 HiSSAOs1 = GATHER_GREEN_TEXTURE2D(_HiResAO, sampler_HiResAO, UV1);
+        float4 HiSSAOs0 = GATHER_RED_TEXTURE2D_X(_HiResAO, sampler_HiResAO, UV1);
+        float4 HiSSAOs1 = GATHER_GREEN_TEXTURE2D_X(_HiResAO, sampler_HiResAO, UV1);
     #else
         float4 HiSSAOs0 = 1.0;
         float4 HiSSAOs1 = 1.0;
     #endif
-        float4 LoDepths0 = GATHER_RED_TEXTURE2D(_LoResDB, sampler_LoResDB, UV0);
-        float4 LoDepths1 = GATHER_GREEN_TEXTURE2D(_LoResDB, sampler_LoResDB, UV0);
-        float4 HiDepths0 = GATHER_RED_TEXTURE2D(_HiResDB, sampler_HiResDB, UV1);
-        float4 HiDepths1 = GATHER_GREEN_TEXTURE2D(_HiResDB, sampler_HiResDB, UV1);
+        float4 LoDepths0 = GATHER_RED_TEXTURE2D_X(_LoResDB, sampler_LoResDB, UV0);
+        float4 LoDepths1 = GATHER_GREEN_TEXTURE2D_X(_LoResDB, sampler_LoResDB, UV0);
+        float4 HiDepths0 = GATHER_RED_TEXTURE2D_X(_HiResDB, sampler_HiResDB, UV1);
+        float4 HiDepths1 = GATHER_GREEN_TEXTURE2D_X(_HiResDB, sampler_HiResDB, UV1);
 
         int2 OutST = DTid.xy << 1;
 
     #ifdef INVERT
-        _AoResult[OutST + int2(-1,  0)] = float2(1.0 - BilateralUpsample(HiDepths0.x, HiSSAOs0.x, LoDepths0.xyzw, LoSSAOs0.xyzw), 1.0 - BilateralUpsample(HiDepths1.x, HiSSAOs1.x, LoDepths1.xyzw, LoSSAOs1.xyzw));
-        _AoResult[OutST + int2( 0,  0)] = float2(1.0 - BilateralUpsample(HiDepths0.y, HiSSAOs0.y, LoDepths0.yzwx, LoSSAOs0.yzwx), 1.0 - BilateralUpsample(HiDepths1.y, HiSSAOs1.y, LoDepths1.yzwx, LoSSAOs1.yzwx));
-        _AoResult[OutST + int2( 0, -1)] = float2(1.0 - BilateralUpsample(HiDepths0.z, HiSSAOs0.z, LoDepths0.zwxy, LoSSAOs0.zwxy), 1.0 - BilateralUpsample(HiDepths1.z, HiSSAOs1.z, LoDepths1.zwxy, LoSSAOs1.zwxy));
-        _AoResult[OutST + int2(-1, -1)] = float2(1.0 - BilateralUpsample(HiDepths0.w, HiSSAOs0.w, LoDepths0.wxyz, LoSSAOs0.wxyz), 1.0 - BilateralUpsample(HiDepths1.w, HiSSAOs1.w, LoDepths1.wxyz, LoSSAOs1.wxyz));
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2(-1,  0))] = float2(1.0 - BilateralUpsample(HiDepths0.x, HiSSAOs0.x, LoDepths0.xyzw, LoSSAOs0.xyzw), 1.0 - BilateralUpsample(HiDepths1.x, HiSSAOs1.x, LoDepths1.xyzw, LoSSAOs1.xyzw));
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2( 0,  0))] = float2(1.0 - BilateralUpsample(HiDepths0.y, HiSSAOs0.y, LoDepths0.yzwx, LoSSAOs0.yzwx), 1.0 - BilateralUpsample(HiDepths1.y, HiSSAOs1.y, LoDepths1.yzwx, LoSSAOs1.yzwx));
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2( 0, -1))] = float2(1.0 - BilateralUpsample(HiDepths0.z, HiSSAOs0.z, LoDepths0.zwxy, LoSSAOs0.zwxy), 1.0 - BilateralUpsample(HiDepths1.z, HiSSAOs1.z, LoDepths1.zwxy, LoSSAOs1.zwxy));
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = float2(1.0 - BilateralUpsample(HiDepths0.w, HiSSAOs0.w, LoDepths0.wxyz, LoSSAOs0.wxyz), 1.0 - BilateralUpsample(HiDepths1.w, HiSSAOs1.w, LoDepths1.wxyz, LoSSAOs1.wxyz));
     #else
-        _AoResult[OutST + int2(-1,  0)] = float2(BilateralUpsample(HiDepths0.x, HiSSAOs0.x, LoDepths0.xyzw, LoSSAOs0.xyzw), BilateralUpsample(HiDepths1.x, HiSSAOs1.x, LoDepths1.xyzw, LoSSAOs1.xyzw));
-        _AoResult[OutST + int2( 0,  0)] = float2(BilateralUpsample(HiDepths0.y, HiSSAOs0.y, LoDepths0.yzwx, LoSSAOs0.yzwx), BilateralUpsample(HiDepths1.y, HiSSAOs1.y, LoDepths1.yzwx, LoSSAOs1.yzwx));
-        _AoResult[OutST + int2( 0, -1)] = float2(BilateralUpsample(HiDepths0.z, HiSSAOs0.z, LoDepths0.zwxy, LoSSAOs0.zwxy), BilateralUpsample(HiDepths1.z, HiSSAOs1.z, LoDepths1.zwxy, LoSSAOs1.zwxy));
-        _AoResult[OutST + int2(-1, -1)] = float2(BilateralUpsample(HiDepths0.w, HiSSAOs0.w, LoDepths0.wxyz, LoSSAOs0.wxyz), BilateralUpsample(HiDepths1.w, HiSSAOs1.w, LoDepths1.wxyz, LoSSAOs1.wxyz));
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2(-1,  0))] = float2(BilateralUpsample(HiDepths0.x, HiSSAOs0.x, LoDepths0.xyzw, LoSSAOs0.xyzw), BilateralUpsample(HiDepths1.x, HiSSAOs1.x, LoDepths1.xyzw, LoSSAOs1.xyzw));
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2( 0,  0))] = float2(BilateralUpsample(HiDepths0.y, HiSSAOs0.y, LoDepths0.yzwx, LoSSAOs0.yzwx), BilateralUpsample(HiDepths1.y, HiSSAOs1.y, LoDepths1.yzwx, LoSSAOs1.yzwx));
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2( 0, -1))] = float2(BilateralUpsample(HiDepths0.z, HiSSAOs0.z, LoDepths0.zwxy, LoSSAOs0.zwxy), BilateralUpsample(HiDepths1.z, HiSSAOs1.z, LoDepths1.zwxy, LoSSAOs1.zwxy));
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = float2(BilateralUpsample(HiDepths0.w, HiSSAOs0.w, LoDepths0.wxyz, LoSSAOs0.wxyz), BilateralUpsample(HiDepths1.w, HiSSAOs1.w, LoDepths1.wxyz, LoSSAOs1.wxyz));
     #endif
 #else
     #ifdef BLEND_WITH_HIGHER_RESOLUTION
-        float4 HiSSAOs = GATHER_TEXTURE2D(_HiResAO, sampler_HiResAO, UV1);
+        float4 HiSSAOs = GATHER_TEXTURE2D_X(_HiResAO, sampler_HiResAO, UV1);
     #else
         float4 HiSSAOs = 1.0;
     #endif
-        float4 LoDepths = GATHER_TEXTURE2D(_LoResDB, sampler_LoResDB, UV0);
-        float4 HiDepths = GATHER_TEXTURE2D(_HiResDB, sampler_HiResDB, UV1);
+        float4 LoDepths = GATHER_TEXTURE2D_X(_LoResDB, sampler_LoResDB, UV0);
+        float4 HiDepths = GATHER_TEXTURE2D_X(_HiResDB, sampler_HiResDB, UV1);
 
-        int2 OutST = DTid << 1;
+        int2 OutST = DTid.xy << 1;
 
     #ifdef INVERT
-        _AoResult[OutST + int2(-1,  0)] = 1.0 - BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
-        _AoResult[OutST + int2( 0,  0)] = 1.0 - BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
-        _AoResult[OutST + int2( 0, -1)] = 1.0 - BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
-        _AoResult[OutST + int2(-1, -1)] = 1.0 - BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2(-1,  0))] = 1.0 - BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2( 0,  0))] = 1.0 - BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2( 0, -1))] = 1.0 - BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = 1.0 - BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
     #else
-        _AoResult[OutST + int2(-1,  0)] = BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
-        _AoResult[OutST + int2( 0,  0)] = BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
-        _AoResult[OutST + int2( 0, -1)] = BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
-        _AoResult[OutST + int2(-1, -1)] = BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2(-1,  0))] = BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2( 0,  0))] = BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2( 0, -1))] = BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
+        _AoResult[COORD_TEXTURE2D_X(OutST + int2(-1, -1))] = BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
     #endif
 #endif
 }

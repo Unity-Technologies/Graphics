@@ -57,10 +57,14 @@ Shader "HDRP/Unlit"
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
-        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 7 // StencilMask.Lighting  (fixed at compile time)
-        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilLightingUsage.RegularLighting  (fixed at compile time)
-        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity  (fixed at compile time)
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 0 // StencilLightingUsage.NoLighting
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilMask.Lighting
+        // Depth prepass
+        [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 0 // Nothing
+        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 32 // DoesntReceiveSSR
+        // Motion vector pass
+        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilMask.ObjectsVelocity
+        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
@@ -157,6 +161,14 @@ Shader "HDRP/Unlit"
             Name "DepthForwardOnly"
             Tags{ "LightMode" = "DepthForwardOnly" }
 
+            Stencil
+            {
+                WriteMask [_StencilWriteMaskDepth]
+                Ref  [_StencilRefDepth]
+                Comp Always
+                Pass Replace
+            }
+
             Cull[_CullMode]
 
             ZWrite On
@@ -235,6 +247,15 @@ Shader "HDRP/Unlit"
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
             ZWrite [_ZWrite]
+
+            Stencil
+            {
+                WriteMask[_StencilWriteMask]
+                Ref[_StencilRef]
+                Comp Always
+                Pass Replace
+            }
+
             Cull [_CullMode]
 
             HLSLPROGRAM

@@ -26,10 +26,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Update emissive mesh and light intensity when undo/redo
             Undo.undoRedoPerformed += () =>
             {
-                m_SerializedHDLight.serializedLightDatas.ApplyModifiedProperties();
-                foreach (var hdLightData in m_AdditionalLightDatas)
-                    if (hdLightData != null)
-                        hdLightData.UpdateAreaLightEmissiveMesh();
+                // Serialized object is lossing references after an undo
+                if (m_SerializedHDLight.serializedLightDatas.targetObject != null)
+                {
+                    m_SerializedHDLight.serializedLightDatas.ApplyModifiedProperties();
+                    foreach (var hdLightData in m_AdditionalLightDatas)
+                        if (hdLightData != null)
+                            hdLightData.UpdateAreaLightEmissiveMesh();
+                }
             };
 
             // If the light is disabled in the editor we force the light upgrade from his inspector
@@ -90,7 +94,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // We only load the mesh and it's material here, because we can't do that inside HDAdditionalLightData (Editor assembly)
                 // Every other properties of the mesh is updated in HDAdditionalLightData to support timeline and editor records
-                emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
+                switch (hdLightData.lightTypeExtent)
+                {
+                    case LightTypeExtent.Tube:
+                        emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx");
+                        break;
+                    case LightTypeExtent.Rectangle:
+                    default:
+                        emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
+                        break;
+                }
                 if (emissiveMeshRenderer.sharedMaterial == null)
                     emissiveMeshRenderer.material = new Material(Shader.Find("HDRP/Unlit"));
             }

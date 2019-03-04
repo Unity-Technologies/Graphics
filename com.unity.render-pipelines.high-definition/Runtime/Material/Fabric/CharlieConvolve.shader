@@ -58,7 +58,7 @@ Shader "Hidden/HDRP/CharlieConvolve"
                 float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
                 uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level) * 100;
 
-                float4 val = IntegrateLDCharlie(TEXTURECUBE_PARAM(_MainTex, s_trilinear_clamp_sampler),
+                float4 val = IntegrateLDCharlie(TEXTURECUBE_ARGS(_MainTex, s_trilinear_clamp_sampler),
                              V, N,
                              roughness,
                              sampleCount,

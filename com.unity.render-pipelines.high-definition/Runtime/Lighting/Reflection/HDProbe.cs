@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -8,15 +9,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable]
         public struct RenderData
         {
-            public Matrix4x4 worldToCameraRHS;
-            public Matrix4x4 projectionMatrix;
-            public Vector3 capturePosition;
+            [SerializeField, FormerlySerializedAs("worldToCameraRHS")]
+            Matrix4x4 m_WorldToCameraRHS;
+            [SerializeField, FormerlySerializedAs("projectionMatrix")]
+            Matrix4x4 m_ProjectionMatrix;
+            [SerializeField, FormerlySerializedAs("capturePosition")]
+            Vector3 m_CapturePosition;
+            Quaternion m_CaptureRotation;
+
+            public Matrix4x4 worldToCameraRHS => m_WorldToCameraRHS;
+            public Matrix4x4 projectionMatrix => m_ProjectionMatrix;
+            public Vector3 capturePosition => m_CapturePosition;
+            public Quaternion captureRotation => m_CaptureRotation;
 
             public RenderData(CameraSettings camera, CameraPositionSettings position)
             {
-                worldToCameraRHS = position.GetUsedWorldToCameraMatrix();
-                projectionMatrix = camera.frustum.GetUsedProjectionMatrix();
-                capturePosition = position.position;
+                m_WorldToCameraRHS = position.GetUsedWorldToCameraMatrix();
+                m_ProjectionMatrix = camera.frustum.GetUsedProjectionMatrix();
+                m_CapturePosition = position.position;
+                m_CaptureRotation = position.rotation;
+            }
+
+            public RenderData(
+                Matrix4x4 worldToCameraRHS,
+                Matrix4x4 projectionMatrix,
+                Vector3 capturePosition,
+                Quaternion captureRotation
+            )
+            {
+                m_WorldToCameraRHS = worldToCameraRHS;
+                m_ProjectionMatrix = projectionMatrix;
+                m_CapturePosition = capturePosition;
+                m_CaptureRotation = captureRotation;
             }
         }
 
@@ -219,6 +243,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnValidate()
         {
             HDProbeSystem.UnregisterProbe(this);
+            PrepareCulling();
 
             if (isActiveAndEnabled)
                 HDProbeSystem.RegisterProbe(this);

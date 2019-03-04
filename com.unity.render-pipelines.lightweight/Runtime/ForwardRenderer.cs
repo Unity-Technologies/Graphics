@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.LWRP
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
             m_OpaquePostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingOpaques, true);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingSkybox, samplingMaterial, downsamplingMethod);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, samplingMaterial, downsamplingMethod);
             m_RenderTransparentForwardPass = new RenderTransparentForwardPass(RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.LWRP
                 (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
             requiresDepthPrepass |= resolveShadowsInScreenSpace;
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
-                                      || m_RendererFeatures.Count != 0;
+                                      || rendererFeatures.Count != 0;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
@@ -91,15 +91,15 @@ namespace UnityEngine.Rendering.LWRP
             bool hasOpaquePostProcess = postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(RenderingUtils.postProcessRenderContext);
 
-            cameraColorHandle = (createColorTexture) ? m_ColorAttachment : RenderTargetHandle.CameraTarget;
-            cameraDepthHandle = (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget;
+            ConfigureCameraTarget((createColorTexture) ? m_ColorAttachment : RenderTargetHandle.CameraTarget,
+                (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget);
 
-            for (int i = 0; i < m_RendererFeatures.Count; ++i)
+            for (int i = 0; i < rendererFeatures.Count; ++i)
             {
-                m_RendererFeatures[i].AddRenderPasses(m_ActiveRenderPassQueue, cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle);
+                rendererFeatures[i].AddRenderPasses(this, cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle);
             }
 
-            bool hasAfterRendering = m_ActiveRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+            bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);

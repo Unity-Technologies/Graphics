@@ -1,8 +1,8 @@
-using UnityEditor;
-using UnityEditor.Experimental.Rendering;
-using UnityEditor.Rendering;
+using UnityEngine;
+using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEditor.Rendering.LWRP
 {
     [CustomEditor(typeof(LightweightRenderPipelineAsset))]
     public class LightweightRenderPipelineAssetEditor : Editor
@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.LWRP
         internal class Styles
         {
             // Groups
+            public static GUIContent rendererSettingsText = EditorGUIUtility.TrTextContent("Renderer");
             public static GUIContent generalSettingsText = EditorGUIUtility.TrTextContent("General");
             public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality");
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting");
@@ -17,8 +18,8 @@ namespace UnityEngine.Rendering.LWRP
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
             // Renderer
-            public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Renderer Type", "Controls the default renderer LWRP uses for all cameras.");
-            public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Renderer Data", "Required when using a custom Renderer. If none is assigned LWRP uses the Forward Renderer as default.");
+            public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Type", "Controls the default renderer LWRP uses for all cameras.");
+            public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Data", "Required when using a custom Renderer. If none is assigned LWRP uses the Forward Renderer as default.");
 
             // General
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
@@ -61,6 +62,7 @@ namespace UnityEngine.Rendering.LWRP
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
+        SavedBool m_RendererSettingsFoldout;
         SavedBool m_GeneralSettingsFoldout;
         SavedBool m_QualitySettingsFoldout;
         SavedBool m_LightingSettingsFoldout;
@@ -107,26 +109,8 @@ namespace UnityEngine.Rendering.LWRP
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
-            EditorGUILayout.Space();
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_RendererTypeProp, Styles.rendererTypeText);
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (m_RendererTypeProp.intValue != (int) RendererType.Custom)
-                    m_RendererDataProp.objectReferenceValue = LightweightRenderPipeline.asset.LoadBuiltinRendererData();
-            }
-
-            if (m_RendererTypeProp.intValue == (int) RendererType.Custom)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_RendererDataProp, Styles.rendererDataText);
-                EditorGUI.indentLevel--;
-            }
-            
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
-
+           
+            DrawRendererSettings();
             DrawGeneralSettings();
             DrawQualitySettings();
             DrawLightingSettings();
@@ -138,6 +122,7 @@ namespace UnityEngine.Rendering.LWRP
 
         void OnEnable()
         {
+            m_RendererSettingsFoldout = new SavedBool($"{target.GetType()}.RendererSettingsFoldout", false);
             m_GeneralSettingsFoldout = new SavedBool($"{target.GetType()}.GeneralSettingsFoldout", false);
             m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
@@ -178,6 +163,32 @@ namespace UnityEngine.Rendering.LWRP
 
             m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             selectedLightRenderingMode = (LightRenderingMode)m_AdditionalLightsRenderingModeProp.intValue;
+        }
+
+        void DrawRendererSettings()
+        {
+            m_RendererSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RendererSettingsFoldout.value, Styles.rendererSettingsText);
+            if (m_RendererSettingsFoldout.value)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_RendererTypeProp, Styles.rendererTypeText);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (m_RendererTypeProp.intValue != (int) RendererType.Custom)
+                        m_RendererDataProp.objectReferenceValue = LightweightRenderPipeline.asset.LoadBuiltinRendererData();
+                }
+                if (m_RendererTypeProp.intValue == (int) RendererType.Custom)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_RendererDataProp, Styles.rendererDataText);
+                    EditorGUI.indentLevel--;
+                }
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         void DrawGeneralSettings()
@@ -286,9 +297,9 @@ namespace UnityEngine.Rendering.LWRP
 
                 ShadowCascadesOption cascades = (ShadowCascadesOption)m_ShadowCascadesProp.intValue;
                 if (cascades == ShadowCascadesOption.FourCascades)
-                    LightweightRenderPipelineEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
+                    EditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
                 else if (cascades == ShadowCascadesOption.TwoCascades)
-                    LightweightRenderPipelineEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
+                    EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
 
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);

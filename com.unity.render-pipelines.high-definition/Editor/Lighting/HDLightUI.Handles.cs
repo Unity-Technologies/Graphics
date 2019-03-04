@@ -138,6 +138,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                         Handles.color = handleColorAbove;
                         widthHeight = CoreLightEditorUtilities.DrawAreaLightHandle(widthHeight, withYAxis);
+                        widthHeight = Vector2.Max(Vector2.one * k_MinLightSize, widthHeight);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObjects(new UnityEngine.Object[] { light, src }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");

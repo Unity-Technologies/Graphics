@@ -42,8 +42,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string ThicknessSlotName = "Thickness";
         public const int ThicknessSlotId = 7;
 
-        public const string DiffusionProfileSlotName = "DiffusionProfile";
-        public const int DiffusionProfileSlotId = 8;
+        public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
+        public const int DiffusionProfileHashSlotId = 8;
 
         public const string SmoothnessSlotName = "Smoothness";
         public const int SmoothnessSlotId = 9;
@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HairStrandDirection = 1 << HairStrandDirectionSlotId,
             SubsurfaceMask = 1 << SubsurfaceMaskSlotId,
             Thickness = 1 << ThicknessSlotId,
-            DiffusionProfile = 1 << DiffusionProfileSlotId,
+            DiffusionProfile = 1 << DiffusionProfileHashSlotId,
             Smoothness = 1 << SmoothnessSlotId,
             Occlusion = 1 << AmbientOcclusionSlotId,
             Emission = 1 << EmissionSlotId,
@@ -580,8 +580,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile) && (subsurfaceScattering.isOn || transmission.isOn))
             {
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileSlotId, DiffusionProfileSlotName, DiffusionProfileSlotName, ShaderStageCapability.Fragment));
-                validSlots.Add(DiffusionProfileSlotId);
+                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
+                validSlots.Add(DiffusionProfileHashSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.SubsurfaceMask) && subsurfaceScattering.isOn)
             {

@@ -5,9 +5,9 @@
 
 #pragma kernel KMain
 
-TEXTURE2D(_InputTexture);
+TEXTURE2D_X(_InputTexture);
 
-RW_TEXTURE2D(float3, _OutputTexture);
+RW_TEXTURE2D_X(float3, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
 
@@ -22,5 +22,5 @@ void KMain(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv =ClampAndScaleUVForBilinear(posInputs.positionNDC);
-    _OutputTexture[posInputs.positionSS] = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, uv, 0.0).xyz;
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, uv, 0.0).xyz;
 }
