@@ -450,24 +450,24 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.DrawWireArc(transform.position, transform.forward, Quaternion.AngleAxis(180 - angle / 2, transform.forward) * -transform.up, angle, radius);
         }
 
-        private void DrawAngleHandles(Light2D lt)
+        private void DrawAngleHandles(Light2D light)
         {
             var oldColor = Handles.color;
             Handles.color = Color.yellow;
 
-            float outerAngle = lt.pointLightOuterAngle;
-            float diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, s_AngleCapOffset, TriangleCapTopRight, TriangleCapBottomRight, ref outerAngle);
-            lt.pointLightOuterAngle = outerAngle;
+            float outerAngle = light.pointLightOuterAngle;
+            float diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, s_AngleCapOffset, TriangleCapTopRight, TriangleCapBottomRight, ref outerAngle);
+            light.pointLightOuterAngle = outerAngle;
 
             if (diff != 0.0f)
-                lt.pointLightInnerAngle = Mathf.Max(0.0f, lt.pointLightInnerAngle + diff);
+                light.pointLightInnerAngle = Mathf.Max(0.0f, light.pointLightInnerAngle + diff);
 
-            float innerAngle = lt.pointLightInnerAngle;
-            diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, -s_AngleCapOffset, TriangleCapTopLeft, TriangleCapBottomLeft, ref innerAngle);
-            lt.pointLightInnerAngle = innerAngle;
+            float innerAngle = light.pointLightInnerAngle;
+            diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, -s_AngleCapOffset, TriangleCapTopLeft, TriangleCapBottomLeft, ref innerAngle);
+            light.pointLightInnerAngle = innerAngle;
 
             if (diff != 0.0f)
-                lt.pointLightInnerAngle = lt.pointLightInnerAngle < lt.pointLightOuterAngle ? lt.pointLightInnerAngle : lt.pointLightOuterAngle;
+                light.pointLightInnerAngle = light.pointLightInnerAngle < light.pointLightOuterAngle ? light.pointLightInnerAngle : light.pointLightOuterAngle;
 
             Handles.color = oldColor;
         }
@@ -480,50 +480,50 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             return (transform.position - handlePos).magnitude;
         }
 
-        private void DrawRangeHandles(Light2D lt)
+        private void DrawRangeHandles(Light2D light)
         {
             var handleColor = Handles.color;
             var dummy = 0.0f;
             bool radiusChanged = false;
             Vector3 handlePos = Vector3.zero;
-            Quaternion rotLeft = Quaternion.AngleAxis(0, -lt.transform.forward) * lt.transform.rotation;
-            float handleOffset = HandleUtility.GetHandleSize(lt.transform.position) * s_AngleCapOffsetSecondary;
-            float handleSize = HandleUtility.GetHandleSize(lt.transform.position) * s_AngleCapSize;
+            Quaternion rotLeft = Quaternion.AngleAxis(0, -light.transform.forward) * light.transform.rotation;
+            float handleOffset = HandleUtility.GetHandleSize(light.transform.position) * s_AngleCapOffsetSecondary;
+            float handleSize = HandleUtility.GetHandleSize(light.transform.position) * s_AngleCapSize;
 
             var oldColor = Handles.color;
             Handles.color = Color.yellow;
 
-            float outerRadius = lt.pointLightOuterRadius;
+            float outerRadius = light.pointLightOuterRadius;
             EditorGUI.BeginChangeCheck();
-            Vector3 returnPos = DrawAngleSlider2D(lt.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUp, handleSize, false, false, ref dummy);
+            Vector3 returnPos = DrawAngleSlider2D(light.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUp, handleSize, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
-                var vec = (returnPos - lt.transform.position).normalized;
-                lt.transform.up = new Vector3(vec.x, vec.y, 0);
-                outerRadius = (returnPos - lt.transform.position).magnitude;
+                var vec = (returnPos - light.transform.position).normalized;
+                light.transform.up = new Vector3(vec.x, vec.y, 0);
+                outerRadius = (returnPos - light.transform.position).magnitude;
                 outerRadius = outerRadius + handleOffset;
                 radiusChanged = true;
             }
-            DrawRadiusArc(lt.transform, lt.pointLightOuterRadius, lt.pointLightOuterAngle, 0, s_RangeCapFunction, s_RangeCapSize, false);
+            DrawRadiusArc(light.transform, light.pointLightOuterRadius, light.pointLightOuterAngle, 0, s_RangeCapFunction, s_RangeCapSize, false);
 
             Handles.color = Color.gray;
-            float innerRadius = lt.pointLightInnerRadius;
+            float innerRadius = light.pointLightInnerRadius;
             EditorGUI.BeginChangeCheck();
-            returnPos = DrawAngleSlider2D(lt.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDown, handleSize, true, false, ref dummy);
+            returnPos = DrawAngleSlider2D(light.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDown, handleSize, true, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
-                innerRadius = (returnPos - lt.transform.position).magnitude;
+                innerRadius = (returnPos - light.transform.position).magnitude;
                 innerRadius = innerRadius - handleOffset;
                 radiusChanged = true;
             }
-            DrawRadiusArc(lt.transform, lt.pointLightInnerRadius, lt.pointLightOuterAngle, 0, s_InnerRangeCapFunction, s_InnerRangeCapSize, false);
+            DrawRadiusArc(light.transform, light.pointLightInnerRadius, light.pointLightOuterAngle, 0, s_InnerRangeCapFunction, s_InnerRangeCapSize, false);
 
             Handles.color = oldColor;
 
             if (radiusChanged)
             {
-                lt.pointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
-                lt.pointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
+                light.pointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
+                light.pointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
             }
             
             Handles.color = handleColor;
@@ -531,30 +531,30 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         protected virtual void OnSceneGUI()
         {
-            var lt = target as Light2D;
-            if (lt == null)
+            var light = target as Light2D;
+            if (light == null)
                 return;
 
-            if (lt.lightType == Light2D.LightType.Point)
+            if (light.lightType == Light2D.LightType.Point)
             {
 
-                Undo.RecordObject(lt, "Edit Target Light");
-                Undo.RecordObject(lt.transform, lt.transform.GetHashCode() + "_undo");
+                Undo.RecordObject(light, "Edit Target Light");
+                Undo.RecordObject(light.transform, light.transform.GetHashCode() + "_undo");
 
-                DrawRangeHandles(lt);
-                DrawAngleHandles(lt);
+                DrawRangeHandles(light);
+                DrawAngleHandles(light);
 
                 if (GUI.changed)
-                    EditorUtility.SetDirty(lt);
+                    EditorUtility.SetDirty(light);
             }
             else
             {
-                Transform t = lt.transform;
-                Vector3 posOffset = lt.shapeLightOffset;
+                Transform t = light.transform;
+                Vector3 posOffset = light.shapeLightOffset;
 
-                if (lt.lightType == Light2D.LightType.Sprite)
+                if (light.lightType == Light2D.LightType.Sprite)
                 {
-                    var cookieSprite = lt.lightCookieSprite;
+                    var cookieSprite = light.lightCookieSprite;
                     if (cookieSprite != null)
                     {
                         Vector3 min = cookieSprite.bounds.min;
@@ -570,26 +570,26 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         Handles.DrawLine(v3, v0);
                     }
                 }
-                else if (lt.lightType == Light2D.LightType.Parametric)
+                else if (light.lightType == Light2D.LightType.Parametric)
                 {
-                    float radius = lt.shapeLightRadius;
-                    float sides = lt.shapeLightParametricSides;
-                    float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * lt.shapeLightParametricAngleOffset;
+                    float radius = light.shapeLightRadius;
+                    float sides = light.shapeLightParametricSides;
+                    float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
 
                     if (sides < 3)
                         sides = 4;
 
                     if (sides == 4)
-                        angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * lt.shapeLightParametricAngleOffset;
+                        angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
     
                     Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
-                    Vector3 featherStartPoint = (1 + lt.shapeLightFalloffSize * 2.0f) * startPoint;
+                    Vector3 featherStartPoint = (1 + light.shapeLightFalloffSize * 2.0f) * startPoint;
                     float radiansPerSide = 2 * Mathf.PI / sides;
                     for (int i = 0; i < sides; i++)
                     {
                         float endAngle = (i + 1) * radiansPerSide;
                         Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
-                        Vector3 featherEndPoint = (1 + lt.shapeLightFalloffSize * 2.0f) * endPoint;
+                        Vector3 featherEndPoint = (1 + light.shapeLightFalloffSize * 2.0f) * endPoint;
 
 
                         Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
