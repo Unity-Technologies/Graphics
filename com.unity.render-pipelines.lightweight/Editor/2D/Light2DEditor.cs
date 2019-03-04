@@ -144,21 +144,21 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         #region Handle Utilities
 
-        public static void TriCapTR(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        public static void TriangleCapTopRight(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             if (Styles.lightTopRight == null)
                 Styles.lightTopRight = Resources.Load<Texture>(k_TexturePath + "lt_tr");
             Light2DEditorUtility.GUITextureCap(controlID, Styles.lightTopRight, position, rotation, size, eventType);
         }
 
-        public static void TriCapTL(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        public static void TriangleCapTopLeft(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             if (Styles.lightTopLeft == null)
                 Styles.lightTopLeft = Resources.Load<Texture>(k_TexturePath + "lt_tl");
             Light2DEditorUtility.GUITextureCap(controlID, Styles.lightTopLeft, position, rotation, size, eventType);
         }
 
-        public static void TriCapBR(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        public static void TriangleCapBottomRight(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             if (Styles.lightBottomRight == null)
                 Styles.lightBottomRight = Resources.Load<Texture>(k_TexturePath + "lt_br");
@@ -172,14 +172,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Light2DEditorUtility.GUITextureCap(controlID, Styles.lightBottomLeft, position, rotation, size, eventType);
         }
 
-        public static void SemiCircleCapUC(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        public static void SemiCircleCapUp(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             if (Styles.lightUpCap == null)
                 Styles.lightUpCap = Resources.Load<Texture>(k_TexturePath + "lt_uc");
             Light2DEditorUtility.GUITextureCap(controlID, Styles.lightUpCap, position, rotation, size, eventType);
         }
 
-        public static void SemiCircleCapDC(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        public static void SemiCircleCapDown(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             if (Styles.lightDownCap == null)
                 Styles.lightDownCap = Resources.Load<Texture>(k_TexturePath + "lt_dr");
@@ -456,14 +456,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.color = Color.yellow;
 
             float outerAngle = lt.pointLightOuterAngle;
-            float diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, s_AngleCapOffset, TriCapTR, TriCapBR, ref outerAngle);
+            float diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, s_AngleCapOffset, TriangleCapTopRight, TriangleCapBottomRight, ref outerAngle);
             lt.pointLightOuterAngle = outerAngle;
 
             if (diff != 0.0f)
                 lt.pointLightInnerAngle = Mathf.Max(0.0f, lt.pointLightInnerAngle + diff);
 
             float innerAngle = lt.pointLightInnerAngle;
-            diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, -s_AngleCapOffset, TriCapTL, TriCapBL, ref innerAngle);
+            diff = DrawAngleHandle(lt.transform, lt.pointLightOuterRadius, -s_AngleCapOffset, TriangleCapTopLeft, TriCapBL, ref innerAngle);
             lt.pointLightInnerAngle = innerAngle;
 
             if (diff != 0.0f)
@@ -495,7 +495,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             float outerRadius = lt.pointLightOuterRadius;
             EditorGUI.BeginChangeCheck();
-            Vector3 returnPos = DrawAngleSlider2D(lt.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUC, handleSize, false, false, ref dummy);
+            Vector3 returnPos = DrawAngleSlider2D(lt.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUp, handleSize, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 var vec = (returnPos - lt.transform.position).normalized;
@@ -509,7 +509,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.color = Color.gray;
             float innerRadius = lt.pointLightInnerRadius;
             EditorGUI.BeginChangeCheck();
-            returnPos = DrawAngleSlider2D(lt.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDC, handleSize, true, false, ref dummy);
+            returnPos = DrawAngleSlider2D(lt.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDown, handleSize, true, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 innerRadius = (returnPos - lt.transform.position).magnitude;
