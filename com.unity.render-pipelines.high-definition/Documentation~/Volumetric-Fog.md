@@ -10,7 +10,7 @@ Configure the Visual Environment override so that it uses __Volumetric Fog__ as 
 
 ![](Images/VolumetricFog1.png)
 
-Now add a __Volumetric Fog__ override to the Volume. Click __Add component overrides__ and then click __Volumetric Fog__.
+Now add a __Volumetric Fog__ override to the Volume. Click __Add Override__ and then click __Volumetric Fog__.
 
 Within the Scene, there is usually a single Volume set to __IsGlobal__ that contains a Visual Environment override. Having a single global Visual Environment means that Unity uses the same __Sky Type__ and __Fog Type__ everywhere in the Scene. You can still use local Volumes with different __Sky Types__ and __Fog Types__, but the transition between them is obvious and instantaneous. If you want to use multiple Visual Environments in different Volumes in your Scene, it is best to make the transition on Camera cuts.
 

@@ -1,0 +1,168 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/ShadowMoments.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+
+#define THREADS         8
+
+#pragma kernel ConvertAndBlur    KERNEL_MAIN=ConvertAndBlur   BLUR_SIZE=9        
+#pragma kernel Blur              KERNEL_MAIN=Blur   BLUR_SIZE=9    ALREADY_EVSM 
+#pragma kernel CopyMoments                 
+
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+Texture2D<float>   _DepthTexture;
+RW_TEXTURE2D(float2, _InputTexture);
+RW_TEXTURE2D(float2, _OutputTexture);
+
+CBUFFER_START(ShadowBlurMomentsUniforms)
+float4 _SrcRect;     // .xy = offset, .zw = width/height
+float4 _DstRect;     // .xy = offset, .zw = rcp(atlasSize),
+float4 _BlurWeightsStorage[2];  // Unity expects float arrays to be tightly packed
+float _EVSMExponent;
+CBUFFER_END
+
+#define _AtlasRcpSize _DstRect.zw
+#define _SrcOffset _SrcRect.xy
+#define _SrcSize _SrcRect.zw
+
+#ifdef BLUR_SIZE // We are in a blur kernel.
+
+#define BLUR_BORDER (BLUR_SIZE / 2)
+#define LDS_STRIDE (THREADS + BLUR_BORDER + BLUR_BORDER)
+
+static float    blurWeights[8] = (float[8])_BlurWeightsStorage;
+
+float2 DepthToMoments(float depth)
+{
+    float moments = ShadowMoments_WarpDepth_PosOnlyBaseTwo(depth, _EVSMExponent);
+    return float2(moments.x, moments.x * moments.x);
+}
+
+groupshared float  moments1[THREADS * LDS_STRIDE];
+groupshared float  moments2[THREADS * LDS_STRIDE];
+
+
+int GetLDSIdx(int2 pos, int stride)
+{
+    // interleave two consecutive rows to avoid bank conflicts
+    return (pos.y >> 1) * (stride << 1) + (pos.x << 1) + (pos.y & 1);
+}
+
+void WriteToShared(float2 val, int2 pos, int stride)
+{
+    int idx = GetLDSIdx(pos, stride);
+    moments1[idx] = val.x;
+    moments2[idx] = val.y;
+
+}
+
+float2 ReadFromShared(int2 pos, int stride)
+{
+    int idx = GetLDSIdx(pos, stride);
+    float2 res;
+    res.x = moments1[idx];
+    res.y = moments2[idx];
+    return res;
+}
+
+[numthreads(THREADS, THREADS, 1)]
+void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID, uint gid : SV_GroupIndex)
+{
+    const int2 validSrc = int2(_SrcOffset + _SrcSize - BLUR_BORDER);
+
+    int2 srcIdx = int2(dispatchId.xy);
+    int2 ldsIdx = int2(groupThreadId.xy);
+    float2 hblurredMoments[2];
+
+    UNITY_UNROLL
+        for (int ih = 0; ih < 2; ih++)
+        {
+            UNITY_UNROLL
+                for (int iw = 0; iw < 2; iw++)
+                {
+                    if (ldsIdx.x < LDS_STRIDE)
+                    {
+#if ALREADY_EVSM
+
+                        // Read evsm result
+                        int2 location = ((srcIdx.xy + (int2) _SrcOffset) - BLUR_BORDER.xx);
+                        float2 moment = _InputTexture[location];
+
+#else       // ALREADY_EVSM
+                        float4 depths;
+                        int2 sourceID = min(srcIdx * 2 + (int2) _SrcOffset - BLUR_BORDER, validSrc - 1);
+                        sourceID = max(sourceID, _SrcOffset + BLUR_BORDER);
+                        depths = GATHER_TEXTURE2D(_DepthTexture, s_point_clamp_sampler, sourceID * _AtlasRcpSize + _AtlasRcpSize);
+
+#if UNITY_REVERSED_Z
+                        depths = (1.0 - depths);
+#endif
+                        float2 moment = DepthToMoments(depths.x);
+                        moment += DepthToMoments(depths.y);
+                        moment += DepthToMoments(depths.z);
+                        moment += DepthToMoments(depths.w);
+                        moment *= 0.25f;
+#endif // ALREADY_EVSM
+
+                        WriteToShared(moment, int2(ldsIdx.x, groupThreadId.y), LDS_STRIDE);
+
+                        ldsIdx.x += THREADS;
+                        srcIdx.x += THREADS;
+                    }
+                }
+
+            GroupMemoryBarrierWithGroupSync();
+
+            hblurredMoments[ih] = 0;
+            int2 idx = int2(groupThreadId.x + BLUR_BORDER, groupThreadId.y);
+            UNITY_LOOP
+                for (int blurOffset = -BLUR_BORDER; blurOffset <= BLUR_BORDER; blurOffset++)
+                {
+                    hblurredMoments[ih] += ReadFromShared(int2(idx.x + blurOffset, idx.y), LDS_STRIDE) * blurWeights[abs(blurOffset)];
+                }
+
+            GroupMemoryBarrierWithGroupSync();
+
+            ldsIdx.x = groupThreadId.x;
+            srcIdx.x = (int)dispatchId.x;
+            srcIdx.y += THREADS;
+        }
+
+    // update LDS with horizontally blurred values
+    WriteToShared(hblurredMoments[0], (int2) groupThreadId.xy, THREADS);
+    if ((groupThreadId.y + THREADS) < LDS_STRIDE)
+    {
+        WriteToShared(hblurredMoments[1], int2(groupThreadId.x, groupThreadId.y + THREADS), THREADS);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // second pass blurs vertically
+    ldsIdx = (int2) groupThreadId.xy + int2(0, BLUR_BORDER);
+    float2 vblurredMoment = 0.0;
+
+    UNITY_UNROLL
+        for (int blurOffset = -BLUR_BORDER; blurOffset <= BLUR_BORDER; blurOffset++)
+        {
+            vblurredMoment += ReadFromShared(int2(ldsIdx.x, ldsIdx.y + blurOffset), THREADS) * blurWeights[abs(blurOffset)];
+        }
+
+    // write out the result
+    if (all(dispatchId.xy + BLUR_BORDER < uint2(_SrcSize)))
+    {
+        dispatchId.xy += _DstRect.xy;
+        _OutputTexture[dispatchId.xy] = vblurredMoment;
+    }
+}
+
+#else 
+
+[numthreads(THREADS, THREADS, 1)]
+void CopyMoments(uint3 dispatchId : SV_DispatchThreadID)
+{
+    _OutputTexture[dispatchId.xy + _SrcOffset] = _InputTexture[dispatchId.xy + _SrcOffset].xy;
+}
+
+#endif // def BLUR_SIZE

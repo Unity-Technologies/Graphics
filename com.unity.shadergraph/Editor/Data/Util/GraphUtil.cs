@@ -10,6 +10,8 @@ using UnityEditor.Graphing.Util;
 using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
+using UnityEditor.ProjectWindowCallback;
+using UnityEngine;
 using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
@@ -858,6 +860,30 @@ namespace UnityEditor.ShaderGraph
         }
     };
 
+
+
+    class NewGraphAction : EndNameEditAction
+    {
+        AbstractMaterialNode m_Node;
+        public AbstractMaterialNode node
+        {
+            get { return m_Node; }
+            set { m_Node = value; }
+        }
+
+        public override void Action(int instanceId, string pathName, string resourceFile)
+        {
+            var graph = new GraphData();
+            graph.AddNode(node);
+            graph.path = "Shader Graphs";
+            File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
+            AssetDatabase.Refresh();
+
+            UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath<Shader>(pathName);
+            Selection.activeObject = obj;
+        }
+    }
+
     static class GraphUtil
     {
         internal static string ConvertCamelCase(string text, bool preserveAcronyms)
@@ -876,6 +902,14 @@ namespace UnityEditor.ShaderGraph
                 newText.Append(text[i]);
             }
             return newText.ToString();
+        }
+
+        public static void CreateNewGraph(AbstractMaterialNode node)
+        {
+            var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
+            graphItem.node = node;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
+                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
 
         public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderStringBuilder vertexInputs)
@@ -917,7 +951,7 @@ namespace UnityEditor.ShaderGraph
         {
             return GetShader(graph, node, new List<AbstractMaterialNode>(), mode, name);
         }
-        
+
         public static GenerationResults GetShader(this GraphData graph, AbstractMaterialNode node, ICollection<AbstractMaterialNode> excludedNodes, GenerationMode mode, string name)
         {
             // ----------------------------------------------------- //

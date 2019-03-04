@@ -449,12 +449,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         static void UpdateShaderGraphOnDisk(string path, GraphData graph)
         {
-            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderGraphImporter;
-            if (shaderImporter == null)
-                return;
-
             File.WriteAllText(path, EditorJsonUtility.ToJson(graph, true));
-            shaderImporter.SaveAndReimport();
             AssetDatabase.ImportAsset(path);
         }
 
