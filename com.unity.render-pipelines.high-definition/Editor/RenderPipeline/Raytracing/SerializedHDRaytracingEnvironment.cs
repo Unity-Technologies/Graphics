@@ -13,6 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // Generic Attributes
         public SerializedProperty rayBias;
+        public SerializedProperty rayTraceSceneView;
 
         // Ambient Occlusion
         public SerializedProperty raytracedAO;
@@ -70,6 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Ambient Occlusion
             rayBias = o.Find(x => x.rayBias);
+            rayTraceSceneView = o.Find(x => x.raytraceSceneCamera);
             raytracedAO = o.Find(x => x.raytracedAO);
             aoLayerMask = o.Find(x => x.aoLayerMask);
             aoFilterMode = o.Find(x => x.aoFilterMode);

@@ -25,6 +25,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(0.0f, 0.1f)]
         public float rayBias = 0.001f;
 
+        public bool raytraceSceneCamera = true;
+
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Ambient Occlusion Data
         // Flag that defines if the Ambient Occlusion should be Ray-traced

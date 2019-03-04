@@ -86,9 +86,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
             RaytracingShader shadowsShader = m_PipelineAsset.renderPipelineResources.shaders.shadowsRaytracing;
             ComputeShader shadowFilter = m_PipelineAsset.renderPipelineResources.shaders.areaBillateralFilterCS;
-            bool invalidState = rtEnvironement == null || rtEnvironement.raytracedShadows == false
-                || hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred
-                || shadowsShader == null || shadowFilter == null || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
+            bool invalidState = rtEnvironement == null || rtEnvironement.raytracedShadows == false || 
+					hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred || shadowsShader == null || 
+					shadowFilter == null || m_PipelineResources.textures.owenScrambledTex == null || 
+					m_PipelineResources.textures.scramblingTex == null || 
+					((hdCamera.camera.cameraType == CameraType.SceneView) && !rtEnvironement.raytraceSceneCamera);
 
             // If invalid state or ray-tracing acceleration structure, we stop right away
             if (invalidState)
