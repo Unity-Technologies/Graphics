@@ -203,6 +203,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 settings.probeLayerMask = add.probeLayerMask;
                 settings.invertFaceCulling = add.invertFaceCulling;
             }
+
+            // (case 1131731) Camera.RenderToCubemap inverts faces
+            // Unity's API is using LHS standard when rendering cubemaps, so we need to invert the face culling
+            //     in that specific case.
+            // We try to guess with a lot of constraints when this is the case.
+            var isLHSViewMatrix = hdCamera.camera.worldToCameraMatrix.determinant > 0;
+            var isPerspectiveMatrix = Mathf.Approximately(hdCamera.camera.projectionMatrix.m32, -1);
+            var isFOV45Degrees = Mathf.Approximately(hdCamera.camera.projectionMatrix.m00, 1)
+                && Mathf.Approximately(hdCamera.camera.projectionMatrix.m11, 1);
+            var useATempBuffer = hdCamera.camera.activeTexture != null
+                && !hdCamera.camera.activeTexture.Equals(null)
+                && hdCamera.camera.activeTexture.name.StartsWith("TempBuffer");
+
+            if (isLHSViewMatrix && isPerspectiveMatrix && isFOV45Degrees && useATempBuffer)
+                settings.invertFaceCulling = true;
+
             return settings;
         }
 

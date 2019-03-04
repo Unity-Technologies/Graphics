@@ -207,7 +207,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDPhysicalCamera physicalParameters => m_AdditionalCameraData?.physicalParameters;
 
         public bool invertFaceCulling
-            => m_AdditionalCameraData != null ? m_AdditionalCameraData.invertFaceCulling : false;
+            => m_AdditionalCameraData != null && m_AdditionalCameraData.invertFaceCulling;
 
         public LayerMask probeLayerMask
             => m_AdditionalCameraData != null

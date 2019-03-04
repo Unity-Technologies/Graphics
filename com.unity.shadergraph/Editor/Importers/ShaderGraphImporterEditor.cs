@@ -19,6 +19,8 @@ namespace UnityEditor.ShaderGraph
                 Debug.Assert(importer != null, "importer != null");
                 ShowGraphEditWindow(importer.assetPath);
             }
+
+            ApplyRevertGUI();
         }
 
         internal static bool ShowGraphEditWindow(string path)

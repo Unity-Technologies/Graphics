@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adding real time area light shadow support
 - Added depth offset input in shader graph master nodes
 - Added a Parallax Occlusion Mapping node
+- Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering
 
 ### Fixed
 - Fixed diffusion profile upgrade breaking package when upgrading to a new version
@@ -28,20 +29,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cascade shadows border sometime causing artefacts between cascades
 - Restored shadows in the Cascade Shadow debug visualization
 - Fixed an issue with layered lit shader and height based blend where inactive layers would still have influence over the result.
-
-### Added
-- Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering
+- `camera.RenderToCubemap` use proper face culling
 
 ### Changed
 - When rendering reflection probe disable all specular lighting and for metals use fresnelF0 as diffuse color for bake lighting.
-
-
-### Added
-- Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering
-
-### Changed
-- When rendering reflection probe disable all specular lighting and for metals use fresnelF0 as diffuse color for bake lighting.
-
 
 ## [6.4.0-preview] - 2019-02-21
 

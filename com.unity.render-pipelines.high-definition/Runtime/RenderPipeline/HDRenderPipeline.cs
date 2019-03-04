@@ -1193,9 +1193,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (!(TryCalculateFrameParameters(
                                 camera,
-                                out HDAdditionalCameraData additionalCameraData,
-                                out HDCamera hdCamera,
-                                out ScriptableCullingParameters cullingParameters
+                                out _,
+                                out var hdCamera,
+                                out var cullingParameters
                             )
                             && TryCull(
                                 camera, hdCamera, renderContext, cullingParameters,
