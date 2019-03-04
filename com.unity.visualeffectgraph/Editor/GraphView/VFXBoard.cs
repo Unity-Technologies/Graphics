@@ -199,7 +199,7 @@ namespace UnityEditor.VFX.UI
 
         public override VisualElement contentContainer
         {
-            get { return m_ScrollView; }
+            get { return m_ScrollView.contentContainer; }
         }
 
         void OnMouseClick(MouseDownEvent e)
