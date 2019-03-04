@@ -165,6 +165,50 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator CreateComponent_And_VerifyRendererState()
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = MakeTemporaryGraph();
+
+            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+            output.SetSettingValue("castShadows", true);
+            graph.AddChild(output);
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            contextInitialize.LinkTo(output);
+            graph.AddChild(contextInitialize);
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            spawner.LinkTo(contextInitialize);
+            graph.AddChild(spawner);
+            graph.RecompileIfNeeded();
+            yield return null;
+
+            //< Same Behavior as Drag & Drop
+            GameObject currentObject = new GameObject("TemporaryGameObject", /*typeof(Transform),*/ typeof(VisualEffect));
+            var vfx = currentObject.GetComponent<VisualEffect>();
+            var asset = graph.visualEffectResource.asset;
+            Assert.IsNotNull(asset);
+
+            vfx.visualEffectAsset = asset;
+
+            int maxFrame = 512;
+            while (vfx.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            yield return null;
+
+            Assert.IsNotNull(currentObject.GetComponent<VFXRenderer>());
+            var actualShadowCastingMode = currentObject.GetComponent<VFXRenderer>().shadowCastingMode;
+            Assert.AreEqual(actualShadowCastingMode, ShadowCastingMode.On);
+
+            UnityEngine.Object.DestroyImmediate(currentObject);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator CreateComponent_And_CheckDimension_Constraint()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
