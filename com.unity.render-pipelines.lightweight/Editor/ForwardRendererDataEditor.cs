@@ -9,11 +9,8 @@ namespace UnityEditor.Rendering.LWRP
         private class Styles
         {
             //Title
-            public static GUIContent rendererTitle = new GUIContent("Forward Renderer");            
-            //LayerMasks
-            public static GUIContent layerMasks = new GUIContent("Default Layer Masks", "Null.");
-            public static GUIContent opaqueMask = new GUIContent("Opaque", "Null.");
-            public static GUIContent transparentMask = new GUIContent("Transparent", "Null.");
+            public static GUIContent rendererTitle = new GUIContent("Forward Renderer");
+            public static GUIContent opaqueMask = new GUIContent("Default Layer Mask", "Null.");
         }
         
         private SerializedProperty m_OpaqueLayerMask;
@@ -33,17 +30,15 @@ namespace UnityEditor.Rendering.LWRP
             
             EditorGUILayout.LabelField(Styles.rendererTitle, EditorStyles.boldLabel);
             
-            EditorGUILayout.LabelField(Styles.layerMasks);
-            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.opaqueMask);
-            EditorGUILayout.PropertyField(m_TransparentLayerMask, Styles.transparentMask);
-            EditorGUI.indentLevel--;
+            if (EditorGUI.EndChangeCheck())
+                m_TransparentLayerMask.intValue = m_OpaqueLayerMask.intValue;
 
             EditorGUILayout.Space();
-            
-            base.OnInspectorGUI();
 
             serializedObject.ApplyModifiedProperties();
+            base.OnInspectorGUI();
         }
     }
 }

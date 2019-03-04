@@ -115,19 +115,7 @@ namespace UnityEditor.Rendering.LWRP
             };
 
             m_PassesList.onAddCallback += AddPass;
-            m_PassesList.onRemoveCallback = list =>
-            {
-                if (EditorUtility.DisplayDialog("Removing Render Pass Feature",
-                    $"Are you sure you want to remove the pass {m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue.name}, this operation cannot be undone",
-                    "Remove",
-                    "Cancel"))
-                {
-                    ReorderableList.defaultBehaviours.DoRemoveButton(list);
-                    m_RenderPasses.DeleteArrayElementAtIndex(list.index);
-                    m_RenderPasses.serializedObject.ApplyModifiedProperties();
-                    m_ElementSOs.Clear();
-                }
-            };
+            m_PassesList.onRemoveCallback = RemovePass;
             m_PassesList.onReorderCallbackWithDetails += ReorderPass;
 		    
             m_PassesList.drawHeaderCallback = (Rect testHeaderRect) => {
@@ -178,6 +166,23 @@ namespace UnityEditor.Rendering.LWRP
                 menu.AddItem(new GUIContent(path), false, clickHandler, type.Name);
             }
             menu.ShowAsContext();
+        }
+
+        private void RemovePass(ReorderableList list)
+        {
+            var obj = m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue;
+            if (EditorUtility.DisplayDialog("Removing Render Pass Feature",
+                $"Are you sure you want to remove the pass {obj.name}, this operation cannot be undone",
+                "Remove",
+                "Cancel"))
+            {
+                DestroyImmediate(obj, true);
+                AssetDatabase.SaveAssets();
+                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                m_RenderPasses.DeleteArrayElementAtIndex(list.index);
+                m_RenderPasses.serializedObject.ApplyModifiedProperties();
+                m_ElementSOs.Clear();
+            }
         }
         
         private void ReorderPass(ReorderableList list, int oldIndex, int newIndex)
