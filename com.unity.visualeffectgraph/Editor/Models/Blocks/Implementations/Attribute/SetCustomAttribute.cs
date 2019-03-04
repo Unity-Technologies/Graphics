@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.Block
     }
 
 
-    [VFXInfo(category = "Attribute/Set", experimental = true)]
+    [Obsolete]
     class SetCustomAttribute : VFXBlock
     {
 
@@ -148,6 +148,27 @@ namespace UnityEditor.VFX.Block
             {
                 return new VFXAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType));
             }
+        }
+
+        public override void Sanitize(int version)
+        {
+            var newBlock = ScriptableObject.CreateInstance<SetAttribute>();
+
+            var graph = GetGraph();
+            if (graph != null)
+            {
+                if (!graph.customAttributes.Contains(attribute))
+                {
+                    graph.AddCustomAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType));
+                }
+            }
+
+            newBlock.SetSettingValue("attribute", attribute);
+
+            VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(0), GetInputSlot(0), true);
+
+            ReplaceModel(newBlock, this);
+            base.Sanitize(version);
         }
     }
 }

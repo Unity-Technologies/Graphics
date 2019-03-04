@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(category = "Attribute", experimental = true)]
+    [Obsolete]
     class GetCustomAttribute : VFXOperator
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed]
@@ -39,15 +39,36 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return "Get " + attribute + " ("+AttributeType.ToString()+")";
+                return "Get " + attribute + " (" + AttributeType.ToString() + ")";
             }
         }
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var attribute = currentAttribute;
- 
+
             var expression = new VFXAttributeExpression(attribute, VFXAttributeLocation.Current);
             return new VFXExpression[] { expression };
+        }
+
+        public override void Sanitize(int version)
+        {
+            var newOperator = ScriptableObject.CreateInstance<VFXAttributeParameter>();
+
+            var graph = GetGraph();
+            if (graph != null)
+            {
+                if (!graph.customAttributes.Contains(attribute))
+                {
+                    graph.AddCustomAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType));
+                }
+            }
+
+            newOperator.SetSettingValue("attribute", attribute);
+
+            VFXSlot.CopyLinksAndValue(newOperator.GetOutputSlot(0), GetOutputSlot(0), true);
+
+            ReplaceModel(newOperator, this);
+            base.Sanitize(version);
         }
     }
 }
