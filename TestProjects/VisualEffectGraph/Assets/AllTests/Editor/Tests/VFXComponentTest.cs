@@ -164,10 +164,8 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
-        [UnityTest]
-        public IEnumerator CreateComponent_And_VerifyRendererState()
+        VFXGraph CreateGraph_And_System()
         {
-            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = MakeTemporaryGraph();
 
             var output = ScriptableObject.CreateInstance<VFXPointOutput>();
@@ -182,7 +180,48 @@ namespace UnityEditor.VFX.Test
             spawner.LinkTo(contextInitialize);
             graph.AddChild(spawner);
             graph.RecompileIfNeeded();
+
+            return graph;
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = CreateGraph_And_System();
+
             yield return null;
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+            {
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            }
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+            Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
+
+            yield return null;
+
+            //Plug a GPU instruction on bounds, excepting an exception while recompiling
+            var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXAttributeParameter) && o.name.Contains(VFXAttribute.Position.name));
+            var getPosition = getPositionDesc.CreateInstance();
+            graph.AddChild(getPosition);
+            var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+            Assert.AreEqual(VFXValueType.Float3, initializeContext.inputSlots[0][0].valueType);
+
+            getPosition.outputSlots[0].Link(initializeContext.inputSlots[0][0]);
+
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*"));
+            graph.RecompileIfNeeded();
+
+            Assert.Throws(typeof(IndexOutOfRangeException), () => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponent_And_VerifyRendererState()
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = CreateGraph_And_System();
 
             //< Same Behavior as Drag & Drop
             GameObject currentObject = new GameObject("TemporaryGameObject", /*typeof(Transform),*/ typeof(VisualEffect));

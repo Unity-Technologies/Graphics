@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Undo Redo while changing space
 - Type declaration was unmodifiable due to exception during space intialization
 - Fix unexpected issue when plugging per particle data into hash of per component fixed random
+- Missing asset reimport when exception has been thrown during graph compilation
 
 ## [6.4.0-preview] - 2019-02-21 
 
