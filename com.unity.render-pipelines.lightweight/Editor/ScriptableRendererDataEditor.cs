@@ -13,7 +13,8 @@ namespace UnityEditor.Rendering.LWRP
         class Styles
         {
             public static readonly GUIContent RenderFeatures =
-                new GUIContent("Renderer Features", "A list of Renderer Features.");
+                new GUIContent("Renderer Features", 
+                "Features to include in this renderer.\nTo add or remove features, use the plus and minus at the bottom of this box.");
 
             public static readonly GUIContent RenderFeatureHeader =
                 new GUIContent("Empty Pass", "This pass does not exist.");
