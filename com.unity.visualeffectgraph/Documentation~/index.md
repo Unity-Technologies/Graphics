@@ -35,7 +35,7 @@ Make sure your project is already configured with HD Render Pipeline before proc
 
 ## Getting Started
 
-To get started right away with Visual Effect Graph, you can visit [this page](Visual-Effect-Graph-Getting-Started) that sums up most of the features you need to know about.
+To get started right away with Visual Effect Graph, you can visit [this page](Getting-Started) that sums up most of the features you need to know about.
 
 ## Documentation
 

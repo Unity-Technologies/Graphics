@@ -69,7 +69,7 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
-#include "TerrainLitData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitData.hlsl"
 
 #if SHADERPASS == SHADERPASS_GBUFFER
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
