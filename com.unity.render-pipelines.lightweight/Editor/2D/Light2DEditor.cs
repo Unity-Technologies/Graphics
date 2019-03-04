@@ -53,12 +53,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         private class Styles
         {
-            public Texture lt_tr;
-            public Texture lt_tl;
-            public Texture lt_bl;
-            public Texture lt_br;
-            public Texture lt_uc;
-            public Texture lt_dr;
+            public static Texture lightTopRight;
+            public static Texture lightTopLeft;
+            public static Texture lightBottomLeft;
+            public static Texture lightBottomRight;
+            public static Texture lightUpCap;
+            public static Texture lightDownCap;
 
             public static GUIContent generalLightType = EditorGUIUtility.TrTextContent("Light Type", "Specify the light type");
             public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Specify the falloff of the light");
@@ -91,18 +91,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Lightweight scriptable renderpipeline asset must be assigned in graphics settings", MessageType.Warning);
             public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your lightweight render pipeline asset", MessageType.Warning);
-        }
-
-        private static Styles s_Styles;
-        private static Styles styles
-        {
-            get
-            {
-                if (s_Styles == null)
-                    s_Styles = new Styles();
-
-                return s_Styles;
-            }
         }
 
         static float s_GlobalLightGizmoSize = 1.2f;
@@ -158,44 +146,44 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         public static void TriCapTR(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
-            if (styles.lt_tr == null)
-                styles.lt_tr = Resources.Load<Texture>(k_TexturePath + "lt_tr");
-            Light2DEditorUtility.GUITextureCap(controlID, styles.lt_tr, position, rotation, size, eventType);
+            if (Styles.lightTopRight == null)
+                Styles.lightTopRight = Resources.Load<Texture>(k_TexturePath + "lt_tr");
+            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightTopRight, position, rotation, size, eventType);
         }
 
         public static void TriCapTL(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
-            if (styles.lt_tl == null)
-                styles.lt_tl = Resources.Load<Texture>(k_TexturePath + "lt_tl");
-            Light2DEditorUtility.GUITextureCap(controlID, styles.lt_tl, position, rotation, size, eventType);
+            if (Styles.lightTopLeft == null)
+                Styles.lightTopLeft = Resources.Load<Texture>(k_TexturePath + "lt_tl");
+            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightTopLeft, position, rotation, size, eventType);
         }
 
         public static void TriCapBR(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
-            if (styles.lt_br == null)
-                styles.lt_br = Resources.Load<Texture>(k_TexturePath + "lt_br");
-            Light2DEditorUtility.GUITextureCap(controlID, styles.lt_br, position, rotation, size, eventType);
+            if (Styles.lightBottomRight == null)
+                Styles.lightBottomRight = Resources.Load<Texture>(k_TexturePath + "lt_br");
+            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightBottomRight, position, rotation, size, eventType);
         }
 
         public static void TriCapBL(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
-            if (styles.lt_bl == null)
-                styles.lt_bl = Resources.Load<Texture>(k_TexturePath + "lt_bl");
-            Light2DEditorUtility.GUITextureCap(controlID, styles.lt_bl, position, rotation, size, eventType);
+            if (Styles.lightBottomLeft == null)
+                Styles.lightBottomLeft = Resources.Load<Texture>(k_TexturePath + "lt_bl");
+            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightBottomLeft, position, rotation, size, eventType);
         }
 
         public static void SemiCircleCapUC(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
-            if (styles.lt_uc == null)
-                styles.lt_uc = Resources.Load<Texture>(k_TexturePath + "lt_uc");
-            Light2DEditorUtility.GUITextureCap(controlID, styles.lt_uc, position, rotation, size, eventType);
+            if (Styles.lightUpCap == null)
+                Styles.lightUpCap = Resources.Load<Texture>(k_TexturePath + "lt_uc");
+            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightUpCap, position, rotation, size, eventType);
         }
 
         public static void SemiCircleCapDC(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
-            if (styles.lt_dr == null)
-                styles.lt_dr = Resources.Load<Texture>(k_TexturePath + "lt_dr");
-            Light2DEditorUtility.GUITextureCap(controlID, styles.lt_dr, position, rotation, size, eventType);
+            if (Styles.lightDownCap == null)
+                Styles.lightDownCap = Resources.Load<Texture>(k_TexturePath + "lt_dr");
+            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightDownCap, position, rotation, size, eventType);
         }
         #endregion
 
