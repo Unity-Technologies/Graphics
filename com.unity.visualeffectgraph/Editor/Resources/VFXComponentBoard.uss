@@ -14,11 +14,6 @@ VFXComponentBoard.graphElement
     min-height: 100px;
 }
 
-#component-container-parent
-{
-    flex:1;
-}
-
  *
 {
     font-size: 11px;
