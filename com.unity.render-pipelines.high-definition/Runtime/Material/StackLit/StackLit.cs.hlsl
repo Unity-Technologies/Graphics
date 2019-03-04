@@ -51,7 +51,7 @@
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR (1127)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_THICKNESS (1128)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT (1129)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE (1130)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE_HASH (1130)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK (1131)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS (1132)
 
@@ -89,7 +89,7 @@
 #define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_IOR (1178)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_THICKNESS (1179)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_MASK (1180)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE (1181)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE_INDEX (1181)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK (1182)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS (1183)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE (1184)
@@ -125,7 +125,7 @@ struct SurfaceData
     float coatIor;
     float coatThickness;
     float3 coatExtinction;
-    uint diffusionProfile;
+    uint diffusionProfileHash;
     float subsurfaceMask;
     float thickness;
 };
@@ -161,7 +161,7 @@ struct BSDFData
     float iridescenceIor;
     float iridescenceThickness;
     float iridescenceMask;
-    uint diffusionProfile;
+    uint diffusionProfileIndex;
     float subsurfaceMask;
     float thickness;
     bool useThickObjectMode;
@@ -267,8 +267,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT:
             result = surfacedata.coatExtinction;
             break;
-        case DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE:
-            result = GetIndexColor(surfacedata.diffusionProfile);
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE_HASH:
+            result = GetIndexColor(surfacedata.diffusionProfileHash);
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK:
             result = surfacedata.subsurfaceMask.xxx;
@@ -380,8 +380,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_MASK:
             result = bsdfdata.iridescenceMask.xxx;
             break;
-        case DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE:
-            result = GetIndexColor(bsdfdata.diffusionProfile);
+        case DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE_INDEX:
+            result = GetIndexColor(bsdfdata.diffusionProfileIndex);
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK:
             result = bsdfdata.subsurfaceMask.xxx;

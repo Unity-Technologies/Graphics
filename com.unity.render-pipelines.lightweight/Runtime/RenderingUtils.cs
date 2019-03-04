@@ -6,7 +6,6 @@ namespace UnityEngine.Rendering.LWRP
 {
     public static class RenderingUtils
     {
-        static readonly string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         static int m_PostProcessingTemporaryTargetId = Shader.PropertyToID("_TemporaryColorTexture");
 
         static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
@@ -77,11 +76,9 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
-        internal static void RenderPostProcess(ScriptableRenderContext context, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor,
+        internal static void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor,
             RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPostProcessingTag);
-
             var layer = cameraData.postProcessLayer;
             int effectsCount;
             if (opaqueOnly)
@@ -122,7 +119,7 @@ namespace UnityEngine.Rendering.LWRP
                 else
                     cameraData.postProcessLayer.Render(postProcessRenderContext);
 
-                cmd.Blit(rtId, source);
+                cmd.Blit(rtId, destination);
                 cmd.ReleaseTemporaryRT(m_PostProcessingTemporaryTargetId);
             }
             else
@@ -132,9 +129,6 @@ namespace UnityEngine.Rendering.LWRP
                 else
                     cameraData.postProcessLayer.Render(postProcessRenderContext);
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

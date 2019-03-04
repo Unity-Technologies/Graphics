@@ -162,7 +162,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return bounds;
             };
         }
-        
+
         /// <summary>
         /// Give a human readable string representing the inputed weight given in byte.
         /// </summary>

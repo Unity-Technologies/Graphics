@@ -4,7 +4,7 @@
 // Also we use multiple inclusion to handle the various variation for lod and bias
 
 // param can be unused, lod or bias
-real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_ARGS(textureName, samplerName), UVMapping uvMapping, real param)
+real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_PARAM(textureName, samplerName), UVMapping uvMapping, real param)
 {
     if (uvMapping.mappingType == UV_MAPPING_TRIPLANAR)
     {

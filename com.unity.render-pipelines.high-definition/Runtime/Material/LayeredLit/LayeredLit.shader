@@ -158,10 +158,19 @@ Shader "HDRP/LayeredLit"
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace2("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace3("NormalMap space", Float) = 0
 
-        _DiffusionProfile0("Diffusion Profile0", Int) = 0
-        _DiffusionProfile1("Diffusion Profile1", Int) = 0
-        _DiffusionProfile2("Diffusion Profile2", Int) = 0
-        _DiffusionProfile3("Diffusion Profile3", Int) = 0
+        _DiffusionProfile0("Obsolete, kept for migration purpose", Int) = 0
+        _DiffusionProfile1("Obsolete, kept for migration purpose", Int) = 0
+        _DiffusionProfile2("Obsolete, kept for migration purpose", Int) = 0
+        _DiffusionProfile3("Obsolete, kept for migration purpose", Int) = 0
+
+        [HideInInspector] _DiffusionProfileAsset0("Diffusion Profile Asset0", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash0("Diffusion Profile Hash0", Float) = 0
+        [HideInInspector] _DiffusionProfileAsset1("Diffusion Profile Asset1", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash1("Diffusion Profile Hash1", Float) = 0
+        [HideInInspector] _DiffusionProfileAsset2("Diffusion Profile Asset2", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash2("Diffusion Profile Hash2", Float) = 0
+        [HideInInspector] _DiffusionProfileAsset3("Diffusion Profile Asset3", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _DiffusionProfileHash3("Diffusion Profile Hash3", Float) = 0
 
         _SubsurfaceMask0("Subsurface Mask0", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMask1("Subsurface Mask1", Range(0.0, 1.0)) = 1.0
@@ -247,10 +256,18 @@ Shader "HDRP/LayeredLit"
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Stencil state
+        // Forward
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
-        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 7 // StencilMask.Lighting  (fixed at compile time)
-        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilLightingUsage.RegularLighting  (fixed at compile time)
-        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity  (fixed at compile time)
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilMask.Lighting
+        // GBuffer
+        [HideInInspector] _StencilRefGBuffer("_StencilRefGBuffer", Int) = 2 // StencilLightingUsage.RegularLighting
+        [HideInInspector] _StencilWriteMaskGBuffer("_StencilWriteMaskGBuffer", Int) = 3 // StencilMask.Lighting
+        // Depth prepass
+        [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 0 // Nothing
+        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 32 // DoesntReceiveSSR
+        // Motion vector pass
+        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilMask.ObjectsVelocity
+        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -541,8 +558,8 @@ Shader "HDRP/LayeredLit"
 
             Stencil
             {
-                WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
+                WriteMask [_StencilWriteMaskGBuffer]
+                Ref [_StencilRefGBuffer]
                 Comp Always
                 Pass Replace
             }
@@ -689,8 +706,8 @@ Shader "HDRP/LayeredLit"
             // To be able to tag stencil with disableSSR information for forward
             Stencil
             {
-                WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
+                WriteMask [_StencilWriteMaskDepth]
+                Ref [_StencilRefDepth]
                 Comp Always
                 Pass Replace
             }

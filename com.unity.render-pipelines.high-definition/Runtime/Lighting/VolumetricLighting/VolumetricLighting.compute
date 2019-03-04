@@ -539,7 +539,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 normalizedBlendValue = normalizedVoxelValue;
 
         // Reproject the history at 'centerWS'.
-        float4 reprojValue = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_linear_clamp_sampler),
+        float4 reprojValue = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLightingHistory, s_linear_clamp_sampler),
                                            centerWS,
                                            _PrevCamPosRWS,
                                            _PrevViewProjMatrix,

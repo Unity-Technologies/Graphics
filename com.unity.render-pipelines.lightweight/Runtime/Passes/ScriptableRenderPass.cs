@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.LWRP
@@ -7,7 +6,7 @@ namespace UnityEngine.Rendering.LWRP
     // We need to leave room as we sort render passes based on event.
     // Users can also inject render pass events in a specific point by doing RenderPassEvent + offset
     /// <summary>
-    /// Controls when the render pass should execute.
+    /// Controls when the render pass executes.
     /// </summary>
     public enum RenderPassEvent
     {
@@ -28,7 +27,7 @@ namespace UnityEngine.Rendering.LWRP
     }
 
     /// <summary>
-    /// Inherit from this class to perform custom rendering in the Lightweight Render Pipeline.
+    /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend LWRP renderer.
     /// </summary>
     public abstract class ScriptableRenderPass
     {
@@ -114,47 +113,43 @@ namespace UnityEngine.Rendering.LWRP
         /// Add a blit command to the context for execution. This changes the active render target in the ScriptableRenderer to
         /// destination.
         /// </summary>
-        /// <param name="context">Rendering context to record command for execution.</param>
-        /// <param name="source">Source texture or target to blit from.</param>
-        /// <param name="destination">Destination to blit into. This becomes the renderer active render target.</param>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="source">Source texture or target identifier to blit from.</param>
+        /// <param name="destination">Destination texture or target identifier to blit into. This becomes the renderer active render target.</param>
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
-        /// <param name="profilerTag">Name to display in FrameDebugger. Default is "Blit"</param>
         /// <seealso cref="ScriptableRenderer"/>
-        public static void Blit(ScriptableRenderContext context, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0, string profilerTag = "Blit")
+        public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-            ScriptableRenderer.ConfigureActiveTarget(destination, BuiltinRenderTextureType.CameraTarget);
         }
 
         /// <summary>
-        /// Adds a Render Post Process command for execution. This changes the active render target in the ScriptableRenderer to destination.
+        /// Adds a Render Post-processing command for execution. This changes the active render target in the ScriptableRenderer to destination.
         /// </summary>
-        /// <param name="context">Rendering context to record command for execution.</param>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
         /// <param name="cameraData">Camera rendering data.</param>
         /// <param name="sourceDescriptor">Render texture descriptor for source.</param>
-        /// <param name="source">Source render target id.</param>
-        /// <param name="destination">Destination render target id.</param>
-        /// <param name="opaqueOnly">Should only execute after opaque post processing effects.</param>
-        /// <param name="flip">Should flip the image vertically.</param>
-        public static void RenderPostProcess(ScriptableRenderContext context, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
+        /// <param name="source">Source texture or render target identifier.</param>
+        /// <param name="destination">Destination texture or render target identifier.</param>
+        /// <param name="opaqueOnly">If true, only renders opaque post-processing effects. Otherwise, renders before and after stack post-processing effects.</param>
+        /// <param name="flip">If true, flips image vertically.</param>
+        public void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
         {
-            RenderingUtils.RenderPostProcess(context, ref cameraData, sourceDescriptor, source, destination, opaqueOnly, flip);
             ScriptableRenderer.ConfigureActiveTarget(destination, BuiltinRenderTextureType.CameraTarget);
+            RenderingUtils.RenderPostProcessing(cmd, ref cameraData, sourceDescriptor, source, destination, opaqueOnly, flip);
         }
 
         /// <summary>
-        /// Creates <c>DrawingSettings</c> based on current rendering state.
+        /// Creates <c>DrawingSettings</c> based on current the rendering state.
         /// </summary>
         /// <param name="shaderTagId">Shader pass tag to render.</param>
         /// <param name="renderingData">Current rendering state.</param>
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public static DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
+        public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             Camera camera = renderingData.cameraData.camera;
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
@@ -176,7 +171,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public static DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+        public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             if (shaderTagIdList == null || shaderTagIdList.Count == 0)

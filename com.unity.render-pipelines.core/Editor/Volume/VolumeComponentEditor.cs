@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering
 
         public bool isInAdvancedMode => m_AdvancedMode != null && m_AdvancedMode.boolValue;
 
-        Editor m_Inspector;
+        protected Editor m_Inspector;
         List<SerializedDataParameter> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;

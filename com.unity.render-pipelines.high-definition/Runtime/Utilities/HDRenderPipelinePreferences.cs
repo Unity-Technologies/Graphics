@@ -26,9 +26,22 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static bool s_SceneViewStopNaNs = false;
+        public static bool sceneViewStopNaNs
+        {
+            get => s_SceneViewStopNaNs;
+            set
+            {
+                if (s_SceneViewStopNaNs == value) return;
+                s_SceneViewStopNaNs = value;
+                EditorPrefs.SetBool(Keys.sceneViewStopNaNs, s_SceneViewStopNaNs);
+            }
+        }
+
         static class Keys
         {
             internal const string sceneViewAntialiasing = "HDRP.SceneView.Antialiasing";
+            internal const string sceneViewStopNaNs = "HDRP.SceneView.StopNaNs";
         }
 
         [SettingsProvider]
@@ -45,6 +58,8 @@ namespace UnityEngine.Rendering
 
                     if (sceneViewAntialiasing == AntialiasingMode.TemporalAntialiasing)
                         EditorGUILayout.HelpBox("Temporal Anti-aliasing in the Scene View is only supported when Animated Materials are enabled.", MessageType.Info);
+
+                    sceneViewStopNaNs = EditorGUILayout.Toggle("Scene View Stop NaNs", sceneViewStopNaNs);
                 }
             };
         }
@@ -57,6 +72,7 @@ namespace UnityEngine.Rendering
         static void Load()
         {
             s_SceneViewAntialiasing = (AntialiasingMode)EditorPrefs.GetInt(Keys.sceneViewAntialiasing, (int)AntialiasingMode.None);
+            s_SceneViewStopNaNs = EditorPrefs.GetBool(Keys.sceneViewStopNaNs, false);
 
             m_Loaded = true;
         }

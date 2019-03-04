@@ -23,7 +23,7 @@ public class LWGraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<LWGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find PostProcessingGraphicsTestSettings");
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find LWGraphicsTestSettings");
 
         for (int i = 0; i < settings.WaitFrames; i++)
             yield return null;

@@ -97,21 +97,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Let's check all the resources and states to see if we should render the effect
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
-            BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
             RaytracingShader shadowsShader = m_PipelineAsset.renderPipelineResources.shaders.shadowsRaytracing;
             ComputeShader bilateralFilter = m_PipelineAsset.renderPipelineResources.shaders.areaBillateralFilterCS;
-            bool invalidState = rtEnvironement == null || blueNoise == null || !rtEnvironement.raytracedShadows || shadowsShader  == null || bilateralFilter == null || hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred
-            || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
-
-            // Try to grab the acceleration structure for the target camera
-            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(hdCamera);
+            bool invalidState = rtEnvironement == null || !rtEnvironement.raytracedShadows || hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred
+                || shadowsShader  == null || bilateralFilter == null
+                || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // If invalid state or ray-tracing acceleration structure, we stop right away
-            if (invalidState || accelerationStructure == null)
+            if (invalidState)
                 return false;
 
-            // Fetch the filter kernel
-            m_KernelFilter = bilateralFilter.FindKernel("AreaBilateralShadow");
+            // Grab the acceleration structure for the target camera
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.shadowLayerMask);
 
             // Define the shader pass to use for the reflection pass
             cmd.SetRaytracingShaderPass(shadowsShader, "VisibilityDXR");
@@ -182,6 +179,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 using (new ProfilingSample(cmd, "Combine Area Shadow", CustomSamplerId.RaytracingShadowCombination.GetSampler()))
                 {
+                    // Fetch the filter kernel
+                    m_KernelFilter = bilateralFilter.FindKernel("AreaBilateralShadow");
+
                     // Inject all the parameters for the compute
                     cmd.SetComputeTextureParam(bilateralFilter, m_KernelFilter, _SNBuffer, m_SNBuffer);
                     cmd.SetComputeTextureParam(bilateralFilter, m_KernelFilter, _UNBuffer, m_UNBuffer);

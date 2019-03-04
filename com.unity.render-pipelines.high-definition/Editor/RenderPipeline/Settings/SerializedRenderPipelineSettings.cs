@@ -31,7 +31,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty supportTransparentDepthPrepass;
         public SerializedProperty supportTransparentDepthPostpass;
 
-        public SerializedProperty editorRaytracingFilterLayerMask;
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
@@ -64,7 +63,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
-            editorRaytracingFilterLayerMask = root.Find((RenderPipelineSettings s) => s.editorRaytracingFilterLayerMask);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             hdShadowInitParams = new SerializedHDShadowInitParameters(root.Find((RenderPipelineSettings s) => s.hdShadowInitParams));

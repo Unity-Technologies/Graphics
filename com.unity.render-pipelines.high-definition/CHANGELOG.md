@@ -4,18 +4,62 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.3.0-preview] - 2019-XX-XX
+## [6.5.0-preview] - 2019-XX-XX
+
+### Fixed
+- Fixed diffusion profile upgrade breaking package when upgrading to a new version
+- Fixed decals cropped by gizmo not updating correctly if prefab
+- Fixed an issue when enabling SSR on multiple view
+- Fixed edition of the intensity's unit field while selecting multiple lights
+- Fixed wrong calculation in soft voxelization for density volume
+- Fixed gizmo not working correctly with pre-exposure
+- Fixed issue with setting a not available RT when disabling motion vectors
+- Fixed planar reflection when looking at mirror normal
+- Fixed mutiselection issue with HDLight Inspector
+- Fixed HDAdditionalCameraData data migration
+
+## [6.4.0-preview] - 2019-02-21
+
+### Added
+- VR: Added TextureXR system to selectively expand TEXTURE2D macros to texture array for single-pass stereo instancing + Convert textures call to these macros
+- Added an unit selection dropdown next to shutter speed (camera)
+- Added error helpbox when trying to use a sub volume component that require the current HDRenderPipelineAsset to support a feature that it is not supporting.
+- Add mesh for tube light when display emissive mesh is enabled
+
+### Fixed
+- Fixed Light explorer. The volume explorer used `profile` instead of `sharedProfile` which instantiate a custom volume profile instead of editing the asset itself.
+- Fixed UI issue where all is displayed using metric unit in shadow cascade and Percent is set in the unit field (happening when opening the inspector).
+- Fixed inspector event error when double clicking on an asset (diffusion profile/material).
+- Fixed nullref on layered material UI when the material is not an asset.
+- Fixed nullref exception when undo/redo a light property.
+- Fixed visual bug when area light handle size is 0.
+
+### Changed
+- Update UI for 32bit/16bit shadow precision settings in HDRP asset
+- Object motion vectors have been disabled in all but the game view. Camera motion vectors are still enabled everywhere, allowing TAA and Motion Blur to work on static objects.
+
+## [6.3.0-preview] - 2019-02-18
 
 ### Added
 - Added emissive property for shader graph decals
+- Added a diffusion profile override volume so the list of diffusion profile assets to use can be chanaged without affecting the HDRP asset
+- Added a "Stop NaNs" option on cameras and in the Scene View preferences.
+- Added metric display option in HDShadowSettings and improve clamping
 
 ### Fixed
 - Fixed decals in forward
+- Fixed issue with stencil not correctly setup for various master node and shader for the depth pass, motion vector pass and GBuffer/Forward pass
+- Fixed SRP batcher and metal
+- Fixed culling and shadows for Pyramid, Box, Rectangle and Tube lights
+- Fixed an issue where scissor render state leaking from the editor code caused partially black rendering
+
+### Changed
+- When a lit material has a clear coat mask that is not null, we now use the clear coat roughness to compute the screen space reflection.
+- Diffusion profiles are now limited to one per asset and can be referenced in materials, shader graphs and vfx graphs. Materials will be upgraded automatically except if they are using a shader graph, in this case it will display an error message.
 
 ## [6.2.0-preview] - 2019-02-15
 
 ### Added
-
 - Added help box listing feature supported in a given HDRenderPipelineAsset alongs with the drawbacks implied.
 - Added cascade visualizer, supporting disabled handles when not overriding.
 
@@ -29,6 +73,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default value roughness value for the clearcoat has been changed from 0.03 to 0.01
 - Update default value of based color for master node
 - Update Fabric Charlie Sheen lighting model - Remove Fresnel component that wasn't part of initial model + Remap smoothness to [0.0 - 0.6] range for more artist friendly parameter
+
+### Changed
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
 
 ## [6.1.0-preview] - 2019-02-13
 
@@ -160,10 +207,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with debug material mode not doing alpha test
 - Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan
 - Fixed pre-exposure incorrectly apply to preview
-- Fixed issue with duplicate 3D texture in 3D texture altas of volumetric
+- Fixed issue with duplicate 3D texture in 3D texture altas of volumetric?
 - Fixed Camera rendering order (base on the depth parameter)
 - Fixed shader graph decals not being cropped by gizmo
 - Fixed "Attempting to draw with missing UAV bindings" errors on Vulkan.
+
 
 ### Changed
 - ColorPyramid compute shader passes is swapped to pixel shader passes on platforms where the later is faster (Nintendo Switch).
@@ -194,6 +242,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rearrange FetchDepth functions to prepare for stereo-instancing
 - Remove unused _ComputeEyeIndex
 - Updated HDRenderPipelineAsset inspector
+- Re-enable SRP batcher for metal
 
 ## [5.2.0-preview] - 2018-11-27
 

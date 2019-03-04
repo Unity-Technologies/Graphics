@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.LWRP
 
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
-        string m_ProfilerTag = "Copy Color";
+        const string m_ProfilerTag = "Copy Color";
 
         /// <summary>
         /// Create the CopyColorPass
@@ -58,25 +58,28 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetIdentifier colorRT = source.Identifier();
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
             switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
-                    Blit(context, colorRT, opaqueColorRT, null, 0, m_ProfilerTag);
+                    Blit(cmd, colorRT, opaqueColorRT);
                     break;
                 case Downsampling._2xBilinear:
-                    Blit(context, colorRT, opaqueColorRT, null, 0, m_ProfilerTag);
+                    Blit(cmd, colorRT, opaqueColorRT);
                     break;
                 case Downsampling._4xBox:
                     m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                    Blit(context, colorRT, opaqueColorRT, m_SamplingMaterial, 0, m_ProfilerTag);
+                    Blit(cmd, colorRT, opaqueColorRT, m_SamplingMaterial);
                     break;
                 case Downsampling._4xBilinear:
-                    Blit(context, colorRT, opaqueColorRT, null, 0, m_ProfilerTag);
+                    Blit(cmd, colorRT, opaqueColorRT);
                     break;
             }
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         /// <inheritdoc/>

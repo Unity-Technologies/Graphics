@@ -6,10 +6,10 @@
 #pragma kernel KMainPhysical
 #pragma kernel KMainManual
 
-TEXTURE2D(_InputCoCTexture);
-TEXTURE2D(_InputHistoryCoCTexture);
+TEXTURE2D_X(_InputCoCTexture);
+TEXTURE2D_X(_InputHistoryCoCTexture);
 
-RW_TEXTURE2D(float, _OutputCoCTexture);
+RW_TEXTURE2D_X(float, _OutputCoCTexture);
 
 CBUFFER_START(cb0)
     float4 _Params;
@@ -52,7 +52,7 @@ void KMainPhysical(uint2 dispatchThreadId : SV_DispatchThreadID)
     float nearCoC = clamp(coc * nearBlend, -1.0, 0.0);
     float farCoC = saturate(coc);
 
-    _OutputCoCTexture[dispatchThreadId] = farCoC + nearCoC;
+    _OutputCoCTexture[COORD_TEXTURE2D_X(dispatchThreadId)] = farCoC + nearCoC;
 }
 
 // Manual CoC using near & far planes
@@ -71,5 +71,5 @@ void KMainManual(uint2 dispatchThreadId : SV_DispatchThreadID)
     float farCoC = (linearEyeDepth - FarStart) / (FarEnd - FarStart);
     farCoC = saturate(farCoC);
 
-    _OutputCoCTexture[dispatchThreadId] = -nearCoC + farCoC;
+    _OutputCoCTexture[COORD_TEXTURE2D_X(dispatchThreadId)] = -nearCoC + farCoC;
 }

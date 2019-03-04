@@ -42,8 +42,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string SpecularColorDisplaySlotName = "SpecularColor";
         public const int SpecularColorSlotId = 6;
 
-        public const string DiffusionProfileSlotName = "DiffusionProfile";
-        public const int DiffusionProfileSlotId = 7;
+        public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
+        public const int DiffusionProfileHashSlotId = 7;
 
         public const string SubsurfaceMaskSlotName = "SubsurfaceMask";
         public const int SubsurfaceMaskSlotId = 8;
@@ -102,7 +102,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Smoothness = 1 << SmoothnessSlotId,
             Occlusion = 1 << AmbientOcclusionSlotId,
             Specular = 1 << SpecularColorSlotId,
-            DiffusionProfile = 1 << DiffusionProfileSlotId,
+            DiffusionProfile = 1 << DiffusionProfileHashSlotId,
             SubsurfaceMask = 1 << SubsurfaceMaskSlotId,
             Thickness = 1 << ThicknessSlotId,
             Tangent = 1 << TangentSlotId,
@@ -409,22 +409,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        int m_DiffusionProfile;
-
-        public int diffusionProfile
-        {
-            get { return m_DiffusionProfile; }
-            set
-            {
-                if (m_DiffusionProfile == value)
-                    return;
-
-                m_DiffusionProfile = value;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
         bool m_overrideBakedGI;
 
         public ToggleData overrideBakedGI
@@ -517,8 +501,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Diffusion Profile
             if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile) && (subsurfaceScattering.isOn || transmission.isOn))
             {
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileSlotId, DiffusionProfileSlotName, DiffusionProfileSlotName, ShaderStageCapability.Fragment));
-                validSlots.Add(DiffusionProfileSlotId);
+                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
+                validSlots.Add(DiffusionProfileHashSlotId);
             }
 
             // Subsurface mask
