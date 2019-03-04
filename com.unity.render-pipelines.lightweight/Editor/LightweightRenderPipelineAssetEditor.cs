@@ -10,18 +10,15 @@ namespace UnityEditor.Rendering.LWRP
         internal class Styles
         {
             // Groups
-            public static GUIContent rendererSettingsText = EditorGUIUtility.TrTextContent("Renderer");
             public static GUIContent generalSettingsText = EditorGUIUtility.TrTextContent("General");
             public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality");
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting");
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
-            // Renderer
-            public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Type", "Controls the default renderer LWRP uses for all cameras.");
-            public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Data", "Required when using a custom Renderer. If none is assigned LWRP uses the Forward Renderer as default.");
-
             // General
+            public static GUIContent rendererTypeText = EditorGUIUtility.TrTextContent("Renderer Type", "Controls the global renderer that LWRP uses for all cameras. Choose between the default Forward Renderer and a custom renderer.");
+            public static GUIContent rendererDataText = EditorGUIUtility.TrTextContent("Data", "A ScriptableObject with rendering data. Required when using a custom Renderer. If none is assigned, LWRP uses the Forward Renderer as default.");
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
             public static GUIContent requireOpaqueTextureText = EditorGUIUtility.TrTextContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
             public static GUIContent opaqueDownsamplingText = EditorGUIUtility.TrTextContent("Opaque Downsampling", "The downsampling method that is used for the opaque texture");
@@ -62,7 +59,6 @@ namespace UnityEditor.Rendering.LWRP
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
-        SavedBool m_RendererSettingsFoldout;
         SavedBool m_GeneralSettingsFoldout;
         SavedBool m_QualitySettingsFoldout;
         SavedBool m_LightingSettingsFoldout;
@@ -109,8 +105,7 @@ namespace UnityEditor.Rendering.LWRP
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-           
-            DrawRendererSettings();
+            
             DrawGeneralSettings();
             DrawQualitySettings();
             DrawLightingSettings();
@@ -122,7 +117,6 @@ namespace UnityEditor.Rendering.LWRP
 
         void OnEnable()
         {
-            m_RendererSettingsFoldout = new SavedBool($"{target.GetType()}.RendererSettingsFoldout", false);
             m_GeneralSettingsFoldout = new SavedBool($"{target.GetType()}.GeneralSettingsFoldout", false);
             m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
@@ -165,10 +159,10 @@ namespace UnityEditor.Rendering.LWRP
             selectedLightRenderingMode = (LightRenderingMode)m_AdditionalLightsRenderingModeProp.intValue;
         }
 
-        void DrawRendererSettings()
+        void DrawGeneralSettings()
         {
-            m_RendererSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RendererSettingsFoldout.value, Styles.rendererSettingsText);
-            if (m_RendererSettingsFoldout.value)
+            m_GeneralSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_GeneralSettingsFoldout.value, Styles.generalSettingsText);
+            if (m_GeneralSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
@@ -184,19 +178,6 @@ namespace UnityEditor.Rendering.LWRP
                     EditorGUILayout.PropertyField(m_RendererDataProp, Styles.rendererDataText);
                     EditorGUI.indentLevel--;
                 }
-                EditorGUI.indentLevel--;
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-        }
-
-        void DrawGeneralSettings()
-        {
-            m_GeneralSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_GeneralSettingsFoldout.value, Styles.generalSettingsText);
-            if (m_GeneralSettingsFoldout.value)
-            {
-                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTextureText);
                 EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTextureText);
                 EditorGUI.indentLevel++;
