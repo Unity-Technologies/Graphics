@@ -175,14 +175,17 @@ namespace UnityEditor.VFX.UI
 
         void OnSelectionChanged()
         {
+            
             if (Selection.activeGameObject != null && controller != null)
             {
-                m_SelectionCandidate = null;
-                m_SelectionCandidate = Selection.activeGameObject.GetComponent<VisualEffect>();
-                if (m_SelectionCandidate != null && m_SelectionCandidate.visualEffectAsset != controller.graph.visualEffectResource.asset)
+                VisualEffect newSelectionCandidate = null;
+                newSelectionCandidate = Selection.activeGameObject.GetComponent<VisualEffect>();
+                if (newSelectionCandidate != null && newSelectionCandidate.visualEffectAsset != controller.graph.visualEffectResource.asset)
                 {
-                    m_SelectionCandidate = null;
+                    newSelectionCandidate = null;
                 }
+                if (newSelectionCandidate != null)
+                    m_SelectionCandidate = newSelectionCandidate;
             }
 
             UpdateAttachButton();
