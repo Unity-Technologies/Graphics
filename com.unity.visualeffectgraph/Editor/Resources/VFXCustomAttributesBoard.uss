@@ -5,14 +5,14 @@
 
 .ReorderableList #Toolbar
 {
-    padding-left:8;
-    padding-right:8;
+    padding-left:8px;
+    padding-right:8px;
     background-color:#282828;
 }
 
 VFXBoardAttribute
 {
-    padding-left:8;
-    padding-right:8;
+    padding-left:8px;
+    padding-right:8px;
 }
 
