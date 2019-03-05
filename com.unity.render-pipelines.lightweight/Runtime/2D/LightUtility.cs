@@ -244,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
         
 
-        public static Bounds GenerateShapeMesh(ref Mesh mesh, Color color, Vector3[] shapePath, float volumeOpacity, float feathering)
+        public static Bounds GenerateShapeMesh(ref Mesh mesh, Color color, Vector3[] shapePath, Vector2 falloffOffset, float volumeOpacity, float feathering)
         {
             Bounds localBounds;
             Color meshInteriorColor = color;

@@ -337,16 +337,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.Slider(m_ShapeLightRadius, 0, 20, Styles.shapeLightParametricRadius);
                     EditorGUILayout.IntSlider(m_ShapeLightParametricSides, 3, 24, Styles.shapeLightParametricSides);
+                    EditorGUILayout.PropertyField(m_ShapeLightOffset, Styles.shapeLightOffset);
+                    EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
                 }
 
                 EditorGUILayout.Slider(m_ShapeLightFalloffSize, 0, 5, Styles.generalFalloffSize);
                 EditorGUILayout.Slider(m_FalloffCurve, 0, 1, Styles.generalFalloffIntensity);
-                Vector2 lastOffset = m_ShapeLightOffset.vector2Value;
-                EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
-
-                EditorGUILayout.PropertyField(m_ShapeLightOffset, Styles.shapeLightOffset);
                 if (lightProjectionType == Light2D.LightType.Parametric)
-                    EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
+                {
+                    EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
+                }
             }
 
             EditorGUILayout.PropertyField(m_ShapeLightOverlapMode, Styles.shapeLightOverlapMode);
@@ -647,9 +647,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     Handles.color = Color.white;
                     for (int i = 0; i < falloffShape.Count-1; i++)
                     {
-                        Handles.DrawLine(t.TransformPoint(falloffShape[i]+light.shapeLightFalloffOffset+light.shapeLightOffset), t.TransformPoint(falloffShape[i + 1] + light.shapeLightFalloffOffset + light.shapeLightOffset));
+                        Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
                     }
-                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1] + light.shapeLightFalloffOffset + light.shapeLightOffset), t.TransformPoint(falloffShape[0] + light.shapeLightFalloffOffset + light.shapeLightOffset));
+                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
                 }
             }
         }
