@@ -492,6 +492,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, 1,
                               color, attenuation);
 
+    attenuation *= ComputeMicroShadowing(bsdfData, NdotL);
+
     // TODO: transmittance contributes to attenuation, how can we use it for early-out?
     if (attenuation > 0)
     {
