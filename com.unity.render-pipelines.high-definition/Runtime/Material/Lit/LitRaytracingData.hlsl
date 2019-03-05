@@ -33,7 +33,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
 #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
 #endif
-    
+
     // Generate the primary uv coordinates
     float2 uvBase = _UVMappingMask.x * input.texCoord0.xy +
                     _UVMappingMask.y * input.texCoord1.xy +
@@ -166,7 +166,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     surfaceData.transmittanceMask = 0.0;
 #endif
 
-    InitBuiltinData(posInput, alpha, surfaceData.normalWS, -input.worldToTangent[2], input.positionRWS, input.texCoord1, input.texCoord2, builtinData);
+    InitBuiltinData(posInput, alpha, surfaceData.normalWS, -input.worldToTangent[2], input.texCoord1, input.texCoord2, builtinData);
     builtinData.emissiveColor = _EmissiveColor * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
 

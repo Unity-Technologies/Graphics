@@ -2,8 +2,8 @@
 
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {
-    // For back lighting we use the oposite vertex normal 
-    InitBuiltinData(posInput, alpha, bentNormalWS, -input.worldToTangent[2], input.positionRWS, input.texCoord1, input.texCoord2, builtinData);
+    // For back lighting we use the oposite vertex normal
+    InitBuiltinData(posInput, alpha, bentNormalWS, -input.worldToTangent[2], input.texCoord1, input.texCoord2, builtinData);
 
     builtinData.emissiveColor = _EmissiveColor * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 #ifdef _EMISSIVE_COLOR_MAP

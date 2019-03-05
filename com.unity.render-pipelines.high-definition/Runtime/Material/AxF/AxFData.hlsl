@@ -134,7 +134,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     }
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
-    // Instead of 
+    // Instead of
     // surfaceData.biTangentWS = Orthonormalize(input.worldToTangent[1], surfaceData.normalWS),
     // make AxF follow what we do in other HDRP shaders for consistency: use the
     // cross product to finish building the TBN frame and thus get a frame matching
@@ -173,6 +173,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // -------------------------------------------------------------
 
     // No back lighting with AxF
-    InitBuiltinData(posInput, alpha, surfaceData.normalWS, surfaceData.normalWS, input.positionRWS, input.texCoord1, input.texCoord2, builtinData);
+    InitBuiltinData(posInput, alpha, surfaceData.normalWS, surfaceData.normalWS, input.texCoord1, input.texCoord2, builtinData);
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
 }
