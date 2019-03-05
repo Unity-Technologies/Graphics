@@ -169,17 +169,17 @@ bool GenerateMISSample(inout MISSamplingInput misInput, SphericalRectangle sr, f
 bool EvaluateMISProbabilties(MISSamplingInput misInput, float perceptualRoughness, out float brdfProb)
 {
     // Compute the magnitude of both the diffuse and specular terms
-    const float diffRadiance  = Luminance(misInput.lighting.diffuse);
-    const float specRadiance  = Luminance(misInput.lighting.specular);
-    const float totalRadiance = diffRadiance + specRadiance;
+    const float diffLuma  = Luminance(misInput.lighting.diffuse);
+    const float specLuma  = Luminance(misInput.lighting.specular);
+    const float totalLuma = diffLuma + specLuma;
 
     // The exact factor to attenuate the brdf probability using the perceptualRoughness has been experimentally defined. It requires
     // an other pass to see if we can improve the quality if we use an other mapping (roughness instead of perceptualRoughness for instance)
-    static const float ANALYTIC_RADIANCE_THRESHOLD = 0.00001;
-    brdfProb = specRadiance / max(totalRadiance, ANALYTIC_RADIANCE_THRESHOLD);
+    static const float ANALYTIC_LUMINANCE_THRESHOLD = 0.00001;
+    brdfProb = specLuma / max(totalLuma, ANALYTIC_LUMINANCE_THRESHOLD);
     brdfProb = lerp(brdfProb, 0.0, perceptualRoughness);
 
-    return totalRadiance > ANALYTIC_RADIANCE_THRESHOLD;
+    return totalLuma > ANALYTIC_LUMINANCE_THRESHOLD;
 }
 
 [shader("miss")]
@@ -368,7 +368,7 @@ void RayGenShadows()
 
         // Compute the MIS weight
         float misPDF = lerp(misOutput.lightPDF, misOutput.brdfPDF, misInput.brdfProb);
-        float3 radiance = (diffuseLighting + specularLighting) * NdotL / misPDF;
+        float3 radiance = misPDF > 0.0 ? (diffuseLighting + specularLighting) * NdotL / misPDF : 0.0;
 
         // Accumulate
         Sn += radiance * rayIntersection.color;

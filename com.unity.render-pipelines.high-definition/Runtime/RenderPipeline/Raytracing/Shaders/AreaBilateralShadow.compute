@@ -30,13 +30,13 @@ int                     _RaytracingShadowSlot;
 RWTexture2DArray<float> _AreaShadowTextureRW;
 
 // Bilateral filter parameters
-#define NORMAL_WEIGHT               1.0
-#define PLANE_WEIGHT                1.0
-#define DEPTH_WEIGHT                1.0
-#define ANALYTIC_WEIGHT             1.0
+#define NORMAL_WEIGHT   1.0
+#define PLANE_WEIGHT    1.0
+#define DEPTH_WEIGHT    1.0
+#define ANALYTIC_WEIGHT 1.0
 
-// This value is the one that we have choosen for the moment as a sufficient limit for the noise
-// estimation. It would require an other pass to check if we can lower it
+// This value is the one that we have choosen for the moment as a sufficient limit for
+// the noise estimation. It would require an other pass to check if we can lower it.
 #define MAX_ESTIMATION_RADIUS 10
 
 // Couple helper functions
@@ -49,7 +49,9 @@ float gaussian(float radius, float sigma)
     return exp(-sqr(radius / sigma));
 }
 
-/****************************** Noise Estimation Kernel ******************************/
+// ----------------------------------------------------------------------------
+// Noise Estimation Kernel
+// ----------------------------------------------------------------------------
 
 // Sample the signal used for the noise estimation at coordSS
 float TapRatio(uint2 coordSS)
@@ -112,7 +114,9 @@ void AreaShadowEstimateNoise(uint2 groupThreadId : SV_GroupThreadID, uint2 group
     _DenoiseOutputTextureRW[centerCoord] = float4(_DenoiseInputTexture[centerCoord].xyz, maxNoise);
 }
 
-/********************************* Denoising Kernel *********************************/
+// ----------------------------------------------------------------------------
+// Denoising Kernel
+// ----------------------------------------------------------------------------
 
 struct BilateralData
 {
@@ -170,9 +174,9 @@ float ComputeBilateralWeight(BilateralData center, BilateralData tap)
 
     if (NORMAL_WEIGHT > 0.0)
     {
-        const float normalCloseness = sqr(sqr(dot(tap.normal, center.normal)));
-        const float normalError = (1.0 - normalCloseness);
-        normalWeight = max((1.0 - normalError * NORMAL_WEIGHT), 0.0);
+        const float normalCloseness = sqr(sqr(max(0.0, dot(tap.normal, center.normal))));
+        const float normalError = 1.0 - normalCloseness;
+        normalWeight = max(0.0, (1.0 - normalError * NORMAL_WEIGHT));
     }
 
     if (PLANE_WEIGHT > 0.0)
@@ -252,11 +256,10 @@ void AREA_SHADOW_DENOISE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     }
 
     #if FINAL_PASS
-        // Return the final ratio
-        _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] =
-        (wSum > 0.0 && SU.y / wSum > 0.0) ? saturate(SU.x / SU.y) : 1.0;
+    // Return the final ratio
+    _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] = (wSum > 0.0 && SU.y / wSum > 0.0) ? saturate(SU.x / SU.y) : 1.0;
     #else
-        // Store the intermediate result
-        _DenoiseOutputTextureRW[centerCoord] = float4(SU / wSum, _DenoiseInputTexture[centerCoord].z, noiseEstimate);
+    // Store the intermediate result
+    _DenoiseOutputTextureRW[centerCoord] = float4(SU / wSum, _DenoiseInputTexture[centerCoord].z, noiseEstimate);
     #endif
 }
