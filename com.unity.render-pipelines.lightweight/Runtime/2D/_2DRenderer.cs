@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_Render2DLightingPass = new Render2DLightingPass(data);
         }
 
-        public override void Setup(ref RenderingData renderingData)
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             EnqueuePass(m_Render2DLightingPass);
         }
