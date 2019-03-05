@@ -393,8 +393,26 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
-    float LdotV, NdotH, LdotH, NdotV, invLenLV;
-    GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+    diffuseLighting = specularLighting = 0; // Deprecated
+}
+
+// Cosine-weighted BxDF (a BxDF taking the projected solid angle into account).
+// If some of the values are monochromatic, the compiler will optimize accordingly.
+struct CBxDF
+{
+    float3 diffR; // Diffuse  reflection
+    float3 specR; // Specular reflection
+    float3 diffT; // Diffuse  transmission
+    float3 specT; // Specular transmission
+};
+
+CBxDF EvaluateCBxDF(float3 V, float3 L, float NdotL, PreLightData preLightData, BSDFData bsdfData)
+{
+    CBxDF cbxdf;
+    ZERO_INITIALIZE(CBxDF, cbxdf);
+
+    float LdotV, NdotH, LdotH, clampedNdotV, invLenLV;
+    GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, clampedNdotV, invLenLV);
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
@@ -404,24 +422,28 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         float3 H = (L + V) * invLenLV;
 
         // Balancing energy between lobes, as well as between diffuse and specular is left to artists.
-        float3 hairSpec1 = bsdfData.specularTint * D_KajiyaKay(t1, H, bsdfData.specularExponent);
+        float3 hairSpec1 = bsdfData.specularTint          * D_KajiyaKay(t1, H, bsdfData.specularExponent);
         float3 hairSpec2 = bsdfData.secondarySpecularTint * D_KajiyaKay(t2, H, bsdfData.secondarySpecularExponent);
 
         float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-        specularLighting = F * (hairSpec1 + hairSpec2);
 
-        // Diffuse lighting
-        // Note: this normalization term is wrong, correct one is (1/(Pi^2)).
-        // (see "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces").
-        // However, this would make the contribution of non-area-lights too small.
-        float diffuseTerm = Lambert();
-        diffuseLighting = diffuseTerm;
+    #if (_USE_LIGHT_FACING_NORMAL)
+        // See "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces".
+        cbxdf.diffR = rcp(PI * PI) * saturate(NdotL);
+        // Transmission is built into the model, and it's not exactly clear how to split it.
+        cbxdf.diffT = 0;
+    #else
+        // Double-sided Lambert.
+        cbxdf.diffR = Lambert() * saturate(NdotL);
+        // Morten's rim lighting hack.
+        cbxdf.diffT = pow(saturate(-LdotV), 3.0) * pow(1 - preLightData.NdotV * preLightData.NdotV, 5.0);
+    #endif
+        // Split away & kill spec trans as artists don't like it.
+        cbxdf.specR = F * (hairSpec1 + hairSpec2) * saturate(NdotL) * saturate(preLightData.NdotV * FLT_MAX);
+        cbxdf.specT = 0;
     }
-    else
-    {
-        specularLighting = float3(0.0, 0.0, 0.0);
-        diffuseLighting = float3(0.0, 0.0, 0.0);
-    }
+
+    return cbxdf;
 }
 
 //-----------------------------------------------------------------------------
@@ -460,30 +482,31 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float NdotL = sinTL; // Corresponds to the cosine w.r.t. the light-facing normal
 #else
     // Double-sided Lambert.
-    float NdotL = abs(dot(bsdfData.normalWS, L));
+    float NdotL = dot(bsdfData.normalWS, L);
 #endif
 
     float3 shadowBiasNormal  = GetNormalForShadowBias(bsdfData);
            shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
 
     float3 color; float attenuation;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, NdotL,
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, 1,
                               color, attenuation);
 
     // TODO: transmittance contributes to attenuation, how can we use it for early-out?
     if (attenuation > 0)
     {
-        float3 diffuseBsdf, specularBsdf;
-        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
+        // We must clamp here, otherwise our disk light hack for smooth surfaces does not work.
+        // Explanation: for a perfectly smooth surface, lighting is only reflected if (NdotL = NdotV).
+        // This implies that (NdotH = 1).
+        // Due to the floating point arithmetic (see math in ComputeSunLightDirection() and
+        // GetBSDFAngle()), we will never arrive at this exact number, so no lighting will be reflected.
+        // If we increase the roughness somewhat, the trick still works.
+        ClampRoughness(bsdfData, lightData.minRoughness);
 
-        attenuation *= ComputeMicroShadowing(bsdfData, NdotL);
+        CBxDF cbxdf = EvaluateCBxDF(V, L, NdotL, preLightData, bsdfData);
 
-        lighting.diffuse  = diffuseBsdf  * ((attenuation * NdotL) * lightData.diffuseDimmer);
-        lighting.specular = specularBsdf * ((attenuation        ) * lightData.specularDimmer);
-
-        // Save ALU by applying light and cookie colors only once.
-        lighting.diffuse  *= color;
-        lighting.specular *= color;
+        lighting.diffuse  = (cbxdf.diffR + cbxdf.diffT * bsdfData.transmittance) * (lightData.diffuseDimmer  * (color * attenuation));
+        lighting.specular = (cbxdf.specR + cbxdf.specT * bsdfData.transmittance) * (lightData.specularDimmer * (color * attenuation));
     }
 
 #ifdef DEBUG_DISPLAY
@@ -525,27 +548,23 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float NdotL = sinTL; // Corresponds to the cosine w.r.t. the light-facing normal
 #else
     // Double-sided Lambert.
-    float NdotL = abs(dot(bsdfData.normalWS, L));
+    float NdotL = dot(bsdfData.normalWS, L);
 #endif
 
     float3 shadowBiasNormal  = GetNormalForShadowBias(bsdfData);
            shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
 
     float3 color; float attenuation;
-    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, NdotL, lightToSample, distances,
-                           color, attenuation);
+    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, builtinData, shadowBiasNormal, L, 1,
+                           lightToSample, distances, color, attenuation);
 
+    // TODO: transmittance contributes to attenuation, how can we use it for early-out?
     if (attenuation > 0)
     {
-        float3 diffuseBsdf, specularBsdf;
-        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, diffuseBsdf, specularBsdf);
+        CBxDF cbxdf = EvaluateCBxDF(V, L, NdotL, preLightData, bsdfData);
 
-        lighting.diffuse  = diffuseBsdf  * ((attenuation * NdotL) * lightData.diffuseDimmer);
-        lighting.specular = specularBsdf * ((attenuation        ) * lightData.specularDimmer);
-
-        // Save ALU by applying light and cookie colors only once.
-        lighting.diffuse  *= color;
-        lighting.specular *= color;
+        lighting.diffuse  = (cbxdf.diffR + cbxdf.diffT * bsdfData.transmittance) * (lightData.diffuseDimmer  * (color * attenuation));
+        lighting.specular = (cbxdf.specR + cbxdf.specT * bsdfData.transmittance) * (lightData.specularDimmer * (color * attenuation));
     }
 
 #ifdef DEBUG_DISPLAY
