@@ -479,7 +479,7 @@ public class VisualEffectAssetEditor : Editor
 
             m_ReorderableList.DoLayoutList();
 
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
+            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
 
             var shaderSources = resource.shaderSources;
 
