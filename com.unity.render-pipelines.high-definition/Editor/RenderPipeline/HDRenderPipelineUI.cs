@@ -354,6 +354,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.colorBufferFormat, k_ColorBufferFormatContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedLitShaderMode, k_SupportLitShaderModeContent);
 
             // MSAA is an option that is only available in full forward but Camera can be set in Full Forward only. Thus MSAA have no dependency currently
