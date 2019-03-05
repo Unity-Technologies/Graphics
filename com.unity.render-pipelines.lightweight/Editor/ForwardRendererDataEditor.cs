@@ -8,16 +8,12 @@ namespace UnityEditor.Rendering.LWRP
     {
         private class Styles
         {
-            //Title
-            public static GUIContent rendererTitle = new GUIContent("Forward Renderer");            
-            //LayerMasks
-            public static GUIContent layerMasks = new GUIContent("Default Layer Masks", "Null.");
-            public static GUIContent opaqueMask = new GUIContent("Opaque", "Null.");
-            public static GUIContent transparentMask = new GUIContent("Transparent", "Null.");
+            public static readonly GUIContent RendererTitle = new GUIContent("Forward Renderer", "Custom Forward Renderer for LWRP.");
+            public static readonly GUIContent OpaqueMask = new GUIContent("Default Layer Mask", "Controls which layers to globally include in the Custom Forward Renderer.");
         }
         
-        private SerializedProperty m_OpaqueLayerMask;
-        private SerializedProperty m_TransparentLayerMask;
+        SerializedProperty m_OpaqueLayerMask;
+        SerializedProperty m_TransparentLayerMask;
         
         private void OnEnable()
         {
@@ -30,20 +26,16 @@ namespace UnityEditor.Rendering.LWRP
             serializedObject.Update();
             
             EditorGUILayout.Space();
-            
-            EditorGUILayout.LabelField(Styles.rendererTitle, EditorStyles.boldLabel);
-            
-            EditorGUILayout.LabelField(Styles.layerMasks);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.opaqueMask);
-            EditorGUILayout.PropertyField(m_TransparentLayerMask, Styles.transparentMask);
-            EditorGUI.indentLevel--;
-
+            EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.OpaqueMask);
+            if (EditorGUI.EndChangeCheck())  // We copy the opaque mask to the transparent mask, later we might expose both
+                m_TransparentLayerMask.intValue = m_OpaqueLayerMask.intValue;
             EditorGUILayout.Space();
-            
-            base.OnInspectorGUI();
 
             serializedObject.ApplyModifiedProperties();
+            
+            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
         }
     }
 }

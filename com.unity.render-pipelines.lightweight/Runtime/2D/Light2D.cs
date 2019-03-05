@@ -167,9 +167,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal void UpdateCookieSpriteMaterials()
         {
-            m_ShapeCookieSpriteAdditiveMaterial = null;
-            m_ShapeCookieSpriteAlphaBlendMaterial = null;
-            m_ShapeCookieSpriteVolumeMaterial = null;
+            s_ShapeCookieSpriteAdditiveMaterial = null;
+            s_ShapeCookieSpriteAlphaBlendMaterial = null;
+            s_ShapeCookieSpriteVolumeMaterial = null;
             GetMaterial();
         }
 

@@ -66,6 +66,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **Metal and Ambient Occlusion properties** | Enable this checkbox to allow decals to affect metallic and ambient occlusion Material properties. Enabling this feature has a performance impact. |
 | **Maximum** **Decals on Screen**       | The maximum number of decals you can have on screen at one time. |
 
+<a name="DynamicResolution"></a>
 ### Dynamic Resolution
 
 | **Property**                  | **Description**                                              |

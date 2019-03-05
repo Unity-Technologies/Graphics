@@ -2,26 +2,31 @@ namespace UnityEngine.Rendering.LWRP
 {
     internal class ForwardRenderer : ScriptableRenderer
     {
-        private DepthOnlyPass m_DepthPrepass;
-        private MainLightShadowCasterPass m_MainLightShadowCasterPass;
-        private AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
-        private ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
-        private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
-        private PostProcessPass m_OpaquePostProcessPass;
-        private DrawSkyboxPass m_DrawSkyboxPass;
-        private CopyDepthPass m_CopyDepthPass;
-        private CopyColorPass m_CopyColorPass;
-        private RenderTransparentForwardPass m_RenderTransparentForwardPass;
-        private PostProcessPass m_PostProcessPass;
-        private FinalBlitPass m_FinalBlitPass;
-        private CapturePass m_CapturePass;
+        const int k_DepthStencilBufferBits = 32;
+        const string k_CreateCameraTextures = "Create Camera Texture";
+
+        DepthOnlyPass m_DepthPrepass;
+        MainLightShadowCasterPass m_MainLightShadowCasterPass;
+        AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
+        ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
+        RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
+        PostProcessPass m_OpaquePostProcessPass;
+        DrawSkyboxPass m_DrawSkyboxPass;
+        CopyDepthPass m_CopyDepthPass;
+        CopyColorPass m_CopyColorPass;
+        RenderTransparentForwardPass m_RenderTransparentForwardPass;
+        PostProcessPass m_PostProcessPass;
+        FinalBlitPass m_FinalBlitPass;
+        CapturePass m_CapturePass;
 
 #if UNITY_EDITOR
-        private SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
+        SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
 #endif
 
-        RenderTargetHandle m_ColorAttachment;
-        RenderTargetHandle m_DepthAttachment;
+        RenderTargetHandle m_ActiveCameraColorAttachment;
+        RenderTargetHandle m_ActiveCameraDepthAttachment;
+        RenderTargetHandle m_CameraColorAttachment;
+        RenderTargetHandle m_CameraDepthAttachment;
         RenderTargetHandle m_DepthTexture;
         RenderTargetHandle m_OpaqueColor;
 
@@ -58,14 +63,14 @@ namespace UnityEngine.Rendering.LWRP
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
-            m_ColorAttachment.Init("_CameraColorTexture");
-            m_DepthAttachment.Init("_CameraDepthAttachment");
+            m_CameraColorAttachment.Init("_CameraColorTexture");
+            m_CameraDepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_ForwardLights = new ForwardLights();
         }
 
-        public override void Setup(ref RenderingData renderingData)
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -91,12 +96,15 @@ namespace UnityEngine.Rendering.LWRP
             bool hasOpaquePostProcess = postProcessEnabled &&
                 renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(RenderingUtils.postProcessRenderContext);
 
-            ConfigureCameraTarget((createColorTexture) ? m_ColorAttachment : RenderTargetHandle.CameraTarget,
-                (createDepthTexture) ? m_DepthAttachment : RenderTargetHandle.CameraTarget);
+            m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
+            m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
+            if (createColorTexture || createDepthTexture)
+                CreateCameraRenderTarget(context, ref renderingData.cameraData);
+            ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
-                rendererFeatures[i].AddRenderPasses(this, cameraTargetDescriptor, cameraColorHandle, cameraDepthHandle);
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
             }
 
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
@@ -122,7 +130,7 @@ namespace UnityEngine.Rendering.LWRP
             EnqueuePass(m_RenderOpaqueForwardPass);
 
             if (hasOpaquePostProcess)
-                m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraColorHandle);
+                m_OpaquePostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
 
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
                 EnqueuePass(m_DrawSkyboxPass);
@@ -130,13 +138,13 @@ namespace UnityEngine.Rendering.LWRP
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
             if (createDepthTexture)
             {
-                m_CopyDepthPass.Setup(cameraDepthHandle, m_DepthTexture);
+                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
             }
 
             if (renderingData.cameraData.requiresOpaqueTexture)
             {
-                m_CopyColorPass.Setup(cameraColorHandle, m_OpaqueColor);
+                m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor);
                 EnqueuePass(m_CopyColorPass);
             }
 
@@ -152,20 +160,20 @@ namespace UnityEngine.Rendering.LWRP
                 // perform post with src / dest the same
                 if (postProcessEnabled)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, cameraColorHandle, cameraColorHandle);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
                     EnqueuePass(m_PostProcessPass);
                 }
 
                 //now blit into the final target
-                if (cameraColorHandle != RenderTargetHandle.CameraTarget)
+                if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                 {
                     if (renderingData.cameraData.captureActions != null)
                     {
-                        m_CapturePass.Setup(cameraColorHandle);
+                        m_CapturePass.Setup(m_ActiveCameraColorAttachment);
                         EnqueuePass(m_CapturePass);
                     }
 
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, cameraColorHandle);
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                     EnqueuePass(m_FinalBlitPass);
                 }
             }
@@ -173,12 +181,12 @@ namespace UnityEngine.Rendering.LWRP
             {
                 if (postProcessEnabled)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, cameraColorHandle, RenderTargetHandle.CameraTarget);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
                     EnqueuePass(m_PostProcessPass);
                 }
-                else if (cameraColorHandle != RenderTargetHandle.CameraTarget)
+                else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                 {
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, cameraColorHandle);
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
                     EnqueuePass(m_FinalBlitPass);
                 }
             }
@@ -209,6 +217,41 @@ namespace UnityEngine.Rendering.LWRP
             // }
 
             cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
+        }
+
+        public override void FinishRendering(CommandBuffer cmd)
+        {
+            if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                cmd.ReleaseTemporaryRT(m_ActiveCameraColorAttachment.id);
+
+            if (m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget)
+                cmd.ReleaseTemporaryRT(m_ActiveCameraDepthAttachment.id);
+        }
+
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref CameraData cameraData)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get(k_CreateCameraTextures);
+            var descriptor = cameraData.cameraTargetDescriptor;
+            int msaaSamples = descriptor.msaaSamples;
+            if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+            {
+                bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
+                var colorDescriptor = descriptor;
+                colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
+                cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
+            }
+
+            if (m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget)
+            {
+                var depthDescriptor = descriptor;
+                depthDescriptor.colorFormat = RenderTextureFormat.Depth;
+                depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;
+                depthDescriptor.bindMS = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+                cmd.GetTemporaryRT(m_ActiveCameraDepthAttachment.id, depthDescriptor, FilterMode.Point);
+            }
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)

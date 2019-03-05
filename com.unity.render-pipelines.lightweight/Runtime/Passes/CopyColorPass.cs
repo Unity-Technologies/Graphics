@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.LWRP
         Material m_SamplingMaterial;
         Downsampling m_DownsamplingMethod;
 
-        private RenderTargetHandle source { get; set; }
+        private RenderTargetIdentifier source { get; set; }
         private RenderTargetHandle destination { get; set; }
         const string m_ProfilerTag = "Copy Color";
 
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.LWRP
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
-        public void Setup(RenderTargetHandle source, RenderTargetHandle destination)
+        public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination)
         {
             this.source = source;
             this.destination = destination;
@@ -59,23 +59,22 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            RenderTargetIdentifier colorRT = source.Identifier();
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
             switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
-                    Blit(cmd, colorRT, opaqueColorRT);
+                    Blit(cmd, source, opaqueColorRT);
                     break;
                 case Downsampling._2xBilinear:
-                    Blit(cmd, colorRT, opaqueColorRT);
+                    Blit(cmd, source, opaqueColorRT);
                     break;
                 case Downsampling._4xBox:
                     m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                    Blit(cmd, colorRT, opaqueColorRT, m_SamplingMaterial);
+                    Blit(cmd, source, opaqueColorRT, m_SamplingMaterial);
                     break;
                 case Downsampling._4xBilinear:
-                    Blit(cmd, colorRT, opaqueColorRT);
+                    Blit(cmd, source, opaqueColorRT);
                     break;
             }
             context.ExecuteCommandBuffer(cmd);
