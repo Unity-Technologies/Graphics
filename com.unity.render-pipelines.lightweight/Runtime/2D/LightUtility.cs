@@ -233,6 +233,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return data[0];
         }
 
+
+        public static List<Vector2> GetFeatheredShape(Vector3[] shapePath, float feathering)
+        {
+            int pointCount = shapePath.Length;
+            var inputs = new ContourVertex[pointCount];
+            for (int i = 0; i < pointCount; ++i)
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = null };
+
+            var feathered = UpdateFeatheredShapeLightMesh(inputs, pointCount, feathering);
+            return feathered;
+        }
+        
+
         public static Bounds GenerateShapeMesh(ref Mesh mesh, Color color, Vector3[] shapePath, float volumeOpacity, float feathering)
         {
             Bounds localBounds;

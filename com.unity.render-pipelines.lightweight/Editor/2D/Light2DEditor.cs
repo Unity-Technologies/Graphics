@@ -616,7 +616,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                     if (sides == 4)
                         angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
-    
+
                     Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
                     Vector3 featherStartPoint = (1 + light.shapeLightFalloffSize * 2.0f) * startPoint;
                     float radiansPerSide = 2 * Mathf.PI / sides;
@@ -635,7 +635,18 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     }
                 }
                 else  // Freeform light
+                {
                     m_ShapeEditor.OnGUI(target);
+
+                    // Draw the falloff shape's outline
+                    List<Vector2> falloffShape = light.GetFalloffShape();
+                    Handles.color = Color.white;
+                    for (int i = 0; i < falloffShape.Count-1; i++)
+                    {
+                        Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
+                    }
+                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                }
             }
         }
 
