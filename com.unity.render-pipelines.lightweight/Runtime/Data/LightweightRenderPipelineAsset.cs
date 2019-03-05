@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.LWRP
 #endif
         }
 
-        public ScriptableRenderer renderer
+        public ScriptableRenderer scriptableRenderer
         {
             get
             {
