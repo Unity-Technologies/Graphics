@@ -16,8 +16,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 //Replicate old editor behavior of normal mode to keep scene intact
                 m_EditorAdvancedFade = true;
-                float minSize = Mathf.Min(size.x, size.y, size.z);
-                negativeFade = positiveFade = m_EditorUniformFade * minSize * Vector3.one;
+                negativeFade = positiveFade = m_EditorUniformFade * Vector3.one;
+                m_EditorUniformFade = 0f;
             }
 
             //feed new variable to handle editor values
@@ -32,15 +32,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             First,
             ScaleIndependent,
-            //FixUniformBlendDistanceToBeMetric,
+            FixUniformBlendDistanceToBeMetric,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
         }
 
         static readonly MigrationDescription<Version, DensityVolume> k_Migration = MigrationDescription.New(
-            MigrationStep.New(Version.ScaleIndependent, (DensityVolume data) => data.parameters.size = data.transform.lossyScale)//,
-            //MigrationStep.New(Version.FixUniformBlendDistanceToBeMetric, (DensityVolume data) => data.parameters.MigrateToFixUniformBlendDistanceToBeMetric())
+            MigrationStep.New(Version.ScaleIndependent, (DensityVolume data) => data.parameters.size = data.transform.lossyScale),
+            MigrationStep.New(Version.FixUniformBlendDistanceToBeMetric, (DensityVolume data) => data.parameters.MigrateToFixUniformBlendDistanceToBeMetric())
         );
 
         [SerializeField]
