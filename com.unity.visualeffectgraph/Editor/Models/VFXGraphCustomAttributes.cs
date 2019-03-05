@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
 
         public IEnumerable<string> customAttributes
         {
-            get { return m_CustomAttributes.Select(t=>t.name); }
+            get { return m_CustomAttributes!= null ?m_CustomAttributes.Select(t=>t.name): Enumerable.Empty<string>(); }
         }
 
         public int GetCustomAttributeCount()
@@ -54,10 +54,14 @@ namespace UnityEditor.VFX
 
         public void GetCustomAttributeInfos(string name, out VFXValueType type, out object defaultValue)
         {
+            type = VFXValueType.None;
+            defaultValue = null;
             int index = m_CustomAttributes.FindIndex(t => t.name == name);
-
-            type = GetCustomAttributeType(index);
-            defaultValue = GetCustomAttributeDefaultValue(index);
+            if (index >= 0)
+            {
+                type = GetCustomAttributeType(index);
+                defaultValue = GetCustomAttributeDefaultValue(index);
+            }
         }
 
         public VFXValueType GetCustomAttributeType(int index)
@@ -220,7 +224,7 @@ namespace UnityEditor.VFX
             // Restore lost custom attributes that are used somewhere in the graph
             ForEachSettingUsingAttribute((m,f)=>{
                 string customAttribute = (string) f.GetValue(m);
-                if(!m_CustomAttributes.Any(t => t.name == customAttribute) && ! VFXAttribute.AllIncludingVariadic.Any(t => t == customAttribute))
+                if(!customAttributes.Any(t => t == customAttribute) && ! VFXAttribute.AllIncludingVariadic.Any(t => t == customAttribute))
                 {
                     // trying to find the right type
                     var attributeType = VFXValueType.Float;
