@@ -80,6 +80,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
             public static GUIContent shapeLightOffset = EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset");
+            public static GUIContent shapeLightFalloffOffset = EditorGUIUtility.TrTextContent("Falloff Offset", "Specify the shape's falloff offset");
             public static GUIContent shapeLightAngleOffset = EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object");
             public static GUIContent shapeLightOverlapMode = EditorGUIUtility.TrTextContent("Light Overlap Mode", "Specify what should happen when this light overlaps other lights");
             public static GUIContent shapeLightOrder = EditorGUIUtility.TrTextContent("Light Order", "Shape light order");
@@ -124,6 +125,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightParametricAngleOffset;
         SerializedProperty m_ShapeLightOffset;
+        SerializedProperty m_ShapeLightFalloffOffset;
         SerializedProperty m_ShapeLightSprite;
         SerializedProperty m_ShapeLightOrder;
         SerializedProperty m_ShapeLightOverlapMode;
@@ -211,6 +213,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
             m_ShapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
+            m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             m_ShapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
             m_ShapeLightOverlapMode = serializedObject.FindProperty("m_ShapeLightOverlapMode");
@@ -339,6 +342,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 EditorGUILayout.Slider(m_ShapeLightFalloffSize, 0, 5, Styles.generalFalloffSize);
                 EditorGUILayout.Slider(m_FalloffCurve, 0, 1, Styles.generalFalloffIntensity);
                 Vector2 lastOffset = m_ShapeLightOffset.vector2Value;
+                EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
 
                 EditorGUILayout.PropertyField(m_ShapeLightOffset, Styles.shapeLightOffset);
                 if (lightProjectionType == Light2D.LightType.Parametric)
@@ -586,6 +590,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             {
                 Transform t = light.transform;
                 Vector3 posOffset = light.shapeLightOffset;
+                Vector3 falloffOffset = light.shapeLightFalloffOffset;
 
                 if (light.lightType == Light2D.LightType.Sprite)
                 {
@@ -626,9 +631,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
                         Vector3 featherEndPoint = (1 + light.shapeLightFalloffSize * 2.0f) * endPoint;
 
-
                         Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
-                        Handles.DrawLine(t.TransformPoint(featherStartPoint + posOffset), t.TransformPoint(featherEndPoint + posOffset));
+                        Handles.DrawLine(t.TransformPoint(featherStartPoint + posOffset + falloffOffset), t.TransformPoint(featherEndPoint + posOffset + falloffOffset));
 
                         startPoint = endPoint;
                         featherStartPoint = featherEndPoint;
@@ -643,9 +647,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     Handles.color = Color.white;
                     for (int i = 0; i < falloffShape.Count-1; i++)
                     {
-                        Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
+                        Handles.DrawLine(t.TransformPoint(falloffShape[i]+light.shapeLightFalloffOffset+light.shapeLightOffset), t.TransformPoint(falloffShape[i + 1] + light.shapeLightFalloffOffset + light.shapeLightOffset));
                     }
-                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1] + light.shapeLightFalloffOffset + light.shapeLightOffset), t.TransformPoint(falloffShape[0] + light.shapeLightFalloffOffset + light.shapeLightOffset));
                 }
             }
         }

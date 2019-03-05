@@ -36,9 +36,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return localBounds;
         }
 
-
         // Takes in a mesh that
-        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, Vector2 offset, float angle, int sides, float feathering, Color color, float volumeOpacity)
+        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, Vector2 offset, Vector2 falloffOffset, float angle, int sides, float feathering, Color color, float volumeOpacity)
         {
             if (mesh == null)
                 mesh = new Mesh();
@@ -54,8 +53,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * angle;
             }
-
-
 
             // Return a shape with radius = 1
             Vector3[] vertices;
@@ -83,6 +80,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
 
             Vector3 posOffset = new Vector3(offset.x, offset.y);
+            Vector3 featherOffset = new Vector3(falloffOffset.x, falloffOffset.y);
             Color transparentColor = new Color(color.r, color.g, color.b, 0);
             Color volumeColor = new Vector4(1, 1, 1, volumeOpacity);
             vertices[centerIndex] = Vector3.zero + posOffset;
@@ -93,13 +91,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             for (int i = 0; i < sides; i++)
             {
                 float endAngle = (i + 1) * radiansPerSide;
-                Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0) + posOffset;
+                Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
 
                 int vertexIndex;
                 if (feathering <= 0.0f)
                 {
                     vertexIndex = (i + 1) % sides;
-                    vertices[vertexIndex] = endPoint;
+                    vertices[vertexIndex] = endPoint + posOffset;
                     colors[vertexIndex] = color;
                     volumeColors[vertexIndex] = volumeColor;
 
@@ -113,8 +111,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     Vector3 endSplitPoint = (1.0f + feathering * 2.0f) * endPoint;
                     vertexIndex = (2 * i + 2) % (2 * sides);
 
-                    vertices[vertexIndex] = endSplitPoint;
-                    vertices[vertexIndex + 1] = endPoint;
+                    vertices[vertexIndex] = endSplitPoint + posOffset + featherOffset;
+                    vertices[vertexIndex + 1] = endPoint + posOffset;
 
                     colors[vertexIndex] = transparentColor;
                     colors[vertexIndex + 1] = color;
