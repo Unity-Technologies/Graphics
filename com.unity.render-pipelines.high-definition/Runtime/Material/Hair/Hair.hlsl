@@ -436,7 +436,7 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, float NdotL, PreLightData preLightData, 
         // Double-sided Lambert.
         cbxdf.diffR = Lambert() * saturate(NdotL);
         // Morten's rim lighting hack.
-        cbxdf.diffT = pow(saturate(-LdotV), 3.0) * pow(1 - preLightData.NdotV * preLightData.NdotV, 5.0);
+        cbxdf.diffT = Lambert() * pow(saturate(-LdotV), 3.0) * pow(1 - preLightData.NdotV * preLightData.NdotV, 5.0);
     #endif
         // Split away & kill spec trans as artists don't like it.
         cbxdf.specR = F * (hairSpec1 + hairSpec2) * saturate(NdotL) * saturate(preLightData.NdotV * FLT_MAX);
