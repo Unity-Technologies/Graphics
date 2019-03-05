@@ -409,25 +409,58 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.EndHorizontal();
         }
 
-        private Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, ref float angle)
+        private Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, bool useCapOffset, ref float angle)
         {
+            float oldAngle = angle;
+
             float angleBy2 = (angle / 2) * (leftAngle ? -1.0f : 1.0f);
             Vector3 trcwPos = Quaternion.AngleAxis(angleBy2, -transform.forward) * (transform.up);
             Vector3 cwPos = transform.position + trcwPos * (radius + offset);
 
+            float direction = leftAngle ? 1 : -1;
+
+            // Offset the handle
+            float size = .25f * capSize;
+
+            Vector3 handleOffset = useCapOffset ? rotation * new Vector3(direction * size, 0, 0) : Vector3.zero;
+
             EditorGUI.BeginChangeCheck();
-            Vector3 cwHandle = Handles.Slider2D(cwPos, Vector3.forward, rotation * Vector3.up, rotation * Vector3.right, capSize, capFunc, Vector3.zero);
+            var id = GUIUtility.GetControlID("AngleSlider".GetHashCode(), FocusType.Passive);
+            Vector3 cwHandle = Handles.Slider2D(id, cwPos, handleOffset, Vector3.forward, rotation * Vector3.up, rotation * Vector3.right, capSize, capFunc, Vector3.zero);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 toCwHandle = (transform.position - cwHandle).normalized;
+
                 angle = 360 - 2 * Quaternion.Angle(Quaternion.FromToRotation(transform.up, toCwHandle), Quaternion.identity);
                 angle = Mathf.Round(angle * 100) / 100f;
+
+                float side = Vector3.Dot(direction * transform.right, toCwHandle);
+                if (side < 0)
+                {
+                    if (oldAngle < 180)
+                        angle = 0;
+                    else 
+                        angle = 360;
+                }
             }
 
             if (drawLine)
                 Handles.DrawLine(transform.position, cwHandle);
 
             return cwHandle;
+        }
+
+        private void DEBUG_DrawCaps(Vector3 position, Quaternion rotation, float size)
+        {
+            Vector3 topLeft = rotation * new Vector3(-size, size, 0) + position;
+            Vector3 topRight = rotation * new Vector3(size, size, 0) + position;
+            Vector3 bottomRight = rotation * new Vector3(size, -size, 0) + position;
+            Vector3 bottomLeft = rotation * new Vector3(-size, -size, 0) + position;
+
+            Handles.DrawLine(topLeft, topRight);
+            Handles.DrawLine(topRight, bottomRight);
+            Handles.DrawLine(bottomRight, bottomLeft);
+            Handles.DrawLine(bottomLeft, topLeft);
         }
 
         private float DrawAngleHandle(Transform transform, float radius, float offset, Handles.CapFunction capLeft, Handles.CapFunction capRight, ref float angle)
@@ -437,10 +470,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             float handleSize = HandleUtility.GetHandleSize(transform.position) * s_AngleCapSize;
 
             Quaternion rotLt = Quaternion.AngleAxis(-angle / 2, -transform.forward) * transform.rotation;
-            DrawAngleSlider2D(transform, rotLt, radius, handleOffset, capLeft, handleSize, true, true, ref angle);
+            DrawAngleSlider2D(transform, rotLt, radius, handleOffset, capLeft, handleSize, true, true, true, ref angle);
 
             Quaternion rotRt = Quaternion.AngleAxis(angle / 2, -transform.forward) * transform.rotation;
-            DrawAngleSlider2D(transform, rotRt, radius, handleOffset, capRight, handleSize, false, true, ref angle);
+            DrawAngleSlider2D(transform, rotRt, radius, handleOffset, capRight, handleSize, false, true, true, ref angle);
 
             return angle - old;
         }
@@ -469,6 +502,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (diff != 0.0f)
                 light.pointLightInnerAngle = light.pointLightInnerAngle < light.pointLightOuterAngle ? light.pointLightInnerAngle : light.pointLightOuterAngle;
 
+            light.pointLightInnerAngle = Mathf.Min(light.pointLightInnerAngle, light.pointLightOuterAngle);
+
             Handles.color = oldColor;
         }
 
@@ -495,7 +530,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             float outerRadius = light.pointLightOuterRadius;
             EditorGUI.BeginChangeCheck();
-            Vector3 returnPos = DrawAngleSlider2D(light.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUp, handleSize, false, false, ref dummy);
+            Vector3 returnPos = DrawAngleSlider2D(light.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUp, handleSize, false, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 var vec = (returnPos - light.transform.position).normalized;
@@ -509,7 +544,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.color = Color.gray;
             float innerRadius = light.pointLightInnerRadius;
             EditorGUI.BeginChangeCheck();
-            returnPos = DrawAngleSlider2D(light.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDown, handleSize, true, false, ref dummy);
+            returnPos = DrawAngleSlider2D(light.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDown, handleSize, true, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 innerRadius = (returnPos - light.transform.position).magnitude;
