@@ -266,8 +266,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         private void OnPointLight(SerializedObject serializedObject)
         {
-            EditorGUI.indentLevel++;
-
             EditorGUILayout.PropertyField(m_PointLightQuality, Styles.pointLightQuality);
 
             EditorGUI.BeginChangeCheck();
@@ -296,8 +294,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (m_PointInnerRadius.floatValue < 0) m_PointInnerRadius.floatValue = 0;
             if (m_PointOuterRadius.floatValue < 0) m_PointOuterRadius.floatValue = 0;
             if (m_PointZDistance.floatValue < 0) m_PointZDistance.floatValue = 0;
-
-            EditorGUI.indentLevel--;
         }
 
         private bool OnShapeLight(Light2D.LightType lightProjectionType, bool changedType, SerializedObject serializedObject)
@@ -310,7 +306,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             bool updateMesh = false;
 
-            EditorGUI.indentLevel++;
             if (lightProjectionType == Light2D.LightType.Sprite)
             {
                 EditorGUI.BeginChangeCheck();
@@ -352,7 +347,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.PropertyField(m_ShapeLightOverlapMode, Styles.shapeLightOverlapMode);
             EditorGUILayout.PropertyField(m_ShapeLightOrder, Styles.shapeLightOrder);
 
-            EditorGUI.indentLevel--;
 
             return updateMesh;
         }
