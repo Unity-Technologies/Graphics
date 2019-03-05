@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed metric distance that changed along size in DensityVolume
 - Fixed DensityVolume shape handles that have not same behaviour in advance and normal edition mode
 - `camera.RenderToCubemap` use proper face culling
+- Fixed multi-edition light handles and inspector shapes
+- Fixed light's LightLayer field when multi-editing
 
 ### Added
 - Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering
