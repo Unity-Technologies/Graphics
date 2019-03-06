@@ -263,10 +263,7 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
-        public ScriptableRendererData rendererData
-        {
-            get => m_RendererData;
-        }
+        internal ScriptableRendererData scriptableRendererData => m_RendererData;
 
         public bool supportsCameraDepthTexture
         {

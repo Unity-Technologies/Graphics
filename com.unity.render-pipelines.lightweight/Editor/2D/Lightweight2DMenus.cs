@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (pipeline != null)
             {
                 LightweightRenderPipelineAsset asset = LightweightRenderPipeline.asset;
-                _2DRendererData assetData = asset.rendererData as _2DRendererData;
+                _2DRendererData assetData = asset.scriptableRendererData as _2DRendererData;
                 if (assetData != null)
                     return true;
             }
