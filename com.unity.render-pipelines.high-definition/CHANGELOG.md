@@ -6,9 +6,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.5.0-preview] - 2019-XX-XX
 
+### Added
+- Added depth-of-field support with stereo instancing
+- Adding real time area light shadow support
+- Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering
+
 ### Fixed
 - Fixed diffusion profile upgrade breaking package when upgrading to a new version
 - Fixed decals cropped by gizmo not updating correctly if prefab
+- Fixed an issue when enabling SSR on multiple view
+- Fixed edition of the intensity's unit field while selecting multiple lights
+- Fixed wrong calculation in soft voxelization for density volume
+- Fixed gizmo not working correctly with pre-exposure
+- Fixed issue with setting a not available RT when disabling motion vectors
+- Fixed planar reflection when looking at mirror normal
+- Fixed mutiselection issue with HDLight Inspector
+- Fixed HDAdditionalCameraData data migration
+- Fixed failing builds when light explorer window is open
+- Fixed cascade shadows border sometime causing artefacts between cascades
+- Restored shadows in the Cascade Shadow debug visualization
+- `camera.RenderToCubemap` use proper face culling
+
+### Changed
+- When rendering reflection probe disable all specular lighting and for metals use fresnelF0 as diffuse color for bake lighting.
 
 ## [6.4.0-preview] - 2019-02-21
 

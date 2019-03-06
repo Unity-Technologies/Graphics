@@ -15,8 +15,6 @@
 
 
 //-----------------------------------------------------------------------------
-#define CLEAR_COAT_ROUGHNESS 0.03
-#define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
 
 #define AUTO_PATCH_FOR_INCOMPLETE_BRDF_COLOR_TABLE // This requires importer version >= 0.1.5-preview or manually setting the diagonal clamping enable + scalings to offset the diagonal
 #define FLAKES_JUST_BTF
@@ -765,10 +763,15 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
+    // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnelF0)
+        ? bsdfData.fresnelF0
+        : preLightData.diffuseFGD * bsdfData.diffuseColor;
 #else
-    builtinData.bakeDiffuseLighting *= bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnelF0)
+        ? bsdfData.fresnelF0
+        : bsdfData.diffuseColor;
 #endif
     //TODO attenuate diffuse lighting for coat ie with (1.0 - preLightData.coatFGD)
 }

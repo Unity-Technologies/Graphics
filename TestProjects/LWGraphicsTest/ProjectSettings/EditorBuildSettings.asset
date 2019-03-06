@@ -6,144 +6,144 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/001_SimpleCube.unity
+    path: Assets/Scenes/001_SimpleCube.unity
     guid: d0462e56cffa64b7e86823f437fc329c
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/002_Camera_Clip.unity
+    path: Assets/Scenes/002_Camera_Clip.unity
     guid: 4be459bb4af62441893ba57ce669de7f
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/003_Camera_Ortho.unity
+    path: Assets/Scenes/003_Camera_Ortho.unity
     guid: f8c4973533e7b4ca58d3b2255e7384d6
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/004_Camera_TargetTexture.unity
+    path: Assets/Scenes/004_Camera_TargetTexture.unity
     guid: c678e78e9c06d44789d69ac8df08d375
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/005_LitBakedEmission.unity
+    path: Assets/Scenes/005_LitBakedEmission.unity
     guid: e23c793ace3c4a146a73360af1600fbd
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/006_LitShaderLightProbes.unity
+    path: Assets/Scenes/006_LitShaderLightProbes.unity
     guid: af9fe3931869d434196925b23cfece87
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/007_LitShaderMaps.unity
+    path: Assets/Scenes/007_LitShaderMaps.unity
     guid: 7f2ec65906a47474383300df9c0aad69
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/011_UnlitSprites.unity
+    path: Assets/Scenes/011_UnlitSprites.unity
     guid: c1aed1727cd63dd42882f4c9ebb99cf4
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/012_PBS_EnvironmentBRDF_Spheres.unity
+    path: Assets/Scenes/012_PBS_EnvironmentBRDF_Spheres.unity
     guid: fddcdd964deca1d42b2952f32f67f694
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/013_CameraMulti_Splitscreen.unity
+    path: Assets/Scenes/013_CameraMulti_Splitscreen.unity
     guid: 061267518b02f411c9c75f6b52f6d333
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/014_CameraMulti_MiniMap.unity
+    path: Assets/Scenes/014_CameraMulti_MiniMap.unity
     guid: 9225c2f5b8cf84f6bbe7cd83a8c22426
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/015_CameraMulti_FPSCam.unity
+    path: Assets/Scenes/015_CameraMulti_FPSCam.unity
     guid: 9d2d9ca35103040838283b3c356c0250
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/016_Lighting_Scene_Directional.unity
+    path: Assets/Scenes/016_Lighting_Scene_Directional.unity
     guid: 54170d1ce2ca64699a0d82056387d56f
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/017_Lighting_Scene_DirectionalBaked.unity
+    path: Assets/Scenes/017_Lighting_Scene_DirectionalBaked.unity
     guid: 245a2b08a4f72437193b06846a5c8e33
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/019_Lighting_Scene_PointLights.unity
+    path: Assets/Scenes/019_Lighting_Scene_PointLights.unity
     guid: c44973f9bcb9e469ea540fc8b0f0324a
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/020_Lighting_BasicDirectional.unity
+    path: Assets/Scenes/020_Lighting_BasicDirectional.unity
     guid: 212f11efb89a64145b37e753079f1b51
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/021_Lighting_BasicPoint.unity
+    path: Assets/Scenes/021_Lighting_BasicPoint.unity
     guid: af9516ec10a63479b981de0c95e3694d
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/022_Lighting_BasicSpot.unity
+    path: Assets/Scenes/022_Lighting_BasicSpot.unity
     guid: 332a75631f7a3420ab1e02475d98a1fc
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/023_Lighting_Mixed_Indirect.unity
+    path: Assets/Scenes/023_Lighting_Mixed_Indirect.unity
     guid: 99da9ba2c3d1f4b1d92f851028bb7d0a
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/026_Shader_PBRscene.unity
+    path: Assets/Scenes/026_Shader_PBRscene.unity
     guid: bcb8635ea84c143f0ae0823f1e9b6f25
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/024_Shader_PBRvalidation_Specular.unity
+    path: Assets/Scenes/024_Shader_PBRvalidation_Specular.unity
     guid: 2b6b74b7929ae4191b3b936c12236e0a
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/025_Shader_PBRvalidation_Metallic.unity
+    path: Assets/Scenes/025_Shader_PBRvalidation_Metallic.unity
     guid: a770620fcd2f84f248d06edf3744b2c0
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/027_PostProcessing.unity
+    path: Assets/Scenes/027_PostProcessing.unity
     guid: 3ca3376bc2cd549fa9a8b28d5f8acc97
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/028_PostProcessing_Custom.unity
+    path: Assets/Scenes/028_PostProcessing_Custom.unity
     guid: e563e287471b641a88f8cfdb13746b1a
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/029_Particles.unity
+    path: Assets/Scenes/029_Particles.unity
     guid: 65d99b408a8134214906126ccdea532f
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/031_Shader_GlossyEnvironmentSky.unity
+    path: Assets/Scenes/031_Shader_GlossyEnvironmentSky.unity
     guid: 2d287b701f8e1bf429c14805ac505eb9
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/032_Shader_GlossyEnvironmentColor.unity
+    path: Assets/Scenes/032_Shader_GlossyEnvironmentColor.unity
     guid: 375d3d0d24cdfe14aa69d3d595acb1c3
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/033_Shader_HighlightsEnvironmentGradientSH.unity
+    path: Assets/Scenes/033_Shader_HighlightsEnvironmentGradientSH.unity
     guid: ff592545ad5dd744893d54a73f85b2cc
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
+    path: Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
     guid: e346f8573410f414ea2a8a4740526c88
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/035_Shader_TerrainShaders.unity
+    path: Assets/Scenes/035_Shader_TerrainShaders.unity
     guid: 770b86964e87d47e4bdbafa425ccd238
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity
+    path: Assets/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity
     guid: 7a8ef7ce062f0465b9e493dd5730cecb
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/037_Particles_Standard.unity
+    path: Assets/Scenes/037_Particles_Standard.unity
     guid: 67bc76c89479b264aa4a5c176433ec3a
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/040_UpgradeScene.unity
+    path: Assets/Scenes/040_UpgradeScene.unity
     guid: 5b50bbd7a4d4f4f49b5a50ebed1ba42c
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/041_Lighting_BasicArea.unity
+    path: Assets/Scenes/041_Lighting_BasicArea.unity
     guid: cd37c7e9d54e74dd7add9b40a2698ada
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/042_Lighting_Scene_VertexLighting.unity
+    path: Assets/Scenes/042_Lighting_Scene_VertexLighting.unity
     guid: 700788280c77e4c63a4d1919a8bf97e3
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/043_Lighting_Mixed_ShadowMask.unity
+    path: Assets/Scenes/043_Lighting_Mixed_ShadowMask.unity
     guid: a27d5eebd041b42dab7ad89ce8249e81
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/044_Lighting_ReflectionProbe.unity
+    path: Assets/Scenes/044_Lighting_ReflectionProbe.unity
     guid: 0feef353efdf045989e9c2b501774338
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/045_CustomLWPipe.unity
+    path: Assets/Scenes/045_CustomLWPipe.unity
     guid: 349df85634812cd4e9157f31eace4abe
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/046_Camera_OpaqueTexture.unity
+    path: Assets/Scenes/046_Camera_OpaqueTexture.unity
     guid: 2614aae0a36c9456b9e20ac481fbda4c
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/047_Lighting_DirectionalCascades.unity
+    path: Assets/Scenes/047_Lighting_DirectionalCascades.unity
     guid: 4e49334e530744e0eaeaa5e3a7e874ca
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/048_Lighting_LocalShadows.unity
+    path: Assets/Scenes/048_Lighting_LocalShadows.unity
     guid: 099c78bd4d7e8453b9dbb217cf06cac2
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/049_Lighting_Mixed_Subtractive.unity
+    path: Assets/Scenes/049_Lighting_Mixed_Subtractive.unity
     guid: ffaad23a2c7fc41b48e4e7ab7e9273e4
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/050_Shader_Graphs.unity
+    path: Assets/Scenes/050_Shader_Graphs.unity
     guid: 6e7a83866a1e446b3becf7972371c5d0
-  - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/052_LWCallbacks.unity
+  - enabled: 1
+    path: Assets/Scenes/052_LWCallbacks.unity
     guid: 58d22e8497ba91141b3ae7abd7b0bb41
   - enabled: 0
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/053_UnlitShader.unity
+    path: Assets/Scenes/053_UnlitShader.unity
     guid: a28e1d48e6e3c0e42a4050ab4e770bf8
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/054_Lighting_Attenuation.unity
+    path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
   - enabled: 1
-    path: Packages/com.unity.testing.srp.lightweight/Tests/Scenes/055_Lighting_Attenuation_Spot_Point.unity
+    path: Assets/Scenes/055_Lighting_Attenuation_Spot_Point.unity
     guid: 362b9a0c21a9b4e798504044c7604e80
   m_configObjects: {}

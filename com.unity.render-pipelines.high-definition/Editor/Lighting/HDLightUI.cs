@@ -129,11 +129,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     DrawEmissionAdvancedContent
                     ),
                 CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric),
-#if ENABLE_RAYTRACING
                 CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Tube,
-#else
-                CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Rectangle && serialized.editorLightShape != LightShape.Tube,
-#endif
                     CED.AdvancedFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
                         (serialized, owner) => GetAdvanced(Advanceable.Shadow, serialized, owner),
                         (serialized, owner) => SwitchAdvanced(Advanceable.Shadow, serialized, owner),
@@ -153,17 +149,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowQuality.Low, serialized, owner),
                                 CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
 
-#if ENABLE_RAYTRACING
                             CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Rectangle && serialized.editorLightShape != LightShape.Tube,
-#endif
-                            CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
-
-#if ENABLE_RAYTRACING
+                                CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
                             ),
-#else
-                            ,
-#endif
-                            CED.Conditional((serialized, owner) => serialized.settings.isBakedOrMixed || serialized.settings.isCompletelyBaked,
+                            CED.Conditional((serialized, owner) => (serialized.settings.isBakedOrMixed || serialized.settings.isCompletelyBaked) && serialized.editorLightShape != LightShape.Rectangle,
                                 CED.space,
                                 CED.FoldoutGroup(s_Styles.bakedShadowsSubHeader, Expandable.BakedShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawBakedShadowsContent))
                             ),
@@ -362,12 +351,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 serialized.serializedLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
         }
 
-        static LightUnit LightIntensityUnitPopup(SerializedHDLight serialized, Editor owner)
+        static void DrawLightIntensityUnitPopup(SerializedHDLight serialized, Editor owner)
         {
             LightShape shape = serialized.editorLightShape;
             LightUnit selectedLightUnit;
             LightUnit oldLigthUnit = (LightUnit)serialized.serializedLightData.lightUnit.enumValueIndex;
 
+            EditorGUI.showMixedValue = serialized.serializedLightData.lightUnit.hasMultipleDifferentValues;
             EditorGUI.BeginChangeCheck();
             switch (shape)
             {
@@ -387,10 +377,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((AreaLightUnit)serialized.serializedLightData.lightUnit.enumValueIndex);
                     break;
             }
-            if (EditorGUI.EndChangeCheck())
-                ConvertLightIntensity(oldLigthUnit, selectedLightUnit, serialized, owner);
 
-            return selectedLightUnit;
+            EditorGUI.showMixedValue = false;
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                ConvertLightIntensity(oldLigthUnit, selectedLightUnit, serialized, owner);
+                serialized.serializedLightData.lightUnit.enumValueIndex = (int)selectedLightUnit;
+            }
         }
 
         static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, SerializedHDLight serialized, Editor owner)
@@ -474,7 +468,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(serialized.serializedLightData.intensity, s_Styles.lightIntensity);
-            serialized.serializedLightData.lightUnit.enumValueIndex = (int)LightIntensityUnitPopup(serialized, owner);
+            DrawLightIntensityUnitPopup(serialized, owner);
             EditorGUILayout.EndHorizontal();
             if (EditorGUI.EndChangeCheck())
             {
@@ -603,31 +597,44 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 serialized.settings.shadowsType.enumValueIndex = newShadowsEnabled ? (int)LightShadows.Hard : (int)LightShadows.None;
             }
 
-            #if ENABLE_RAYTRACING
-            using (new EditorGUI.DisabledScope(!newShadowsEnabled || LightShape.Rectangle == serialized.editorLightShape))
-            #else
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
-            #endif
             {
-                EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
-                EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, 10f, s_Styles.shadowNearPlane);
-
-                if (serialized.settings.isMixed)
+#if ENABLE_RAYTRACING
+                if(LightShape.Rectangle == serialized.editorLightShape)
                 {
-                    using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
+                    EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
+                }
+                if (!serialized.serializedLightData.useRayTracedShadows.boolValue || LightShape.Rectangle != serialized.editorLightShape)
+#endif
+                {
+                    EditorGUILayout.DelayedIntField(serialized.serializedShadowData.resolution, s_Styles.shadowResolution);
+                    EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, 10f, s_Styles.shadowNearPlane);
+
+                    if (serialized.settings.isMixed)
                     {
-                        EditorGUI.BeginChangeCheck();
-                        ShadowmaskMode shadowmask = serialized.serializedLightData.nonLightmappedOnly.boolValue ? ShadowmaskMode.ShadowMask : ShadowmaskMode.DistanceShadowmask;
-                        shadowmask = (ShadowmaskMode)EditorGUILayout.EnumPopup(s_Styles.nonLightmappedOnly, shadowmask);
-                        if (EditorGUI.EndChangeCheck())
+                        using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
                         {
-                            serialized.serializedLightData.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
-                            ((Light)owner.target).lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                            EditorGUI.BeginChangeCheck();
+                            ShadowmaskMode shadowmask = serialized.serializedLightData.nonLightmappedOnly.boolValue ? ShadowmaskMode.ShadowMask : ShadowmaskMode.DistanceShadowmask;
+                            shadowmask = (ShadowmaskMode)EditorGUILayout.EnumPopup(s_Styles.nonLightmappedOnly, shadowmask);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                serialized.serializedLightData.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
+                                ((Light)owner.target).lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                            }
                         }
                     }
+                    if (serialized.editorLightShape == LightShape.Rectangle)
+                    {
+                        EditorGUILayout.Slider(serialized.serializedLightData.areaLightShadowCone, 10.0f, 179.0f, s_Styles.areaLightShadowCone);
+                    }
+                    else
+                    {
+                        EditorGUILayout.Slider(serialized.serializedShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
+                    }
+
                 }
-                
-                EditorGUILayout.Slider(serialized.serializedShadowData.viewBiasScale, 0.0f, 15.0f, s_Styles.viewBiasScale);
+
             }
         }
 
@@ -636,25 +643,37 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUI.DisabledScope(serialized.settings.shadowsType.enumValueIndex == 0))
             {
-                EditorGUILayout.Slider(serialized.serializedShadowData.viewBiasMin, 0.0f, 5.0f, s_Styles.viewBiasMin);
-                //EditorGUILayout.PropertyField(serialized.serializedShadowData.viewBiasMax, s_Styles.viewBiasMax);
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.Slider(serialized.serializedShadowData.normalBiasMin, 0.0f, 5.0f, s_Styles.normalBiasMin);
-                if (EditorGUI.EndChangeCheck())
+
+                if(serialized.editorLightShape == LightShape.Rectangle)
                 {
-                    // Link min to max and don't expose normalBiasScale (useless when min == max)
-                    serialized.serializedShadowData.normalBiasMax.floatValue = serialized.serializedShadowData.normalBiasMin.floatValue;
+                    EditorGUILayout.Slider(serialized.serializedLightData.evsmExponent, 5.0f, 42.0f, s_Styles.evsmExponent);
+                    EditorGUILayout.Slider(serialized.serializedLightData.evsmLightLeakBias, 0.0f, 1.0f, s_Styles.evsmLightLeakBias);
+                    EditorGUILayout.Slider(serialized.serializedLightData.evsmVarianceBias, 0.0f, 0.001f, s_Styles.evsmVarianceBias);
+                    EditorGUILayout.IntSlider(serialized.serializedLightData.evsmBlurPasses, 0, 8, s_Styles.evsmAdditionalBlurPasses);
                 }
-                //EditorGUILayout.PropertyField(serialized.serializedShadowData.normalBiasMax, s_Styles.normalBiasMax);
-                //EditorGUILayout.PropertyField(serialized.serializedShadowData.normalBiasScale, s_Styles.normalBiasScale);
-                //EditorGUILayout.PropertyField(serialized.serializedShadowData.sampleBiasScale, s_Styles.sampleBiasScale);
-                EditorGUILayout.PropertyField(serialized.serializedShadowData.edgeLeakFixup, s_Styles.edgeLeakFixup);
-                if (serialized.serializedShadowData.edgeLeakFixup.boolValue)
+                else
                 {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(serialized.serializedShadowData.edgeToleranceNormal, s_Styles.edgeToleranceNormal);
-                    EditorGUILayout.Slider(serialized.serializedShadowData.edgeTolerance, 0.0f, 1.0f, s_Styles.edgeTolerance);
-                    EditorGUI.indentLevel--;
+                    EditorGUILayout.Slider(serialized.serializedShadowData.viewBiasMin, 0.0f, 5.0f, s_Styles.viewBiasMin);
+                    //EditorGUILayout.PropertyField(serialized.serializedShadowData.viewBiasMax, s_Styles.viewBiasMax);
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.Slider(serialized.serializedShadowData.normalBiasMin, 0.0f, 5.0f, s_Styles.normalBiasMin);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        // Link min to max and don't expose normalBiasScale (useless when min == max)
+                        serialized.serializedShadowData.normalBiasMax.floatValue = serialized.serializedShadowData.normalBiasMin.floatValue;
+                    }
+                    //EditorGUILayout.PropertyField(serialized.serializedShadowData.normalBiasMax, s_Styles.normalBiasMax);
+                    //EditorGUILayout.PropertyField(serialized.serializedShadowData.normalBiasScale, s_Styles.normalBiasScale);
+                    //EditorGUILayout.PropertyField(serialized.serializedShadowData.sampleBiasScale, s_Styles.sampleBiasScale);
+                    EditorGUILayout.PropertyField(serialized.serializedShadowData.edgeLeakFixup, s_Styles.edgeLeakFixup);
+                    if (serialized.serializedShadowData.edgeLeakFixup.boolValue)
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(serialized.serializedShadowData.edgeToleranceNormal, s_Styles.edgeToleranceNormal);
+                        EditorGUILayout.Slider(serialized.serializedShadowData.edgeTolerance, 0.0f, 1.0f, s_Styles.edgeTolerance);
+                        EditorGUI.indentLevel--;
+                    }
+
                 }
 
                 EditorGUILayout.Slider(serialized.serializedShadowData.shadowDimmer, 0.0f, 1.0f, s_Styles.shadowDimmer);
