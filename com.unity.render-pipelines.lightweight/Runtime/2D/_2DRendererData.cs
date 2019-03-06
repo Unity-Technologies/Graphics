@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             m_LightOperations[0].enabled = true;
             m_LightOperations[0].name = "Default";
-            m_LightOperations[0].blendMode = _2DLightOperationDescription.BlendMode.Modulate;
+            m_LightOperations[0].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
             m_LightOperations[0].renderTextureScale = 1.0f;
             m_LightOperations[0].globalColor = new Color(0.2f,0.2f,0.2f,1.0f);
 
@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 m_LightOperations[i].enabled = false;
                 m_LightOperations[i].name = "Disabled";
-                m_LightOperations[i].blendMode = _2DLightOperationDescription.BlendMode.Modulate;
+                m_LightOperations[i].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
                 m_LightOperations[i].renderTextureScale = 1.0f;
                 m_LightOperations[i].globalColor = Color.black;
             }

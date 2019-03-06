@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         internal enum BlendMode
         {
             Additive = 0,
-            Modulate = 1,
+            Multiply = 1,
             Subtractive = 2,
             Custom = 99
         }
@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                         result.x = 0.0f;
                         result.y = 1.0f;
                         break;
-                    case BlendMode.Modulate:
+                    case BlendMode.Multiply:
                         result.x = 1.0f;
                         result.y = 0.0f;
                         break;
