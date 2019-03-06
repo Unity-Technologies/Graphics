@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Utils
         SerializedProperty m_ExecuteInEditor;
 
         GenericMenu m_Menu;
-        Editor m_ElementEditor;
+        VFXBinderEditor m_ElementEditor;
 
         static readonly Color validColor = new Color(0.5f, 1.0f, 0.2f);
         static readonly Color invalidColor = new Color(1.0f, 0.5f, 0.2f);
@@ -194,7 +194,11 @@ namespace UnityEditor.VFX.Utils
         public void UpdateSelection(int selected)
         {
             if (selected >= 0)
-                CreateCachedEditor(m_Elements.GetArrayElementAtIndex(selected).objectReferenceValue, typeof(Editor), ref m_ElementEditor);
+            {
+                Editor editor = null;
+                CreateCachedEditor(m_Elements.GetArrayElementAtIndex(selected).objectReferenceValue, typeof(VFXBinderEditor), ref editor);
+                m_ElementEditor = editor as VFXBinderEditor;
+            }
             else
                 m_ElementEditor = null;
         }
