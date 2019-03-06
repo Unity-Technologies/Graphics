@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed `GetCameraClearFlag` from `ScriptableRenderer`.
 
 ### Fixed
+- Fixed y-flip in VR when post-processing is active.
 - Fixed occlusion mesh for VR not rendering before rendering opaques.
 - Enabling or disabling SRP Batcher in runtime works now.
 - Fixed video player recorder when post-processing is enabled.

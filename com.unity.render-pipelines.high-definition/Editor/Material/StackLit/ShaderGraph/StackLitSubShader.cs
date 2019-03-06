@@ -177,7 +177,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 StackLitMasterNode.PositionSlotId
             },
-            UseInPreview = false,
+            UseInPreview = true,
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
