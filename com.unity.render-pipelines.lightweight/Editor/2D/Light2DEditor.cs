@@ -670,7 +670,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 {
                     Light2D light = (Light2D)targets[i];
                     light.UpdateMesh();
-                    light.UpdateCookieSpriteMaterials();
                 }
             }
         }

@@ -61,7 +61,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         int         m_PreviousLightOperationIndex;
         Color       m_PreviousColor                 = Color.white;
         float       m_PreviousLightVolumeOpacity;
-        Sprite      m_PreviousLightCookieSprite;
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
@@ -165,14 +164,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             GetMesh(true);
         }
 
-        internal void UpdateCookieSpriteMaterials()
-        {
-            s_ShapeCookieSpriteAdditiveMaterial = null;
-            s_ShapeCookieSpriteAlphaBlendMaterial = null;
-            s_ShapeCookieSpriteVolumeMaterial = null;
-            GetMaterial();
-        }
-
         internal bool IsLitLayer(int layer)
         {
             return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
@@ -201,17 +192,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         BoundingSphere GetBoundingSphere()
         {
-            return IsShapeLight(m_LightType) ? GetShapeLightBoundingSphere() : GetPointLightBoundingSphere();
-        }
-
-        internal Material GetVolumeMaterial()
-        {
-            return IsShapeLight(m_LightType) ? GetShapeLightVolumeMaterial() : GetPointLightVolumeMaterial();
-        }
-
-        internal Material GetMaterial()
-        {
-            return IsShapeLight(m_LightType) ? GetShapeLightMaterial() : GetPointLightMaterial();
+            return IsShapeLight() ? GetShapeLightBoundingSphere() : GetPointLightBoundingSphere();
         }
 
         internal Mesh GetMesh(bool forceUpdate = false)
@@ -320,14 +301,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
 
 #if UNITY_EDITOR
-            rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PrevShapePathHash);
+            rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PreviousShapePathHash);
 #endif
 
             if (rebuildMesh)
                 UpdateMesh();
-
-            if (LightUtility.CheckForChange(m_LightCookieSprite, ref m_PreviousLightCookieSprite))
-                UpdateCookieSpriteMaterials();
         }
 
         private void OnDrawGizmos()

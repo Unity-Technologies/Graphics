@@ -16,16 +16,26 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             "USE_SHAPE_LIGHT_TYPE_3"
         };
 
+        static _2DRendererData s_RendererData;
         static _2DLightOperationDescription[] s_LightOperations;
         static RenderTargetHandle[] s_RenderTargets;
         static bool[] s_RenderTargetsDirty;
         static RenderTargetHandle s_NormalsTarget;
         static Texture s_LightLookupTexture;
         static Texture s_FalloffLookupTexture;
+        static Material s_ShapeCookieSpriteAdditiveMaterial;
+        static Material s_ShapeCookieSpriteAlphaBlendMaterial;
+        static Material s_ShapeVertexColoredAdditiveMaterial;
+        static Material s_ShapeVertexColoredAlphaBlendMaterial;
+        static Material s_ShapeCookieSpriteVolumeMaterial;
+        static Material s_ShapeVertexColoredVolumeMaterial;
+        static Material s_PointLightMaterial;
+        static Material s_PointLightVolumeMaterial;
 
-        static public void Setup(_2DLightOperationDescription[] lightTypes)
+        static public void Setup(_2DRendererData rendererData)
         {
-            s_LightOperations = lightTypes;
+            s_RendererData = rendererData;
+            s_LightOperations = rendererData.lightOperations;
 
             if (s_RenderTargets == null)
             {
@@ -95,9 +105,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             foreach (var light in lights)
             {
-                if (light != null && Light2D.IsShapeLight(light.lightType) == isShapeLight  && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null && light.IsShapeLight() == isShapeLight  && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
-                    Material shapeLightMaterial = light.GetMaterial();
+                    Material shapeLightMaterial = GetMaterial(light);
                     if (shapeLightMaterial != null)
                     {
                         Mesh lightMesh = light.GetMesh();
@@ -110,6 +120,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                             if (isShapeLight)
                             {
+                                if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                                    cmdBuffer.SetGlobalTexture("_MainTex", light.lightCookieSprite.texture);
+
                                 cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
                             }
                             else
@@ -139,9 +152,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     int topMostLayer = light.GetTopMostLitLayer();
                     if (layerToRender == topMostLayer)
                     {
-                        if (light != null && Light2D.IsShapeLight(light.lightType) == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                        if (light != null && light.IsShapeLight() == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
-                            Material shapeLightVolumeMaterial = light.GetVolumeMaterial();
+                            Material shapeLightVolumeMaterial = GetVolumeMaterial(light);
                             if (shapeLightVolumeMaterial != null)
                             {
                                 Mesh lightMesh = light.GetMesh();
@@ -151,6 +164,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                                     if (renderShapeLights)
                                     {
+                                        if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                                            cmdBuffer.SetGlobalTexture("_MainTex", light.lightCookieSprite.texture);
+
                                         cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
                                     }
                                     else
@@ -363,6 +379,88 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 cmdBuffer.EndSample(sampleName);
             }
+        }
+
+        static Material GetShapeLightMaterial(Light2D light)
+        {
+            if (light.lightType == Light2D.LightType.Sprite)
+            {
+                if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
+                {
+                    if (s_ShapeCookieSpriteAdditiveMaterial == null)
+                        s_ShapeCookieSpriteAdditiveMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeCookieSpriteAdditiveShader);
+
+                    return s_ShapeCookieSpriteAdditiveMaterial;
+                }
+                else
+                {
+                    if (s_ShapeCookieSpriteAlphaBlendMaterial == null)
+                        s_ShapeCookieSpriteAlphaBlendMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeCookieSpriteAlphaBlendShader);
+
+                    return s_ShapeCookieSpriteAlphaBlendMaterial;
+                }
+            }
+            else
+            {
+                if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
+                {
+                    if (s_ShapeVertexColoredAdditiveMaterial == null)
+                        s_ShapeVertexColoredAdditiveMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeVertexColoredAdditiveShader);
+
+                    return s_ShapeVertexColoredAdditiveMaterial;
+                }
+                else
+                {
+                    if (s_ShapeVertexColoredAlphaBlendMaterial == null)
+                        s_ShapeVertexColoredAlphaBlendMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeVertexColoredAlphaBlendShader);
+
+                    return s_ShapeVertexColoredAlphaBlendMaterial;
+                }
+            }
+        }
+
+        static Material GetShapeLightVolumeMaterial(Light2D light)
+        {
+            if (light.lightType == Light2D.LightType.Sprite)
+            {
+                if (s_ShapeCookieSpriteVolumeMaterial == null)
+                    s_ShapeCookieSpriteVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeCookieSpriteVolumeShader);
+
+                return s_ShapeCookieSpriteVolumeMaterial;
+            }
+            else
+            {
+                if (s_ShapeVertexColoredVolumeMaterial == null)
+                    s_ShapeVertexColoredVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeVertexColoredVolumeShader);
+
+                return s_ShapeVertexColoredVolumeMaterial;
+            }
+        }
+
+        static Material GetPointLightMaterial()
+        {
+            if (s_PointLightMaterial == null)
+                s_PointLightMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.pointLightShader);
+
+            return s_PointLightMaterial;
+        }
+
+        static Material GetPointLightVolumeMaterial()
+        {
+            if (s_PointLightVolumeMaterial == null)
+                s_PointLightVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.pointLightVolumeShader);
+
+            return s_PointLightVolumeMaterial;
+        }
+
+        static Material GetMaterial(Light2D light)
+        {
+            return light.IsShapeLight() ? GetShapeLightMaterial(light) : GetPointLightMaterial();
+        }
+
+        static Material GetVolumeMaterial(Light2D light)
+        {
+            return light.IsShapeLight() ? GetShapeLightVolumeMaterial(light) : GetPointLightVolumeMaterial();
         }
     }
 }

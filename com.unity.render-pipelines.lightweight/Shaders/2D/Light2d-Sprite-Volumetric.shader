@@ -1,9 +1,9 @@
-﻿Shader "Hidden/Light2d-Sprite-Volumetric"
+Shader "Hidden/Light2d-Sprite-Volumetric"
 {
-    Properties
+    /*Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-	}
+	}*/
 
 	HLSLINCLUDE
 	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
