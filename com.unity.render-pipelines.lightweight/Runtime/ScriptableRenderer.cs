@@ -1,304 +1,190 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Diagnostics;
-using Unity.Collections;
-using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.Rendering.LWRP;
-using UnityEngine.Rendering;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
-    public sealed class ScriptableRenderer
+    /// <summary>
+    ///  Class <c>ScriptableRenderer</c> implements a rendering strategy. It describes how culling and lighting works and
+    /// the effects supported.
+    /// 
+    ///  A renderer can be used for all cameras or be overridden on a per-camera basis. It will implement light culling and setup
+    /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. The renderer can be extended to support more effect with additional
+    ///  <c>ScriptableRendererFeature</c>. Resources for the renderer are serialized in <c>ScriptableRendererData</c>.
+    /// 
+    /// he renderer resources are serialized in <c>ScriptableRendererData</c>. 
+    /// <seealso cref="ScriptableRendererData"/>
+    /// <seealso cref="ScriptableRendererFeature"/>
+    /// <seealso cref="ScriptableRenderPass"/>
+    /// </summary>
+    public abstract class ScriptableRenderer
     {
-        // When there is no support to StruturedBuffer lights data is setup in a constants data
-        // we also limit the amount of lights that can be shaded per object to simplify shading
-        // in these low end platforms (GLES 2.0 and GLES 3.0)
-
-        // Amount of Lights that can be shaded per object (in the for loop in the shader)
-        // This uses unity_4LightIndices0 to store 4 per-object light indices
-        const int k_MaxPerObjectAdditionalLightsNoStructuredBuffer = 4;
-
-        // Light data is stored in a constant buffer (uniform array)
-        // This value has to match MAX_VISIBLE_LIGHTS in Input.hlsl
-        const int k_MaxVisibleAdditionalLightsNoStructuredBuffer = 16;
-
-        // Point and Spot Lights are stored in a StructuredBuffer.
-        // We shade the amount of light per-object as requested in the pipeline asset and
-        // we can store a great deal of lights in our global light buffer
-        const int k_MaxVisibleAdditioanlLightsStructuredBuffer = 4096;
-
-        public static bool useStructuredBufferForLights
+        public RenderTargetIdentifier cameraColorTarget
         {
-            get
-            {
-                // TODO: Graphics Emulation are breaking StructuredBuffers disabling it for now until
-                // we have a fix for it
-                return false;
-                // return SystemInfo.supportsComputeShaders &&
-                //        SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
-                //        !Application.isMobilePlatform &&
-                //        Application.platform != RuntimePlatform.WebGLPlayer;
-            }
+            get => m_CameraColorTarget;
         }
 
-        public int maxPerObjectAdditionalLights
+        public RenderTargetIdentifier cameraDepth
         {
-            get
-            {
-                return useStructuredBufferForLights ?
-                    8 : k_MaxPerObjectAdditionalLightsNoStructuredBuffer;
-            }
+            get => m_CameraDepthTarget;
         }
 
-        public int maxVisibleAdditionalLights
+        protected List<ScriptableRendererFeature> rendererFeatures
         {
-            get
-            {
-                return useStructuredBufferForLights ?
-                    k_MaxVisibleAdditioanlLightsStructuredBuffer :
-                    k_MaxVisibleAdditionalLightsNoStructuredBuffer;
-            }
+            get => m_RendererFeatures;
         }
 
-        public PostProcessRenderContext postProcessingContext { get; private set; }
-
-        public ComputeBuffer perObjectLightIndices { get; private set; }
-
-        static Mesh s_FullscreenMesh = null;
-        static Mesh fullscreenMesh
+        protected List<ScriptableRenderPass> activeRenderPassQueue
         {
-            get
-            {
-                if (s_FullscreenMesh != null)
-                    return s_FullscreenMesh;
-
-                float topV = 1.0f;
-                float bottomV = 0.0f;
-
-                s_FullscreenMesh = new Mesh { name = "Fullscreen Quad" };
-                s_FullscreenMesh.SetVertices(new List<Vector3>
-                {
-                    new Vector3(-1.0f, -1.0f, 0.0f),
-                    new Vector3(-1.0f,  1.0f, 0.0f),
-                    new Vector3(1.0f, -1.0f, 0.0f),
-                    new Vector3(1.0f,  1.0f, 0.0f)
-                });
-
-                s_FullscreenMesh.SetUVs(0, new List<Vector2>
-                {
-                    new Vector2(0.0f, bottomV),
-                    new Vector2(0.0f, topV),
-                    new Vector2(1.0f, bottomV),
-                    new Vector2(1.0f, topV)
-                });
-
-                s_FullscreenMesh.SetIndices(new[] { 0, 1, 2, 2, 1, 3 }, MeshTopology.Triangles, 0, false);
-                s_FullscreenMesh.UploadMeshData(true);
-                return s_FullscreenMesh;
-            }
+            get => m_ActiveRenderPassQueue;
         }
 
-        List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>();
-
-        List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
-        {
-            new ShaderTagId("Always"),
-            new ShaderTagId("ForwardBase"),
-            new ShaderTagId("PrepassBase"),
-            new ShaderTagId("Vertex"),
-            new ShaderTagId("VertexLMRGBM"),
-            new ShaderTagId("VertexLM"),
-        };
-
+        List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
+        List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
+        RenderTargetIdentifier m_CameraColorTarget;
+        RenderTargetIdentifier m_CameraDepthTarget;
+        bool m_FirstCameraRenderPassExecuted = false;
+        
+        const string k_ClearRenderStateTag = "Clear Render State";
+        const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
-        Material m_ErrorMaterial = null;
 
-        public ScriptableRenderer()
+        static RenderTargetIdentifier m_ActiveColorAttachment;
+        static RenderTargetIdentifier m_ActiveDepthAttachment;
+        static bool m_InsideStereoRenderBlock;
+
+        internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
+            RenderTargetIdentifier depthAttachment)
         {
-            m_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
-            postProcessingContext = new PostProcessRenderContext();
+            m_ActiveColorAttachment = colorAttachment;
+            m_ActiveDepthAttachment = depthAttachment;
         }
-
-        public void Dispose()
+        
+        public ScriptableRenderer(ScriptableRendererData data)
         {
-            if (perObjectLightIndices != null)
+            foreach (var feature in data.rendererFeatures)
             {
-                perObjectLightIndices.Release();
-                perObjectLightIndices = null;
+                feature.Create();
+                m_RendererFeatures.Add(feature);
             }
+            Clear();
         }
 
+        /// <summary>
+        /// Configures the camera target.
+        /// </summary>
+        /// <param name="colorTarget">Camera color target. Pass BuiltinRenderTextureType.CameraTarget if rendering to backbuffer.</param>
+        /// <param name="depthTarget">Camera depth target. Pass BuiltinRenderTextureType.CameraTarget if color has depth or rendering to backbuffer.</param>
+        public void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget)
+        {
+            m_CameraColorTarget = colorTarget;
+            m_CameraDepthTarget = depthTarget;
+        }
+
+        /// <summary>
+        /// Configures the render passes that will execute for this renderer.
+        /// This method is called per-camera every frame.
+        /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
+        /// <param name="renderingData">Current render state information.</param>
+        /// <seealso cref="ScriptableRenderPass"/>
+        /// <seealso cref="ScriptableRendererFeature"/>
+        public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
+
+        /// <summary>
+        /// Override this method to implement the lighting setup for the renderer. You can use this to 
+        /// compute and upload light CBUFFER for example.
+        /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
+        /// <param name="renderingData">Current render state information.</param>
+        public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+        }
+
+        /// <summary>
+        /// Override this method to configure the culling parameters for the renderer. You can use this to configure if
+        /// lights should be culled per-object or the maximum shadow distance for example.
+        /// </summary>
+        /// <param name="cullingParameters">Use this to change culling parameters used by the render pipeline.</param>
+        /// <param name="cameraData">Current render state information.</param>
+        public virtual void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
+            ref CameraData cameraData)
+        {
+        }
+
+        /// <summary>
+        /// Called upon finishing camera rendering. You can release any resources created on setup here.
+        /// </summary>
+        /// <param name="cmd"></param>
+        public virtual void FinishRendering(CommandBuffer cmd)
+        {
+        }
+
+        /// <summary>
+        /// Execute the enqueued render passes. This automatically handles editor and stereo rendering.
+        /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
+        /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // Keywords are enabled while executing passes.
-            CommandBuffer cmd = CommandBufferPool.Get("Clear Pipeline Keywords");
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
-            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            Camera camera = renderingData.cameraData.camera;
+            ClearRenderState(context);
 
-            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].Execute(this, context, ref renderingData);
+            SortStable(m_ActiveRenderPassQueue);
 
-            DisposePasses(ref context);
+            // Before Render Block. This render blocks always execute in mono rendering.
+            // Camera is not setup. Lights are not setup.
+            // Used to render input textures like shadowmaps.
+            ExecuteBlock(RenderPassEvent.BeforeRendering, RenderPassEvent.BeforeRenderingPrepasses, context, ref renderingData);
+
+            /// Configure shader variables and other unity properties that are required for rendering.
+            /// * Setup Camera RenderTarget and Viewport
+            /// * VR Camera Setup and SINGLE_PASS_STEREO props
+            /// * Setup camera view, projection and their inverse matrices.
+            /// * Setup properties: _WorldSpaceCameraPos, _ProjectionParams, _ScreenParams, _ZBufferParams, unity_OrthoParams
+            /// * Setup camera world clip planes properties
+            /// * Setup HDR keyword
+            /// * Setup global time properties (_Time, _SinTime, _CosTime)
+            bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
+            context.SetupCameraProperties(camera, stereoEnabled);
+            SetupLights(context, ref renderingData);
+
+            if (stereoEnabled)
+                BeginXRRendering(context, camera);
+
+            // In this block main rendering executes.
+            ExecuteBlock(RenderPassEvent.BeforeRenderingPrepasses, RenderPassEvent.AfterRenderingPostProcessing, context, ref renderingData);
+
+            DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+
+            // In this block after rendering drawing happens, e.g, post processing, video player capture.
+            ExecuteBlock(RenderPassEvent.AfterRenderingPostProcessing, (RenderPassEvent)Int32.MaxValue, context, ref renderingData);
+
+            if (stereoEnabled)
+                EndXRRendering(context, camera);
+
+            DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+
+            InternalFinishRendering(context);
         }
 
-        public void Clear()
-        {
-            m_ActiveRenderPassQueue.Clear();
-        }
-
+        /// <summary>
+        /// Enqueues a render pass for execution.
+        /// </summary>
+        /// <param name="pass">Render pass to be enqueued.</param>
         public void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
         }
 
-        public void SetupPerObjectLightIndices(ref CullingResults cullResults, ref LightData lightData)
+        /// <summary>
+        /// Returns a clear flag based on CameraClearFlags.
+        /// </summary>
+        /// <param name="cameraClearFlags">Camera clear flags.</param>
+        /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
+        protected static ClearFlag GetCameraClearFlag(CameraClearFlags cameraClearFlags)
         {
-            if (lightData.additionalLightsCount == 0)
-                return;
-
-            var visibleLights = lightData.visibleLights;
-            var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
-
-            int directionalLightsCount = 0;
-            int additionalLightsCount = 0;
-
-            // Disable all directional lights from the perobject light indices
-            // Pipeline handles them globally.
-            for (int i = 0; i < visibleLights.Length; ++i)
-            {
-                if (additionalLightsCount >= maxVisibleAdditionalLights)
-                    break;
-
-                VisibleLight light = visibleLights[i];
-                if (light.lightType == LightType.Directional)
-                {
-                    perObjectLightIndexMap[i] = -1;
-                    ++directionalLightsCount;
-                }
-                else
-                {
-                    perObjectLightIndexMap[i] -= directionalLightsCount;
-                    ++additionalLightsCount;
-                }
-            }
-
-            // Disable all remaining lights we cannot fit into the global light buffer.
-            for (int i = directionalLightsCount + additionalLightsCount; i < visibleLights.Length; ++i)
-                perObjectLightIndexMap[i] = -1;
-
-            cullResults.SetLightIndexMap(perObjectLightIndexMap);
-            perObjectLightIndexMap.Dispose();
-
-            // if not using a compute buffer, engine will set indices in 2 vec4 constants
-            // unity_4LightIndices0 and unity_4LightIndices1
-            if (useStructuredBufferForLights)
-            {
-                int lightIndicesCount = cullResults.lightAndReflectionProbeIndexCount;
-                if (lightIndicesCount > 0)
-                {
-                    if (perObjectLightIndices == null)
-                    {
-                        perObjectLightIndices = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                    }
-                    else if (perObjectLightIndices.count < lightIndicesCount)
-                    {
-                        perObjectLightIndices.Release();
-                        perObjectLightIndices = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                    }
-
-                    cullResults.FillLightAndReflectionProbeIndices(perObjectLightIndices);
-                }
-            }
-        }
-
-        public void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
-        {
-            RenderPostProcess(cmd, ref cameraData, colorFormat, source, dest, opaqueOnly, !cameraData.isStereoEnabled && cameraData.camera.targetTexture == null);
-        }
-
-        public void RenderPostProcess(CommandBuffer cmd, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly, bool flip)
-        {
-            Camera camera = cameraData.camera;
-            postProcessingContext.Reset();
-            postProcessingContext.camera = camera;
-            postProcessingContext.source = source;
-            postProcessingContext.sourceFormat = colorFormat;
-            postProcessingContext.destination = dest;
-            postProcessingContext.command = cmd;
-            postProcessingContext.flip = flip;
-
-            if (opaqueOnly)
-                cameraData.postProcessLayer.RenderOpaqueOnly(postProcessingContext);
-            else
-                cameraData.postProcessLayer.Render(postProcessingContext);
-        }
-
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        public void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
-        {
-            if (m_ErrorMaterial != null)
-            {
-                SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
-                DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
-                {
-                    perObjectData = PerObjectData.None,
-                    overrideMaterial = m_ErrorMaterial,
-                    overrideMaterialPassIndex = 0
-                };
-                for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
-                    errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
-
-                context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
-            }
-        }
-
-        public static RenderTextureDescriptor CreateRenderTextureDescriptor(ref CameraData cameraData, float scaler = 1.0f)
-        {
-            Camera camera = cameraData.camera;
-            RenderTextureDescriptor desc;
-            float renderScale = cameraData.renderScale;
-            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
-
-            if (cameraData.isStereoEnabled)
-            {
-                desc = XRGraphics.eyeTextureDesc;
-                renderTextureFormatDefault = desc.colorFormat;
-            }
-            else
-            {
-                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-                desc.width = (int)((float)desc.width * renderScale * scaler);
-                desc.height = (int)((float)desc.height * renderScale * scaler);
-                desc.depthBufferBits = 32;
-            }
-
-            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format. 
-            bool useRGB111110 = Application.isMobilePlatform &&
-             SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
-            RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
-            desc.colorFormat = cameraData.isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
-            desc.enableRandomWrite = false;
-            desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-            desc.msaaSamples = cameraData.msaaSamples;
-            desc.bindMS = false;
-            desc.useDynamicScale = cameraData.camera.allowDynamicResolution;
-            return desc;
-        }
-
-        public static ClearFlag GetCameraClearFlag(Camera camera)
-        {
-            if (camera == null)
-                throw new ArgumentNullException("camera");
-
-            CameraClearFlags cameraClearFlags = camera.clearFlags;
-
 #if UNITY_EDITOR
             // We need public API to tell if FrameDebugger is active and enabled. In that case
             // we want to force a clear to see properly the drawcall stepping.
@@ -320,7 +206,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // In mobile we force ClearFlag.All as DontCare doesn't have noticeable perf. difference from Clear
             // and this avoid tile clearing issue when not rendering all pixels in some GPUs.
             // In desktop/consoles there's actually performance difference between DontCare and Clear.
-            
+
             // RenderBufferLoadAction.DontCare in PC/Desktop behaves as not clearing screen
             // RenderBufferLoadAction.DontCare in Vulkan/Metal behaves as DontCare load action
             // RenderBufferLoadAction.DontCare in GLES behaves as glInvalidateBuffer
@@ -336,46 +222,206 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return ClearFlag.All;
         }
 
-        public static PerObjectData GetPerObjectLightFlags(int mainLightIndex, int additionalLightsCount)
+        void ClearRenderState(ScriptableRenderContext context)
         {
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData;
-            if (additionalLightsCount > 0 && !useStructuredBufferForLights)
+            // Keywords are enabled while executing passes.
+            CommandBuffer cmd = CommandBufferPool.Get(k_ClearRenderStateTag);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        internal void Clear()
+        {
+            m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
+            m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
+
+            m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
+
+            m_FirstCameraRenderPassExecuted = false;
+            m_InsideStereoRenderBlock = false;
+            m_ActiveRenderPassQueue.Clear();
+        }
+
+        void ExecuteBlock(RenderPassEvent startEvent, RenderPassEvent endEvent,
+            ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
+        {
+            int currIndex = m_ActiveRenderPassQueue.FindIndex(x => (x.renderPassEvent >= startEvent && x.renderPassEvent < endEvent));
+            if (currIndex == -1)
+                return;
+
+            while (currIndex < m_ActiveRenderPassQueue.Count && m_ActiveRenderPassQueue[currIndex].renderPassEvent < endEvent)
             {
-                configuration |= PerObjectData.LightIndices;
+                var renderPass = m_ActiveRenderPassQueue[currIndex];
+                ExecuteRenderPass(context, renderPass, ref renderingData);
+                currIndex++;
             }
 
-            return configuration;
+            if (submit)
+                context.Submit();
         }
 
-        public static void RenderFullscreenQuad(CommandBuffer cmd, Material material, MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
+            CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
+            renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
 
-            cmd.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
+            RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
+            RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+            ref CameraData cameraData = ref renderingData.cameraData;
+
+            // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
+            // which might be backbuffer or the framebuffer render textures. 
+            if (!renderPass.overrideCameraTarget)
+            {
+                passColorAttachment = m_CameraColorTarget;
+                passDepthAttachment = m_CameraDepthTarget;
+            }
+
+            if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
+            {
+                m_FirstCameraRenderPassExecuted = true;
+
+                Camera camera = cameraData.camera;
+                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
+                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                if (cameraData.isStereoEnabled)
+                {
+                    context.StartMultiEye(cameraData.camera);
+                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+                }
+            }
+
+            // Only setup render target if current render pass attachments are different from the active ones
+            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+                SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
+            renderPass.Execute(context, ref renderingData);
         }
 
-        public static void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
+        void BeginXRRendering(ScriptableRenderContext context, Camera camera)
         {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
-            //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
-            //    cmd.CopyTexture(source, dest);
-            //else
-            cmd.Blit(source, dest, material);
+            context.StartMultiEye(camera);
+            m_InsideStereoRenderBlock = true;
         }
 
-        void DisposePasses(ref ScriptableRenderContext context)
+        void EndXRRendering(ScriptableRenderContext context, Camera camera)
+        {
+            context.StopMultiEye(camera);
+            context.StereoEndRender(camera);
+            m_InsideStereoRenderBlock = false;
+        }
+
+        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
+        {
+            m_ActiveColorAttachment = colorAttachment;
+            m_ActiveDepthAttachment = depthAttachment;
+
+            RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            RenderBufferLoadAction depthLoadAction = CoreUtils.HasFlag(clearFlag, ClearFlag.Depth) ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
+            SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
+                depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor, dimension);
+        }
+
+        static void SetRenderTarget(
+            CommandBuffer cmd,
+            RenderTargetIdentifier colorAttachment,
+            RenderBufferLoadAction colorLoadAction,
+            RenderBufferStoreAction colorStoreAction,
+            ClearFlag clearFlags,
+            Color clearColor,
+            TextureDimension dimension)
+        {
+            if (dimension == TextureDimension.Tex2DArray)
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
+            else
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
+        }
+
+        static void SetRenderTarget(
+            CommandBuffer cmd,
+            RenderTargetIdentifier colorAttachment,
+            RenderBufferLoadAction colorLoadAction,
+            RenderBufferStoreAction colorStoreAction,
+            RenderTargetIdentifier depthAttachment,
+            RenderBufferLoadAction depthLoadAction,
+            RenderBufferStoreAction depthStoreAction,
+            ClearFlag clearFlags,
+            Color clearColor,
+            TextureDimension dimension)
+        {
+            if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
+            {
+                SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor,
+                    dimension);
+            }
+            else
+            {
+                if (dimension == TextureDimension.Tex2DArray)
+                    CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment,
+                        clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
+                else
+                    CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                        depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
+            }
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
+        {
+#if UNITY_EDITOR
+            if (UnityEditor.Handles.ShouldRenderGizmos())
+                context.DrawGizmos(camera, gizmoSubset);
+#endif
+        }
+
+        void InternalFinishRendering(ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
+            FinishRendering(cmd);
+            Clear();
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        internal static void SortStable(List<ScriptableRenderPass> list)
+        {
+            int j;
+            for (int i = 1; i < list.Count; ++i)
+            {
+                ScriptableRenderPass curr = list[i];
+
+                j = i - 1;
+                for (; j >= 0 && curr < list[j]; --j)
+                    list[j + 1] = list[j];
+
+                list[j + 1] = curr;
+            }
         }
     }
 }

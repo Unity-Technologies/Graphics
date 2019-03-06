@@ -96,7 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
     m_ExportTrainingData: 0
-  m_LightingDataAsset: {fileID: 112000004, guid: 6666d64eb9e654d1687ae92db85626c2,
+  m_LightingDataAsset: {fileID: 112000002, guid: 6666d64eb9e654d1687ae92db85626c2,
     type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -648,7 +648,7 @@ Light:
   m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
-  m_InnerSpotAngle: 21.802082
+  m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
     m_Type: 2

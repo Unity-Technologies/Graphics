@@ -134,7 +134,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/050_Shader_Graphs.unity
     guid: 6e7a83866a1e446b3becf7972371c5d0
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/052_LWCallbacks.unity
     guid: 58d22e8497ba91141b3ae7abd7b0bb41
   - enabled: 0
