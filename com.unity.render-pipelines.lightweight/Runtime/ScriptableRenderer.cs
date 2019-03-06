@@ -63,7 +63,11 @@ namespace UnityEngine.Rendering.LWRP
         
         public ScriptableRenderer(ScriptableRendererData data)
         {
-            m_RendererFeatures.AddRange(data.rendererFeatures.Where(x => x != null));
+            foreach (var feature in data.rendererFeatures)
+            {
+                feature.Create();
+                m_RendererFeatures.Add(feature);
+            }
             Clear();
         }
 

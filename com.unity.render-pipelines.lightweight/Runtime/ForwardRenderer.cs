@@ -107,6 +107,12 @@ namespace UnityEngine.Rendering.LWRP
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
             }
 
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if(activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
             if (mainLightShadows)
