@@ -4,8 +4,6 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
-using UnityEngine.Experimental.Rendering.LWRP;
-
 namespace UnityEngine.Rendering.LWRP
 {
     public enum ShadowCascadesOption
@@ -78,13 +76,13 @@ namespace UnityEngine.Rendering.LWRP
     public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
-        internal IRendererSetup m_RendererSetup;
+        internal ScriptableRenderer m_Renderer;
 
         // Default values set when a new LightweightRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 4;
 
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
-        [SerializeField] internal IRendererData m_RendererData = null;
+        [SerializeField] internal ScriptableRendererData m_RendererData = null;
         
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
@@ -147,7 +145,7 @@ namespace UnityEngine.Rendering.LWRP
             return instance;
         }
 
-        public IRendererData LoadBuiltinRendererData()
+        public ScriptableRendererData LoadBuiltinRendererData()
         {
             switch (m_RendererType)
             {
@@ -169,7 +167,7 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateLightweightPipelineAsset>(),
@@ -218,18 +216,13 @@ namespace UnityEngine.Rendering.LWRP
  
         protected override RenderPipeline CreatePipeline()
         {
-            CreateRendererSetup();
-            return new LightweightRenderPipeline(this);
-        }
-
-        void CreateRendererSetup()
-        {
 #if UNITY_EDITOR
             if (m_RendererData == null)
                 LoadBuiltinRendererData();
 #endif
 
-            m_RendererSetup = m_RendererData.Create();
+            m_Renderer = m_RendererData.InternalCreateRenderer();
+            return new LightweightRenderPipeline(this);
         }
 
         Material GetMaterial(DefaultMaterialType materialType)
@@ -258,14 +251,15 @@ namespace UnityEngine.Rendering.LWRP
 #endif
         }
 
-        public IRendererSetup rendererSetup
+        public ScriptableRenderer scriptableRenderer
         {
             get
             {
-                if (m_RendererSetup == null && m_RendererData != null)
-                    m_RendererSetup = m_RendererData.Create();
+                Debug.Assert(m_RendererData != null, "Invalid Renderer Data.");
+                if (m_RendererData.isInvalidated || m_Renderer == null)
+                    m_Renderer = m_RendererData.InternalCreateRenderer();
 
-                return m_RendererSetup;
+                return m_Renderer;
             }
         }
 
@@ -284,7 +278,6 @@ namespace UnityEngine.Rendering.LWRP
         public Downsampling opaqueDownsampling
         {
             get { return m_OpaqueDownsampling; }
-            set { m_OpaqueDownsampling = value; }
         }
 
         public bool supportsHDR
@@ -514,7 +507,7 @@ namespace UnityEngine.Rendering.LWRP
 
         int ValidatePerObjectLights(int value)
         {
-            return System.Math.Max(0, System.Math.Min(value, LightweightRenderPipeline.maxPerObjectLightCount));
+            return System.Math.Max(0, System.Math.Min(value, LightweightRenderPipeline.maxPerObjectLights));
         }
 
         float ValidateRenderScale(float value)
