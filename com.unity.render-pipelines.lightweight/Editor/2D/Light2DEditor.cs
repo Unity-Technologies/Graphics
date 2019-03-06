@@ -627,7 +627,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         featherStartPoint = featherEndPoint;
                     }
                 }
-                else  // Freeform light
+                else if(light.lightType == Light2D.LightType.Freeform)
                 {
                     m_ShapeEditor.OnGUI(target);
 
@@ -692,7 +692,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Color previousColor = m_LightColor.colorValue;
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
-            EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
+            if(m_LightType.intValue != (int)Light2D.LightType.Global)
+                EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
 
             OnTargetSortingLayers();
 

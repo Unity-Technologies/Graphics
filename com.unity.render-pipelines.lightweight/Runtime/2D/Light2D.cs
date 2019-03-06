@@ -15,7 +15,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Parametric = 0,
             Freeform = 1,
             Sprite = 2,
-            Point = 3
+            Point = 3,
+            Global = 4
         }
 
         public enum LightOverlapMode
@@ -32,6 +33,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static List<Light2D>[] s_Lights = SetupLightArray();
         static CullingGroup s_CullingGroup;
         static BoundingSphere[] s_BoundingSpheres;
+        static Dictionary<int, Color>[] s_GlobalClearColors = SetupGlobalClearColors();
+
+        internal static Dictionary<int, Color>[] globalClearColors { get { return s_GlobalClearColors; } }
 
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
@@ -40,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_LightProjectionType")]
         LightType m_LightType = LightType.Parametric;
+        LightType m_PreviousLightType = (LightType)int.MaxValue;
 
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ShapeLightType")]
@@ -54,17 +59,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [Serialization.FormerlySerializedAs("m_LightColor")]
         Color m_Color = Color.white;
 
-        [SerializeField] float  m_LightVolumeOpacity    = 0.0f;
-        [SerializeField] int[]  m_ApplyToSortingLayers  = new int[1];     // These are sorting layer IDs.
-        [SerializeField] Sprite m_LightCookieSprite     = null;
+        [SerializeField] float m_LightVolumeOpacity = 0.0f;
+        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs.
+        [SerializeField] Sprite m_LightCookieSprite = null;
 
-        int         m_PreviousLightOperationIndex;
-        Color       m_PreviousColor                 = Color.white;
-        float       m_PreviousLightVolumeOpacity;
-        Sprite      m_PreviousLightCookieSprite;
-        Mesh        m_Mesh;
-        int         m_LightCullingIndex             = -1;
-        Bounds      m_LocalBounds;
+        int m_PreviousLightOperationIndex;
+        Color m_PreviousColor = Color.white;
+        float m_PreviousLightVolumeOpacity;
+        Sprite m_PreviousLightCookieSprite;
+        Mesh m_Mesh;
+        int m_LightCullingIndex = -1;
+        Bounds m_LocalBounds;
 
         public LightType lightType
         {
@@ -72,16 +77,28 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             set => m_LightType = value;
         }
 
-        public int      lightOperationIndex => m_LightOperationIndex;
-        public Color    color               => m_Color;
-        public float    volumeOpacity       => m_LightVolumeOpacity;
-        public Sprite   lightCookieSprite   => m_LightCookieSprite;
-        public float    falloffCurve        => m_FalloffCurve;
+        public int lightOperationIndex => m_LightOperationIndex;
+        public Color color => m_Color;
+        public float volumeOpacity => m_LightVolumeOpacity;
+        public Sprite lightCookieSprite => m_LightCookieSprite;
+        public float falloffCurve => m_FalloffCurve;
+
+        public bool hasDirection { get { return m_LightType == LightType.Point; } }
 
 
         //==========================================================================================
         //                              Functions
         //==========================================================================================
+
+        internal static Dictionary<int, Color>[] SetupGlobalClearColors()
+        {
+            Dictionary<int,Color>[] globalClearColors = new Dictionary<int, Color>[k_LightOperationCount];
+            for(int i=0;i<k_LightOperationCount;i++)
+            {
+                globalClearColors[i] = new Dictionary<int, Color>();
+            }
+            return globalClearColors;
+        }
 
         internal static List<Light2D>[] SetupLightArray()
         {
@@ -252,6 +269,37 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return isVisible;
         }
 
+        static internal void AddGlobalLight(Light2D light2D)
+        {
+            for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
+            {
+                int sortingLayer = light2D.m_ApplyToSortingLayers[i];
+                Dictionary<int, Color> globalColorOp = s_GlobalClearColors[light2D.m_LightOperationIndex];
+                if (!globalColorOp.ContainsKey(sortingLayer))
+                {
+                    globalColorOp.Add(sortingLayer, light2D.m_Color);
+                }
+                else
+                {
+                    globalColorOp[sortingLayer] = light2D.m_Color;
+                    Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light operation index " + light2D.m_LightOperationIndex);
+                }
+            }
+        }
+
+        static internal void RemoveGlobalLight(Light2D light2D)
+        {
+            for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
+            {
+                int sortingLayer = light2D.m_ApplyToSortingLayers[i];
+                Dictionary<int, Color> globalColorOp = s_GlobalClearColors[light2D.m_LightOperationIndex];
+                if (!globalColorOp.ContainsKey(sortingLayer))
+                {
+                    globalColorOp.Remove(sortingLayer);
+                }
+            }
+        }
+
         private void Awake()
         {
             if (m_ShapePath == null)
@@ -260,6 +308,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (m_ShapePath.Length == 0)
                 m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
 
+            if (m_LightType == LightType.Global)
+                AddGlobalLight(this);
+
+            m_PreviousLightType = m_LightType;
             GetMesh();
         }
 
@@ -316,6 +368,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 InsertLight();
             }
 
+            if(m_LightType != m_PreviousLightType)
+            {
+                if (m_LightType == LightType.Global)
+                    AddGlobalLight(this);
+                else if (m_PreviousLightType == LightType.Global)
+                    RemoveGlobalLight(this);
+                m_PreviousLightType = m_LightType;
+            }
+
             // Mesh Rebuilding
             bool rebuildMesh = false;
             rebuildMesh |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
@@ -324,6 +385,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
+
+            
 
 #if UNITY_EDITOR
             rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PrevShapePathHash);

@@ -79,5 +79,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             return CreateLightValidation();
         }
+
+        [MenuItem("GameObject/Light/2D/Global Light2D", false, -100)]
+        static void CreateGlobalLight2D()
+        {
+            CreateLight("Global Light 2D", Light2D.LightType.Global);
+        }
+        [MenuItem("GameObject/Light/2D/Global Light2D", true, -100)]
+        static bool CreateGlobalLight2DValidation()
+        {
+            return CreateLightValidation();
+        }
+
     }
 }
