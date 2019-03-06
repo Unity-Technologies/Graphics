@@ -39,7 +39,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         static readonly MigrationDescription<Version, DensityVolume> k_Migration = MigrationDescription.New(
-            MigrationStep.New(Version.ScaleIndependent, (DensityVolume data) => data.parameters.size = data.transform.lossyScale),
+            MigrationStep.New(Version.ScaleIndependent, (DensityVolume data) =>
+            {
+                data.parameters.size = data.transform.lossyScale;
+
+                //missing migrated data.
+                //when migrated prior to this fix, density volumes have to be manually set on advance mode.
+                data.parameters.m_EditorAdvancedFade = true;
+            }),
             MigrationStep.New(Version.FixUniformBlendDistanceToBeMetric, (DensityVolume data) => data.parameters.MigrateToFixUniformBlendDistanceToBeMetric())
         );
 
