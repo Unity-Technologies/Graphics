@@ -24,8 +24,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         [SerializeField] float              m_ShapeLightParametricAngleOffset   = 0.0f;
         [SerializeField] float              m_ShapeLightFalloffSize             = 0.50f;
-        [SerializeField] float              m_ShapeLightRadius                  = 0.0f;
-        [SerializeField] Vector2            m_ShapeLightOffset                  = Vector2.zero;
+        [SerializeField] float              m_ShapeLightRadius                  = 1.0f;
         [SerializeField] Vector2            m_ShapeLightFalloffOffset           = Vector2.zero;
         [SerializeField] int                m_ShapeLightOrder                   = 0;
         [SerializeField] LightOverlapMode   m_ShapeLightOverlapMode             = LightOverlapMode.Additive;
@@ -45,7 +44,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public float        shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;
         public float        shapeLightFalloffSize           => m_ShapeLightFalloffSize;
         public float        shapeLightRadius                => m_ShapeLightRadius;
-        public Vector2      shapeLightOffset                => m_ShapeLightOffset;
         public Vector2      shapeLightFalloffOffset         => m_ShapeLightFalloffOffset;
         public Vector3[]    shapePath                       => m_ShapePath;
 

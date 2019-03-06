@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         // Takes in a mesh that
-        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, Vector2 offset, Vector2 falloffOffset, float angle, int sides, float feathering, Color color, float volumeOpacity)
+        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, Vector2 falloffOffset, float angle, int sides, float feathering, Color color, float volumeOpacity)
         {
             if (mesh == null)
                 mesh = new Mesh();
@@ -79,11 +79,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
 
-            Vector3 posOffset = new Vector3(offset.x, offset.y);
             Vector3 featherOffset = new Vector3(falloffOffset.x, falloffOffset.y);
             Color transparentColor = new Color(color.r, color.g, color.b, 0);
             Color volumeColor = new Vector4(1, 1, 1, volumeOpacity);
-            vertices[centerIndex] = Vector3.zero + posOffset;
+            vertices[centerIndex] = Vector3.zero;
             colors[centerIndex] = color;
             volumeColors[centerIndex] = volumeColor;
 
@@ -97,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (feathering <= 0.0f)
                 {
                     vertexIndex = (i + 1) % sides;
-                    vertices[vertexIndex] = endPoint + posOffset;
+                    vertices[vertexIndex] = endPoint;
                     colors[vertexIndex] = color;
                     volumeColors[vertexIndex] = volumeColor;
 
@@ -108,11 +107,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
                 else
                 {
-                    Vector3 endSplitPoint = (1.0f + feathering * 2.0f) * endPoint;
+                    Vector3 endSplitPoint = endPoint + feathering * Vector3.Normalize(endPoint);
                     vertexIndex = (2 * i + 2) % (2 * sides);
 
-                    vertices[vertexIndex] = endSplitPoint + posOffset + featherOffset;
-                    vertices[vertexIndex + 1] = endPoint + posOffset;
+                    vertices[vertexIndex] = endSplitPoint + featherOffset;
+                    vertices[vertexIndex + 1] = endPoint;
 
                     colors[vertexIndex] = transparentColor;
                     colors[vertexIndex + 1] = color;

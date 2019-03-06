@@ -79,7 +79,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
-            public static GUIContent shapeLightOffset = EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset");
             public static GUIContent shapeLightFalloffOffset = EditorGUIUtility.TrTextContent("Falloff Offset", "Specify the shape's falloff offset");
             public static GUIContent shapeLightAngleOffset = EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object");
             public static GUIContent shapeLightOverlapMode = EditorGUIUtility.TrTextContent("Light Overlap Mode", "Specify what should happen when this light overlaps other lights");
@@ -124,7 +123,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_ShapeLightFalloffSize;
         SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightParametricAngleOffset;
-        SerializedProperty m_ShapeLightOffset;
         SerializedProperty m_ShapeLightFalloffOffset;
         SerializedProperty m_ShapeLightSprite;
         SerializedProperty m_ShapeLightOrder;
@@ -212,7 +210,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
-            m_ShapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
             m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             m_ShapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
@@ -332,7 +329,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.Slider(m_ShapeLightRadius, 0, 20, Styles.shapeLightParametricRadius);
                     EditorGUILayout.IntSlider(m_ShapeLightParametricSides, 3, 24, Styles.shapeLightParametricSides);
-                    EditorGUILayout.PropertyField(m_ShapeLightOffset, Styles.shapeLightOffset);
                     EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
                 }
 
@@ -583,7 +579,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             else
             {
                 Transform t = light.transform;
-                Vector3 posOffset = light.shapeLightOffset;
                 Vector3 falloffOffset = light.shapeLightFalloffOffset;
 
                 if (light.lightType == Light2D.LightType.Sprite)
@@ -617,16 +612,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
 
                     Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
-                    Vector3 featherStartPoint = (1 + light.shapeLightFalloffSize * 2.0f) * startPoint;
+                    Vector3 featherStartPoint = startPoint + light.shapeLightFalloffSize * Vector3.Normalize(startPoint);
                     float radiansPerSide = 2 * Mathf.PI / sides;
                     for (int i = 0; i < sides; i++)
                     {
                         float endAngle = (i + 1) * radiansPerSide;
                         Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
-                        Vector3 featherEndPoint = (1 + light.shapeLightFalloffSize * 2.0f) * endPoint;
+                        Vector3 featherEndPoint = endPoint + light.shapeLightFalloffSize * Vector3.Normalize(endPoint);
 
-                        Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
-                        Handles.DrawLine(t.TransformPoint(featherStartPoint + posOffset + falloffOffset), t.TransformPoint(featherEndPoint + posOffset + falloffOffset));
+                        Handles.DrawLine(t.TransformPoint(startPoint), t.TransformPoint(endPoint));
+                        Handles.DrawLine(t.TransformPoint(featherStartPoint + falloffOffset), t.TransformPoint(featherEndPoint + falloffOffset));
 
                         startPoint = endPoint;
                         featherStartPoint = featherEndPoint;
