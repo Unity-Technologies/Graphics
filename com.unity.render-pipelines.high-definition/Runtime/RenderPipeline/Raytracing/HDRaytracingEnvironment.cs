@@ -173,6 +173,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hdPipeline.m_RayTracingManager.RegisterEnvironment(this);
             }
         }
+
+        void OnEnable()
+        {
+            // Grab the High Definition RP
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdPipeline != null)
+            {
+                hdPipeline.m_RayTracingManager.RegisterEnvironment(this);
+            }
+        }
+
+        void OnDisable()
+        {
+            // Grab the High Definition RP
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdPipeline != null)
+            {
+                hdPipeline.m_RayTracingManager.UnregisterEnvironment(this);
+            }
+        }
         void OnDestroy()
         {
             // Grab the High Definition RP
