@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Position")]
-    class ProjectOnDepth : VFXBlock
+    class PositionDepth : VFXBlock
     {
 		public enum PositionMode
 		{
@@ -23,15 +23,8 @@ namespace UnityEditor.VFX.Block
         }
 		
         public class InputProperties
-        {
-            public CameraType Camera = CameraType.defaultValue;
+        {   
             public float ZMultiplier = 1.0f;
-            public Texture2D DepthBuffer = null;
-        }
-
-        public class SceneColorInputProperties
-        {
-            public Texture2D ColorBuffer = null;
         }
 
         public class SequentialInputProperties
@@ -52,6 +45,9 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting]
+        public CameraMode camera;
+
+        [VFXSetting]
 		public PositionMode mode;
 
         [VFXSetting]
@@ -60,7 +56,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool inheritSceneColor = false;
 
-        public override string name { get { return "Project On Depth"; } }
+        public override string name { get { return "Position (Depth)"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInit; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -86,9 +82,10 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var inputs = PropertiesFromType("InputProperties");
-                if (inheritSceneColor)
-                    inputs = inputs.Concat(PropertiesFromType("SceneColorInputProperties"));
+                var inputs = Enumerable.Empty<VFXPropertyWithValue>();
+                if (camera == CameraMode.Custom)
+                    inputs = inputs.Concat(PropertiesFromType(typeof(CameraHelper.CameraProperties)));
+                inputs = inputs.Concat(PropertiesFromType("InputProperties"));
                 if (mode == PositionMode.Sequential)
                     inputs = inputs.Concat(PropertiesFromType("SequentialInputProperties"));
 				else if (mode == PositionMode.Custom)
@@ -103,22 +100,24 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var expressions = GetExpressionsFromSlots(this);
+                var expressions = CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this),camera);
 
-                var fov = expressions.First(e => e.name == "Camera_fieldOfView");
-                var aspect = expressions.First(e => e.name == "Camera_aspectRatio");
-                var near = expressions.First(e => e.name == "Camera_nearPlane");
-                var far = expressions.First(e => e.name == "Camera_farPlane");
-                var cameraMatrix = expressions.First(e => e.name == "Camera_transform");
+                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions);
 
-                expressions = expressions.Where(t => !(t.Equals(fov) || t.Equals(aspect) || t.Equals(near) || t.Equals(far) || t.Equals(cameraMatrix)));
+                // Filter unused expressions
+                expressions = expressions.Where(t =>
+                    t.name != "Camera_fieldOfView" &&
+                    t.name != "Camera_aspectRatio" &&
+                    t.name != "Camera_nearPlane" &&
+                    t.name != "Camera_farPlane" &&
+                    t.name != "Camera_transform" &&
+                    (inheritSceneColor || t.name != "Camera_colorBuffer"));
 
                 foreach (var input in expressions)
                     yield return input;
 
-                var clipToVFX = new VFXExpressionTransformMatrix(cameraMatrix.exp, new VFXExpressionInverseMatrix(VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp)));
-
-                yield return new VFXNamedExpression(clipToVFX, "clipToVFX");
+                var clipToVFX = new VFXExpressionTransformMatrix(camMat.ViewToVFX.exp, camMat.ClipToView.exp);
+                yield return new VFXNamedExpression(clipToVFX, "ClipToVFX");
             }
         }
 
@@ -157,7 +156,7 @@ float2 uvs = UVSpawn;
                 source += @"
 float2 projpos = uvs * 2.0f - 1.0f;
 				
-float depth = LoadTexture(DepthBuffer,int3(uvs*Camera_pixelDimensions, 0)).r;
+float depth = LoadTexture(Camera_depthBuffer,int3(uvs*Camera_pixelDimensions, 0)).r;
 #if UNITY_REVERSED_Z
 depth = 1.0f - depth; // reversed z
 #endif";
@@ -183,13 +182,13 @@ if (depth < DepthRange.x || depth > DepthRange.y)
 ";
             source += @"
 float4 clipPos = float4(projpos,depth * ZMultiplier * 2.0f - 1.0f,1.0f);
-float4 vfxPos = mul(clipToVFX,clipPos);
+float4 vfxPos = mul(ClipToVFX,clipPos);
 position = vfxPos.xyz / vfxPos.w;
 ";
 
                 if (inheritSceneColor)
                     source += @"
-color = SampleTexture(ColorBuffer,uvs).rgb;
+color = LoadTexture(Camera_colorBuffer,int3(uvs*Camera_pixelDimensions, 0)).rgb;
 ";
 
                 return source;

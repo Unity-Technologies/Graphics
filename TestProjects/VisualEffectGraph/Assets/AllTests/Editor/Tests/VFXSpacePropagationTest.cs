@@ -348,7 +348,7 @@ namespace UnityEditor.VFX.Test
         {
             var mainCamera = ScriptableObject.CreateInstance<MainCamera>();
             var initialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            var projectOnDepth = ScriptableObject.CreateInstance<ProjectOnDepth>();
+            var projectOnDepth = ScriptableObject.CreateInstance<PositionDepth>();
 
             initialize.space = VFXCoordinateSpace.World;
             mainCamera.outputSlots[0].Link(projectOnDepth.inputSlots[0]);

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Addressing mode for Sequential blocks
 - Invert transform available on GPU
+- Add automatic depth buffer reference for main camera (for position and collision blocks)
 
 ### Fixed
 - Undo Redo while changing space
