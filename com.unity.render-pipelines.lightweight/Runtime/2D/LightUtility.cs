@@ -36,9 +36,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return localBounds;
         }
 
-
         // Takes in a mesh that
-        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, Vector2 offset, float angle, int sides, float feathering, Color color, float volumeOpacity)
+        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, Vector2 falloffOffset, float angle, int sides, float feathering, Color color, float volumeOpacity)
         {
             if (mesh == null)
                 mesh = new Mesh();
@@ -54,8 +53,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * angle;
             }
-
-
 
             // Return a shape with radius = 1
             Vector3[] vertices;
@@ -82,10 +79,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
 
-            Vector3 posOffset = new Vector3(offset.x, offset.y);
+            Vector3 featherOffset = new Vector3(falloffOffset.x, falloffOffset.y);
             Color transparentColor = new Color(color.r, color.g, color.b, 0);
             Color volumeColor = new Vector4(1, 1, 1, volumeOpacity);
-            vertices[centerIndex] = Vector3.zero + posOffset;
+            vertices[centerIndex] = Vector3.zero;
             colors[centerIndex] = color;
             volumeColors[centerIndex] = volumeColor;
 
@@ -93,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             for (int i = 0; i < sides; i++)
             {
                 float endAngle = (i + 1) * radiansPerSide;
-                Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0) + posOffset;
+                Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
 
                 int vertexIndex;
                 if (feathering <= 0.0f)
@@ -110,10 +107,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 }
                 else
                 {
-                    Vector3 endSplitPoint = (1.0f + feathering * 2.0f) * endPoint;
+                    Vector3 endSplitPoint = endPoint + feathering * Vector3.Normalize(endPoint);
                     vertexIndex = (2 * i + 2) % (2 * sides);
 
-                    vertices[vertexIndex] = endSplitPoint;
+                    vertices[vertexIndex] = endSplitPoint + featherOffset;
                     vertices[vertexIndex + 1] = endPoint;
 
                     colors[vertexIndex] = transparentColor;
@@ -233,7 +230,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return data[0];
         }
 
-        public static Bounds GenerateShapeMesh(ref Mesh mesh, Color color, Vector3[] shapePath, float volumeOpacity, float feathering)
+
+        public static List<Vector2> GetFeatheredShape(Vector3[] shapePath, float feathering)
+        {
+            int pointCount = shapePath.Length;
+            var inputs = new ContourVertex[pointCount];
+            for (int i = 0; i < pointCount; ++i)
+                inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = null };
+
+            var feathered = UpdateFeatheredShapeLightMesh(inputs, pointCount, feathering);
+            return feathered;
+        }
+        
+
+        public static Bounds GenerateShapeMesh(ref Mesh mesh, Color color, Vector3[] shapePath, Vector2 falloffOffset, float volumeOpacity, float feathering)
         {
             Bounds localBounds;
             Color meshInteriorColor = color;

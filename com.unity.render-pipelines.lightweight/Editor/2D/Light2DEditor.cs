@@ -79,7 +79,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
-            public static GUIContent shapeLightOffset = EditorGUIUtility.TrTextContent("Offset", "Specify the shape's offset");
+            public static GUIContent shapeLightFalloffOffset = EditorGUIUtility.TrTextContent("Falloff Offset", "Specify the shape's falloff offset");
             public static GUIContent shapeLightAngleOffset = EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object");
             public static GUIContent shapeLightOverlapMode = EditorGUIUtility.TrTextContent("Light Overlap Mode", "Specify what should happen when this light overlaps other lights");
             public static GUIContent shapeLightOrder = EditorGUIUtility.TrTextContent("Light Order", "Shape light order");
@@ -123,7 +123,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_ShapeLightFalloffSize;
         SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightParametricAngleOffset;
-        SerializedProperty m_ShapeLightOffset;
+        SerializedProperty m_ShapeLightFalloffOffset;
         SerializedProperty m_ShapeLightSprite;
         SerializedProperty m_ShapeLightOrder;
         SerializedProperty m_ShapeLightOverlapMode;
@@ -210,7 +210,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
-            m_ShapeLightOffset = serializedObject.FindProperty("m_ShapeLightOffset");
+            m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
             m_ShapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
             m_ShapeLightOverlapMode = serializedObject.FindProperty("m_ShapeLightOverlapMode");
@@ -263,8 +263,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         private void OnPointLight(SerializedObject serializedObject)
         {
-            EditorGUI.indentLevel++;
-
             EditorGUILayout.PropertyField(m_PointLightQuality, Styles.pointLightQuality);
 
             EditorGUI.BeginChangeCheck();
@@ -293,8 +291,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (m_PointInnerRadius.floatValue < 0) m_PointInnerRadius.floatValue = 0;
             if (m_PointOuterRadius.floatValue < 0) m_PointOuterRadius.floatValue = 0;
             if (m_PointZDistance.floatValue < 0) m_PointZDistance.floatValue = 0;
-
-            EditorGUI.indentLevel--;
         }
 
         private bool OnShapeLight(Light2D.LightType lightProjectionType, bool changedType, SerializedObject serializedObject)
@@ -307,7 +303,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             bool updateMesh = false;
 
-            EditorGUI.indentLevel++;
             if (lightProjectionType == Light2D.LightType.Sprite)
             {
                 EditorGUI.BeginChangeCheck();
@@ -334,21 +329,20 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.Slider(m_ShapeLightRadius, 0, 20, Styles.shapeLightParametricRadius);
                     EditorGUILayout.IntSlider(m_ShapeLightParametricSides, 3, 24, Styles.shapeLightParametricSides);
+                    EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
                 }
 
                 EditorGUILayout.Slider(m_ShapeLightFalloffSize, 0, 5, Styles.generalFalloffSize);
                 EditorGUILayout.Slider(m_FalloffCurve, 0, 1, Styles.generalFalloffIntensity);
-                Vector2 lastOffset = m_ShapeLightOffset.vector2Value;
-
-                EditorGUILayout.PropertyField(m_ShapeLightOffset, Styles.shapeLightOffset);
                 if (lightProjectionType == Light2D.LightType.Parametric)
-                    EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
+                {
+                    EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
+                }
             }
 
             EditorGUILayout.PropertyField(m_ShapeLightOverlapMode, Styles.shapeLightOverlapMode);
             EditorGUILayout.PropertyField(m_ShapeLightOrder, Styles.shapeLightOrder);
 
-            EditorGUI.indentLevel--;
 
             return updateMesh;
         }
@@ -409,25 +403,58 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.EndHorizontal();
         }
 
-        private Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, ref float angle)
+        private Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, bool useCapOffset, ref float angle)
         {
+            float oldAngle = angle;
+
             float angleBy2 = (angle / 2) * (leftAngle ? -1.0f : 1.0f);
             Vector3 trcwPos = Quaternion.AngleAxis(angleBy2, -transform.forward) * (transform.up);
             Vector3 cwPos = transform.position + trcwPos * (radius + offset);
 
+            float direction = leftAngle ? 1 : -1;
+
+            // Offset the handle
+            float size = .25f * capSize;
+
+            Vector3 handleOffset = useCapOffset ? rotation * new Vector3(direction * size, 0, 0) : Vector3.zero;
+
             EditorGUI.BeginChangeCheck();
-            Vector3 cwHandle = Handles.Slider2D(cwPos, Vector3.forward, rotation * Vector3.up, rotation * Vector3.right, capSize, capFunc, Vector3.zero);
+            var id = GUIUtility.GetControlID("AngleSlider".GetHashCode(), FocusType.Passive);
+            Vector3 cwHandle = Handles.Slider2D(id, cwPos, handleOffset, Vector3.forward, rotation * Vector3.up, rotation * Vector3.right, capSize, capFunc, Vector3.zero);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 toCwHandle = (transform.position - cwHandle).normalized;
+
                 angle = 360 - 2 * Quaternion.Angle(Quaternion.FromToRotation(transform.up, toCwHandle), Quaternion.identity);
                 angle = Mathf.Round(angle * 100) / 100f;
+
+                float side = Vector3.Dot(direction * transform.right, toCwHandle);
+                if (side < 0)
+                {
+                    if (oldAngle < 180)
+                        angle = 0;
+                    else 
+                        angle = 360;
+                }
             }
 
             if (drawLine)
                 Handles.DrawLine(transform.position, cwHandle);
 
             return cwHandle;
+        }
+
+        private void DEBUG_DrawCaps(Vector3 position, Quaternion rotation, float size)
+        {
+            Vector3 topLeft = rotation * new Vector3(-size, size, 0) + position;
+            Vector3 topRight = rotation * new Vector3(size, size, 0) + position;
+            Vector3 bottomRight = rotation * new Vector3(size, -size, 0) + position;
+            Vector3 bottomLeft = rotation * new Vector3(-size, -size, 0) + position;
+
+            Handles.DrawLine(topLeft, topRight);
+            Handles.DrawLine(topRight, bottomRight);
+            Handles.DrawLine(bottomRight, bottomLeft);
+            Handles.DrawLine(bottomLeft, topLeft);
         }
 
         private float DrawAngleHandle(Transform transform, float radius, float offset, Handles.CapFunction capLeft, Handles.CapFunction capRight, ref float angle)
@@ -437,10 +464,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             float handleSize = HandleUtility.GetHandleSize(transform.position) * s_AngleCapSize;
 
             Quaternion rotLt = Quaternion.AngleAxis(-angle / 2, -transform.forward) * transform.rotation;
-            DrawAngleSlider2D(transform, rotLt, radius, handleOffset, capLeft, handleSize, true, true, ref angle);
+            DrawAngleSlider2D(transform, rotLt, radius, handleOffset, capLeft, handleSize, true, true, true, ref angle);
 
             Quaternion rotRt = Quaternion.AngleAxis(angle / 2, -transform.forward) * transform.rotation;
-            DrawAngleSlider2D(transform, rotRt, radius, handleOffset, capRight, handleSize, false, true, ref angle);
+            DrawAngleSlider2D(transform, rotRt, radius, handleOffset, capRight, handleSize, false, true, true, ref angle);
 
             return angle - old;
         }
@@ -469,6 +496,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (diff != 0.0f)
                 light.pointLightInnerAngle = light.pointLightInnerAngle < light.pointLightOuterAngle ? light.pointLightInnerAngle : light.pointLightOuterAngle;
 
+            light.pointLightInnerAngle = Mathf.Min(light.pointLightInnerAngle, light.pointLightOuterAngle);
+
             Handles.color = oldColor;
         }
 
@@ -495,7 +524,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             float outerRadius = light.pointLightOuterRadius;
             EditorGUI.BeginChangeCheck();
-            Vector3 returnPos = DrawAngleSlider2D(light.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUp, handleSize, false, false, ref dummy);
+            Vector3 returnPos = DrawAngleSlider2D(light.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUp, handleSize, false, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 var vec = (returnPos - light.transform.position).normalized;
@@ -509,7 +538,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.color = Color.gray;
             float innerRadius = light.pointLightInnerRadius;
             EditorGUI.BeginChangeCheck();
-            returnPos = DrawAngleSlider2D(light.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDown, handleSize, true, false, ref dummy);
+            returnPos = DrawAngleSlider2D(light.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDown, handleSize, true, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 innerRadius = (returnPos - light.transform.position).magnitude;
@@ -550,7 +579,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             else
             {
                 Transform t = light.transform;
-                Vector3 posOffset = light.shapeLightOffset;
+                Vector3 falloffOffset = light.shapeLightFalloffOffset;
 
                 if (light.lightType == Light2D.LightType.Sprite)
                 {
@@ -581,26 +610,36 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                     if (sides == 4)
                         angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
-    
+
                     Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
-                    Vector3 featherStartPoint = (1 + light.shapeLightFalloffSize * 2.0f) * startPoint;
+                    Vector3 featherStartPoint = startPoint + light.shapeLightFalloffSize * Vector3.Normalize(startPoint);
                     float radiansPerSide = 2 * Mathf.PI / sides;
                     for (int i = 0; i < sides; i++)
                     {
                         float endAngle = (i + 1) * radiansPerSide;
                         Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
-                        Vector3 featherEndPoint = (1 + light.shapeLightFalloffSize * 2.0f) * endPoint;
+                        Vector3 featherEndPoint = endPoint + light.shapeLightFalloffSize * Vector3.Normalize(endPoint);
 
-
-                        Handles.DrawLine(t.TransformPoint(startPoint + posOffset), t.TransformPoint(endPoint + posOffset));
-                        Handles.DrawLine(t.TransformPoint(featherStartPoint + posOffset), t.TransformPoint(featherEndPoint + posOffset));
+                        Handles.DrawLine(t.TransformPoint(startPoint), t.TransformPoint(endPoint));
+                        Handles.DrawLine(t.TransformPoint(featherStartPoint + falloffOffset), t.TransformPoint(featherEndPoint + falloffOffset));
 
                         startPoint = endPoint;
                         featherStartPoint = featherEndPoint;
                     }
                 }
                 else  // Freeform light
+                {
                     m_ShapeEditor.OnGUI(target);
+
+                    // Draw the falloff shape's outline
+                    List<Vector2> falloffShape = light.GetFalloffShape();
+                    Handles.color = Color.white;
+                    for (int i = 0; i < falloffShape.Count-1; i++)
+                    {
+                        Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
+                    }
+                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                }
             }
         }
 
