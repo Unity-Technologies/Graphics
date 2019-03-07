@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_LightProjectionType")]
         LightType m_LightType = LightType.Parametric;
-        LightType m_PreviousLightType = (LightType)int.MaxValue;
+        LightType m_PreviousLightType = (LightType)LightType.Parametric;
 
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ShapeLightType")]

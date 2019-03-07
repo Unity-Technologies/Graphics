@@ -10,9 +10,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         public static bool CheckForChange<T>(T a, ref T b)
         {
-            bool equal = a.Equals(b);
+            bool changed = !Equals(a,b);
             b = a;
-            return equal;
+            return changed;
         }
 
         public static Bounds CalculateBoundingSphere(ref Vector3[] vertices)
