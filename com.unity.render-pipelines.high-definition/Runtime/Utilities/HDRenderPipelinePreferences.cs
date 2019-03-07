@@ -38,10 +38,36 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static bool s_LightColorNormalization = false;
+        public static bool lightColorNormalization
+        {
+            get => s_LightColorNormalization;
+            set
+            {
+                if (s_LightColorNormalization == value) return;
+                s_LightColorNormalization = value;
+                EditorPrefs.SetBool(Keys.lightColorNormalization, s_LightColorNormalization);
+            }
+        }
+
+        static bool s_MaterialEmissionColorNormalization = false;
+        public static bool materialEmissionColorNormalization
+        {
+            get => s_MaterialEmissionColorNormalization;
+            set
+            {
+                if (s_MaterialEmissionColorNormalization == value) return;
+                s_MaterialEmissionColorNormalization = value;
+                EditorPrefs.SetBool(Keys.materialEmissionColorNormalization, s_MaterialEmissionColorNormalization);
+            }
+        }
+
         static class Keys
         {
             internal const string sceneViewAntialiasing = "HDRP.SceneView.Antialiasing";
             internal const string sceneViewStopNaNs = "HDRP.SceneView.StopNaNs";
+            internal const string lightColorNormalization = "HDRP.UI.LightColorNormalization";
+            internal const string materialEmissionColorNormalization = "HDRP.UI.MaterialEmissionNormalization";
         }
 
         [SettingsProvider]
@@ -60,6 +86,13 @@ namespace UnityEngine.Rendering
                         EditorGUILayout.HelpBox("Temporal Anti-aliasing in the Scene View is only supported when Animated Materials are enabled.", MessageType.Info);
 
                     sceneViewStopNaNs = EditorGUILayout.Toggle("Scene View Stop NaNs", sceneViewStopNaNs);
+
+                    EditorGUILayout.LabelField("Color Normalization");
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        lightColorNormalization = EditorGUILayout.Toggle("Lights", lightColorNormalization);
+                        materialEmissionColorNormalization = EditorGUILayout.Toggle("Material Emission", materialEmissionColorNormalization);
+                    }
                 }
             };
         }
@@ -73,6 +106,8 @@ namespace UnityEngine.Rendering
         {
             s_SceneViewAntialiasing = (AntialiasingMode)EditorPrefs.GetInt(Keys.sceneViewAntialiasing, (int)AntialiasingMode.None);
             s_SceneViewStopNaNs = EditorPrefs.GetBool(Keys.sceneViewStopNaNs, false);
+            s_LightColorNormalization = EditorPrefs.GetBool(Keys.lightColorNormalization, false);
+            s_MaterialEmissionColorNormalization = EditorPrefs.GetBool(Keys.materialEmissionColorNormalization, false);
 
             m_Loaded = true;
         }

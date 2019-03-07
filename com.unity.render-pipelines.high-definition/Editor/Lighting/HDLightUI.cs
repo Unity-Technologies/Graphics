@@ -467,21 +467,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void DrawEmissionContent(SerializedHDLight serialized, Editor owner)
         {
-            if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
+            using (var changes = new EditorGUI.ChangeCheckScope())
             {
-                EditorGUILayout.PropertyField(serialized.settings.useColorTemperature, s_Styles.useColorTemperature);
-                if (serialized.settings.useColorTemperature.boolValue)
+                if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
                 {
-                    EditorGUI.indentLevel += 1;
-                    EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.colorFilter);
-                    SliderWithTexture(s_Styles.colorTemperature, serialized.settings.colorTemperature, serialized.settings);
-                    EditorGUI.indentLevel -= 1;
+                    EditorGUILayout.PropertyField(serialized.settings.useColorTemperature, s_Styles.useColorTemperature);
+                    if (serialized.settings.useColorTemperature.boolValue)
+                    {
+                        EditorGUI.indentLevel += 1;
+                        EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.colorFilter);
+                        SliderWithTexture(s_Styles.colorTemperature, serialized.settings.colorTemperature, serialized.settings);
+                        EditorGUI.indentLevel -= 1;
+                    }
+                    else
+                        EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
                 }
                 else
                     EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
+                
+                if (changes.changed && HDRenderPipelinePreferences.lightColorNormalization)
+                {
+                    Vector4 ldrColor = Vector4.Max(serialized.settings.color.colorValue, Vector4.one * 0.0001f);
+                    serialized.settings.color.colorValue = (Vector4)(ldrColor / ColorUtils.Luminance(ldrColor));
+                }
             }
-            else
-                EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginHorizontal();
