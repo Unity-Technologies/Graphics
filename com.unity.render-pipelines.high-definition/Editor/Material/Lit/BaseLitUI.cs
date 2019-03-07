@@ -125,6 +125,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kStencilWriteMaskGBuffer = "_StencilWriteMaskGBuffer";
         protected const string kStencilRefMV = "_StencilRefMV";
         protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
+        protected const string kStencilRefDistortionVec = "_StencilRefDistortionVec";
+        protected const string kStencilWriteMaskDistortionVec = "_StencilWriteMaskDistortionVec";
 
         protected MaterialProperty displacementMode = null;
         protected const string kDisplacementMode = "_DisplacementMode";
@@ -540,6 +542,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetInt(kStencilWriteMaskGBuffer, stencilWriteMaskGBuffer);
             material.SetInt(kStencilRefMV, stencilRefMV);
             material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
+            material.SetInt(kStencilRefDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
+            material.SetInt(kStencilWriteMaskDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
 
             if (material.HasProperty(kDisplacementMode))
             {
