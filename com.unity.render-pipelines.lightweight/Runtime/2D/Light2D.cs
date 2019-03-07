@@ -61,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         int         m_PreviousLightOperationIndex;
         Color       m_PreviousColor                 = Color.white;
         float       m_PreviousLightVolumeOpacity;
+        Sprite      m_PreviousLightCookieSprite     = null;
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
@@ -305,6 +306,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
+            rebuildMesh |= LightUtility.CheckForChange(m_LightCookieSprite, ref m_PreviousLightCookieSprite);
 
 #if UNITY_EDITOR
             rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PreviousShapePathHash);

@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
     [CanEditMultipleObjects]
     internal class Light2DEditor : Editor
     {
-        internal class ShapeEditor : PolygonEditor
+        private class ShapeEditor : PolygonEditor
         {
             const string k_ShapePath = "m_ShapePath";
 
@@ -49,16 +49,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
         }
 
-        static string k_TexturePath = "Textures/";
-
-        private class Styles
+        private static class Styles
         {
-            public static Texture lightCapTopRight;
-            public static Texture lightCapTopLeft;
-            public static Texture lightCapBottomLeft;
-            public static Texture lightCapBottomRight;
-            public static Texture lightCapUp;
-            public static Texture lightCapDown;
+            const string k_TexturePath = "Textures/";
+
+            public static Texture lightCapTopRight = Resources.Load<Texture>(k_TexturePath + "LightCapTopRight");
+            public static Texture lightCapTopLeft = Resources.Load<Texture>(k_TexturePath + "LightCapTopLeft");
+            public static Texture lightCapBottomLeft = Resources.Load<Texture>(k_TexturePath + "LightCapBottomLeft");
+            public static Texture lightCapBottomRight = Resources.Load<Texture>(k_TexturePath + "LightCapBottomRight");
+            public static Texture lightCapUp = Resources.Load<Texture>(k_TexturePath + "LightCapUp");
+            public static Texture lightCapDown = Resources.Load<Texture>(k_TexturePath + "LightCapDown");
 
             public static GUIContent generalLightType = EditorGUIUtility.TrTextContent("Light Type", "Specify the light type");
             public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Specify the falloff of the light");
@@ -85,22 +85,20 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static GUIContent shapeLightOrder = EditorGUIUtility.TrTextContent("Light Order", "Shape light order");
 
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply this light to the specified sorting layers.");
-            public static GUIContent sortingLayerAll = EditorGUIUtility.TrTempContent("All");
-            public static GUIContent sortingLayerNone = EditorGUIUtility.TrTempContent("None");
-            public static GUIContent sortingLayerMixed = EditorGUIUtility.TrTempContent("Mixed...");
+            public static GUIContent sortingLayerAll = EditorGUIUtility.TrTextContent("All");
+            public static GUIContent sortingLayerNone = EditorGUIUtility.TrTextContent("None");
+            public static GUIContent sortingLayerMixed = EditorGUIUtility.TrTextContent("Mixed...");
 
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Lightweight scriptable renderpipeline asset must be assigned in graphics settings", MessageType.Warning);
             public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your lightweight render pipeline asset", MessageType.Warning);
         }
 
-        static float s_GlobalLightGizmoSize = 1.2f;
-        static float s_AngleCapSize = 0.16f * s_GlobalLightGizmoSize;
-        static float s_AngleCapOffset = 0.08f * s_GlobalLightGizmoSize;
-        static float s_AngleCapOffsetSecondary = -0.05f;
-        static float s_RangeCapSize = 0.025f * s_GlobalLightGizmoSize;
-        static Handles.CapFunction s_RangeCapFunction = Handles.DotHandleCap;
-        static float s_InnerRangeCapSize = 0.08f * s_GlobalLightGizmoSize;
-        static Handles.CapFunction s_InnerRangeCapFunction = Handles.SphereHandleCap;
+        const float     k_GlobalLightGizmoSize      = 1.2f;
+        const float     k_AngleCapSize              = 0.16f * k_GlobalLightGizmoSize;
+        const float     k_AngleCapOffset            = 0.08f * k_GlobalLightGizmoSize;
+        const float     k_AngleCapOffsetSecondary   = -0.05f;
+        const float     k_RangeCapSize              = 0.025f * k_GlobalLightGizmoSize;
+        const float     k_InnerRangeCapSize         = 0.08f * k_GlobalLightGizmoSize;
 
         SerializedProperty m_LightType;
         SerializedProperty m_LightColor;
@@ -118,7 +116,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_PointLightCookie;
         SerializedProperty m_PointLightQuality;
 
-        // Shape Light Properies
+        // Shape Light Properties
         SerializedProperty m_ShapeLightRadius;
         SerializedProperty m_ShapeLightFalloffSize;
         SerializedProperty m_ShapeLightParametricSides;
@@ -128,66 +126,18 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_ShapeLightOrder;
         SerializedProperty m_ShapeLightOverlapMode;
 
-        string[] m_LayerNames;
-        bool m_ModifiedMesh = false;
-        int[] m_LightOperationIndices;
-        GUIContent[] m_LightOperationNames;
-        bool m_AnyLightOperationEnabled = false;
+        int[]           m_LightOperationIndices;
+        GUIContent[]    m_LightOperationNames;
+        bool            m_AnyLightOperationEnabled  = false;
+        Rect            m_SortingLayerDropdownRect  = new Rect();
+        SortingLayer[]  m_AllSortingLayers;
+        GUIContent[]    m_AllSortingLayerNames;
+        List<int>       m_ApplyToSortingLayersList;
+        ShapeEditor     m_ShapeEditor               = new ShapeEditor();
 
-        private Light2D lightObject { get { return target as Light2D; } }
-        private Rect m_SortingLayerDropdownRect = new Rect();
-        private SortingLayer[] m_AllSortingLayers;
-        private GUIContent[] m_AllSortingLayerNames;
-        private List<int> m_ApplyToSortingLayersList;
+        Light2D lightObject => target as Light2D;
 
-        ShapeEditor m_ShapeEditor = new ShapeEditor();
-
-        #region Handle Utilities
-
-        public static void TriangleCapTopRight(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
-        {
-            if (Styles.lightCapTopRight == null)
-                Styles.lightCapTopRight = Resources.Load<Texture>(k_TexturePath + "LightCapTopRight");
-            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightCapTopRight, position, rotation, size, eventType);
-        }
-
-        public static void TriangleCapTopLeft(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
-        {
-            if (Styles.lightCapTopLeft == null)
-                Styles.lightCapTopLeft = Resources.Load<Texture>(k_TexturePath + "LightCapTopLeft");
-            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightCapTopLeft, position, rotation, size, eventType);
-        }
-
-        public static void TriangleCapBottomRight(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
-        {
-            if (Styles.lightCapBottomRight == null)
-                Styles.lightCapBottomRight = Resources.Load<Texture>(k_TexturePath + "LightCapBottomRight");
-            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightCapBottomRight, position, rotation, size, eventType);
-        }
-
-        public static void TriangleCapBottomLeft(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
-        {
-            if (Styles.lightCapBottomLeft == null)
-                Styles.lightCapBottomLeft = Resources.Load<Texture>(k_TexturePath + "LightCapBottomLeft");
-            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightCapBottomLeft, position, rotation, size, eventType);
-        }
-
-        public static void SemiCircleCapUp(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
-        {
-            if (Styles.lightCapUp == null)
-                Styles.lightCapUp = Resources.Load<Texture>(k_TexturePath + "LightCapUp");
-            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightCapUp, position, rotation, size, eventType);
-        }
-
-        public static void SemiCircleCapDown(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
-        {
-            if (Styles.lightCapDown == null)
-                Styles.lightCapDown = Resources.Load<Texture>(k_TexturePath + "LightCapDown");
-            Light2DEditorUtility.GUITextureCap(controlID, Styles.lightCapDown, position, rotation, size, eventType);
-        }
-        #endregion
-
-        private void OnEnable()
+        void OnEnable()
         {
             m_LightType = serializedObject.FindProperty("m_LightType");
             m_LightColor = serializedObject.FindProperty("m_Color");
@@ -216,7 +166,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_ShapeLightOverlapMode = serializedObject.FindProperty("m_ShapeLightOverlapMode");
 
             m_AnyLightOperationEnabled = false;
-            var light = target as Light2D;
             var lightOperationIndices = new List<int>();
             var lightOperationNames = new List<string>();
             var pipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
@@ -237,15 +186,15 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
             else
             {
-                for (int i = 0; i < 3; ++i)
+                for (int i = 0; i < 4; ++i)
                 {
                     lightOperationIndices.Add(i);
-                    lightOperationNames.Add("Type" + i);
+                    lightOperationNames.Add("Operation" + i);
                 }
             }
 
             m_LightOperationIndices = lightOperationIndices.ToArray();
-            m_LightOperationNames = lightOperationNames.Select(x => EditorGUIUtility.TrTextContent(x)).ToArray();
+            m_LightOperationNames = lightOperationNames.Select(x => new GUIContent(x)).ToArray();
 
             m_AllSortingLayers = SortingLayer.layers;
             m_AllSortingLayerNames = m_AllSortingLayers.Select(x => new GUIContent(x.name)).ToArray();
@@ -261,7 +210,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
         }
 
-        private void OnPointLight(SerializedObject serializedObject)
+        void OnPointLight(SerializedObject serializedObject)
         {
             EditorGUILayout.PropertyField(m_PointLightQuality, Styles.pointLightQuality);
 
@@ -278,55 +227,35 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_PointInnerRadius, Styles.pointLightInnerRadius);
             if (EditorGUI.EndChangeCheck())
-                m_PointInnerRadius.floatValue = Mathf.Min(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
+                m_PointInnerRadius.floatValue = Mathf.Max(0.0f, Mathf.Min(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue));
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_PointOuterRadius, Styles.pointLightOuterRadius);
             if (EditorGUI.EndChangeCheck())
                 m_PointOuterRadius.floatValue = Mathf.Max(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_PointZDistance, Styles.pointLightZDistance);
+            if (EditorGUI.EndChangeCheck())
+                m_PointZDistance.floatValue = Mathf.Max(0.0f, m_PointZDistance.floatValue);
+
             EditorGUILayout.Slider(m_FalloffCurve, 0, 1, Styles.generalFalloffIntensity);
             EditorGUILayout.PropertyField(m_PointLightCookie, Styles.pointLightCookie);
-            if (m_PointInnerRadius.floatValue < 0) m_PointInnerRadius.floatValue = 0;
-            if (m_PointOuterRadius.floatValue < 0) m_PointOuterRadius.floatValue = 0;
-            if (m_PointZDistance.floatValue < 0) m_PointZDistance.floatValue = 0;
         }
 
-        private bool OnShapeLight(Light2D.LightType lightProjectionType, bool changedType, SerializedObject serializedObject)
+        void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject)
         {
             if (!m_AnyLightOperationEnabled)
-            {
                 EditorGUILayout.HelpBox(Styles.shapeLightNoLightDefined);
-                return false;
-            }
 
-            bool updateMesh = false;
-
-            if (lightProjectionType == Light2D.LightType.Sprite)
+            if (lightType == Light2D.LightType.Sprite)
             {
-                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_ShapeLightSprite, Styles.shapeLightSprite);
-                updateMesh |= EditorGUI.EndChangeCheck();
             }
-            else if (lightProjectionType == Light2D.LightType.Parametric || lightProjectionType == Light2D.LightType.Freeform)
+            else if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
             {
-                if (m_ModifiedMesh)
-                    updateMesh = true;
-
-                if (changedType)
+                if (lightType == Light2D.LightType.Parametric)
                 {
-                    int sides = m_ShapeLightParametricSides.intValue;
-                    if (lightProjectionType == Light2D.LightType.Parametric) sides = 6;
-                    else if (lightProjectionType == Light2D.LightType.Freeform) sides = 4; // This one should depend on if this has data at the moment
-                    m_ShapeLightParametricSides.intValue = sides;
-                }
-
-                m_ModifiedMesh = false;
-
-                if (lightProjectionType == Light2D.LightType.Parametric)
-                {
-                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.Slider(m_ShapeLightRadius, 0, 20, Styles.shapeLightParametricRadius);
                     EditorGUILayout.IntSlider(m_ShapeLightParametricSides, 3, 24, Styles.shapeLightParametricSides);
                     EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
@@ -334,20 +263,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                 EditorGUILayout.Slider(m_ShapeLightFalloffSize, 0, 5, Styles.generalFalloffSize);
                 EditorGUILayout.Slider(m_FalloffCurve, 0, 1, Styles.generalFalloffIntensity);
-                if (lightProjectionType == Light2D.LightType.Parametric)
-                {
+
+                if (lightType == Light2D.LightType.Parametric)
                     EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
-                }
             }
 
             EditorGUILayout.PropertyField(m_ShapeLightOverlapMode, Styles.shapeLightOverlapMode);
             EditorGUILayout.PropertyField(m_ShapeLightOrder, Styles.shapeLightOrder);
-
-
-            return updateMesh;
         }
 
-        private void OnTargetSortingLayers()
+        void OnTargetSortingLayers()
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel(Styles.sortingLayerPrefixLabel);
@@ -403,7 +328,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.EndHorizontal();
         }
 
-        private Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, bool useCapOffset, ref float angle)
+        Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, bool useCapOffset, ref float angle)
         {
             float oldAngle = angle;
 
@@ -444,24 +369,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             return cwHandle;
         }
 
-        private void DEBUG_DrawCaps(Vector3 position, Quaternion rotation, float size)
-        {
-            Vector3 topLeft = rotation * new Vector3(-size, size, 0) + position;
-            Vector3 topRight = rotation * new Vector3(size, size, 0) + position;
-            Vector3 bottomRight = rotation * new Vector3(size, -size, 0) + position;
-            Vector3 bottomLeft = rotation * new Vector3(-size, -size, 0) + position;
-
-            Handles.DrawLine(topLeft, topRight);
-            Handles.DrawLine(topRight, bottomRight);
-            Handles.DrawLine(bottomRight, bottomLeft);
-            Handles.DrawLine(bottomLeft, topLeft);
-        }
-
         private float DrawAngleHandle(Transform transform, float radius, float offset, Handles.CapFunction capLeft, Handles.CapFunction capRight, ref float angle)
         {
             float old = angle;
             float handleOffset = HandleUtility.GetHandleSize(transform.position) * offset;
-            float handleSize = HandleUtility.GetHandleSize(transform.position) * s_AngleCapSize;
+            float handleSize = HandleUtility.GetHandleSize(transform.position) * k_AngleCapSize;
 
             Quaternion rotLt = Quaternion.AngleAxis(-angle / 2, -transform.forward) * transform.rotation;
             DrawAngleSlider2D(transform, rotLt, radius, handleOffset, capLeft, handleSize, true, true, true, ref angle);
@@ -477,20 +389,25 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.DrawWireArc(transform.position, transform.forward, Quaternion.AngleAxis(180 - angle / 2, transform.forward) * -transform.up, angle, radius);
         }
 
+        Handles.CapFunction GetCapFunc(Texture texture)
+        {
+            return (controlID, position, rotation, size, eventType) => Light2DEditorUtility.GUITextureCap(controlID, texture, position, rotation, size, eventType);
+        }
+
         private void DrawAngleHandles(Light2D light)
         {
             var oldColor = Handles.color;
             Handles.color = Color.yellow;
 
             float outerAngle = light.pointLightOuterAngle;
-            float diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, s_AngleCapOffset, TriangleCapTopRight, TriangleCapBottomRight, ref outerAngle);
+            float diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, k_AngleCapOffset, GetCapFunc(Styles.lightCapTopRight), GetCapFunc(Styles.lightCapBottomRight), ref outerAngle);
             light.pointLightOuterAngle = outerAngle;
 
             if (diff != 0.0f)
                 light.pointLightInnerAngle = Mathf.Max(0.0f, light.pointLightInnerAngle + diff);
 
             float innerAngle = light.pointLightInnerAngle;
-            diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, -s_AngleCapOffset, TriangleCapTopLeft, TriangleCapBottomLeft, ref innerAngle);
+            diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, -k_AngleCapOffset, GetCapFunc(Styles.lightCapTopLeft), GetCapFunc(Styles.lightCapBottomLeft), ref innerAngle);
             light.pointLightInnerAngle = innerAngle;
 
             if (diff != 0.0f)
@@ -501,14 +418,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.color = oldColor;
         }
 
-        private float DrawRadiusHandle(Transform transform, float radius, float angle, Handles.CapFunction capFunc, float capSize, ref Vector3 handlePos)
-        {
-            Vector3 dir = (Quaternion.AngleAxis(angle, -transform.forward) * transform.up).normalized;
-            Vector3 handle = transform.position + dir * radius;
-            handlePos = Handles.FreeMoveHandle(handle, Quaternion.identity, HandleUtility.GetHandleSize(transform.position) * capSize, Vector3.zero, capFunc);
-            return (transform.position - handlePos).magnitude;
-        }
-
         private void DrawRangeHandles(Light2D light)
         {
             var handleColor = Handles.color;
@@ -516,15 +425,15 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             bool radiusChanged = false;
             Vector3 handlePos = Vector3.zero;
             Quaternion rotLeft = Quaternion.AngleAxis(0, -light.transform.forward) * light.transform.rotation;
-            float handleOffset = HandleUtility.GetHandleSize(light.transform.position) * s_AngleCapOffsetSecondary;
-            float handleSize = HandleUtility.GetHandleSize(light.transform.position) * s_AngleCapSize;
+            float handleOffset = HandleUtility.GetHandleSize(light.transform.position) * k_AngleCapOffsetSecondary;
+            float handleSize = HandleUtility.GetHandleSize(light.transform.position) * k_AngleCapSize;
 
             var oldColor = Handles.color;
             Handles.color = Color.yellow;
 
             float outerRadius = light.pointLightOuterRadius;
             EditorGUI.BeginChangeCheck();
-            Vector3 returnPos = DrawAngleSlider2D(light.transform, rotLeft, outerRadius, -handleOffset, SemiCircleCapUp, handleSize, false, false, false, ref dummy);
+            Vector3 returnPos = DrawAngleSlider2D(light.transform, rotLeft, outerRadius, -handleOffset, GetCapFunc(Styles.lightCapUp), handleSize, false, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 var vec = (returnPos - light.transform.position).normalized;
@@ -533,19 +442,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 outerRadius = outerRadius + handleOffset;
                 radiusChanged = true;
             }
-            DrawRadiusArc(light.transform, light.pointLightOuterRadius, light.pointLightOuterAngle, 0, s_RangeCapFunction, s_RangeCapSize, false);
+            DrawRadiusArc(light.transform, light.pointLightOuterRadius, light.pointLightOuterAngle, 0, Handles.DotHandleCap, k_RangeCapSize, false);
 
             Handles.color = Color.gray;
             float innerRadius = light.pointLightInnerRadius;
             EditorGUI.BeginChangeCheck();
-            returnPos = DrawAngleSlider2D(light.transform, rotLeft, innerRadius, handleOffset, SemiCircleCapDown, handleSize, true, false, false, ref dummy);
+            returnPos = DrawAngleSlider2D(light.transform, rotLeft, innerRadius, handleOffset, GetCapFunc(Styles.lightCapDown), handleSize, true, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 innerRadius = (returnPos - light.transform.position).magnitude;
                 innerRadius = innerRadius - handleOffset;
                 radiusChanged = true;
             }
-            DrawRadiusArc(light.transform, light.pointLightInnerRadius, light.pointLightOuterAngle, 0, s_InnerRangeCapFunction, s_InnerRangeCapSize, false);
+            DrawRadiusArc(light.transform, light.pointLightInnerRadius, light.pointLightOuterAngle, 0, Handles.SphereHandleCap, k_InnerRangeCapSize, false);
 
             Handles.color = oldColor;
 
@@ -558,7 +467,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.color = handleColor;
         }
 
-        protected virtual void OnSceneGUI()
+        void OnSceneGUI()
         {
             var light = target as Light2D;
             if (light == null)
@@ -683,8 +592,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 case (int)Light2D.LightType.Freeform:
                 case (int)Light2D.LightType.Sprite:
                     {
-                        
-                        updateMesh |= OnShapeLight((Light2D.LightType)m_LightType.intValue, updateMesh, serializedObject);
+                        OnShapeLight((Light2D.LightType)m_LightType.intValue, serializedObject);
                     }
                     break;
             }
