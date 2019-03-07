@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Type declaration was unmodifiable due to exception during space intialization
 - Fix unexpected issue when plugging per particle data into hash of per component fixed random
 - Missing asset reimport when exception has been thrown during graph compilation
+- Fix exception when using a Oriented Box Volume node [Case 1110419](https://issuetracker.unity3d.com/issues/operator-indexoutofrangeexception-when-using-a-volume-oriented-box-node)
+- Add missing blend value slot in Inherit Source Attribute blocks [Case 1120568](https://issuetracker.unity3d.com/issues/source-attribute-blend-source-attribute-blocks-are-not-useful-without-the-blend-value)
 
 ## [6.4.0-preview] - 2019-02-21 
 
