@@ -306,6 +306,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     else
                         m_ApplyToSortingLayersList.Add(layerID);
 
+
+                    // Compare the list to our array
+
+                    
+                    // Copy the new sorting layer list into our array
                     m_ApplyToSortingLayers.ClearArray();
                     for (int i = 0; i < m_ApplyToSortingLayersList.Count; ++i)
                     {
@@ -313,7 +318,22 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue = m_ApplyToSortingLayersList[i];
                     }
 
+
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        Light2D light = targets[i] as Light2D;
+                        if (light.lightType == Light2D.LightType.Global)
+                            Light2D.RemoveGlobalLight(light);
+                    }
+
                     serializedObject.ApplyModifiedProperties();
+
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        Light2D light = targets[i] as Light2D;
+                        if (light.lightType == Light2D.LightType.Global)
+                            Light2D.AddGlobalLight(light);
+                    }
                 };
 
                 for (int i = 0; i < m_AllSortingLayers.Length; ++i)
@@ -536,7 +556,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         featherStartPoint = featherEndPoint;
                     }
                 }
-                else  // Freeform light
+                else if(light.lightType == Light2D.LightType.Freeform)
                 {
                     m_ShapeEditor.OnGUI(target);
 
@@ -600,7 +620,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Color previousColor = m_LightColor.colorValue;
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
-            EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
+            if(m_LightType.intValue != (int)Light2D.LightType.Global)
+                EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
 
             OnTargetSortingLayers();
 

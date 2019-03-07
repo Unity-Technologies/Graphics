@@ -99,13 +99,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
         }
 
-        static private bool RenderShapeLightSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights, bool isShapeLight)
+        static private bool RenderShapeLightSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
         {
             bool renderedAnyLight = false;
 
             foreach (var light in lights)
             {
-                if (light != null && light.IsShapeLight() == isShapeLight  && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null && light.lightType != Light2D.LightType.Global && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
                     Material shapeLightMaterial = GetMaterial(light);
                     if (shapeLightMaterial != null)
@@ -118,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                             cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
 
-                            if (isShapeLight)
+                            if (!light.hasDirection)
                             {
                                 if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                     cmdBuffer.SetGlobalTexture("_MainTex", light.lightCookieSprite.texture);
@@ -329,27 +329,22 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());
 
-                if (s_RenderTargetsDirty[i])
-                    cmdBuffer.ClearRenderTarget(false, true, s_LightOperations[i].globalColor);
+                Color clearColor;
+                if (!Light2D.globalClearColors[i].TryGetValue(layerToRender, out clearColor))
+                    clearColor = s_LightOperations[i].globalColor;
+
+                //if (s_RenderTargetsDirty[i])
+                //    cmdBuffer.ClearRenderTarget(false, true, clearColor);
+                cmdBuffer.ClearRenderTarget(false, true, clearColor);
+
 
                 bool rtDirty = RenderShapeLightSet(
                     camera,
                     i,
                     cmdBuffer,
                     layerToRender,
-                    Light2D.GetLightsByLightOperation(i),
-                    true
+                    Light2D.GetLightsByLightOperation(i)
                 );
-
-                rtDirty |= RenderShapeLightSet(
-                    camera,
-                    i,
-                    cmdBuffer,
-                    layerToRender,
-                    Light2D.GetLightsByLightOperation(i),
-                    false
-                );
-
 
                 s_RenderTargetsDirty[i] = rtDirty;
 
