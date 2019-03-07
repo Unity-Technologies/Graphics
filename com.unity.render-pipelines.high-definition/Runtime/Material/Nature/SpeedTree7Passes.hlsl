@@ -48,7 +48,8 @@ void InitializeCommonData(inout SpeedTreeVertexInput input, float lodValue)
             #endif
             // face camera-facing leaf to camera
             float offsetLen = length(finalPosition);
-            finalPosition = mul(finalPosition.xyz, (float3x3)UNITY_MATRIX_IT_MV); // inv(MV) * finalPosition
+            //finalPosition = mul(finalPosition.xyz, (float3x3)UNITY_MATRIX_IT_MV); // inv(MV) * finalPosition
+            finalPosition = mul(unity_MatrixInvV, float4(finalPosition.xyz, 0)).xyz;
             finalPosition = normalize(finalPosition) * offsetLen; // make sure the offset vector is still scaled
         }
         else
@@ -100,8 +101,8 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
 {
     PackedVaryingsType output = (PackedVaryingsType)0;
     UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+    UNITY_TRANSFER_INSTANCE_ID(input, output.vmesh);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output.vmesh);
 
     // handle speedtree wind and lod
     InitializeCommonData(input, unity_LODFade.x);
@@ -115,7 +116,7 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
     
 #ifdef EFFECT_BUMP
     output.vmesh.interpolators1 = normalWS;
-    output.vmesh.interpolators2 = TransformObjectToWorldDir(input.tangent.xyz);
+    output.vmesh.interpolators2.xyz = TransformObjectToWorldDir(input.tangent.xyz);
 #else
     output.vmesh.interpolators1 = normalWS;
     output.vmesh.interpolators2.xyz = viewDirWS;
@@ -167,8 +168,8 @@ PackedVaryingsType SpeedTree7VertDepth(SpeedTreeVertexInput input)
 {
     PackedVaryingsType output;
     UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+    UNITY_TRANSFER_INSTANCE_ID(input, output.vmesh);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output.vmesh);
     
     // handle speedtree wind and lod
     InitializeCommonData(input, unity_LODFade.x);

@@ -38,6 +38,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.thickness = 1;
     surfaceData.diffusionProfile = 0;
 
+#ifdef EFFECT_BUMP
+#endif
+
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
     // Init other parameters

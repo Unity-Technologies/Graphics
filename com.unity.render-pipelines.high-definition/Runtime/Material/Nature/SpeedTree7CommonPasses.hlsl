@@ -19,6 +19,15 @@
 #define ATTRIBUTES_NEED_TEXCOORD1
 #endif
 
+#if defined(SHADOW_CASTER) || defined(SHADOW_LOW)
+#undef ATTRIBUTES_NEED_TANGENT
+#undef VARYINGS_NEED_TANGENT_TO_WORLD
+#undef VARYINGS_NEED_TEXCOORD1
+#undef ATTRIBUTES_NEED_TEXCOORD1
+#undef VARYINGS_NEED_TEXCOORD3
+#undef ATTRIBUTES_NEED_TEXCOORD3
+#endif
+
 #ifdef CUSTOM_UNPACK
 
 FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
@@ -52,7 +61,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
     // Z component of uvHueVariation
 #ifdef EFFECT_HUE_VARIATION
-    output.texCoord0.z = output.vmesh.interpolators3.z;
+    output.texCoord0.z = input.interpolators3.z;
 #endif
 
 #ifdef _MAIN_LIGHT_SHADOWS

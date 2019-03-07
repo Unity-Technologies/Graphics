@@ -49,6 +49,7 @@ Shader "HDRP/Nature/SpeedTree7"
         #define CUSTOM_UNPACK                   // Needed so we can interpret the packing properly
         // Because we need more than two components for certain values, we can't just share a single interpolator like we do with TEXCOORD0 and TEXCOORD1
         #ifdef GEOM_BRANCH_DETAIL
+            #define ATTRIBUTES_NEED_TEXCOORD3   // Use for detail
             #define VARYINGS_NEED_TEXCOORD3     // Use for detail
         #endif
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -108,6 +109,8 @@ Shader "HDRP/Nature/SpeedTree7"
             HLSLPROGRAM
 
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+
+            #pragma vertex SpeedTree7VertDepth
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #define USE_LEGACY_UNITY_MATRIX_VARIABLES
@@ -224,6 +227,8 @@ Shader "HDRP/Nature/SpeedTree7"
             HLSLPROGRAM
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
+            #pragma vertex SpeedTree7VertDepth
+
             #define WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
@@ -276,7 +281,6 @@ Shader "HDRP/Nature/SpeedTree7"
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define VARYINGS_NEED_COLOR
-            #define VARYINGS_NEED_TANGENT_TO_WORLD
             #define ATTRIBUTES_NEED_COLOR
 
             #define SHADERPASS SHADERPASS_FORWARD
@@ -315,7 +319,7 @@ Shader "HDRP/Nature/SpeedTree7"
         }
     }
 
-    Dependency "BillboardShader" = "HDRP/Nature/SpeedTree7 Billboard"
+    //Dependency "BillboardShader" = "HDRP/Nature/SpeedTree7 Billboard"
     FallBack "HDRP/Lit"
-    //CustomEditor "SpeedTreeMaterialInspector"
+    CustomEditor "SpeedTreeMaterialInspector"
 }
