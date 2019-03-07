@@ -381,6 +381,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     else
                         m_ApplyToSortingLayersList.Add(layerID);
 
+
+                    // Compare the list to our array
+
+                    
+                    // Copy the new sorting layer list into our array
                     m_ApplyToSortingLayers.ClearArray();
                     for (int i = 0; i < m_ApplyToSortingLayersList.Count; ++i)
                     {
@@ -388,7 +393,22 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue = m_ApplyToSortingLayersList[i];
                     }
 
+
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        Light2D light = targets[i] as Light2D;
+                        if (light.lightType == Light2D.LightType.Global)
+                            Light2D.RemoveGlobalLight(light);
+                    }
+
                     serializedObject.ApplyModifiedProperties();
+
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        Light2D light = targets[i] as Light2D;
+                        if (light.lightType == Light2D.LightType.Global)
+                            Light2D.AddGlobalLight(light);
+                    }
                 };
 
                 for (int i = 0; i < m_AllSortingLayers.Length; ++i)

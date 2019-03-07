@@ -270,6 +270,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
+
         static internal void RemoveGlobalLight(Light2D light2D)
         {
             for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
@@ -280,6 +281,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     globalColorOp.Remove(sortingLayer);
             }
         }
+
 
         private void Awake()
         {
