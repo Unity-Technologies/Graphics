@@ -1,9 +1,9 @@
-﻿Shader "Hidden/Light2D-Sprite-Superimpose"
+Shader "Hidden/Light2D-Sprite-Additive"
 {
-	Properties
+	/*Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-	}
+	}*/
 
 	HLSLINCLUDE
 	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
@@ -26,10 +26,11 @@
 	SubShader
 	{
 		Tags{ "Queue" = "Transparent" "RenderType" = "Transparent" }
-		Blend SrcAlpha OneMinusSrcAlpha
+		Blend One One
 		BlendOp Add
 		ZWrite Off
 		Cull Off
+
 
 		Pass
 		{
@@ -40,10 +41,10 @@
 
 			TEXTURE2D(_MainTex);
 			SAMPLER(sampler_MainTex);
-
+			
 			uniform float	_InverseLightIntensityScale;
 			
-			Varyings vert(Attributes attributes)
+			Varyings vert (Attributes attributes)
 			{
 				Varyings o;
 				o.positionCS = TransformObjectToHClip(attributes.positionOS);
@@ -56,6 +57,7 @@
 			{
 				half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
 				col = i.color * i.color.a * col * col.a * _InverseLightIntensityScale;
+				col.a = 1;
 				return col;
 			}
 			ENDHLSL

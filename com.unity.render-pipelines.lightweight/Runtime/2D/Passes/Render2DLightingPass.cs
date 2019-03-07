@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 s_SortingLayers = SortingLayer.layers;
 #endif
             Camera camera = renderingData.cameraData.camera;
-            RendererLighting.Setup(m_RendererData.lightOperations);
+            RendererLighting.Setup(m_RendererData);
 
             CommandBuffer cmd = CommandBufferPool.Get("Render 2D Lighting");
 

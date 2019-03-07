@@ -1,13 +1,13 @@
 /*FloatField {
-    min-height: 15;
-    margin-left: 4;
-    margin-top: 2;
-    margin-right: 4;
-    margin-bottom: 2;
-    padding-left: 3;
-    padding-top: 1;
-    padding-right: 3;
-    padding-bottom: 2;
+    min-height: 15px;
+    margin-left: 4px;
+    margin-top: 2px;
+    margin-right: 4px;
+    margin-bottom: 2px;
+    padding-left: 3px;
+    padding-top: 1px;
+    padding-right: 3px;
+    padding-bottom: 2px;
     -unity-slice-left: 3;
     -unity-slice-top: 3;
     -unity-slice-right: 3;
@@ -31,12 +31,12 @@ VFXColorField #indeterminate
 
 .unity-curve-field
 {
-    height:16;
+    height: 16px;
     background-color:rgb(86, 86, 86);
-    border-left-width:1;
-    border-right-width:1;
-    border-top-width:1;
-    border-bottom-width:1;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
     border-color:#000;
 }
 
@@ -50,31 +50,31 @@ VFXColorField #indeterminate
 }
 .sliderField #Field
 {
-    width:40;
+    width: 40px;
     flex:0 0 auto;
 }
 .sliderField #indeterminate
 {
-    width:40;
+    width: 40px;
     flex:0 0 auto;
 }
 
 .PopupButton
 {
     -unity-text-align:middle-left;
-    height: 16;
+    height: 16px;
     -unity-slice-left: 6;
     -unity-slice-top: 4;
     -unity-slice-right: 14;
     -unity-slice-bottom: 4;
     color: #B4B4B4;
-    padding-right:14;
-    padding-left:4;
+    padding-right: 14px;
+    padding-left: 4px;
 }
 
 VFXEnumField .PopupButton
 {
-    padding-bottom:4;
+    padding-bottom: 4px;
 }
 
 VFXEnumField .PopupButton:hover
@@ -84,12 +84,12 @@ VFXEnumField .PopupButton:hover
 
 VFXStringFieldPushButton
 {
-    height:16;
+    height: 16px;
 }
 
 VFXStringFieldPushButton .unity-button
 {
-    height:16;
+    height: 16px;
 }
 
 .unity-button.MiniDropDown

@@ -5,17 +5,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     sealed public partial class Light2D : MonoBehaviour
     {
         //------------------------------------------------------------------------------------------
-        //                                      Static
-        //------------------------------------------------------------------------------------------
-
-        static Material s_ShapeCookieSpriteAlphaBlendMaterial;
-        static Material s_ShapeCookieSpriteAdditiveMaterial;
-        static Material s_ShapeCookieSpriteVolumeMaterial;
-        static Material s_ShapeVertexColoredAlphaBlendMaterial;
-        static Material s_ShapeVertexColoredAdditiveMaterial;
-        static Material s_ShapeVertexColoredVolumeMaterial;
-
-        //------------------------------------------------------------------------------------------
         //                                Variables/Properties
         //------------------------------------------------------------------------------------------
         [SerializeField]
@@ -40,120 +29,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         Vector2 m_PreviousShapeLightOffset                  = Vector2.negativeInfinity;
         int     m_PreviousShapeLightOrder                   = -1;
 
-        public int          shapeLightParametricSides       => m_ShapeLightParametricSides;
-        public float        shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;
-        public float        shapeLightFalloffSize           => m_ShapeLightFalloffSize;
-        public float        shapeLightRadius                => m_ShapeLightRadius;
-        public Vector2      shapeLightFalloffOffset         => m_ShapeLightFalloffOffset;
-        public Vector3[]    shapePath                       => m_ShapePath;
+#if UNITY_EDITOR
+        int     m_PreviousShapePathHash                     = -1;
+#endif
+
+        public int              shapeLightParametricSides       => m_ShapeLightParametricSides;
+        public float            shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;
+        public float            shapeLightFalloffSize           => m_ShapeLightFalloffSize;
+        public float            shapeLightRadius                => m_ShapeLightRadius;
+        public Vector2          shapeLightFalloffOffset         => m_ShapeLightFalloffOffset;
+        public LightOverlapMode shapeLightOverlapMode           => m_ShapeLightOverlapMode;
+        public Vector3[]        shapePath                       => m_ShapePath;
 
         //==========================================================================================
         //                              Functions
         //==========================================================================================
 
-        internal static bool IsShapeLight(LightType lightType)
+        internal bool IsShapeLight()
         {
-            return lightType != LightType.Point && lightType != LightType.Global;
-        }
-
-        Material GetShapeLightVolumeMaterial()
-        {
-            if (m_LightType == LightType.Sprite)
-            {
-                // This is causing Object.op_inequality fix this
-                if (s_ShapeCookieSpriteVolumeMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
-                {
-                    Shader shader = Shader.Find("Hidden/Light2d-Sprite-Volumetric");
-                    if (shader != null)
-                    {
-                        s_ShapeCookieSpriteVolumeMaterial = new Material(shader);
-                        s_ShapeCookieSpriteVolumeMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
-                    }
-                    else
-                        Debug.LogError("Missing shader Light2d-Sprite-Volumetric");
-                }
-
-                return s_ShapeCookieSpriteVolumeMaterial;
-            }
-            else
-            {
-                // This is causing Object.op_inequality fix this
-                if (s_ShapeVertexColoredVolumeMaterial == null)
-                {
-                    Shader shader = Shader.Find("Hidden/Light2d-Shape-Volumetric");
-                    if (shader != null)
-                        s_ShapeVertexColoredVolumeMaterial = new Material(shader);
-                    else
-                        Debug.LogError("Missing shader Light2d-Shape-Volumetric");
-                }
-
-                return s_ShapeVertexColoredVolumeMaterial;
-            }
-        }
-
-        Material GetShapeLightMaterial()
-        {
-            if (m_LightType == LightType.Sprite)
-            {
-                // This is causing Object.op_inequality fix this
-                if (s_ShapeCookieSpriteAdditiveMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
-                {
-                    Shader shader = Shader.Find("Hidden/Light2D-Sprite-Additive");
-
-                    if (shader != null)
-                    {
-                        s_ShapeCookieSpriteAdditiveMaterial = new Material(shader);
-                        s_ShapeCookieSpriteAdditiveMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
-                    }
-                    else
-                        Debug.LogError("Missing shader Light2d-Sprite-Additive");
-                }
-
-                if (s_ShapeCookieSpriteAlphaBlendMaterial == null && m_LightCookieSprite && m_LightCookieSprite.texture != null)
-                {
-                    Shader shader = Shader.Find("Hidden/Light2D-Sprite-Superimpose"); ;
-
-                    if (shader != null)
-                    {
-                        s_ShapeCookieSpriteAlphaBlendMaterial = new Material(shader);
-                        s_ShapeCookieSpriteAlphaBlendMaterial.SetTexture("_MainTex", m_LightCookieSprite.texture);
-                    }
-                    else
-                        Debug.LogError("Missing shader Light2d-Sprite-Superimpose");
-                }
-
-
-                if (m_ShapeLightOverlapMode == LightOverlapMode.Additive)
-                    return s_ShapeCookieSpriteAdditiveMaterial;
-                else
-                    return s_ShapeCookieSpriteAlphaBlendMaterial;
-            }
-            else
-            {
-                // This is causing Object.op_inequality fix this
-                if (s_ShapeVertexColoredAdditiveMaterial == null)
-                {
-                    Shader shader = Shader.Find("Hidden/Light2D-Shape-Additive"); ;
-                    if (shader != null)
-                        s_ShapeVertexColoredAdditiveMaterial = new Material(shader);
-                    else
-                        Debug.LogError("Missing shader Light2d-Shape-Additive");
-                }
-
-                if (s_ShapeVertexColoredAlphaBlendMaterial == null)
-                {
-                    Shader shader = Shader.Find("Hidden/Light2D-Shape-Superimpose"); ;
-                    if (shader != null)
-                        s_ShapeVertexColoredAlphaBlendMaterial = new Material(shader);
-                    else
-                        Debug.LogError("Missing shader Light2d-Shape-Superimpose");
-                }
-
-                if (m_ShapeLightOverlapMode == LightOverlapMode.Additive)
-                    return s_ShapeVertexColoredAdditiveMaterial;
-                else
-                    return s_ShapeVertexColoredAlphaBlendMaterial;
-            }
+            return m_LightType != LightType.Point;
         }
 
         BoundingSphere GetShapeLightBoundingSphere()
@@ -191,8 +85,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 return hashCode;
             }
         }
-
-        int m_PrevShapePathHash;
 #endif
     }
 }

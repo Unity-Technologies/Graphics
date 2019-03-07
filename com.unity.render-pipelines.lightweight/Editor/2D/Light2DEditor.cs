@@ -220,7 +220,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             var lightOperationIndices = new List<int>();
             var lightOperationNames = new List<string>();
             var pipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
-            var rendererData = pipelineAsset != null ? pipelineAsset.rendererData as _2DRendererData : null;
+            var rendererData = pipelineAsset != null ? pipelineAsset.scriptableRendererData as _2DRendererData : null;
             if (rendererData != null)
             {
                 for (int i = 0; i < rendererData.lightOperations.Length; ++i)
@@ -653,7 +653,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             LightweightRenderPipelineAsset asset = LightweightRenderPipeline.asset;
-            _2DRendererData assetData = asset.rendererData as _2DRendererData; 
+            _2DRendererData assetData = asset.scriptableRendererData as _2DRendererData; 
             if(assetData == null)
             {
                 EditorGUILayout.HelpBox(Styles.asset2DUnassignedWarning);
@@ -710,7 +710,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 {
                     Light2D light = (Light2D)targets[i];
                     light.UpdateMesh();
-                    light.UpdateCookieSpriteMaterials();
                 }
             }
         }

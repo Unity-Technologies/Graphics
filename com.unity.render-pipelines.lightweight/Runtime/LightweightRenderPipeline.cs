@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.LWRP
                 InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
                 SetupPerCameraShaderConstants(cameraData);
                 
-                ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.rendererSetup : settings.renderer;
+                ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 
