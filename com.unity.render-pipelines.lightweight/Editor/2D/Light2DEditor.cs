@@ -313,21 +313,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue = m_ApplyToSortingLayersList[i];
                     }
 
-                    for (int i = 0; i < targets.Length; ++i)
-                    {
-                        Light2D light = targets[i] as Light2D;
-                        if (light.lightType == Light2D.LightType.Global)
-                            Light2D.RemoveGlobalLight(light);
-                    }
+                    RemoveSelectedGlobalLights(targets);
 
                     serializedObject.ApplyModifiedProperties();
 
-                    for (int i = 0; i < targets.Length; ++i)
-                    {
-                        Light2D light = targets[i] as Light2D;
-                        if (light.lightType == Light2D.LightType.Global)
-                            Light2D.AddGlobalLight(light);
-                    }
+                    AddSelectedGlobalLights(targets);
+
                 };
 
                 for (int i = 0; i < m_AllSortingLayers.Length; ++i)
@@ -340,6 +331,26 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        void RemoveSelectedGlobalLights(Object[] lights)
+        {
+            for (int i = 0; i < lights.Length; i++)
+            {
+                Light2D light = lights[i] as Light2D;
+                if (light.lightType == Light2D.LightType.Global)
+                    Light2D.RemoveGlobalLight(light);
+            }
+        }
+
+        void AddSelectedGlobalLights(Object[] lights)
+        {
+            for (int i = 0; i < lights.Length; i++)
+            {
+                Light2D light = lights[i] as Light2D;
+                if (light != null && light.lightType == Light2D.LightType.Global)
+                    Light2D.AddGlobalLight(light);
+            }
         }
 
         Vector3 DrawAngleSlider2D(Transform transform, Quaternion rotation, float radius, float offset, Handles.CapFunction capFunc, float capSize, bool leftAngle, bool drawLine, bool useCapOffset, ref float angle)
@@ -587,6 +598,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 return;
             }
 
+            bool updateGlobalLights = false;
+
             EditorGUILayout.Space();
 
             serializedObject.Update();
@@ -609,7 +622,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     break;
             }
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
+            updateGlobalLights = EditorGUI.EndChangeCheck();
+
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
 
             if(m_LightType.intValue != (int)Light2D.LightType.Global)
@@ -617,7 +633,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             OnTargetSortingLayers();
 
+            if (updateGlobalLights)
+                RemoveSelectedGlobalLights(targets);
+
             serializedObject.ApplyModifiedProperties();
+
+            if (updateGlobalLights)
+                AddSelectedGlobalLights(targets);
         }
     }
 }
