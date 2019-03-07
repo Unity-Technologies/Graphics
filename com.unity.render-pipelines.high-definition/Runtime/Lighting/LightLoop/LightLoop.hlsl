@@ -80,35 +80,21 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         {
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
-            // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
-            // Also, the light direction is not consistent with the sun disk highlight hack, which modifies the light vector.
-            float3 L                = -light.forward;
-            float  NdotL            = dot(bsdfData.normalWS, L);
-            float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
-            bool   evaluateShadows  = (NdotL > 0);
+            float3 L = -light.forward;
 
-        #ifdef MATERIAL_INCLUDE_TRANSMISSION
-            if (MaterialSupportsTransmission(bsdfData))
+            // Is it worth sampling the shadow map?
+            if ((light.lightDimmer > 0) && (light.shadowDimmer > 0) &&
+                IsNonZeroCBxDF(V, L, preLightData, bsdfData) &&
+                !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
             {
-                // We support some kind of transmission.
-                if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-                {
-                    // We always evaluate shadows.
-                    evaluateShadows = true;
+                // TODO: the shadow code should do it for us. That would be far more efficient.
+                float3 sN  = GetNormalForShadowBias(bsdfData);
+                       sN *= FastSign(dot(sN, L));
 
-                    // Care must be taken to bias in the direction of the light.
-                    shadowBiasNormal *= FastSign(dot(shadowBiasNormal, L));
-                }
-                else
-                {
-                    // We only evaluate shadows for reflection, transmission shadows are handled separately.
-                }
-            }
-        #endif
-
-            if (evaluateShadows)
-            {
-                context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
+                context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                                      posInput.positionWS, sN,
+                                                                      light.shadowIndex, L,
+                                                                      posInput.positionSS);
             }
         }
     }

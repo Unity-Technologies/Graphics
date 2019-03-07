@@ -99,55 +99,38 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 }
 #endif
 
-// Does not account for precomputed (screen-space or baked) shadows.
-float EvaluateRuntimeSunShadow(LightLoopContext lightLoopContext, PositionInputs posInput,
-                               DirectionalLightData light, float3 shadowBiasNormal)
+// Returns unassociated (non-premultiplied) color with alpha (attenuation).
+// The calling code must perform alpha-compositing.
+float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
+                                 DirectionalLightData light)
 {
-    // The relationship with NdotL is complicated and is therefore handled outside the function.
-    if ((light.lightDimmer > 0) && (light.shadowDimmer > 0))
-    {
-        // Shadow dimmer is applied outside this function.
-        return GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, posInput.positionWS,
-                                               shadowBiasNormal, light.shadowIndex, -light.forward,
-                                               posInput.positionSS);
-    }
-    else
-    {
-        return 1;
-    }
-}
-
-// None of the outputs are premultiplied.
-void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
-                               DirectionalLightData light, BuiltinData builtinData,
-                               float3 N, float3 L, float NdotL,
-                               out float3 color, out float attenuation)
-{
-    color = attenuation = 0;
-    if ((light.lightDimmer <= 0) || (NdotL <= 0)) return;
-
-    float3 positionWS = posInput.positionWS;
-    float  shadow     = 1.0;
-    float  shadowMask = 1.0;
-
-    color       = light.color;
-    attenuation = 1.0;
+    float4 color = float4(light.color, 1);
 
     // Height fog attenuation.
+    // TODO: add an if()?
     {
-        float cosZenithAngle = L.y;
+        float cosZenithAngle = -light.forward.y;
         float fragmentHeight = posInput.positionWS.y;
-        attenuation *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                              _HeightFogExponents, cosZenithAngle, fragmentHeight);
+        color.a *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                          _HeightFogExponents, cosZenithAngle, fragmentHeight);
     }
 
     if (light.cookieIndex >= 0)
     {
-        float3 lightToSample = positionWS - light.positionRWS;
+        float3 lightToSample = posInput.positionWS - light.positionRWS;
         float3 cookie = EvaluateCookie_Directional(lightLoopContext, light, lightToSample);
 
-        color *= cookie;
+        color.rgb *= cookie;
     }
+
+    return color;
+}
+
+float EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
+                                 DirectionalLightData light, BuiltinData builtinData, float3 N)
+{
+    float shadow     = 1.0;
+    float shadowMask = 1.0;
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -168,7 +151,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         int cascadeCount;
         int shadowSplitIndex = 0;
 
-        shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, light.shadowIndex, positionWS, fade, cascadeCount);
+        shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, light.shadowIndex, posInput.positionWS, fade, cascadeCount);
 
         // we have a fade caclulation for each cascade but we must lerp with shadow mask only for the last one
         // if shadowSplitIndex is -1 it mean we are outside cascade and should return 1.0 to use shadowmask: saturate(-shadowSplitIndex) return 0 for >= 0 and 1 for -1
@@ -196,7 +179,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         debugShadowAttenuation = shadow;
 #endif
 
-    attenuation *= shadow;
+    return shadow;
 }
 
 //-----------------------------------------------------------------------------
@@ -214,16 +197,14 @@ void ModifyDistancesForFillLighting(inout float4 distances, float lightSqRadius)
     distances.z = rsqrt(sqDist + lightSqRadius); // Recompute 1/d
 }
 
-// Return L vector for punctual light (normalize surface to light), lightToSample (light to surface non normalize) and
-// distances = {d, d^2, 1/d, d_proj}
-void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, out float3 lightToSample, out float4 distances)
+// Returns the normalized light vector L and the distances = {d, d^2, 1/d, d_proj}.
+void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, out float4 distances)
 {
-    lightToSample = positionWS - light.positionRWS;
-    int lightType = light.lightType;
+    float3 lightToSample = positionWS - light.positionRWS;
 
     distances.w = dot(lightToSample, light.forward);
 
-    if (lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    if (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
     {
         L = -light.forward;
         distances.xyz = 1; // No distance or angle attenuation
@@ -279,43 +260,45 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 }
 #endif
 
-// None of the outputs are premultiplied.
+// Returns unassociated (non-premultiplied) color with alpha (attenuation).
+// The calling code must perform alpha-compositing.
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, light.forward).
-// Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
-void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
-                            LightData light, BuiltinData builtinData,
-                            float3 N, float3 L, float NdotL, float3 lightToSample, float4 distances,
-                            out float3 color, out float attenuation)
+float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
+                              LightData light, float3 L, float4 distances)
 {
-    color = attenuation = 0;
-    if ((light.lightDimmer <= 0) || (NdotL <= 0)) return;
+    float4 color = float4(light.color, 1.0);
 
-    float3 positionWS = posInput.positionWS;
-    float  shadow     = 1.0;
-    float  shadowMask = 1.0;
-
-    color       = light.color;
-    attenuation = PunctualLightAttenuation(distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
-                                           light.angleScale, light.angleOffset);
-
+    color.a *= PunctualLightAttenuation(distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
+                                        light.angleScale, light.angleOffset);
     // Height fog attenuation.
+    // TODO: add an if()?
     {
         float cosZenithAngle = L.y;
         float distToLight    = (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
         float fragmentHeight = posInput.positionWS.y;
-        attenuation *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                              _HeightFogExponents, cosZenithAngle,
-                                              fragmentHeight, distToLight);
+        color.a *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                          _HeightFogExponents, cosZenithAngle,
+                                          fragmentHeight, distToLight);
     }
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
     if (light.cookieIndex >= 0)
     {
+        float3 lightToSample = -distances.x * L;
         float4 cookie = EvaluateCookie_Punctual(lightLoopContext, light, lightToSample);
 
-        color       *= cookie.rgb;
-        attenuation *= cookie.a;
+        color *= cookie;
     }
+
+    return color;
+}
+
+// distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, light.forward).
+float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
+                              LightData light, BuiltinData builtinData, float3 N, float3 L, float4 distances)
+{
+    float shadow     = 1.0;
+    float shadowMask = 1.0;
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
@@ -325,7 +308,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
 
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
@@ -348,10 +331,10 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
 #ifdef DEBUG_DISPLAY
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
-        debugShadowAttenuation = step(FLT_EPS, attenuation) * shadow;
+        debugShadowAttenuation = shadow;
 #endif
 
-    attenuation *= shadow;
+    return shadow;
 }
 
 #ifndef OVERRIDE_EVALUATE_ENV_INTERSECTION

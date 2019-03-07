@@ -148,8 +148,7 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 
 #define MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 0)
 #define MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 1) // Note: The texture mode is 2bit, thus go from '<< 1' to '<< 3'
-// Flags used as a shortcut to know if we have thin mode transmission
-#define MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS  ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 3)
+#define MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT    ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 3)
 
 #ifdef MATERIAL_INCLUDE_SUBSURFACESCATTERING
 
@@ -198,7 +197,7 @@ void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout
     // the current object. That's not a problem, since large thickness will result in low intensity.
     bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfileIndex);
 
-    bsdfData.materialFeatures |= useThinObjectMode ? MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS : 0;
+    bsdfData.materialFeatures |= useThinObjectMode ? 0 : MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT;
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always used for indirect lighting).

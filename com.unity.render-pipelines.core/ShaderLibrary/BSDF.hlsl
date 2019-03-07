@@ -1,6 +1,16 @@
 #ifndef UNITY_BSDF_INCLUDED
 #define UNITY_BSDF_INCLUDED
 
+// Cosine-weighted BxDF (a BxDF taking the projected solid angle into account).
+// If some of the values are monochromatic, the compiler will optimize accordingly.
+struct CBxDF
+{
+    float3 diffR; // Diffuse  reflection   (T -> MS -> T, same sides)
+    float3 specR; // Specular reflection   (R, RR, TRT, etc)
+    float3 diffT; // Diffuse  transmission (rough T or TT, opposite sides)
+    float3 specT; // Specular transmission (T, TT, TRRT, etc)
+};
+
 // Note: All NDF and diffuse term have a version with and without divide by PI.
 // Version with divide by PI are use for direct lighting.
 // Version without divide by PI are use for image based lighting where often the PI cancel during importance sampling
@@ -372,7 +382,7 @@ real Lambert()
 real DisneyDiffuseNoPI(real NdotV, real NdotL, real LdotV, real perceptualRoughness)
 {
     // (2 * LdotH * LdotH) = 1 + LdotV
-    // real fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
+    // real fd90 = 0.5 + (2 * LdotH * LdotH) * perceptualRoughness;
     real fd90 = 0.5 + (perceptualRoughness + perceptualRoughness * LdotV);
     // Two schlick fresnel term
     real lightScatter = F_Schlick(1.0, fd90, NdotL);

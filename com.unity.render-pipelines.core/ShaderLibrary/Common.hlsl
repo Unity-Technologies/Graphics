@@ -539,7 +539,7 @@ real Smootherstep(real a, real b, real t)
     return Smootherstep01(x);
 }
 
-float3 NLerp(float3 A, float3 B, float t)
+real3 NLerp(real3 A, real3 B, real t)
 {
     return normalize(lerp(A, B, t));
 }
