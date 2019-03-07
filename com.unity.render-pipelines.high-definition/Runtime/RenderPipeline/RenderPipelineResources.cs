@@ -30,8 +30,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader colorPyramidPS;
             public ComputeShader depthPyramidCS;
             public ComputeShader copyChannelCS;
-            public ComputeShader applyDistortionCS;
             public ComputeShader screenSpaceReflectionsCS;
+            public Shader applyDistortionPS;
 
             // Lighting tile pass
             public ComputeShader clearDispatchIndirectCS;
@@ -215,7 +215,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 colorPyramidPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/ColorPyramidPS.Shader"),
                 depthPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/DepthPyramid.compute"),
                 copyChannelCS = Load<ComputeShader>(CorePath + "CoreResources/GPUCopy.compute"),
-                applyDistortionCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/Distortion/ApplyDistorsion.compute"),
+                applyDistortionPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/Distortion/ApplyDistorsion.shader"),
                 screenSpaceReflectionsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/ScreenSpaceLighting/ScreenSpaceReflections.compute"),
 
                 // Lighting tile pass
