@@ -314,11 +314,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());
 
                 Color clearColor;
-                if (Light2D.globalClearColors[i].TryGetValue(layerToRender, out clearColor))
+                if (!Light2D.globalClearColors[i].TryGetValue(layerToRender, out clearColor))
                     clearColor = s_LightOperations[i].globalColor;
 
-                if (s_RenderTargetsDirty[i])
-                    cmdBuffer.ClearRenderTarget(false, true, clearColor);
+                //if (s_RenderTargetsDirty[i])
+                //    cmdBuffer.ClearRenderTarget(false, true, clearColor);
+                cmdBuffer.ClearRenderTarget(false, true, clearColor);
+
 
                 bool rtDirty = RenderShapeLightSet(
                     camera,

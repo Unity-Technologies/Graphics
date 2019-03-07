@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
@@ -60,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         Color m_Color = Color.white;
 
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
-        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs.
+        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
         [SerializeField] Sprite m_LightCookieSprite = null;
 
         int m_PreviousLightOperationIndex;
@@ -293,10 +294,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 int sortingLayer = light2D.m_ApplyToSortingLayers[i];
                 Dictionary<int, Color> globalColorOp = s_GlobalClearColors[light2D.m_LightOperationIndex];
-                if (!globalColorOp.ContainsKey(sortingLayer))
-                {
+                if (globalColorOp.ContainsKey(sortingLayer))
                     globalColorOp.Remove(sortingLayer);
-                }
             }
         }
 
@@ -308,10 +307,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (m_ShapePath.Length == 0)
                 m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
 
-            if (m_LightType == LightType.Global)
-                AddGlobalLight(this);
-
-            m_PreviousLightType = m_LightType;
             GetMesh();
         }
 
@@ -328,6 +323,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 InsertLight();
 
             m_PreviousLightOperationIndex = m_LightOperationIndex;
+
+            if (m_LightType == LightType.Global)
+                AddGlobalLight(this);
+
+            m_PreviousLightType = m_LightType;
         }
 
         private void OnDisable()
@@ -348,6 +348,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 s_CullingGroup = null;
                 RenderPipeline.beginCameraRendering -= SetupCulling;
             }
+
+            if (m_LightType == LightType.Global)
+                RemoveGlobalLight(this);
         }
 
 
@@ -357,9 +360,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return shape;
         }
 
-    private void LateUpdate()
+
+        private void LateUpdate()
         {
             UpdateLightOperation();
+
+            bool rebuildMesh = false;
+            bool updateGlobalLight = false;
 
             // Sorting. InsertLight() will make sure the lights are sorted.
             if (LightUtility.CheckForChange(m_ShapeLightOrder, ref m_PreviousShapeLightOrder))
@@ -368,18 +375,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 InsertLight();
             }
 
-            if(m_LightType != m_PreviousLightType)
+            updateGlobalLight |= LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
+            updateGlobalLight |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
+
+            if (updateGlobalLight)
             {
+                RemoveGlobalLight(this);
                 if (m_LightType == LightType.Global)
                     AddGlobalLight(this);
-                else if (m_PreviousLightType == LightType.Global)
-                    RemoveGlobalLight(this);
-                m_PreviousLightType = m_LightType;
+
+                if(m_LightType != LightType.Global)
+                    rebuildMesh = true;
             }
 
             // Mesh Rebuilding
-            bool rebuildMesh = false;
-            rebuildMesh |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightRadius, ref m_PreviousShapeLightRadius);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
