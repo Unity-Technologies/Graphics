@@ -337,13 +337,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 RemoveGlobalLight(this);
         }
 
-
         internal List<Vector2> GetFalloffShape()
         {
             List<Vector2> shape = LightUtility.GetFeatheredShape(m_ShapePath, m_ShapeLightFalloffSize);
             return shape;
         }
-
 
         private void LateUpdate()
         {

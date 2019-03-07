@@ -306,11 +306,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     else
                         m_ApplyToSortingLayersList.Add(layerID);
 
-
-                    // Compare the list to our array
-
-                    
-                    // Copy the new sorting layer list into our array
                     m_ApplyToSortingLayers.ClearArray();
                     for (int i = 0; i < m_ApplyToSortingLayersList.Count; ++i)
                     {
@@ -318,8 +313,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue = m_ApplyToSortingLayersList[i];
                     }
 
-
-                    for (int i = 0; i < targets.Length; i++)
+                    for (int i = 0; i < targets.Length; ++i)
                     {
                         Light2D light = targets[i] as Light2D;
                         if (light.lightType == Light2D.LightType.Global)
@@ -328,7 +322,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                     serializedObject.ApplyModifiedProperties();
 
-                    for (int i = 0; i < targets.Length; i++)
+                    for (int i = 0; i < targets.Length; ++i)
                     {
                         Light2D light = targets[i] as Light2D;
                         if (light.lightType == Light2D.LightType.Global)
@@ -493,82 +487,86 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (light == null)
                 return;
 
-            if (light.lightType == Light2D.LightType.Point)
+            Transform t = light.transform;
+            switch (light.lightType)
             {
-
-                Undo.RecordObject(light, "Edit Target Light");
-                Undo.RecordObject(light.transform, light.transform.GetHashCode() + "_undo");
-
-                DrawRangeHandles(light);
-                DrawAngleHandles(light);
-
-                if (GUI.changed)
-                    EditorUtility.SetDirty(light);
-            }
-            else
-            {
-                Transform t = light.transform;
-                Vector3 falloffOffset = light.shapeLightFalloffOffset;
-
-                if (light.lightType == Light2D.LightType.Sprite)
-                {
-                    var cookieSprite = light.lightCookieSprite;
-                    if (cookieSprite != null)
+                case Light2D.LightType.Point:
                     {
-                        Vector3 min = cookieSprite.bounds.min;
-                        Vector3 max = cookieSprite.bounds.max;
+                        Undo.RecordObject(light, "Edit Target Light");
+                        Undo.RecordObject(light.transform, light.transform.GetHashCode() + "_undo");
 
-                        Vector3 v0 = t.TransformPoint(new Vector3(min.x, min.y));
-                        Vector3 v1 = t.TransformPoint(new Vector3(max.x, min.y));
-                        Vector3 v2 = t.TransformPoint(new Vector3(max.x, max.y));
-                        Vector3 v3 = t.TransformPoint(new Vector3(min.x, max.y));
-                        Handles.DrawLine(v0, v1);
-                        Handles.DrawLine(v1, v2);
-                        Handles.DrawLine(v2, v3);
-                        Handles.DrawLine(v3, v0);
+                        DrawRangeHandles(light);
+                        DrawAngleHandles(light);
+
+                        if (GUI.changed)
+                            EditorUtility.SetDirty(light);
                     }
-                }
-                else if (light.lightType == Light2D.LightType.Parametric)
-                {
-                    float radius = light.shapeLightRadius;
-                    float sides = light.shapeLightParametricSides;
-                    float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
-
-                    if (sides < 3)
-                        sides = 4;
-
-                    if (sides == 4)
-                        angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
-
-                    Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
-                    Vector3 featherStartPoint = startPoint + light.shapeLightFalloffSize * Vector3.Normalize(startPoint);
-                    float radiansPerSide = 2 * Mathf.PI / sides;
-                    for (int i = 0; i < sides; i++)
+                    break;
+                case Light2D.LightType.Sprite:
                     {
-                        float endAngle = (i + 1) * radiansPerSide;
-                        Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
-                        Vector3 featherEndPoint = endPoint + light.shapeLightFalloffSize * Vector3.Normalize(endPoint);
+                        var cookieSprite = light.lightCookieSprite;
+                        if (cookieSprite != null)
+                        {
+                            Vector3 min = cookieSprite.bounds.min;
+                            Vector3 max = cookieSprite.bounds.max;
 
-                        Handles.DrawLine(t.TransformPoint(startPoint), t.TransformPoint(endPoint));
-                        Handles.DrawLine(t.TransformPoint(featherStartPoint + falloffOffset), t.TransformPoint(featherEndPoint + falloffOffset));
+                            Vector3 v0 = t.TransformPoint(new Vector3(min.x, min.y));
+                            Vector3 v1 = t.TransformPoint(new Vector3(max.x, min.y));
+                            Vector3 v2 = t.TransformPoint(new Vector3(max.x, max.y));
+                            Vector3 v3 = t.TransformPoint(new Vector3(min.x, max.y));
 
-                        startPoint = endPoint;
-                        featherStartPoint = featherEndPoint;
+                            Handles.DrawLine(v0, v1);
+                            Handles.DrawLine(v1, v2);
+                            Handles.DrawLine(v2, v3);
+                            Handles.DrawLine(v3, v0);
+                        }
                     }
-                }
-                else if(light.lightType == Light2D.LightType.Freeform)
-                {
-                    m_ShapeEditor.OnGUI(target);
-
-                    // Draw the falloff shape's outline
-                    List<Vector2> falloffShape = light.GetFalloffShape();
-                    Handles.color = Color.white;
-                    for (int i = 0; i < falloffShape.Count-1; i++)
+                    break;
+                case Light2D.LightType.Parametric:
                     {
-                        Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
+                        float radius = light.shapeLightRadius;
+                        float sides = light.shapeLightParametricSides;
+                        float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
+
+                        if (sides < 3)
+                            sides = 3;
+
+                        if (sides == 4)
+                            angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
+
+                        Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
+                        Vector3 featherStartPoint = startPoint + light.shapeLightFalloffSize * Vector3.Normalize(startPoint);
+                        float radiansPerSide = 2 * Mathf.PI / sides;
+                        Vector3 falloffOffset = light.shapeLightFalloffOffset;
+
+                        for (int i = 0; i < sides; ++i)
+                        {
+                            float endAngle = (i + 1) * radiansPerSide;
+                            Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
+                            Vector3 featherEndPoint = endPoint + light.shapeLightFalloffSize * Vector3.Normalize(endPoint);
+
+                            Handles.DrawLine(t.TransformPoint(startPoint), t.TransformPoint(endPoint));
+                            Handles.DrawLine(t.TransformPoint(featherStartPoint + falloffOffset), t.TransformPoint(featherEndPoint + falloffOffset));
+
+                            startPoint = endPoint;
+                            featherStartPoint = featherEndPoint;
+                        }
                     }
-                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
-                }
+                    break;
+                case Light2D.LightType.Freeform:
+                    {
+                        m_ShapeEditor.OnGUI(target);
+
+                        // Draw the falloff shape's outline
+                        List<Vector2> falloffShape = light.GetFalloffShape();
+                        Handles.color = Color.white;
+
+                        for (int i = 0; i < falloffShape.Count - 1; ++i)
+                            Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
+
+                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                    }
+                    break;
             }
         }
 
@@ -589,17 +587,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 return;
             }
 
-
-            bool updateMesh = false;
-            
-
             EditorGUILayout.Space();
 
             serializedObject.Update();
 
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_LightType, Styles.generalLightType);
-            updateMesh |= EditorGUI.EndChangeCheck();
 
             switch (m_LightType.intValue)
             {
@@ -617,29 +609,15 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     break;
             }
 
-            Color previousColor = m_LightColor.colorValue;
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
+
             if(m_LightType.intValue != (int)Light2D.LightType.Global)
                 EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
 
             OnTargetSortingLayers();
 
-            if (lightObject.lightType == Light2D.LightType.Freeform )
-            {
-                // Draw the edit shape tool button here.
-            }
-
             serializedObject.ApplyModifiedProperties();
-
-            if (updateMesh)
-            {
-                for (int i = 0; i < targets.Length; i++)
-                {
-                    Light2D light = (Light2D)targets[i];
-                    light.UpdateMesh();
-                }
-            }
         }
     }
 }
