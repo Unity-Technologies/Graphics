@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Addressing mode for Sequential blocks
 - Invert transform available on GPU
 - Add automatic depth buffer reference for main camera (for position and collision blocks)
+- Total Time for PreWarm in Visual Effect Asset inspector
 
 ### Fixed
 - Undo Redo while changing space
@@ -17,10 +18,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Missing asset reimport when exception has been thrown during graph compilation
 - Fix exception when using a Oriented Box Volume node [Case 1110419](https://issuetracker.unity3d.com/issues/operator-indexoutofrangeexception-when-using-a-volume-oriented-box-node)
 - Add missing blend value slot in Inherit Source Attribute blocks [Case 1120568](https://issuetracker.unity3d.com/issues/source-attribute-blend-source-attribute-blocks-are-not-useful-without-the-blend-value)
+- Visual Effect Inspector Cosmetic Improvements
 
 ## [6.4.0-preview] - 2019-02-21 
-
-- Visual Effect Inspector Cosmetic Improvements
 
 ## [6.3.0-preview] - 2019-02-18
 
