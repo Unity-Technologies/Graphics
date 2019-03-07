@@ -335,7 +335,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         void RemoveSelectedGlobalLights(Object[] lights)
         {
-            for (int i = 0; i < lights.Length; i++)
+            for (int i = 0; i < lights.Length; ++i)
             {
                 Light2D light = lights[i] as Light2D;
                 if (light.lightType == Light2D.LightType.Global)
@@ -345,7 +345,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         void AddSelectedGlobalLights(Object[] lights)
         {
-            for (int i = 0; i < lights.Length; i++)
+            for (int i = 0; i < lights.Length; ++i)
             {
                 Light2D light = lights[i] as Light2D;
                 if (light != null && light.lightType == Light2D.LightType.Global)
@@ -598,8 +598,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 return;
             }
 
-            bool updateGlobalLights = false;
-
             EditorGUILayout.Space();
 
             serializedObject.Update();
@@ -624,7 +622,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
-            updateGlobalLights = EditorGUI.EndChangeCheck();
+            bool updateGlobalLights = EditorGUI.EndChangeCheck();
 
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
 
