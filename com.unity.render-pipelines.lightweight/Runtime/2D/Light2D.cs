@@ -55,10 +55,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField]
         float m_FalloffCurve = 0.5f;
 
-        [ColorUsage(false, true)]
+        [ColorUsage(false, false)]
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_LightColor")]
         Color m_Color = Color.white;
+        [SerializeField]
+        float m_Intensity = 1;
 
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
@@ -66,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         int         m_PreviousLightOperationIndex;
         Color       m_PreviousColor                 = Color.white;
+        float       m_PreviousIntensity             = 1;
         float       m_PreviousLightVolumeOpacity;
         Sprite      m_PreviousLightCookieSprite     = null;
         Mesh        m_Mesh;
@@ -80,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public int lightOperationIndex => m_LightOperationIndex;
         public Color color => m_Color;
+        public float intensity => m_Intensity;
         public float volumeOpacity => m_LightVolumeOpacity;
         public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffCurve => m_FalloffCurve;
@@ -222,19 +226,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
 
+            Color combinedColor = m_Intensity * m_Color;
             switch (m_LightType)
             {
                 case LightType.Freeform:
-                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_Color, m_ShapePath, m_ShapeLightFalloffOffset, m_LightVolumeOpacity, m_ShapeLightFalloffSize);
+                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, combinedColor, m_ShapePath, m_ShapeLightFalloffOffset, m_LightVolumeOpacity, m_ShapeLightFalloffSize);
                     break;
                 case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightRadius, m_ShapeLightFalloffOffset, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, m_ShapeLightFalloffSize, m_Color, m_LightVolumeOpacity);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightRadius, m_ShapeLightFalloffOffset, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, m_ShapeLightFalloffSize, combinedColor, m_LightVolumeOpacity);
                     break;
                 case LightType.Sprite:
-                    m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, m_Color, m_LightVolumeOpacity, 1);
+                    m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, combinedColor, m_LightVolumeOpacity, 1);
                     break;
                 case LightType.Point:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 0, 4, 0, m_Color, m_LightVolumeOpacity);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 0, 4, 0, combinedColor, m_LightVolumeOpacity);
                     break;
             }
 
@@ -260,11 +265,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Dictionary<int, Color> globalColorOp = s_GlobalClearColors[light2D.m_LightOperationIndex];
                 if (!globalColorOp.ContainsKey(sortingLayer))
                 {
-                    globalColorOp.Add(sortingLayer, light2D.m_Color);
+                    globalColorOp.Add(sortingLayer, light2D.m_Intensity * light2D.m_Color);
                 }
                 else
                 {
-                    globalColorOp[sortingLayer] = light2D.m_Color;
+                    globalColorOp[sortingLayer] = light2D.m_Intensity * light2D.m_Color;
                     Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light operation index " + light2D.m_LightOperationIndex);
                 }
             }
@@ -359,14 +364,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             updateGlobalLight |= LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
             updateGlobalLight |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
+            updateGlobalLight |= LightUtility.CheckForChange(m_Intensity, ref m_PreviousIntensity);
 
             if (updateGlobalLight)
             {
                 RemoveGlobalLight(this);
                 if (m_LightType == LightType.Global)
                     AddGlobalLight(this);
-
-                if(m_LightType != LightType.Global)
+                else
                     rebuildMesh = true;
             }
 

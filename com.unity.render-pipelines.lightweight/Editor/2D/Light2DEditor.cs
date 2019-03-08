@@ -64,6 +64,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Specify the falloff of the light");
             public static GUIContent generalFalloffIntensity = EditorGUIUtility.TrTextContent("Falloff Intensity", "Adjusts the falloff curve");
             public static GUIContent generalLightColor = EditorGUIUtility.TrTextContent("Color", "Specify the light color");
+            public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light color's intensity");
             public static GUIContent generalVolumeOpacity = EditorGUIUtility.TrTextContent("Volume Opacity", "Specify the light's volumetric light volume opacity");
             public static GUIContent generalLightOperation = EditorGUIUtility.TrTextContent("Light Operation", "Specify the light operation");
 
@@ -102,6 +103,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         SerializedProperty m_LightType;
         SerializedProperty m_LightColor;
+        SerializedProperty m_LightIntensity;
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricAlpha;
         SerializedProperty m_LightOperation;
@@ -141,6 +143,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             m_LightType = serializedObject.FindProperty("m_LightType");
             m_LightColor = serializedObject.FindProperty("m_Color");
+            m_LightIntensity = serializedObject.FindProperty("m_Intensity");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
             m_LightOperation = serializedObject.FindProperty("m_LightOperationIndex");
@@ -625,8 +628,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             bool updateGlobalLights = EditorGUI.EndChangeCheck();
 
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
+            EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
 
-            if(m_LightType.intValue != (int)Light2D.LightType.Global)
+            if (m_LightType.intValue != (int)Light2D.LightType.Global)
                 EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
 
             OnTargetSortingLayers();
