@@ -200,6 +200,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // game view / scene view / preview in the editor, it's handled automatically
         public AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
 
+        public HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
+
+
         public bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
         public bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
@@ -285,7 +288,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 #endif
                 else if (m_AdditionalCameraData != null)
+                {
                     antialiasing = m_AdditionalCameraData.antialiasing;
+                    if(antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                    {
+                        SMAAQuality = m_AdditionalCameraData.SMAAQuality;
+                    }
+                }
                 else
                     antialiasing = AntialiasingMode.None;
             }

@@ -146,6 +146,7 @@ MonoBehaviour:
     bloomUpsampleCS: {fileID: 7200000, guid: 5dbb0ac12cb11f84084b7e5633481bd1, type: 3}
     FXAACS: {fileID: 7200000, guid: 1535d29f35ea86b4282b6ca652002e2a, type: 3}
     finalPassPS: {fileID: 4800000, guid: 5ac9ef0c50282754b93c7692488e7ee7, type: 3}
+    SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
   materials:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
@@ -233,4 +234,6 @@ MonoBehaviour:
     - {fileID: 2800000, guid: a187955d1d88a954cb32c3c4e5f0aeda, type: 3}
     - {fileID: 2800000, guid: 3f3cb0f4924d7a241b82a9081875f30d, type: 3}
     - {fileID: 2800000, guid: a35bdcb2008832646b3c8d2eb11e38a9, type: 3}
+    SMAASearchTex: {fileID: 2800000, guid: dc95d70472e232b438d0fd38651e7ec2, type: 3}
+    SMAAAreaTex: {fileID: 2800000, guid: 92e0d85ab4eca874098e7fcf6f8f674e, type: 3}
   m_Version: 4

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added depth offset input in shader graph master nodes
 - Added a Parallax Occlusion Mapping node
 - Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering
+- Added SMAA support
 - Added an option in preferences to toggle the light emission normalization
 
 ### Fixed

@@ -127,6 +127,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader bloomUpsampleCS;
             public ComputeShader FXAACS;
             public Shader finalPassPS;
+            public Shader SMAAPS;
+
 
 #if ENABLE_RAYTRACING
             // Raytracing shaders
@@ -170,6 +172,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Post-processing
             public Texture2D[] filmGrainTex;
+            public Texture2D   SMAASearchTex;
+            public Texture2D   SMAAAreaTex;
         }
 
         [Serializable]
@@ -316,6 +320,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bloomUpsampleCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomUpsample.compute"),
                 FXAACS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/FXAA.compute"),
                 finalPassPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/FinalPass.shader"),
+                SMAAPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/SubpixelMorphologicalAntialiasing.shader"),
 
 #if ENABLE_RAYTRACING
                 aoRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace"),
@@ -357,6 +362,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Large01.png"),
                     Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Large02.png")
                 },
+
+                SMAAAreaTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/AreaTex.tga"),
+                SMAASearchTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/SearchTex.tga"),
 
                 blueNoise16LTex = new Texture2D[32],
                 blueNoise16RGBTex = new Texture2D[32],
