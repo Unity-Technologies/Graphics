@@ -193,6 +193,23 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+float3 GetNormalForShadowBias(BSDFData bsdfData)
+{
+    // In forward we can used geometric normal for shadow bias which improve quality
+#if (SHADERPASS == SHADERPASS_FORWARD)
+    return bsdfData.geomNormalWS;
+#else
+    return bsdfData.normalWS;
+#endif    
+}
+
+void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
+{
+    bsdfData.roughnessT    = max(minRoughness, bsdfData.roughnessT);
+    bsdfData.roughnessB    = max(minRoughness, bsdfData.roughnessB);
+    bsdfData.coatRoughness = max(minRoughness, bsdfData.coatRoughness);
+}
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceTracing.hlsl"
@@ -356,44 +373,6 @@ void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout BSDFData bsdfData)
 
     bsdfData.normalWS = normalData.normalWS;
     bsdfData.perceptualRoughness = normalData.perceptualRoughness;
-}
-
-float3 GetNormalForShadowBias(BSDFData bsdfData)
-{
-    // In forward we can used geometric normal for shadow bias which improve quality
-#if (SHADERPASS == SHADERPASS_FORWARD)
-    return bsdfData.geomNormalWS;
-#else
-    return bsdfData.normalWS;
-#endif    
-}
-
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    bsdfData.roughnessT    = max(minRoughness, bsdfData.roughnessT);
-    bsdfData.roughnessB    = max(minRoughness, bsdfData.roughnessB);
-    bsdfData.coatRoughness = max(minRoughness, bsdfData.coatRoughness);
-}
-
-float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
-{
-    float sourceAO;
-#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
-    // Note: In deferred pass we don't have space in GBuffer to store ambientOcclusion unless LIGHT_LAYERS is enabled
-    // so we use specularOcclusion instead
-    // The define LIGHT_LAYERS only exist for the GBuffer and the Forward pass. To avoid to add another
-    // variant to deferred.compute, we use dynamic branching instead with _EnableLightLayers.
-    sourceAO = _EnableLightLayers ? bsdfData.ambientOcclusion : bsdfData.specularOcclusion;
-#else
-    sourceAO = bsdfData.ambientOcclusion;
-#endif
-
-    return ComputeMicroShadowing(sourceAO, NdotL, _MicroShadowOpacity);
-}
-
-bool MaterialSupportsTransmission(BSDFData bsdfData)
-{
-    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION);
 }
 
 //-----------------------------------------------------------------------------
@@ -681,6 +660,13 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     // In deferred ambient occlusion isn't available and is already apply on bakeDiffuseLighting for the GI part.
     // Caution: even if we store it in the GBuffer we need to apply it on GI and not on emissive color, so AO must be 1.0 in deferred
+    /**************************************************************************
+     * TODO: WTF? SEBASTIEN? These are terrible hacks.                        *
+     * And what about the extra G-Buffer for light layers?                    *
+     * We must set this variable, and it should work the same way             *
+     * for both deferred and forward. The same applies to all materials.      *
+     * Of course, in the deferred case we may have to compute it differently. *
+     **************************************************************************/
     bsdfData.ambientOcclusion = 1.0;
 
     // Avoid to introduce a new variant for light layer as it is already long to compile
@@ -1180,47 +1166,64 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
-// This function apply BSDF. Assumes that NdotL is positive.
-void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-            out float3 diffuseLighting,
-            out float3 specularLighting)
+bool IsNonZeroCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
-    float LdotV, NdotH, LdotH, NdotV, invLenLV;
-    GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+    float NdotL = dot(bsdfData.normalWS, L);
 
-    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-    // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
-    // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
-    // The Fresnel with iridescence and NDotV angle is precomputed ahead and here we jsut reuse the result.
-    // Thus why we shouldn't apply a second time Fresnel on the value if iridescence is enabled.
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION) || (NdotL > 0);
+}
+
+CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
+{
+    CBxDF cbxdf;
+    ZERO_INITIALIZE(CBxDF, cbxdf);
+
+    float NdotL = dot(bsdfData.normalWS, L);
+    float NdotV = preLightData.NdotV;
+
+    float LdotV, NdotH, LdotH, clampedNdotV, invLenLV;
+    GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, clampedNdotV, invLenLV);
+
+    // Probably worth branching here for perf reasons.
+    // This branch will be optimized away if there's no transmission.
+    if (NdotL > 0)
     {
-        F = lerp(F, bsdfData.fresnel0, bsdfData.iridescenceMask);
+        float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+        // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
+        // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
+        // The Fresnel with iridescence and NDotV angle is precomputed ahead and here we jsut reuse the result.
+        // Thus why we shouldn't apply a second time Fresnel on the value if iridescence is enabled.
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+        {
+            F = lerp(F, bsdfData.fresnel0, bsdfData.iridescenceMask);
+        }
+
+        float DV;
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+        {
+            float3 H = (L + V) * invLenLV;
+
+            // For anisotropy we must not saturate these values
+            float TdotH = dot(bsdfData.tangentWS, H);
+            float TdotL = dot(bsdfData.tangentWS, L);
+            float BdotH = dot(bsdfData.bitangentWS, H);
+            float BdotL = dot(bsdfData.bitangentWS, L);
+
+            // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
+            DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, clampedNdotV, TdotL, BdotL, NdotL,
+                                       bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
+        }
+        else
+        {
+            DV = DV_SmithJointGGX(NdotH, NdotL, clampedNdotV, bsdfData.roughnessT, preLightData.partLambdaV);
+        }
+
+        cbxdf.specR = F * DV * saturate(NdotL);
     }
 
-    float DV;
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
-    {
-        float3 H = (L + V) * invLenLV;
-
-        // For anisotropy we must not saturate these values
-        float TdotH = dot(bsdfData.tangentWS, H);
-        float TdotL = dot(bsdfData.tangentWS, L);
-        float BdotH = dot(bsdfData.bitangentWS, H);
-        float BdotL = dot(bsdfData.bitangentWS, L);
-
-        // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-        DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
-                                   bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
-    }
-    else
-    {
-        DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessT, preLightData.partLambdaV);
-    }
-    specularLighting = F * DV;
 
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
-    float  diffuseTerm = Lambert();
+    float diffuseTerm = Lambert();
 #else
     // A note on subsurface scattering: [SSS-NOTE-TRSM]
     // The correct way to handle SSS is to transmit light inside the surface, perform SSS,
@@ -1237,11 +1240,12 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     // Separating f_retro_reflection also has a small cost (mostly due to energy compensation
     // for multi-bounce GGX), and the visual difference is negligible.
     // Therefore, we choose not to separate diffuse lighting into reflected and transmitted.
-    float diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
+    float diffuseTerm = DisneyDiffuse(clampedNdotV, abs(NdotL), LdotV, bsdfData.perceptualRoughness);
 #endif
 
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    diffuseLighting = diffuseTerm;
+    // The compiler should optimize these. Can revisit later if necessary.
+    cbxdf.diffR = diffuseTerm * saturate( NdotL);
+    cbxdf.diffT = diffuseTerm * saturate(-NdotL);
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -1249,18 +1253,21 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // Note: coat F is scalar as it is a dieletric
         float coatF = F_Schlick(CLEAR_COAT_F0, LdotH) * bsdfData.coatMask;
         // Scale base specular
-        specularLighting *= Sq(1.0 - coatF);
+        cbxdf.specR *= Sq(1.0 - coatF);
 
         // Add top specular
         // TODO: Should we call just D_GGX here ?
-        float DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.coatRoughness, preLightData.coatPartLambdaV);
-        specularLighting += coatF * DV;
+        float DV = DV_SmithJointGGX(NdotH, NdotL, clampedNdotV, bsdfData.coatRoughness, preLightData.coatPartLambdaV);
+        cbxdf.specR += coatF * DV * saturate(NdotL);
 
         // Note: The modification of the base roughness and fresnel0 by the clear coat is already handled in FillMaterialClearCoatData
 
         // Very coarse attempt at doing energy conservation for the diffuse layer based on NdotL. No science.
-        diffuseLighting *= lerp(1, 1.0 - coatF, bsdfData.coatMask);
+        cbxdf.diffR *= lerp(1, 1.0 - coatF, bsdfData.coatMask);
     }
+
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    return cbxdf;
 }
 
 //-----------------------------------------------------------------------------
@@ -1280,8 +1287,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
-                                    bsdfData, bsdfData.normalWS, V);
+    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
+                                    preLightData, lightData, bsdfData, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -1290,10 +1297,11 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData,
+                                     BSDFData bsdfData, BuiltinData builtinData)
 {
-    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
-                                 bsdfData, bsdfData.normalWS, V);
+    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
+                                 preLightData, lightData, bsdfData, V);
 }
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitReference.hlsl"
@@ -1302,9 +1310,10 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 // EvaluateBSDF_Line - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
-DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
-                                    float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+DirectLighting EvaluateBSDF_Line(LightLoopContext lightLoopContext,
+                                 float3 V, PositionInputs posInput,
+                                 PreLightData preLightData, LightData lightData,
+                                 BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);

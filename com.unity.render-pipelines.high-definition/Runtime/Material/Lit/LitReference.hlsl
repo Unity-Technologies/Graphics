@@ -32,12 +32,10 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
 
         if (NdotL > 0)
         {
-            float3 lightDiff, lightSpec;
+            CBxDF cbxdf = EvaluateCBxDF(V, L, preLightData, bsdfData);
 
-            BSDF(V, L, NdotL, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
-
-            diffuseLighting  += lightDiff * (sinLT / dist2 * NdotL);
-            specularLighting += lightSpec * (sinLT / dist2 * NdotL);
+            diffuseLighting  += cbxdf.diffR * (sinLT / dist2);
+            specularLighting += cbxdf.specR * (sinLT / dist2);
         }
     }
 
@@ -101,20 +99,15 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
 
         // We calculate area reference light with the area integral rather than the solid angle one.
         float NdotL = saturate(dot(bsdfData.normalWS, L));
-        float illuminance = cosLNs * NdotL / (sqrDist * lightPdf);
-
-        float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
-        float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
+        float illuminance = cosLNs / (sqrDist * lightPdf);
 
         if (illuminance > 0.0)
         {
-            BSDF(V, L, NdotL, positionWS, preLightData, bsdfData, localDiffuseLighting, localSpecularLighting);
-            localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseDimmer;
-            localSpecularLighting *= lightData.color * illuminance * lightData.specularDimmer;
-        }
+            CBxDF cbxdf = EvaluateCBxDF(V, L, preLightData, bsdfData);
 
-        diffuseLighting += localDiffuseLighting;
-        specularLighting += localSpecularLighting;
+            diffuseLighting  += cbxdf.diffR * lightData.color * illuminance * lightData.diffuseDimmer;
+            specularLighting += cbxdf.specR * lightData.color * illuminance * lightData.specularDimmer;
+        }
     }
 
     diffuseLighting /= float(sampleCount);
