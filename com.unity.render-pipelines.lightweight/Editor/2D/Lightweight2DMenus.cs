@@ -2,12 +2,10 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering.LWRP;
 
-
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
-    public class Lightweight2DMenus : MonoBehaviour
+    static class Lightweight2DMenus
     {
-
         static void CreateLight(string name, Light2D.LightType type)
         {
             GameObject go = new GameObject(name);
@@ -31,7 +29,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             return false;
         }
-
 
         //[MenuItem("GameObject/Light/2D/Freeform Light 2D", false, -100, true)]
         [MenuItem("GameObject/Light/2D/Freeform Light 2D", false, -100)]
@@ -90,6 +87,5 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             return CreateLightValidation();
         }
-
     }
 }
