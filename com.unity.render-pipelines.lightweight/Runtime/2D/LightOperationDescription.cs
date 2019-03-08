@@ -7,7 +7,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         internal enum TextureChannel
         {
-            None, R, G, B, A, OneMinusR, OneMinusG, OneMinusB, OneMinusA
+            None = 0,
+            R = 1,
+            G = 2,
+            B = 3,
+            A = 4,
+            OneMinusR = 5,
+            OneMinusG = 6,
+            OneMinusB = 7,
+            OneMinusA = 8
         }
 
         internal struct MaskChannelFilter
