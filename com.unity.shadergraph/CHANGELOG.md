@@ -4,6 +4,7 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+<<<<<<< HEAD
 ## [5.7.2] - 2019-XX-XX
 
 ## [5.7.1] - 2019-03-08
@@ -12,6 +13,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed master preview for HDRP master nodes when alpha clip is enabled.
 
 ## [5.6.0] - 2019-02-21
+=======
+## [5.6.0] - 2019-XX-XX
+### Added
+- Added Custom Function node. With this node you can define a custom HLSL function either via string directly in the graph, or via a path to an HLSL include file.
+
+### Changed
+- Subgraph Output node is now called Outputs.
+- Subgraph Output node now supports renaming of ports.
+- Subgraph Output node now supports all port types.
+- Subgraph Output node now supports reordering ports.
+- When converting nodes to a Sub-Graph, the resulting properties and output ports generated in the Sub-Graph are named for their types by default.
+
+>>>>>>> sg/backport/custom-function-node
 ### Fixed
 - Fixed the Transform node, so going from Tangent Space to any other space now works as expected.
 
