@@ -221,6 +221,10 @@ namespace UnityEngine.Rendering.LWRP
                 LoadBuiltinRendererData();
 #endif
 
+            // If no data we can't create pipeline instance
+            if (m_RendererData == null)
+                return null;
+
             m_Renderer = m_RendererData.InternalCreateRenderer();
             return new LightweightRenderPipeline(this);
         }
