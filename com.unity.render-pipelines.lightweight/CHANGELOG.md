@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.6.0] - 2019-XX-XX
 ### Fixed
 - Fixed a project import issue in the LWRP template.
+- Fixed the warnings that appear when you create new Unlit Shader Graphs using the Lightweight Render Pipeline.
 
 ## [6.5.0] - 2019-03-07
 ### Added
