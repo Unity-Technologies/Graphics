@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.5.0-preview] - 2019-XX-XX
+## [6.6.0-preview] - 2019-XX-XX
 ### Added
 - Addressing mode for Sequential blocks
 - Invert transform available on GPU
@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix exception when using a Oriented Box Volume node [Case 1110419](https://issuetracker.unity3d.com/issues/operator-indexoutofrangeexception-when-using-a-volume-oriented-box-node)
 - Add missing blend value slot in Inherit Source Attribute blocks [Case 1120568](https://issuetracker.unity3d.com/issues/source-attribute-blend-source-attribute-blocks-are-not-useful-without-the-blend-value)
 - Visual Effect Inspector Cosmetic Improvements
+
+## [6.5.0-preview] - 2019-03-07
 
 ## [6.4.0-preview] - 2019-02-21 
 
