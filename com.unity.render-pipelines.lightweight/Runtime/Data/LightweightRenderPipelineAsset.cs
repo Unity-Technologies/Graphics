@@ -145,19 +145,6 @@ namespace UnityEngine.Rendering.LWRP
             return instance;
         }
 
-        public ScriptableRendererData LoadBuiltinRendererData()
-        {
-            switch (m_RendererType)
-            {
-                // Forward Renderer is the fallback renderer that works on all platforms
-                default:
-                    m_RendererData = LoadResourceFile<ForwardRendererData>();
-                    break;
-            }
-
-            return m_RendererData;
-        }
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
         internal class CreateLightweightPipelineAsset : EndNameEditAction
         {
@@ -213,13 +200,28 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 #endif
- 
+
+        public ScriptableRendererData LoadBuiltinRendererData()
+        {
+            switch (m_RendererType)
+            {
+                // Forward Renderer is the fallback renderer that works on all platforms
+                default:
+#if UNITY_EDITOR
+                    m_RendererData = LoadResourceFile<ForwardRendererData>();
+#else
+                    m_RendererData = null;
+#endif
+                    break;
+            }
+
+            return m_RendererData;
+        }
+
         protected override RenderPipeline CreatePipeline()
         {
-#if UNITY_EDITOR
             if (m_RendererData == null)
                 LoadBuiltinRendererData();
-#endif
 
             // If no data we can't create pipeline instance
             if (m_RendererData == null)
