@@ -1184,43 +1184,42 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
     float LdotV, NdotH, LdotH, clampedNdotV, invLenLV;
     GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, clampedNdotV, invLenLV);
 
+    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+    // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
+    // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
+    // The Fresnel with iridescence and NDotV angle is precomputed ahead and here we jsut reuse the result.
+    // Thus why we shouldn't apply a second time Fresnel on the value if iridescence is enabled.
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
+    {
+        F = lerp(F, bsdfData.fresnel0, bsdfData.iridescenceMask);
+    }
+
+    float DV;
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+    {
+        float3 H = (L + V) * invLenLV;
+
+        // For anisotropy we must not saturate these values
+        float TdotH = dot(bsdfData.tangentWS, H);
+        float TdotL = dot(bsdfData.tangentWS, L);
+        float BdotH = dot(bsdfData.bitangentWS, H);
+        float BdotL = dot(bsdfData.bitangentWS, L);
+
+        // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
+        DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, clampedNdotV, TdotL, BdotL, NdotL,
+                                   bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
+    }
+    else
+    {
+        DV = DV_SmithJointGGX(NdotH, NdotL, clampedNdotV, bsdfData.roughnessT, preLightData.partLambdaV);
+    }
+
     // Probably worth branching here for perf reasons.
     // This branch will be optimized away if there's no transmission.
     if (NdotL > 0)
     {
-        float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-        // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
-        // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
-        // The Fresnel with iridescence and NDotV angle is precomputed ahead and here we jsut reuse the result.
-        // Thus why we shouldn't apply a second time Fresnel on the value if iridescence is enabled.
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_IRIDESCENCE))
-        {
-            F = lerp(F, bsdfData.fresnel0, bsdfData.iridescenceMask);
-        }
-
-        float DV;
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
-        {
-            float3 H = (L + V) * invLenLV;
-
-            // For anisotropy we must not saturate these values
-            float TdotH = dot(bsdfData.tangentWS, H);
-            float TdotL = dot(bsdfData.tangentWS, L);
-            float BdotH = dot(bsdfData.bitangentWS, H);
-            float BdotL = dot(bsdfData.bitangentWS, L);
-
-            // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-            DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, clampedNdotV, TdotL, BdotL, NdotL,
-                                       bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
-        }
-        else
-        {
-            DV = DV_SmithJointGGX(NdotH, NdotL, clampedNdotV, bsdfData.roughnessT, preLightData.partLambdaV);
-        }
-
         cbxdf.specR = F * DV * saturate(NdotL);
     }
-
 
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     float diffuseTerm = Lambert();

@@ -409,21 +409,21 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
+        float3 T  = bsdfData.hairStrandDirectionWS;
+        float3 T1 = ShiftTangent(T, N, bsdfData.specularShift);
+        float3 T2 = ShiftTangent(T, N, bsdfData.secondarySpecularShift);
+
+        float3 H = (L + V) * invLenLV;
+
+        // Balancing energy between lobes, as well as between diffuse and specular is left to artists.
+        float3 hairSpec1 = bsdfData.specularTint          * D_KajiyaKay(T1, H, bsdfData.specularExponent);
+        float3 hairSpec2 = bsdfData.secondarySpecularTint * D_KajiyaKay(T2, H, bsdfData.secondarySpecularExponent);
+
+        float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+
         // Probably worth branching here for perf reasons.
         if (max(NdotL, NdotV) > 0)
         {
-            float3 T  = bsdfData.hairStrandDirectionWS;
-            float3 T1 = ShiftTangent(T, N, bsdfData.specularShift);
-            float3 T2 = ShiftTangent(T, N, bsdfData.secondarySpecularShift);
-
-            float3 H = (L + V) * invLenLV;
-
-            // Balancing energy between lobes, as well as between diffuse and specular is left to artists.
-            float3 hairSpec1 = bsdfData.specularTint          * D_KajiyaKay(T1, H, bsdfData.specularExponent);
-            float3 hairSpec2 = bsdfData.secondarySpecularTint * D_KajiyaKay(T2, H, bsdfData.secondarySpecularExponent);
-
-            float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-
             cbxdf.specR = F * (hairSpec1 + hairSpec2) * saturate(NdotL);
         }
 
