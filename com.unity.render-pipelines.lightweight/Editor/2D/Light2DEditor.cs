@@ -623,10 +623,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
-            bool updateGlobalLights = EditorGUI.EndChangeCheck();
-
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
+            m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
+            bool updateGlobalLights = EditorGUI.EndChangeCheck();
 
             if (m_LightType.intValue != (int)Light2D.LightType.Global)
                 EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);

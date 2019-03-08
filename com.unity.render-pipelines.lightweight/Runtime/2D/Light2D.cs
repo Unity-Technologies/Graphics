@@ -67,8 +67,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] Sprite m_LightCookieSprite = null;
 
         int         m_PreviousLightOperationIndex;
-        Color       m_PreviousColor                 = Color.white;
-        float       m_PreviousIntensity             = 1;
         float       m_PreviousLightVolumeOpacity;
         Sprite      m_PreviousLightCookieSprite     = null;
         Mesh        m_Mesh;
@@ -82,8 +80,26 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         public int lightOperationIndex => m_LightOperationIndex;
-        public Color color => m_Color;
-        public float intensity => m_Intensity;
+        public Color color
+        {
+            get { return m_Color; }
+            set
+            {
+                AddGlobalLight(this, true);
+                m_Color = value;
+            }
+        }
+
+        public float intensity
+        {
+            get { return m_Intensity; }
+            set
+            {
+                AddGlobalLight(this, true);
+                m_Intensity = value;
+            }
+        }
+
         public float volumeOpacity => m_LightVolumeOpacity;
         public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffCurve => m_FalloffCurve;
@@ -257,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return isVisible;
         }
 
-        static internal void AddGlobalLight(Light2D light2D)
+        static internal void AddGlobalLight(Light2D light2D, bool overwriteColor = false)
         {
             for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
             {
@@ -270,7 +286,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 else
                 {
                     globalColorOp[sortingLayer] = light2D.m_Intensity * light2D.m_Color;
-                    Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light operation index " + light2D.m_LightOperationIndex);
+                    if(!overwriteColor)
+                        Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light operation index " + light2D.m_LightOperationIndex);
                 }
             }
         }
@@ -363,8 +380,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             updateGlobalLight |= LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
-            updateGlobalLight |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
-            updateGlobalLight |= LightUtility.CheckForChange(m_Intensity, ref m_PreviousIntensity);
 
             if (updateGlobalLight)
             {
