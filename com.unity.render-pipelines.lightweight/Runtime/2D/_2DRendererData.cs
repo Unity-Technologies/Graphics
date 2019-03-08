@@ -6,6 +6,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     [CreateAssetMenu(fileName = "New 2D Renderer", menuName = "Rendering/Lightweight Render Pipeline/2D Renderer", order = CoreUtils.assetCreateMenuPriority1)]
     public class _2DRendererData : ScriptableRendererData
     {
+        const Color k_DefaultColor = new Color(54.0f / 255.0f, 58.0f / 255.0f, 66.0f / 255.0f);
+
         [SerializeField]
         float m_LightIntensityScale = 1;
 
@@ -42,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_LightOperations[0].name = "Default";
             m_LightOperations[0].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
             m_LightOperations[0].renderTextureScale = 1.0f;
-            m_LightOperations[0].globalColor = new Color(0.2f,0.2f,0.2f,1.0f);
+            m_LightOperations[0].globalColor = k_DefaultColor;
 
             for (int i = 1; i < m_LightOperations.Length; ++i)
             {
