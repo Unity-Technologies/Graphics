@@ -4920,11 +4920,12 @@ VisualEffectResource:
       nbMax;\n\t\t\tfloat systemSeed;\n\t\tCBUFFER_END\n\t\t\n\t\tENDHLSL\n\t\t\n\n\t\t//
       Forward pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ForwardOnly\"
       }\n\t\t\t\n\t\t\tZWrite Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma target
-      4.5\n\t\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\n\t\t\t\t#if
-      VFX_NEEDS_COLOR_INTERPOLATOR\n\t\t\t\tnointerpolation float4 color : COLOR0;\n\t\t\t\t#endif\n\t\t\t\t#if
-      USE_ALPHA_TEST || USE_FLIPBOOK\n\t\t\t\t// x: alpha threshold\n\t\t\t\t// y:
-      texture index\n\t\t\t\tnointerpolation float2 builtInInterpolants : TEXCOORD0;\n\t\t\t\t#if
-      USE_FLIPBOOK\n\t\t\t\tnointerpolation float4 flipbookSize : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation
+      4.5\n\t\t\t\n\t\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos :
+      SV_POSITION;\n\t\t\n\t\t\t\t#if VFX_NEEDS_COLOR_INTERPOLATOR\n\t\t\t\tnointerpolation
+      float4 color : COLOR0;\n\t\t\t\t#endif\n\t\t\t\t#if USE_ALPHA_TEST || USE_FLIPBOOK\n\t\t\t\t//
+      x: alpha threshold\n\t\t\t\t// y: texture index\n\t\t\t\tnointerpolation float2
+      builtInInterpolants : TEXCOORD0;\n\t\t\t\t#if USE_FLIPBOOK\n\t\t\t\tnointerpolation
+      float4 flipbookSize : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation
       float4 viewToDecal0 : TEXCOORD2;\n\t\t\t\tnointerpolation float4 viewToDecal1
       : TEXCOORD3;\n\t\t\t\tnointerpolation float4 viewToDecal2 : TEXCOORD4;\n\t\t\t\t\n\t\t\t\t#if
       VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3 posWS : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\tstruct
