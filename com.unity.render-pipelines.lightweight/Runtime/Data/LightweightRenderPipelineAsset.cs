@@ -259,7 +259,9 @@ namespace UnityEngine.Rendering.LWRP
         {
             get
             {
-                Debug.Assert(m_RendererData != null, "Invalid Renderer Data.");
+                if (m_RendererData == null)
+                    CreatePipeline();
+
                 if (m_RendererData.isInvalidated || m_Renderer == null)
                     m_Renderer = m_RendererData.InternalCreateRenderer();
 
