@@ -62,6 +62,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // inside OnEnable() just break the editor)
                 profile.TryToUpgrade();
 
+                // If the diffusion profile asset doesn't exists on the disk, it can be destroyed when we refresh the asset database
+                // which occurs when we call TryToUpgrade on a diffusion profile.
+                if (profile == null)
+                    continue;
+
                 UpdateDiffusionProfileHashNow(profile);
 
                 profile.profile.Validate();
