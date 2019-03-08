@@ -87,6 +87,13 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
 			}
 		}
 
+		// One additional case that we need to check is: Is the light inside the cell?
+		if (!intersects) 
+		{	
+			float3 distanceToCenter = abs(cellCenterPosition - currentLight.position) * 2.0;
+			intersects = (distanceToCenter.x < _ClusterDimension.x) && (distanceToCenter.y < _ClusterDimension.y) && (distanceToCenter.z < _ClusterDimension.z);
+		}
+
 		if(intersects)
 		{
 			// Flag this light in this cell and increase the light count
