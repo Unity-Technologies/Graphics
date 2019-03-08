@@ -114,6 +114,7 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void CleanUp()
         {
+            Debug.unityLogger.logEnabled = true;
             Time.captureFramerate = m_previousCaptureFrameRate;
             UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
             UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
@@ -184,39 +185,39 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
-        // TODO: This test is deactivated because logging in tests fail on Katana
-        //[UnityTest]
-        //public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
-        //{
-        //    EditorApplication.ExecuteMenuItem("Window/General/Game");
-        //    var graph = CreateGraph_And_System();
-        //
-        //    yield return null;
-        //
-        //    while (m_mainObject.GetComponent<VisualEffect>() != null)
-        //    {
-        //        UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
-        //    }
-        //    var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
-        //    vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
-        //    Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
-        //
-        //    yield return null;
-        //
-        //    //Plug a GPU instruction on bounds, excepting an exception while recompiling
-        //    var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXAttributeParameter) && o.name.Contains(VFXAttribute.Position.name));
-        //    var getPosition = getPositionDesc.CreateInstance();
-        //    graph.AddChild(getPosition);
-        //    var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
-        //    Assert.AreEqual(VFXValueType.Float3, initializeContext.inputSlots[0][0].valueType);
-        //
-        //    getPosition.outputSlots[0].Link(initializeContext.inputSlots[0][0]);
-        //
-        //    LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*"));
-        //    graph.RecompileIfNeeded();
-        //
-        //    Assert.Throws(typeof(IndexOutOfRangeException), () => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
-        //}
+        [UnityTest]
+        public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = CreateGraph_And_System();
+        
+            yield return null;
+        
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+            {
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            }
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+            Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
+        
+            yield return null;
+        
+            //Plug a GPU instruction on bounds, excepting an exception while recompiling
+            var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXAttributeParameter) && o.name.Contains(VFXAttribute.Position.name));
+            var getPosition = getPositionDesc.CreateInstance();
+            graph.AddChild(getPosition);
+            var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+            Assert.AreEqual(VFXValueType.Float3, initializeContext.inputSlots[0][0].valueType);
+        
+            getPosition.outputSlots[0].Link(initializeContext.inputSlots[0][0]);
+
+            //LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*")); < Incorrect with our katana configuration
+            Debug.unityLogger.logEnabled = false;
+            graph.RecompileIfNeeded();
+            Debug.unityLogger.logEnabled = true;
+            Assert.Throws(typeof(IndexOutOfRangeException), () => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
+        }
 
         [UnityTest]
         public IEnumerator CreateComponent_And_VerifyRendererState()
