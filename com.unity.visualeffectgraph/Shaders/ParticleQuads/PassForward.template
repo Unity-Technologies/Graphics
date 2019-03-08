@@ -5,7 +5,8 @@ Pass
 	
 	HLSLPROGRAM
 	#pragma target 4.5
-		
+	${VFXPassForwardAdditionalPragma}
+
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;

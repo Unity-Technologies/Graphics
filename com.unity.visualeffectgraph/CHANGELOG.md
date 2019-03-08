@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Invert transform available on GPU
 - Add automatic depth buffer reference for main camera (for position and collision blocks)
 - Total Time for PreWarm in Visual Effect Asset inspector
+- Support for unlit output with LWRP
 
 ### Fixed
 - Undo Redo while changing space
