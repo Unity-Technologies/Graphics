@@ -15,7 +15,7 @@
 		float4 color		: COLOR;
 
 		#ifdef SPRITE_LIGHT
-		float2 uv			: TEXCOORD0;
+			float2 uv			: TEXCOORD0;
 		#endif
 	};
 
@@ -46,12 +46,12 @@
 			uniform float  _InverseLightIntensityScale;
 			
 			#ifdef SPRITE_LIGHT
-			TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
-			SAMPLER(sampler_CookieTex);
+				TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
+				SAMPLER(sampler_CookieTex);
 			#else
-			uniform float  _FalloffCurve;
-			TEXTURE2D(_FalloffLookup);
-			SAMPLER(sampler_FalloffLookup);
+				uniform float  _FalloffCurve;
+				TEXTURE2D(_FalloffLookup);
+				SAMPLER(sampler_FalloffLookup);
 			#endif
 			
 			Varyings vert (Attributes attributes)
@@ -61,9 +61,9 @@
 				o.color = attributes.color * _InverseLightIntensityScale;
 
 				#ifdef SPRITE_LIGHT
-				o.uv = attributes.uv;
+					o.uv = attributes.uv;
 				#else
-				o.uv = float2(o.color.a, _FalloffCurve);
+					o.uv = float2(o.color.a, _FalloffCurve);
 				#endif
 
 				return o;
@@ -73,9 +73,9 @@
 			{
 				half4 color = i.color;
 				#if SPRITE_LIGHT
-				color = color * SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
+					color = color * SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
 				#else
-				color = color * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+					color = color * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 				#endif
 				return color;
 			}

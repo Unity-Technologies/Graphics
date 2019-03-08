@@ -383,9 +383,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             updateGlobalLight |= LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
 
-            if (updateGlobalLight)
+            if (m_LightType != m_PreviousLightType)
             {
-                RemoveGlobalLight(this);
+                if(m_PreviousLightType == LightType.Global)
+                    RemoveGlobalLight(this);
+
                 if (m_LightType == LightType.Global)
                     AddGlobalLight(this);
                 else
