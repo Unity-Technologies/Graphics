@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public delegate void OnExposedToggle();
         private OnExposedToggle m_OnExposedToggle;
+        int m_UndoGroup = -1;
         
         public BlackboardFieldPropertyView(BlackboardField blackboardField, GraphData graph, AbstractShaderProperty property)
         {
@@ -81,6 +82,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (!string.IsNullOrEmpty(property.overrideReferenceName))
                 m_ReferenceNameField.AddToClassList("modified");
 
+            // Key Undo callbacks for input fields
+            EventCallback<KeyDownEvent> keyDownCallback = new EventCallback<KeyDownEvent>(evt =>
+            {
+                // Record Undo for input field edit
+                if (m_UndoGroup == -1)
+                {
+                    m_UndoGroup = Undo.GetCurrentGroup();
+                    m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                }
+                // Handle scaping input field edit
+                if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
+                {
+                    Undo.RevertAllDownToGroup(m_UndoGroup);
+                    m_UndoGroup = -1;
+                    evt.StopPropagation();
+                }
+                // Dont record Undo again until input field is unfocused
+                m_UndoGroup++;
+                this.MarkDirtyRepaint();
+            });
+            EventCallback<FocusOutEvent> focusOutCallback = new EventCallback<FocusOutEvent>(evt =>
+            {
+                // Reset UndoGroup when done editing input field
+                m_UndoGroup = -1;
+            });
+
             if (property is Vector1ShaderProperty)
             {
                 var floatProperty = (Vector1ShaderProperty)property;
@@ -90,9 +117,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var vectorProperty = (Vector2ShaderProperty)property;
                 var field = new Vector2Field { value = vectorProperty.value };
+
+                field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
+                field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
+                field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
+                field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
+
+                // Called after KeyDownEvent
                 field.RegisterValueChangedCallback(evt =>
                     {
-                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                        // Only true when setting value via FieldMouseDragger
+                        // Undo recorded once per dragger release              
+                        if (m_UndoGroup == -1)
+                        {
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                        }
                         vectorProperty.value = evt.newValue;
                         DirtyNodes();
                     });
@@ -102,9 +141,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var vectorProperty = (Vector3ShaderProperty)property;
                 var field = new Vector3Field { value = vectorProperty.value };
+
+                field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
+                field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
+                field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
+                field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
+                field.Q("unity-z-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
+                field.Q("unity-z-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
+
+                // Called after KeyDownEvent
                 field.RegisterValueChangedCallback(evt =>
                     {
-                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                        // Only true when setting value via FieldMouseDragger
+                        // Undo recorded once per dragger release              
+                        if (m_UndoGroup == -1)
+                        {
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                        }
                         vectorProperty.value = evt.newValue;
                         DirtyNodes();
                     });
@@ -114,9 +167,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var vectorProperty = (Vector4ShaderProperty)property;
                 var field = new Vector4Field { value = vectorProperty.value };
+
+                field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
+                field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
+                field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
+                field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
+                field.Q("unity-z-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
+                field.Q("unity-z-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
+                field.Q("unity-w-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
+                field.Q("unity-w-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
+
+                // Called after KeyDownEvent
                 field.RegisterValueChangedCallback(evt =>
                     {
-                        m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                        // Only true when setting value via FieldMouseDragger
+                        // Undo recorded once per dragger release              
+                        if (m_UndoGroup == -1)
+                        {
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change property value");
+                        }
                         vectorProperty.value = evt.newValue;
                         DirtyNodes();
                     });
