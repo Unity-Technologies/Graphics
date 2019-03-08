@@ -22,7 +22,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty aoRayLength;
         public SerializedProperty aoNumSamples;
         public SerializedProperty aoBilateralRadius;
-        public SerializedProperty aoBilateralSigma;
         public SerializedProperty maxFilterWidthInPixels;
         public SerializedProperty filterRadiusInMeters;
         public SerializedProperty normalSharpness;
@@ -78,7 +77,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             aoRayLength = o.Find(x => x.aoRayLength);
             aoNumSamples = o.Find(x => x.aoNumSamples);
             aoBilateralRadius = o.Find(x => x.aoBilateralRadius);
-            aoBilateralSigma = o.Find(x => x.aoBilateralSigma);
             maxFilterWidthInPixels = o.Find(x => x.maxFilterWidthInPixels);
             filterRadiusInMeters = o.Find(x => x.filterRadiusInMeters);
             normalSharpness = o.Find(x => x.normalSharpness);

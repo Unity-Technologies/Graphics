@@ -19,9 +19,6 @@
 Texture2D<float>			          	_StencilTexture;
 Texture2D<float>						_DepthTexture;
 
-// Flag value that defines if a given pixel recieves reflections or not
-// int   									_SsrStencilExclusionValue;
-
 // Output structure of the reflection raytrace shader
 float                                   _RaytracingAOIntensity;
 RWTexture2D<float4> 					_AmbientOcclusionTextureRW;

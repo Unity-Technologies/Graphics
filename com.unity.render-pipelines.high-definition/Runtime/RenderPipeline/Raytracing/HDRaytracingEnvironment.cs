@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum AOFilterMode
         {
             None,
-            Bilateral,
+            SpatioTemporal,
             Nvidia
         };
         public AOFilterMode aoFilterMode = AOFilterMode.None;
@@ -54,9 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // AO Bilateral Filter Data
         [Range(1, 27)]
-        public int aoBilateralRadius = 10;
-        [Range(0.001f, 9.0f)]
-        public float aoBilateralSigma = 5.0f;
+        public int aoBilateralRadius = 16;
 
         // Nvidia AO Filter Data
         [Range(1, 27)]
