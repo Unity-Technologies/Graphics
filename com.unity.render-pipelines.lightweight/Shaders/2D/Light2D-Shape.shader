@@ -44,12 +44,12 @@
 			#pragma multi_compile SPRITE_LIGHT __
 
 			uniform float  _InverseLightIntensityScale;
-			uniform float  _FalloffCurve;
-
+			
 			#ifdef SPRITE_LIGHT
 			TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
 			SAMPLER(sampler_CookieTex);
 			#else
+			uniform float  _FalloffCurve;
 			TEXTURE2D(_FalloffLookup);
 			SAMPLER(sampler_FalloffLookup);
 			#endif
@@ -61,9 +61,9 @@
 				o.color = attributes.color * _InverseLightIntensityScale;
 
 				#ifdef SPRITE_LIGHT
-					o.uv = attributes.uv;
+				o.uv = attributes.uv;
 				#else
-					o.uv = float2(o.color.a, _FalloffCurve);
+				o.uv = float2(o.color.a, _FalloffCurve);
 				#endif
 
 				return o;
@@ -71,13 +71,13 @@
 			
 			half4 frag (Varyings i) : SV_Target
 			{
-				half4 col = i.color;
+				half4 color = i.color;
 				#if SPRITE_LIGHT
-				col = col * SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
+				color = color * SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
 				#else
-				col = col * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+				color = color * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 				#endif
-				return col;
+				return color;
 			}
 			ENDHLSL
 		}

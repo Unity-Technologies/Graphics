@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Light2d-Shape-Volumetric"
+﻿Shader "Hidden/Light2D-Shape-Volumetric"
 {
     Properties
     {
@@ -7,18 +7,23 @@
 	HLSLINCLUDE
 	#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 
+
 	struct Attributes
 	{
 		float4 positionOS   : POSITION;
 		float4 color : COLOR;
 		float4 volumeColor : TANGENT;
+
+		#ifdef SPRITE_LIGHT
+			half2  uv		  : TEXCOORD0;
+		#endif
 	};
 
 	struct Varyings
 	{
 		float4  positionCS	: SV_POSITION;
 		float4  color		: COLOR;
-		float2  lookupUV	: TEXCOORD0;
+		float2  uv			: TEXCOORD0;
 	};
 	ENDHLSL
 
@@ -41,10 +46,16 @@
 			#pragma prefer_hlslcc gles
 			#pragma vertex vert
 			#pragma fragment frag
+			#pragma multi_compile SPRITE_LIGHT __
 
-			TEXTURE2D(_FalloffLookup);
-			SAMPLER(sampler_FalloffLookup);
-			uniform float _FalloffCurve;
+			#ifdef SPRITE_LIGHT
+				TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
+				SAMPLER(sampler_CookieTex);
+			#else
+				uniform float  _FalloffCurve;
+				TEXTURE2D(_FalloffLookup);
+				SAMPLER(sampler_FalloffLookup);
+			#endif
 
 
 			Varyings vert (Attributes attributes)
@@ -52,14 +63,25 @@
 				Varyings o;
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
 				o.color = attributes.color * attributes.volumeColor;
-				o.lookupUV = float2(o.color.a, _FalloffCurve);
+
+
+				#ifdef SPRITE_LIGHT
+					o.uv = attributes.uv;
+				#else
+					o.uv = float2(o.color.a, _FalloffCurve);
+				#endif
+
                 return o;
             }
 
             half4 frag (Varyings i) : SV_Target
             {
 				half4 color = i.color;
-				color.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.lookupUV).r;
+				#if SPRITE_LIGHT
+					color = color * SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
+				#else
+					color.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+				#endif
                 return color;
             }
             ENDHLSL

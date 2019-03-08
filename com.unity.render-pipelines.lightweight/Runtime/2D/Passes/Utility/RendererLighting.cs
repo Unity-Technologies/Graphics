@@ -144,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return renderedAnyLight;
         }
 
-        static private void RenderLightVolumeSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights, bool renderShapeLights)
+        static private void RenderLightVolumeSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             if (lights.Count > 0)
             {
@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     int topMostLayer = light.GetTopMostLitLayer();
                     if (layerToRender == topMostLayer)
                     {
-                        if (light != null && light.IsShapeLight() == renderShapeLights && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
                             Material shapeLightVolumeMaterial = GetVolumeMaterial(light);
                             if (shapeLightVolumeMaterial != null)
@@ -163,13 +163,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                 Mesh lightMesh = light.GetMesh();
                                 if (lightMesh != null)
                                 {
+                                    if (light.lightType == Light2D.LightType.Sprite)
+                                    {
+                                        cmdBuffer.EnableShaderKeyword("SPRITE_LIGHT");
+                                        if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                                            cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
+                                    }
+                                    else
+                                        cmdBuffer.DisableShaderKeyword("SPRITE_LIGHT");
+
                                     cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
 
-                                    if (renderShapeLights)
+                                    if (!light.hasDirection)
                                     {
-                                        if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                                            cmdBuffer.SetGlobalTexture("_MainTex", light.lightCookieSprite.texture);
-
                                         cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
                                     }
                                     else
@@ -371,8 +377,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmdBuffer,
                     layerToRender,
                     s_RenderTargets[i].Identifier(),
-                    Light2D.GetLightsByLightOperation(i),
-                    renderShapeLights
+                    Light2D.GetLightsByLightOperation(i)                  
                 );
 
                 cmdBuffer.EndSample(sampleName);
