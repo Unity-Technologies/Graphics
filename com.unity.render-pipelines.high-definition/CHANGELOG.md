@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed instance identifier semantic string used by Shader Graph
 - `camera.RenderToCubemap` use proper face culling
+- Fixed HDRI sky intensity lux mode
 
 ## [5.7.0-preview] - 2019-03-07
 
@@ -37,7 +38,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When rendering reflection probe disable all specular lighting and for metals use fresnelF0 as diffuse color for bake lighting.
 
 ## [5.6.0-preview] - 2019-02-21
-
 
 ### Added
 - VR: Added TextureXR system to selectively expand TEXTURE2D macros to texture array for single-pass stereo instancing + Convert textures call to these macros
