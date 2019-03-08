@@ -132,6 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             maxShadowRequests = k_DefaultMaxShadowRequests,
             shadowMapsDepthBits = k_DefaultShadowMapDepthBits,
             useDynamicViewportRescale = true,
+            shadowQuality = HDShadowQuality.Low,
         };
 
         public const int k_DefaultShadowAtlasResolution = 4096;

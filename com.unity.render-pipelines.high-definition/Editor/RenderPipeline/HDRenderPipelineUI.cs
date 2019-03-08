@@ -263,8 +263,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             --EditorGUI.indentLevel;
             
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests, k_MaxRequestContent);
-            
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality, k_FilteringQuality);
+
+            bool isDeferredOnly = serialized.renderPipelineSettings.supportedLitShaderMode.intValue == (int)RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
+
+            // Deferred Only mode does not allow to change filtering quality, but rather it is hardcoded. 
+            if (isDeferredOnly)
+            {
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality.intValue = (int)HDShadowQuality.Low;
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality, k_FilteringQuality);
+            }
         }
 
         static void Drawer_SectionDecalSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
