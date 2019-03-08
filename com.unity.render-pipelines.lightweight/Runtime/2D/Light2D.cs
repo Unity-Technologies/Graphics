@@ -372,7 +372,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             UpdateLightOperation();
 
             bool rebuildMesh = false;
-            bool updateGlobalLight = false;
 
             // Sorting. InsertLight() will make sure the lights are sorted.
             if (LightUtility.CheckForChange(m_ShapeLightOrder, ref m_PreviousShapeLightOrder))
@@ -380,8 +379,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 s_Lights[(int)m_LightOperationIndex].Remove(this);
                 InsertLight();
             }
-
-            updateGlobalLight |= LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
 
             if (m_LightType != m_PreviousLightType)
             {
@@ -392,6 +389,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     AddGlobalLight(this);
                 else
                     rebuildMesh = true;
+
+                m_PreviousLightType = m_LightType;
             }
 
             // Mesh Rebuilding
