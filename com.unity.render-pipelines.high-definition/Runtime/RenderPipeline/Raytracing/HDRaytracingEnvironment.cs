@@ -6,6 +6,7 @@ using Unity.Collections;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [DisallowMultipleComponent, ExecuteInEditMode]
+    [DefaultExecutionOrder(100)]
     public class HDRaytracingEnvironment : MonoBehaviour
     {
 #if ENABLE_RAYTRACING
@@ -164,23 +165,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(0.01f, 10.0f)]
         public float indirectDiffuseClampValue = 1.0f;
 
-        void Start()
-        {
-            // Grab the High Definition RP
-            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            if (hdPipeline != null)
-            {
-                hdPipeline.m_RayTracingManager.RegisterEnvironment(this);
-            }
-        }
-
         void OnEnable()
         {
             // Grab the High Definition RP
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
-                hdPipeline.m_RayTracingManager.RegisterEnvironment(this);
+                hdPipeline.m_RayTracingManager.RegisterEnvironment(this, false);
             }
         }
 
@@ -190,16 +181,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
-                hdPipeline.m_RayTracingManager.UnregisterEnvironment(this);
-            }
-        }
-        void OnDestroy()
-        {
-            // Grab the High Definition RP
-            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            if (hdPipeline != null)
-            {
-                hdPipeline.m_RayTracingManager.UnregisterEnvironment(this);
+                hdPipeline.m_RayTracingManager.UnregisterEnvironment(this, false);
             }
         }
 #endif
