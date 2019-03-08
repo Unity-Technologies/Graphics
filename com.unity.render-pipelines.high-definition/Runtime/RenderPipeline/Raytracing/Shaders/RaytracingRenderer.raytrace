@@ -69,7 +69,7 @@ void RayGenRenderer()
 	rayIntersection.incidentDirection = rayDescriptor.Direction;
 	rayIntersection.origin = rayDescriptor.Origin;
 	rayIntersection.t = 0.0f;
-	rayIntersection.remainingDepth = min(RAYTRACING_MAX_RECURSION, _RaytracingMaxRecursion);
+	rayIntersection.remainingDepth = min(RAYTRACING_MAX_RECURSION, _RaytracingMaxRecursion) - 1;
 
 	// In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
 	rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
