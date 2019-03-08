@@ -1,7 +1,7 @@
 {
     "name":"com.unity.visualeffectgraph",
     "displayName": "Visual Effect Graph",
-    "version":"5.7.2-preview",
+    "version":"5.8.0-preview",
 	"unity": "2019.1",
 	"unityRelease": "0b6",
     "description":"The Visual Effect Graph is a node based visual effect editor. It enables artists to author next generation visual effects simulated directly on GPU",

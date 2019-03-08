@@ -1,8 +1,8 @@
 # Feature comparison table
 
-This table provides an overview of the current features supported in the Lightweight Render Pipeline (LWRP), compared to the Unity Built-in render pipeline. 
+This table provides an overview of the current features supported in the Lightweight Render Pipeline (LWRP), compared to the Unity Built-in render pipeline. To see which features are in development, check this [comparison road map](https://docs.google.com/spreadsheets/d/1nlS8m1OXStUK4A6D7LTOyHr6aAxIaA2r3uaNf9FZRTI/edit#gid=0).  
 
-**Note:** If a feature is marked __In research__, the LWRP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
+**Note:** If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. If a feature is left _blank_, the LWRP team hasn't yet made a decision about whether to support it, and might still be researching the feature.
 
 
 | Feature                                                      | Unity Built-in render pipeline                               | Lightweight Render Pipeline                                  |
@@ -167,4 +167,4 @@ This table provides an overview of the current features supported in the Lightwe
 | ***AR***                                                     |                                                              |                                                              |
 | AR Toolkit                                                   | Yes                                                          | Yes                                                          |
 | ***Debug***                                                  |                                                              |                                                              |
-| Scene view modes                                             | Yes                                                          | In research                                                  |
+| Scene view modes                                             | Yes                                                          |                                                              |
