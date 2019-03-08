@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         public string GetPropertiesBlock(int baseIndentLevel)
         {
             var sb = new StringBuilder();
-            foreach (var prop in m_Properties.Where(x => x.generatePropertyBlock))
+            foreach (var prop in m_Properties.Where(x => x.isExposable && x.generatePropertyBlock))
             {
                 for (var i = 0; i < baseIndentLevel; i++)
                 {

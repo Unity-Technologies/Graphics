@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.6.0] - 2019-XX-XX
 ### Added
 - Added Custom Function node. Use this node to define a custom HLSL function either via string directly in the graph, or via a path to an HLSL file.
+- You can now add Matrix, Sampler State and Gradient properties to the Blackboard.
 
 ### Changed
 - Subgraph Output node is now called Output.
@@ -14,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Subgraph Output node now supports all port types.
 - Subgraph Output node now supports reordering ports.
 - When you convert nodes to a Sub Graph, Shader Graph generates properties and output ports in the Sub Graph, and now by default, names those resulting properties and output ports based on their types.
+- Removed Blackboard fields, which had no effect on Sub Graph input ports, from the Sub Graph Blackboard.
 
 ## [6.5.0] - 2019-03-07
 ### Fixed
