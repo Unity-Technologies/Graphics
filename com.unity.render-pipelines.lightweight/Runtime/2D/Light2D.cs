@@ -59,8 +59,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_LightColor")]
         Color m_Color = Color.white;
+        Color m_PreviousColor = Color.white;
         [SerializeField]
         float m_Intensity = 1;
+        float m_PreviousIntensity = 1;
 
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
@@ -391,6 +393,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             // Mesh Rebuilding
+            rebuildMesh |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
+            rebuildMesh |= LightUtility.CheckForChange(m_Intensity, ref m_PreviousIntensity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightRadius, ref m_PreviousShapeLightRadius);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);

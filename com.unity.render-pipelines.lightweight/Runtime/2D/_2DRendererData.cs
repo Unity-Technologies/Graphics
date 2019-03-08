@@ -15,24 +15,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [Serialization.FormerlySerializedAs("m_ShapeLightTypes")]
         _2DLightOperationDescription[] m_LightOperations;
 
-        [SerializeField] Shader m_ShapeCookieSpriteAdditiveShader = null;
-        [SerializeField] Shader m_ShapeCookieSpriteAlphaBlendShader = null;
-        [SerializeField] Shader m_ShapeVertexColoredAdditiveShader = null;
-        [SerializeField] Shader m_ShapeVertexColoredAlphaBlendShader = null;
-        [SerializeField] Shader m_ShapeCookieSpriteVolumeShader = null;
-        [SerializeField] Shader m_ShapeVertexColoredVolumeShader = null;
+        [SerializeField] Shader m_ShapeLightShader = null;
+        [SerializeField] Shader m_ShapeLightVolumeShader = null;
         [SerializeField] Shader m_PointLightShader = null;
         [SerializeField] Shader m_PointLightVolumeShader = null;
 
         public float lightIntensityScale => m_LightIntensityScale;
         public _2DLightOperationDescription[] lightOperations => m_LightOperations;
 
-        internal Shader shapeCookieSpriteAdditiveShader => m_ShapeCookieSpriteAdditiveShader;
-        internal Shader shapeCookieSpriteAlphaBlendShader => m_ShapeCookieSpriteAlphaBlendShader;
-        internal Shader shapeVertexColoredAdditiveShader => m_ShapeVertexColoredAdditiveShader;
-        internal Shader shapeVertexColoredAlphaBlendShader => m_ShapeVertexColoredAlphaBlendShader;
-        internal Shader shapeCookieSpriteVolumeShader => m_ShapeCookieSpriteVolumeShader;
-        internal Shader shapeVertexColoredVolumeShader => m_ShapeVertexColoredVolumeShader;
+        internal Shader shapeLightShader => m_ShapeLightShader;
+        internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
         internal Shader pointLightShader => m_PointLightShader;
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
 
@@ -61,12 +53,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             base.OnEnable();
 
-            m_ShapeCookieSpriteAdditiveShader = m_ShapeCookieSpriteAdditiveShader ?? Shader.Find("Hidden/Light2D-Sprite-Additive");
-            m_ShapeCookieSpriteAlphaBlendShader = m_ShapeCookieSpriteAlphaBlendShader ?? Shader.Find("Hidden/Light2D-Sprite-Superimpose");
-            m_ShapeVertexColoredAdditiveShader = m_ShapeVertexColoredAdditiveShader ?? Shader.Find("Hidden/Light2D-Shape-Additive");
-            m_ShapeVertexColoredAlphaBlendShader = m_ShapeVertexColoredAlphaBlendShader ?? Shader.Find("Hidden/Light2D-Shape-Superimpose");
-            m_ShapeCookieSpriteVolumeShader = m_ShapeCookieSpriteVolumeShader ?? Shader.Find("Hidden/Light2d-Sprite-Volumetric");
-            m_ShapeVertexColoredVolumeShader = m_ShapeVertexColoredVolumeShader ?? Shader.Find("Hidden/Light2d-Shape-Volumetric");
+            m_ShapeLightShader = m_ShapeLightShader ?? Shader.Find("Hidden/Light2D-Shape");
+            m_ShapeLightVolumeShader = m_ShapeLightVolumeShader ?? Shader.Find("Hidden/Light2D-Shape-Volumetric");
             m_PointLightShader = m_PointLightShader ?? Shader.Find("Hidden/Light2D-Point");
             m_PointLightVolumeShader = m_PointLightVolumeShader ?? Shader.Find("Hidden/Light2d-Point-Volumetric");
         } 

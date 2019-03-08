@@ -23,12 +23,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static RenderTargetHandle s_NormalsTarget;
         static Texture s_LightLookupTexture;
         static Texture s_FalloffLookupTexture;
-        static Material s_ShapeCookieSpriteAdditiveMaterial;
-        static Material s_ShapeCookieSpriteAlphaBlendMaterial;
-        static Material s_ShapeVertexColoredAdditiveMaterial;
-        static Material s_ShapeVertexColoredAlphaBlendMaterial;
-        static Material s_ShapeCookieSpriteVolumeMaterial;
-        static Material s_ShapeVertexColoredVolumeMaterial;
+        static Material s_ShapeLightAdditiveMaterial;
+        static Material s_ShapeLightAlphaBlendMaterial;
+        static Material s_ShapeLightVolumeMaterial;
         static Material s_PointLightMaterial;
         static Material s_PointLightVolumeMaterial;
 
@@ -116,13 +113,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             if (!renderedAnyLight)
                                 renderedAnyLight = true;
 
+                            if (light.lightType == Light2D.LightType.Sprite)
+                            {
+                                cmdBuffer.EnableShaderKeyword("SPRITE_LIGHT");
+                                if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                                    cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
+                            }
+                            else
+                                cmdBuffer.DisableShaderKeyword("SPRITE_LIGHT");
+
                             cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
 
                             if (!light.hasDirection)
                             {
-                                if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                                    cmdBuffer.SetGlobalTexture("_MainTex", light.lightCookieSprite.texture);
-
                                 cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
                             }
                             else
@@ -376,60 +379,41 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
+
+        static void SetBlendModes(Material material, BlendMode src, BlendMode dst)
+        {
+            material.SetFloat("_SrcBlend", (float)BlendMode.One);
+            material.SetFloat("_DstBlend", (float)BlendMode.One);
+        }
+
         static Material GetShapeLightMaterial(Light2D light)
         {
-            if (light.lightType == Light2D.LightType.Sprite)
+            if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
             {
-                if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
+                if(s_ShapeLightAdditiveMaterial == null)
                 {
-                    if (s_ShapeCookieSpriteAdditiveMaterial == null)
-                        s_ShapeCookieSpriteAdditiveMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeCookieSpriteAdditiveShader);
-
-                    return s_ShapeCookieSpriteAdditiveMaterial;
+                    s_ShapeLightAdditiveMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightShader);
+                    SetBlendModes(s_ShapeLightAdditiveMaterial, BlendMode.One, BlendMode.One);
                 }
-                else
-                {
-                    if (s_ShapeCookieSpriteAlphaBlendMaterial == null)
-                        s_ShapeCookieSpriteAlphaBlendMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeCookieSpriteAlphaBlendShader);
-
-                    return s_ShapeCookieSpriteAlphaBlendMaterial;
-                }
+                return s_ShapeLightAdditiveMaterial;
             }
             else
             {
-                if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
+                if (s_ShapeLightAlphaBlendMaterial == null)
                 {
-                    if (s_ShapeVertexColoredAdditiveMaterial == null)
-                        s_ShapeVertexColoredAdditiveMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeVertexColoredAdditiveShader);
-
-                    return s_ShapeVertexColoredAdditiveMaterial;
+                    s_ShapeLightAlphaBlendMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightShader);
+                    SetBlendModes(s_ShapeLightAdditiveMaterial, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
                 }
-                else
-                {
-                    if (s_ShapeVertexColoredAlphaBlendMaterial == null)
-                        s_ShapeVertexColoredAlphaBlendMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeVertexColoredAlphaBlendShader);
-
-                    return s_ShapeVertexColoredAlphaBlendMaterial;
-                }
+                return s_ShapeLightAlphaBlendMaterial;
             }
         }
 
         static Material GetShapeLightVolumeMaterial(Light2D light)
         {
-            if (light.lightType == Light2D.LightType.Sprite)
-            {
-                if (s_ShapeCookieSpriteVolumeMaterial == null)
-                    s_ShapeCookieSpriteVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeCookieSpriteVolumeShader);
+            if (s_ShapeLightVolumeMaterial == null)
+                s_ShapeLightVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightVolumeShader);
 
-                return s_ShapeCookieSpriteVolumeMaterial;
-            }
-            else
-            {
-                if (s_ShapeVertexColoredVolumeMaterial == null)
-                    s_ShapeVertexColoredVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeVertexColoredVolumeShader);
-
-                return s_ShapeVertexColoredVolumeMaterial;
-            }
+            return s_ShapeLightVolumeMaterial;
         }
 
         static Material GetPointLightMaterial()
