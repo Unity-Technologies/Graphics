@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now undo edits to Gradient port default input fields.
 - Boolean port input fields now display correct values when you undo changes.
 - Vector type properties now behave as expected when you undo changes.
+- Fixed an error that previously occurred when you opened saved Shader Graphs containing one or more Voronoi nodes.
 
 ## [6.5.0] - 2019-03-07
 
