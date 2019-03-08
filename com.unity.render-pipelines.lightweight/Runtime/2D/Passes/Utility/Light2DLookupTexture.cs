@@ -1,15 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
 using System.IO;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class Light2DLookupTexture
+    internal static class Light2DLookupTexture
     {
-        static Texture2D m_PointLightLookupTexture;
-        static Texture2D m_FalloffLookupTexture;
+        static Texture2D s_PointLightLookupTexture;
+        static Texture2D s_FalloffLookupTexture;
 
         static public Texture2D CreatePointLightLookupTexture()
         {
@@ -21,10 +18,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             else if (SystemInfo.SupportsTextureFormat(TextureFormat.RGBAFloat))
                 textureFormat = TextureFormat.RGBAFloat;
 
-            m_PointLightLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT, textureFormat, false);
-            m_PointLightLookupTexture.filterMode = FilterMode.Bilinear;
-            m_PointLightLookupTexture.wrapMode = TextureWrapMode.Clamp;
-            if (m_PointLightLookupTexture != null)
+            s_PointLightLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT, textureFormat, false);
+            s_PointLightLookupTexture.filterMode = FilterMode.Bilinear;
+            s_PointLightLookupTexture.wrapMode = TextureWrapMode.Clamp;
+            if (s_PointLightLookupTexture != null)
             {
                 Vector2 center = new Vector2(WIDTH / 2, HEIGHT / 2);
 
@@ -59,13 +56,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                         Color color = new Color(red, green, blue, alpha);
 
 
-                        m_PointLightLookupTexture.SetPixel(x, y, color);
+                        s_PointLightLookupTexture.SetPixel(x, y, color);
                     }
                 }
             }
-            m_PointLightLookupTexture.Apply();
+            s_PointLightLookupTexture.Apply();
 
-            return m_PointLightLookupTexture;
+            return s_PointLightLookupTexture;
         }
 
         static public Texture2D CreateFalloffLookupTexture()
@@ -74,10 +71,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             const float HEIGHT = 192;
 
             TextureFormat textureFormat = TextureFormat.ARGB32;
-            m_FalloffLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT-64, textureFormat, false);
-            m_FalloffLookupTexture.filterMode = FilterMode.Bilinear;
-            m_FalloffLookupTexture.wrapMode = TextureWrapMode.Clamp;
-            if (m_FalloffLookupTexture != null)
+            s_FalloffLookupTexture = new Texture2D((int)WIDTH, (int)HEIGHT-64, textureFormat, false);
+            s_FalloffLookupTexture.filterMode = FilterMode.Bilinear;
+            s_FalloffLookupTexture.wrapMode = TextureWrapMode.Clamp;
+            if (s_FalloffLookupTexture != null)
             {
                 for(int y=0;y<HEIGHT;y++)
                 {
@@ -94,39 +91,39 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                         float red = Mathf.Pow(t, exponent);
                         Color color = new Color(red, 0, 0, 1);
                         if(y >= 32 && y < 160)
-                            m_FalloffLookupTexture.SetPixel(x, y-32, color);
+                            s_FalloffLookupTexture.SetPixel(x, y-32, color);
                     }
                 }
             }
-            m_FalloffLookupTexture.Apply();
+            s_FalloffLookupTexture.Apply();
 
-            return m_FalloffLookupTexture;
+            return s_FalloffLookupTexture;
         }
 
-#if UNITY_EDITOR
-        [MenuItem("Light2D Debugging/Write Light Texture")]
-        static public void WriteLightTexture()
-        {
-            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "LightLookupTexture.exr", "png");
+//#if UNITY_EDITOR
+//        [MenuItem("Light2D Debugging/Write Light Texture")]
+//        static public void WriteLightTexture()
+//        {
+//            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "LightLookupTexture.exr", "png");
 
-            CreatePointLightLookupTexture();
+//            CreatePointLightLookupTexture();
 
-            byte[] imgData = m_PointLightLookupTexture.EncodeToEXR(Texture2D.EXRFlags.CompressRLE);
-            if (imgData != null)
-                File.WriteAllBytes(path, imgData);
-        }
+//            byte[] imgData = s_PointLightLookupTexture.EncodeToEXR(Texture2D.EXRFlags.CompressRLE);
+//            if (imgData != null)
+//                File.WriteAllBytes(path, imgData);
+//        }
 
-        [MenuItem("Light2D Debugging/Write Falloff Texture")]
-        static public void WriteCurveTexture()
-        {
-            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "FalloffLookupTexture.png", "png");
+//        [MenuItem("Light2D Debugging/Write Falloff Texture")]
+//        static public void WriteCurveTexture()
+//        {
+//            var path = EditorUtility.SaveFilePanel("Save texture as PNG", "", "FalloffLookupTexture.png", "png");
 
-            CreateFalloffLookupTexture();
+//            CreateFalloffLookupTexture();
 
-            byte[] imgData = m_FalloffLookupTexture.EncodeToPNG();
-            if (imgData != null)
-                File.WriteAllBytes(path, imgData);
-        }
-#endif
+//            byte[] imgData = s_FalloffLookupTexture.EncodeToPNG();
+//            if (imgData != null)
+//                File.WriteAllBytes(path, imgData);
+//        }
+//#endif
     }
 }

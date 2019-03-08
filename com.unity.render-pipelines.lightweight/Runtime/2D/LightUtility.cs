@@ -1,12 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.RenderPipeline2D.External.LibTessDotNet;
-using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    internal class LightUtility
+    internal static class LightUtility
     {
         public static bool CheckForChange<T>(T a, ref T b)
         {

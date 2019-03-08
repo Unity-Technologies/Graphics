@@ -71,7 +71,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 context.ExecuteCommandBuffer(cmd);
 
                 Profiler.BeginSample("RenderSpritesWithLighting - Draw Renderers");
-                //drawSettings.SetShaderPassName(0, k_CombinedRenderingPassName);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
                 Profiler.EndSample();
 
