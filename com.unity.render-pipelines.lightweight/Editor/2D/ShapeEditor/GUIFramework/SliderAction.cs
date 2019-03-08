@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public class SliderAction : ClickAction
+    internal class SliderAction : ClickAction
     {
         private SliderData m_SliderData;
         private bool m_Start;
 
-        public Action<IGUIState, Control, Vector3> onSliderBegin;
+        public Action<IGUIState, Control, Vector3> onSliderBegin = null;
         public Action<IGUIState, Control, Vector3> onSliderChanged;
-        public Action<IGUIState, Control, Vector3> onSliderEnd;
+        public Action<IGUIState, Control, Vector3> onSliderEnd = null;
 
         public SliderAction(Control control) : base(control, 0, false)
         {

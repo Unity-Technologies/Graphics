@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public class CommandAction : GUIAction
+    internal class CommandAction : GUIAction
     {
         private string m_CommandName;
 
-        public Action onCommand;
+        public Action onCommand = null;
 
         public CommandAction(string commandName)
         {

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public abstract class Control
+    internal abstract class Control
     {
         private string m_Name;
         private int m_NameHashCode;

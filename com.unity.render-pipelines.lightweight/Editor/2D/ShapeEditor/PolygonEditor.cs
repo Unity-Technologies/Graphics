@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using GUIFramework;
+using UnityEditor.Experimental.Rendering.LWRP.GUIFramework;
 using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.LWRP

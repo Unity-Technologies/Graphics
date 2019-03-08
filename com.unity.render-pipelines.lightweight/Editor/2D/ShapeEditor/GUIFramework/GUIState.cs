@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public class GUIState : IGUIState
+    internal class GUIState : IGUIState
     {
         private Handles.CapFunction nullCap = (int c, Vector3 p , Quaternion r, float s, EventType ev) => {};
 

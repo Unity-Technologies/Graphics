@@ -1,8 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public struct LayoutData
+    internal struct LayoutData
     {
         public int index;
         public float distance;

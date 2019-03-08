@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public abstract class HoveredControlAction : GUIAction
+    internal abstract class HoveredControlAction : GUIAction
     {
         private Control m_HoveredControl;
 

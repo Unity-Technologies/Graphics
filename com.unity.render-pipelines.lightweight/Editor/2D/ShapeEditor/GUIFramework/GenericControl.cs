@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public class GenericControl : Control
+    internal class GenericControl : Control
     {
-        public Func<IGUIState, LayoutData> onBeginLayout;
-        public Action<IGUIState> onEndLayout;
+        public Func<IGUIState, LayoutData> onBeginLayout = null;
+        public Action<IGUIState> onEndLayout = null;
         public Action<IGUIState, Control, int> onRepaint;
         public Func<int> count;
         public Func<int, Vector3> position;
@@ -14,7 +14,7 @@ namespace GUIFramework
         public Func<int, Vector3> forward;
         public Func<int, Vector3> up;
         public Func<int, Vector3> right;
-        public Func<int, object> userData;
+        public Func<int, object> userData = null;
 
         public GenericControl(string name) : base(name)
         {

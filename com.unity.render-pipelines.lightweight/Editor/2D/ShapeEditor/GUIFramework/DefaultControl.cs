@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public abstract class DefaultControl : Control
+    internal abstract class DefaultControl : Control
     {
         private readonly float kPickDistance = 5f;
         

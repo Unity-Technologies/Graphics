@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public struct SliderData
+    internal struct SliderData
     {
         public Vector3 position;
         public Vector3 forward;
@@ -13,7 +13,7 @@ namespace GUIFramework
         public static readonly SliderData zero = new SliderData() { position = Vector3.zero, forward = Vector3.forward, up = Vector3.up, right = Vector3.right };
     }
 
-    public interface IGUIState
+    internal interface IGUIState
     {
         Vector2 mousePosition { get; }
         int mouseButton { get; }

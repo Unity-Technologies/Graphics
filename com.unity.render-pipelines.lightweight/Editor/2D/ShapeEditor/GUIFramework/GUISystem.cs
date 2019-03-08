@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public class GUISystem
+    internal class GUISystem
     {
         private readonly int kControlIDCheckHashCode = "ControlIDCheckHashCode".GetHashCode();
 

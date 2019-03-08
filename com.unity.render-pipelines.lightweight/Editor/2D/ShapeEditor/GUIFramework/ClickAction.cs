@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public class ClickAction : HoveredControlAction
+    internal class ClickAction : HoveredControlAction
     {
         private int m_Button;
         private bool m_UseEvent;

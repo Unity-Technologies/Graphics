@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using UnityEngine;
 
-namespace GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 {
-    public class GenericDefaultControl : DefaultControl
+    internal class GenericDefaultControl : DefaultControl
     {
-        public Func<IGUIState, Vector3> position;
-        public Func<IGUIState, Vector3> forward;
-        public Func<IGUIState, Vector3> up;
-        public Func<IGUIState, Vector3> right;
-        public Func<IGUIState, object> userData;
+        public Func<IGUIState, Vector3> position = null;
+        public Func<IGUIState, Vector3> forward = null;
+        public Func<IGUIState, Vector3> up = null;
+        public Func<IGUIState, Vector3> right = null;
+        public Func<IGUIState, object> userData = null;
 
         public GenericDefaultControl(string name) : base(name)
         {
