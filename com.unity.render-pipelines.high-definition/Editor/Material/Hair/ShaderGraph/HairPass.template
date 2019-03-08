@@ -208,7 +208,6 @@ $include("SharedCode.template.hlsl")
 
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_TRANSMISSION;
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS;
 #endif
 
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
