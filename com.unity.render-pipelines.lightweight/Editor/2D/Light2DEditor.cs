@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering.LWRP;
 using System.Linq;
 using System.Collections.Generic;
-using Unity.Path2D;
+using UnityEditor.Experimental.Rendering.LWRP;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {

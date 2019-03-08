@@ -1,9 +1,8 @@
 using UnityEngine;
-using UnityEditor;
 
-namespace Unity.Path2D
+namespace UnityEditor.Experimental.Rendering.LWRP
 {
-    public class ShapeEditorUtility
+    internal class ShapeEditorUtility
     {
         public static int Mod(int x, int m)
         {

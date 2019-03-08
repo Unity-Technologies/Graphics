@@ -1,14 +1,11 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using GUIFramework;
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.Path2D
+namespace UnityEditor.Experimental.Rendering.LWRP
 {
-    public abstract class PolygonEditor
+    internal abstract class PolygonEditor
     {
         private Dictionary<UnityObject, GUISystem> m_GUISystems = new Dictionary<UnityObject, GUISystem>();
         private Dictionary<UnityObject, SerializedObject> m_SerializedObjects = new Dictionary<UnityObject, SerializedObject>();

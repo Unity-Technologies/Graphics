@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using UnityEngine;
 using GUIFramework;
 
-namespace Unity.Path2D
+namespace UnityEditor.Experimental.Rendering.LWRP
 {
-    public class CreatePointAction : ClickAction
+    internal class CreatePointAction : ClickAction
     {
         private Control m_PointControl;
 

@@ -1,51 +1,48 @@
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
-using GUIFramework;
 
-namespace Unity.Path2D
+namespace UnityEditor.Experimental.Rendering.LWRP
 {
-    public class DefaultStyles
+    internal class Drawer
     {
-        public readonly GUIStyle pointNormalStyle;
-        public readonly GUIStyle pointHoveredStyle;
-        public readonly GUIStyle pointSelectedStyle;
-        public readonly GUIStyle pointPreviewStyle;
-        public readonly GUIStyle pointRemovePreviewStyle;
-        public readonly GUIStyle selectionRectStyle;
-
-        public DefaultStyles()
+        private class DefaultStyles
         {
-            var pointNormal = Resources.Load<Texture2D>("pointNormal");
-            var pointHovered = Resources.Load<Texture2D>("pointHovered");
-            var pointSelected = Resources.Load<Texture2D>("pointSelected");
-            var pointPreview = Resources.Load<Texture2D>("pointPreview");
-            var pointRemovePreview = Resources.Load<Texture2D>("pointRemovePreview");
+            public readonly GUIStyle pointNormalStyle;
+            public readonly GUIStyle pointHoveredStyle;
+            public readonly GUIStyle pointSelectedStyle;
+            public readonly GUIStyle pointPreviewStyle;
+            public readonly GUIStyle pointRemovePreviewStyle;
+            public readonly GUIStyle selectionRectStyle;
 
-            pointNormalStyle = CreateStyle(pointNormal, Vector2.one * 12f);
-            pointHoveredStyle = CreateStyle(pointHovered, Vector2.one * 12f);
-            pointSelectedStyle = CreateStyle(pointSelected, Vector2.one * 12f);
-            pointPreviewStyle = CreateStyle(pointPreview, Vector2.one * 12f);
-            pointRemovePreviewStyle = CreateStyle(pointRemovePreview, Vector2.one * 12f);
+            public DefaultStyles()
+            {
+                var pointNormal = Resources.Load<Texture2D>("pointNormal");
+                var pointHovered = Resources.Load<Texture2D>("pointHovered");
+                var pointSelected = Resources.Load<Texture2D>("pointSelected");
+                var pointPreview = Resources.Load<Texture2D>("pointPreview");
+                var pointRemovePreview = Resources.Load<Texture2D>("pointRemovePreview");
 
-            selectionRectStyle = GUI.skin.FindStyle("selectionRect");
+                pointNormalStyle = CreateStyle(pointNormal, Vector2.one * 12f);
+                pointHoveredStyle = CreateStyle(pointHovered, Vector2.one * 12f);
+                pointSelectedStyle = CreateStyle(pointSelected, Vector2.one * 12f);
+                pointPreviewStyle = CreateStyle(pointPreview, Vector2.one * 12f);
+                pointRemovePreviewStyle = CreateStyle(pointRemovePreview, Vector2.one * 12f);
+
+                selectionRectStyle = GUI.skin.FindStyle("selectionRect");
+            }
+
+            private GUIStyle CreateStyle(Texture2D texture, Vector2 size)
+            {
+                var guiStyle = new GUIStyle();
+                guiStyle.normal.background = texture;
+                guiStyle.fixedWidth = size.x;
+                guiStyle.fixedHeight = size.y;
+
+                return guiStyle;
+            }
         }
 
-        private GUIStyle CreateStyle(Texture2D texture, Vector2 size)
-        {
-            var guiStyle = new GUIStyle();
-            guiStyle.normal.background = texture;
-            guiStyle.fixedWidth = size.x;
-            guiStyle.fixedHeight = size.y;
-
-            return guiStyle;
-        }
-    }
-
-    public class Drawer
-    {
-        private DefaultStyles m_Styles;
-        protected DefaultStyles styles
+        DefaultStyles m_Styles;
+        DefaultStyles styles
         {
             get
             {
