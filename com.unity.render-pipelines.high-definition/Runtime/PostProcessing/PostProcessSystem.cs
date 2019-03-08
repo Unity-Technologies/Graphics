@@ -12,6 +12,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // lighting/surface effect like SSR/AO
     public sealed class PostProcessSystem
     {
+        private enum SMAAStage
+        {
+            EdgeDetection = 0,
+            BlendWeights = 1,
+            NeighborhoodBlending = 2
+        }
+
+        private enum PostProcessStencilBits
+        {
+            // We don't have bits left to use nor we want to reserve them for SMAA
+            // so we use the same mask as DoesntReceiveSSR as this is likely to not contain
+            // a lot of objects already marked. Worst case scenario, we are running SMAA on more pixel
+            // than needed, but it should still be faster than clearing the stencil.
+            // TODO: We can probably free up some bits while writing others, by leveraging the limited lifetime
+            // of some of the bits stored. But this require a change that is orthogonal to SMAA.
+            SMAABit = HDRenderPipeline.StencilBitMask.DoesntReceiveSSR
+        }
+
         const GraphicsFormat k_ColorFormat         = GraphicsFormat.B10G11R11_UFloatPack32;
         const GraphicsFormat k_CoCFormat           = GraphicsFormat.R16_SFloat;
         const GraphicsFormat k_ExposureFormat      = GraphicsFormat.R32G32_SFloat;
@@ -19,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly RenderPipelineResources m_Resources;
         bool m_ResetHistory;
         Material m_FinalPassMaterial;
+        Material m_SMAAMaterial;
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
@@ -92,6 +111,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_Resources = hdAsset.renderPipelineResources;
             m_FinalPassMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.finalPassPS);
+            m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -248,7 +268,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, bool flipY)
+        public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, RTHandle depthBuffer, bool flipY)
         {
             var dynResHandler = HDDynamicResolutionHandler.instance;
 
@@ -333,6 +353,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
                             DoTemporalAntialiasing(cmd, camera, source, destination);
+                            PoolSource(ref source, destination);
+                        }
+                    }
+                    else if (camera.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                    {
+                        using (new ProfilingSample(cmd, "SMAA", CustomSamplerId.SMAA.GetSampler()))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                            DoSMAA(cmd, camera, source, destination, depthBuffer);
                             PoolSource(ref source, destination);
                         }
                     }
@@ -424,18 +453,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         PoolSource(ref source, destination);
                     }
+                }
 
-                    // TODO: User effects go here
+                // TODO: User effects go here
 
-                    if (dynResHandler.SoftwareDynamicResIsEnabled() &&     // Dynamic resolution is on.
-                        camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
+                if (dynResHandler.SoftwareDynamicResIsEnabled() &&     // Dynamic resolution is on.
+                    camera.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
+                {
+                    using (new ProfilingSample(cmd, "FXAA", CustomSamplerId.FXAA.GetSampler()))
                     {
-                        using (new ProfilingSample(cmd, "FXAA", CustomSamplerId.FXAA.GetSampler()))
-                        {
-                            var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
-                            DoFXAA(cmd, camera, source, destination);
-                            PoolSource(ref source, destination);
-                        }
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        DoFXAA(cmd, camera, source, destination);
+                        PoolSource(ref source, destination);
                     }
                 }
 
@@ -2022,6 +2051,61 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, XRGraphics.computePassCount);
         }
 
+        #endregion
+
+        #region SMAA
+        void DoSMAA(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, RTHandle depthBuffer)
+        {
+            RTHandle SMAAEdgeTex = m_Pool.Get(Vector2.one, GraphicsFormat.R8G8B8A8_UNorm);
+            RTHandle SMAABlendTex = m_Pool.Get(Vector2.one, GraphicsFormat.R8G8B8A8_UNorm);
+
+            // -----------------------------------------------------------------------------
+
+            m_SMAAMaterial.SetVector(HDShaderIDs._SMAARTMetrics, new Vector4(1.0f / camera.actualWidth, 1.0f / camera.actualHeight, camera.actualWidth, camera.actualHeight));
+
+            m_SMAAMaterial.SetTexture(HDShaderIDs._SMAAAreaTex, m_Resources.textures.SMAAAreaTex);
+            m_SMAAMaterial.SetTexture(HDShaderIDs._SMAASearchTex, m_Resources.textures.SMAASearchTex);
+            m_SMAAMaterial.SetInt(HDShaderIDs._StencilRef, (int)PostProcessStencilBits.SMAABit);
+            m_SMAAMaterial.SetInt(HDShaderIDs._StencilMask, (int)PostProcessStencilBits.SMAABit);
+
+
+            switch(camera.SMAAQuality)
+            {
+                case HDAdditionalCameraData.SMAAQualityLevel.Low:
+                    m_SMAAMaterial.EnableKeyword("SMAA_PRESET_LOW");
+                    break;
+                case HDAdditionalCameraData.SMAAQualityLevel.Medium:
+                    m_SMAAMaterial.EnableKeyword("SMAA_PRESET_MEDIUM");
+                    break;
+                case HDAdditionalCameraData.SMAAQualityLevel.High:
+                    m_SMAAMaterial.EnableKeyword("SMAA_PRESET_HIGH");
+                    break;
+                default:
+                    m_SMAAMaterial.EnableKeyword("SMAA_PRESET_HIGH");
+                    break;
+            }
+
+
+            // -----------------------------------------------------------------------------
+            // EdgeDetection stage
+            cmd.SetGlobalTexture(HDShaderIDs._InputTexture, source);
+            HDUtils.DrawFullScreen(cmd, camera, m_SMAAMaterial, SMAAEdgeTex, depthBuffer, null, (int)SMAAStage.EdgeDetection);
+
+            // -----------------------------------------------------------------------------
+            // BlendWeights stage
+            cmd.SetGlobalTexture(HDShaderIDs._InputTexture, SMAAEdgeTex);
+            HDUtils.DrawFullScreen(cmd, camera, m_SMAAMaterial, SMAABlendTex, depthBuffer, null, (int)SMAAStage.BlendWeights);
+
+            // -----------------------------------------------------------------------------
+            // NeighborhoodBlending stage
+            cmd.SetGlobalTexture(HDShaderIDs._InputTexture, source);
+            m_SMAAMaterial.SetTexture(HDShaderIDs._SMAABlendTex, SMAABlendTex);
+            HDUtils.DrawFullScreen(cmd, camera, m_SMAAMaterial, destination, null, (int)SMAAStage.NeighborhoodBlending);
+
+            // -----------------------------------------------------------------------------
+            m_Pool.Recycle(SMAAEdgeTex);
+            m_Pool.Recycle(SMAABlendTex);
+        }
         #endregion
 
         #region Final Pass
