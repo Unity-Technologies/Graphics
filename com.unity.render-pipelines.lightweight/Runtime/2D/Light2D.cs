@@ -67,8 +67,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] Sprite m_LightCookieSprite = null;
 
         int         m_PreviousLightOperationIndex;
-        Color       m_PreviousColor                 = Color.white;
-        float       m_PreviousIntensity             = 1;
         float       m_PreviousLightVolumeOpacity;
         Sprite      m_PreviousLightCookieSprite     = null;
         Mesh        m_Mesh;
