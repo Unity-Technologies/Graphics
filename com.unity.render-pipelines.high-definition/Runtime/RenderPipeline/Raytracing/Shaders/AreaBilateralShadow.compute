@@ -3,6 +3,11 @@
 ** https://eheitzresearch.wordpress.com/705-2/
 */
 
+// Temporal Filtering kernels
+#pragma kernel AreaShadowCopyTAAHistory
+#pragma kernel AreaShadowApplyTAA
+
+// Bilateral computes
 #pragma kernel AreaShadowEstimateNoise
 #pragma kernel AreaShadowDenoiseFirstPass   AREA_SHADOW_DENOISE=AreaShadowDenoiseFirstPass
 #pragma kernel AreaShadowDenoiseSecondPass  AREA_SHADOW_DENOISE=AreaShadowDenoiseSecondPass  FINAL_PASS
@@ -11,6 +16,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 
 // Tile size of this compute
 #define AREA_BILLATERAL_TILE_SIZE 8
@@ -29,6 +37,10 @@ int                     _DenoiseRadius;
 int                     _RaytracingShadowSlot;
 RWTexture2DArray<float> _AreaShadowTextureRW;
 
+// History buffer
+Texture2D<float>            _RaytracedAnalyticBuffer;
+RWTexture2DArray<float2>    _AreaShadowHistoryRW;
+
 // Bilateral filter parameters
 #define NORMAL_WEIGHT   1.0
 #define PLANE_WEIGHT    1.0
@@ -38,6 +50,80 @@ RWTexture2DArray<float> _AreaShadowTextureRW;
 // This value is the one that we have choosen for the moment as a sufficient limit for
 // the noise estimation. It would require an other pass to check if we can lower it.
 #define MAX_ESTIMATION_RADIUS 10
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowCopyTAAHistory(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    // Get the previous value and current value
+    float2 historyValue = _AreaShadowHistoryRW[uint3(centerCoord, _RaytracingShadowSlot)].xy;
+    float2 currentValue = _DenoiseInputTexture[centerCoord].xy;
+
+    // Merge them into the previous buffer
+    _DenoiseOutputTextureRW[centerCoord] = float4(currentValue, historyValue);
+}
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    float depth = LOAD_TEXTURE2D(_DepthTexture, centerCoord).r;
+    PositionInputs posInputs = GetPositionInput_Stereo(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+
+    float2 closest = GetClosestFragment(posInputs);
+
+    float2 velocity;
+    DecodeVelocity(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
+    float velocityLength = length(velocity);
+
+    float2 uv = posInputs.positionNDC;
+
+    float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).xy;
+    float2 history = Fetch4(_DenoiseInputTexture, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy).zw;
+    float2 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _ScreenToTargetScale.xy).xy;
+    float2 bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _ScreenToTargetScale.xy).xy;
+
+    float2 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+
+    color = clamp(color, 0.0, CLAMP_MAX);
+
+    float2 average = MapPerChannel((corners + color) / 7.0);
+
+    topLeft = MapPerChannel(topLeft);
+    bottomRight = MapPerChannel(bottomRight);
+    color = MapPerChannel(color);
+
+    float2 colorLuma = color;
+    float2 averageLuma = average;
+    float2 nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+
+    float2 minimum = min(bottomRight, topLeft) - nudge;
+    float2 maximum = max(topLeft, bottomRight) + nudge;
+
+    history = MapPerChannel(history);
+
+    // Clip history samples
+    history = clamp(history, minimum, maximum);
+
+    // Blend color & history
+    // Feedback weight from unbiased luminance diff (Timothy Lottes)
+    float2 historyLuma = history;
+    float2 diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
+    float2 weight = 1.0 - diff;
+    float2 feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+
+    color = UnmapPerChannel(lerp(color, history, feedback));
+    color = clamp(color, 0.0, CLAMP_MAX);
+    
+    _AreaShadowHistoryRW[uint3(centerCoord, _RaytracingShadowSlot)] = color;
+    _DenoiseOutputTextureRW[centerCoord] = float4(color, _RaytracedAnalyticBuffer[centerCoord].x, 1.0);
+}
 
 // Couple helper functions
 float sqr(float value)

@@ -521,6 +521,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DenoiseOutputTextureRW          = Shader.PropertyToID("_DenoiseOutputTextureRW");
         public static readonly int _AreaShadowTexture               = Shader.PropertyToID("_AreaShadowTexture");
         public static readonly int _AreaShadowTextureRW             = Shader.PropertyToID("_AreaShadowTextureRW");
+        public static readonly int _AreaShadowHistoryRW             = Shader.PropertyToID("_AreaShadowHistoryRW");
+        public static readonly int _RaytracedAnalyticBuffer         = Shader.PropertyToID("_RaytracedAnalyticBuffer");
 
         // Ray count
         public static readonly int _RayCountEnabled                 = Shader.PropertyToID("_RayCountEnabled");
