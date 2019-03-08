@@ -51,14 +51,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         private static class Styles
         {
-            const string k_TexturePath = "Textures/";
-
-            public static Texture lightCapTopRight = Resources.Load<Texture>(k_TexturePath + "LightCapTopRight");
-            public static Texture lightCapTopLeft = Resources.Load<Texture>(k_TexturePath + "LightCapTopLeft");
-            public static Texture lightCapBottomLeft = Resources.Load<Texture>(k_TexturePath + "LightCapBottomLeft");
-            public static Texture lightCapBottomRight = Resources.Load<Texture>(k_TexturePath + "LightCapBottomRight");
-            public static Texture lightCapUp = Resources.Load<Texture>(k_TexturePath + "LightCapUp");
-            public static Texture lightCapDown = Resources.Load<Texture>(k_TexturePath + "LightCapDown");
+            public static Texture lightCapTopRight = Resources.Load<Texture>("LightCapTopRight");
+            public static Texture lightCapTopLeft = Resources.Load<Texture>("LightCapTopLeft");
+            public static Texture lightCapBottomLeft = Resources.Load<Texture>("LightCapBottomLeft");
+            public static Texture lightCapBottomRight = Resources.Load<Texture>("LightCapBottomRight");
+            public static Texture lightCapUp = Resources.Load<Texture>("LightCapUp");
+            public static Texture lightCapDown = Resources.Load<Texture>("LightCapDown");
 
             public static GUIContent generalLightType = EditorGUIUtility.TrTextContent("Light Type", "Specify the light type");
             public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Specify the falloff of the light");
