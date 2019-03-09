@@ -7,14 +7,18 @@
     #define _NORMALMAP
 #endif
 
+/*
 #ifdef VERTEX_COLOR
     #define ATTRIBUTES_NEED_COLOR
 #endif
+*/
 
+// Enabling both TEXCOORD0 and TEXCOORD1 means you get 4 components instead of 2, and we pretty much always need that
 #define ATTRIBUTES_NEED_TEXCOORD0
 #define ATTRIBUTES_NEED_TEXCOORD1
 #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3) || defined(DYNAMICLIGHTMAP_ON) || defined(DEBUG_DISPLAY) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT)
 #define ATTRIBUTES_NEED_TEXCOORD2
+#define VARYINGS_NEED_TEXCOORD2
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -62,22 +66,13 @@ uniform float _WindEnabled;
 
 #endif
 
-// Define Input structure
-
-struct Input
-{
-    float4 color;
-    float3 interpolator1;
-#ifdef GEOM_TYPE_BRANCH_DETAIL
-    float3 interpolator2;
-#endif
-};
 
 // Define uniforms
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 TEXTURE2D(_SpecTex);
+SAMPLER(sampler_SpecTex);
 
 #ifdef GEOM_TYPE_BRANCH_DETAIL
     #define GEOM_TYPE_BRANCH
@@ -85,6 +80,7 @@ TEXTURE2D(_SpecTex);
 
 #ifdef GEOM_TYPE_BRANCH_DETAIL
     TEXTURE2D(_DetailTex);
+    SAMPLER(sampler_DetailTex);
 #endif
 
 #if defined(GEOM_TYPE_FROND) || defined(GEOM_TYPE_LEAF) || defined(GEOM_TYPE_FACING_LEAF)
@@ -104,12 +100,13 @@ TEXTURE2D(_SpecTex);
 
 #if defined(EFFECT_BUMP) && !defined(LIGHTMAP_ON)
     TEXTURE2D(_BumpMap);
+    SAMPLER(sampler_BumpMap);
 #endif
 
 float4 _Color;
 float3 _EmissiveColor;
 
 // This include will define the various Attributes/Varyings structure
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
 
 #endif

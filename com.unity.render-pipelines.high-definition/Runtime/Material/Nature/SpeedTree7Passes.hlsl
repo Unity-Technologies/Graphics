@@ -121,22 +121,14 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
     output.vmesh.interpolators1 = normalWS;
     output.vmesh.interpolators2.xyz = viewDirWS;
 #endif    
+    output.vmesh.interpolators2.w = 1.0;
 
-    // uvHueVariation.xy
+    // uvHueVariation.xy as well as diffuseUV
     output.vmesh.interpolators3.xy = input.texcoord.xy;
+    output.vmesh.interpolators5.rgb = _Color.rgb;
+    output.vmesh.interpolators5.a = input.color.r;      // ambient occlusion factor
 
-    // Vertex Color
-#ifdef VARYINGS_NEED_COLOR
-#ifdef VERTEX_COLOR
-    output.vmesh.interpolators5 = input.color;
-#else
-    output.vmesh.interpolators5 = _Color;
-
-    //output.vmesh.interpolators5.rgb *= input.color.r; // ambient occlusion factor
-    output.vmesh.interpolators5.a = input.color.r; // ambient occlusion factor
-#endif
-#endif
-
+#if (SHADERPASS != SHADERPASS_SHADOWS)
     // Z component of uvHueVariation
 #ifdef EFFECT_HUE_VARIATION
     float hueVariationAmount = frac(UNITY_MATRIX_M[0].w + UNITY_MATRIX_M[1].w + UNITY_MATRIX_M[2].w);
@@ -148,15 +140,12 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
     // The two types are always in different sub-range of the mesh so no interpolation (between detail and blend) problem.
     output.vmesh.interpolators4.xy = input.texcoord2.xy;
     if (input.color.a == 0) // Blend
-        output.vmesh.interpolators4.z = input.texcoord2.z;
+        output.vmesh.interpolators3.w = input.texcoord2.z;
     else // Detail texture
-        output.vmesh.interpolators4.z = 2.5f; // stay out of Blend's .z range
+        output.vmesh.interpolators3.w = 2.5f; // stay out of Blend's .z range
 #endif
 
-#ifdef _MAIN_LIGHT_SHADOWS
-    // TODO ...  where to put this?
-    //output.shadowCoord = GetShadowCoord(vertexInput);
-#endif    
+#endif
 
     output.vmesh.interpolators0.xyz = positionWS;
     output.vmesh.positionCS = positionCS;
@@ -177,7 +166,7 @@ PackedVaryingsType SpeedTree7VertDepth(SpeedTreeVertexInput input)
     float3 positionWS = TransformObjectToWorld(input.vertex.xyz);
     output.vmesh.interpolators3.xy = input.texcoord.xy;
     output.vmesh.interpolators0 = positionWS;
-    
+
 #ifdef SHADOW_CASTER
     float3 normalWS = TransformObjectToWorldNormal(input.normal);
     output.vmesh.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));

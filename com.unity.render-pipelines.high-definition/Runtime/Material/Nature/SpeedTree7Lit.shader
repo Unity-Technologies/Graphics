@@ -44,14 +44,10 @@ Shader "HDRP/Nature/SpeedTree7"
         #define VARYINGS_NEED_TEXCOORD0         // Use for uvHueVariation
         #define VARYINGS_NEED_TANGENT_TO_WORLD
         #define ATTRIBUTES_NEED_NORMAL
+        #define ATTRIBUTES_NEED_TANGENT
         #define ATTRIBUTES_NEED_TEXCOORD0
 
         #define CUSTOM_UNPACK                   // Needed so we can interpret the packing properly
-        // Because we need more than two components for certain values, we can't just share a single interpolator like we do with TEXCOORD0 and TEXCOORD1
-        #ifdef GEOM_BRANCH_DETAIL
-            #define ATTRIBUTES_NEED_TEXCOORD3   // Use for detail
-            #define VARYINGS_NEED_TEXCOORD3     // Use for detail
-        #endif
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -63,7 +59,7 @@ Shader "HDRP/Nature/SpeedTree7"
         // enable dithering LOD crossfade
         #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-        #pragma vertex SpeedTree7Vert
+        //#pragma vertex SpeedTree7Vert
         #pragma fragment Frag
         
         ENDHLSL
@@ -77,6 +73,8 @@ Shader "HDRP/Nature/SpeedTree7"
             Cull Off
 
             HLSLPROGRAM
+
+            #pragma vertex SpeedTree7VertDepth
 
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
@@ -151,11 +149,8 @@ Shader "HDRP/Nature/SpeedTree7"
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ LIGHT_LAYERS
-            //#pragma multi_compile _ VARYINGS_NEED_COLOR
 
-            #define VARYINGS_NEED_COLOR
-            #define VARYINGS_NEED_TANGENT_TO_WORLD
-            #define ATTRIBUTES_NEED_COLOR
+            #pragma vertex SpeedTree7Vert
 
             #ifdef _ALPHATEST_ON
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -192,6 +187,7 @@ Shader "HDRP/Nature/SpeedTree7"
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
+            #pragma vertex SpeedTree7Vert
             
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -280,8 +276,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
-            #define VARYINGS_NEED_COLOR
-            #define ATTRIBUTES_NEED_COLOR
+            #pragma vertex SpeedTree7Vert
 
             #define SHADERPASS SHADERPASS_FORWARD
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)

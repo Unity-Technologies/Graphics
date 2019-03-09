@@ -1,3 +1,6 @@
+#ifndef __VARYING_MESH_HLSL__
+#define __VARYING_MESH_HLSL__
+
 struct AttributesMesh
 {
     float3 positionOS   : POSITION;
@@ -356,3 +359,5 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
 }
 
 #endif // TESSELLATION_ON
+
+#endif // __VARYING_MESH_HLSL__

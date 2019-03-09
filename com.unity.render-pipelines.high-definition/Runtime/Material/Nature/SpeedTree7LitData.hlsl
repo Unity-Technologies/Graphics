@@ -20,6 +20,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     clip(alpha - _Cutoff);
 #endif
 
+#ifdef GEOM_TYPE_BRANCH_DETAIL
+    float4 detailColor = SAMPLE_TEXTURE2D(_DetailTex, sampler_DetailTex, input.texCoord2.xy);
+    surfaceData.baseColor.rgb = lerp(surfaceData.baseColor.rgb, detailColor.rgb, input.texCoord0.z < 2.0f ? saturate(input.texCoord0.z) : detailColor.a);
+#endif
+
     surfaceData.metallic = 0;
     surfaceData.ambientOcclusion = input.color.a;
 
@@ -39,14 +44,16 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.diffusionProfile = 0;
 
 #ifdef EFFECT_BUMP
+    float3 tanNorm = 2.0 * ( SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, input.texCoord0.xy).rgb - float3(0.5, 0.5, 0.5) );
+    surfaceData.normalWS = mul(input.worldToTangent, tanNorm);
 #endif
 
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
     // Init other parameters
     surfaceData.anisotropy = 0.0;
-    surfaceData.specularColor = SAMPLE_TEXTURE2D(_SpecTex, sampler_MainTex, input.texCoord0.xy).rgb;
-    surfaceData.perceptualSmoothness = SAMPLE_TEXTURE2D(_SpecTex, sampler_MainTex, input.texCoord0.xy).a;
+    surfaceData.specularColor = SAMPLE_TEXTURE2D(_SpecTex, sampler_SpecTex, input.texCoord0.xy).rgb;
+    surfaceData.perceptualSmoothness = SAMPLE_TEXTURE2D(_SpecTex, sampler_SpecTex, input.texCoord0.xy).a;
     surfaceData.coatMask = 0.0;
     surfaceData.iridescenceThickness = 0.0;
     surfaceData.iridescenceMask = 0.0;
