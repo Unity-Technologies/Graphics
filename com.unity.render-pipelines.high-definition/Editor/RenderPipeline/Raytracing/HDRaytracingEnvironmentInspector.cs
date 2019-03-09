@@ -27,8 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent aoFilterModeText = EditorGUIUtility.TrTextContent("AO Filter Mode");
 
             // AO Bilateral Filter Data
-            public static GUIContent aoBilateralRadius = new GUIContent("AO Bilateral Radius");
-            public static GUIContent aoBilateralSigma = new GUIContent("AO Bilateral Sigma");
+            public static GUIContent aoBilateralRadius = new GUIContent("Fitler Radius");
 
             // Nvidia Filter Data
             public static GUIContent aoNvidiaMaxFilterWidth = new GUIContent("AO Nvidia Max Filter Width");
@@ -155,10 +154,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 switch ((HDRaytracingEnvironment.AOFilterMode)rtEnv.aoFilterMode.enumValueIndex)
                 {
-                    case HDRaytracingEnvironment.AOFilterMode.Bilateral:
+                    case HDRaytracingEnvironment.AOFilterMode.SpatioTemporal:
                         {
                             EditorGUILayout.PropertyField(rtEnv.aoBilateralRadius, Styles.aoBilateralRadius);
-                            EditorGUILayout.PropertyField(rtEnv.aoBilateralSigma, Styles.aoBilateralSigma);
                         }
                         break;
                     case HDRaytracingEnvironment.AOFilterMode.Nvidia:

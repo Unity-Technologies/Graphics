@@ -31,7 +31,7 @@ RWTexture2D<float4>     _DenoiseOutputTextureRW;
 Texture2D<float>        _DepthTexture;
 
 // Filter parameters
-int                     _DenoiseRadius;
+int                     _RaytracingDenoiseRadius;
 
 // Output texture data
 int                     _RaytracingShadowSlot;
@@ -152,7 +152,7 @@ float TapRatio(uint2 coordSS)
 float EstimateNoise(uint2 coordSS, float2 axis)
 {
     // Radius is supposed to be always >= 1
-    const int noiseEsimationRadius = min(_DenoiseRadius, MAX_ESTIMATION_RADIUS);
+    const int noiseEsimationRadius = min(_RaytracingDenoiseRadius, MAX_ESTIMATION_RADIUS);
     float v2 = TapRatio(coordSS - noiseEsimationRadius * axis);
     float v1 = TapRatio(coordSS - (noiseEsimationRadius - 1) * axis);
 
@@ -326,8 +326,8 @@ void AREA_SHADOW_DENOISE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     const float noiseEstimate = FilterNoiseEstimate(centerCoord);
     #endif
 
-    const float sigma = noiseEstimate * _DenoiseRadius;
-    const int effectiveRadius = min(sigma * 2.0, _DenoiseRadius);
+    const float sigma = noiseEstimate * _RaytracingDenoiseRadius;
+    const int effectiveRadius = min(sigma * 2.0, _RaytracingDenoiseRadius);
 
     const BilateralData center = TapBilateralData(centerCoord);
 

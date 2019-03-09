@@ -26,10 +26,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         const string m_RayGenShaderName = "RayGenShadows";
         const string m_MissShaderName = "MissShaderShadows";
 
-        // Denoising data
-        public static readonly int _DenoisePass   = Shader.PropertyToID("_DenoisePass");
-        public static readonly int _DenoiseRadius = Shader.PropertyToID("_DenoiseRadius");
-
         // Temporary variable that allows us to store the world to local matrix
         Matrix4x4 worldToLocalArea = new Matrix4x4();
 
@@ -199,7 +195,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
                     // Global parameters
-                    cmd.SetComputeIntParam(shadowFilter, _DenoiseRadius, rtEnvironement.shadowFilterRadius);
+                    cmd.SetComputeIntParam(shadowFilter, HDShaderIDs._RaytracingDenoiseRadius, rtEnvironement.shadowFilterRadius);
                     cmd.SetComputeIntParam(shadowFilter, HDShaderIDs._RaytracingShadowSlot, m_LightLoop.m_lightList.lights[lightIdx].rayTracedAreaShadowIndex);
 
                     // Given that we can't read and write into the same buffer, we store the current frame value and the history in the denoisebuffer1

@@ -1,5 +1,7 @@
-// The target acceleration acceleration structure
+// The target acceleration acceleration structure should only be defined for non compute shaders
+#ifndef SHADER_STAGE_COMPUTE
 RaytracingAccelerationStructure         _RaytracingAccelerationStructure;
+#endif
 float                                   _RaytracingRayBias;
 float                                   _RaytracingRayMaxLength;
 int                                     _RaytracingNumSamples;

@@ -26,6 +26,13 @@ float3 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
     return SAMPLE_TEXTURE2D_X_LOD(tex, sampler_LinearClamp, uv, 0).xyz;
 }
 
+float2 Fetch2(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
+{
+    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    return SAMPLE_TEXTURE2D_X_LOD(tex, sampler_LinearClamp, uv, 0).xy;
+}
+
+
 float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
     float2 uv = (coords + offset * _ScreenSize.zw) * scale;
@@ -45,6 +52,24 @@ float3 Unmap(float3 x)
 {
     #if HDR_MAPUNMAP
     return FastTonemapInvert(x);
+    #else
+    return x;
+    #endif
+}
+
+float MapPerChannel(float x)
+{
+    #if HDR_MAPUNMAP
+    return FastTonemapPerChannel(x);
+    #else
+    return x;
+    #endif
+}
+
+float UnmapPerChannel(float x)
+{
+    #if HDR_MAPUNMAP
+    return FastTonemapPerChannelInvert(x);
     #else
     return x;
     #endif
