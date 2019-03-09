@@ -98,6 +98,8 @@ float3 SampleSH9(float4 SHCoefficients[7], float3 N)
 }
 
 
+// texture3dLod is not supported on gles2.
+#if !defined(SHADER_API_GLES)
 // This sample a 3D volume storing SH
 // Volume is store as 3D texture with 4 R, G, B, Occ set of 4 coefficient store atlas in same 3D texture. Occ is use for occlusion.
 // TODO: the packing here is inefficient as we will fetch values far away from each other and they may not fit into the cache - Suggest we pack RGB continuously
@@ -152,6 +154,7 @@ float3 SampleProbeVolumeSH9(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), f
 
     return SampleSH9(SHCoefficients, normalize(normalWS));
 }
+#endif
 
 float4 SampleProbeOcclusion(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), float3 positionWS, float4x4 WorldToTexture,
                             float transformToLocal, float texelSizeX, float3 probeVolumeMin, float3 probeVolumeSizeInv)
