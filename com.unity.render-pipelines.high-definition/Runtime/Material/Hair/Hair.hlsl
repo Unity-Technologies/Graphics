@@ -134,6 +134,11 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
+float BeckmannRoughnessToBlinnPhongSpecExponent(float roughness)
+{
+    return 2 * rcp(max(roughness * roughness, FLT_EPS)) - 2;
+}
+
 BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData bsdfData;
@@ -183,10 +188,14 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.specularShift = surfaceData.specularShift;
         bsdfData.secondarySpecularShift = surfaceData.secondarySpecularShift;
 
-        // We can rewrite specExp from exp2(10 * (1.0 - roughness)) in order
-        // to remove the need to take the square root of sinTH
-        bsdfData.specularExponent = exp2(9.0 - 10.0 * PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness));
-        bsdfData.secondarySpecularExponent = exp2(9.0 - 10.0 * PerceptualRoughnessToRoughness(bsdfData.secondaryPerceptualRoughness));
+        // See 'Fast Product Importance Sampling of Environment Maps'.
+        float ggxRoughness1      = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+        float beckmannRoughness1 = /*sqrt(2.0) * */ggxRoughness1;
+        float ggxRoughness2      = PerceptualRoughnessToRoughness(bsdfData.secondaryPerceptualRoughness);
+        float beckmannRoughness2 = /*sqrt(2.0) * */ggxRoughness2;
+
+        bsdfData.specularExponent          = BeckmannRoughnessToBlinnPhongSpecExponent(beckmannRoughness1);
+        bsdfData.secondarySpecularExponent = BeckmannRoughnessToBlinnPhongSpecExponent(beckmannRoughness2);
 
         bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
     }
@@ -380,12 +389,11 @@ float3 D_KajiyaKay(float3 T, float3 H, float specularExponent)
     // I attempt at least some energy conservation by approximately normalizing Blinn-Phong.
     // This is not the exact normalization factor.
     // The exact one is (n + 2) * (n + 4) / (8 * Pi * (n + pow(2, -0.5 * n))).
-    float nHalf = specularExponent;
-    float n     = 2 * nHalf;
-    float norm  = (n + 7) * rcp(8 * PI);
+    float n    = specularExponent;
+    float norm = (n + 7) * rcp(8 * PI);
 
-    // Note: this is dot(N, H)^(n/2), so the specular exponent here is effectively halved.
-    return dirAttn * norm * PositivePow(sinTHSq, nHalf);
+    // pow(x, n) = pow(x^2, 0.5 * n).
+    return dirAttn * norm * PositivePow(sinTHSq, 0.5 * n);
 }
 
 // This function apply BSDF. Assumes that NdotL is positive.
