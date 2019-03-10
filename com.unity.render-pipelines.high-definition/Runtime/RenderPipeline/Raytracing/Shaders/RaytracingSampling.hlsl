@@ -1,8 +1,6 @@
 // We need a noise texture for sampling
 Texture2D<float>                        _OwenScrambledTexture;
 Texture2D<float4>                       _ScramblingTexture;
-uint                                    _RaytracingNoiseResolution;
-uint                                    _RaytracingNumNoiseLayers;
 
 // TODO: Use the tangent to create the local orthobasis
 void CreatePixarOrthoNormalBasis(float3 n, out float3 tangent, out float3 bitangent)

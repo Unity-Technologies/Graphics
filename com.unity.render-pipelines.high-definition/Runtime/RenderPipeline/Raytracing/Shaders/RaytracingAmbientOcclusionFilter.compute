@@ -205,7 +205,7 @@ void AOBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
     uint2 centerCoord = groupId * AMBIENT_OCCLUSION_TILE_SIZE + groupThreadId;
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
-    float2 aoSum = 0.0;
+    float aoSum = 0.0;
     float wSum = 0.0;
 
     #if FINAL_PASS
