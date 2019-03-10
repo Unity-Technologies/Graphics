@@ -76,14 +76,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 centerIndex = 2 * sides;
             }
 
-
+            color.a = 1;
             Vector3 featherOffset = new Vector3(falloffOffset.x, falloffOffset.y);
             Color transparentColor = new Color(color.r, color.g, color.b, 0);
             Color volumeColor = new Vector4(1, 1, 1, volumeOpacity);
             vertices[centerIndex] = Vector3.zero;
             colors[centerIndex] = color;
             volumeColors[centerIndex] = volumeColor;
-
             float radiansPerSide = 2 * Mathf.PI / sides;
             for (int i = 0; i < sides; i++)
             {
@@ -93,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 int vertexIndex;
                 if (feathering <= 0.0f)
                 {
-                    vertexIndex = (i + 1) % sides;
+                    vertexIndex = i % sides;
                     vertices[vertexIndex] = endPoint;
                     colors[vertexIndex] = color;
                     volumeColors[vertexIndex] = volumeColor;
@@ -243,6 +242,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public static Bounds GenerateShapeMesh(ref Mesh mesh, Color color, Vector3[] shapePath, Vector2 falloffOffset, float volumeOpacity, float feathering)
         {
+            color.a = 1;
             Bounds localBounds;
             Color meshInteriorColor = color;
             Color meshFeatherColor = new Color(color.r, color.g, color.b, 0);

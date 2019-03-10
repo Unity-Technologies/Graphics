@@ -62,13 +62,13 @@
             {
 				Varyings o;
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
-				o.color = attributes.color * attributes.volumeColor;
-
+				o.color = attributes.color;
+				o.color.a = attributes.volumeColor.a;
 
 				#ifdef SPRITE_LIGHT
 					o.uv = attributes.uv;
 				#else
-					o.uv = float2(o.color.a, _FalloffCurve);
+					o.uv = float2(attributes.color.a, _FalloffCurve);
 				#endif
 
                 return o;
@@ -80,7 +80,7 @@
 				#if SPRITE_LIGHT
 					color = color * SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
 				#else
-					color.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+					color.a = i.color.a * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 				#endif
                 return color;
             }
