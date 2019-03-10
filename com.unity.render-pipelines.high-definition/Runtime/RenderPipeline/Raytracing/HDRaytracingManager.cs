@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The HDRPAsset data that needs to be 
         RenderPipelineResources m_Resources = null;
         RenderPipelineSettings m_Settings;
-        LightLoop m_LightLoop = null;
+        public LightLoop m_LightLoop = null;
         SharedRTManager m_SharedRTManager = null;
         BlueNoise m_BlueNoise = null;
 
@@ -680,6 +680,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public BlueNoise GetBlueNoiseManager()
         {
             return m_BlueNoise;
+        }
+
+        public LightLoop GetLightLoop()
+        {
+            return m_LightLoop;
         }
     }
 #endif
