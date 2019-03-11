@@ -77,6 +77,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Texture used to output debug information
             m_DebugLightClusterTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DebugLightClusterTexture");
+
+            // Pre allocate the cluster with a dummy size
+            m_LightCluster = new ComputeBuffer(1, sizeof(uint));
         }
 
         public void ReleaseResources()
@@ -284,7 +287,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Make sure the Cluster buffer has the right size
                 int bufferSize = 64 * 64 * 32 * (currentEnv.maxNumLightsPercell + 3);
-                if (m_LightCluster == null || m_LightCluster.count != bufferSize)
+                if (m_LightCluster.count != bufferSize)
                 {
                     ResizeClusterBuffer(bufferSize);
                 }
@@ -661,16 +664,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void EvaluateLightClusters(CommandBuffer cmd, HDCamera hdCamera, List<HDAdditionalLightData> lightArray)
         {
-            // If there is no area light to process, nothing to do here
-            if (lightArray.Count == 0)
-                return;
-
             // Grab the current ray-tracing environment, if no environment available stop right away
             HDRaytracingEnvironment currentEnv = m_RaytracingManager.CurrentEnvironment();
-            if (currentEnv == null) return;
-
             ComputeShader lightClusterCS = m_RenderPipelineResources.shaders.lightClusterBuildCS;
-            if (lightClusterCS == null) return;
+            // If there is no area light to process or no environment not the shader is missing
+            if (currentEnv == null || lightClusterCS == null || lightArray.Count == 0)
+            {
+                // Invalidate the cluster's bounds so that we never access the buffer
+                minClusterPos.Set(float.MaxValue, float.MaxValue, float.MaxValue);
+                maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
+                punctualLightCount = 0;
+                areaLightCount = 0;
+
+                // Make sure the buffer is at least of size 1
+                if (m_LightCluster.count != 1)
+                {
+                    ResizeClusterBuffer(1);
+                }
+                return;
+            }
 
             // Build the Light volumes
             BuildGPULightVolumes(lightArray);

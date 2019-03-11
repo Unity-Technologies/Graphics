@@ -44,13 +44,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent reflMinSmoothnessText = new GUIContent("Reflections Min Smoothness");
             public static GUIContent reflClampValueText = new GUIContent("Reflections Clamp Value");
             public static GUIContent reflQualityText = new GUIContent("Reflections Quality");
+            public static GUIContent reflFilerModeText = new GUIContent("Reflections Filter Mode");
 
             // Reflections Quarter Res
             public static GUIContent reflTemporalAccumulationWeight = new GUIContent("Reflections Temporal Accumulation Weight");
-            public static GUIContent reflSpatialFilterRadius = new GUIContent("Spatial Filter Radius");
 
             // Relections Integration
             public static GUIContent reflNumMaxSamplesText = new GUIContent("Reflections Num Samples");
+
+            // Filter data
+            public static GUIContent reflFilterRadius = new GUIContent("Filter Radius");
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Area Light Shadow
             public static GUIContent shadowEnableText = new GUIContent("Enable");
@@ -203,13 +206,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     case HDRaytracingEnvironment.ReflectionsQuality.QuarterRes:
                         {
                             EditorGUILayout.PropertyField(rtEnv.reflTemporalAccumulationWeight, Styles.reflTemporalAccumulationWeight);
-                            EditorGUILayout.PropertyField(rtEnv.reflSpatialFilterRadius, Styles.reflSpatialFilterRadius);
+                            EditorGUILayout.PropertyField(rtEnv.reflSpatialFilterRadius, Styles.reflFilterRadius);
                         }
                     break;
                     case HDRaytracingEnvironment.ReflectionsQuality.Integration:
                         {
                             EditorGUILayout.PropertyField(rtEnv.reflNumMaxSamples, Styles.reflNumMaxSamplesText);
-                            
+                            EditorGUILayout.PropertyField(rtEnv.reflFilterMode, Styles.reflFilerModeText);
+
+                            switch ((HDRaytracingEnvironment.ReflectionsFilterMode)rtEnv.reflFilterMode.enumValueIndex)
+                            {
+                                case HDRaytracingEnvironment.ReflectionsFilterMode.SpatioTemporal:
+                                {
+                                    EditorGUILayout.PropertyField(rtEnv.reflFilterRadius, Styles.reflFilterRadius);
+                                }
+                                break;
+                            }
                         }
                     break;
                 }

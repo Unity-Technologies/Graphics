@@ -184,6 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         ComputeBuffer m_DirectionalLightDatas = null;
+        public ComputeBuffer directionalLightDatas { get { return m_DirectionalLightDatas; } }
         ComputeBuffer m_LightDatas = null;
         ComputeBuffer m_EnvLightDatas = null;
         ComputeBuffer m_DecalDatas = null;

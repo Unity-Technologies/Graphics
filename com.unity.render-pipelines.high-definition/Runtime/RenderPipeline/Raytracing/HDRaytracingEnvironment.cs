@@ -108,6 +108,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(1, 64)]
         public int reflNumMaxSamples = 8;
 
+        // The different reflection filtering modes
+        public enum ReflectionsFilterMode
+        {
+            SpatioTemporal,
+            None
+        };
+        public ReflectionsFilterMode reflFilterMode = ReflectionsFilterMode.None;
+
+        // The radius for the spatio temporal filter
+        [Range(1, 27)]
+        public int reflFilterRadius = 16;
+
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Light Cluster
         [Range(0, 24)]
