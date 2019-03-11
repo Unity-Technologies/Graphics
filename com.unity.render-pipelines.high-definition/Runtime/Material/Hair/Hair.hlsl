@@ -332,7 +332,8 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_TRANSMISSION))
     {
-        builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
+        // TODO: re-enable once transmittance is not 1.
+        //builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
     }
 
     // For SSS we need to take into account the state of diffuseColor 
