@@ -60,6 +60,15 @@ namespace UnityEditor.Graphing
             return result;
         }
 
+        public static string GetDuplicateSafeNameForSlot(AbstractMaterialNode node, int slotId, string name)
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            node.GetSlots(slots);
+
+            name = name.Trim();
+            return GraphUtil.SanitizeName(slots.Where(p => p.id != slotId).Select(p => p.RawDisplayName()), "{0} ({1})", name);
+        }
+
         // CollectNodesNodeFeedsInto looks at the current node and calculates
         // which child nodes it depends on for it's calculation.
         // Results are returned depth first so by processing each node in
@@ -258,7 +267,7 @@ namespace UnityEditor.Graphing
                 case ConcreteSlotValueType.Texture3D:
                     return "Texture3D";
                 case ConcreteSlotValueType.Cubemap:
-                    return "Cubemap";
+                    return "TextureCube";
                 case ConcreteSlotValueType.Gradient:
                     return "Gradient";
                 case ConcreteSlotValueType.Matrix2:
