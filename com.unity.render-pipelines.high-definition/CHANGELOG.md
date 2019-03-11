@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.8.0-preview] - 2019-XX-XX
 
+### Added
+- Added preliminary changes for XR deferred shading
+
 ### Fixed
 - Fixed instance identifier semantic string used by Shader Graph
 - `camera.RenderToCubemap` use proper face culling
