@@ -125,6 +125,59 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     _DenoiseOutputTextureRW[centerCoord] = float4(color, _RaytracedAnalyticBuffer[centerCoord].x, 1.0);
 }
 
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowApplyTAA2(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    uint2 coordSS = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    coordSS.x = coordSS.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    PositionInputs posInput = GetPositionInput_Stereo(coordSS, _ScreenSize.zw, uint2(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE), unity_StereoEyeIndex);
+
+    // Fetch velocity information
+    float2 velocity = 0.0;
+    const float2 closest = GetClosestFragment(posInput);
+    DecodeVelocity(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
+    const float velocityLength = length(velocity);
+
+    // Get the UV value (in screen space) corresponding to the current pixel,
+    // and fetch the corresponding data in the history buffer
+    const float2 uv = posInput.positionNDC;
+    const float4 center = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy);
+
+    // Also fetch neighborhood representatives, to estimate variation
+    const float4 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _ScreenToTargetScale.xy);
+    const float4 bottomRight =Fetch4(_DenoiseInputTexture, uv, RADIUS, _ScreenToTargetScale.xy);
+    const float4 corners = 4.0 * (topLeft + bottomRight) - 2.0 * center;
+    const float4 average = (corners + center) / 7.0;
+
+    // Check how much the local average value has changed over time
+    const float2 diffTimeVec = abs(average.xy - average.zw);
+    const float diffTime = max(diffTimeVec.x, diffTimeVec.y);
+
+    // Build an alpha expressing how much things are changing temporally
+    // (taking velocities + local variation into account)
+    const float alpha = 1.0 - saturate(velocityLength * 100.0 + diffTime);
+
+    // Also take spatial variation into account, in the current frame
+    const float2 diffSpaceVec = abs(average.xy - center.xy);
+    const float diffSpace = max(diffSpaceVec.x, diffSpaceVec.y) * alpha * 4.0;
+
+    // Based on the velocity, try and find the matching texel in the history buffer,
+    // and clamp the value based on the current spatial variation, to reduce ghosting
+    float2 history = Fetch4(_DenoiseInputTexture, uv - velocity, 0.0, _ScreenToTargetScale.xy).zw;
+    history = clamp(history, center.xy - diffSpace, center.xy + diffSpace);
+
+    // Last but not least, use the previously computed alpha to drive persistence
+    // of our history value (over the current frame one)
+    float2 result = lerp(center.xy, history, alpha * 0.9);
+
+    // FIXME DEBUG
+    //_DebugTextureRW[coordSS] = float4(diff, alpha * 0.1, 0.0, 1.0);
+
+    _AreaShadowHistoryRW[uint3(coordSS, _RaytracingShadowSlot)] = result;
+    _DenoiseOutputTextureRW[coordSS] = float4(result, _RaytracedAnalyticBuffer[coordSS].x, 1.0);
+}
+
 // Couple helper functions
 float sqr(float value)
 {

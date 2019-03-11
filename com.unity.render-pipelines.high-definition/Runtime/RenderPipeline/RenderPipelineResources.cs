@@ -131,8 +131,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
             // Raytracing shaders
             public RaytracingShader reflectionRaytracing;
-            public RaytracingShader indirectDiffuseRaytracing;
-            public ComputeShader indirectDiffuseAccumulation;
             public RaytracingShader shadowsRaytracing;
             public Shader           raytracingFlagMask;
             public RaytracingShader forwardRaytracing;
@@ -141,6 +139,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader lightClusterBuildCS;
             public ComputeShader lightClusterDebugCS;
             public ComputeShader countTracedRays;
+
+            // Indirect Diffuse
+            public RaytracingShader indirectDiffuseRaytracing;
+            public ComputeShader indirectDiffuseAccumulation;            
 
             // Ambient Occlusion
             public RaytracingShader aoRaytracing;

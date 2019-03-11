@@ -175,6 +175,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(0.01f, 10.0f)]
         public float indirectDiffuseClampValue = 1.0f;
 
+
+        // The different reflection filtering modes
+        public enum IndirectDiffuseFilterMode
+        {
+            SpatioTemporal,
+            None
+        };
+        public IndirectDiffuseFilterMode indirectDiffuseFilterMode = IndirectDiffuseFilterMode.None;
+
+        // The radius for the spatio temporal filter
+        [Range(1, 27)]
+        public int indirectDiffuseFilterRadius = 16;
+
         void OnEnable()
         {
             // Grab the High Definition RP

@@ -11,6 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RaytracedAmbientOcclusion,
         RaytracedAreaShadow,
         RaytracedReflection,
+        RaytracedIndirectDiffuse,
 #endif
         Count
     }
