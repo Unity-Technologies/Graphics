@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unity.RenderPipeline2D.External.LibTessDotNet;
+using UnityEngine.Experimental.Rendering.LWRP.LibTessDotNet;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
