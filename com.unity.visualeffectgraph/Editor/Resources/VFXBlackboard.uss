@@ -76,6 +76,7 @@ VFXBlackboardCategory.expanded #expandButton > #buttonImage {
 VFXBlackboardCategory > .mainContainer > #rowsContainer
 {
     height:0;
+    overflow:hidden
 }
 
 VFXBlackboardCategory.expanded  > .mainContainer > #rowsContainer
