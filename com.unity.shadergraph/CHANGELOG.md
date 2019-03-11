@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.8.0] - 2019-XX-XX
+### Fixed
+- Fixed an error when opening saved Shader Graphs containing one or more Voronoi nodes.
+- You can now drag normal map type textures on to a Shader Graph to create Sample Texture 2D nodes with the correct type set.
+- Fixed the Multiply node so default input values are applied correctly.
+- Fixed an issue where IsFaceSign would not compile within SubGraph Nodes.
 
 ## [5.7.0] - 2019-03-07
 - Fixed master preview for HDRP master nodes when alpha clip is enabled.
