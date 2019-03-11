@@ -21,8 +21,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private enum PostProcessStencilBits
         {
-            // DistortionVectors bit is not needed anymore at this stage.
-            SMAABit = HDRenderPipeline.StencilBitMask.DistortionVectors
+            // We don't have bits left to use nor we want to reserve them for SMAA
+            // so we use the same mask as DoesntReceiveSSR as this is likely to not contain
+            // a lot of objects already marked. Worst case scenario, we are running SMAA on more pixel
+            // than needed, but it should still be faster than clearing the stencil.
+            // TODO: We can probably free up some bits while writing others, by leveraging the limited lifetime
+            // of some of the bits stored. But this require a change that is orthogonal to SMAA.
+            SMAABit = HDRenderPipeline.StencilBitMask.DoesntReceiveSSR
         }
 
         const GraphicsFormat k_ColorFormat         = GraphicsFormat.B10G11R11_UFloatPack32;
