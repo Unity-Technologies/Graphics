@@ -59,6 +59,16 @@ float4 VFXApplyShadowBias(float4 posCS)
     return UnityApplyLinearShadowBias(posCS);
 }
 
+void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)
+{
+    posCS = UnityApplyLinearShadowBias(posCS);
+}
+
+void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS)
+{
+    posCS = UnityApplyLinearShadowBias(posCS);
+}
+
 float4 VFXApplyFog(float4 color,float4 posSS,float3 posWS)
 {
     return color; // TODO

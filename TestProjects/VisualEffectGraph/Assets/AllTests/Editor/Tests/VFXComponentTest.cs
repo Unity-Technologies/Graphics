@@ -103,6 +103,8 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void CleanUp()
         {
+            Debug.unityLogger.logEnabled = true;
+
             UnityEngine.Object.DestroyImmediate(m_mainObject);
             UnityEngine.Object.DestroyImmediate(m_cubeEmpty);
             UnityEngine.Object.DestroyImmediate(m_sphereEmpty);
@@ -148,6 +150,90 @@ namespace UnityEditor.VFX.Test
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
             graph.visualEffectResource = resource;
             return graph;
+        }
+
+        VFXGraph CreateGraph_And_System()
+        {
+            var graph = MakeTemporaryGraph();
+
+            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+            output.SetSettingValue("castShadows", true);
+            graph.AddChild(output);
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            contextInitialize.LinkTo(output);
+            graph.AddChild(contextInitialize);
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            spawner.LinkTo(contextInitialize);
+            graph.AddChild(spawner);
+            graph.RecompileIfNeeded();
+
+            return graph;
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = CreateGraph_And_System();
+        
+            yield return null;
+        
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+            {
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            }
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+            Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
+        
+            yield return null;
+        
+            //Plug a GPU instruction on bounds, excepting an exception while recompiling
+            var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.modelType == typeof(VFXAttributeParameter) && o.name.Contains(VFXAttribute.Position.name));
+            var getPosition = getPositionDesc.CreateInstance();
+            graph.AddChild(getPosition);
+            var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+            Assert.AreEqual(VFXValueType.Float3, initializeContext.inputSlots[0][0].valueType);
+        
+            getPosition.outputSlots[0].Link(initializeContext.inputSlots[0][0]);
+
+            //LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Exception while compiling expression graph:*")); < Incorrect with our katana configuration
+            Debug.unityLogger.logEnabled = false;
+            graph.RecompileIfNeeded();
+            Debug.unityLogger.logEnabled = true;
+            Assert.Throws(typeof(IndexOutOfRangeException), () => VisualEffectUtility.GetSpawnerState(vfxComponent, 0)); //This is the exception which matters for this test
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponent_And_VerifyRendererState()
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = CreateGraph_And_System();
+
+            //< Same Behavior as Drag & Drop
+            GameObject currentObject = new GameObject("TemporaryGameObject", /*typeof(Transform),*/ typeof(VisualEffect));
+            var vfx = currentObject.GetComponent<VisualEffect>();
+            var asset = graph.visualEffectResource.asset;
+            Assert.IsNotNull(asset);
+
+            vfx.visualEffectAsset = asset;
+
+            int maxFrame = 512;
+            while (vfx.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            yield return null;
+
+            Assert.IsNotNull(currentObject.GetComponent<VFXRenderer>());
+            var actualShadowCastingMode = currentObject.GetComponent<VFXRenderer>().shadowCastingMode;
+            Assert.AreEqual(actualShadowCastingMode, ShadowCastingMode.On);
+
+            UnityEngine.Object.DestroyImmediate(currentObject);
+            yield return null;
         }
 
         [UnityTest]
