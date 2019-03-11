@@ -1,4 +1,4 @@
-﻿/*
+/*
 ** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
 ** Copyright (C) 2011 Silicon Graphics, Inc.
 ** All Rights Reserved.
@@ -35,7 +35,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Unity.RenderPipeline2D.External
+namespace UnityEngine.Experimental.Rendering.LWRP
 {
 
 #if DOUBLE
@@ -232,4 +232,4 @@ namespace LibTessDotNet
     }
 }
 
-} // namespace Unity.VectorGraphics.External
+}
