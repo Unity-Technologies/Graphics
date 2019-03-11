@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added Custom Function node. Use this node to define a custom HLSL function either via string directly in the graph, or via a path to an HLSL file.
 - You can now add Matrix, Sampler State and Gradient properties to the Blackboard.
+- You can now use Sub Graphs in other Sub Graphs.
 
 ### Changed
 - Subgraph Output node is now called Output.

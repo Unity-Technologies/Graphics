@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Drawing;
 using Edge = UnityEditor.Graphing.Edge;
 
 namespace UnityEditor.ShaderGraph
@@ -54,13 +55,7 @@ namespace UnityEditor.ShaderGraph
             get { return m_MovedProperties; }
         }
 
-        [SerializeField]
-        SerializableGuid m_GUID = new SerializableGuid();
-
-        public Guid guid
-        {
-            get { return m_GUID.guid; }
-        }
+        public string assetGuid { get; set; }
 
         #endregion
 
@@ -591,16 +586,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void CollectSubgraphProperties(PropertyCollector collector, GenerationMode generationMode)
-        {
-            List<AbstractMaterialNode> activeNodes = new List<AbstractMaterialNode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, outputNode);
-            foreach (var node in activeNodes)
-            {
-                node.CollectShaderProperties(collector, generationMode);
-            }
-        }
-
         public void AddShaderProperty(AbstractShaderProperty property)
         {
             if (property == null)
@@ -750,8 +735,55 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            var temporaryMarks = IndexSetPool.Get();
+            var permanentMarks = IndexSetPool.Get();
+            var slots = ListPool<MaterialSlot>.Get();
+            
+            // Make sure we process a node's children before the node itself.
+            var stack = StackPool<AbstractMaterialNode>.Get();
             foreach (var node in GetNodes<AbstractMaterialNode>())
+            {
+                stack.Push(node);
+            }
+            while (stack.Count > 0)
+            {
+                var node = stack.Pop();
+                if (permanentMarks.Contains(node.tempId.index))
+                {
+                    continue;
+                }
+                
+                if (temporaryMarks.Contains(node.tempId.index))
+                {
                 node.ValidateNode();
+                    permanentMarks.Add(node.tempId.index);
+                }
+                else
+                {
+                    temporaryMarks.Add(node.tempId.index);
+                    stack.Push(node);
+                    node.GetInputSlots(slots);
+                    foreach (var inputSlot in slots)
+                    {
+                        var nodeEdges = GetEdges(inputSlot.slotReference);
+                        foreach (var edge in nodeEdges)
+                        {
+                            var fromSocketRef = edge.outputSlot;
+                            var childNode = GetNodeFromGuid(fromSocketRef.nodeGuid);
+                            if (childNode != null)
+                            {
+                                stack.Push(childNode);
+                            }
+                        }
+                    }
+                    slots.Clear();
+                }
+            }
+            
+            StackPool<AbstractMaterialNode>.Release(stack);
+            ListPool<MaterialSlot>.Release(slots);
+            IndexSetPool.Release(temporaryMarks);
+            IndexSetPool.Release(permanentMarks);
 
             foreach (var edge in m_AddedEdges.ToList())
             {
