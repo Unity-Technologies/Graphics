@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
         }
 
-        static private bool RenderShapeLightSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
+        static private bool RenderLightSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
         {
             bool renderedAnyLight = false;
 
@@ -347,7 +347,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cmdBuffer.ClearRenderTarget(false, true, clearColor);
 
 
-                bool rtDirty = RenderShapeLightSet(
+                bool rtDirty = RenderLightSet(
                     camera,
                     i,
                     cmdBuffer,
