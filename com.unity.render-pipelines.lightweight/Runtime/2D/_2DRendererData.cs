@@ -57,7 +57,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_ShapeLightVolumeShader = m_ShapeLightVolumeShader ?? Shader.Find("Hidden/Light2D-Shape-Volumetric");
             m_PointLightShader = m_PointLightShader ?? Shader.Find("Hidden/Light2D-Point");
             m_PointLightVolumeShader = m_PointLightVolumeShader ?? Shader.Find("Hidden/Light2d-Point-Volumetric");
-        } 
+        }
+
+        internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
+        {
+            if (materialType == DefaultMaterialType.Sprite)
+                return UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.lightweight/Runtime/Materials/Sprite-Lit-Default.mat");
+
+            return null;
+        }
 #endif
 
         protected override ScriptableRenderer Create()
