@@ -188,11 +188,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.specularShift = surfaceData.specularShift;
         bsdfData.secondarySpecularShift = surfaceData.secondarySpecularShift;
 
-        // See 'Fast Product Importance Sampling of Environment Maps'.
         float ggxRoughness1      = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-        float beckmannRoughness1 = /*sqrt(2.0) * */ggxRoughness1;
+        float beckmannRoughness1 = ggxRoughness1;
         float ggxRoughness2      = PerceptualRoughnessToRoughness(bsdfData.secondaryPerceptualRoughness);
-        float beckmannRoughness2 = /*sqrt(2.0) * */ggxRoughness2;
+        float beckmannRoughness2 = ggxRoughness2;
 
         bsdfData.specularExponent          = BeckmannRoughnessToBlinnPhongSpecExponent(beckmannRoughness1);
         bsdfData.secondarySpecularExponent = BeckmannRoughnessToBlinnPhongSpecExponent(beckmannRoughness2);
