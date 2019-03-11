@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the Multiply node so default input values are applied correctly.
 - Added padding on input values for Blend node to prevent NaN outputs.
 - Fixed an issue where `IsFaceSign` would not compile within Sub Graph Nodes.
+- Null reference errors no longer occur when you remove ports with connected edges.
 
 ## [6.5.0] - 2019-03-07
 
