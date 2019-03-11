@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -330,6 +330,66 @@ namespace UnityEditor.VFX.Test
                 var resultCompiled = context.Compile(result);
                 var resultFloat = resultCompiled.Get<float>();
                 Assert.AreEqual(expectedSequence[i], resultFloat);
+            }
+        }
+
+
+        public struct Min_Max_Expression_Folding_TestCase
+        {
+            internal string name;
+            internal VFXExpression expression;
+            internal bool saturateExpected;
+
+            public override string ToString()
+            {
+                return name;
+            }
+        };
+
+        static private Min_Max_Expression_Folding_TestCase[] k_Min_Max_Expression_Folding_TestCase = Generate_Min_Max_Expression_Folding_TestCase().ToArray();
+
+        static private IEnumerable<Min_Max_Expression_Folding_TestCase> Generate_Min_Max_Expression_Folding_TestCase()
+        {
+            var x = VFXBuiltInExpression.TotalTime;
+            var one = VFXOperatorUtility.OneExpression[UnityEngine.Experimental.VFX.VFXValueType.Float];
+            var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.Experimental.VFX.VFXValueType.Float];
+
+            //Good case
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "min(max(x, 0), 1)", expression = new VFXExpressionMin(new VFXExpressionMax(x, zero), one), saturateExpected = true };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "min(1, (max(x, 0))", expression = new VFXExpressionMin(one, new VFXExpressionMax(x, zero)), saturateExpected = true };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "max(min(x, 1), 0)", expression = new VFXExpressionMax(new VFXExpressionMin(x, one), zero), saturateExpected = true };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "max(0, min(x, 1))", expression = new VFXExpressionMax(zero, new VFXExpressionMin(x, one)), saturateExpected = true };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "min(max(0, x), 1)", expression = new VFXExpressionMin(new VFXExpressionMax(zero, x), one), saturateExpected = true };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "min(1, (max(0, x))", expression = new VFXExpressionMin(one, new VFXExpressionMax(zero, x)), saturateExpected = true };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "max(min(1, x), 0)", expression = new VFXExpressionMax(new VFXExpressionMin(one, x), zero), saturateExpected = true };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "max(0, min(1, x))", expression = new VFXExpressionMax(zero, new VFXExpressionMin(one, x)), saturateExpected = true };
+
+            //bad case : Inverting 0 & 1
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "min(max(x, 1), 0)", expression = new VFXExpressionMin(new VFXExpressionMax(x, one), zero), saturateExpected = false };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "min(0, (max(x, 1))", expression = new VFXExpressionMin(zero, new VFXExpressionMax(x, one)), saturateExpected = false };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "max(min(x, 0), 1)", expression = new VFXExpressionMax(new VFXExpressionMin(x, zero), one), saturateExpected = false };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "max(1, min(x, 0))", expression = new VFXExpressionMax(one, new VFXExpressionMin(x, zero)), saturateExpected = false };
+
+            //Exotic cases 
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "min(min(x, 1), 0)", expression = new VFXExpressionMin(new VFXExpressionMin(x, one), zero), saturateExpected = false };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "max(max(x, 1), 0)", expression = new VFXExpressionMax(new VFXExpressionMax(x, one), zero), saturateExpected = false };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "max(add(x, 1), 0)", expression = new VFXExpressionMax(new VFXExpressionAdd(x, one), zero), saturateExpected = false };
+            yield return new Min_Max_Expression_Folding_TestCase() { name = "min(1, (sub(x, 0))", expression = new VFXExpressionMin(one, new VFXExpressionSubtract(x, zero)), saturateExpected = false };
+        }
+
+        [Test]
+        public void Min_Max_Expression_Folding([ValueSource("k_Min_Max_Expression_Folding_TestCase")] Min_Max_Expression_Folding_TestCase testCase)
+        {
+            var context = new VFXExpression.Context(VFXExpressionContextOption.Reduction);
+            var resultCompiled = context.Compile(testCase.expression);
+
+            if (testCase.saturateExpected)
+            {
+                Assert.IsTrue(resultCompiled is VFXExpressionSaturate);
+            }
+            else
+            {
+                Assert.IsFalse(resultCompiled is VFXExpressionSaturate);
             }
         }
     }

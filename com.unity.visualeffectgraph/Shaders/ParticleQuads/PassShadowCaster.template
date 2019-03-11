@@ -33,7 +33,8 @@ Pass
 #define VFX_VARYING_UV uv
 		
 ${VFXBegin:VFXVertexAdditionalProcess}
-o.pos = VFXApplyShadowBias(o.pos);
+float3 posWS = TransformPositionVFXToWorld(vPos);
+VFXApplyShadowBias(o.VFX_VARYING_POSCS, posWS, normalWS);
 ${VFXEnd}
 
 // Needed for HDRP
