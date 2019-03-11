@@ -1,6 +1,6 @@
 # Volumetric Lighting Controller
 
-The High Definition Render Pipeline evaluates volumetric lighting on a 3D grid mapped to the volumetric section of the frustum. The resolution of the grid is quite low (it is 240x135x64 using the default quality setting at 1080p), so it's important to keep the dimensions of the frustum as small as possible to maintain high quality. Use [Distant Fog](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki/Volumetric-Fog) for the less visually important background areas.
+The High Definition Render Pipeline evaluates volumetric lighting on a 3D grid mapped to the volumetric section of the frustum. The resolution of the grid is quite low (it is 240x135x64 using the default quality setting at 1080p), so it's important to keep the dimensions of the frustum as small as possible to maintain high quality. Use [Distant Fog](Volumetric-Fog.html) for the less visually important background areas.
 
 ## Controlling the range of Volumetric Fog
 
