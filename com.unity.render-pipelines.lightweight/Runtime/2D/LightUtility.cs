@@ -89,7 +89,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (radius <= 0 || feathering <= 0)
             {
                 color = transparentColor;
-                radius = feathering;
+                if(radius == 0)
+                    radius = feathering;
                 createSimpleShape = true;
             }
 
