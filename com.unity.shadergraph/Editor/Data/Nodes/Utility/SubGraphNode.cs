@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequirePosition
         , IMayRequireVertexColor
         , IMayRequireTime
+        , IMayRequireFaceSign
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -501,6 +502,14 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return activeNodes.OfType<IMayRequireTime>().Any(x => x.RequiresTime());
+        }
+
+        public bool RequiresFaceSign(ShaderStageCapability stageCapability)
+        {
+            if (referencedGraph == null)
+                return false;
+
+            return activeNodes.OfType<IMayRequireFaceSign>().Any(x => x.RequiresFaceSign());
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
