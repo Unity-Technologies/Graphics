@@ -87,6 +87,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent indirectDiffuseNumSamplesText = new GUIContent("Indirect Diffuse Num Samples");
             public static readonly GUIContent indirectDiffuseRayLengthText = new GUIContent("Indirect Diffuse Ray Length");
             public static readonly GUIContent indirectDiffuseClampText = new GUIContent("Indirect Diffuse Clamp Value");
+            public static readonly GUIContent indirectDiffuseFilterModeText = new GUIContent("Indirect Diffuse Filter Mode");
+            public static readonly GUIContent indirectDiffuseFilterRadiusText = new GUIContent("Filter Radius");
         }
 
         SerializedHDRaytracingEnvironment m_SerializedHDRaytracingEnvironment;
@@ -297,6 +299,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(rtEnv.indirectDiffuseNumSamples, Styles.indirectDiffuseNumSamplesText);
                 EditorGUILayout.PropertyField(rtEnv.indirectDiffuseRayLength, Styles.indirectDiffuseRayLengthText);
                 EditorGUILayout.PropertyField(rtEnv.indirectDiffuseClampValue, Styles.indirectDiffuseClampText);
+
+                EditorGUILayout.PropertyField(rtEnv.indirectDiffuseFilterMode, Styles.indirectDiffuseFilterModeText);
+                switch ((HDRaytracingEnvironment.IndirectDiffuseFilterMode)rtEnv.indirectDiffuseFilterMode.enumValueIndex)
+                {
+                    case HDRaytracingEnvironment.IndirectDiffuseFilterMode.SpatioTemporal:
+                    {
+                        EditorGUILayout.PropertyField(rtEnv.indirectDiffuseFilterRadius, Styles.indirectDiffuseFilterRadiusText);
+                    }
+                    break;
+                }
             }
         }
 
