@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             // Getting the generatePropertyBlock property to see if it is exposed or not
             var graph = node.owner as GraphData;
             var property = graph.properties.FirstOrDefault(x => x.guid == node.propertyGuid);
-            var icon = property.generatePropertyBlock ? exposedIcon : null;
+            var icon = (graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
             this.icon = icon;
 
             // Setting the position of the node, otherwise it ends up in the center of the canvas

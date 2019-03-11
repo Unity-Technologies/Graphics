@@ -355,6 +355,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case ConcreteSlotValueType.Boolean:
                         prop = new BooleanShaderProperty();
                         break;
+                    case ConcreteSlotValueType.Matrix2:
+                        prop = new Matrix2ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Matrix3:
+                        prop = new Matrix3ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Matrix4:
+                        prop = new Matrix4ShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.SamplerState:
+                        prop = new SamplerStateShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Gradient:
+                        prop = new GradientShaderProperty();
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
