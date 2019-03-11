@@ -286,6 +286,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 src = dst;
             }
 
+            bool isSceneView = camera.camera.cameraType == CameraType.SceneView;
+
             using (new ProfilingSample(cmd, "Post-processing", CustomSamplerId.PostProcessing.GetSampler()))
             {
                 var source = colorBuffer;
@@ -315,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool stopNaNs = camera.stopNaNs;
 
                 #if UNITY_EDITOR
-                    if (camera.camera.cameraType == CameraType.SceneView)
+                    if (isSceneView)
                         stopNaNs = HDRenderPipelinePreferences.sceneViewStopNaNs;
                 #endif
 
@@ -368,7 +370,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Depth of Field is done right after TAA as it's easier to just re-project the CoC
                     // map rather than having to deal with all the implications of doing it before TAA
-                    if (m_DepthOfField.IsActive())
+                    if (m_DepthOfField.IsActive() && !isSceneView)
                     {
                         using (new ProfilingSample(cmd, "Depth of Field", CustomSamplerId.DepthOfField.GetSampler()))
                         {
@@ -394,7 +396,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // done and before bloom kicks in
                     // This is one effect that would benefit from an overscan mode or supersampling in
                     // HDRP to reduce the amount of resolution lost at the center of the screen
-                    if (m_PaniniProjection.IsActive())
+                    if (m_PaniniProjection.IsActive() && !isSceneView)
                     {
                         using (new ProfilingSample(cmd, "Panini Projection", CustomSamplerId.PaniniProjection.GetSampler()))
                         {
@@ -410,7 +412,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Feature flags are passed to all effects and it's their responsibility to check
                         // if they are used or not so they can set default values if needed
                         var cs = m_Resources.shaders.uberPostCS;
-                        var featureFlags = GetUberFeatureFlags();
+                        var featureFlags = GetUberFeatureFlags(isSceneView);
                         int kernel = GetUberKernel(cs, featureFlags);
 
                         // Generate the bloom texture
@@ -507,7 +509,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Grabs all active feature flags
-        UberPostFeatureFlags GetUberFeatureFlags()
+        UberPostFeatureFlags GetUberFeatureFlags(bool isSceneView)
         {
             var flags = UberPostFeatureFlags.None;
 
@@ -517,7 +519,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Vignette.IsActive())
                 flags |= UberPostFeatureFlags.Vignette;
 
-            if (m_LensDistortion.IsActive())
+            if (m_LensDistortion.IsActive() && !isSceneView)
                 flags |= UberPostFeatureFlags.LensDistortion;
 
             return flags;
