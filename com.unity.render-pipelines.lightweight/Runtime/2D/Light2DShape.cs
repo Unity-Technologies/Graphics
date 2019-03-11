@@ -1,5 +1,3 @@
-using UnityEngine.U2D.Shape;
-
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     sealed public partial class Light2D : MonoBehaviour
@@ -18,9 +16,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] int                m_ShapeLightOrder                   = 0;
         [SerializeField] LightOverlapMode   m_ShapeLightOverlapMode             = LightOverlapMode.Additive;
         [SerializeField] Vector3[]          m_ShapePath;
-
-        // TODO: Remove this.
-        [SerializeField] Spline m_Spline = new Spline() { isExtensionsSupported = false };
 
         int     m_PreviousShapeLightParametricSides         = -1;
         float   m_PreviousShapeLightParametricAngleOffset   = -1;

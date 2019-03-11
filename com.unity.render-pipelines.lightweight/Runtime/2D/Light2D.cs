@@ -309,10 +309,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private void Awake()
         {
-            if (m_ShapePath == null)
-                m_ShapePath = m_Spline.m_ControlPoints.Select(x => x.position).ToArray();
-
-            if (m_ShapePath.Length == 0)
+            if (m_ShapePath == null || m_ShapePath.Length == 0)
                 m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
 
             GetMesh();
