@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Vector4[] volumeColors;
 
             int centerIndex;
-            if (feathering <= 0.0f)
+            if (feathering <= 0.0f || radius == 0)
             {
                 vertices = new Vector3[1 + sides];
                 triangles = new int[3 * sides];
@@ -84,13 +84,22 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             colors[centerIndex] = color;
             volumeColors[centerIndex] = volumeColor;
             float radiansPerSide = 2 * Mathf.PI / sides;
+
+            bool createSimpleShape = false;
+            if (radius <= 0 || feathering <= 0)
+            {
+                color = transparentColor;
+                radius = feathering;
+                createSimpleShape = true;
+            }
+
             for (int i = 0; i < sides; i++)
             {
                 float endAngle = (i + 1) * radiansPerSide;
                 Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
 
                 int vertexIndex;
-                if (feathering <= 0.0f)
+                if(createSimpleShape)
                 {
                     vertexIndex = i % sides;
                     vertices[vertexIndex] = endPoint;
