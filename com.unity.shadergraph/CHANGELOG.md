@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.8.0] - 2019-XX-XX
+### Added
+- You can now add Matrix, Sampler State, and Gradient properties to the Blackboard.
+
+### Changed
+- Removed Blackboard fields, which had no effect on Sub Graph input ports, from the Sub Graph Blackboard.
+
 ### Fixed
 - Fixed an error when opening saved Shader Graphs containing one or more Voronoi nodes.
 - You can now drag normal map type textures on to a Shader Graph to create Sample Texture 2D nodes with the correct type set.

@@ -205,6 +205,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent("Texture3D"), false, () => AddProperty(new Texture3DShaderProperty(), true));
             gm.AddItem(new GUIContent("Cubemap"), false, () => AddProperty(new CubemapShaderProperty(), true));
             gm.AddItem(new GUIContent("Boolean"), false, () => AddProperty(new BooleanShaderProperty(), true));
+            gm.AddItem(new GUIContent("Matrix2x2"), false, () => AddProperty(new Matrix2ShaderProperty(), true));
+            gm.AddItem(new GUIContent("Matrix3x3"), false, () => AddProperty(new Matrix3ShaderProperty(), true));
+            gm.AddItem(new GUIContent("Matrix4x4"), false, () => AddProperty(new Matrix4ShaderProperty(), true));
+            gm.AddItem(new GUIContent("SamplerState"), false, () => AddProperty(new SamplerStateShaderProperty(), true));
+            gm.AddItem(new GUIContent("Gradient"), false, () => AddProperty(new GradientShaderProperty(), true));
             gm.ShowAsContext();
         }
 
@@ -261,7 +266,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (create)
                 property.displayName = m_Graph.SanitizePropertyName(property.displayName);
 
-            var icon = property.generatePropertyBlock ? exposedIcon : null;
+            var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
             var field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
 
             var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
