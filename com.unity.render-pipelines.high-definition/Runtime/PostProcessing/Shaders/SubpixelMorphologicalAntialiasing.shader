@@ -2,8 +2,8 @@ Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing"
 {
     Properties
     {
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 32
-        [HideInInspector] _StencilMask("_StencilMask", Int) = 32
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 64
+        [HideInInspector] _StencilMask("_StencilMask", Int) = 64
     }
 
     HLSLINCLUDE
@@ -20,13 +20,14 @@ Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing"
         // Edge detection 
         Pass
         {
-            Stencil
-            {
-                WriteMask [_StencilMask]
-                Ref [_StencilRef]
-                Comp Always
-                Pass Replace
-            }
+            // TODO: Re-enable stencil after investigation on why it breaks.
+            //Stencil
+            //{
+            //    WriteMask [_StencilMask]
+            //    Ref [_StencilRef]
+            //    Comp Always
+            //    Pass Replace
+            //}
 
             HLSLPROGRAM
 
@@ -40,13 +41,15 @@ Shader "Hidden/PostProcessing/SubpixelMorphologicalAntialiasing"
         // Blend Weights Calculation
         Pass
         {
-            Stencil
-            {
-                ReadMask [_StencilMask]
-                Ref [_StencilRef]
-                Comp Equal
-                Pass Replace
-            }
+        // TODO: Re-enable stencil after investigation on why it breaks.
+            //Stencil
+            //{
+            //    WriteMask[_StencilMask]
+            //    ReadMask [_StencilMask]
+            //    Ref [_StencilRef]
+            //    Comp Equal
+            //    Pass Replace
+            //}
 
             HLSLPROGRAM
 
