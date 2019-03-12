@@ -74,10 +74,11 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             // We will perform camera motion velocity only where there is no object velocity
             Stencil
             {
+                WriteMask 128
                 ReadMask 128
                 Ref  128 // StencilBitMask.ObjectVelocity
                 Comp NotEqual
-                Pass Keep
+                Fail Zero   // We won't need the bit anymore.
             }
 
             Cull Off ZWrite Off ZTest Always

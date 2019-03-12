@@ -32,13 +32,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [SerializeField]
         EmissiveIntensityUnit _intensityUnit;
 
-        [EnumControl()]
+        [EnumControl]
         EmissiveIntensityUnit intensityUnit
         {
             get { return _intensityUnit; }
             set
             {
                 _intensityUnit = value;
+                Dirty(ModificationScope.Node);
+            }
+        }
+
+        [SerializeField]
+        bool        m_NormalizeColor;
+
+        [ToggleControl("Normalize Color")]
+        ToggleData  normalizeColor
+        {
+            get { return new ToggleData(m_NormalizeColor); }
+            set
+            {
+                m_NormalizeColor = value.isOn;
                 Dirty(ModificationScope.Node);
             }
         }
@@ -117,6 +131,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         intensitySlot.concreteValueType.ToString(precision));
                     using (s.BlockScope())
                     {
+                        if (normalizeColor.isOn)
+                        {
+                            s.AppendLine("ldrColor = ldrColor * rcp(max(Luminance(ldrColor), 1e-6));");
+                        }
                         s.AppendLine("{0}3 hdrColor = ldrColor * luminanceIntensity;", precision);
                         s.AppendNewLine();
                         s.AppendLine("// Inverse pre-expose using _EmissiveExposureWeight weight");

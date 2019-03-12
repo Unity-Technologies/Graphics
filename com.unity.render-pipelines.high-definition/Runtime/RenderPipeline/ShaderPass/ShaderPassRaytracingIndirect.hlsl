@@ -42,7 +42,11 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
 
     // Color display for the moment
+    #ifdef DIFFUSE_LIGHTNG_ONLY
+    rayIntersection.color = diffuseLighting;
+    #else
     rayIntersection.color = diffuseLighting + specularLighting;
+    #endif
 #else
     // Given that we will be multiplying the final color by the current exposure multiplier outside of this function, we need to make sure that
     // the unlit color is not impacted by that. Thus, we multiply it by the inverse of the current exposure multiplier.

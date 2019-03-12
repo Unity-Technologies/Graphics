@@ -52,6 +52,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kStencilWriteMaskDepth = "_StencilWriteMaskDepth";
         protected const string kStencilRefMV = "_StencilRefMV";
         protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
+        protected const string kStencilRefDistortionVec = "_StencilRefDistortionVec";
+        protected const string kStencilWriteMaskDistortionVec = "_StencilWriteMaskDistortionVec";
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
@@ -111,6 +113,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.BeginChangeCheck();
                         {
                             DoEmissiveTextureProperty(material, emissiveColorLDR);
+                            emissiveColorLDR.colorValue = NormalizeEmissionColor(ref updateEmissiveColor, emissiveColorLDR.colorValue);
 
                             using (new EditorGUILayout.HorizontalScope())
                             {
@@ -197,6 +200,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
             material.SetInt(kStencilRefMV, stencilRefMV);
             material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
+            material.SetInt(kStencilRefDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
+            material.SetInt(kStencilWriteMaskDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
         }
     }
 } // namespace UnityEditor

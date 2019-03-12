@@ -39,5 +39,5 @@
     int _EnvSliceSize;
     uint _CookieSizePOT;
     int _RaytracedAreaShadow;
-
+    int _RaytracedIndirectDiffuse;
 #endif
