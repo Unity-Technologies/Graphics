@@ -27,17 +27,19 @@ namespace UnityEditor.VFX.Utils
 
         enum Axis
         {
-            Xm,
-            Xp,
-            Ym,
-            Yp,
-            Zm,
-            Zp
+            X_Descending = 0,
+            X_Ascending = 1,
+            Y_Descending = 2,
+            Y_Ascending = 3,
+            Z_Descending = 4,
+            Z_Ascending = 5,
         };
 
-        Axis m_1stAxis = Axis.Xp;
-        Axis m_2ndAxis = Axis.Yp;
-        Axis m_3rdAxis = Axis.Zp;
+        Axis[] m_Axes = new Axis[]{
+            Axis.X_Ascending,
+            Axis.Y_Ascending,
+            Axis.Z_Ascending,
+        };
 
         bool m_InverseFromCenter = false;
 
@@ -51,13 +53,26 @@ namespace UnityEditor.VFX.Utils
 
             if (m_Reorder == Reorder.Axis)
             {
-                m_1stAxis = (Axis)EditorGUILayout.EnumPopup("First Axis", m_1stAxis);
-                m_2ndAxis = (Axis)EditorGUILayout.EnumPopup( new GUIContent( "Second Axis" ),
-                    m_2ndAxis, (axis) => !axis.ToString().StartsWith(m_1stAxis.ToString().Substring(0,1)) ,
+                EditorGUI.BeginChangeCheck();
+                m_Axes[0] = (Axis)EditorGUILayout.EnumPopup("First Axis", m_Axes[0]);
+
+                m_Axes[1] = (Axis)EditorGUILayout.EnumPopup( new GUIContent( "Second Axis" ),
+                    m_Axes[1], (axis) => !(( ((int)(Axis)axis ) / 2 ) == ( ((int)m_Axes[0]) / 2 ) ),
                     false );
-                m_3rdAxis = (Axis)EditorGUILayout.EnumPopup( new GUIContent( "Third Axis" ), m_3rdAxis,
-                    (axis) => !(axis.ToString().StartsWith(m_1stAxis.ToString().Substring(0,1)) ||
-                        axis.ToString().StartsWith(m_2ndAxis.ToString().Substring(0,1)) )
+
+                if ( EditorGUI.EndChangeCheck() )
+                {
+                    // Reorganize 2nd and 3rd axes
+
+                    if ( ( ((int)m_Axes[1] ) / 2 ) == ( ((int)m_Axes[0]) / 2 ) )
+                        m_Axes[1] = (Axis) ( ( ( ((int)m_Axes[0]) / 2 ) * 2 + 2 ) % 6 + ( ((int)m_Axes[1] ) % 2 ) );
+                    
+                    m_Axes[2] = (Axis) ( ( 3 - ( ((int)m_Axes[0]) / 2 ) - ( ((int)m_Axes[1]) / 2 ) ) * 2 + ( ((int)m_Axes[2] ) % 2 ) );
+                }
+
+                m_Axes[2] = (Axis)EditorGUILayout.EnumPopup( new GUIContent( "Third Axis" ), m_Axes[2],
+                    (axis) => !( (( ((int)(Axis)axis ) / 2 ) == ( ((int)m_Axes[0]) / 2 ) ) ||
+                        (( ((int)(Axis)axis ) / 2 ) == ( ((int)m_Axes[1]) / 2 ) ) )
                 , false );
             }
 
@@ -134,13 +149,12 @@ namespace UnityEditor.VFX.Utils
                         positions.Sort((a, b) =>
                         {
                             Vector3 diff = b - a;
-                            int axisIndex1 = m_1stAxis.ToString().StartsWith("X") ? 0 : m_1stAxis.ToString().StartsWith("Y") ? 1 : 2;
-                            int axisIndex2 = m_2ndAxis.ToString().StartsWith("X") ? 0 : m_2ndAxis.ToString().StartsWith("Y") ? 1 : 2;
-                            int axisIndex3 = m_3rdAxis.ToString().StartsWith("X") ? 0 : m_3rdAxis.ToString().StartsWith("Y") ? 1 : 2;
+                            for (var i=2 ; i>=0 ; --i)
+                            {
+                                int axisIndex = ( (int) m_Axes[i] ) / 2;
 
-                            if (diff[axisIndex3] != 0) return ( m_3rdAxis.ToString().Substring(1, 1) == "p")? ( (diff[axisIndex3] > 0)? -1 : 1 ) : ( (diff[axisIndex3] > 0)? 1 : -1 ) ;
-                            if (diff[axisIndex2] != 0) return ( m_2ndAxis.ToString().Substring(1, 1) == "p")? ( (diff[axisIndex2] > 0)? -1 : 1 ) : ( (diff[axisIndex2] > 0)? 1 : -1 ) ;
-                            if (diff[axisIndex1] != 0) return ( m_1stAxis.ToString().Substring(1, 1) == "p")? ( (diff[axisIndex1] > 0)? -1 : 1 ) : ( (diff[axisIndex1] > 0)? 1 : -1 ) ;
+                                if (diff[axisIndex] != 0) return -((int)Mathf.Sign( diff[axisIndex] )) * ( ( ( (int) m_Axes[i])%2 ) * 2 - 1 );
+                            }
 
                             return 0;
                         });
