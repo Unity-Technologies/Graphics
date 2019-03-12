@@ -724,13 +724,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Dispose m_ProbeCameraPool properly
             void DisposeProbeCameraPool()
             {
+#if UNITY_EDITOR
                 // Special case here: when the HDRP asset is modified in the Editor,
                 //   it is disposed during an `OnValidate` call.
                 //   But during `OnValidate` call, game object must not be destroyed.
                 //   So, only when this method was called during an `OnValidate` call, the destruction of the
                 //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtiles.Destroy`
                 var isInOnValidate = false;
-#if UNITY_EDITOR
                 isInOnValidate = new StackTrace().ToString().Contains("OnValidate");
                 if (isInOnValidate)
                 {
