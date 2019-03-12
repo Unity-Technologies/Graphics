@@ -58,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly HDRaytracingReflections m_RaytracingReflections = new HDRaytracingReflections();
         readonly HDRaytracingShadowManager m_RaytracingShadows = new HDRaytracingShadowManager();
         readonly HDRaytracingRenderer m_RaytracingRenderer = new HDRaytracingRenderer();
+        readonly HDRaytracingIndirectDiffuse m_RaytracingIndirectDiffuse = new HDRaytracingIndirectDiffuse();
         public float GetRaysPerFrame(RayCountManager.RayCountValues rayValues) { return m_RayTracingManager.rayCountManager.GetRaysPerFrame(rayValues); }
 #endif
 
@@ -79,8 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_SsrTracingKernel      = -1;
         int m_SsrReprojectionKernel = -1;
 
-        ComputeShader m_applyDistortionCS { get { return m_Asset.renderPipelineResources.shaders.applyDistortionCS; } }
-        int m_applyDistortionKernel;
+        Material m_ApplyDistortionMaterial;
 
         Material m_CameraMotionVectorsMaterial;
         Material m_DecalNormalBufferMaterial;
@@ -156,11 +156,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LightingMask                    = 3,    // 0x7  - 2 bit - Lifetime: GBuffer/Forward - SSSSS
             // Free slot 4
             // Note: If required, the usage Decals / DecalsForwardOutputNormalBuffer could be fit at same location as LightingMask as they have a non overlapped lifetime
-            Decals                          = 8,    // 0x8  - 1 bit - Lifetime: DBuffer - Patch normal buffer
-            DecalsForwardOutputNormalBuffer = 16,   // 0x10 - 1 bit - Lifetime: DBuffer - Patch normal buffer       
+            Decals                          = 8,    // 0x8  - 1 bit - Lifetime: DBuffer - Patch normal buffer   (This bit is cleared to 0 after Patch normal buffer)
+            DecalsForwardOutputNormalBuffer = 16,   // 0x10 - 1 bit - Lifetime: DBuffer - Patch normal buffer   (This bit is cleared to 0 after Patch normal buffer)
             DoesntReceiveSSR                = 32,   // 0x20 - 1 bit - Lifetime: DethPrepass - SSR
-            // Free slot 64           
-            ObjectVelocity                  = 128,  // 0x80 - 1 bit - Lifetime: OBjec velocity pass - Camera velocity
+            DistortionVectors               = 64,   // 0x40 - 1 bit - Lifetime: Accumulate distortion - Apply distortion (This bit is cleared to 0 after Apply distortion pass)
+            SMAA                            = 64,   // 0x40 - 1 bit - Lifetime: SMAA EdgeDetection - SMAA BlendWeight.
+            ObjectVelocity                  = 128,  // 0x80 - 1 bit - Lifetime: OBjec velocity pass - Camera velocity (This bit is cleared to 0 after Camera motion vector pass)
             All                             = 255   // 0xFF - 8 bit
         }
 
@@ -174,6 +175,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         uint  m_FrameCount;
         float m_LastTime, m_Time;
 
+        public GraphicsFormat GetColorBufferFormat()
+        {
+            return (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
+        }
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetDecalAtlasMipCount()
         {
@@ -299,7 +304,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_AmbientOcclusionSystem = new AmbientOcclusionSystem(asset);
 
             // Initialize various compute shader resources
-            m_applyDistortionKernel = m_applyDistortionCS.FindKernel("KMain");
             m_SsrTracingKernel      = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
 
@@ -311,6 +315,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.decalNormalBufferPS);
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.copyDepthBufferPS);
+
+            m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.applyDistortionPS);
 
             InitializeDebugMaterials();
 
@@ -372,7 +378,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RaytracingRenderer.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager);
             m_LightLoop.InitRaytracing(m_RayTracingManager);
             m_AmbientOcclusionSystem.InitRaytracing(m_RayTracingManager, m_SharedRTManager);
+            m_RaytracingIndirectDiffuse.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager);
 #endif
+
+            CameraCaptureBridge.enabled = true;
         }
 
         void UpgradeResourcesIfNeeded()
@@ -400,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.currentPlatformRenderPipelineSettings);
             m_SharedRTManager.InitSharedBuffers(m_GbufferManager, m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources);
 
-            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, xrInstancing: true, useDynamicScale: true, name: "CameraColor");
+            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, xrInstancing: true, useDynamicScale: true, name: "CameraColor");
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "CameraSSSDiffuseLighting");
 
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), xrInstancing: true, useDynamicScale: true, name: "Distortion");
@@ -419,15 +428,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (Debug.isDebugBuild)
             {
                 m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugColorPicker");
-                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugFullScreen");
-                m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, xrInstancing: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
+                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GetColorBufferFormat(), useDynamicScale: true, name: "DebugFullScreen");
+                m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GetColorBufferFormat(), useDynamicScale: true, xrInstancing: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
             }
 
             // Let's create the MSAA textures
             if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA)
             {
-                m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, bindTextureMS: true, enableMSAA: true, xrInstancing: true, useDynamicScale: true, name: "CameraColorMSAA");
-                m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, bindTextureMS: true, enableMSAA: true, xrInstancing: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
+                m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, xrInstancing: true, useDynamicScale: true, name: "CameraColorMSAA");
+                m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, xrInstancing: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
             }
         }
 
@@ -608,7 +617,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_Blit.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
                 m_BlitTexArray = CoreUtils.CreateEngineMaterial(m_Asset.renderPipelineResources.shaders.blitPS);
-            }
+        }
         }
 
         void InitializeRenderStateBlocks()
@@ -650,6 +659,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             base.Dispose(disposing);
 
 #if ENABLE_RAYTRACING
+            m_RaytracingIndirectDiffuse.Release();
             m_RaytracingRenderer.Release();
             m_RaytracingShadows.Release();
             m_RaytracingReflections.Release();
@@ -741,6 +751,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 #endif
             }
+
+            CameraCaptureBridge.enabled = false;
         }
 
 
@@ -1511,6 +1523,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // This reduce lifteime of stencil bit
             DBufferNormalPatch(hdCamera, cmd, renderContext, cullingResults);       
 
+#if ENABLE_RAYTRACING
+            bool raytracedIndirectDiffuse = m_RaytracingIndirectDiffuse.RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
+            PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingIndirectDiffuse.GetIndirectDiffuseTexture(), FullScreenDebugMode.IndirectDiffuse);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, raytracedIndirectDiffuse ? 1 : 0);
+#endif
             RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
             // We can now bind the normal buffer to be use by any effect
@@ -1623,8 +1640,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     else if(rtEnv != null && rtEnv.raytracedObjects)
                     {
                         HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
-                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
-                    }
+                    PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
+                }
                 }
 #endif
                 if (!hdCamera.frameSettings.ContactShadowsRunAsync())
@@ -1633,7 +1650,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
                     areaShadowsRendered = m_RaytracingShadows.RenderAreaShadows(hdCamera, cmd, renderContext, m_FrameCount);
                     // Let's render the screen space area light shadows
-                    PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingShadows.GetShadowedIntegrationTexture(), FullScreenDebugMode.RaytracedAreaShadow);
+                    PushFullScreenDebugTexture(hdCamera, cmd, m_RaytracingShadows.GetIntegrationTexture(), FullScreenDebugMode.RaytracedAreaShadow);
 #endif
                     cmd.SetGlobalInt(HDShaderIDs._RaytracedAreaShadow, areaShadowsRendered ? 1 : 0);
 
@@ -1786,20 +1803,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if (ENABLE_RAYTRACING)
                 {
-                    HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-                    if(rtEnvironement != null)
-                    {
-                        HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnvironement.reflLayerMask);
-                        cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, lightCluster.GetCluster());
-                        cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, lightCluster.GetLightDatas());
-                        cmd.SetGlobalVector(HDShaderIDs._MinClusterPos, lightCluster.GetMinClusterPos());
-                        cmd.SetGlobalVector(HDShaderIDs._MaxClusterPos, lightCluster.GetMaxClusterPos());
-                        cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, rtEnvironement.maxNumLightsPercell);
-                        cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
-                        cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
-                    }
+                    {   
+                        HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
 
-                    HDRaytracingLightProbeBakeManager.Bake(hdCamera.camera, cmd);
+                        if(rtEnvironement != null)
+                        {
+                            HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnvironement.reflLayerMask);
+                            cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, lightCluster.GetCluster());
+                            cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, lightCluster.GetLightDatas());
+                            cmd.SetGlobalVector(HDShaderIDs._MinClusterPos, lightCluster.GetMinClusterPos());
+                            cmd.SetGlobalVector(HDShaderIDs._MaxClusterPos, lightCluster.GetMaxClusterPos());
+                            cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, rtEnvironement.maxNumLightsPercell);
+                            cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
+                            cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
+                            HDRaytracingLightProbeBakeManager.Bake(hdCamera.camera, cmd);
+                        }
+                    }
                 }
 #endif
 
@@ -1879,6 +1898,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Because of this, we need another blit here to the final render target at the right viewport.
             if (Debug.isDebugBuild)
             {
+                hdCamera.ExecuteCaptureActions(m_IntermediateAfterPostProcessBuffer, cmd);
+
                 StartStereoRendering(cmd, renderContext, camera);
 
                 RenderDebug(hdCamera, cmd, cullingResults);
@@ -2378,15 +2399,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var currentColorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
 
-                var size = new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight);
-                uint x, y, z;
-                m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
-                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBuffer);
-                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._ColorPyramidTexture, currentColorPyramid);
-                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._Destination, m_CameraColorBuffer);
-                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._Size, size);
 
-                cmd.DispatchCompute(m_applyDistortionCS, m_applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), XRGraphics.computePassCount);
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer);
+                // TODO: Set stencil stuff via parameters rather than hardcoding it in shader.
+                m_ApplyDistortionMaterial.SetTexture(HDShaderIDs._DistortionTexture, m_DistortionBuffer);
+                m_ApplyDistortionMaterial.SetTexture(HDShaderIDs._ColorPyramidTexture, currentColorPyramid);
+
+                var size = new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight);
+                m_ApplyDistortionMaterial.SetVector(HDShaderIDs._Size, size);
+
+                HDUtils.DrawFullScreen(cmd, hdCamera, m_ApplyDistortionMaterial, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), null, 0);
             }
         }
 
@@ -2981,7 +3003,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrLightingTextureRW, m_SsrLightingTexture);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ColorPyramidTexture,  previousColorPyramid);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMask);
-
+                    
                     cmd.SetComputeIntParam(cs, HDShaderIDs._SsrColorPyramidMaxMip, hdCamera.colorPyramidHistoryMipCount - 1);
 
                     cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(w, 8), HDUtils.DivRoundUp(h, 8), XRGraphics.computePassCount);
@@ -3355,6 +3377,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 afterPostProcessTexture: GetAfterPostProcessOffScreenBuffer(),
                 lightingBuffer: null,
                 finalRT: destination,
+                depthBuffer: m_SharedRTManager.GetDepthStencilBuffer(),
                 flipY: flipInPostProcesses
             );
 

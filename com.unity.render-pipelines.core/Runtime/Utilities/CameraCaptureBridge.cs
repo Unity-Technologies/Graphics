@@ -5,20 +5,17 @@
 using System;
 using System.Collections.Generic;
 #if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.Rendering.LWRP;
 #if USE_REFLECTION
 using System.Reflection;
 #else
 using UnityEditor.Recorder;
 #endif
 #endif
-using UnityEngine.Rendering;
 
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering
 {
-    static class CameraCaptureBridge
+    public static class CameraCaptureBridge
     {
 #if USE_REFLECTION
         static FieldInfo  m_Enabled;

@@ -19,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent roughRefractionContent = EditorGUIUtility.TrTextContent("Rough Refraction", "When enabled, HDRP processes a rough refraction render pass for Cameras using these Frame Settings.");
         static readonly GUIContent distortionContent = EditorGUIUtility.TrTextContent("Distortion", "When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings.");
         static readonly GUIContent postprocessContent = EditorGUIUtility.TrTextContent("Postprocess", "When enabled, HDRP processes a postprocessing render pass for Cameras using these Frame Settings.");
+        static readonly GUIContent colorBufferFormat = EditorGUIUtility.TrTextContent("Color Buffer Format", "Specify the color format for the color buffer.");
         static readonly GUIContent litShaderModeContent = EditorGUIUtility.TrTextContent("Lit Shader Mode", "Specifies the Lit Shader Mode Cameras using these Frame Settings use to render the Scene.");
         static readonly GUIContent depthPrepassWithDeferredRenderingContent = EditorGUIUtility.TrTextContent("Depth Prepass With Deferred Rendering", "When enabled, HDRP processes a depth prepass for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.");
         static readonly GUIContent opaqueObjectsContent = EditorGUIUtility.TrTextContent("Opaque Objects", "When enabled, Cameras using these Frame Settings render opaque GameObjects.");

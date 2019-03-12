@@ -58,6 +58,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Uniform variables that defines if we shall be using the shadow area texture or not
         public int _RaytracedAreaShadow;
+
+        // Uniform variables that defines if we shall be using the raytraced indirect diffuse
+        public int _RaytracedIndirectDiffuse;
     }
 }
 

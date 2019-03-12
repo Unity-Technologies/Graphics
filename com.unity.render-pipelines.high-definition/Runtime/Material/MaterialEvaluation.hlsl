@@ -51,7 +51,7 @@ struct AmbientOcclusionFactor
 // Get screen space ambient occlusion only:
 float GetScreenSpaceDiffuseOcclusion(float2 positionSS)
 {
-    #if SHADERPASS ==  SHADERPASS_RAYTRACING_REFLECTION
+    #if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
         // When we are in raytracing mode, we do not want to take the screen space computed AO texture
         float indirectAmbientOcclusion = 1.0;
     #else

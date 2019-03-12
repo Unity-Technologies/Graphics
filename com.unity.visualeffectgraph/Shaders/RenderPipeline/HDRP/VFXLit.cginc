@@ -59,7 +59,7 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
 {
     BuiltinData builtinData = (BuiltinData)0;
 
-    InitBuiltinData(opacity, surfaceData.normalWS, -surfaceData.normalWS, posInputs.positionWS, (float4)0, (float4)0, builtinData); // We dont care about uvs are we dont sample lightmaps
+    InitBuiltinData(posInputs, opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData); // We dont care about uvs are we dont sample lightmaps
 
     #if HDRP_USE_EMISSIVE
     builtinData.emissiveColor = float3(1,1,1);

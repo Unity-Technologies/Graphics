@@ -82,6 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdSlotId,
                 HairMasterNode.AlphaClipThresholdShadowSlotId,
+                HairMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -109,13 +110,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 HairMasterNode.AlphaSlotId,
-                HairMasterNode.AlphaClipThresholdSlotId
+                HairMasterNode.AlphaClipThresholdSlotId,
+                HairMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 HairMasterNode.PositionSlotId
             },
-            UseInPreview = true
+            UseInPreview = false
         };
 
         Pass m_PassDepthForwardOnly = new Pass()
@@ -138,7 +140,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.NormalSlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AlphaSlotId,
-                HairMasterNode.AlphaClipThresholdSlotId
+                HairMasterNode.AlphaClipThresholdSlotId,
+                HairMasterNode.DepthOffsetSlotId,
             },
 
             RequiredFields = new List<string>()
@@ -208,7 +211,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.NormalSlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AlphaSlotId,
-                HairMasterNode.AlphaClipThresholdSlotId
+                HairMasterNode.AlphaClipThresholdSlotId,
+                HairMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -245,6 +249,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdDepthPrepassSlotId,
+                HairMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -296,6 +301,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SecondarySpecularTintSlotId,
                 HairMasterNode.SecondarySmoothnessSlotId,
                 HairMasterNode.SecondarySpecularShiftSlotId,
+                HairMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -358,6 +364,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SecondarySpecularShiftSlotId,
                 HairMasterNode.LightingSlotId,
                 HairMasterNode.BackLightingSlotId,
+                HairMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -417,6 +424,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdDepthPostpassSlotId,
+                HairMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -599,6 +607,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("BackLightingGI");
             }
+
+            if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(HairMasterNode.DepthOffsetSlotId))
+                activeFields.Add("DepthOffset");
 
             return activeFields;
         }

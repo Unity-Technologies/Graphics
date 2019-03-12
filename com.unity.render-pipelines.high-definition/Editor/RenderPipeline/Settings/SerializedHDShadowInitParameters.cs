@@ -3,13 +3,21 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
+    class SerializedHDShadowAtlasInitParams
+    {
+        public SerializedProperty shadowMapResolution;
+        public SerializedProperty shadowMapDepthBits;
+        public SerializedProperty useDynamicViewportRescale;
+    }
+
     class SerializedHDShadowInitParameters
     {
         public SerializedProperty root;
 
-        public SerializedProperty shadowAtlasResolution;
-        public SerializedProperty shadowMapDepthBits;
-        public SerializedProperty useDynamicViewportRescale;
+        public SerializedProperty directionalShadowMapDepthBits;
+
+        public SerializedHDShadowAtlasInitParams serializedPunctualAtlasInit = new SerializedHDShadowAtlasInitParams();
+        public SerializedHDShadowAtlasInitParams serializedAreaAtlasInit = new SerializedHDShadowAtlasInitParams();
 
         public SerializedProperty maxShadowRequests;
 
@@ -19,9 +27,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             this.root = root;
 
-            shadowAtlasResolution = root.Find((HDShadowInitParameters s) => s.shadowAtlasResolution);
-            shadowMapDepthBits = root.Find((HDShadowInitParameters s) => s.shadowMapsDepthBits);
-            useDynamicViewportRescale = root.Find((HDShadowInitParameters s) => s.useDynamicViewportRescale);
+            directionalShadowMapDepthBits = root.Find((HDShadowInitParameters s) => s.directionalShadowsDepthBits);
+
+            serializedPunctualAtlasInit.shadowMapResolution = root.Find((HDShadowInitParameters s) => s.punctualLightShadowAtlas.shadowAtlasResolution);
+            serializedAreaAtlasInit.shadowMapResolution = root.Find((HDShadowInitParameters s) => s.areaLightShadowAtlas.shadowAtlasResolution);
+            serializedPunctualAtlasInit.shadowMapDepthBits = root.Find((HDShadowInitParameters s) => s.punctualLightShadowAtlas.shadowAtlasDepthBits);
+            serializedAreaAtlasInit.shadowMapDepthBits = root.Find((HDShadowInitParameters s) => s.areaLightShadowAtlas.shadowAtlasDepthBits);
+            serializedPunctualAtlasInit.useDynamicViewportRescale = root.Find((HDShadowInitParameters s) => s.punctualLightShadowAtlas.useDynamicViewportRescale);
+            serializedAreaAtlasInit.useDynamicViewportRescale = root.Find((HDShadowInitParameters s) => s.areaLightShadowAtlas.useDynamicViewportRescale);
             maxShadowRequests = root.Find((HDShadowInitParameters s) => s.maxShadowRequests);
             shadowQuality = root.Find((HDShadowInitParameters s) => s.shadowQuality);
         }

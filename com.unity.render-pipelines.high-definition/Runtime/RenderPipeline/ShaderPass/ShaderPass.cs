@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ForwardEmissiveProjector,
         ForwardEmissiveMesh,
         Raytracing,
-        RaytracingReflection,
+        RaytracingIndirect,
         RaytracingVisibility,
         RaytracingForward,
     }
