@@ -8,8 +8,8 @@
 
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_BlendTex);
-TEXTURE2D_X(_AreaTex);
-TEXTURE2D_X(_SearchTex);
+TEXTURE2D(_AreaTex);
+TEXTURE2D(_SearchTex);
 
 float4 _SMAARTMetrics;
 
