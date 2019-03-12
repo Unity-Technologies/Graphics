@@ -487,8 +487,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 
                 if (changes.changed && HDRenderPipelinePreferences.lightColorNormalization)
                 {
-                    Vector4 ldrColor = Vector4.Max(serialized.settings.color.colorValue, Vector4.one * 0.0001f);
-                    serialized.settings.color.colorValue = (Vector4)(ldrColor / ColorUtils.Luminance(ldrColor));
+                    serialized.settings.color.colorValue = HDUtils.NormalizeColor(serialized.settings.color.colorValue);
                 }
             }
 

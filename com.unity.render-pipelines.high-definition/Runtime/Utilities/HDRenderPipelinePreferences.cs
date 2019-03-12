@@ -87,12 +87,13 @@ namespace UnityEngine.Rendering
 
                     sceneViewStopNaNs = EditorGUILayout.Toggle("Scene View Stop NaNs", sceneViewStopNaNs);
 
-                    EditorGUILayout.LabelField("Color Normalization");
-                    using (new EditorGUI.IndentLevelScope())
-                    {
-                        lightColorNormalization = EditorGUILayout.Toggle("Lights", lightColorNormalization);
-                        materialEmissionColorNormalization = EditorGUILayout.Toggle("Material Emission", materialEmissionColorNormalization);
-                    }
+                    // Disable this until we have a good solution to handle the normalized color picking
+                    // EditorGUILayout.LabelField("Color Normalization");
+                    // using (new EditorGUI.IndentLevelScope())
+                    // {
+                    //     lightColorNormalization = EditorGUILayout.Toggle("Lights", lightColorNormalization);
+                    //     materialEmissionColorNormalization = EditorGUILayout.Toggle("Material Emission", materialEmissionColorNormalization);
+                    // }
                 }
             };
         }
