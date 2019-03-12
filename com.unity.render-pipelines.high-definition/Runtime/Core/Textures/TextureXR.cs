@@ -15,8 +15,9 @@ namespace UnityEngine.Experimental.Rendering
                 // XRTODO: Vulkan, PSVR, Mac with metal only for OS 10.14+, etc
                 switch (SystemInfo.graphicsDeviceType)
                 {
+                    // XRTODO: disabled until all SPI code is merged
                     case GraphicsDeviceType.Direct3D11:
-                        return true;
+                        return false;
                 }
 
                 return false;
