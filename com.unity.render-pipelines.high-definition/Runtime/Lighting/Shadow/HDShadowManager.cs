@@ -540,6 +540,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
+        public void DisplayAreaLightShadowAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        {
+            m_AreaLightShadowAtlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_AreaLightShadowAtlas.width, m_AreaLightShadowAtlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+        }
+
+        // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
         public void DisplayShadowMap(int shadowIndex, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if (shadowIndex >= m_ShadowRequestCount)

@@ -2982,9 +2982,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                         }
                     }
-                    else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
+                    else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizePunctualLightAtlas)
                     {
                         m_ShadowManager.DisplayShadowAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                        m_ShadowManager.DisplayShadowCascadeAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                    }
+                    else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAreaLightAtlas)
+                    {
+                        m_ShadowManager.DisplayAreaLightShadowAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
                         HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                         m_ShadowManager.DisplayShadowCascadeAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
                         HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
