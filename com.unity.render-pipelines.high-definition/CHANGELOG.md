@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added preliminary changes for XR deferred shading
+- Added support of 111110 color buffer
 - Added proper support for Recorder in HDRP
 - Added depth offset input in shader graph master nodes
 - Added a Parallax Occlusion Mapping node
@@ -28,10 +29,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed metric distance that changed along size in DensityVolume
 - Fixed DensityVolume shape handles that have not same behaviour in advance and normal edition mode
 - Fixed normal map blending in TerrainLit by only blending the derivatives### Changed
+
+### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
 - Disabled depth of field, lens distortion and panini projection in the scene view
 - TerrainLit shaders and includes are reorganized and made simpler.
 - TerrainLit shader GUI now allows custom properties to be displayed in the Terrain fold-out section.
+- Optimize distortion pass with stencil
 
 ## [6.5.0-preview] - 2019-03-07
 
@@ -55,7 +59,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cascade shadows border sometime causing artefacts between cascades
 - Restored shadows in the Cascade Shadow debug visualization
 - `camera.RenderToCubemap` use proper face culling
-
 
 ### Changed
 - When rendering reflection probe disable all specular lighting and for metals use fresnelF0 as diffuse color for bake lighting.
