@@ -158,6 +158,10 @@ namespace UnityEditor.VFX.Utils
                 file.SaveToFile(m_FileName, m_OutputFormat);
                 AssetDatabase.ImportAsset(m_FileName, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             }
+            else
+            {
+                Debug.Log("Creating the pCache file resulted in zero points and has failed: the voxel size is probably too large.");
+            }
             
             EditorUtility.ClearProgressBar();
         }
