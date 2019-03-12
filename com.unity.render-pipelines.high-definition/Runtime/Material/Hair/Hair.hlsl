@@ -143,8 +143,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     // This value will be override by the value in diffusion profile
-    bsdfData.fresnel0      = DEFAULT_HAIR_SPECULAR_VALUE;
-    bsdfData.transmittance = surfaceData.transmittance;
+    bsdfData.fresnel0                 = DEFAULT_HAIR_SPECULAR_VALUE;
+    bsdfData.transmittance            = surfaceData.transmittance;
+    bsdfData.rimTransmissionIntensity = surfaceData.rimTransmissionIntensity;
 
     // This is the hair tangent (which represents the hair strand direction, root to tip).
     bsdfData.hairStrandDirectionWS = surfaceData.hairStrandDirectionWS;
@@ -410,13 +411,10 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, float NdotL, PreLightData preLightData, 
         cbxdf.specR = 0.25 * F * (hairSpec1 + hairSpec2) * saturate(NdotL) * saturate(preLightData.NdotV * FLT_MAX);
 
         // Yibing's and Morten's hybrid scatter model hack.
-        float  scatterFresnel1          =  pow(saturate(-LdotV), 9.0) * pow(saturate(1 - preLightData.NdotV * preLightData.NdotV), 12.0);
-        float  scatterFresnel2          =  saturate(PositivePow((1 - preLightData.NdotV), 20));
-        float  rimTransmissionIntensity = 0.2;
-        float3 transmissionColor        = float3(1, 0.65, 0.36);
-        float  scatterAmount            = scatterFresnel1 + rimTransmissionIntensity * scatterFresnel2;
+        float scatterFresnel1 = pow(saturate(-LdotV), 9.0) * pow(saturate(1 - preLightData.NdotV * preLightData.NdotV), 12.0);
+        float scatterFresnel2 = saturate(PositivePow((1 - preLightData.NdotV), 20));
 
-        cbxdf.specT = scatterAmount * transmissionColor;
+        cbxdf.specT = scatterFresnel1 + bsdfData.rimTransmissionIntensity * scatterFresnel2;
     }
 
     return cbxdf;

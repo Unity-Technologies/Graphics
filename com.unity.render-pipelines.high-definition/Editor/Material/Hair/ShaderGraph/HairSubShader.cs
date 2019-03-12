@@ -37,6 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.BentNormalSlotId,
                 HairMasterNode.HairStrandDirectionSlotId,
                 HairMasterNode.TransmittanceSlotId,
+                HairMasterNode.RimTransmissionIntensitySlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AmbientOcclusionSlotId,
                 HairMasterNode.EmissionSlotId,
@@ -280,6 +281,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.BentNormalSlotId,
                 HairMasterNode.HairStrandDirectionSlotId,
                 HairMasterNode.TransmittanceSlotId,
+                HairMasterNode.RimTransmissionIntensitySlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AmbientOcclusionSlotId,
                 HairMasterNode.EmissionSlotId,
@@ -338,6 +340,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.BentNormalSlotId,
                 HairMasterNode.HairStrandDirectionSlotId,
                 HairMasterNode.TransmittanceSlotId,
+                HairMasterNode.RimTransmissionIntensitySlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AmbientOcclusionSlotId,
                 HairMasterNode.EmissionSlotId,
@@ -548,7 +551,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (masterNode.IsSlotConnected(HairMasterNode.TransmittanceSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.TransmittanceSlotId))
             {
-                activeFields.Add("Transmittance");
+                activeFields.Add(HairMasterNode.TransmittanceSlotName);
+            }
+
+            if (masterNode.IsSlotConnected(HairMasterNode.RimTransmissionIntensitySlotId) && pass.PixelShaderUsesSlot(HairMasterNode.RimTransmissionIntensitySlotId))
+            {
+                activeFields.Add(HairMasterNode.RimTransmissionIntensitySlotName);
             }
 
             if (masterNode.useLightFacingNormal.isOn)

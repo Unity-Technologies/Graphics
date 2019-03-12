@@ -179,6 +179,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;
         $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
         $SurfaceDescription.Transmittance:                  surfaceData.transmittance =                 surfaceDescription.Transmittance;
+        $SurfaceDescription.RimTransmissionIntensity:       surfaceData.rimTransmissionIntensity =      surfaceDescription.RimTransmissionIntensity;
 
         $SurfaceDescription.SpecularTint:                   surfaceData.specularTint =                  surfaceDescription.SpecularTint;
         $SurfaceDescription.SpecularShift:                  surfaceData.specularShift =                 surfaceDescription.SpecularShift;

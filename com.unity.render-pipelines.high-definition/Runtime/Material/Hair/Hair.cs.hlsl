@@ -22,12 +22,13 @@
 #define DEBUGVIEW_HAIR_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1407)
 #define DEBUGVIEW_HAIR_SURFACEDATA_SMOOTHNESS (1408)
 #define DEBUGVIEW_HAIR_SURFACEDATA_TRANSMITTANCE (1409)
-#define DEBUGVIEW_HAIR_SURFACEDATA_HAIR_STRAND_DIRECTION (1410)
-#define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SMOOTHNESS (1411)
-#define DEBUGVIEW_HAIR_SURFACEDATA_SPECULAR_TINT (1412)
-#define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_TINT (1413)
-#define DEBUGVIEW_HAIR_SURFACEDATA_SPECULAR_SHIFT (1414)
-#define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT (1415)
+#define DEBUGVIEW_HAIR_SURFACEDATA_RIM_TRANSMISSION_INTENSITY (1410)
+#define DEBUGVIEW_HAIR_SURFACEDATA_HAIR_STRAND_DIRECTION (1411)
+#define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SMOOTHNESS (1412)
+#define DEBUGVIEW_HAIR_SURFACEDATA_SPECULAR_TINT (1413)
+#define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_TINT (1414)
+#define DEBUGVIEW_HAIR_SURFACEDATA_SPECULAR_SHIFT (1415)
+#define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT (1416)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Hair+BSDFData:  static fields
@@ -44,16 +45,17 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1459)
 #define DEBUGVIEW_HAIR_BSDFDATA_PERCEPTUAL_ROUGHNESS (1460)
 #define DEBUGVIEW_HAIR_BSDFDATA_TRANSMITTANCE (1461)
-#define DEBUGVIEW_HAIR_BSDFDATA_HAIR_STRAND_DIRECTION_WS (1462)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_T (1463)
-#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_B (1464)
-#define DEBUGVIEW_HAIR_BSDFDATA_ANISOTROPY (1465)
-#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_PERCEPTUAL_ROUGHNESS (1466)
-#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_TINT (1467)
-#define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_EXPONENT (1468)
-#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_EXPONENT (1469)
-#define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_SHIFT (1470)
-#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_SHIFT (1471)
+#define DEBUGVIEW_HAIR_BSDFDATA_RIM_TRANSMISSION_INTENSITY (1462)
+#define DEBUGVIEW_HAIR_BSDFDATA_HAIR_STRAND_DIRECTION_WS (1463)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_T (1464)
+#define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_B (1465)
+#define DEBUGVIEW_HAIR_BSDFDATA_ANISOTROPY (1466)
+#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_PERCEPTUAL_ROUGHNESS (1467)
+#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_TINT (1468)
+#define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_EXPONENT (1469)
+#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_EXPONENT (1470)
+#define DEBUGVIEW_HAIR_BSDFDATA_SPECULAR_SHIFT (1471)
+#define DEBUGVIEW_HAIR_BSDFDATA_SECONDARY_SPECULAR_SHIFT (1472)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Hair+SurfaceData
 // PackingRules = Exact
@@ -66,7 +68,8 @@ struct SurfaceData
     float3 normalWS;
     float3 geomNormalWS;
     float perceptualSmoothness;
-    float transmittance;
+    float3 transmittance;
+    float rimTransmissionIntensity;
     float3 hairStrandDirectionWS;
     float secondaryPerceptualSmoothness;
     float3 specularTint;
@@ -88,7 +91,8 @@ struct BSDFData
     float3 normalWS;
     float3 geomNormalWS;
     float perceptualRoughness;
-    float transmittance;
+    float3 transmittance;
+    float rimTransmissionIntensity;
     float3 hairStrandDirectionWS;
     float roughnessT;
     float roughnessB;
@@ -137,7 +141,10 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.perceptualSmoothness.xxx;
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_TRANSMITTANCE:
-            result = surfacedata.transmittance.xxx;
+            result = surfacedata.transmittance;
+            break;
+        case DEBUGVIEW_HAIR_SURFACEDATA_RIM_TRANSMISSION_INTENSITY:
+            result = surfacedata.rimTransmissionIntensity.xxx;
             break;
         case DEBUGVIEW_HAIR_SURFACEDATA_HAIR_STRAND_DIRECTION:
             result = surfacedata.hairStrandDirectionWS * 0.5 + 0.5;
@@ -204,7 +211,10 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             result = bsdfdata.perceptualRoughness.xxx;
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_TRANSMITTANCE:
-            result = bsdfdata.transmittance.xxx;
+            result = bsdfdata.transmittance;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_RIM_TRANSMISSION_INTENSITY:
+            result = bsdfdata.rimTransmissionIntensity.xxx;
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_HAIR_STRAND_DIRECTION_WS:
             result = bsdfdata.hairStrandDirectionWS * 0.5 + 0.5;

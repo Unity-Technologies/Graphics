@@ -41,7 +41,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string TransmittanceSlotName = "Transmittance";
         public const int TransmittanceSlotId = 7;
 
-        public const int UnusedSlot8 = 8;
+        public const string RimTransmissionIntensitySlotName = "RimTransmissionIntensity";
+        public const int RimTransmissionIntensitySlotId = 8;
 
         public const string SmoothnessSlotName = "Smoothness";
         public const int SmoothnessSlotId = 9;
@@ -122,7 +123,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HairStrandDirection = 1 << HairStrandDirectionSlotId,
             Slot6 = 1 << UnusedSlot6,
             Transmittance = 1 << TransmittanceSlotId,
-            Slot8 = 1 << UnusedSlot8,
+            RimTransmissionIntensity = 1 << RimTransmissionIntensitySlotId,
             Smoothness = 1 << SmoothnessSlotId,
             Occlusion = 1 << AmbientOcclusionSlotId,
             Emission = 1 << EmissionSlotId,
@@ -141,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         const SlotMask KajiyaKaySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.BentNormal | SlotMask.HairStrandDirection | SlotMask.Slot6
-                                            | SlotMask.Transmittance | SlotMask.Slot8 | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass
+                                            | SlotMask.Transmittance | SlotMask.RimTransmissionIntensity | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass
                                                 | SlotMask.AlphaClipThresholdDepthPostpass | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.SecondarySpecularTint | SlotMask.SecondarySmoothness | SlotMask.SecondarySpecularShift | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI;
 
         // This could also be a simple array. For now, catch any mismatched data.
@@ -544,8 +545,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             if (MaterialTypeUsesSlotMask(SlotMask.Transmittance))
             {
-                AddSlot(new Vector1MaterialSlot(TransmittanceSlotId, TransmittanceSlotName, TransmittanceSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                AddSlot(new Vector3MaterialSlot(TransmittanceSlotId, TransmittanceSlotName, TransmittanceSlotName, SlotType.Input, 0.3f * new Vector3(1.0f, 0.65f, 0.3f), ShaderStageCapability.Fragment));
                 validSlots.Add(TransmittanceSlotId);
+            }
+            if (MaterialTypeUsesSlotMask(SlotMask.RimTransmissionIntensity))
+            {
+                AddSlot(new Vector1MaterialSlot(RimTransmissionIntensitySlotId, RimTransmissionIntensitySlotName, RimTransmissionIntensitySlotName, SlotType.Input, 0.2f, ShaderStageCapability.Fragment));
+                validSlots.Add(RimTransmissionIntensitySlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.HairStrandDirection))
             {

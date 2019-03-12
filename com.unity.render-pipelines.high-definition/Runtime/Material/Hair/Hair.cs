@@ -41,7 +41,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float perceptualSmoothness;
 
             [SurfaceDataAttributes("Transmittance")]
-            public float transmittance;
+            public Vector3 transmittance;
+
+            [SurfaceDataAttributes("RimTransmissionIntensity")]
+            public float rimTransmissionIntensity;
 
             // Anisotropic
             [SurfaceDataAttributes("Hair Strand Direction", true)]
@@ -91,7 +94,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public float perceptualRoughness;
 
-            public float transmittance;
+            public Vector3 transmittance;
+            public float   rimTransmissionIntensity;
 
             // Anisotropic
             [SurfaceDataAttributes("", true)]
