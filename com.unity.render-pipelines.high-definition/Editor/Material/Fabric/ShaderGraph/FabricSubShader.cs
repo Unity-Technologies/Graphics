@@ -110,7 +110,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 FabricMasterNode.PositionSlotId
             },
-            UseInPreview = true
+            UseInPreview = false
         };
 
         Pass m_PassDepthForwardOnly = new Pass()

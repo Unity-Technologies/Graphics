@@ -117,7 +117,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 HairMasterNode.PositionSlotId
             },
-            UseInPreview = true
+            UseInPreview = false
         };
 
         Pass m_PassDepthForwardOnly = new Pass()

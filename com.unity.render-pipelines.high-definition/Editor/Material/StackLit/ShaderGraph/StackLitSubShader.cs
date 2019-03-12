@@ -127,7 +127,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 StackLitMasterNode.PositionSlotId
             },
-            UseInPreview = true
+            UseInPreview = false
         };
 
         Pass m_PassDepthForwardOnly = new Pass()
