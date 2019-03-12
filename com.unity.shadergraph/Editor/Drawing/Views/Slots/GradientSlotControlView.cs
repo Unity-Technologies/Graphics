@@ -43,11 +43,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             m_SerializedObject.Update();
             if (!evt.newValue.Equals(m_Slot.value))
             {
+                m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Gradient");
+
                 m_GradientObject.gradient.SetKeys(evt.newValue.colorKeys, evt.newValue.alphaKeys);
                 m_GradientObject.gradient.mode = evt.newValue.mode;
                 m_SerializedObject.ApplyModifiedProperties();
 
-                m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Gradient");
                 m_Slot.value = m_GradientObject.gradient;
                 m_Slot.owner.Dirty(ModificationScope.Node);
             }
