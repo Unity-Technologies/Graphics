@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added depth offset input in shader graph master nodes
 - Added a Parallax Occlusion Mapping node
 - Added SMAA support
-- Added an option in preferences to toggle the light emission normalization
 
 ### Fixed
 - Fixed HDRI sky intensity lux mode
@@ -36,6 +35,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - TerrainLit shaders and includes are reorganized and made simpler.
 - TerrainLit shader GUI now allows custom properties to be displayed in the Terrain fold-out section.
 - Optimize distortion pass with stencil
+- Disable SceneSelectionPass in shader graph preview
+- Control punctual light and area light shadow atlas separately
 
 ## [6.5.0-preview] - 2019-03-07
 
