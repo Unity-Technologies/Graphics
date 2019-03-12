@@ -20,7 +20,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_DecalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
         static readonly GUIContent k_DecalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
         static readonly GUIContent k_ShadowSubTitle = EditorGUIUtility.TrTextContent("Shadow");
-        static readonly GUIContent k_ShadowAtlasSubTitle = EditorGUIUtility.TrTextContent("Atlas");
+        static readonly GUIContent k_ShadowPunctualLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Punctual Lights Atlas");
+        static readonly GUIContent k_ShadowAreaLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Area Lights Atlas");
         static readonly GUIContent k_DynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
 
         static readonly GUIContent k_DefaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
@@ -82,6 +83,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_MaxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
 
         static readonly GUIContent k_ResolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
+        static readonly GUIContent k_DirectionalShadowPrecisionContent = EditorGUIUtility.TrTextContent("Directional Shadow Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
         static readonly GUIContent k_PrecisionContent = EditorGUIUtility.TrTextContent("Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
         static readonly GUIContent k_DynamicRescaleContent = EditorGUIUtility.TrTextContent("Dynamic Rescale", "When enabled, scales the shadow map size using the screen size of the Light to leave more space for other shadows in the atlas.");
         static readonly GUIContent k_MaxRequestContent = EditorGUIUtility.TrTextContent("Maximum Shadow on Screen", "Sets the maximum number of shadows HDRP can handle on screen at once. See the documentation for details on how many shadows each light type casts.");

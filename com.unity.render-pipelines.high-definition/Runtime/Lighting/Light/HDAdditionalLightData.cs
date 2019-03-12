@@ -301,8 +301,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Vector2 viewportSize = new Vector2(m_ShadowData.shadowResolution, m_ShadowData.shadowResolution);
 
+            // Reserver wanted resolution in the shadow atlas
+            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+                                          (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
+            bool viewPortRescaling = false;
             // Compute dynamic shadow resolution
-            if (initParameters.useDynamicViewportRescale && legacyLight.type != LightType.Directional)
+            viewPortRescaling = viewPortRescaling || (shadowMapType == ShadowMapType.PunctualAtlas && initParameters.punctualLightShadowAtlas.useDynamicViewportRescale);
+            viewPortRescaling = viewPortRescaling || (shadowMapType == ShadowMapType.AreaLightAtlas && initParameters.areaLightShadowAtlas.useDynamicViewportRescale);
+
+            if (viewPortRescaling)
             {
                 // resize viewport size by the normalized size of the light on screen
                 // When we will have access to the non screen clamped bounding sphere light size, we could use it to scale the shadow map resolution
@@ -320,10 +328,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Update the directional shadow atlas size
             if (legacyLight.type == LightType.Directional)
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount);
-
-            // Reserver wanted resolution in the shadow atlas
-            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
-                                          (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
 
             int count = GetShadowRequestCount();
             for (int index = 0; index < count; index++)
