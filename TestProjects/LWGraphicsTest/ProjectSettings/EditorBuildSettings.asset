@@ -128,7 +128,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/048_Lighting_LocalShadows.unity
     guid: 099c78bd4d7e8453b9dbb217cf06cac2
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/049_Lighting_Mixed_Subtractive.unity
     guid: ffaad23a2c7fc41b48e4e7ab7e9273e4
   - enabled: 0
