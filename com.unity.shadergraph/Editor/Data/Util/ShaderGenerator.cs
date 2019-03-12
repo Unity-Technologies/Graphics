@@ -214,8 +214,10 @@ namespace UnityEditor.ShaderGraph
                     return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
                 case ConcreteSlotValueType.Vector4:
                     return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
+                case ConcreteSlotValueType.Boolean:
+                    return string.Format("half4({0}, {0}, {0}, 1.0)", variableName);
                 default:
-                    return kErrorString;
+                    return "half4(0, 0, 0, 0)";
             }
         }
 
