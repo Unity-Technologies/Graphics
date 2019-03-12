@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRI sky intensity lux mode
 - Fixed dynamic resolution for XR
 - Fixed instance identifier semantic string used by Shader Graph
+- Fixed null culling result occuring when changing scene that was causing crashes
 - Fixed multi-edition light handles and inspector shapes
 - Fixed light's LightLayer field when multi-editing
 - Fixed normal blend edition handles on DensityVolume
@@ -26,10 +27,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multi-edition inspector's blend distances for HDReflectionProbe, PlanarReflectionProbe and DensityVolume
 - Fixed metric distance that changed along size in DensityVolume
 - Fixed DensityVolume shape handles that have not same behaviour in advance and normal edition mode
-
-### Changed
+- Fixed normal map blending in TerrainLit by only blending the derivatives### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
 - Disabled depth of field, lens distortion and panini projection in the scene view
+- TerrainLit shaders and includes are reorganized and made simpler.
+- TerrainLit shader GUI now allows custom properties to be displayed in the Terrain fold-out section.
 
 ## [6.5.0-preview] - 2019-03-07
 
@@ -53,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cascade shadows border sometime causing artefacts between cascades
 - Restored shadows in the Cascade Shadow debug visualization
 - `camera.RenderToCubemap` use proper face culling
+
 
 ### Changed
 - When rendering reflection probe disable all specular lighting and for metals use fresnelF0 as diffuse color for bake lighting.
