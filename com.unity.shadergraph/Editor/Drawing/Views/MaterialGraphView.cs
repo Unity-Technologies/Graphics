@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
                 evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
 
-                evt.menu.AppendAction("Group Selection", GroupSelection, (a) =>
+                evt.menu.AppendAction("Group Selection", _ => GroupSelection(), (a) =>
                 {
                     List<ISelectable> filteredSelection = new List<ISelectable>();
 
@@ -153,15 +153,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void GroupSelection(DropdownMenuAction action)
+        public void GroupSelection()
         {
-            Vector2 pos = action.eventInfo.localMousePosition;
-
-            string title = "New Group";
-            GroupData groupData = new GroupData(title, pos);
+            var title = "New Group";
+            var groupData = new GroupData(title, new Vector2(10f,10f));
 
             graph.owner.RegisterCompleteObjectUndo("Create Group Node");
-            graph.AddGroupData(groupData);
+            graph.CreateGroup(groupData);
 
             foreach (var shaderNodeView in selection.OfType<IShaderNodeView>())
                 {
