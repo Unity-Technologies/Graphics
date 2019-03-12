@@ -1,7 +1,7 @@
 
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     public struct RenderTargetHandle
     {

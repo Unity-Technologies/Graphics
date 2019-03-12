@@ -257,7 +257,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 HDLitMasterNode.PositionSlotId
             },
-            UseInPreview = false,
+            UseInPreview = true,
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {

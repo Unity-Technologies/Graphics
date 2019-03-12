@@ -167,7 +167,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 HairMasterNode.PositionSlotId
             },
-            UseInPreview = false,
+            UseInPreview = true,
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {

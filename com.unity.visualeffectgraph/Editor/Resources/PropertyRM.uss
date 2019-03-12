@@ -6,8 +6,8 @@
 
 .propertyrm #icon
 {
-    width:13;
-    height:13;
+    width: 13px;
+    height: 13px;
 }
 
 .propertyrm.icon-expandable #icon
@@ -39,16 +39,15 @@
 
 .propertyrm #spacebutton
 {
-    -flex:1;
-    width:16;
-    height:16;
-    margin-left:4;
-    margin-right:8;
+    width: 16px;
+    height: 16px;
+    margin-left: 4px;
+    margin-right: 8px;
 }
 .propertyrm .unity-button
 {
-    margin-top:1;
-    margin-bottom:1;
+    margin-top: 1px;
+    margin-bottom: 1px;
     padding-top:0;
     padding-bottom:0;
 }
@@ -56,9 +55,9 @@
 .propertyrm #label
 {
     color: rgb(153,153,153);
-    height:16;
+    height: 16px;
     margin-left:0;
-    padding-left:1;
+    padding-left: 1px;
     margin-bottom:0;
     padding-bottom:0;
     -unity-text-align:middle-left;
@@ -66,16 +65,16 @@
 
 .propertyrm > VFXLabeledField.fieldContainer,.propertyrm > VFXEnumField.fieldContainer
 {
-    padding-top:1;
-    padding-bottom:1;
-    height:18;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    height: 18px;
 }
 
 
 .propertyrm VFXMatrix4x4Field.fieldContainer
 {
     flex:1 0 auto;
-    height:-1;
+    height: -1px;
 }
 
 .spaceCamera
@@ -111,8 +110,8 @@
     flex:0 0 auto;
     -unity-text-align:middle-center;
     margin-left:0;
-    padding-left:4;
-    margin-right:2;
+    padding-left: 4px;
+    margin-right: 2px;
     padding-right:0;
 }
 
@@ -123,7 +122,6 @@
 
 .propertyrm .fieldContainer, .propertyrm .unity-float-field
 {
-    -align-items: center;
     flex-direction:row;
     flex:1 1 0;
 
@@ -131,7 +129,7 @@
     margin-right:0;
     margin-top:0;
     margin-bottom:0;
-    height:16;
+    height: 16px;
 }
 
 BoolPropertyRM > .unity-toggle
@@ -161,19 +159,19 @@ BoolPropertyRM > .unity-toggle
 ColorPropertyRM
 {
     flex-direction:row;
-    height:36;
+    height: 36px;
 }
 
 ColorPropertyRM .colorcontainer, Vector3PropertyRM .colorcontainer
 {
     flex:1 0 auto;
-    border-left-width:1;
-    border-right-width:1;
-    border-top-width:1;
-    border-bottom-width:1;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
     border-color:#000;
-    margin-top:2;
-    margin-bottom:2;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 ColorPropertyRM > .maincontainer > .fieldContainer
@@ -220,7 +218,7 @@ CurvePropertyRM .unity-curve-field
 CurvePropertyRM
 {
     flex:1 0 auto;
-    min-width:100;
+    min-width: 100px;
 }
 
 StringPropertyRM VFXStringField .unity-text-field
@@ -233,7 +231,7 @@ StringPropertyRM VFXStringField .unity-text-field
 
 Matrix4x4PropertyRM.propertyrm > .fieldContainer
 {
-    height:-1;
+    height: -1px;
 }
 
 
@@ -248,7 +246,7 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
     margin-bottom:0;
     margin-left:0;
     margin-right:0;
-    padding-left: 16;
+    padding-left: 16px;
     -unity-text-align: middle-left;
 }
 

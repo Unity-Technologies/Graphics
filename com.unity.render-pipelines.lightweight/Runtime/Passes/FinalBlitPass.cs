@@ -1,8 +1,4 @@
-using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
-
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Copy the given color target to the current camera target
@@ -13,34 +9,29 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     /// </summary>
     internal class FinalBlitPass : ScriptableRenderPass
     {
-        const string k_FinalBlitTag = "Final Blit Pass";
-
-        private RenderTargetHandle colorAttachmentHandle { get; set; }
-        private RenderTextureDescriptor descriptor { get; set; }
-        private bool requiresSRGConversion { get; set; }
-        private bool killAlpha { get; set; }
+        RenderTargetHandle m_Source;
         Material m_BlitMaterial;
-
-        public FinalBlitPass(Material blitMaterial)
+        TextureDimension m_TargetDimension;
+        const string m_ProfilerTag = "Final Blit Pass";
+        public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
+            renderPassEvent = evt;
         }
 
         /// <summary>
         /// Configure the pass
         /// </summary>
         /// <param name="baseDescriptor"></param>
-        /// <param name="colorAttachmentHandle"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorAttachmentHandle, bool requiresSRGConversion, bool killAlpha)
+        /// <param name="colorHandle"></param>
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
-            this.colorAttachmentHandle = colorAttachmentHandle;
-            this.descriptor = baseDescriptor;
-            this.requiresSRGConversion = requiresSRGConversion;
-            this.killAlpha = killAlpha;
+            m_Source = colorHandle;
+            m_TargetDimension = baseDescriptor.dimension;
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (m_BlitMaterial == null)
             {
@@ -48,12 +39,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 return;
             }
 
-            if (renderer == null)
-                throw new ArgumentNullException(nameof(renderer));
+            bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
+            bool killAlpha = renderingData.killAlphaInFinalBlit;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_FinalBlitTag);
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
-            if (requiresSRGConversion)
+            if (requiresSRGBConvertion)
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
@@ -65,11 +56,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (renderingData.cameraData.isStereoEnabled || renderingData.cameraData.isSceneViewCamera)
             {
-                cmd.Blit(colorAttachmentHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
+                cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget);
             }
             else
             {
-                cmd.SetGlobalTexture("_BlitTex", colorAttachmentHandle.Identifier());
+                cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
                 SetRenderTarget(
                     cmd,
@@ -78,11 +69,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     RenderBufferStoreAction.Store,
                     ClearFlag.None,
                     Color.black,
-                    descriptor.dimension);
+                    m_TargetDimension);
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
-                ScriptableRenderer.RenderFullscreenQuad(cmd, m_BlitMaterial);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
             }
 
             context.ExecuteCommandBuffer(cmd);

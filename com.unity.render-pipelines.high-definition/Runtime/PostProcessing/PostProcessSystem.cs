@@ -37,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly RenderPipelineResources m_Resources;
         bool m_ResetHistory;
         Material m_FinalPassMaterial;
+        Material m_ClearBlackMaterial;
         Material m_SMAAMaterial;
 
         // Exposure data
@@ -111,6 +112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_Resources = hdAsset.renderPipelineResources;
             m_FinalPassMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.finalPassPS);
+            m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
@@ -194,6 +196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_InternalSpectralLut);
             RTHandles.Release(m_InternalLogLut);
             CoreUtils.Destroy(m_FinalPassMaterial);
+            CoreUtils.Destroy(m_ClearBlackMaterial);
             CoreUtils.SafeRelease(m_BokehNearKernel);
             CoreUtils.SafeRelease(m_BokehFarKernel);
             CoreUtils.SafeRelease(m_BokehIndirectCmd);
@@ -207,6 +210,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_InternalSpectralLut       = null;
             m_InternalLogLut            = null;
             m_FinalPassMaterial         = null;
+            m_ClearBlackMaterial        = null;
             m_BokehNearKernel           = null;
             m_BokehFarKernel            = null;
             m_BokehIndirectCmd          = null;
@@ -297,19 +301,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
                     // content into smaller viewports with some effects like Bloom that rely on bilinear
                     // filtering and can't use clamp sampler and the likes
+                    // Note: some platforms can't clear a partial render target so we directly draw black triangles
                     {
                         int w = camera.actualWidth;
                         int h = camera.actualHeight;
-                        cmd.SetRenderTarget(source);
+                        cmd.SetRenderTarget(source, 0, CubemapFace.Unknown, -1);
 
-                        // Clear guard bands only if required
-                        // XR C++ code can issue a full clear if the viewport of the device is fullscreen, bypassing the viewport from the command buffer
                         if (w < source.rt.width || h < source.rt.height)
                         {
                             cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
-                            cmd.ClearRenderTarget(false, true, Color.black);
+                            cmd.DrawProcedural(Matrix4x4.identity, m_ClearBlackMaterial, 0, MeshTopology.Triangles, 3, 1);
                             cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
-                            cmd.ClearRenderTarget(false, true, Color.black);
+                            cmd.DrawProcedural(Matrix4x4.identity, m_ClearBlackMaterial, 0, MeshTopology.Triangles, 3, 1);
                         }
                     }
 

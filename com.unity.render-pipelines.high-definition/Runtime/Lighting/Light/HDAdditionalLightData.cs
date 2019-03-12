@@ -726,8 +726,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
                 lightSize = new Vector3(shapeWidth, shapeHeight, transform.localScale.z);
 
-            lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
+            if (lightTypeExtent == LightTypeExtent.Tube)
+                lightSize.y = k_MinAreaWidth;
             lightSize.z = k_MinAreaWidth;
+
+            lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
             legacyLight.transform.localScale = lightSize;
             legacyLight.areaSize = lightSize;
 

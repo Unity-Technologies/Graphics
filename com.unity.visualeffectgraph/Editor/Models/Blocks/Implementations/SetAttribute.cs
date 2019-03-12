@@ -231,54 +231,55 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (Source == ValueSource.Source) yield break;
-
-                var attrib = currentAttribute;
-
-                VFXPropertyAttribute[] attr = null;
-                if (attrib.Equals(VFXAttribute.Color))
-                    attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
-
-                Type slotType = VFXExpression.TypeToType(attrib.type);
-                object content = attrib.value.GetContent();
-                if (attrib.variadic == VFXVariadic.True)
+                if (Source != ValueSource.Source)
                 {
-                    string channelsString = channels.ToString();
+                    var attrib = currentAttribute;
 
-                    int length = channelsString.Length;
-                    switch (length)
+                    VFXPropertyAttribute[] attr = null;
+                    if (attrib.Equals(VFXAttribute.Color))
+                        attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
+
+                    Type slotType = VFXExpression.TypeToType(attrib.type);
+                    object content = attrib.value.GetContent();
+                    if (attrib.variadic == VFXVariadic.True)
                     {
-                        case 1:
-                            slotType = typeof(float);
-                            content = ((Vector3)content)[ChannelToIndex(channelsString[0])];
-                            break;
-                        case 2:
-                            slotType = typeof(Vector2);
-                            Vector2 v = (Vector2)(Vector3)content;
-                            for (int i = 0; i < 2; i++)
-                                v[i] = ((Vector3)content)[ChannelToIndex(channelsString[i])];
-                            content = v;
-                            break;
-                        case 3:
-                            slotType = typeof(Vector3);
-                            break;
-                        default:
-                            break;
+                        string channelsString = channels.ToString();
+
+                        int length = channelsString.Length;
+                        switch (length)
+                        {
+                            case 1:
+                                slotType = typeof(float);
+                                content = ((Vector3)content)[ChannelToIndex(channelsString[0])];
+                                break;
+                            case 2:
+                                slotType = typeof(Vector2);
+                                Vector2 v = (Vector2)(Vector3)content;
+                                for (int i = 0; i < 2; i++)
+                                    v[i] = ((Vector3)content)[ChannelToIndex(channelsString[i])];
+                                content = v;
+                                break;
+                            case 3:
+                                slotType = typeof(Vector3);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    if (Random == RandomMode.Off)
+                    {
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name)) { attributes = attr }, content);
+                    }
+                    else
+                    {
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min") { attributes = attr }, content);
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max") { attributes = attr }, content);
                     }
                 }
 
-                if (Random == RandomMode.Off)
-                {
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name)) { attributes = attr }, content);
-                }
-                else
-                {
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min") { attributes = attr }, content);
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max") { attributes = attr }, content);
-                }
-
                 if (Composition == AttributeCompositionMode.Blend)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend"));
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))));
             }
         }
 

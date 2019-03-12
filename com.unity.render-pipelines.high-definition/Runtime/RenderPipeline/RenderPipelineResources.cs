@@ -127,6 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader bloomUpsampleCS;
             public ComputeShader FXAACS;
             public Shader finalPassPS;
+            public Shader clearBlackPS;
             public Shader SMAAPS;
 
 
@@ -320,6 +321,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bloomUpsampleCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomUpsample.compute"),
                 FXAACS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/FXAA.compute"),
                 finalPassPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/FinalPass.shader"),
+                clearBlackPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/ClearBlack.shader"),
                 SMAAPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/SubpixelMorphologicalAntialiasing.shader"),
 
 #if ENABLE_RAYTRACING
@@ -334,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightClusterDebugCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute"),
 				countTracedRays = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/CountTracedRays.compute"),
 #endif
-        };
+            };
 
             // Materials
             materials = new MaterialResources

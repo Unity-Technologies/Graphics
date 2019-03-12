@@ -28,12 +28,6 @@ static class VisualElementExtensions
         return (GUIView)m_OwnerPropertyInfo.GetValue(panel, new object[] {});
     }
 
-    // HasFocus on textField should really see if the child TextInput hasFocus
-    public static bool HasFocus<T>(this TextInputBaseField<T> texInput)
-    {
-        return ((VisualElement)texInput.Query(TextInputBaseField<T>.textInputUssName)).HasFocus();
-    }
-
     public static bool HasFocus(this VisualElement visualElement)
     {
         if (visualElement.panel == null) return false;
@@ -85,13 +79,7 @@ static class VisualElementExtensions
 
     public static Vector2 BoundToGlobal(this VisualElement visualElement, Vector2 position)
     {
-        /*do
-        {*/
         position = visualElement.worldTransform.MultiplyPoint3x4(position);
-        /*
-        visualElement = visualElement.parent;
-    }
-    while (visualElement != null;)*/
 
         return position;
     }
