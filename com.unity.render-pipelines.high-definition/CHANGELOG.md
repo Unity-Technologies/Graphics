@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `camera.RenderToCubemap` use proper face culling
 - Fixed HDRI sky intensity lux mode
 - Fixed dynamic resolution for XR
+- Fixed null culling result occuring when changing scene that was causing crashes
 
 ## [5.7.0-preview] - 2019-03-07
 
