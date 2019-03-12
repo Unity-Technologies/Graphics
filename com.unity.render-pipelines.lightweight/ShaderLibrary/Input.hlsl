@@ -49,6 +49,7 @@ float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 CBUFFER_END
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld

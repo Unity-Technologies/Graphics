@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.None,
                 defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
-                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
+                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive | SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly,
                 lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed,
                 lightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
                 lightProbeProxyVolumes = false,
@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.LWRP
 
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
         {
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData;
+            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe;
 
             if (additionalLightsCount > 0)
                 configuration |= PerObjectData.LightIndices;

@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.8.0] - 2019-XX-XX
+### Added
+- Added support for Baked Indirect mixed lighting.
+- You can now use Light Probes for occlusion. This means that baked lights can now occlude dynamic objects.
+
 ### Fixed
 - Fixed a project import issue in the LWRP template.
 - Fixed the warnings that appear when you create new Unlit Shader Graphs using the Lightweight Render Pipeline.
