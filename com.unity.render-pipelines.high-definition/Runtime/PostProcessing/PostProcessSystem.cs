@@ -19,17 +19,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             NeighborhoodBlending = 2
         }
 
-        private enum PostProcessStencilBits
-        {
-            // We don't have bits left to use nor we want to reserve them for SMAA
-            // so we use the same mask as DoesntReceiveSSR as this is likely to not contain
-            // a lot of objects already marked. Worst case scenario, we are running SMAA on more pixel
-            // than needed, but it should still be faster than clearing the stencil.
-            // TODO: We can probably free up some bits while writing others, by leveraging the limited lifetime
-            // of some of the bits stored. But this require a change that is orthogonal to SMAA.
-            SMAABit = HDRenderPipeline.StencilBitMask.DoesntReceiveSSR
-        }
-
         const GraphicsFormat k_ColorFormat         = GraphicsFormat.B10G11R11_UFloatPack32;
         const GraphicsFormat k_CoCFormat           = GraphicsFormat.R16_SFloat;
         const GraphicsFormat k_ExposureFormat      = GraphicsFormat.R32G32_SFloat;
@@ -2078,9 +2067,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SMAAMaterial.SetTexture(HDShaderIDs._SMAAAreaTex, m_Resources.textures.SMAAAreaTex);
             m_SMAAMaterial.SetTexture(HDShaderIDs._SMAASearchTex, m_Resources.textures.SMAASearchTex);
-            m_SMAAMaterial.SetInt(HDShaderIDs._StencilRef, (int)PostProcessStencilBits.SMAABit);
-            m_SMAAMaterial.SetInt(HDShaderIDs._StencilMask, (int)PostProcessStencilBits.SMAABit);
-
+            m_SMAAMaterial.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.SMAA);
+            m_SMAAMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.SMAA);
 
             switch(camera.SMAAQuality)
             {
