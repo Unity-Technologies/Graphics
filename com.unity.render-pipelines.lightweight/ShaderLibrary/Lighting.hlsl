@@ -60,13 +60,13 @@ int GetPerObjectLightIndex(int index)
 
 // Matches Unity Vanila attenuation
 // Attenuation smoothly decreases to light range.
-half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
+float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
 {
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
-    half lightAtten = rcp(distanceSqr);
+    float lightAtten = rcp(distanceSqr);
 
-#if defined(SHADER_HINT_NICE_QUALITY)
+#if SHADER_HINT_NICE_QUALITY
     // Use the smoothing factor also used in the Unity lightmapper.
     half factor = distanceSqr * distanceAttenuation.x;
     half smoothFactor = saturate(1.0h - factor * factor);
@@ -139,8 +139,7 @@ Light GetAdditionalLight(int i, float3 positionWS)
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
-    half attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy);
-    attenuation *= AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
+    half attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
 
     Light light;
     light.direction = lightDirection;
