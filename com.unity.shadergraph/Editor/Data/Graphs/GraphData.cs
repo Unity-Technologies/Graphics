@@ -578,20 +578,26 @@ namespace UnityEditor.ShaderGraph
 
         public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            if (!isSubGraph || generationMode == GenerationMode.Preview)
-        {
             foreach (var prop in properties)
+            {
+                if(generationMode == GenerationMode.Preview && prop.propertyType == PropertyType.Gradient)
+                {
+                    GradientShaderProperty gradientProperty = prop as GradientShaderProperty;
+                    GradientUtils.GetGradientPropertiesForPreview(collector, gradientProperty.referenceName, gradientProperty.value);
+                    continue;
+                }
+
                 collector.AddShaderProperty(prop);
+            }
         }
 
-            if (isSubGraph)
+        public void CollectSubgraphProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            List<AbstractMaterialNode> activeNodes = new List<AbstractMaterialNode>();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, outputNode);
+            foreach (var node in activeNodes)
             {
-                List<AbstractMaterialNode> activeNodes = new List<AbstractMaterialNode>();
-                NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, outputNode);
-                foreach (var node in activeNodes)
-                {
-                    node.CollectShaderProperties(collector, generationMode);
-                }
+                node.CollectShaderProperties(collector, generationMode);
             }
         }
 

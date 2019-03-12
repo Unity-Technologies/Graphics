@@ -83,6 +83,31 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
                 RemoveSlotsNameNotMatching(new[] { OutputSlotId });
             }
+            else if (property is Matrix2ShaderProperty)
+            {
+                AddSlot(new Matrix2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
+            else if (property is Matrix3ShaderProperty)
+            {
+                AddSlot(new Matrix3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
+            else if (property is Matrix4ShaderProperty)
+            {
+                AddSlot(new Matrix4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
+            else if (property is SamplerStateShaderProperty)
+            {
+                AddSlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
+            else if (property is GradientShaderProperty)
+            {
+                AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            }
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
@@ -139,6 +164,57 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
                 visitor.AddShaderChunk(result, true);
+            }
+            else if (property is Matrix2ShaderProperty)
+            {
+                var result = string.Format("{0}2x2 {1} = {2};"
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is Matrix3ShaderProperty)
+            {
+                var result = string.Format("{0}3x3 {1} = {2};"
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is Matrix4ShaderProperty)
+            {
+                var result = string.Format("{0}4x4 {1} = {2};"
+                        , precision
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is SamplerStateShaderProperty)
+            {
+                SamplerStateShaderProperty samplerStateProperty = property as SamplerStateShaderProperty;
+                var result = string.Format("SamplerState {0} = {1}_{2}_{3};"
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , samplerStateProperty.referenceName
+                        , samplerStateProperty.value.filter
+                        , samplerStateProperty.value.wrap);
+                visitor.AddShaderChunk(result, true);
+            }
+            else if (property is GradientShaderProperty)
+            {
+                if(generationMode == GenerationMode.Preview)
+                {
+                    var result = string.Format("Gradient {0} = {1};"
+                        , GetVariableNameForSlot(OutputSlotId) 
+                        , GradientUtils.GetGradientForPreview(property.referenceName));
+                    visitor.AddShaderChunk(result, true);
+                }
+                else
+                {
+                    var result = string.Format("Gradient {0} = {1};"
+                        , GetVariableNameForSlot(OutputSlotId)
+                        , property.referenceName);
+                    visitor.AddShaderChunk(result, true);
+                }
             }
         }
 
