@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option in preferences to toggle the light emission normalization
 
 ### Fixed
+- Fixed HDRI sky intensity lux mode
+- Fixed dynamic resolution for XR
 - Fixed instance identifier semantic string used by Shader Graph
 - Fixed multi-edition light handles and inspector shapes
 - Fixed light's LightLayer field when multi-editing
@@ -24,8 +26,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multi-edition inspector's blend distances for HDReflectionProbe, PlanarReflectionProbe and DensityVolume
 - Fixed metric distance that changed along size in DensityVolume
 - Fixed DensityVolume shape handles that have not same behaviour in advance and normal edition mode
-- Fixed HDRI sky intensity lux mode
-- Fixed dynamic resolution for XR
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
@@ -37,7 +37,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added depth-of-field support with stereo instancing
 - Adding real time area light shadow support
 - Added a new FrameSettings: Specular Lighting to toggle the specular during the rendering
-
 
 ### Fixed
 - Fixed diffusion profile upgrade breaking package when upgrading to a new version
@@ -54,8 +53,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cascade shadows border sometime causing artefacts between cascades
 - Restored shadows in the Cascade Shadow debug visualization
 - `camera.RenderToCubemap` use proper face culling
-
-
 
 ### Changed
 - When rendering reflection probe disable all specular lighting and for metals use fresnelF0 as diffuse color for bake lighting.
