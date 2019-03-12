@@ -642,5 +642,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return sb.ToString();
         }
+
+        public static Color NormalizeColor(Color color)
+        {
+            Vector4 ldrColor = Vector4.Max(color, Vector4.one * 0.0001f);
+            color = (ldrColor / ColorUtils.Luminance(ldrColor));
+            color.a = 1;
+
+            return color;
+        }
     }
 }

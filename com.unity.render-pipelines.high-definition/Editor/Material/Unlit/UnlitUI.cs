@@ -113,6 +113,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.BeginChangeCheck();
                         {
                             DoEmissiveTextureProperty(material, emissiveColorLDR);
+                            emissiveColorLDR.colorValue = NormalizeEmissionColor(ref updateEmissiveColor, emissiveColorLDR.colorValue);
 
                             using (new EditorGUILayout.HorizontalScope())
                             {

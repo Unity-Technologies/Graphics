@@ -887,15 +887,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.BeginChangeCheck();
                         {
                             DoEmissiveTextureProperty(material, emissiveColorLDR);
-                            if (HDRenderPipelinePreferences.materialEmissionColorNormalization)
-                            {
-                                // When enabling the material emission color normalization the ldr color might not be normalized,
-                                // so we need to update the emissive color
-                                if (!Mathf.Approximately(ColorUtils.Luminance(emissiveColorLDR.colorValue), 1))
-                                    updateEmissiveColor = true;
-                                Vector4 ldrColor = Vector4.Max(emissiveColorLDR.colorValue, Vector4.one * 0.0001f);
-                                emissiveColorLDR.colorValue = (Vector4)(ldrColor / ColorUtils.Luminance(ldrColor));
-                            }
+                            emissiveColorLDR.colorValue = NormalizeEmissionColor(ref updateEmissiveColor, emissiveColorLDR.colorValue);
 
                             using (new EditorGUILayout.HorizontalScope())
                             {
