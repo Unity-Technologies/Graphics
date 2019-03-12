@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Update UI for 32bit/16bit shadow precision settings in HDRP asset
 - Object motion vectors have been disabled in all but the game view. Camera motion vectors are still enabled everywhere, allowing TAA and Motion Blur to work on static objects.
+- Enable texture array by default for most rendering code on DX11 and unlock stereo instancing (DX11 only for now)
 
 ## [6.3.0-preview] - 2019-02-18
 
