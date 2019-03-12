@@ -23,7 +23,8 @@ Pass
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 	
 ${VFXBegin:VFXVertexAdditionalProcess}
-o.pos = VFXApplyShadowBias(o.pos);
+float3 posWS = TransformPositionVFXToWorld(vPos);
+VFXApplyShadowBias(o.VFX_VARYING_POSCS, posWS);
 ${VFXEnd}
 
 // Needed for HDRP

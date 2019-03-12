@@ -246,15 +246,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
     for(int idx=t; idx<(TILE_SIZE_CLUSTERED*TILE_SIZE_CLUSTERED); idx+=NR_THREADS)
     {
-        // XRTODO: We need to stereo-ize access to g_depth_tex for texture arrays.
         uint2 uPixCrd = min( uint2(viTilLL.x+(idx&(TILE_SIZE_CLUSTERED-1)), viTilLL.y+(idx>>log2TileSize)), uint2(g_screenSize.x-1, g_screenSize.y-1) );
 
-        // TODO: For stereo double-wide, I need a proper way to insert the second eye width offset. Right now, I can just
-        // use g_screenSize.x, but that's kinda cheating.
-        // Additionally, we're going to have a method to select between a doublewide texture or texture array. Doubling
-        // the kernels seems like a bad idea.  We could branch our texture read to switch between different texture declarations.
-        uint stereoDWOffset = eyeIndex * g_screenSize.x;
-        uPixCrd.x += stereoDWOffset;
 #ifdef MSAA_ENABLED
         for(int i=0; i<g_iNumSamplesMSAA; i++)
         {
@@ -267,8 +260,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
         if(fDpth<VIEWPORT_SCALE_Z)      // if not skydome
         {
-			// unclear here if stereoDWOffset is taken into account in g_mInvScrProjectionArr[eyeIndex] used in GetLinearDepth()
-			// otherwise it should not be included in uPixCrd when querying GetLinearDepth().
 			float linZ = GetLinearDepth(uPixCrd+fracSampleCoord, fDpth, eyeIndex);
 #if USE_LEFT_HAND_CAMERA_SPACE
 			float linDistZ = linZ;

@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
-
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Let customizable actions inject commands to capture the camera output.
@@ -13,30 +8,28 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     /// </summary>
     internal class CapturePass : ScriptableRenderPass
     {
-        const string k_CaptureTag = "Capture Pass";
-
-        private RenderTargetHandle colorAttachmentHandle { get; set; }
-        private IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > captureActions { get; set; }
+        RenderTargetHandle m_CameraColorHandle;
+        const string m_ProfilerTag = "Capture Pass";
+        public CapturePass(RenderPassEvent evt)
+        {
+            renderPassEvent = evt;
+        }
 
         /// <summary>
         /// Configure the pass
         /// </summary>
         /// <param name="actions"></param>
-        public bool Setup(RenderTargetHandle colorAttachmentHandle, IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > actions)
+        public void Setup(RenderTargetHandle colorHandle)
         {
-            this.colorAttachmentHandle = colorAttachmentHandle;
-            captureActions = actions;
-            return captureActions != null;
+            m_CameraColorHandle = colorHandle;
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-
-            CommandBuffer cmdBuf = CommandBufferPool.Get(k_CaptureTag);
-            var colorAttachmentIdentifier = colorAttachmentHandle.Identifier();
+            CommandBuffer cmdBuf = CommandBufferPool.Get(m_ProfilerTag);
+            var colorAttachmentIdentifier = m_CameraColorHandle.Identifier();
+            var captureActions = renderingData.cameraData.captureActions;
             for (captureActions.Reset(); captureActions.MoveNext();)
                 captureActions.Current(colorAttachmentIdentifier, cmdBuf);
 

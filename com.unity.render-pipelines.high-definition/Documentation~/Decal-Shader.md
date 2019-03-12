@@ -40,4 +40,4 @@ These properties allow you to change the rendering behavior of the decal.
 
 ### HDRP Asset properties
 
-You can edit global settings that apply to all decals in your Scene in your Unity Project’s HDRP Asset. For information on these properties, see the (**Decals** section of the HDRP Asset documentation](HDRP-Asset#Decals).
+You can edit global settings that apply to all decals in your Scene in your Unity Project’s HDRP Asset. For information on these properties, see the (**Decals** section of the HDRP Asset documentation](HDRP-Asset.html#Decals).

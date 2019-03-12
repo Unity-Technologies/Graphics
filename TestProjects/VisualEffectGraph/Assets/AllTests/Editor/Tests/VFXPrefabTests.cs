@@ -95,8 +95,137 @@ namespace UnityEditor.VFX.Test
             return mainObject;
         }
 
-        static readonly bool k_HasFixed_DisabledState = false;
-        static readonly bool k_HasFixed_PrefabOverride = false;
+        static readonly bool k_HasFixed_Several_PrefabOverride = false;
+
+        [UnityTest]
+        public IEnumerator Create_Prefab_Several_Override()
+        {
+            var graph = MakeTemporaryGraph();
+            var parametersIntDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(int)).First();
+
+            Func<VisualEffect, string> dumpPropertySheetInteger = delegate(VisualEffect target)
+            {
+                var r = "{";
+
+                var editor = Editor.CreateEditor(target);
+                editor.serializedObject.Update();
+
+                var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
+                var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(VFXValueType.Int32)) + ".m_Array";
+                var vfxField = propertySheet.FindPropertyRelative(fieldName);
+
+                for(int i = 0; i < vfxField.arraySize; ++i)
+                {
+                    var itField = vfxField.GetArrayElementAtIndex(i);
+                    var name = itField.FindPropertyRelative("m_Name").stringValue;
+                    var value = itField.FindPropertyRelative("m_Value").intValue;
+                    var overridden = itField.FindPropertyRelative("m_Overridden").boolValue;
+
+                    r += string.Format("({0}, {1}, {2})", name, value, overridden);
+                    if (i != vfxField.arraySize - 1)
+                        r += ", ";
+                }
+
+                GameObject.DestroyImmediate(editor);
+                r += "}";
+                return r;
+            };
+
+            var log = string.Empty;
+            var exposedProperties = new[] { "a", "b", "c" };
+            for (var i = 0; i < exposedProperties.Length; ++i)
+            {
+                var parameter = parametersIntDesc.CreateInstance();
+                parameter.SetSettingValue("m_exposedName", exposedProperties[i]);
+                parameter.SetSettingValue("m_exposed", true);
+                parameter.value = i + 1;
+                graph.AddChild(parameter);
+            }
+            graph.RecompileIfNeeded();
+
+            var mainObject = MakeTemporaryGameObject();
+            var vfx = mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+
+            GameObject newGameObject, prefabInstanceObject;
+            MakeTemporaryPrebab(mainObject, out newGameObject, out prefabInstanceObject);
+            GameObject.DestroyImmediate(mainObject);
+            yield return null;
+
+            var currentPrefabInstanceObject = PrefabUtility.InstantiatePrefab(prefabInstanceObject) as GameObject;
+
+            var overridenParametersInScene = new[] { new { name = "b", value = 666 }, new { name = "a", value = 444 } };
+            var overridenParametersInPrefab = new[] { new { name = "c", value = -123 } };
+
+            log += "Initial Sheet\n";
+            log += "Prefab : " + dumpPropertySheetInteger(prefabInstanceObject.GetComponent<VisualEffect>()) + "\n";
+            log += "Instance  : " + dumpPropertySheetInteger(currentPrefabInstanceObject.GetComponent<VisualEffect>()) + "\n";
+            yield return null;
+
+            foreach (var overridenParameter in overridenParametersInScene)
+            {
+                currentPrefabInstanceObject.GetComponent<VisualEffect>().SetInt(overridenParameter.name, overridenParameter.value);
+            }
+
+            log += "\nIntermediate Sheet\n";
+            log += "Prefab : " + dumpPropertySheetInteger(prefabInstanceObject.GetComponent<VisualEffect>()) + "\n";
+            log += "Instance  : " + dumpPropertySheetInteger(currentPrefabInstanceObject.GetComponent<VisualEffect>()) + "\n";
+            yield return null;
+
+            foreach (var overridenParameter in overridenParametersInPrefab)
+            {
+                prefabInstanceObject.GetComponent<VisualEffect>().SetInt(overridenParameter.name, overridenParameter.value);
+            }
+
+            yield return null;
+
+            log += "\nEnd Sheet\n";
+            log += "Prefab : " + dumpPropertySheetInteger(prefabInstanceObject.GetComponent<VisualEffect>()) + "\n";
+            log += "Instance  : " + dumpPropertySheetInteger(currentPrefabInstanceObject.GetComponent<VisualEffect>()) + "\n";
+
+            var stringFormat = @"({0} : {1}) ";
+            var expectedValues = string.Empty;
+            for (var i = 0; i < exposedProperties.Length; ++i)
+            {
+                var expectedValue = i;
+                var expectedName = exposedProperties[i];
+                var overrideInPrefab = overridenParametersInPrefab.FirstOrDefault(o => o.name == exposedProperties[i]);
+                var overrideInScene = overridenParametersInScene.FirstOrDefault(o => o.name == exposedProperties[i]);
+
+                if (overrideInPrefab != null)
+                {
+                    expectedValue = overrideInPrefab.value;
+                }
+
+                if (overrideInScene != null)
+                {
+                    expectedValue = overrideInScene.value;
+                }
+
+                expectedValues += string.Format(stringFormat, expectedName, expectedValue);
+            }
+
+            var actualValues = string.Empty;
+            for (var i = 0; i < exposedProperties.Length; ++i)
+            {
+                var expectedName = exposedProperties[i];
+                var actualValue = currentPrefabInstanceObject.GetComponent<VisualEffect>().GetInt(expectedName);
+                actualValues += string.Format(stringFormat, expectedName, actualValue);
+            }
+
+            if (k_HasFixed_Several_PrefabOverride)
+            {
+                Assert.AreEqual(expectedValues, actualValues, log);
+            }
+            else
+            {
+                Assert.AreNotEqual(expectedValues, actualValues, log); //Did you fixed it ? Should enable this test : k_HasFixed_Several_PrefabOverride
+            }
+            yield return null;
+        }
+
+        static readonly bool k_HasFixed_DisabledState = true;
+        static readonly bool k_HasFixed_PrefabOverride = true;
 
         /* Follow "Known issue : " <= This test has been added to cover a future fix in vfx behavior */
         [UnityTest]

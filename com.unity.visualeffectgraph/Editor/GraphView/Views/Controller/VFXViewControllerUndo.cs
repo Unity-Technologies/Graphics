@@ -122,11 +122,8 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            if (cause != VFXModel.InvalidationCause.kStructureChanged &&
-                cause != VFXModel.InvalidationCause.kConnectionChanged &&
-                cause != VFXModel.InvalidationCause.kParamChanged &&
-                cause != VFXModel.InvalidationCause.kSettingChanged &&
-                cause != VFXModel.InvalidationCause.kUIChanged)
+            if (cause == VFXModel.InvalidationCause.kExpressionInvalidated &&   // Ignore invalidation which doesn't modify model
+                cause == VFXModel.InvalidationCause.kExpressionGraphChanged)
                 return;
 
             if (m_reentrant)

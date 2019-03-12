@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional]                                                              Vector4 texCoord2;
             [Optional]                                                              Vector4 texCoord3;
             [Optional]                                                              Vector4 color;
-            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")]     uint instanceID;
+            [Semantic("CUSTOM_INSTANCE_ID")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
             [Optional][Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("SHADER_STAGE_FRAGMENT")] bool cullFace;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
@@ -76,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional]      Vector4 texCoord2;
             [Optional]      Vector4 texCoord3;
             [Optional]      Vector4 color;
-            [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
+            [Semantic("CUSTOM_INSTANCE_ID")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
             {

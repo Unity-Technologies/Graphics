@@ -179,18 +179,6 @@ uint GetTileSize()
     return TILE_SIZE_CLUSTERED;
 }
 
-float GetLightClusterMinLinearDepth(uint2 tileIndex, uint clusterIndex)
-{
-    float logBase = g_fClustBase;
-    if (g_isLogBaseBufferEnabled)
-    {
-        // XRTODO: Stereo-ize access to g_logBaseBuffer
-        logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
-    }
-
-    return ClusterIdxToZFlex(clusterIndex, logBase, g_isLogBaseBufferEnabled != 0);
-}
-
 uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
 {
     float logBase = g_fClustBase;

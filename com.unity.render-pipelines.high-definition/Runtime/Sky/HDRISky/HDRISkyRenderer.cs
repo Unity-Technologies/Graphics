@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             float luxMultiplier = m_HdriSkyParams.desiredLuxValue.value / m_HdriSkyParams.upperHemisphereLuxValue.value;
             float multiplier = (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Exposure) ? m_HdriSkyParams.multiplier.value : luxMultiplier;
-            float exposure = (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Exposure) ? GetExposure(m_HdriSkyParams, builtinParams.debugSettings) : 0;
+            float exposure = (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Exposure) ? GetExposure(m_HdriSkyParams, builtinParams.debugSettings) : 1;
             float phi = Mathf.Deg2Rad * -m_HdriSkyParams.rotation; // -rotation to match Legacy...
 
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.hdriSky);

@@ -33,7 +33,7 @@ Pass
 #define VFX_VARYING_FACEID faceID
 		
 ${VFXBegin:VFXVertexAdditionalProcess}
-o.pos = VFXApplyShadowBias(o.pos);
+VFXApplyShadowBias(o.VFX_VARYING_POSCS, vPosWS);
 ${VFXEnd}
 
 // Needed for HDRP

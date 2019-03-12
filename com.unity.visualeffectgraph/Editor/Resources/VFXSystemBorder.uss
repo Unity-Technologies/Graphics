@@ -1,6 +1,6 @@
 * Label#title, * TextField#title-field
 {
-    font:resource("GraphView/DummyFont(LucidaGrande).ttf");
+    -unity-font: resource("GraphView/DummyFont(LucidaGrande).ttf");
 }
 
 VFXSystemBorder.graphElement
@@ -8,8 +8,7 @@ VFXSystemBorder.graphElement
     --start-color:#17AB6A;
     --middle-color:#BF9220;
     --end-color:#C24F30;
-    border-width: 6;
-    border: 6;
+    border-width: 6px;
     opacity:0.25;
     flex-direction:column;
     align-items:stretch;
@@ -18,18 +17,18 @@ VFXSystemBorder.graphElement
 
 VFXSystemBorder.graphElement Label
 {
-    border-top-width:1;
-    border-left-width:1;
-    border-right-width:1;
-    border-bottom-width:1;
-    border-top: 1;
-    border-left: 1;
-    border-right: 1;
-    border-bottom: 1;
-    margin-left:12;
-    margin-right:12;
-    margin-top:1;
-    margin-bottom:1;
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    margin-left: 12px;
+    margin-right: 12px;
+    margin-top: 1px;
+    margin-bottom: 1px;
     padding-left:0;
     padding-right:0;
 }
@@ -42,13 +41,13 @@ VFXSystemBorder.graphElement Label:hover
 
 #title-field
 {
-    position-type:absolute;
+    position: absolute;
 }
 
 #title, #title-field
 {
-    font-size:48;
-    word-wrap: true;
+    font-size: 48px;
+    white-space: normal;
 }
 
 #title
@@ -59,7 +58,7 @@ VFXSystemBorder.graphElement Label:hover
 
 #title.empty
 {
-    height : 12;
+    height : 12px;
 }
 
 VFXSystemBorder.graphElement TextField#title-field
@@ -72,7 +71,7 @@ VFXSystemBorder.graphElement TextField#title-field
     margin-right:0;
     margin-top:0;
     margin-bottom:0;
-    border-top-width:1;
+    border-top-width: 1px;
     background-color:#000;
-    position-type:absolute;
+    position: absolute;
 }
