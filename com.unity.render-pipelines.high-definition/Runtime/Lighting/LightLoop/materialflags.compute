@@ -16,8 +16,8 @@
 
 #define USE_MATERIAL_FEATURE_FLAGS
 
-#if PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
-#define NR_THREADS              PLATFORM_THREAD_GROUP_OPTIMAL_SIZE  // use platform optimal thread group size if possible
+#ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
+#define NR_THREADS              PLATFORM_LANE_COUNT  
 #else
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
