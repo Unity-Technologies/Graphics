@@ -210,7 +210,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
         
         [SerializeField]
-        HDRenderQueue.RenderQueueType m_RenderingPass = HDRenderQueue.RenderQueueType.Unknown;
+        HDRenderQueue.RenderQueueType m_RenderingPass = HDRenderQueue.RenderQueueType.Opaque;
 
         public HDRenderQueue.RenderQueueType renderingPass
         {
