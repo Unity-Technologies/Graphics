@@ -68,7 +68,7 @@ float4 RemapMasks(float4 masks, float blendMask, float4 remapOffset, float4 rema
     SAMPLER(OVERRIDE_SPLAT_SAMPLER_NAME);
 #endif
 
-void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, out float3 outAlbedo, out float3 outNormalData, out float outSmoothness, out float outMetallic, out float outAO)
+void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSurfaceData surfaceData)
 {
     // TODO: triplanar
     // TODO: POM
@@ -209,23 +209,23 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, out float3 outAlbed
         weights[7] = blendMasks1.w;
     #endif
 
-    outAlbedo = 0;
-    outNormalData = 0;
+    surfaceData.albedo = 0;
+    surfaceData.normalData = 0;
     float3 outMasks = 0;
     UNITY_UNROLL for (int i = 0; i < _LAYER_COUNT; ++i)
     {
-        outAlbedo += albedo[i].rgb * weights[i];
-        outNormalData += normal[i].rgb * weights[i]; // no need to normalize
+        surfaceData.albedo += albedo[i].rgb * weights[i];
+        surfaceData.normalData += normal[i].rgb * weights[i]; // no need to normalize
         outMasks += masks[i].xyw * weights[i];
     }
-    outSmoothness = outMasks.z;
-    outMetallic = outMasks.x;
-    outAO = outMasks.y;
+    surfaceData.smoothness = outMasks.z;
+    surfaceData.metallic = outMasks.x;
+    surfaceData.ao = outMasks.y;
 }
 
-void TerrainLitShade(float2 uv, out float3 outAlbedo, out float3 outNormalData, out float outSmoothness, out float outMetallic, out float outAO)
+void TerrainLitShade(float2 uv, inout TerrainLitSurfaceData surfaceData)
 {
-    TerrainSplatBlend(uv, uv, outAlbedo, outNormalData, outSmoothness, outMetallic, outAO);
+    TerrainSplatBlend(uv, uv, surfaceData);
 }
 
 void TerrainLitDebug(float2 uv, inout float3 baseColor)
