@@ -1,7 +1,4 @@
-﻿#define DEBUG_SLICES
-#undef DEBUG_SLICES
-
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -169,20 +166,6 @@ namespace UnityEditor.VFX.Utils
 				camera.AddCommandBuffer( CameraEvent.AfterEverything, cmd);
 				
 				camera.Render();
-
-#if DEBUG_SLICES
-				string textureOutput = System.IO.Path.Combine(Application.dataPath, "Debug/debug_"+z+".png");
-				RenderTexture previous = RenderTexture.active;
-				RenderTexture.active = renderTexture;
-				camera.Render();
-				Texture2D tex = new Texture2D(renderTexture.width, renderTexture.height );
-				tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-				RenderTexture.active = previous;
-				tex.Apply();
-				var bytes = ImageConversion.EncodeToPNG(tex);
-				
-				System.IO.File.WriteAllBytes(textureOutput, bytes);
-#endif
 
 				
 				computeShader.SetFloat("zValue", Mathf.Lerp(voxelBounds.min.z, voxelBounds.max.z, (float)z / m_voxelsCount.z));
