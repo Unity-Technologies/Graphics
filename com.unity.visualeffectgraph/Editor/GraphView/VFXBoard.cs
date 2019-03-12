@@ -176,9 +176,24 @@ namespace UnityEditor.VFX.UI
         {
             BoardPreferenceHelper.SavePosition(m_Board, GetPosition());
         }
+        bool validatingPosition = false;
         public void ValidatePosition()
         {
-            BoardPreferenceHelper.ValidatePosition(this, m_View, m_DefaultRect);
+            if (resolvedStyle.width > 0)
+            {
+                BoardPreferenceHelper.ValidatePosition(this, m_View, m_DefaultRect);
+                validatingPosition = false;
+            }
+            else if (!validatingPosition)
+            {
+                validatingPosition = true;
+                schedule.Execute(() =>
+                {
+                    validatingPosition = false;
+                    ValidatePosition();
+                }
+                ).ExecuteLater(0);
+            }
         }
 
         public void OnMoved()

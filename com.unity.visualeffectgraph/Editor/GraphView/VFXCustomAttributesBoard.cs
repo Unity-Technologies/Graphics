@@ -218,7 +218,7 @@ namespace UnityEditor.VFX.UI
 
         ReorderableList m_List;
 
-        static readonly Rect defaultRect = new Rect(300, 100, 300, 300);
+        static readonly Rect defaultRect = new Rect(200, 200, 300, 300);
         public VFXCustomAttributesBoard(VFXView view):base(view,BoardPreferenceHelper.Board.customAttributeBoard,defaultRect)
         {
             title = "Custom Attributes";

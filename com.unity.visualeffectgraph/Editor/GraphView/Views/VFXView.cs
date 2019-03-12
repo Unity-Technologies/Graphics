@@ -314,13 +314,16 @@ namespace UnityEditor.VFX.UI
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
             if (blackboardVisible)
                 Add(m_Blackboard);
+            m_Blackboard.ValidatePosition();
+            
+
             toggleBlackboard.value = blackboardVisible;
 
-/*
+            
             bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false);
             if (componentBoardVisible)
                 ShowComponentBoard();
-            toggleComponentBoard.value = componentBoardVisible;*/
+            m_ToggleComponentBoard.value = componentBoardVisible;
 
             bool customAttributeBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.customAttributeBoard, false);
             if (customAttributeBoardVisible)
@@ -341,8 +344,6 @@ namespace UnityEditor.VFX.UI
             Undo.undoRedoPerformed = OnUndoPerformed;
 
             viewDataKey = "VFXView";
-
-            RegisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
         public void SetBoardToFront(GraphElement board)
@@ -365,8 +366,8 @@ namespace UnityEditor.VFX.UI
             {
                 Insert(childCount - 1, m_Blackboard);
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
-                m_Blackboard.RegisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
                 m_Blackboard.style.position = PositionType.Absolute;
+                m_Blackboard.ValidatePosition();
             }
             else
             {
@@ -387,7 +388,14 @@ namespace UnityEditor.VFX.UI
 
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, true);
 
-            m_ComponentBoard.RegisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
+            if (m_ComponentBoard.resolvedStyle.width > 0)
+            {
+                m_ComponentBoard.ValidatePosition();
+            }
+            else
+            {
+                schedule.Execute(() => m_ComponentBoard.ValidatePosition()).ExecuteLater(0);
+            }
 
             m_ToggleComponentBoard.SetValueWithoutNotify(true);
         }
@@ -404,49 +412,14 @@ namespace UnityEditor.VFX.UI
 
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.customAttributeBoard, true);
 
-            m_CustomAttributeBoard.RegisterCallback<GeometryChangedEvent>(OnCustomAttributeBoardGeometryChanged);
-        }
-
-        void OnFirstComponentBoardGeometryChanged(GeometryChangedEvent e)
-        {
-            if (m_FirstResize)
-            {
-                m_ComponentBoard.ValidatePosition();
-                m_ComponentBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
-            }
-        }
-
-        void OnCustomAttributeBoardGeometryChanged(GeometryChangedEvent e)
-        {
-            if (m_FirstResize)
+            if (m_CustomAttributeBoard.resolvedStyle.width > 0)
             {
                 m_CustomAttributeBoard.ValidatePosition();
-                m_CustomAttributeBoard.UnregisterCallback<GeometryChangedEvent>(OnCustomAttributeBoardGeometryChanged);
             }
-        }
-
-        void OnFirstBlackboardGeometryChanged(GeometryChangedEvent e)
-        {
-            if (m_FirstResize)
+            else
             {
-                m_Blackboard.ValidatePosition();
-                m_Blackboard.UnregisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
+                schedule.Execute(() => m_CustomAttributeBoard.ValidatePosition()).ExecuteLater(0);
             }
-        }
-
-        public bool m_FirstResize = false;
-
-        void OnFirstResize(GeometryChangedEvent e)
-        {
-            m_FirstResize = true;
-            if (m_ComponentBoard != null)
-                m_ComponentBoard.ValidatePosition();
-            if (m_CustomAttributeBoard != null)
-                m_CustomAttributeBoard.ValidatePosition();
-            if (m_Blackboard != null)
-                m_Blackboard.ValidatePosition();
-
-            UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
         Toggle m_ToggleComponentBoard;

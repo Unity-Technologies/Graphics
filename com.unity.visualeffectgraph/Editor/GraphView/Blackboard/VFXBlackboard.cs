@@ -278,9 +278,25 @@ namespace  UnityEditor.VFX.UI
             SetDragIndicatorVisible(false);
         }
 
+
+        bool validatingPosition = false;
         public void ValidatePosition()
         {
-            BoardPreferenceHelper.ValidatePosition(this, m_View, defaultRect);
+            if (resolvedStyle.width > 0)
+            {
+                BoardPreferenceHelper.ValidatePosition(this, m_View, defaultRect);
+                validatingPosition = false;
+            }
+            else if (!validatingPosition)
+            {
+                validatingPosition = true;
+                schedule.Execute(() =>
+                {
+                    validatingPosition = false;
+                    ValidatePosition();
+                }
+                ).ExecuteLater(0);
+            }
         }
 
         static readonly Rect defaultRect = new Rect(100, 100, 300, 500);

@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.UI
 
         VisualElement m_ComponentContainerParent;
 
-        static readonly Rect defaultRect = new Rect(200, 100, 300, 300);
+        static readonly Rect defaultRect = new Rect(150, 150, 300, 300);
 
         void OnMouseClick(MouseDownEvent e)
         {
