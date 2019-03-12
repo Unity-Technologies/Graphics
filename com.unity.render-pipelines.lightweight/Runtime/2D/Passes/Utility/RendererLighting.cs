@@ -387,8 +387,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static void SetBlendModes(Material material, BlendMode src, BlendMode dst)
         {
-            material.SetFloat("_SrcBlend", (float)BlendMode.One);
-            material.SetFloat("_DstBlend", (float)BlendMode.One);
+            material.SetFloat("_SrcBlend", (float)src);
+            material.SetFloat("_DstBlend", (float)dst);
         }
 
         static Material GetShapeLightMaterial(Light2D light)
