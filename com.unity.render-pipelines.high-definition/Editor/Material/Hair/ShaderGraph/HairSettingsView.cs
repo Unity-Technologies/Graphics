@@ -145,27 +145,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 --indentLevel;
             }
 
-            if (m_Node.surfaceType != SurfaceType.Transparent)
-            {
-                ps.Add(new PropertyRow(CreateLabel("Subsurface Scattering", indentLevel)), (row) =>
-                {
-                    row.Add(new Toggle(), (toggle) =>
-                    {
-                        toggle.value = m_Node.subsurfaceScattering.isOn;
-                        toggle.OnToggleChanged(ChangeSubsurfaceScattering);
-                    });
-                });
-            }
-
-            ps.Add(new PropertyRow(CreateLabel("Transmission", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.transmission.isOn;
-                    toggle.OnToggleChanged(ChangeTransmission);
-                });
-            });
-
             ps.Add(new PropertyRow(CreateLabel("Receive Decals", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -239,22 +218,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
             m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
-        }
-
-        void ChangeTransmission(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Transmission Change");
-            ToggleData td = m_Node.transmission;
-            td.isOn = evt.newValue;
-            m_Node.transmission = td;
-        }
-
-        void ChangeSubsurfaceScattering(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Subsurface Scattering Change");
-            ToggleData td = m_Node.subsurfaceScattering;
-            td.isOn = evt.newValue;
-            m_Node.subsurfaceScattering = td;
         }
 
         void ChangeBlendMode(ChangeEvent<Enum> evt)
@@ -408,7 +371,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                         Debug.LogWarning("Not supported: " + alphaModeLit);
                         return AlphaMode.Alpha;
                     }
-                    
+
             }
         }
 
@@ -426,7 +389,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     {
                         Debug.LogWarning("Not supported: " + alphaMode);
                         return HairMasterNode.AlphaModeLit.Alpha;
-                    }                    
+                    }
             }
         }
     }

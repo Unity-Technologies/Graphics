@@ -36,14 +36,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string HairStrandDirectionSlotName = "HairStrandDirection";
         public const int HairStrandDirectionSlotId = 5;
 
-        public const string SubsurfaceMaskSlotName = "SubsurfaceMask";
-        public const int SubsurfaceMaskSlotId = 6;
+        public const int UnusedSlot6 = 6;
 
-        public const string ThicknessSlotName = "Thickness";
-        public const int ThicknessSlotId = 7;
+        public const string TransmittanceSlotName = "Transmittance";
+        public const int TransmittanceSlotId = 7;
 
-        public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
-        public const int DiffusionProfileHashSlotId = 8;
+        public const int UnusedSlot8 = 8;
 
         public const string SmoothnessSlotName = "Smoothness";
         public const int SmoothnessSlotId = 9;
@@ -122,9 +120,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SpecularOcclusion = 1 << SpecularOcclusionSlotId,
             BentNormal = 1 << BentNormalSlotId,
             HairStrandDirection = 1 << HairStrandDirectionSlotId,
-            SubsurfaceMask = 1 << SubsurfaceMaskSlotId,
-            Thickness = 1 << ThicknessSlotId,
-            DiffusionProfile = 1 << DiffusionProfileHashSlotId,
+            Slot6 = 1 << UnusedSlot6,
+            Transmittance = 1 << TransmittanceSlotId,
+            Slot8 = 1 << UnusedSlot8,
             Smoothness = 1 << SmoothnessSlotId,
             Occlusion = 1 << AmbientOcclusionSlotId,
             Emission = 1 << EmissionSlotId,
@@ -142,8 +140,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BakedBackGI = 1 << BackLightingSlotId
         }
 
-        const SlotMask KajiyaKaySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.BentNormal | SlotMask.HairStrandDirection | SlotMask.SubsurfaceMask 
-                                            | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass 
+        const SlotMask KajiyaKaySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.BentNormal | SlotMask.HairStrandDirection | SlotMask.Slot6
+                                            | SlotMask.Transmittance | SlotMask.Slot8 | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass
                                                 | SlotMask.AlphaClipThresholdDepthPostpass | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.SecondarySpecularTint | SlotMask.SecondarySmoothness | SlotMask.SecondarySpecularShift | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI;
 
         // This could also be a simple array. For now, catch any mismatched data.
@@ -460,38 +458,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        bool m_Transmission = false;
-
-        public ToggleData transmission
-        {
-            get { return new ToggleData(m_Transmission); }
-            set
-            {
-                if (m_Transmission == value.isOn)
-                    return;
-                m_Transmission = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        bool m_SubsurfaceScattering = false;
-
-        public ToggleData subsurfaceScattering
-        {
-            get { return new ToggleData(m_SubsurfaceScattering); }
-            set
-            {
-                if (m_SubsurfaceScattering == value.isOn)
-                    return;
-                m_SubsurfaceScattering = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
         SpecularOcclusionMode m_SpecularOcclusionMode;
 
         public SpecularOcclusionMode specularOcclusionMode
@@ -504,22 +470,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 m_SpecularOcclusionMode = value;
                 UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        int m_DiffusionProfile;
-
-        public int diffusionProfile
-        {
-            get { return m_DiffusionProfile; }
-            set
-            {
-                if (m_DiffusionProfile == value)
-                    return;
-
-                m_DiffusionProfile = value;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -592,20 +542,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 AddSlot(new Vector1MaterialSlot(AmbientOcclusionSlotId, AmbientOcclusionDisplaySlotName, AmbientOcclusionSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(AmbientOcclusionSlotId);
             }
-            if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile) && (subsurfaceScattering.isOn || transmission.isOn))
+            if (MaterialTypeUsesSlotMask(SlotMask.Transmittance))
             {
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
-                validSlots.Add(DiffusionProfileHashSlotId);
-            }
-            if (MaterialTypeUsesSlotMask(SlotMask.SubsurfaceMask) && subsurfaceScattering.isOn)
-            {
-                AddSlot(new Vector1MaterialSlot(SubsurfaceMaskSlotId, SubsurfaceMaskSlotName, SubsurfaceMaskSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(SubsurfaceMaskSlotId);
-            }
-            if (MaterialTypeUsesSlotMask(SlotMask.Thickness) && transmission.isOn)
-            {
-                AddSlot(new Vector1MaterialSlot(ThicknessSlotId, ThicknessSlotName, ThicknessSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(ThicknessSlotId);
+                AddSlot(new Vector1MaterialSlot(TransmittanceSlotId, TransmittanceSlotName, TransmittanceSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
+                validSlots.Add(TransmittanceSlotId);
             }
             if (MaterialTypeUsesSlotMask(SlotMask.HairStrandDirection))
             {
@@ -737,11 +677,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
-        }
-
-        public bool RequiresSplitLighting()
-        {
-            return subsurfaceScattering.isOn;
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)

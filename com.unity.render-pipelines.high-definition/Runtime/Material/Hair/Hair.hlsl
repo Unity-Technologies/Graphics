@@ -3,9 +3,6 @@
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in Hair.cs which generates Hair.cs.hlsl
 #include "Hair.cs.hlsl"
-// Those define allow to include desired SSS/Transmission functions
-#define MATERIAL_INCLUDE_SUBSURFACESCATTERING
-#define MATERIAL_INCLUDE_TRANSMISSION
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
@@ -46,7 +43,7 @@ float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
 
 bool MaterialSupportsTransmission(BSDFData bsdfData)
 {
-    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_TRANSMISSION);
+    return true;
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -119,17 +116,6 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     return normalData;
 }
 
-SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
-{
-    SSSData sssData;
-
-    sssData.diffuseColor = surfaceData.diffuseColor;
-    sssData.subsurfaceMask = surfaceData.subsurfaceMask;
-    sssData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
-
-    return sssData;
-}
-
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -157,24 +143,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     // This value will be override by the value in diffusion profile
-    bsdfData.fresnel0 = DEFAULT_HAIR_SPECULAR_VALUE;
-
-    // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
-    // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
-    
-    bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
-
-    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_SUBSURFACE_SCATTERING))
-    {
-        // Assign profile id and overwrite fresnel0
-        FillMaterialSSS(bsdfData.diffusionProfileIndex, surfaceData.subsurfaceMask, bsdfData);
-    }
-
-    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_TRANSMISSION))
-    {
-        // Assign profile id and overwrite fresnel0
-        FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, bsdfData);
-    }
+    bsdfData.fresnel0      = DEFAULT_HAIR_SPECULAR_VALUE;
+    bsdfData.transmittance = surfaceData.transmittance;
 
     // This is the hair tangent (which represents the hair strand direction, root to tip).
     bsdfData.hairStrandDirectionWS = surfaceData.hairStrandDirectionWS;
@@ -329,16 +299,9 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR)
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_TRANSMISSION))
     {
         // TODO: re-enable once transmittance is not 1.
         //builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
-    }
-
-    // For SSS we need to take into account the state of diffuseColor 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_SUBSURFACE_SCATTERING))
-    {
-        bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
     }
 
     // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
@@ -742,15 +705,10 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
-    // Subsurface scattering mode
-    float3 modifiedDiffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
-
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
-    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
+    diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
-
-    // TODO: Multiscattering for cloth?
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);

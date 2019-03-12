@@ -39,4 +39,5 @@
     uint _CookieSizePOT;
     int _RaytracedAreaShadow;
 
+
 #endif

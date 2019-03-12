@@ -33,8 +33,6 @@ Pass
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
     $Material.KajiyaKay:                #define _MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1
-    /* Always on */                     #define _MATERIAL_FEATURE_TRANSMISSION 1
-    $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
     $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
     $BlendMode.Alpha:                   #define _BLENDMODE_ALPHA 1
     $BlendMode.Add:                     #define _BLENDMODE_ADD 1
@@ -59,11 +57,6 @@ Pass
     #pragma vertex Vert
     #pragma fragment Frag
 
-    // If we use subsurface scattering, enable output split lighting (for forward pass)
-    #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    #define OUTPUT_SPLIT_LIGHTING
-    #endif
-    
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
@@ -113,7 +106,9 @@ Pass
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
+    #define MATERIAL_INCLUDE_TRANSMISSION // temp hack
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+    #undef  MATERIAL_INCLUDE_TRANSMISSION // temp hack
 #else
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
 #endif
@@ -181,11 +176,9 @@ $include("SharedCode.template.hlsl")
         // copy across graph values, if defined
         $SurfaceDescription.Albedo:                         surfaceData.diffuseColor =                  surfaceDescription.Albedo;
         $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
-        $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;        
+        $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;
         $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
-        $SurfaceDescription.DiffusionProfileHash:           surfaceData.diffusionProfileHash =          asuint(surfaceDescription.DiffusionProfileHash);
-        $SurfaceDescription.SubsurfaceMask:                 surfaceData.subsurfaceMask =                surfaceDescription.SubsurfaceMask;
-        $SurfaceDescription.Thickness:                      surfaceData.thickness =                     surfaceDescription.Thickness;
+        $SurfaceDescription.Transmittance:                  surfaceData.transmittance =                 surfaceDescription.Transmittance;
 
         $SurfaceDescription.SpecularTint:                   surfaceData.specularTint =                  surfaceDescription.SpecularTint;
         $SurfaceDescription.SpecularShift:                  surfaceData.specularShift =                 surfaceDescription.SpecularShift;
@@ -199,17 +192,9 @@ $include("SharedCode.template.hlsl")
 
         // Transform the preprocess macro into a material feature
 #ifdef _MATERIAL_FEATURE_HAIR_KAJIYA_KAY
-        surfaceData.materialFeatures = MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
 #endif
-
-#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_SUBSURFACE_SCATTERING;
-#endif
-
-#ifdef _MATERIAL_FEATURE_TRANSMISSION
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_TRANSMISSION;
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS;
-#endif
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS; // Remove
 
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
         $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
