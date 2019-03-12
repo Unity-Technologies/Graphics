@@ -141,7 +141,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.EndDisabledGroup();
                     }
                     foreach (var prop in customProperties)
-                        m_MaterialEditor.DefaultShaderProperty(prop, prop.displayName);
+                        m_MaterialEditor.ShaderProperty(prop, prop.displayName);
                 }
             }
         }
