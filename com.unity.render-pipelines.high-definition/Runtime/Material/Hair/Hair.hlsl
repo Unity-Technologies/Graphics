@@ -349,13 +349,12 @@ float3 D_KajiyaKay(float3 T, float3 H, float specularExponent)
     float dirAttn = saturate(TdotH + 1.0); // Evgenii: this seems like a hack? Do we really need this?
 
     // Note: Kajiya-Kay is not energy conserving.
-    // I attempt at least some energy conservation by approximately normalizing Blinn-Phong.
-    // This is not the exact normalization factor.
-    // The exact one is (n + 2) * (n + 4) / (8 * Pi * (n + pow(2, -0.5 * n))).
+    // We attempt at least some energy conservation by approximately normalizing Blinn-Phong NDF.
+    // We use the formulation with the NdotL.
+    // See http://www.thetenthplanet.de/archives/255.
     float n    = specularExponent;
-    float norm = (n + 7) * rcp(8 * PI);
+    float norm = (n + 2) * rcp(2 * PI);
 
-    // pow(x, n) = pow(x^2, 0.5 * n).
     return dirAttn * norm * PositivePow(sinTHSq, 0.5 * n);
 }
 
@@ -406,12 +405,18 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, float NdotL, PreLightData preLightData, 
     #else
         // Double-sided Lambert.
         cbxdf.diffR = Lambert() * saturate(NdotL);
-        // Morten's rim lighting hack.
-        cbxdf.diffT = Lambert() * pow(saturate(-LdotV), 3.0) * pow(1 - preLightData.NdotV * preLightData.NdotV, 5.0);
     #endif
-        // Split away & kill spec trans as artists don't like it.
-        cbxdf.specR = F * (hairSpec1 + hairSpec2) * saturate(NdotL) * saturate(preLightData.NdotV * FLT_MAX);
-        cbxdf.specT = 0;
+        // (G / NdotV) = 1.
+        cbxdf.specR = 0.25 * F * (hairSpec1 + hairSpec2) * saturate(NdotL) * saturate(preLightData.NdotV * FLT_MAX);
+
+        // Yibing's and Morten's hybrid scatter model hack.
+        float  scatterFresnel1          =  pow(saturate(-LdotV), 9.0) * pow(saturate(1 - preLightData.NdotV * preLightData.NdotV), 12.0);
+        float  scatterFresnel2          =  saturate(PositivePow((1 - preLightData.NdotV), 20));
+        float  rimTransmissionIntensity = 0.2;
+        float3 transmissionColor        = float3(1, 0.65, 0.36);
+        float  scatterAmount            = scatterFresnel1 + rimTransmissionIntensity * scatterFresnel2;
+
+        cbxdf.specT = scatterAmount * transmissionColor;
     }
 
     return cbxdf;
