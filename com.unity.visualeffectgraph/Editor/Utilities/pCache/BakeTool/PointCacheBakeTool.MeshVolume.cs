@@ -160,7 +160,7 @@ namespace UnityEditor.VFX.Utils
             }
             else
             {
-                Debug.Log("Creating the pCache file resulted in zero points and has failed: the voxel size is probably too large.");
+                Debug.LogWarning("Creating the pCache file resulted in zero points and has failed: the voxel size is probably too large.");
             }
             
             EditorUtility.ClearProgressBar();
