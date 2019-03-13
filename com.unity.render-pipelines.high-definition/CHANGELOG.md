@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Xbox One rendering just a grey screen instead of the scene
 - Fixed probe handles for multiselection
 - Fixed baked cubemap import settings for convolution
+- Fixed regression causing crash when attempting to open HDRenderPipelineWizard without an HDRenderPipelineAsset setted
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
