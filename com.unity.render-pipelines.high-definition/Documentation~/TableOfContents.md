@@ -12,18 +12,22 @@
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
   * [Volume Overrides](Volume-Components)
-* Volume Components
+* Volume Overrides
+  * Fog
+    * [Exponential Fog](Exponential-Fog)
+    * [Linear Fog](Linear-Fog)
+    * [Volumetric Fog](Volumetric-Fog)
+  * Lighting
+    * [Indirect Lighting Controller](Indirect-Lighting-Controller)
+    * [Volumetric Lighting Quality](Volumetric-Lighting-Controller)
+  * Shadowing
+    * [Contact Shadows](Contact-Shadows)
+    * [Shadows](HD-Shadow-Settings)
+  * Sky
+    * [Gradient Sky](Gradient-Sky)
+    * [HDRI Sky](HDRI-Sky)
+    * [Procedural Sky](Procedural-Sky)
   * [Visual Environment](Visual-Environment)
-  * [Gradient Sky](Gradient-Sky)
-  * [HDRI Sky](HDRI-Sky)
-  * [Procedural Sky](Procedural-Sky)
-  * [Exponential Fog](Exponential-Fog)
-  * [Linear Fog](Linear-Fog)
-  * [Volumetric Fog](Volumetric-Fog)
-  * [HD Shadow Settings](HD-Shadow-Settings)
-  * [Contact Shadows](Contact-Shadows)
-  * [Indirect Lighting Controller](Indirect-Lighting-Controller)
-  * [Volumetric Lighting Controller](Volumetric-Lighting-Controller)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
