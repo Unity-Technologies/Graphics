@@ -584,7 +584,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         bool IsHdrpAssetDiffusionProfileCorrect()
         {
-            var profileList = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).diffusionProfileSettingsList;
+            var profileList = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)?.diffusionProfileSettingsList;
             return IsHdrpAssetUsedCorrect() && profileList.Length != 0 && profileList.Any(p => p != null);
         }
 

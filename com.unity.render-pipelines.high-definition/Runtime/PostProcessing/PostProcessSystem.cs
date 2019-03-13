@@ -1385,7 +1385,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // We store R11G11B10 with RG = Max vel and B = Min vel magnitude
                 cs = m_Resources.shaders.motionBlurTileGenCS;
-                kernel = cs.FindKernel("TileGenPass");
+                if (scattering)
+                {
+                    kernel = cs.FindKernel("TileGenPass_Scattering");
+                }
+                else
+                {
+                    kernel = cs.FindKernel("TileGenPass");
+                }
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VelocityAndDepth, preppedVelocity);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
@@ -1408,7 +1415,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, scattering ? "Tile Scattering" :  "Tile Neighbourhood", CustomSamplerId.MotionBlurTileNeighbourhood.GetSampler()))
             {
                 cs = m_Resources.shaders.motionBlurTileGenCS;
-                kernel = cs.FindKernel("TileNeighbourhood");
+                if (scattering)
+                {
+                    kernel = cs.FindKernel("TileNeighbourhood_Scattering");
+                }
+                else
+                {
+                    kernel = cs.FindKernel("TileNeighbourhood");
+                }
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileVelMinMax, minMaxTileVel);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
@@ -1441,6 +1455,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Blur kernel
             using (new ProfilingSample(cmd, "Blur Kernel", CustomSamplerId.MotionBlurKernel.GetSampler()))
             {
+                uint sampleCount = (uint)m_MotionBlur.sampleCount.value;
+                Vector4 motionBlurParams2 = new Vector4(
+                    scattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
+                    tileSize,
+                    0.0f,
+                    0.0f
+                    );
+
                 cs = m_Resources.shaders.motionBlurCS;
                 kernel = cs.FindKernel("MotionBlurCS");
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
@@ -1450,7 +1472,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams1);
-                cmd.SetComputeIntParam(cs, HDShaderIDs._MotionBlurSampleCount, m_MotionBlur.sampleCount);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, motionBlurParams2);
 
                 groupSizeX = 16;
                 groupSizeY = 16;
