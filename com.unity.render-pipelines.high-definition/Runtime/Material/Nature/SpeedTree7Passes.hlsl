@@ -131,7 +131,8 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
 #if (SHADERPASS != SHADERPASS_SHADOWS) && (SHADERPASS != SHADERPASS_DEPTH_ONLY)
     // Z component of uvHueVariation
 #ifdef EFFECT_HUE_VARIATION
-    float hueVariationAmount = frac(UNITY_MATRIX_M[0].w + UNITY_MATRIX_M[1].w + UNITY_MATRIX_M[2].w);
+    float4x4 objToWorld = GetRawUnityObjectToWorld();
+    float hueVariationAmount = frac(objToWorld[0].w + objToWorld[1].w + objToWorld[2].w);
     hueVariationAmount += frac(input.vertex.x + input.normal.y + input.normal.x) * 0.5 - 0.3;
     output.vmesh.interpolators3.z = saturate(hueVariationAmount * _HueVariation.a);
 #endif
