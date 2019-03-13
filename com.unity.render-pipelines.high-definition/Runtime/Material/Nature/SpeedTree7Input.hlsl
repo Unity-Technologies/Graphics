@@ -106,7 +106,4 @@ SAMPLER(sampler_SpecTex);
 float4 _Color;
 float3 _EmissiveColor;
 
-// This include will define the various Attributes/Varyings structure
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
-
 #endif

@@ -48,8 +48,9 @@ void InitializeCommonData(inout SpeedTreeVertexInput input, float lodValue)
             #endif
             // face camera-facing leaf to camera
             float offsetLen = length(finalPosition);
+            float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, unity_MatrixInvV));
             //finalPosition = mul(finalPosition.xyz, (float3x3)UNITY_MATRIX_IT_MV); // inv(MV) * finalPosition
-            finalPosition = mul(unity_MatrixInvV, float4(finalPosition.xyz, 0)).xyz;
+            finalPosition = mul(mtx_ITMV, float4(finalPosition.xyz, 0)).xyz;
             finalPosition = normalize(finalPosition) * offsetLen; // make sure the offset vector is still scaled
         }
         else
@@ -108,11 +109,10 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
     InitializeCommonData(input, unity_LODFade.x);
 
     float3 positionWS = TransformObjectToWorld(input.vertex.xyz);
-    float3 positionVS = TransformWorldToView(positionWS);
-    float4 positionCS = TransformWorldToHClip(positionWS);
-    
     float3 normalWS = TransformObjectToWorldNormal(input.normal);
     float3 viewDirWS = _WorldSpaceCameraPos - positionWS;
+
+    float4 positionCS = TransformWorldToHClip(positionWS);
     
 #ifdef EFFECT_BUMP
     output.vmesh.interpolators1 = normalWS;
@@ -120,15 +120,15 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
 #else
     output.vmesh.interpolators1 = normalWS;
     output.vmesh.interpolators2.xyz = viewDirWS;
-#endif    
-    output.vmesh.interpolators2.w = 1.0;
+#endif
+    output.vmesh.interpolators2.w = -1.0;
 
     // uvHueVariation.xy as well as diffuseUV
     output.vmesh.interpolators3.xy = input.texcoord.xy;
     output.vmesh.interpolators5.rgb = _Color.rgb;
     output.vmesh.interpolators5.a = input.color.r;      // ambient occlusion factor
 
-#if (SHADERPASS != SHADERPASS_SHADOWS)
+#if (SHADERPASS != SHADERPASS_SHADOWS) && (SHADERPASS != SHADERPASS_DEPTH_ONLY)
     // Z component of uvHueVariation
 #ifdef EFFECT_HUE_VARIATION
     float hueVariationAmount = frac(UNITY_MATRIX_M[0].w + UNITY_MATRIX_M[1].w + UNITY_MATRIX_M[2].w);
@@ -164,15 +164,12 @@ PackedVaryingsType SpeedTree7VertDepth(SpeedTreeVertexInput input)
     InitializeCommonData(input, unity_LODFade.x);
 
     float3 positionWS = TransformObjectToWorld(input.vertex.xyz);
-    output.vmesh.interpolators3.xy = input.texcoord.xy;
-    output.vmesh.interpolators0 = positionWS;
+    float4 positionCS = TransformWorldToHClip(positionWS);
 
-#ifdef SHADOW_CASTER
-    float3 normalWS = TransformObjectToWorldNormal(input.normal);
-    output.vmesh.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
-#else
-    output.vmesh.positionCS = TransformWorldToHClip(positionWS);
-#endif
+    output.vmesh.interpolators3.xy = input.texcoord.xy;
+    output.vmesh.interpolators0.xyz = positionWS;
+    output.vmesh.positionCS = positionCS;
+
     return output;
 }
 

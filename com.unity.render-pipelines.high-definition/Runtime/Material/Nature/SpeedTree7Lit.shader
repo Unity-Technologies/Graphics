@@ -33,6 +33,8 @@ Shader "HDRP/Nature/SpeedTree7"
         HLSLINCLUDE
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+        #pragma enable_d3d11_debug_symbols
         
         #pragma multi_compile_instancing
         #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
@@ -59,7 +61,7 @@ Shader "HDRP/Nature/SpeedTree7"
         // enable dithering LOD crossfade
         #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-        //#pragma vertex SpeedTree7Vert
+        #pragma vertex SpeedTree7Vert
         #pragma fragment Frag
         
         ENDHLSL
@@ -96,12 +98,6 @@ Shader "HDRP/Nature/SpeedTree7"
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
-            Cull[_CullMode]
-
-            ZClip[_ZClip]
-            ZWrite On
-            ZTest LEqual
-
             ColorMask 0
 
             HLSLPROGRAM
@@ -127,17 +123,6 @@ Shader "HDRP/Nature/SpeedTree7"
         {
             Name "GBuffer"  // Name is not used
             Tags{ "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
-
-            Cull[_CullMode]
-            ZTest[_ZTestGBuffer]
-
-            Stencil
-            {
-                WriteMask[_StencilWriteMask]
-                Ref[_StencilRef]
-                Comp Always
-                Pass Replace
-            }
 
             HLSLPROGRAM
 
@@ -210,20 +195,13 @@ Shader "HDRP/Nature/SpeedTree7"
 
             ZWrite On
 
-            Stencil
-            {
-                WriteMask[_StencilDepthPrepassWriteMask]
-                Ref[_StencilDepthPrepassRef]
-                Comp Always
-                Pass Replace
-            }
-
             ColorMask 0
 
             HLSLPROGRAM
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
-            #pragma vertex SpeedTree7VertDepth
+            //#pragma vertex SpeedTree7VertDepth
+            //#pragma vertex SpeedTree7Vert
 
             #define WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_MSAA_DEPTH
@@ -249,22 +227,9 @@ Shader "HDRP/Nature/SpeedTree7"
         {
             Name "ForwardLit"
             Tags { "LightMode" = "ForwardOnly" }
-            
-            Stencil
-            {
-                WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
-                Comp Always
-                Pass Replace
-            }
-
-            Blend [_SrcBlend] [_DstBlend]
-            // In case of forward we want to have depth equal for opaque mesh
-            ZTest [_ZTestDepthEqualForOpaque]
-            ZWrite [_ZWrite]
-            Cull [_CullModeForward]
 
             HLSLPROGRAM
+            #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
@@ -285,7 +250,7 @@ Shader "HDRP/Nature/SpeedTree7"
             #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"    
 
             #ifdef DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"

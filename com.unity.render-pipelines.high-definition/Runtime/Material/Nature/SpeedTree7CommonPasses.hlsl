@@ -27,7 +27,7 @@
 #define VARYINGS_NEED_TEXCOORD1
 #endif
 
-#if (SHADERPASS == SHADERPASS_SHADOWS)
+#if (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_DEPTH_ONLY)
 //#undef ATTRIBUTES_NEED_TANGENT
 //#undef VARYINGS_NEED_TANGENT_TO_WORLD
 #undef VARYINGS_NEED_TEXCOORD2
@@ -61,14 +61,15 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     output.worldToTangent = BuildWorldToTangent(input.interpolators2, input.interpolators1);
 #else
     output.worldToTangent = BuildWorldToTangent(input.interpolators2, input.interpolators1);
-    output.worldToTangent[0] = cross(input.interpolators1, output.worldToTangent[1]);
+    //output.worldToTangent[0] = cross(output.worldToTangent[2], output.worldToTangent[1]);
 #endif
+    output.worldToTangent[0] = GetOddNegativeScale() * cross(output.worldToTangent[2], output.worldToTangent[1]);
 #endif
 
     // Vertex Color
     output.color.rgba = input.interpolators5.rgba;
 
-#if (SHADERPASS != SHADERPASS_SHADOWS)
+#if (SHADERPASS != SHADERPASS_SHADOWS) && (SHADERPASS != SHADERPASS_DEPTH_ONLY)
     // Z component of uvHueVariation
 #ifdef EFFECT_HUE_VARIATION
     output.texCoord0.z = input.interpolators3.z;
