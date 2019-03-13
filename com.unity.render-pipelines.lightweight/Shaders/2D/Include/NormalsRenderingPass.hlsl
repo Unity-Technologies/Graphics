@@ -1,15 +1,33 @@
 #if !defined(NORMALS_RENDERING_PASS)
 #define NORMALS_RENDERING_PASS
 
+struct Attributes
+{
+    float3 positionOS   : POSITION;
+    float4 color		: COLOR;
+    half2  uv			: TEXCOORD0;
+};
+
+struct Varyings
+{
+    float4  positionCS		: SV_POSITION;
+    float4  color			: COLOR;
+    half2	uv				: TEXCOORD0;
+    float3  normal			: TEXCOORD1;
+    float3  tangent			: TEXCOORD2;
+    float3  bitangent		: TEXCOORD3;
+};
+
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
-uniform float4 _NormalMap_ST;  // Is this the right way to do this?
+float4 _NormalMap_ST;  // Is this the right way to do this?
 
 Varyings NormalsRenderingVertex(Attributes attributes)
 {
-    Varyings o;
+    Varyings o = (Varyings)0;
+
     o.positionCS = TransformObjectToHClip(attributes.positionOS);
     o.positionCS.y = o.positionCS.y;
 #if UNITY_UV_STARTS_AT_TOP
