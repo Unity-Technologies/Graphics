@@ -1,12 +1,23 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
 
-#pragma kernel TileGenPass          GEN_PASS
-#pragma kernel TileNeighbourhood    NEIGHBOURHOOD_PASS
-#pragma kernel TileMinMaxMerge      MERGE_PASS
+// We need to manually declare variants as PS4 supports R32Uint only >19.2 and there is currently no way to detect that in shader.
+#pragma kernel TileGenPass_Scattering              TILE_GEN_KERNEL_NAME=TileGenPass_Scattering GEN_PASS SCATTERING
+#pragma kernel TileNeighbourhood_Scattering        TILE_NEIGHBOURHOOD_KERNEL_NAME=TileNeighbourhood_Scattering NEIGHBOURHOOD_PASS SCATTERING
+#pragma kernel TileMinMaxMerge                     MERGE_PASS SCATTERING
+
+#pragma kernel TileGenPass                        TILE_GEN_KERNEL_NAME=TileGenPass GEN_PASS
+#pragma kernel TileNeighbourhood                  TILE_NEIGHBOURHOOD_KERNEL_NAME=TileNeighbourhood NEIGHBOURHOOD_PASS
+
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #define USE_WAVE_INTRINSICS         defined(SUPPORTS_WAVE_INTRINSICS)
+
+#ifdef SCATTERING
+#define TILE_SIZE                   16u
+#else
+#define TILE_SIZE                   32u
+#endif
 
 uint PackVel(float2 packedVel)
 {
@@ -103,7 +114,7 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
 #ifdef GEN_PASS
 
 [numthreads(TILE_SIZE, TILE_SIZE,1)]
-void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
+void TILE_GEN_KERNEL_NAME(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
 {
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(id.z);
     uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
@@ -116,7 +127,7 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
     if (threadIdx == 0)
     {
-#if SCATTERING
+#ifdef SCATTERING
         _TileToScatterMax[COORD_TEXTURE2D_X(groupID.xy)] = PackVel(maxVel);
         _TileToScatterMin[COORD_TEXTURE2D_X(groupID.xy)] = f32tof16(minVelLength);
 #else
@@ -128,7 +139,7 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
 #elif NEIGHBOURHOOD_PASS 
 
-#if SCATTERING
+#ifdef SCATTERING
 
 // TODO: Consider a conservative line rasterization.
 // Line drawing algorithms.
@@ -207,7 +218,7 @@ void DDA(int2 center, float2 lineToDraw, uint centerInfo)
 
 #define USE_NEIGHBOURHOOD_MIN 1
 [numthreads(8, 8, 1)]
-void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchID.z);
     int2 id = dispatchID.xy;
@@ -258,10 +269,10 @@ void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_Gro
 
 #else
 
-RW_TEXTURE2D(float3, _TileMaxNeighbourhood);
+RW_TEXTURE2D_X(float3, _TileMaxNeighbourhood);
 
 [numthreads(8, 8, 1)]
-void TileNeighbourhood(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchID.z);
     int2 id = dispatchID.xy;
@@ -308,7 +319,7 @@ void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
 {
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchID.z);
 
-#if SCATTERING
+#ifdef SCATTERING
     int2 id = dispatchID.xy;
     _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id)] = float3(UnpackVel(_TileToScatterMax[COORD_TEXTURE2D_X(id)]), f16tof32(_TileToScatterMin[COORD_TEXTURE2D_X(id)]));
 #endif
