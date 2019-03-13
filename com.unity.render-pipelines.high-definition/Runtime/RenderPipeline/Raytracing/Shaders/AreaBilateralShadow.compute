@@ -6,11 +6,15 @@
 // Temporal Filtering kernels
 #pragma kernel AreaShadowCopyTAAHistory
 #pragma kernel AreaShadowApplyTAA
+#pragma kernel AreaAnalyticHistoryUpdate
 
 // Bilateral computes
 #pragma kernel AreaShadowEstimateNoise
 #pragma kernel AreaShadowDenoiseFirstPass   AREA_SHADOW_DENOISE=AreaShadowDenoiseFirstPass
 #pragma kernel AreaShadowDenoiseSecondPass  AREA_SHADOW_DENOISE=AreaShadowDenoiseSecondPass  FINAL_PASS
+
+// Debug
+#pragma kernel WriteShadowTextureDebug
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -38,7 +42,8 @@ int                     _RaytracingShadowSlot;
 RWTexture2DArray<float> _AreaShadowTextureRW;
 
 // History buffer
-Texture2D<float>            _RaytracedAnalyticBuffer;
+Texture2D<float>            _AnalyticBuffer;
+RWTexture2DArray<float>     _AnalyticHistoryBuffer;
 RWTexture2DArray<float2>    _AreaShadowHistoryRW;
 
 // Bilateral filter parameters
@@ -67,22 +72,52 @@ void AreaShadowCopyTAAHistory(uint2 groupThreadId : SV_GroupThreadID, uint2 grou
 }
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaAnalyticHistoryUpdate(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    // Merge them into the previous buffer
+    _AnalyticHistoryBuffer[uint3(centerCoord, _RaytracingShadowSlot)] = _AnalyticBuffer[centerCoord];
+}
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
 void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
+    // Compute the world space coordinate of this pixel
     float depth = LOAD_TEXTURE2D(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput_Stereo(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
+    // Get the cosest pixel
     float2 closest = GetClosestFragment(posInputs);
 
+    // Read the matching velocity
     float2 velocity;
     DecodeVelocity(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
     float velocityLength = length(velocity);
 
+    // UV used to read the pixels to filter
     float2 uv = posInputs.positionNDC;
+
+    // Compute the previous pixel coordinate
+    uint2 historyPixelCoord =  centerCoord - velocity * _ScreenSize.xy;
+
+    // Ok so here, if we do not match cloesly the previous analytic value, it means either TAA has invalidated the sample or the pixel just appeared
+    if(abs(_AnalyticHistoryBuffer[uint3(historyPixelCoord,_RaytracingShadowSlot)] - _AnalyticBuffer[centerCoord]) > 1e-6)
+    {
+        // Fetch the current value
+        float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).xy;
+
+        // Set it as the output and leave the function
+        _AreaShadowHistoryRW[uint3(centerCoord, _RaytracingShadowSlot)] = color;
+        _DenoiseOutputTextureRW[centerCoord] = float4(color, _AnalyticBuffer[centerCoord].x, 1.0);
+        return;
+    }
 
     float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).xy;
     float2 history = Fetch4(_DenoiseInputTexture, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy).zw;
@@ -122,7 +157,7 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     color = clamp(color, 0.0, CLAMP_MAX);
     
     _AreaShadowHistoryRW[uint3(centerCoord, _RaytracingShadowSlot)] = color;
-    _DenoiseOutputTextureRW[centerCoord] = float4(color, _RaytracedAnalyticBuffer[centerCoord].x, 1.0);
+    _DenoiseOutputTextureRW[centerCoord] = float4(color, _AnalyticBuffer[centerCoord].x, 1.0);
 }
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
@@ -175,7 +210,7 @@ void AreaShadowApplyTAA2(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     //_DebugTextureRW[coordSS] = float4(diff, alpha * 0.1, 0.0, 1.0);
 
     _AreaShadowHistoryRW[uint3(coordSS, _RaytracingShadowSlot)] = result;
-    _DenoiseOutputTextureRW[coordSS] = float4(result, _RaytracedAnalyticBuffer[coordSS].x, 1.0);
+    _DenoiseOutputTextureRW[coordSS] = float4(result, _AnalyticBuffer[coordSS].x, 1.0);
 }
 
 // Couple helper functions
@@ -401,4 +436,17 @@ void AREA_SHADOW_DENOISE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     // Store the intermediate result
     _DenoiseOutputTextureRW[centerCoord] = float4(SU / wSum, _DenoiseInputTexture[centerCoord].z, noiseEstimate);
     #endif
+}
+
+// Separated bilateral filter (two passes, each with 2*Radius taps)
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void WriteShadowTextureDebug(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    // Store the intermediate result
+    float shadowValue = _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)];
+    _DenoiseOutputTextureRW[centerCoord] = float4(shadowValue, shadowValue, shadowValue, 1.0);
 }

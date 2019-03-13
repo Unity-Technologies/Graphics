@@ -523,8 +523,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AreaShadowTexture               = Shader.PropertyToID("_AreaShadowTexture");
         public static readonly int _AreaShadowTextureRW             = Shader.PropertyToID("_AreaShadowTextureRW");
         public static readonly int _AreaShadowHistoryRW             = Shader.PropertyToID("_AreaShadowHistoryRW");
-        public static readonly int _RaytracedAnalyticBuffer         = Shader.PropertyToID("_RaytracedAnalyticBuffer");
-
+        public static readonly int _AnalyticBuffer                  = Shader.PropertyToID("_AnalyticBuffer");
+        public static readonly int _AnalyticHistoryBuffer           = Shader.PropertyToID("_AnalyticHistoryBuffer");
+        
         // Ambient occlusion
         public static readonly int _AOHistorybufferRW               = Shader.PropertyToID("_AOHistorybufferRW");
         public static readonly int _RaytracingAOIntensity           = Shader.PropertyToID("_RaytracingAOIntensity");

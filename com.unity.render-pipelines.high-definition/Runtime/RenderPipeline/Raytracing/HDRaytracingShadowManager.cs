@@ -82,6 +82,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("AreaShadowHistoryBuffer{0}", frameIndex));
         }
 
+        static RTHandleSystem.RTHandle AreaAnalyticHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+        {
+            return rtHandleSystem.Alloc(Vector2.one, slices:4, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "AnalyticHistoryBuffer");
+        }
+
         public bool RenderAreaShadows(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, uint frameCount)
         {
             // NOTE: Here we cannot clear the area shadow texture because it is a texture array. So we need to bind it and make sure no material will try to read it in the shaders
@@ -101,9 +106,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (invalidState)
                 return false;
 
-            // Grab the TAA history buffer
+            // Grab the TAA history buffers
             RTHandleSystem.RTHandle areaShadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAreaShadow)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAreaShadow, AreaShadowHistoryBufferAllocatorFunction, 1);
+            RTHandleSystem.RTHandle areaAnalyticHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAreaAnalytic)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAreaAnalytic, AreaAnalyticHistoryBufferAllocatorFunction, 1);
 
             // Grab the acceleration structure for the target camera
             RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.shadowLayerMask);
@@ -124,6 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Grab the kernels
             int copyTAAHistoryKernel = shadowFilter.FindKernel("AreaShadowCopyTAAHistory");
             int applyTAAKernel       = shadowFilter.FindKernel("AreaShadowApplyTAA");
+            int updateAnalyticHistory= shadowFilter.FindKernel("AreaAnalyticHistoryUpdate");
             int estimateNoiseKernel  = shadowFilter.FindKernel("AreaShadowEstimateNoise");
             int firstDenoiseKernel   = shadowFilter.FindKernel("AreaShadowDenoiseFirstPass");
             int secondDenoiseKernel  = shadowFilter.FindKernel("AreaShadowDenoiseSecondPass");
@@ -176,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._AreaCookieTextures, m_LightLoop.areaLightCookieManager.GetTexCache());
 
                     // Set the output textures
-                    cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._RaytracedAnalyticBuffer, m_AnalyticBuffer);
+                    cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._AnalyticBuffer, m_AnalyticBuffer);
                     cmd.SetRaytracingTextureParam(shadowsShader, m_RayGenShaderName, HDShaderIDs._RaytracedAreaShadowOutput, m_DenoiseBuffer0);
 
                     // Run the shadow evaluation
@@ -207,12 +215,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
                     var historyScale = new Vector2(hdCamera.actualWidth / (float)areaShadowHistoryArray.rt.width, hdCamera.actualHeight / (float)areaShadowHistoryArray.rt.height);
                     cmd.SetComputeVectorParam(shadowFilter, HDShaderIDs._ScreenToTargetScaleHistory, historyScale);
+                    cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._AnalyticBuffer, m_AnalyticBuffer);
                     cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-                    cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._RaytracedAnalyticBuffer, m_AnalyticBuffer);
+                    cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._AnalyticHistoryBuffer, areaAnalyticHistoryArray); 
                     cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._DenoiseInputTexture, m_DenoiseBuffer1);
                     cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._DenoiseOutputTextureRW, m_DenoiseBuffer0);
                     cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._AreaShadowHistoryRW, areaShadowHistoryArray);
                     cmd.DispatchCompute(shadowFilter, applyTAAKernel, numTilesX, numTilesY, 1);
+
+                    // Now that we do not need it anymore, update the anyltic history
+                    cmd.SetComputeTextureParam(shadowFilter, updateAnalyticHistory, HDShaderIDs._AnalyticHistoryBuffer, areaAnalyticHistoryArray);
+                    cmd.SetComputeTextureParam(shadowFilter, updateAnalyticHistory, HDShaderIDs._AnalyticBuffer, m_AnalyticBuffer);
+                    cmd.DispatchCompute(shadowFilter, updateAnalyticHistory, numTilesX, numTilesY, 1);
 
                     if (rtEnvironement.shadowFilterRadius > 0)
                     {
@@ -246,6 +260,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(shadowFilter, secondDenoiseKernel, HDShaderIDs._DenoiseInputTexture, m_DenoiseBuffer0);
                     cmd.DispatchCompute(shadowFilter, secondDenoiseKernel, numTilesX, numTilesY, 1);
                 }
+            }
+
+            // If this is the right debug mode and we have at least one light, write the first shadow to the denoise texture
+            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            if (FullScreenDebugMode.RaytracedAreaShadow == hdrp.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && numLights > 0)
+            {
+                // Texture dimensions
+                int texWidth = hdCamera.actualWidth;
+                int texHeight = hdCamera.actualHeight;
+
+                // Evaluate the dispatch parameters
+                int areaTileSize = 8;
+                int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
+                int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
+
+                int targetKernel = shadowFilter.FindKernel("WriteShadowTextureDebug");
+
+                cmd.SetComputeIntParam(shadowFilter, HDShaderIDs._RaytracingShadowSlot, 0);
+                cmd.SetComputeTextureParam(shadowFilter, targetKernel, HDShaderIDs._AreaShadowTextureRW, m_AreaShadowTextureArray);
+                cmd.SetComputeTextureParam(shadowFilter, targetKernel, HDShaderIDs._DenoiseOutputTextureRW, m_DenoiseBuffer0);
+                cmd.DispatchCompute(shadowFilter, targetKernel, numTilesX, numTilesY, 1);
+
+                hdrp.PushFullScreenDebugTexture(hdCamera, cmd, m_DenoiseBuffer0, FullScreenDebugMode.RaytracedAreaShadow);
             }
             return true;
         }
