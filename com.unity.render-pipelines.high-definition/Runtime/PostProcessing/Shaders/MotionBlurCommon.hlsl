@@ -2,17 +2,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
-#if ((defined(SHADER_API_PSSL) && (UNITY_VERSION < 20192)) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL)) 
-#define SCATTERING 0
-#else
-#define SCATTERING 1
-#endif 
-
-#if SCATTERING
-#define TILE_SIZE                   16u
-#else
-#define TILE_SIZE                   32u
-#endif
 #define WAVE_SIZE                   64u
 
 #ifdef VELOCITY_PREPPING 
@@ -41,7 +30,7 @@ float4x4 _PrevVPMatrixNoTranslation;
 float4 _TileTargetSize;     // .xy size, .zw 1/size
 float4 _MotionBlurParams0;  // Unpacked below.
 float4 _MotionBlurParams1;  // Upacked below.
-int    _SampleCount;
+float4 _MotionBlurParams2;  // Upacked below.
 CBUFFER_END
 
 #define _ScreenMagnitude            _MotionBlurParams0.x
@@ -52,6 +41,8 @@ CBUFFER_END
 #define _MotionBlurMaxVelocity      _MotionBlurParams1.y
 #define _MinMaxVelRatioForSlowPath  _MotionBlurParams1.z
 #define _CameraRotationClampNDC     _MotionBlurParams1.w
+#define _SampleCount                uint(_MotionBlurParams2.x)
+#define _TileSize                   uint(_MotionBlurParams2.y)
 
 
 // --------------------------------------
