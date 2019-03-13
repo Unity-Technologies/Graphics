@@ -318,8 +318,9 @@ float gaussian(float radius, float sigma)
 struct BilateralData
 {
     float3 position;
-    float  z;
     float3 normal;
+    float perceptualRoughness;
+    float  z;
 };
 
 BilateralData TapBilateralData(uint2 coordSS)
@@ -346,6 +347,7 @@ BilateralData TapBilateralData(uint2 coordSS)
         const float4 normalBuffer = _NormalBufferTexture[COORD_TEXTURE2D_X(coordSS)];
         DecodeFromNormalBuffer(normalBuffer, coordSS, normalData);
         key.normal = normalData.normalWS;
+        key.perceptualRoughness = normalData.perceptualRoughness;
     }
 
     return key;
@@ -405,10 +407,13 @@ void ReflBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     const uint2 passIncr = uint2(0, 1);
     #endif
 
-    const float sigma = 0.5 * _RaytracingDenoiseRadius;
-    const int effectiveRadius = min(sigma * 2.0, _RaytracingDenoiseRadius);
-
+    // Read the data of the center pixel
     const BilateralData center = TapBilateralData(centerCoord);
+
+    // In order to avoid over-blurring, we define the size of the kernel based on the roughness of the surface
+    const float realRadius = max(1, _RaytracingDenoiseRadius * sqrt(center.perceptualRoughness));
+    const float sigma = 0.5 * realRadius;
+    const int effectiveRadius = min(sigma * 2.0, realRadius);
 
     uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
     for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)

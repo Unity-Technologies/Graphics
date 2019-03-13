@@ -43,7 +43,7 @@ TEXTURE2D(_DepthTexture);
 
 // Output structure of the shadows raytrace shader
 RWTexture2D<float2> _RaytracedAreaShadowOutput;
-RWTexture2D<float> _RaytracedAnalyticBuffer;
+RWTexture2D<float> _AnalyticBuffer;
 
 struct MISSamplingInput
 {
@@ -201,7 +201,7 @@ void RayGenShadows()
 
     // Initialize the output textures
     _RaytracedAreaShadowOutput[currentPixelCoord] = float2(0.0, 0.0);
-    _RaytracedAnalyticBuffer[currentPixelCoord] = 1.0;
+    _AnalyticBuffer[currentPixelCoord] = 1.0;
 
     // Get the scramblingValue of this pixel
     uint2 scramblingValue = ScramblingValue(currentPixelCoord.x, currentPixelCoord.y);
@@ -269,7 +269,7 @@ void RayGenShadows()
     {
         // We want this to be flagged as a proper shadow, and not a 0/0 case
         _RaytracedAreaShadowOutput[currentPixelCoord] = float2(0.0, 1.0);
-        _RaytracedAnalyticBuffer[currentPixelCoord] = 1.0;
+        _AnalyticBuffer[currentPixelCoord] = 1.0;
         return;
     }
 
@@ -294,7 +294,7 @@ void RayGenShadows()
     {
         // We want this to be flagged as a proper shadow, and not a 0/0 case
         _RaytracedAreaShadowOutput[currentPixelCoord] = float2(0.0, U);
-        _RaytracedAnalyticBuffer[currentPixelCoord] = U;
+        _AnalyticBuffer[currentPixelCoord] = U;
         return;
     }
 
@@ -393,7 +393,7 @@ void RayGenShadows()
 
     // Pass on the values to the output buffer (Sn, Un) and U
     _RaytracedAreaShadowOutput[currentPixelCoord] = float2(SnL, UnL);
-    _RaytracedAnalyticBuffer[currentPixelCoord] = U;
+    _AnalyticBuffer[currentPixelCoord] = U;
 }
 
 // Fallback default any hit shader for this raytrace shader
