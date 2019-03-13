@@ -253,9 +253,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     float3 N = bsdfData.normalWS;
 #endif
 
-    float NdotV = dot(N, V);
-    preLightData.NdotV = NdotV;
-    NdotV = abs(NdotV); // Support transmission
+    preLightData.NdotV = dot(N, V);
+    float clampedNdotV = ClampNdotV(preLightData.NdotV);
 
     float unused;
 
@@ -265,7 +264,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // and we take smoothness of the secondary lobe as it is often more rough (it is the colored one).
         preLightData.iblPerceptualRoughness = bsdfData.secondaryPerceptualRoughness;
         // TODO: adjust for Blinn-Phong here?
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
+        GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
         // We used lambert for hair for now
         // Note: this normalization term is wrong, correct one is (1/(Pi^2)).
         preLightData.diffuseFGD = 1.0;
@@ -407,12 +406,15 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, float NdotL, PreLightData preLightData, 
         // Double-sided Lambert.
         cbxdf.diffR = Lambert() * saturate(NdotL);
     #endif
+        // Bypass the normal map...
+        float geomNdotV = dot(bsdfData.geomNormalWS, V);
+
         // (G / NdotV) = 1.
-        cbxdf.specR = 0.25 * F * (hairSpec1 + hairSpec2) * saturate(NdotL) * saturate(preLightData.NdotV * FLT_MAX);
+        cbxdf.specR = 0.25 * F * (hairSpec1 + hairSpec2) * saturate(NdotL) * saturate(geomNdotV * FLT_MAX);
 
         // Yibing's and Morten's hybrid scatter model hack.
-        float scatterFresnel1 = pow(saturate(-LdotV), 9.0) * pow(saturate(1 - preLightData.NdotV * preLightData.NdotV), 12.0);
-        float scatterFresnel2 = saturate(PositivePow((1 - preLightData.NdotV), 20));
+        float scatterFresnel1 = pow(saturate(-LdotV), 9.0) * pow(saturate(1 - geomNdotV * geomNdotV), 12.0);
+        float scatterFresnel2 = saturate(PositivePow((1 - geomNdotV), 20));
 
         cbxdf.specT = scatterFresnel1 + bsdfData.rimTransmissionIntensity * scatterFresnel2;
     }
