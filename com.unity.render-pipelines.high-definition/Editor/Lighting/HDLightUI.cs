@@ -208,7 +208,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
                 var renderingLayerMask = serialized.serializedLightData.renderingLayerMask.intValue;
-                var lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
+                int lightLayer;
+                if (serialized.serializedLightData.renderingLayerMask.hasMultipleDifferentValues)
+                {
+                    EditorGUI.showMixedValue = true;
+                    lightLayer = 0;
+                }
+                else
+                    lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
                 EditorGUI.BeginChangeCheck();
                 lightLayer = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)lightLayer));
                 if (EditorGUI.EndChangeCheck())
@@ -217,6 +224,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
                     serialized.serializedLightData.renderingLayerMask.intValue = lightLayer;
                 }
+                EditorGUI.showMixedValue = false;
             }
         }
 
@@ -248,31 +256,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         UpdateLightIntensityUnit(serialized, owner);
                     }
 
-                    var spotLightShape = (SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex;
-                    switch (spotLightShape)
+                    if (serialized.serializedLightData.spotLightShape.hasMultipleDifferentValues)
                     {
-                        case SpotLightShape.Box:
-                            // Box directional light.
-                            EditorGUILayout.PropertyField(serialized.serializedLightData.shapeWidth, s_Styles.shapeWidthBox);
-                            EditorGUILayout.PropertyField(serialized.serializedLightData.shapeHeight, s_Styles.shapeHeightBox);
-                            break;
-                        case SpotLightShape.Cone:
-                            // Cone spot projector
-                            EditorGUILayout.Slider(serialized.settings.spotAngle, 1f, 179f, s_Styles.outterAngle);
-                            EditorGUILayout.Slider(serialized.serializedLightData.spotInnerPercent, 0f, 100f, s_Styles.spotInnerPercent);
-                            EditorGUILayout.PropertyField(serialized.serializedLightData.shapeRadius, s_Styles.lightRadius);
-                            EditorGUILayout.PropertyField(serialized.serializedLightData.maxSmoothness, s_Styles.maxSmoothness);
-                            break;
-                        case SpotLightShape.Pyramid:
-                            // pyramid spot projector
-                            serialized.settings.DrawSpotAngle();
-                            EditorGUILayout.Slider(serialized.serializedLightData.aspectRatio, 0.05f, 20.0f, s_Styles.aspectRatioPyramid);
-                            EditorGUILayout.PropertyField(serialized.serializedLightData.shapeRadius, s_Styles.lightRadius);
-                            EditorGUILayout.PropertyField(serialized.serializedLightData.maxSmoothness, s_Styles.maxSmoothness);
-                            break;
-                        default:
-                            Debug.Assert(false, "Not implemented light type");
-                            break;
+                        using (new EditorGUI.DisabledScope(true))
+                            EditorGUILayout.LabelField("Multiple different spot Shapes in selection");
+                    }
+                    else
+                    {
+                        var spotLightShape = (SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex;
+                        switch (spotLightShape)
+                        {
+                            case SpotLightShape.Box:
+                                // Box directional light.
+                                EditorGUILayout.PropertyField(serialized.serializedLightData.shapeWidth, s_Styles.shapeWidthBox);
+                                EditorGUILayout.PropertyField(serialized.serializedLightData.shapeHeight, s_Styles.shapeHeightBox);
+                                break;
+                            case SpotLightShape.Cone:
+                                // Cone spot projector
+                                EditorGUILayout.Slider(serialized.settings.spotAngle, 1f, 179f, s_Styles.outterAngle);
+                                EditorGUILayout.Slider(serialized.serializedLightData.spotInnerPercent, 0f, 100f, s_Styles.spotInnerPercent);
+                                EditorGUILayout.PropertyField(serialized.serializedLightData.shapeRadius, s_Styles.lightRadius);
+                                EditorGUILayout.PropertyField(serialized.serializedLightData.maxSmoothness, s_Styles.maxSmoothness);
+                                break;
+                            case SpotLightShape.Pyramid:
+                                // pyramid spot projector
+                                serialized.settings.DrawSpotAngle();
+                                EditorGUILayout.Slider(serialized.serializedLightData.aspectRatio, 0.05f, 20.0f, s_Styles.aspectRatioPyramid);
+                                EditorGUILayout.PropertyField(serialized.serializedLightData.shapeRadius, s_Styles.lightRadius);
+                                EditorGUILayout.PropertyField(serialized.serializedLightData.maxSmoothness, s_Styles.maxSmoothness);
+                                break;
+                            default:
+                                Debug.Assert(false, "Not implemented light type");
+                                break;
+                        }
                     }
                     break;
 
@@ -300,6 +316,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 case (LightShape)(-1):
                     // don't do anything, this is just to handle multi selection
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.LabelField("Multiple different Types in selection");
                     break;
 
                 default:
@@ -449,21 +467,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void DrawEmissionContent(SerializedHDLight serialized, Editor owner)
         {
-            if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
+            using (var changes = new EditorGUI.ChangeCheckScope())
             {
-                EditorGUILayout.PropertyField(serialized.settings.useColorTemperature, s_Styles.useColorTemperature);
-                if (serialized.settings.useColorTemperature.boolValue)
+                if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
                 {
-                    EditorGUI.indentLevel += 1;
-                    EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.colorFilter);
-                    SliderWithTexture(s_Styles.colorTemperature, serialized.settings.colorTemperature, serialized.settings);
-                    EditorGUI.indentLevel -= 1;
+                    EditorGUILayout.PropertyField(serialized.settings.useColorTemperature, s_Styles.useColorTemperature);
+                    if (serialized.settings.useColorTemperature.boolValue)
+                    {
+                        EditorGUI.indentLevel += 1;
+                        EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.colorFilter);
+                        SliderWithTexture(s_Styles.colorTemperature, serialized.settings.colorTemperature, serialized.settings);
+                        EditorGUI.indentLevel -= 1;
+                    }
+                    else
+                        EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
                 }
                 else
                     EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
+                
+                if (changes.changed && HDRenderPipelinePreferences.lightColorNormalization)
+                {
+                    serialized.settings.color.colorValue = HDUtils.NormalizeColor(serialized.settings.color.colorValue);
+                }
             }
-            else
-                EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginHorizontal();

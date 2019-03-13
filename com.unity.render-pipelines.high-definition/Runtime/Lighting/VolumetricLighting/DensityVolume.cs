@@ -4,8 +4,10 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+
+
     [Serializable]
-    public struct DensityVolumeArtistParameters
+    public partial struct DensityVolumeArtistParameters
     {
         public Color     albedo;       // Single scattering albedo [0, 1]. Alpha is ignored
         public float     meanFreePath; // In meters [1, inf]. Should be chromatic - this is an optimization!
@@ -15,14 +17,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3   textureScrollingSpeed;
         public Vector3   textureTiling;
 
-        [SerializeField, FormerlySerializedAs("positiveFade")]
-        private Vector3  m_PositiveFade;
-        [SerializeField, FormerlySerializedAs("negativeFade")]
-        private Vector3  m_NegativeFade;
+        [FormerlySerializedAs("m_PositiveFade")]
+        public Vector3  positiveFade;
+        [FormerlySerializedAs("m_NegativeFade")]
+        public Vector3  negativeFade;
+
+        [SerializeField, FormerlySerializedAs("m_UniformFade")]
+        internal float    m_EditorUniformFade;
         [SerializeField]
-        private float    m_UniformFade;
+        internal Vector3  m_EditorPositiveFade;
+        [SerializeField]
+        internal Vector3  m_EditorNegativeFade;
+        [SerializeField, FormerlySerializedAs("advancedFade"), FormerlySerializedAs("m_AdvancedFade")]
+        internal bool     m_EditorAdvancedFade;
+
         public Vector3   size;
-        public bool      advancedFade;
         public bool      invertFade;
 
         public float     distanceFadeStart;
@@ -30,44 +39,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public  int      textureIndex; // This shouldn't be public... Internal, maybe?
         private Vector3  volumeScrollingAmount;
-
-        public Vector3 positiveFade
-        {
-            get
-            {
-                return advancedFade ? m_PositiveFade : m_UniformFade * Vector3.one;
-            }
-            set
-            {
-                if (advancedFade)
-                {
-                    m_PositiveFade = value;
-                }
-                else
-                {
-                    m_UniformFade = value.x;
-                }
-            }
-        }
-
-        public Vector3 negativeFade
-        {
-            get
-            {
-                return advancedFade ? m_NegativeFade : m_UniformFade * Vector3.one;
-            }
-            set
-            {
-                if (advancedFade)
-                {
-                    m_NegativeFade = value;
-                }
-                else
-                {
-                    m_UniformFade = value.x;
-                }
-            }
-        }
 
         public DensityVolumeArtistParameters(Color color, float _meanFreePath, float _asymmetry)
         {
@@ -83,14 +54,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             size                  = Vector3.one;
 
-            m_PositiveFade        = Vector3.zero;
-            m_NegativeFade        = Vector3.zero;
-            m_UniformFade         = 0;
-            advancedFade          = false;
+            positiveFade          = Vector3.zero;
+            negativeFade          = Vector3.zero;
             invertFade            = false;
 
             distanceFadeStart     = 10000;
             distanceFadeEnd       = 10000;
+
+            m_EditorPositiveFade = Vector3.zero;
+            m_EditorNegativeFade = Vector3.zero;
+            m_EditorUniformFade  = 0;
+            m_EditorAdvancedFade = false;
         }
 
         public void Update(bool animate, float time)
@@ -159,22 +133,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Density Volume", 1100)]
-    public class DensityVolume : MonoBehaviour
+    public partial class DensityVolume : MonoBehaviour
     {
-        enum Version
-        {
-            First,
-            ScaleIndependent,
-            // Add new version here and they will automatically be the Current one
-            Max,
-            Current = Max - 1
-        }
-
-        [SerializeField]
-        int m_Version;
-
-        bool needMigrateToScaleIndependent = false;
-
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
         private Texture3D previousVolumeMask = null;
@@ -200,49 +160,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 OnTextureUpdated();
             }
-        }
-
-        private void Awake()
-        {
-            Migrate();
-        }
-
-        bool CheckMigrationRequirement()
-        {
-            //exit as quicker as possible
-            if (m_Version == (int)Version.Current)
-                return false;
-
-            //it is mandatory to call them in order
-            //they can be grouped (without 'else' or not)
-            if (m_Version < (int)Version.ScaleIndependent)
-            {
-                needMigrateToScaleIndependent = true;
-            }
-            return true;
-        }
-
-        void ApplyMigration()
-        {
-            //it is mandatory to call them in order
-            if (needMigrateToScaleIndependent)
-                MigrateToScaleIndependent();
-        }
-
-        void Migrate()
-        {
-            //Must not be called at deserialisation time if require other component
-            while (CheckMigrationRequirement())
-            {
-                ApplyMigration();
-            }
-        }
-
-        void MigrateToScaleIndependent()
-        {
-            parameters.size = transform.lossyScale;
-            m_Version = (int)Version.ScaleIndependent;
-            needMigrateToScaleIndependent = false;
         }
 
         private void OnEnable()

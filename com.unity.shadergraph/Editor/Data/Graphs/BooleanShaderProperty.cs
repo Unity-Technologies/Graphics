@@ -29,6 +29,11 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        public override bool isExposable
+        {
+            get { return true; }
+        }
+
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();

@@ -189,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.Volumetrics,
                 (uint)FrameSettingsField.ReprojectionForVolumetrics,
                 (uint)FrameSettingsField.LightLayers,
-                (uint)FrameSettingsField.ExposureControl,
+                //(uint)FrameSettingsField.ExposureControl,
                 (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
                 (uint)FrameSettingsField.TransparentPrepass,
                 (uint)FrameSettingsField.TransparentPostpass,
@@ -220,7 +220,48 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             })
         };
         /// <summary>Default FrameSettings for baked or custom ReflectionProbe/PlanarReflectionProbe renderer.</summary>
-        public static readonly FrameSettings defaultCustomOrBakeReflectionProbe = defaultCamera;
+        public static readonly FrameSettings defaultCustomOrBakeReflectionProbe = new FrameSettings()
+        {
+            bitDatas = new BitArray128(new uint[] {
+                (uint)FrameSettingsField.Shadow,
+                (uint)FrameSettingsField.ContactShadows,
+                (uint)FrameSettingsField.ShadowMask,
+                (uint)FrameSettingsField.SSAO,
+                (uint)FrameSettingsField.SubsurfaceScattering,
+                (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
+                (uint)FrameSettingsField.AtmosphericScattering,
+                (uint)FrameSettingsField.Volumetrics,
+                (uint)FrameSettingsField.ReprojectionForVolumetrics,
+                (uint)FrameSettingsField.LightLayers,
+                //(uint)FrameSettingsField.ExposureControl,
+                (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
+                (uint)FrameSettingsField.TransparentPrepass,
+                (uint)FrameSettingsField.TransparentPostpass,
+                //(uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
+                //(uint)FrameSettingsField.ObjectMotionVectors,
+                (uint)FrameSettingsField.Decals,
+                (uint)FrameSettingsField.RoughRefraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
+                (uint)FrameSettingsField.Distortion,
+                //(uint)FrameSettingsField.Postprocess,
+                //(uint)FrameSettingsField.AfterPostprocess,
+                (uint)FrameSettingsField.OpaqueObjects,
+                (uint)FrameSettingsField.TransparentObjects,
+                (uint)FrameSettingsField.RealtimePlanarReflection,
+                (uint)FrameSettingsField.AsyncCompute,
+                (uint)FrameSettingsField.LightListAsync,
+                //(uint)FrameSettingsField.SSRAsync,
+                (uint)FrameSettingsField.SSAOAsync,
+                (uint)FrameSettingsField.ContactShadowsAsync,
+                (uint)FrameSettingsField.VolumeVoxelizationsAsync,
+                (uint)FrameSettingsField.DeferredTile,
+                (uint)FrameSettingsField.ComputeLightEvaluation,
+                (uint)FrameSettingsField.ComputeLightVariants,
+                (uint)FrameSettingsField.ComputeMaterialVariants,
+                (uint)FrameSettingsField.FPTLForForwardOpaque,
+                (uint)FrameSettingsField.BigTilePrepass,
+                (uint)FrameSettingsField.SpecularLighting,
+            })
+        };
 
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
         // BitArray is quick in computation and take not a lot of space. It can contains only boolean value.

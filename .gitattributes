@@ -1,3 +1,5 @@
+# Unity assets are always serialized using lf endings
+*.asset text eol=lf
 *.psd filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
 *.png filter=lfs diff=lfs merge=lfs -text

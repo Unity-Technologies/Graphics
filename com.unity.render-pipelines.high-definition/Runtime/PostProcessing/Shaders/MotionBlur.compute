@@ -79,7 +79,7 @@ float2 GetTileUV(uint2 pixCoord, float2 randomVals)
 #if !TILE_JITTER
     randomVals = 0;
 #endif
-    float2 tileLocation = (0.5f + pixCoord) / TILE_SIZE;
+    float2 tileLocation = (0.5f + pixCoord) / _TileSize;
     float2 UV = (tileLocation + randomVals) * _TileTargetSize.zw;
 
     return  ClampAndScaleUVForBilinear(UV, _TileTargetSize.zw);
@@ -233,7 +233,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
     else
     {
-        uint actualSampleCount = min(uint(maxVelLength) + (uint(maxVelLength) & 1u), uint(_SampleCount));
+        uint actualSampleCount = min(uint(maxVelLength) + (uint(maxVelLength) & 1u), _SampleCount);
         actualSampleCount = max(actualSampleCount, 2u);
 
         const float invSampleCount = rcp(actualSampleCount);

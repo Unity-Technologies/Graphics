@@ -62,6 +62,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // inside OnEnable() just break the editor)
                 profile.TryToUpgrade();
 
+                // If the diffusion profile asset doesn't exists on the disk, it can be destroyed when we refresh the asset database
+                // which occurs when we call TryToUpgrade on a diffusion profile.
+                if (profile == null)
+                    continue;
+
                 UpdateDiffusionProfileHashNow(profile);
 
                 profile.profile.Validate();
@@ -82,8 +87,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // If the asset is not in the list, we regenerate it's hash using the GUID (which leads to the same result every time)
             else if (!diffusionProfileHashes.ContainsKey(profile.GetInstanceID()))
             {
-                profile.profile.hash = GenerateUniqueHash(profile);
-                EditorUtility.SetDirty(profile);
+                uint newHash = GenerateUniqueHash(profile);
+                if (newHash != profile.profile.hash)
+                {
+                    profile.profile.hash = newHash;
+                    EditorUtility.SetDirty(profile);
+                }
             }
             else // otherwise, no issue, we don't change the hash and we keep it to check for collisions
                 diffusionProfileHashes.Add(profile.GetInstanceID(), profile.profile.hash);

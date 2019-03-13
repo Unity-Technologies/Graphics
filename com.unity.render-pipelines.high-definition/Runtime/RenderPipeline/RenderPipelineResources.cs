@@ -30,8 +30,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader colorPyramidPS;
             public ComputeShader depthPyramidCS;
             public ComputeShader copyChannelCS;
-            public ComputeShader applyDistortionCS;
             public ComputeShader screenSpaceReflectionsCS;
+            public Shader applyDistortionPS;
 
             // Lighting tile pass
             public ComputeShader clearDispatchIndirectCS;
@@ -127,11 +127,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader bloomUpsampleCS;
             public ComputeShader FXAACS;
             public Shader finalPassPS;
+            public Shader clearBlackPS;
+            public Shader SMAAPS;
+
 
 #if ENABLE_RAYTRACING
             // Raytracing shaders
             public RaytracingShader aoRaytracing;
             public RaytracingShader reflectionRaytracing;
+            public RaytracingShader indirectDiffuseRaytracing;
             public RaytracingShader shadowsRaytracing;
             public Shader           raytracingFlagMask;
             public RaytracingShader forwardRaytracing;
@@ -169,6 +173,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Post-processing
             public Texture2D[] filmGrainTex;
+            public Texture2D   SMAASearchTex;
+            public Texture2D   SMAAAreaTex;
         }
 
         [Serializable]
@@ -214,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 colorPyramidPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/ColorPyramidPS.Shader"),
                 depthPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/DepthPyramid.compute"),
                 copyChannelCS = Load<ComputeShader>(CorePath + "CoreResources/GPUCopy.compute"),
-                applyDistortionCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/Distortion/ApplyDistorsion.compute"),
+                applyDistortionPS = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/RenderPass/Distortion/ApplyDistorsion.shader"),
                 screenSpaceReflectionsCS = Load<ComputeShader>(HDRenderPipelinePath + "Lighting/ScreenSpaceLighting/ScreenSpaceReflections.compute"),
 
                 // Lighting tile pass
@@ -315,10 +321,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bloomUpsampleCS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/BloomUpsample.compute"),
                 FXAACS = Load<ComputeShader>(HDRenderPipelinePath + "PostProcessing/Shaders/FXAA.compute"),
                 finalPassPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/FinalPass.shader"),
+                clearBlackPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/ClearBlack.shader"),
+                SMAAPS = Load<Shader>(HDRenderPipelinePath + "PostProcessing/Shaders/SubpixelMorphologicalAntialiasing.shader"),
 
 #if ENABLE_RAYTRACING
                 aoRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace"),
                 reflectionRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace"),
+                indirectDiffuseRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingIndirectDiffuse.raytrace"),
                 shadowsRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAreaShadows.raytrace"),
                 areaBillateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/AreaBilateralShadow.compute"),
                 jointBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/JointBilateralFilter.compute"),
@@ -327,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightClusterDebugCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute"),
 				countTracedRays = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/CountTracedRays.compute"),
 #endif
-        };
+            };
 
             // Materials
             materials = new MaterialResources
@@ -355,6 +364,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Large01.png"),
                     Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/FilmGrain/Large02.png")
                 },
+
+                SMAAAreaTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/AreaTex.tga"),
+                SMAASearchTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/SearchTex.tga"),
 
                 blueNoise16LTex = new Texture2D[32],
                 blueNoise16RGBTex = new Texture2D[32],

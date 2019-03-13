@@ -4,7 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.5.0] - 2019-XX-XX
+## [6.6.0] - 2019-XX-XX
+### Added
+- Added support for Baked Indirect mixed lighting.
+- You can now use Light Probes for occlusion. This means that baked lights can now occlude dynamic objects.
+
+### Fixed
+- Fixed a project import issue in the LWRP template.
+- Fixed the warnings that appear when you create new Unlit Shader Graphs using the Lightweight Render Pipeline.
+- Fixed light attenuation precision on mobile platforms.
+
+## [6.5.0] - 2019-03-07
 ### Added
 - You can now create a custom forward renderer by clicking on `Assets/Create/Rendering/Lightweight Render Pipeline/Forward Renderer`. This creates an Asset in your Project. You can add additional features to it and drag-n-drop the renderer to either the pipeline Asset or to a camera.
 - You can now add `ScriptableRendererFeature`  to the `ScriptableRenderer` to extend it with custom effects. A feature is an `ScriptableObject` that can be drag-n-dropped in the renderer and adds one or more `ScriptableRenderPass` to the renderer.

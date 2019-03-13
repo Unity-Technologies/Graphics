@@ -98,6 +98,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string BakedBackGISlotName = "BakedBackGI";
         public const int BackLightingSlotId = 25;
 
+        public const string DepthOffsetSlotName = "DepthOffset";
+        public const int DepthOffsetSlotId = 26;
+
         public enum MaterialType
         {
             KajiyaKay
@@ -139,12 +142,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SecondarySpecularShift = 1 << SecondarySpecularShiftSlotId,
             AlphaClipThresholdShadow = 1 << AlphaClipThresholdShadowSlotId,
             BakedGI = 1 << LightingSlotId,
-            BakedBackGI = 1 << BackLightingSlotId
+            BakedBackGI = 1 << BackLightingSlotId,
+            DepthOffset = 1 << DepthOffsetSlotId,
         }
 
         const SlotMask KajiyaKaySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.SpecularOcclusion | SlotMask.BentNormal | SlotMask.HairStrandDirection | SlotMask.SubsurfaceMask 
                                             | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.AlphaClipThresholdDepthPrepass 
-                                                | SlotMask.AlphaClipThresholdDepthPostpass | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.SecondarySpecularTint | SlotMask.SecondarySmoothness | SlotMask.SecondarySpecularShift | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI;
+                                            | SlotMask.AlphaClipThresholdDepthPostpass | SlotMask.SpecularTint | SlotMask.SpecularShift | SlotMask.SecondarySpecularTint | SlotMask.SecondarySmoothness | SlotMask.SecondarySpecularShift
+                                            | SlotMask.AlphaClipThresholdShadow | SlotMask.BakedGI | SlotMask.DepthOffset;
 
         // This could also be a simple array. For now, catch any mismatched data.
         SlotMask GetActiveSlotMask()
@@ -526,6 +531,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        [SerializeField]
+        bool m_depthOffset;
+
+        public ToggleData depthOffset
+        {
+            get { return new ToggleData(m_depthOffset); }
+            set
+            {
+                if (m_depthOffset == value.isOn)
+                    return;
+                m_depthOffset = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
         public HairMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -667,6 +688,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 validSlots.Add(LightingSlotId);
                 AddSlot(new DefaultMaterialSlot(BackLightingSlotId, BakedBackGISlotName, BakedBackGISlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(BackLightingSlotId);
+            }
+            if (depthOffset.isOn)
+            {
+                AddSlot(new Vector1MaterialSlot(DepthOffsetSlotId, DepthOffsetSlotName, DepthOffsetSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                validSlots.Add(DepthOffsetSlotId);
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);

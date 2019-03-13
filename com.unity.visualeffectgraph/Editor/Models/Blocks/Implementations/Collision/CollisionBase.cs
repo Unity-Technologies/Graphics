@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.Block
 
         public class RadiusProperties
         {
-            [Tooltip("How much to randomly adjust the normal after a collision.")]
+            [Tooltip("The radius of the particle used for collision detection.")]
             public float radius = 0.1f;
         }
     }
