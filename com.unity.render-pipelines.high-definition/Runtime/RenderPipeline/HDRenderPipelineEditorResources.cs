@@ -58,7 +58,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Load default renderPipelineResources / Material / Shader
             string HDRenderPipelinePath = HDUtils.GetHDRenderPipelinePath() + "Runtime/";
+            string HDRenderPipelineEditorPath = HDUtils.GetHDRenderPipelinePath() + "Editor/";
 
+            defaultScene = Load<GameObject>(HDRenderPipelineEditorPath + "DefaultScene/DefaultSceneRoot.prefab");
+            defaultRenderSettingsProfile = Load<VolumeProfile>(HDRenderPipelineEditorPath + "DefaultScene/DefaultRenderingSettings.asset");
+            defaultPostProcessingProfile = Load<VolumeProfile>(HDRenderPipelineEditorPath + "DefaultScene/DefaultPostProcessingSettings.asset");
+            defaultDiffusionProfileSettingsList = new DiffusionProfileSettings[2];
+            defaultDiffusionProfileSettingsList[0] = Load<DiffusionProfileSettings>(HDRenderPipelinePath + "RenderPipelineResources/Skin Diffusion Profile.asset");
+            defaultDiffusionProfileSettingsList[1] = Load<DiffusionProfileSettings>(HDRenderPipelinePath + "RenderPipelineResources/Foliage Diffusion Profile.asset");
+            
             // Shaders
             shaders = new ShaderResources
             {
@@ -87,6 +95,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 autodeskInteractiveMasked = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph"),
                 autodeskInteractiveTransparent = Load<Shader>(HDRenderPipelinePath + "RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph"),
             };
+        }
+
+        bool NeedReload()
+        {
+            bool needReload = false;
+            needReload |= defaultScene == null;
+            if (needReload) return true;
+
+            needReload |= defaultRenderSettingsProfile == null;
+            if (needReload) return true;
+
+            needReload |= defaultPostProcessingProfile == null;
+            if (needReload) return true;
+
+            needReload |= defaultDiffusionProfileSettingsList == null;
+            if (needReload) return true;
+            needReload |= defaultDiffusionProfileSettingsList.Length < 2;
+            needReload |= defaultDiffusionProfileSettingsList[0] == null;
+            needReload |= defaultDiffusionProfileSettingsList[1] == null;
+
+            needReload |= shaders == null;
+            if (needReload) return true;
+
+            needReload |= materials == null;
+            if (needReload) return true;
+            needReload |= materials.defaultDiffuseMat == null;
+            needReload |= materials.defaultMirrorMat == null;
+            needReload |= materials.defaultDecalMat == null;
+            needReload |= materials.defaultTerrainMat == null;
+
+            needReload |= textures == null;
+            if (needReload) return true;
+
+            needReload |= shaderGraphs == null;
+            if (needReload) return true;
+            needReload |= shaderGraphs.autodeskInteractive == null;
+            needReload |= shaderGraphs.autodeskInteractiveMasked == null;
+            needReload |= shaderGraphs.autodeskInteractiveTransparent == null;
+
+            return needReload;
+        }
+
+
+        public void ReloadIfNeeded()
+        {
+            if (NeedReload())
+                Init();
         }
     }
 }

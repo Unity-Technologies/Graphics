@@ -251,6 +251,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+
 #if UNITY_EDITOR
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             m_Asset.EvaluateSettings();
@@ -259,9 +260,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if ((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources == null)
                 (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
+            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)?.renderPipelineResources?.ReloadIfNeeded();
+
             if ((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources == null)
                 (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)?.renderPipelineEditorResources?.ReloadIfNeeded();
 #endif
 
             // Upgrade the resources (re-import every references in RenderPipelineResources) if the resource version mismatches
