@@ -65,6 +65,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string BakedGISlotName = "BakedGI";
         public const string BakedBackGISlotName = "BakedBackGI";
 
+        public const string DepthOffsetSlotName = "DepthOffset";
+
         public const int PositionSlotId = 0;
         public const int BaseColorSlotId = 1;
         public const int NormalSlotId = 2;
@@ -104,6 +106,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
        
         public const int LightingSlotId = 34;
         public const int BackLightingSlotId = 35;
+
+        public const int DepthOffsetSlotId = 36;
 
         // In StackLit.hlsl engine side
         //public enum BaseParametrization
@@ -649,6 +653,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Topological);
             }
         }
+        
+        [SerializeField]
+        bool m_depthOffset;
+
+        public ToggleData depthOffset
+        {
+            get { return new ToggleData(m_depthOffset); }
+            set
+            {
+                if (m_depthOffset == value.isOn)
+                    return;
+                m_depthOffset = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
 
         public StackLitMasterNode()
         {
@@ -822,6 +842,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 validSlots.Add(LightingSlotId);
                 AddSlot(new DefaultMaterialSlot(BackLightingSlotId, BakedBackGISlotName, BakedBackGISlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(BackLightingSlotId);
+            }
+
+            if (depthOffset.isOn)
+            {
+                AddSlot(new Vector1MaterialSlot(DepthOffsetSlotId, DepthOffsetSlotName, DepthOffsetSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
+                validSlots.Add(DepthOffsetSlotId);
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);

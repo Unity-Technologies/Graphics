@@ -166,6 +166,7 @@ Pass
     $RecomputeStackPerLight:                             #define _VLAYERED_RECOMPUTE_PERLIGHT
     $ShadeBaseUsingRefractedAngles:                      #define _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
     $StackLitDebug:                                      #define _STACKLIT_DEBUG
+    $DepthOffset:                                        #define _DEPTHOFFSET_ON 1
 
     // The other predicates that don't directly map to inputs (the more abstract, called "specific" above)
     // are used in the surfaceData and builtinData functions.
@@ -472,11 +473,13 @@ $include("SharedCode.template.hlsl")
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
 
+        $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
-        InitBuiltinData(surfaceDescription.Alpha, surfaceData.bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, surfaceData.bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
         
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
@@ -484,8 +487,7 @@ $include("SharedCode.template.hlsl")
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
-        // TODO: Handle depth offset
-        //builtinData.depthOffset = 0.0;
+        $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
 #if (SHADERPASS == SHADERPASS_DISTORTION)
         builtinData.distortion = surfaceDescription.Distortion;

@@ -48,6 +48,7 @@ Pass
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DoubleSided:                       #define _DOUBLESIDED_ON 1
     $TransparentWritesVelocity:         #define _WRITE_TRANSPARENT_VELOCITY 1
+    $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $UseLightFacingNormal:              #define _USE_LIGHT_FACING_NORMAL 1
 
     //-------------------------------------------------------------------------------------
@@ -317,31 +318,22 @@ $include("SharedCode.template.hlsl")
         $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
         $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
 
+        $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
     
-        // For diffuse GI, we should compute the integral around the entire hair strand (0 to 2 * Pi).
-        // For performance reasons, we use a (poor) double-tap approximation, one at the front and
-        // one at the back of the hair strand. The motivation is that frontal and back
-        // lighting makes the most significant visual contribution.
-        // We also don't perform any normalization for energy conservation (since it's all a big hack).
-
         // Builtin Data
-
-        // We use the reflected bent normal for back lighting.
-        // It allows us to preserve the symmetry of geometry.
-        float3 backBentNormalWS = reflect(-bentNormalWS, surfaceData.hairStrandDirectionWS);
-
-        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, backBentNormalWS, fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        // For back lighting we use the oposite vertex normal 
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
-        $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+        $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
-        // TODO: Handle depth offset
-        //builtinData.depthOffset = 0.0;
+        $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
     }

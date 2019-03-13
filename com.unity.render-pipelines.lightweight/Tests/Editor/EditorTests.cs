@@ -59,7 +59,7 @@ class EditorTests
             Assert.GreaterOrEqual(asset.maxAdditionalLightsCount, 0);
 
             asset.maxAdditionalLightsCount = 32;
-            Assert.LessOrEqual(asset.maxAdditionalLightsCount, LightweightRenderPipeline.maxPerObjectLightCount);
+            Assert.LessOrEqual(asset.maxAdditionalLightsCount, LightweightRenderPipeline.maxPerObjectLights);
         }
         ScriptableObject.DestroyImmediate(asset);
     }

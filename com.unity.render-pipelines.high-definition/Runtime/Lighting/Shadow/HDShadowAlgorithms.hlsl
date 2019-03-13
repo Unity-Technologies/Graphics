@@ -85,7 +85,7 @@ float3 EvalShadow_GetTexcoordsAtlas(HDShadowData sd, float2 atlasSizeRcp, float3
     posNDC = (perspProj && posCS.w != 0) ? (posCS.xyz / posCS.w) : posCS.xyz;
 
     // calc TCs
-    float3 posTC = float3(posNDC.xy * 0.5 + 0.5, posNDC.z);
+    float3 posTC = float3(saturate(posNDC.xy * 0.5 + 0.5), posNDC.z);
     posTC.xy = posTC.xy * sd.shadowMapSize.xy * atlasSizeRcp + sd.atlasOffset;
 
     return posTC;
@@ -278,6 +278,36 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
 }
 
 //
+//  Area light shadows
+//
+float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
+{
+    /* in stereo, translate input position to the same space as shadows for proper sampling and bias */
+    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
+
+    /* get shadowmap texcoords */
+    float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _AreaShadowAtlasSize.zw, positionWS, perspective);
+
+    int blurPassesScale = (1 + min(4, sd.shadowFilterParams0.w) * 4.0f);// This is needed as blurring might cause some leaks. It might be overclipping, but empirically is a good value. 
+    float2 maxCoord = (sd.shadowMapSize.xy - 0.5f * blurPassesScale) * _AreaShadowAtlasSize.zw + sd.atlasOffset;
+    float2 minCoord = sd.atlasOffset + _AreaShadowAtlasSize.zw * blurPassesScale;
+
+    if (any(posTC.xy > maxCoord || posTC.xy < minCoord))
+    {
+        return 1.0f;
+    }
+    else
+    {
+        float2 exponents = sd.shadowFilterParams0.xx;
+        float lightLeakBias = sd.shadowFilterParams0.y; 
+        float varianceBias = sd.shadowFilterParams0.z;
+        return SampleShadow_EVSM_1tap(posTC, lightLeakBias, varianceBias, exponents, false, tex, s_linear_clamp_sampler);
+
+    }
+}
+
+
+//
 //  Directional shadows (cascaded shadow map)
 //
 
@@ -305,12 +335,17 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
     }
     int shadowSplitIndex = i < _CascadeShadowCount ? i : -1;
 
-    float3 cascadeDir = dsd.cascadeDirection.xyz;
-    cascadeCount     = dsd.cascadeDirection.w;
-    float border      = dsd.cascadeBorders[shadowSplitIndex];
-          alpha      = border <= 0.0 ? 0.0 : saturate((relDistance - (1.0 - border)) / border);
-    float  cascDot    = dot(cascadeDir, wposDir);
-          alpha      = lerp(alpha, 0.0, saturate(-cascDot * 4.0));
+    cascadeCount = dsd.cascadeDirection.w;
+    float border = dsd.cascadeBorders[shadowSplitIndex];
+    alpha = border <= 0.0 ? 0.0 : saturate((relDistance - (1.0 - border)) / border);
+
+    // The above code will generate transitions on the whole cascade sphere boundary.
+    // It means that depending on the light and camera direction, sometimes the transition appears on the wrong side of the cascade
+    // To avoid that we attenuate the effect (lerp to 0.0) when view direction and cascade center to pixel vector face opposite directions.
+    // This way you only get fade out on the right side of the cascade.
+    float3 viewDir = GetWorldSpaceViewDir(positionWS);
+    float  cascDot = dot(viewDir, wposDir);
+    alpha = lerp(alpha, 0.0, saturate(cascDot * 4.0));
 
     return shadowSplitIndex;
 }

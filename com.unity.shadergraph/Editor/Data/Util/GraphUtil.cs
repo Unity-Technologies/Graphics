@@ -10,6 +10,8 @@ using UnityEditor.Graphing.Util;
 using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
+using UnityEditor.ProjectWindowCallback;
+using UnityEngine;
 using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
@@ -858,6 +860,30 @@ namespace UnityEditor.ShaderGraph
         }
     };
 
+
+
+    class NewGraphAction : EndNameEditAction
+    {
+        AbstractMaterialNode m_Node;
+        public AbstractMaterialNode node
+        {
+            get { return m_Node; }
+            set { m_Node = value; }
+        }
+
+        public override void Action(int instanceId, string pathName, string resourceFile)
+        {
+            var graph = new GraphData();
+            graph.AddNode(node);
+            graph.path = "Shader Graphs";
+            File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
+            AssetDatabase.Refresh();
+
+            UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath<Shader>(pathName);
+            Selection.activeObject = obj;
+        }
+    }
+
     static class GraphUtil
     {
         internal static string ConvertCamelCase(string text, bool preserveAcronyms)
@@ -876,6 +902,14 @@ namespace UnityEditor.ShaderGraph
                 newText.Append(text[i]);
             }
             return newText.ToString();
+        }
+
+        public static void CreateNewGraph(AbstractMaterialNode node)
+        {
+            var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
+            graphItem.node = node;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
+                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
 
         public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderStringBuilder vertexInputs)
@@ -917,7 +951,7 @@ namespace UnityEditor.ShaderGraph
         {
             return GetShader(graph, node, new List<AbstractMaterialNode>(), mode, name);
         }
-        
+
         public static GenerationResults GetShader(this GraphData graph, AbstractMaterialNode node, ICollection<AbstractMaterialNode> excludedNodes, GenerationMode mode, string name)
         {
             // ----------------------------------------------------- //
@@ -1218,7 +1252,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             var foundEdges = graph.GetEdges(inputSlot.slotReference).ToArray();
                             string slotValue = foundEdges.Any() ? activeNode.GetSlotValue(inputSlot.id, mode) : inputSlot.GetDefaultValue(mode);
-                            sg.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, activeNode.tempId.index, slotValue), false);
+                            sg.AddShaderChunk(String.Format("if ({0} == {1}) {{ surface.PreviewOutput = {2}; return surface; }}", outputIdProperty.referenceName, activeNode.tempId.index, ShaderGenerator.AdaptNodeOutputForPreview(activeNode, inputSlot.id, slotValue)), false);
                         }
                     }
 
@@ -1424,6 +1458,43 @@ namespace UnityEditor.ShaderGraph
             }
 
             return string.Format(duplicateFormat, name, duplicateNumber);
+        }
+
+        public static SlotValueType ToSlotValueType(this ConcreteSlotValueType concreteValueType)
+        {
+            switch(concreteValueType)
+            {
+                case ConcreteSlotValueType.SamplerState:
+                    return SlotValueType.SamplerState;
+                case ConcreteSlotValueType.Matrix2:
+                    return SlotValueType.Matrix2;
+                case ConcreteSlotValueType.Matrix3:
+                    return SlotValueType.Matrix3;
+                case ConcreteSlotValueType.Matrix4:
+                    return SlotValueType.Matrix4;
+                case ConcreteSlotValueType.Texture2D:
+                    return SlotValueType.Texture2D;
+                case ConcreteSlotValueType.Texture2DArray:
+                    return SlotValueType.Texture2DArray;
+                case ConcreteSlotValueType.Texture3D:
+                    return SlotValueType.Texture3D;
+                case ConcreteSlotValueType.Cubemap:
+                    return SlotValueType.Cubemap;
+                case ConcreteSlotValueType.Gradient:
+                    return SlotValueType.Gradient;
+                case ConcreteSlotValueType.Vector4:
+                    return SlotValueType.Vector4;
+                case ConcreteSlotValueType.Vector3:
+                    return SlotValueType.Vector3;
+                case ConcreteSlotValueType.Vector2:
+                    return SlotValueType.Vector2;
+                case ConcreteSlotValueType.Vector1:
+                    return SlotValueType.Vector1;
+                case ConcreteSlotValueType.Boolean:
+                    return SlotValueType.Boolean;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         public static bool WriteToFile(string path, string content)

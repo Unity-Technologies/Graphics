@@ -5,6 +5,7 @@ Pass
 	
 	HLSLPROGRAM
 	#pragma target 4.5
+	${VFXPassForwardAdditionalPragma}
 	
 	struct ps_input
 	{

@@ -428,6 +428,8 @@ public class VisualEffectAssetEditor : Editor
     SerializedProperty prewarmDeltaTime;
     SerializedProperty prewarmStepCount;
 
+    private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
+
     public override void OnInspectorGUI()
     {
         resourceObject.Update();
@@ -458,14 +460,91 @@ public class VisualEffectAssetEditor : Editor
 
         if (prewarmDeltaTime!= null && prewarmStepCount != null)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time"));
-            EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count"));
-            if (EditorGUI.EndChangeCheck())
+            if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
             {
-                resourceObject.ApplyModifiedProperties();
+                var currentDeltaTime = prewarmDeltaTime.floatValue;
+                var currentStepCount = prewarmStepCount.intValue;
+                var currentTotalTime = currentDeltaTime * currentStepCount;
+                EditorGUI.BeginChangeCheck();
+                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time"), currentTotalTime);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (currentStepCount <= 0)
+                    {
+                        prewarmStepCount.intValue = currentStepCount = 1;
+                    }
+
+                    currentDeltaTime = currentTotalTime / currentStepCount;
+                    prewarmDeltaTime.floatValue = currentDeltaTime;
+                    resourceObject.ApplyModifiedProperties();
+                }
+
+                EditorGUI.BeginChangeCheck();
+                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count"), currentStepCount);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (currentStepCount <= 0 && currentTotalTime != 0.0f)
+                    {
+                        prewarmStepCount.intValue = currentStepCount = 1;
+                    }
+                    
+                    currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
+                    prewarmDeltaTime.floatValue = currentDeltaTime;
+                    prewarmStepCount.intValue = currentStepCount;
+                    resourceObject.ApplyModifiedProperties();
+                }
+
+                EditorGUI.BeginChangeCheck();
+                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time"), currentDeltaTime);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (currentDeltaTime < k_MinimalCommonDeltaTime)
+                    {
+                        prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
+                    }
+
+                    if (currentDeltaTime > currentTotalTime)
+                    {
+                        currentTotalTime = currentDeltaTime;
+                    }
+
+                    if (currentTotalTime != 0.0f)
+                    {
+                        var candidateStepCount_A = Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
+                        var candidateStepCount_B = Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
+
+                        var totalTime_A = currentDeltaTime * candidateStepCount_A;
+                        var totalTime_B = currentDeltaTime * candidateStepCount_B;
+
+                        if (Mathf.Abs(totalTime_A - currentTotalTime) < Mathf.Abs(totalTime_B - currentTotalTime))
+                        {
+                            currentStepCount = candidateStepCount_A;
+                        }
+                        else
+                        {
+                            currentStepCount = candidateStepCount_B;
+                        }
+
+                        prewarmStepCount.intValue = currentStepCount;
+                    }
+                    prewarmDeltaTime.floatValue = currentDeltaTime;
+                    resourceObject.ApplyModifiedProperties();
+                }
+            }
+            else
+            {
+                //Multi selection case, can't resolve total time easily
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
+                EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count"));
+                EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
+                EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time"));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
+                        prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
+                    resourceObject.ApplyModifiedProperties();
+                }
             }
         }
 
@@ -479,7 +558,7 @@ public class VisualEffectAssetEditor : Editor
 
             m_ReorderableList.DoLayoutList();
 
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
+            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
 
             var shaderSources = resource.shaderSources;
 

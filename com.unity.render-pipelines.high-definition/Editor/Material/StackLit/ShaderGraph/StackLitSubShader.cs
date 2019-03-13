@@ -91,7 +91,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -119,13 +120,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 StackLitMasterNode.PositionSlotId
             },
-            UseInPreview = true
+            UseInPreview = false
         };
 
         Pass m_PassDepthForwardOnly = new Pass()
@@ -171,13 +173,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // see AddPixelShaderSlotsForWriteNormalBufferPasses
                 StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 StackLitMasterNode.PositionSlotId
             },
-            UseInPreview = false,
+            UseInPreview = true,
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
@@ -224,7 +227,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // see AddPixelShaderSlotsForWriteNormalBufferPasses
                 StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -254,12 +258,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
             },
+            StencilOverride = new List<string>()
+            {
+                "// Stencil setup",
+                "Stencil",
+                "{",
+                string.Format("   WriteMask {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
+                string.Format("   Ref  {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
+                "   Comp Always",
+                "   Pass Replace",
+                "}"
+            },
             PixelShaderSlots = new List<int>()
             {
                 StackLitMasterNode.AlphaSlotId,
                 StackLitMasterNode.AlphaClipThresholdSlotId,
                 StackLitMasterNode.DistortionSlotId,
                 StackLitMasterNode.DistortionBlurSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -361,6 +377,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
                 StackLitMasterNode.LightingSlotId,
                 StackLitMasterNode.BackLightingSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -778,6 +795,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("BackLightingGI");
             }
+
+        if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(StackLitMasterNode.DepthOffsetSlotId))
+                activeFields.Add("DepthOffset");
 
             return activeFields;
         }

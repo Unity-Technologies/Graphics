@@ -215,12 +215,98 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionSaturate : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionSaturate() : this(VFXValue<float>.Default) { }
+
+        public VFXExpressionSaturate(VFXExpression parent) : base(parent, VFXExpressionOperation.Saturate)
+        {
+            if (!IsFloatValueType(parent.valueType))
+                throw new InvalidOperationException("Unexpected VFXExpressionSaturate type with parent " + parent.valueType);
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("saturate({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Clamp01(input);
+        }
+    }
+
+    class VFXExpressionCeil : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionCeil() : this(VFXValue<float>.Default) { }
+
+        public VFXExpressionCeil(VFXExpression parent) : base(parent, VFXExpressionOperation.Ceil)
+        {
+            if (!IsFloatValueType(parent.valueType))
+                throw new InvalidOperationException("Unexpected VFXExpressionCeil type with parent " + parent.valueType);
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("ceil({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Ceil(input);
+        }
+    }
+
+    class VFXExpressionRound : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionRound() : this(VFXValue<float>.Default) { }
+
+        public VFXExpressionRound(VFXExpression parent) : base(parent, VFXExpressionOperation.Round)
+        {
+            if (!IsFloatValueType(parent.valueType))
+                throw new InvalidOperationException("Unexpected VFXExpressionRound type with parent " + parent.valueType);
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("round({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Round(input);
+        }
+    }
+
+    class VFXExpressionFrac : VFXExpressionUnaryFloatOperation
+    {
+        public VFXExpressionFrac() : this(VFXValue<float>.Default) { }
+
+        public VFXExpressionFrac(VFXExpression parent) : base(parent, VFXExpressionOperation.Frac)
+        {
+            if (!IsFloatValueType(parent.valueType))
+                throw new InvalidOperationException("Unexpected VFXExpressionFrac type with parent " + parent.valueType);
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("frac({0})", x);
+        }
+
+        sealed protected override float ProcessUnaryOperation(float input)
+        {
+            return Mathf.Repeat(input, 1.0f);
+        }
+    }
+
     class VFXExpressionFloor : VFXExpressionUnaryFloatOperation
     {
         public VFXExpressionFloor() : this(VFXValue<float>.Default) {}
 
         public VFXExpressionFloor(VFXExpression parent) : base(parent, VFXExpressionOperation.Floor)
         {
+            if (!IsFloatValueType(parent.valueType))
+                throw new InvalidOperationException("Unexpected VFXExpressionFloor type with parent " + parent.valueType);
         }
 
         sealed protected override string GetUnaryOperationCode(string x)
@@ -468,6 +554,16 @@ namespace UnityEditor.VFX
                 return string.Format("{0} < {1} ? {0} : {1}", left, right);
             return string.Format("min({0}, {1})", left, right);
         }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            VFXExpression inputSaturateExpression = null;
+            if (VFXExpressionMax.CanBeReducedToSaturate(this, reducedParents, out inputSaturateExpression))
+            {
+                return new VFXExpressionSaturate(inputSaturateExpression);
+            }
+            return base.Reduce(reducedParents);
+        }
     }
 
     class VFXExpressionMax : VFXExpressionBinaryNumericOperation
@@ -505,6 +601,62 @@ namespace UnityEditor.VFX
             if (type == VFXValueType.Uint32)
                 return string.Format("{0} > {1} ? {0} : {1}", left, right);
             return string.Format("max({0}, {1})", left, right);
+        }
+
+        static public bool CanBeReducedToSaturate(VFXExpression current, VFXExpression[] reducedParents, out VFXExpression inputValueRef)
+        {
+            inputValueRef = null;
+            var valueType = current.valueType;
+            if (reducedParents.Length != 2 || !VFXExpression.IsFloatValueType(valueType))
+                return false;
+
+            var one = VFXOperatorUtility.OneExpression[valueType];
+            var zero = VFXOperatorUtility.ZeroExpression[valueType];
+
+            Type searchInnerFunctionType = null;
+            VFXExpression searchInnerValueFirstLevel = null;
+            VFXExpression searchInnerValueSecondLevel = null;
+
+            if (current is VFXExpressionMax)
+            {
+                searchInnerFunctionType = typeof(VFXExpressionMin);
+                searchInnerValueFirstLevel = zero;
+                searchInnerValueSecondLevel = one;
+            }
+            else if (current is VFXExpressionMin)
+            {
+                searchInnerFunctionType = typeof(VFXExpressionMax);
+                searchInnerValueFirstLevel = one;
+                searchInnerValueSecondLevel = zero;
+            }
+            else
+            {
+                return false;
+            }
+
+            var minReferenceExpected = reducedParents.FirstOrDefault(o => o.GetType() == searchInnerFunctionType);
+            var firstValueExpected = reducedParents.FirstOrDefault(o => o == searchInnerValueFirstLevel);
+            if (minReferenceExpected != null && firstValueExpected != null)
+            {
+                var indexOf = Array.IndexOf(minReferenceExpected.parents, searchInnerValueSecondLevel);
+                if (indexOf != -1)
+                {
+                    var otherIndexOf = (indexOf + 1) % 2;
+                    inputValueRef = minReferenceExpected.parents[otherIndexOf];
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            VFXExpression inputSaturateExpression = null;
+            if (CanBeReducedToSaturate(this, reducedParents, out inputSaturateExpression))
+            {
+                return new VFXExpressionSaturate(inputSaturateExpression);
+            }
+            return base.Reduce(reducedParents);
         }
     }
 
