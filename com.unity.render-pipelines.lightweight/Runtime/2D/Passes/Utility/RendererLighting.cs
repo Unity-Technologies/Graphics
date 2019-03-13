@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
         static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
         static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
+        static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
         static readonly string[] k_UseLightOperationKeywords =
         {
             "USE_SHAPE_LIGHT_TYPE_0",
@@ -49,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // The array size should be determined by the number of 'feature bit' the material index has. See GetLightMaterialIndex().
             // Not all slots must be filled because certain combinations of the feature bits don't make sense (e.g. sprite bit on + shape bit off).
             if (s_LightMaterials == null)
-                s_LightMaterials = new Material[32];
+                s_LightMaterials = new Material[64];
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
@@ -247,14 +248,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             cmdBuffer.SetGlobalColor("_LightColor", light.color * light.intensity);
 
-            if (light.pointLightQuality == Light2D.PointLightQuality.Fast)
-                cmdBuffer.EnableShaderKeyword("LIGHT_QUALITY_FAST");
-            else
-                cmdBuffer.DisableShaderKeyword("LIGHT_QUALITY_FAST");
-
-            //=====================================================================================
-            //                          New stuff
-            //=====================================================================================
             // This is used for the lookup texture
             Matrix4x4 lightInverseMatrix;
             Matrix4x4 lightNoRotInverseMatrix;
@@ -380,41 +373,38 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             uint spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
             bitIndex++;
             uint pointCookieBit = (!light.IsShapeLight() && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
+            bitIndex++;
+            uint pointFastQualityBit = (!light.IsShapeLight() && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
 
-            return pointCookieBit | spriteBit | additiveBit | shapeBit | volumeBit;
+            return pointFastQualityBit | pointCookieBit | spriteBit | additiveBit | shapeBit | volumeBit;
         }
 
         static Material CreateLightMaterial(Light2D light, bool isVolume)
         {
+            bool isShape = light.IsShapeLight();
             Material material;
 
             if (isVolume)
-            {
-                if (light.IsShapeLight())
-                    material = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightVolumeShader);
-                else
-                    material = CoreUtils.CreateEngineMaterial(s_RendererData.pointLightVolumeShader);
-            }
+                material = CoreUtils.CreateEngineMaterial(isShape ? s_RendererData.shapeLightVolumeShader : s_RendererData.pointLightVolumeShader);
             else
-            {
-                if (light.IsShapeLight())
-                {
-                    material = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightShader);
+                material = CoreUtils.CreateEngineMaterial(isShape ? s_RendererData.shapeLightShader : s_RendererData.pointLightShader);
 
-                    if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
-                        SetBlendModes(material, BlendMode.One, BlendMode.One);
-                    else
-                        SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
-                }
+            if (!isVolume && isShape)
+            {
+                if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
+                    SetBlendModes(material, BlendMode.One, BlendMode.One);
                 else
-                    material = CoreUtils.CreateEngineMaterial(s_RendererData.pointLightShader);
+                    SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
             }
 
             if (light.lightType == Light2D.LightType.Sprite)
                 material.EnableKeyword(k_SpriteLightKeyword);
 
-            if (!light.IsShapeLight() && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+            if (!isShape && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 material.EnableKeyword(k_UsePointLightCookiesKeyword);
+
+            if (!isShape && light.pointLightQuality == Light2D.PointLightQuality.Fast)
+                material.EnableKeyword(k_LightQualityFastKeyword);
 
             return material;
         }
