@@ -401,7 +401,7 @@ MonoBehaviour:
   normalBiasMax: 0.5
   normalBiasScale: 1
   sampleBiasScale: 0
-  edgeLeakFixup: 1
+  edgeLeakFixup: 0
   edgeToleranceNormal: 1
   edgeTolerance: 1
   shadowCascadeCount: 4

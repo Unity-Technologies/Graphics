@@ -20,7 +20,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_DecalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
         static readonly GUIContent k_DecalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
         static readonly GUIContent k_ShadowSubTitle = EditorGUIUtility.TrTextContent("Shadow");
-        static readonly GUIContent k_ShadowAtlasSubTitle = EditorGUIUtility.TrTextContent("Atlas");
+        static readonly GUIContent k_ShadowPunctualLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Punctual Lights Atlas");
+        static readonly GUIContent k_ShadowAreaLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Area Lights Atlas");
         static readonly GUIContent k_DynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
 
         static readonly GUIContent k_DefaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
@@ -39,6 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_SupportVolumetricContent = EditorGUIUtility.TrTextContent("Volumetrics", "When enabled, HDRP allocates Shader variants and memory for volumetric effects. This allows you to use volumetric lighting and fog in your Unity Project.");
         static readonly GUIContent k_VolumetricResolutionContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP increases the resolution of volumetric lighting buffers. Warning: There is a high performance cost, do not enable on consoles.");
         static readonly GUIContent k_SupportLightLayerContent = EditorGUIUtility.TrTextContent("Light Layers", "When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
+        static readonly GUIContent k_ColorBufferFormatContent = EditorGUIUtility.TrTextContent("Color Buffer Format", "Specifies the format used by the scene color render target. R11G11B10 is a faster option and should have sufficient precision.");
         static readonly GUIContent k_SupportLitShaderModeContent = EditorGUIUtility.TrTextContent("Lit Shader Mode", "Specifies the rendering modes HDRP supports for Lit Shaders. HDRP removes all allocated memory and Shader variants for modes you do not specify.");
         static readonly GUIContent k_MSAASampleCountContent = EditorGUIUtility.TrTextContent("Multisample Anti-aliasing Quality", "Specifies the maximum quality HDRP supports for MSAA. Set Lit Shader Mode to Forward Only or Both to use this feature.");
         static readonly GUIContent k_SupportDecalContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory to the decals buffer and cluster decal. This allows you to use decals in your Unity Project.");
@@ -81,6 +83,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_MaxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
 
         static readonly GUIContent k_ResolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
+        static readonly GUIContent k_DirectionalShadowPrecisionContent = EditorGUIUtility.TrTextContent("Directional Shadow Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
         static readonly GUIContent k_PrecisionContent = EditorGUIUtility.TrTextContent("Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
         static readonly GUIContent k_DynamicRescaleContent = EditorGUIUtility.TrTextContent("Dynamic Rescale", "When enabled, scales the shadow map size using the screen size of the Light to leave more space for other shadows in the atlas.");
         static readonly GUIContent k_MaxRequestContent = EditorGUIUtility.TrTextContent("Maximum Shadow on Screen", "Sets the maximum number of shadows HDRP can handle on screen at once. See the documentation for details on how many shadows each light type casts.");

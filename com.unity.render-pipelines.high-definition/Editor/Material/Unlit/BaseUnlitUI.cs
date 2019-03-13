@@ -865,5 +865,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // We should always do this call at the end
             m_MaterialEditor.serializedObject.ApplyModifiedProperties();
         }
+
+        protected Color NormalizeEmissionColor(ref bool emissiveColorUpdated, Color color)
+        {
+            if (HDRenderPipelinePreferences.materialEmissionColorNormalization)
+            {
+                // When enabling the material emission color normalization the ldr color might not be normalized,
+                // so we need to update the emissive color
+                if (!Mathf.Approximately(ColorUtils.Luminance(color), 1))
+                    emissiveColorUpdated = true;
+                
+                color = HDUtils.NormalizeColor(color);
+            }
+            return color;
+        }
     }
 }
