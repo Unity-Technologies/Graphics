@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
             prop.modifiable = false;
             prop.generatePropertyBlock = true;
-            prop.value.texture = texture;
+            prop.value = m_Texture;
             prop.defaultType = defaultType;
             properties.AddShaderProperty(prop);
         }
