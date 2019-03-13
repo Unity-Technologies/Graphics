@@ -407,7 +407,7 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, float NdotL, PreLightData preLightData, 
         // Bypass the normal map...
         float geomNdotV = dot(bsdfData.geomNormalWS, V);
 
-        // (G / NdotV) = 1.
+        // G = NdotL * NdotV.
         cbxdf.specR = 0.25 * F * (hairSpec1 + hairSpec2) * saturate(NdotL) * saturate(geomNdotV * FLT_MAX);
 
         // Yibing's and Morten's hybrid scatter model hack.
