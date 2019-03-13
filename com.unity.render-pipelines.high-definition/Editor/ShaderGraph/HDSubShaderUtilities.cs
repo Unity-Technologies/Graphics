@@ -175,6 +175,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("SurfaceDescriptionInputs.uv3",                       "FragInputs.texCoord3"),
                 new Dependency("SurfaceDescriptionInputs.VertexColor",               "FragInputs.color"),
                 new Dependency("SurfaceDescriptionInputs.FaceSign",                  "FragInputs.isFrontFace"),
+
+                new Dependency("DepthOffset", "FragInputs.positionRWS"),
             };
         };
 

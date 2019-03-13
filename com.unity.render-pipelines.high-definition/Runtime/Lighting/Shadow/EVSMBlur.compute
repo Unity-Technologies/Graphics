@@ -92,7 +92,7 @@ void KERNEL_MAIN(uint3 dispatchId : SV_DispatchThreadID, uint3 groupThreadId : S
 
 #else       // ALREADY_EVSM
                         float4 depths;
-                        int2 sourceID = min(srcIdx * 2 + (int2) _SrcOffset - BLUR_BORDER, validSrc - 1);
+                        int2 sourceID = min(srcIdx * 2 + (int2) _SrcOffset - 2*BLUR_BORDER, validSrc - 1);
                         sourceID = max(sourceID, _SrcOffset + BLUR_BORDER);
                         depths = GATHER_TEXTURE2D(_DepthTexture, s_point_clamp_sampler, sourceID * _AtlasRcpSize + _AtlasRcpSize);
 

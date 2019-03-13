@@ -107,6 +107,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ColorGradingLUTBuilder,
         UberPost,
         FXAA,
+        SMAA,
         FinalPost,
 
         Max

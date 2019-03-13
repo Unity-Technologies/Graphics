@@ -45,8 +45,8 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
 #endif
 
-#if PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
-#define NR_THREADS              PLATFORM_THREAD_GROUP_OPTIMAL_SIZE  // use platform optimal thread group size if possible
+#ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
+#define NR_THREADS              PLATFORM_LANE_COUNT  
 #else
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
@@ -163,7 +163,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         lightOffs = 0;
     }
 
-#if NR_THREADS != PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -198,7 +198,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         InterlockedMax(ldsZMax, asuint(dpt_ma));
         InterlockedMin(ldsZMin, asuint(dpt_mi));
 
-#if NR_THREADS != PLATFORM_THREAD_GROUP_OPTIMAL_SIZE || defined(SHADER_API_SWITCH) // not sure why Switch needs the barrier (it will not be correct without)
+#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) // not sure why Switch needs the barrier (it will not be correct without)
         GroupMemoryBarrierWithGroupSync();
 #endif
     }
@@ -242,7 +242,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     if(t<2) ldsDoesLightIntersect[t] = 0;
 #endif
 
-#if NR_THREADS != PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -270,7 +270,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     if(t==0) ldsFeatureFlags=0;
 #endif
 
-#if NR_THREADS != PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -285,7 +285,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     }
 
     // sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
-#if NR_THREADS != PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
+#if NR_THREADS > PLATFORM_LANE_COUNT
     SORTLIST(prunedList, nrLightsCombinedList, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
     //MERGESORTLIST(prunedList, coarseList, nrLightsCombinedList, t, NR_THREADS);
 #endif
@@ -348,7 +348,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
     for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
         prunedList[l]=coarseList[l];
 
-#if NR_THREADS != PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -373,7 +373,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
         }
     }
 
-#if NR_THREADS != PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -499,7 +499,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     InterlockedOr(ldsDoesLightIntersect[1], uLightsFlags[1]);
     if(t==0) ldsNrLightsFinal = 0;
 
-#if NR_THREADS != PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 

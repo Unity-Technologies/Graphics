@@ -17,7 +17,7 @@
 
 #define PLATFORM_SUPPORTS_EXPLICIT_BINDING 1
 #define PLATFORM_NEEDS_UNORM_UAV_SPECIFIER 1
-#define PLATFORM_THREAD_GROUP_OPTIMAL_SIZE 32		// 32 threads in a warp
+#define PLATFORM_LANE_COUNT 32
 
 // flow control attributes
 #define UNITY_BRANCH        [branch]

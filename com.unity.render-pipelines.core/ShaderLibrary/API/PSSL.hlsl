@@ -1,7 +1,6 @@
 // This file assume SHADER_API_D3D11 is defined
 
 #define PLATFORM_LANE_COUNT 64
-#define PLATFORM_THREAD_GROUP_OPTIMAL_SIZE PLATFORM_LANE_COUNT       // 64 threads in a wafefront
 
 #define SUPPORTS_WAVE_INTRINSICS
 

@@ -211,6 +211,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Depth Offset", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.depthOffset.isOn;
+                    toggle.OnToggleChanged(ChangeDepthOffset);
+                });
+            });
+
             Add(ps);
         }
 
@@ -374,6 +383,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.overrideBakedGI;
             td.isOn = evt.newValue;
             m_Node.overrideBakedGI = td;
+        }
+        
+        void ChangeDepthOffset(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DepthOffset Change");
+            ToggleData td = m_Node.depthOffset;
+            td.isOn = evt.newValue;
+            m_Node.depthOffset = td;
         }
 
         public AlphaMode GetAlphaMode(HairMasterNode.AlphaModeLit alphaModeLit)
