@@ -4,7 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.9.0-preview] - 2019-XX-XX
+## [5.8.1-preview] - 2019-03-13
+
+### Fixed
+- Fixed Xbox One rendering just a grey screen instead of the scene
+- Fixed probe handles for multiselection
+- Fixed baked cubemap import settings for convolution
+- Fixed regression causing crash when attempting to open HDRenderPipelineWizard without an HDRenderPipelineAsset setted
+- Fixed FullScreenDebug modes: SSAO, SSR, Contact shadow, Prerefraction Color Pyramid, Final Color Pyramid
 
 ## [5.8.0-preview] - 2019-03-13
 
@@ -32,11 +39,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed metric distance that changed along size in DensityVolume
 - Fixed DensityVolume shape handles that have not same behaviour in advance and normal edition mode
 - Fixed normal map blending in TerrainLit by only blending the derivatives
-- Fixed Xbox One rendering just a grey screen instead of the scene
-- Fixed probe handles for multiselection
-- Fixed baked cubemap import settings for convolution
-- Fixed regression causing crash when attempting to open HDRenderPipelineWizard without an HDRenderPipelineAsset setted
-- Fixed FullScreenDebug modes: SSAO, SSR, Contact shadow, Prerefraction Color Pyramid, Final Color Pyramid
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
