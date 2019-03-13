@@ -247,15 +247,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.SetGlobalColor("_LightColor", light.color * light.intensity);
 
             if (light.pointLightQuality == Light2D.PointLightQuality.Fast)
-            {
                 cmdBuffer.EnableShaderKeyword("LIGHT_QUALITY_FAST");
-                cmdBuffer.DisableShaderKeyword("LIGHT_QUALITY_ACCURATE");
-            }
             else
-            {
                 cmdBuffer.DisableShaderKeyword("LIGHT_QUALITY_FAST");
-                cmdBuffer.EnableShaderKeyword("LIGHT_QUALITY_ACCURATE");
-            }
 
             //=====================================================================================
             //                          New stuff
