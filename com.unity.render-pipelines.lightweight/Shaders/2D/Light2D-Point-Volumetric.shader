@@ -14,7 +14,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
             #pragma prefer_hlslcc gles
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile USE_POINT_LIGHT_COOKIES __
+            #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
             #pragma multi_compile LIGHT_QUALITY_FAST __
 
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"

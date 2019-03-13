@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
         static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
+        static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         static readonly string[] k_UseLightOperationKeywords =
         {
             "USE_SHAPE_LIGHT_TYPE_0",
@@ -48,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // The array size should be determined by the number of 'feature bit' the material index has. See GetLightMaterialIndex().
             // Not all slots must be filled because certain combinations of the feature bits don't make sense (e.g. sprite bit on + shape bit off).
             if (s_LightMaterials == null)
-                s_LightMaterials = new Material[16];
+                s_LightMaterials = new Material[32];
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
@@ -279,14 +280,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
 
             if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-            {
-                cmdBuffer.EnableShaderKeyword("USE_POINT_LIGHT_COOKIES");
                 cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
-            }
-            else
-            {
-                cmdBuffer.DisableShaderKeyword("USE_POINT_LIGHT_COOKIES");
-            }
         }
 
         static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings)
@@ -381,11 +375,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             bitIndex++;
             uint shapeBit = light.IsShapeLight() ? 1u << bitIndex : 0u;
             bitIndex++;
-            uint additiveBit = light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive ? 1u << bitIndex : 0u;
+            uint additiveBit = (light.IsShapeLight() && light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive) ? 1u << bitIndex : 0u;
             bitIndex++;
             uint spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
+            bitIndex++;
+            uint pointCookieBit = (!light.IsShapeLight() && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
 
-            return spriteBit | additiveBit | shapeBit | volumeBit;
+            return pointCookieBit | spriteBit | additiveBit | shapeBit | volumeBit;
         }
 
         static Material CreateLightMaterial(Light2D light, bool isVolume)
@@ -416,6 +412,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (light.lightType == Light2D.LightType.Sprite)
                 material.EnableKeyword(k_SpriteLightKeyword);
+
+            if (!light.IsShapeLight() && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                material.EnableKeyword(k_UsePointLightCookiesKeyword);
 
             return material;
         }
