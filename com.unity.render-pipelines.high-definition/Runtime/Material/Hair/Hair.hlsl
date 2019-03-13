@@ -120,7 +120,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-float BeckmannRoughnessToBlinnPhongSpecExponent(float roughness)
+float RoughnessToBlinnPhongSpecularExponent(float roughness)
 {
     return 2 * rcp(max(roughness * roughness, FLT_EPS)) - 2;
 }
@@ -159,13 +159,11 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.specularShift = surfaceData.specularShift;
         bsdfData.secondarySpecularShift = surfaceData.secondarySpecularShift;
 
-        float ggxRoughness1      = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-        float beckmannRoughness1 = ggxRoughness1;
-        float ggxRoughness2      = PerceptualRoughnessToRoughness(bsdfData.secondaryPerceptualRoughness);
-        float beckmannRoughness2 = ggxRoughness2;
+        float roughness1 = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+        float roughness2 = PerceptualRoughnessToRoughness(bsdfData.secondaryPerceptualRoughness);
 
-        bsdfData.specularExponent          = BeckmannRoughnessToBlinnPhongSpecExponent(beckmannRoughness1);
-        bsdfData.secondarySpecularExponent = BeckmannRoughnessToBlinnPhongSpecExponent(beckmannRoughness2);
+        bsdfData.specularExponent          = RoughnessToBlinnPhongSpecularExponent(roughness1);
+        bsdfData.secondarySpecularExponent = RoughnessToBlinnPhongSpecularExponent(roughness2);
 
         bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
     }
