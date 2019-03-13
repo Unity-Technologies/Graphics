@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed probe handles for multiselection
 - Fixed baked cubemap import settings for convolution
 - Fixed regression causing crash when attempting to open HDRenderPipelineWizard without an HDRenderPipelineAsset setted
+- Fixed FullScreenDebug modes: SSAO, SSR, Contact shadow, Prerefraction Color Pyramid, Final Color Pyramid
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
