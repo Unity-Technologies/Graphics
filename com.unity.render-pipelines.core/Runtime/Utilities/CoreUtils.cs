@@ -415,6 +415,15 @@ namespace UnityEngine.Rendering
             return m_AssemblyTypes;
         }
 
+        public static IEnumerable<Type> GetAllTypesDerivedFrom<T>()
+        {
+#if UNITY_EDITOR && UNITY_2019_2_OR_NEWER
+            return UnityEditor.TypeCache.GetTypesDerivedFrom<T>();
+#else
+            return GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(T)));
+#endif
+        }
+
         public static void Destroy(params UnityObject[] objs)
         {
             if (objs == null)
