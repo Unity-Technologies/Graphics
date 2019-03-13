@@ -24,14 +24,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static RenderTargetHandle s_NormalsTarget;
         static Texture s_LightLookupTexture;
         static Texture s_FalloffLookupTexture;
-        static Material s_ShapeLightAdditiveMaterial;
-        static Material s_ShapeLightAdditiveSpriteMaterial;
-        static Material s_ShapeLightAlphaBlendMaterial;
-        static Material s_ShapeLightAlphaBlendSpriteMaterial;
-        static Material s_ShapeLightVolumeMaterial;
-        static Material s_ShapeLightVolumeSpriteMaterial;
-        static Material s_PointLightMaterial;
-        static Material s_PointLightVolumeMaterial;
+        static Material[] s_LightMaterials;
 
         static public void Setup(_2DRendererData rendererData)
         {
@@ -51,6 +44,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (s_NormalsTarget.id == 0)
                 s_NormalsTarget.Init("_NormalMap");
+
+            // The array size should be determined by the number of 'feature bit' the material index has. See GetLightMaterialIndex().
+            // Not all slots must be filled because certain combinations of the feature bits don't make sense (e.g. sprite bit on + shape bit off).
+            if (s_LightMaterials == null)
+                s_LightMaterials = new Material[16];
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
@@ -108,7 +106,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 if (light != null && light.lightType != Light2D.LightType.Global && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
-                    Material shapeLightMaterial = GetMaterial(light);
+                    Material shapeLightMaterial = GetLightMaterial(light, false);
                     if (shapeLightMaterial != null)
                     {
                         Mesh lightMesh = light.GetMesh();
@@ -155,7 +153,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     {
                         if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
-                            Material shapeLightVolumeMaterial = GetVolumeMaterial(light);
+                            Material shapeLightVolumeMaterial = GetLightMaterial(light, true);
                             if (shapeLightVolumeMaterial != null)
                             {
                                 Mesh lightMesh = light.GetMesh();
@@ -353,7 +351,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, bool renderShapeLights)
+        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender)
         {
             for (int i = 0; i < s_LightOperations.Length; ++i)
             {
@@ -376,116 +374,66 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
-
         static void SetBlendModes(Material material, BlendMode src, BlendMode dst)
         {
             material.SetFloat("_SrcBlend", (float)src);
-            material.SetFloat("_DstBlend", (float)dst); 
+            material.SetFloat("_DstBlend", (float)dst);
         }
 
-        static Material CreateEngineMaterial(Light2D light)
+        static uint GetLightMaterialIndex(Light2D light, bool isVolume)
         {
-            Material material = null; 
+            int bitIndex = 0;
+            uint volumeBit = isVolume ? 1u << bitIndex : 0u;
+            bitIndex++;
+            uint shapeBit = light.IsShapeLight() ? 1u << bitIndex : 0u;
+            bitIndex++;
+            uint additiveBit = light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive ? 1u << bitIndex : 0u;
+            bitIndex++;
+            uint spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
 
-            if (light.IsShapeLight())
+            return spriteBit | additiveBit | shapeBit | volumeBit;
+        }
+
+        static Material CreateLightMaterial(Light2D light, bool isVolume)
+        {
+            Material material;
+
+            if (isVolume)
             {
-                material = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightShader);
-
-                if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
-                    SetBlendModes(material, BlendMode.One, BlendMode.One);
+                if (light.IsShapeLight())
+                    material = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightVolumeShader);
                 else
-                    SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
-
-                if (light.lightType == Light2D.LightType.Sprite)
-                    material.EnableKeyword(k_SpriteLightKeyword);
+                    material = CoreUtils.CreateEngineMaterial(s_RendererData.pointLightVolumeShader);
             }
+            else
+            {
+                if (light.IsShapeLight())
+                {
+                    material = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightShader);
+
+                    if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
+                        SetBlendModes(material, BlendMode.One, BlendMode.One);
+                    else
+                        SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
+                }
+                else
+                    material = CoreUtils.CreateEngineMaterial(s_RendererData.pointLightShader);
+            }
+
+            if (light.lightType == Light2D.LightType.Sprite)
+                material.EnableKeyword(k_SpriteLightKeyword);
 
             return material;
         }
 
-        static Material GetShapeLightMaterial(Light2D light)
+        static Material GetLightMaterial(Light2D light, bool isVolume)
         {
-            if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
-            {
-                if (light.lightType == Light2D.LightType.Sprite)
-                {
-                    if (s_ShapeLightAdditiveSpriteMaterial == null)
-                        s_ShapeLightAdditiveSpriteMaterial = CreateEngineMaterial(light);
+            uint materialIndex = GetLightMaterialIndex(light, isVolume);
 
-                    return s_ShapeLightAdditiveSpriteMaterial;
-                }
-                else
-                {
-                    if (s_ShapeLightAdditiveMaterial == null)
-                        s_ShapeLightAdditiveMaterial = CreateEngineMaterial(light);
+            if (s_LightMaterials[materialIndex] == null)
+                s_LightMaterials[materialIndex] = CreateLightMaterial(light, isVolume);
 
-                    return s_ShapeLightAdditiveMaterial;
-                }
-            }
-            else
-            {
-                if (light.lightType == Light2D.LightType.Sprite)
-                {
-                    if (s_ShapeLightAlphaBlendSpriteMaterial == null)
-                        s_ShapeLightAlphaBlendSpriteMaterial = CreateEngineMaterial(light);
-
-                    return s_ShapeLightAlphaBlendSpriteMaterial;
-                }
-                else
-                {
-                    if (s_ShapeLightAlphaBlendMaterial == null)
-                        s_ShapeLightAlphaBlendMaterial = CreateEngineMaterial(light);
-
-                    return s_ShapeLightAlphaBlendMaterial;
-                }
-            }
-        }
-
-        static Material GetShapeLightVolumeMaterial(Light2D light)
-        {
-            if (light.lightType == Light2D.LightType.Sprite)
-            {
-                if (s_ShapeLightVolumeSpriteMaterial == null)
-                {
-                    s_ShapeLightVolumeSpriteMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightVolumeShader);
-                    s_ShapeLightVolumeSpriteMaterial.EnableKeyword(k_SpriteLightKeyword);
-                }
-
-                return s_ShapeLightVolumeSpriteMaterial;
-            }
-            else
-            {
-                if (s_ShapeLightVolumeMaterial == null)
-                    s_ShapeLightVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightVolumeShader);
-
-                return s_ShapeLightVolumeMaterial;
-            }
-        }
-
-        static Material GetPointLightMaterial()
-        {
-            if (s_PointLightMaterial == null)
-                s_PointLightMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.pointLightShader);
-
-            return s_PointLightMaterial;
-        }
-
-        static Material GetPointLightVolumeMaterial()
-        {
-            if (s_PointLightVolumeMaterial == null)
-                s_PointLightVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.pointLightVolumeShader);
-
-            return s_PointLightVolumeMaterial;
-        }
-
-        static Material GetMaterial(Light2D light)
-        {
-            return light.IsShapeLight() ? GetShapeLightMaterial(light) : GetPointLightMaterial();
-        }
-
-        static Material GetVolumeMaterial(Light2D light)
-        {
-            return light.IsShapeLight() ? GetShapeLightVolumeMaterial(light) : GetPointLightVolumeMaterial();
+            return s_LightMaterials[materialIndex];
         }
     }
 }

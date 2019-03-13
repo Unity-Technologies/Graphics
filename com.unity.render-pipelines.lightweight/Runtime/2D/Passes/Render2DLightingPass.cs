@@ -75,8 +75,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Profiler.EndSample();
 
                 cmd.Clear();
-                RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, true);
-                RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, false);
+                RendererLighting.RenderLightVolumes(camera, cmd, layerToRender);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
