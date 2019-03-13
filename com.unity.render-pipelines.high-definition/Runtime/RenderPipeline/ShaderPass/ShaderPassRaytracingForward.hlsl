@@ -82,7 +82,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, transmittedRay, transmittedIntersection);
             
         // Override the transmitted color
-        transmitted = transmittedIntersection.color * GetCurrentExposureMultiplier();
+        transmitted = transmittedIntersection.color;
     }
 #endif
 #endif
@@ -116,7 +116,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, reflectedRay, reflectedIntersection);
 
         // Override the transmitted color
-        reflected = reflectedIntersection.color * GetCurrentExposureMultiplier();
+        reflected = reflectedIntersection.color;
     }
 
     // Run the lightloop
