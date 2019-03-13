@@ -6,57 +6,56 @@ Shader "Hidden/Light2D-Shape"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
     }
 
-    HLSLINCLUDE
-    #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-
-    struct Attributes
-    {
-        float4 positionOS   : POSITION;
-        float4 color		: COLOR;
-
-#ifdef SPRITE_LIGHT
-        float2 uv			: TEXCOORD0;
-#endif
-    };
-
-    struct Varyings
-    {
-        float4  positionCS	: SV_POSITION;
-        float4  color		: COLOR;
-        float2  uv			: TEXCOORD0;
-    };
-    ENDHLSL
-
     SubShader
     {
-        Tags{ "Queue" = "Transparent" "RenderType" = "Transparent" }
-        Blend[_SrcBlend][_DstBlend]
-        BlendOp Add
-        ZWrite Off
-        Cull Off
-
+        Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "LightweightPipeline" }
+        
         Pass
         {
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite Off
+            Cull Off
+
             HLSLPROGRAM
             #pragma prefer_hlslcc gles
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile SPRITE_LIGHT __
+            #pragma multi_compile_local SPRITE_LIGHT __
 
-            uniform float  _InverseLightIntensityScale;
+            #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+
+            struct Attributes
+            {
+                float3 positionOS   : POSITION;
+                float4 color        : COLOR;
+
+#ifdef SPRITE_LIGHT
+                float2 uv           : TEXCOORD0;
+#endif
+            };
+
+            struct Varyings
+            {
+                float4  positionCS	: SV_POSITION;
+                float4  color		: COLOR;
+                float2  uv			: TEXCOORD0;
+            };
+
+            float _InverseLightIntensityScale;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
 #else
-            uniform float  _FalloffCurve;
+            float _FalloffCurve;
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif
 
             Varyings vert(Attributes attributes)
             {
-                Varyings o;
+                Varyings o = (Varyings)0;
+
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.color = attributes.color * _InverseLightIntensityScale;
 
@@ -73,9 +72,9 @@ Shader "Hidden/Light2D-Shape"
             {
                 half4 color = i.color;
 #if SPRITE_LIGHT
-                color = color * SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
+                color *= SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
 #else
-                color = color * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+                color *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 #endif
                 return color;
             }

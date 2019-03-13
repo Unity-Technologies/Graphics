@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
+        static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
         static readonly string[] k_UseLightOperationKeywords =
         {
             "USE_SHAPE_LIGHT_TYPE_0",
@@ -24,8 +25,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static Texture s_LightLookupTexture;
         static Texture s_FalloffLookupTexture;
         static Material s_ShapeLightAdditiveMaterial;
+        static Material s_ShapeLightAdditiveSpriteMaterial;
         static Material s_ShapeLightAlphaBlendMaterial;
+        static Material s_ShapeLightAlphaBlendSpriteMaterial;
         static Material s_ShapeLightVolumeMaterial;
+        static Material s_ShapeLightVolumeSpriteMaterial;
         static Material s_PointLightMaterial;
         static Material s_PointLightVolumeMaterial;
 
@@ -113,14 +117,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             if (!renderedAnyLight)
                                 renderedAnyLight = true;
 
-                            if (light.lightType == Light2D.LightType.Sprite)
-                            {
-                                cmdBuffer.EnableShaderKeyword("SPRITE_LIGHT");
-                                if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                                    cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
-                            }
-                            else
-                                cmdBuffer.DisableShaderKeyword("SPRITE_LIGHT");
+                            if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                                cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
                             cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
 
@@ -163,14 +161,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                 Mesh lightMesh = light.GetMesh();
                                 if (lightMesh != null)
                                 {
-                                    if (light.lightType == Light2D.LightType.Sprite)
-                                    {
-                                        cmdBuffer.EnableShaderKeyword("SPRITE_LIGHT");
-                                        if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                                            cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
-                                    }
-                                    else
-                                        cmdBuffer.DisableShaderKeyword("SPRITE_LIGHT");
+                                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                                        cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
                                     cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
 
@@ -388,37 +380,86 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static void SetBlendModes(Material material, BlendMode src, BlendMode dst)
         {
             material.SetFloat("_SrcBlend", (float)src);
-            material.SetFloat("_DstBlend", (float)dst);
+            material.SetFloat("_DstBlend", (float)dst); 
+        }
+
+        static Material CreateEngineMaterial(Light2D light)
+        {
+            Material material = null; 
+
+            if (light.IsShapeLight())
+            {
+                material = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightShader);
+
+                if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
+                    SetBlendModes(material, BlendMode.One, BlendMode.One);
+                else
+                    SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
+
+                if (light.lightType == Light2D.LightType.Sprite)
+                    material.EnableKeyword(k_SpriteLightKeyword);
+            }
+
+            return material;
         }
 
         static Material GetShapeLightMaterial(Light2D light)
         {
             if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
             {
-                if(s_ShapeLightAdditiveMaterial == null)
+                if (light.lightType == Light2D.LightType.Sprite)
                 {
-                    s_ShapeLightAdditiveMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightShader);
-                    SetBlendModes(s_ShapeLightAdditiveMaterial, BlendMode.One, BlendMode.One);
+                    if (s_ShapeLightAdditiveSpriteMaterial == null)
+                        s_ShapeLightAdditiveSpriteMaterial = CreateEngineMaterial(light);
+
+                    return s_ShapeLightAdditiveSpriteMaterial;
                 }
-                return s_ShapeLightAdditiveMaterial;
+                else
+                {
+                    if (s_ShapeLightAdditiveMaterial == null)
+                        s_ShapeLightAdditiveMaterial = CreateEngineMaterial(light);
+
+                    return s_ShapeLightAdditiveMaterial;
+                }
             }
             else
             {
-                if (s_ShapeLightAlphaBlendMaterial == null)
+                if (light.lightType == Light2D.LightType.Sprite)
                 {
-                    s_ShapeLightAlphaBlendMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightShader);
-                    SetBlendModes(s_ShapeLightAdditiveMaterial, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
+                    if (s_ShapeLightAlphaBlendSpriteMaterial == null)
+                        s_ShapeLightAlphaBlendSpriteMaterial = CreateEngineMaterial(light);
+
+                    return s_ShapeLightAlphaBlendSpriteMaterial;
                 }
-                return s_ShapeLightAlphaBlendMaterial;
+                else
+                {
+                    if (s_ShapeLightAlphaBlendMaterial == null)
+                        s_ShapeLightAlphaBlendMaterial = CreateEngineMaterial(light);
+
+                    return s_ShapeLightAlphaBlendMaterial;
+                }
             }
         }
 
         static Material GetShapeLightVolumeMaterial(Light2D light)
         {
-            if (s_ShapeLightVolumeMaterial == null)
-                s_ShapeLightVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightVolumeShader);
+            if (light.lightType == Light2D.LightType.Sprite)
+            {
+                if (s_ShapeLightVolumeSpriteMaterial == null)
+                {
+                    s_ShapeLightVolumeSpriteMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightVolumeShader);
+                    s_ShapeLightVolumeSpriteMaterial.EnableKeyword(k_SpriteLightKeyword);
+                }
 
-            return s_ShapeLightVolumeMaterial;
+                return s_ShapeLightVolumeSpriteMaterial;
+            }
+            else
+            {
+                if (s_ShapeLightVolumeMaterial == null)
+                    s_ShapeLightVolumeMaterial = CoreUtils.CreateEngineMaterial(s_RendererData.shapeLightVolumeShader);
+
+                return s_ShapeLightVolumeMaterial;
+            }
         }
 
         static Material GetPointLightMaterial()
