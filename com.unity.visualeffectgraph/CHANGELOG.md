@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.9.0-preview] - 2019-XX-XX
+### Fixed
+- Issue that remove the edge when dragging an edge from slot to the same slot.
+- Exception when undoing an edge deletion on a dynamic operator. 
+- Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
 
 ## [5.8.0-preview] - 2019-03-13
 ### Added
@@ -24,9 +28,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add missing blend value slot in Inherit Source Attribute blocks [Case 1120568](https://issuetracker.unity3d.com/issues/source-attribute-blend-source-attribute-blocks-are-not-useful-without-the-blend-value)
 - Visual Effect Inspector Cosmetic Improvements
 - Exception while removing a sub-slot of a dynamic operator
-- Issue that remove the edge when dragging an edge from slot to the same slot.
-- Exception when undoing an edge deletion on a dynamic operator. 
-- Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
 
 ## [5.7.0-preview] - 2019-03-07
 
