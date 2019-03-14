@@ -200,7 +200,9 @@ bool CullTriangleFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 
 // 'epsilon' is the (negative) distance to (outside of) the frustum below which we cull the triangle.
 bool3 CullTriangleEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, float4 frustumPlanes[6], int numPlanes)
 {
-    bool3 edgesOutside = false;
+    bool edgesOutsideX = false;
+	bool edgesOutsideY = false;
+	bool edgesOutsideZ = false;
 
     for (int i = 0; i < numPlanes; i++)
     {
@@ -209,12 +211,12 @@ bool3 CullTriangleEdgesFrustum(float3 p0, float3 p1, float3 p2, float epsilon, f
                                     DistanceFromPlane(p2, frustumPlanes[i]) < epsilon);
 
         // If both points of the edge are behind any of the planes, we cull.
-        edgesOutside.x = edgesOutside.x || (pointsOutside.y && pointsOutside.z);
-        edgesOutside.y = edgesOutside.y || (pointsOutside.x && pointsOutside.z);
-        edgesOutside.z = edgesOutside.z || (pointsOutside.x && pointsOutside.y);
+        edgesOutsideX = edgesOutsideX || (pointsOutside.y && pointsOutside.z);
+        edgesOutsideY = edgesOutsideY || (pointsOutside.x && pointsOutside.z);
+        edgesOutsideZ = edgesOutsideZ || (pointsOutside.x && pointsOutside.y);
     }
 
-    return edgesOutside;
+    return bool3(edgesOutsideX, edgesOutsideY, edgesOutsideZ);
 }
 
 bool CullTriangleBackFaceView(float3 p0, float3 p1, float3 p2, float epsilon, float3 V, float winding)
