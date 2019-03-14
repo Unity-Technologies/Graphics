@@ -392,7 +392,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             textures.owenScrambledTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise.png");
             textures.scramblingTex = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/Texture/CoherentNoise/ScrambleNoise.png");
         }
-#endif
 
         bool NeedReload()
         {
@@ -526,5 +525,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (NeedReload())
                 Init();
         }
+#endif
     }
 }

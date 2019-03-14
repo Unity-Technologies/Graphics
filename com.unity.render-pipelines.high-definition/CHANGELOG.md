@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.8.2-preview] - 2019-03-14
 
+### Fixed
+- Fixed player not building
+
 ## [5.8.1-preview] - 2019-03-13
 
 ### Fixed
