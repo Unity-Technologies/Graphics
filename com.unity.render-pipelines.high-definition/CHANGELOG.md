@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.9.0-preview] - 2019-XX-XX
 
+### Fixed
+- Fixed shader warning
+
 ## [5.8.0-preview] - 2019-03-13
 
 ### Added
