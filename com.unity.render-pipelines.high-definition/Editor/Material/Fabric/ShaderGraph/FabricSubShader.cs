@@ -74,7 +74,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaClipThresholdSlotId
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -102,13 +103,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaClipThresholdSlotId
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 FabricMasterNode.PositionSlotId
             },
-            UseInPreview = true
+            UseInPreview = false
         };
 
         Pass m_PassDepthForwardOnly = new Pass()
@@ -131,7 +133,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FabricMasterNode.NormalSlotId,
                 FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaClipThresholdSlotId
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
             },
 
             RequiredFields = new List<string>()
@@ -157,7 +160,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 FabricMasterNode.PositionSlotId
             },
-            UseInPreview = false,
+            UseInPreview = true,
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
@@ -201,7 +204,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FabricMasterNode.NormalSlotId,
                 FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaClipThresholdSlotId
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -265,6 +269,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FabricMasterNode.AlphaClipThresholdSlotId,
                 FabricMasterNode.LightingSlotId,
                 FabricMasterNode.BackLightingSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -442,6 +447,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("BackLightingGI");
             }
+
+            if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(FabricMasterNode.DepthOffsetSlotId))
+                activeFields.Add("DepthOffset");
 
             return activeFields;
         }

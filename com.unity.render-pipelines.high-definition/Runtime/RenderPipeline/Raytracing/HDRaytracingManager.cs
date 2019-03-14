@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RayCountManager m_RayCountManager = new RayCountManager();
         public RayCountManager rayCountManager { get { return m_RayCountManager; } }
 
-        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise, LightLoop lightloop, SharedRTManager sharedRTManager)
+        public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise, LightLoop lightloop, SharedRTManager sharedRTManager, DebugDisplaySettings currentDebugDisplaySettings)
         {
             // Keep track of the resources
             m_Resources = resources;
@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Init the ray count manager
-            m_RayCountManager.Init(resources);
+            m_RayCountManager.Init(resources, currentDebugDisplaySettings);
 
 #if UNITY_EDITOR
             // We need to invalidate the acceleration structures in case the hierarchy changed
@@ -284,6 +284,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UpdateEffectSubScene(rtEnv.reflLayerMask.value, 1);
             UpdateEffectSubScene(rtEnv.shadowLayerMask.value, 2);
             UpdateEffectSubScene(rtEnv.raytracedLayerMask.value, 3);
+            UpdateEffectSubScene(rtEnv.indirectDiffuseLayerMask.value, 4);
 
             // Let's now go through all the sub-scenes and delete the ones that are not referenced by anyone
             var nonReferencedSubScenes = m_SubScenes.Where(x => x.Value.references == 0).ToArray();
@@ -340,6 +341,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 currentSubScene.needUpdate = true;
             }
 
+            // If indirect diffuse is on flag its RAS needUpdate
+            if (rtEnv.raytracedIndirectDiffuse)
+            {
+                HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.indirectDiffuseLayerMask);
+                currentSubScene.needUpdate = true;
+            }
+
             // Let's go through all the sub-scenes that are flagged needUpdate and update their RAS
             foreach (var subScene in m_SubScenes)
             {
@@ -385,6 +393,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (rtEnv.raytracedObjects)
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.raytracedLayerMask);
+                currentSubScene.needUpdate = true;
+            }
+
+            // If indirect diffuse is on flag its light cluster
+            if (rtEnv.raytracedIndirectDiffuse)
+            {
+                HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.indirectDiffuseLayerMask);
                 currentSubScene.needUpdate = true;
             }
 
@@ -496,7 +511,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Also, we need to contribute to the maximal number of submeshes
                     MeshFilter currentFilter = currentRenderer.GetComponent<MeshFilter>();
-                    maxNumSubMeshes = Mathf.Max(maxNumSubMeshes, currentFilter.sharedMesh.subMeshCount);
+                    if (currentFilter != null && currentFilter.sharedMesh != null)
+                    {
+                        maxNumSubMeshes = Mathf.Max(maxNumSubMeshes, currentFilter.sharedMesh.subMeshCount);
+                    }
                 }
 
                 bool[] subMeshFlagArray = new bool[maxNumSubMeshes];

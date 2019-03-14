@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
             var pp = new PreviewProperty(PropertyType.Matrix4)
             {
                 name = name,
-                vector4Value = new Vector4(value.GetRow(0).x, value.GetRow(0).y, value.GetRow(0).z, value.GetRow(0).w),
+                matrixValue = value
             };
             properties.Add(pp);
         }

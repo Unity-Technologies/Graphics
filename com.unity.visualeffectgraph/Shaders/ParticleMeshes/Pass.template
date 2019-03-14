@@ -9,9 +9,7 @@ struct vs_input
 {
 	float3 pos : POSITION;
 	float2 uv : TEXCOORD0;
-	#ifdef VFX_VARYING_NORMAL
 	float3 normal : NORMAL;
-	#endif
 	#ifdef VFX_VARYING_TANGENT
 	float4 tangent : TANGENT;
 	#endif
@@ -37,9 +35,9 @@ VFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID : SV_InstanceID)
 	float3 vPos = mul(elementToVFX,float4(i.pos,1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
-	
+	float3 normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX, i.normal)));
 	#ifdef VFX_VARYING_NORMAL // TODO Should use inverse transpose
-	o.VFX_VARYING_NORMAL = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.normal)));
+	o.VFX_VARYING_NORMAL = normalWS;
 	#endif
 	#ifdef VFX_VARYING_TANGENT
 	o.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);

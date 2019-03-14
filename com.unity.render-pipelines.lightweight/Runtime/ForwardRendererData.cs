@@ -1,40 +1,49 @@
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
-    //[CreateAssetMenu()]
-    public class ForwardRendererData : IRendererData
+    [CreateAssetMenu(fileName = "Custom Forward Renderer", menuName = "Rendering/Lightweight Render Pipeline/Forward Renderer", order = CoreUtils.assetCreateMenuPriority1)]
+    public class ForwardRendererData : ScriptableRendererData
     {
         [SerializeField] Shader m_BlitShader = null;
         [SerializeField] Shader m_CopyDepthShader = null;
         [SerializeField] Shader m_ScreenSpaceShadowShader = null;
         [SerializeField] Shader m_SamplingShader = null;
 
-        public override IRendererSetup Create()
+        [SerializeField] LayerMask m_OpaqueLayerMask = -1;
+        [SerializeField] LayerMask m_TransparentLayerMask = -1;
+
+        protected override ScriptableRenderer Create()
         {
-            return new ForwardRendererSetup(this);
+            return new ForwardRenderer(this);
         }
 
-        public Shader blitShader
+        internal Shader blitShader
         {
             get => m_BlitShader;
-            set => m_BlitShader = value;
         }
 
-        public Shader copyDepthShader
+        internal Shader copyDepthShader
         {
             get => m_CopyDepthShader;
-            set => m_CopyDepthShader = value;
         }
 
-        public Shader screenSpaceShadowShader
+        internal Shader screenSpaceShadowShader
         {
             get => m_ScreenSpaceShadowShader;
-            set => m_ScreenSpaceShadowShader = value;
         }
 
-        public Shader samplingShader
+        internal Shader samplingShader
         {
             get => m_SamplingShader;
-            set => m_SamplingShader = value;
+        }
+
+        internal LayerMask opaqueLayerMask
+        {
+            get => m_OpaqueLayerMask;
+        }
+
+        public LayerMask transparentLayerMask
+        {
+            get => m_TransparentLayerMask;
         }
     }
 }

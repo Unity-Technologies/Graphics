@@ -31,6 +31,8 @@
 #pragma kernel Deferred_Indirect_Fptl_Variant24     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant24     USE_INDIRECT    VARIANT=24
 #pragma kernel Deferred_Indirect_Fptl_Variant25     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant25     USE_INDIRECT    VARIANT=25
 #pragma kernel Deferred_Indirect_Fptl_Variant26     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant26     USE_INDIRECT    VARIANT=26
+#pragma kernel Deferred_Indirect_Fptl_Variant27     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant27     USE_INDIRECT    VARIANT=27
+#pragma kernel Deferred_Indirect_Fptl_Variant28     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant28     USE_INDIRECT    VARIANT=28
 
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant0       SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant0       USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=0
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant1       SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant1       USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=1
@@ -59,6 +61,8 @@
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant24      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant24      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=24
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant25      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant25      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=25
 #pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant26      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant26      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=26
+#pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant27      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant27      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=27
+#pragma kernel Deferred_Indirect_ShadowMask_Fptl_Variant28      SHADE_OPAQUE_ENTRY=Deferred_Indirect_ShadowMask_Fptl_Variant28      USE_INDIRECT    SHADOWS_SHADOWMASK  VARIANT=28
 
 #ifdef DEBUG_DISPLAY
     // Don't care about this warning in debug
@@ -138,10 +142,12 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
 
 // Direct
 [numthreads(TILE_SIZE_FPTL, TILE_SIZE_FPTL, 1)]
-void SHADE_OPAQUE_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
+void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
     uint2 tileCoord    = (TILE_SIZE_FPTL * groupId) / GetTileSize();
-	uint2 pixelCoord = TexCoordStereoOffset(dispatchThreadId);// +uint2((unity_StereoEyeIndex * _ScreenSize.x), 0);
+    uint2 pixelCoord   = dispatchThreadId.xy;
     uint  featureFlags = UINT_MAX;
 
 #endif

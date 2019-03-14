@@ -529,11 +529,27 @@ float GetMaxHeight(float4 heights)
     return maxHeight;
 }
 
+float GetMinHeight(float4 heights)
+{
+    float minHeight = min(heights.r, heights.g);
+#ifdef _LAYEREDLIT_4_LAYERS
+    minHeight = min(Min3(heights.r, heights.g, heights.b), heights.a);
+#endif
+#ifdef _LAYEREDLIT_3_LAYERS
+    minHeight = Min3(heights.r, heights.g, heights.b);
+#endif
+
+    return minHeight;
+}
+
 // Returns layering blend mask after application of height based blend.
 float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 {
     // We need to mask out inactive layers so that their height does not impact the result.
-    float4 maskedHeights = heights * blendMask.argb;
+    // First we make every value positive by substracting the minimum value.
+    // Otherwise multiplicating by blendMask can invert negative heights.
+    // For example, 2 heights value of -10.0 and -5 multiplied by blend mask 0.1 and 1.0 (intent is to give LESS importance to the first value) makes the first value heigher
+    float4 maskedHeights = (heights - GetMinHeight(heights)) * blendMask.argb;
 
     float maxHeight = GetMaxHeight(maskedHeights);
     // Make sure that transition is not zero otherwise the next computation will be wrong.

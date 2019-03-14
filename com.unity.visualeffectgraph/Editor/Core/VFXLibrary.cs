@@ -162,6 +162,8 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators()   { LoadIfNeeded(); return VFXViewPreference.displayExperimentalOperator ? m_OperatorDescs : m_OperatorDescs.Where(o => !o.info.experimental); }
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots()           { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
         public static IEnumerable<Type> GetSlotsType()                              { LoadSlotsIfNeeded(); return m_SlotDescs.Keys; }
+        public static bool IsSpaceableSlotType(Type type)                           { LoadSlotsIfNeeded(); return m_SlotSpaceable.Contains(type); }
+
         public static IEnumerable<VFXModelDescriptorParameters> GetParameters()     { LoadIfNeeded(); return m_ParametersDescs; }
 
         public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)
@@ -235,6 +237,26 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static bool IsSpaceable(Type type)
+        {
+            var spaceAttributeOnType = type.GetCustomAttributes(typeof(VFXSpaceAttribute), true).FirstOrDefault();
+            if (spaceAttributeOnType != null)
+            {
+                return true;
+            }
+
+            var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).ToArray();
+            foreach (var field in fields)
+            {
+                var spaceAttributeOnField = field.GetCustomAttributes(typeof(VFXSpaceAttribute), true).FirstOrDefault();
+                if (spaceAttributeOnField != null || IsSpaceable(field.FieldType))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private static void LoadSlotsIfNeeded()
         {
             if (m_SlotLoaded)
@@ -245,6 +267,14 @@ namespace UnityEditor.VFX
                 if (!m_SlotLoaded)
                 {
                     m_SlotDescs = LoadSlots();
+                    m_SlotSpaceable = new HashSet<Type>();
+                    foreach (var slotDescType in m_SlotDescs.Keys)
+                    {
+                        if (IsSpaceable(slotDescType))
+                        {
+                            m_SlotSpaceable.Add(slotDescType);
+                        }
+                    }
                     m_SlotLoaded = true;
                 }
             }
@@ -361,6 +391,7 @@ namespace UnityEditor.VFX
         private static volatile List<VFXModelDescriptor<VFXBlock>> m_BlockDescs;
         private static volatile List<VFXModelDescriptorParameters> m_ParametersDescs;
         private static volatile Dictionary<Type, VFXModelDescriptor<VFXSlot>> m_SlotDescs;
+        private static volatile HashSet<Type> m_SlotSpaceable;
 
         private static Object m_Lock = new Object();
         private static volatile bool m_Loaded = false;

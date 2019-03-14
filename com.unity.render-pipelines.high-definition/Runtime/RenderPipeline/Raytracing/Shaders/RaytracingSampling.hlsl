@@ -18,7 +18,7 @@ uint2 ScramblingValue(uint i, uint j)
 {
     i = i % 256;
     j = j % 256;
-    return clamp((uint2)(_ScramblingTexture[uint2(i, j)] * 256.0f), 0, 255);
+    return clamp((uint2)(_ScramblingTexture[uint2(i, j)] * 256.0f), uint2(0,0), uint2(255, 255));
 }
 
 float GetRaytracingNoiseSample(int sampleIndex, int sampleDimension, uint scramblingValue)

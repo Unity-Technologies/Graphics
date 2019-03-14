@@ -507,7 +507,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var positionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);
                         HDRenderUtilities.Render(probe.settings, positionSettings, cubeRT,
                             forceFlipY: true,
-                            forceInvertBackfaceCulling: true, // TODO: for an unknown reason, we need to invert the backface culling for baked reflection probes, Remove this
+                            forceInvertBackfaceCulling: true, // Cubemap have an RHS standard, so we need to invert the face culling
                             (uint)StaticEditorFlags.ReflectionProbeStatic
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
@@ -547,9 +547,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var importer = AssetImporter.GetAtPath(file) as TextureImporter;
                         if (importer == null)
                             return;
-                        importer.sRGBTexture = false;
-                        importer.filterMode = FilterMode.Bilinear;
-                        importer.generateCubemap = TextureImporterGenerateCubemap.AutoCubemap;
+                        var settings = new TextureImporterSettings();
+                        importer.ReadTextureSettings(settings);
+                        settings.sRGBTexture = false;
+                        settings.filterMode = FilterMode.Bilinear;
+                        settings.generateCubemap = TextureImporterGenerateCubemap.AutoCubemap;
+                        settings.cubemapConvolution = TextureImporterCubemapConvolution.None;
+                        settings.seamlessCubemap = false;
+                        settings.wrapMode = TextureWrapMode.Repeat;
+                        settings.aniso = 1;
+                        importer.SetTextureSettings(settings);
                         importer.mipmapEnabled = false;
                         importer.textureCompression = hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCacheCompressed
                             ? TextureImporterCompression.Compressed

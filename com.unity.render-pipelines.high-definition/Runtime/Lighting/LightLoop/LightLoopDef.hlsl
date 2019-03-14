@@ -64,7 +64,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influencePositionRWS = float3(0.0, 0.0, 0.0);
 
     output.weight = 1.0;
-    output.multiplier = 1.0;
+    output.multiplier = ReplaceDiffuseForReflectionPass(float3(1.0, 1.0, 1.0)) ? 0.0 : 1.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
@@ -177,18 +177,6 @@ uint FetchIndex(uint tileOffset, uint lightOffset)
 uint GetTileSize()
 {
     return TILE_SIZE_CLUSTERED;
-}
-
-float GetLightClusterMinLinearDepth(uint2 tileIndex, uint clusterIndex)
-{
-    float logBase = g_fClustBase;
-    if (g_isLogBaseBufferEnabled)
-    {
-        // XRTODO: Stereo-ize access to g_logBaseBuffer
-        logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
-    }
-
-    return ClusterIdxToZFlex(clusterIndex, logBase, g_isLogBaseBufferEnabled != 0);
 }
 
 uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)

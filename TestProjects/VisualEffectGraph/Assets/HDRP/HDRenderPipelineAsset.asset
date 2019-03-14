@@ -16,15 +16,15 @@ MonoBehaviour:
     type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 16499111755549
+      data1: 16507701821213
       data2: 4539628424389459968
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 16499107561245
+      data1: 16507697495837
       data2: 4539628424389459968
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 16498950151965
+      data1: 16507540086557
       data2: 4539628424389459968
   m_RenderPipelineSettings:
     supportShadowMask: 1
@@ -39,6 +39,7 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
+    colorBufferFormat: 48
     supportedLitShaderMode: 3
     supportDecals: 0
     msaaSampleCount: 1
@@ -46,9 +47,6 @@ MonoBehaviour:
     supportRuntimeDebugDisplay: 1
     supportDitheringCrossFade: 1
     supportRayTracing: 0
-    editorRaytracingFilterLayerMask:
-      serializedVersion: 2
-      m_Bits: 4294967295
     lightLoopSettings:
       cookieSize: 128
       cookieTexArraySize: 16
@@ -100,7 +98,7 @@ MonoBehaviour:
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
   - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
-  m_Version: 2
+  m_Version: 5
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0

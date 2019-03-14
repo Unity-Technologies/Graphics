@@ -32,6 +32,9 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        [SerializeField, VFXSetting]
+        private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
+
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var index = inputExpression[0];
@@ -39,7 +42,7 @@ namespace UnityEditor.VFX.Operator
             var start = inputExpression[2];
             var end = inputExpression[3];
 
-            return new[] { VFXOperatorUtility.SequentialLine(start, end, index, count) };
+            return new[] { VFXOperatorUtility.SequentialLine(start, end, index, count, mode) };
         }
 
         public override void Sanitize(int version)

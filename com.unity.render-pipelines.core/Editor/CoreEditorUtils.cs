@@ -428,7 +428,7 @@ namespace UnityEditor.Rendering
         const int k_DrawVector6Slider_LabelSize = 60;
         const int k_DrawVector6Slider_FieldSize = 80;
 
-        public static void DrawVector6(GUIContent label, ref Vector3 positive, ref Vector3 negative, Vector3 min, Vector3 max, Color[] colors = null)
+        public static void DrawVector6(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max, Color[] colors = null, SerializedProperty multiplicator = null)
         {
             if (colors != null && (colors.Length != 6))
                     throw new System.ArgumentException("Colors must be a 6 element array. [+X, +Y, +X, -X, -Y, -Z]");
@@ -438,48 +438,54 @@ namespace UnityEditor.Rendering
             if (label != GUIContent.none)
             {
                 var labelRect = rect;
-                labelRect.x -= 11f * EditorGUI.indentLevel;
+                labelRect.x -= 15f * EditorGUI.indentLevel;
                 labelRect.width = EditorGUIUtility.labelWidth;
                 EditorGUI.LabelField(labelRect, label);
-                rect.x += EditorGUIUtility.labelWidth - 1f - 11f * EditorGUI.indentLevel;
-                rect.width -= EditorGUIUtility.labelWidth - 1f - 11f * EditorGUI.indentLevel;
+                rect.x += EditorGUIUtility.labelWidth - 1f - 15f * EditorGUI.indentLevel;
+                rect.width -= EditorGUIUtility.labelWidth - 1f - 15f * EditorGUI.indentLevel;
             }
             
-            var v = positive;
             EditorGUI.BeginChangeCheck();
-            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, false, colors == null ? null : new Color[] { colors[0], colors[1], colors[2] });
-            if (EditorGUI.EndChangeCheck())
-                positive = v;
+            DrawVector3(rect, k_DrawVector6_Label, positive, min, max, false, colors == null ? null : new Color[] { colors[0], colors[1], colors[2] }, multiplicator);
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
             rect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight));
-            rect.x += EditorGUIUtility.labelWidth - 1f - 11f * EditorGUI.indentLevel;
-            rect.width -= EditorGUIUtility.labelWidth - 1f - 11f * EditorGUI.indentLevel;
-            v = negative;
-            EditorGUI.BeginChangeCheck();
-            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, true, colors == null ? null : new Color[] { colors[3], colors[4], colors[5] });
-            if (EditorGUI.EndChangeCheck())
-                negative = v;
+            rect.x += EditorGUIUtility.labelWidth - 1f - 15f * EditorGUI.indentLevel;
+            rect.width -= EditorGUIUtility.labelWidth - 1f - 15f * EditorGUI.indentLevel;
+            DrawVector3(rect, k_DrawVector6_Label, negative, min, max, true, colors == null ? null : new Color[] { colors[3], colors[4], colors[5] }, multiplicator);
+
             GUILayout.EndVertical();
         }
 
-        static Vector3 DrawVector3(Rect rect, GUIContent[] labels, Vector3 value, Vector3 min, Vector3 max, bool addMinusPrefix, Color[] colors)
+        static void DrawVector3(Rect rect, GUIContent[] labels, SerializedProperty value, Vector3 min, Vector3 max, bool addMinusPrefix, Color[] colors, SerializedProperty multiplicator = null)
         {
-            float[] multifloat = new float[] { value.x, value.y, value.z };
-            //rect = EditorGUI.IndentedRect(rect);
+            float[] multifloat = multiplicator == null
+                ? new float[] { value.vector3Value.x, value.vector3Value.y, value.vector3Value.z }
+                : new float[] { value.vector3Value.x * multiplicator.vector3Value.x, value.vector3Value.y * multiplicator.vector3Value.y, value.vector3Value.z * multiplicator.vector3Value.z };
+
             float fieldWidth = rect.width / 3f;
+            EditorGUI.showMixedValue = value.hasMultipleDifferentValues;
             EditorGUI.BeginChangeCheck();
             EditorGUI.MultiFloatField(rect, labels, multifloat);
             if(EditorGUI.EndChangeCheck())
             {
-                value.x = Mathf.Max(Mathf.Min(multifloat[0], max.x), min.x);
-                value.y = Mathf.Max(Mathf.Min(multifloat[1], max.y), min.y);
-                value.z = Mathf.Max(Mathf.Min(multifloat[2], max.z), min.z);
+                value.vector3Value = multiplicator == null
+                    ? new Vector3(
+                        Mathf.Clamp(multifloat[0], min.x, max.x),
+                        Mathf.Clamp(multifloat[1], min.y, max.y),
+                        Mathf.Clamp(multifloat[2], min.z, max.z)
+                        )
+                    : new Vector3(
+                        Mathf.Clamp((multiplicator.vector3Value.x < -0.00001 || 0.00001 < multiplicator.vector3Value.x) ? multifloat[0] / multiplicator.vector3Value.x : 0f, min.x, max.x),
+                        Mathf.Clamp((multiplicator.vector3Value.y < -0.00001 || 0.00001 < multiplicator.vector3Value.y) ? multifloat[1] / multiplicator.vector3Value.y : 0f, min.y, max.y),
+                        Mathf.Clamp((multiplicator.vector3Value.z < -0.00001 || 0.00001 < multiplicator.vector3Value.z) ? multifloat[2] / multiplicator.vector3Value.z : 0f, min.z, max.z)
+                        );
             }
+            EditorGUI.showMixedValue = false;
 
             //Suffix is a hack as sublabel only work with 1 character
-            if(addMinusPrefix)
+            if (addMinusPrefix)
             {
                 Rect suffixRect = new Rect(rect.x - 4 - 15 * EditorGUI.indentLevel, rect.y, 100, rect.height);
                 for(int i = 0; i < 3; ++i)
@@ -512,7 +518,6 @@ namespace UnityEditor.Rendering
                 suffixRect.x += 1;
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
             }
-            return value;
         }
 
         public static void DrawPopup(GUIContent label, SerializedProperty property, string[] options)

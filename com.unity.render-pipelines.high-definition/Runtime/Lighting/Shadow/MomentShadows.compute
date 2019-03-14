@@ -34,7 +34,6 @@ void ComputeMomentShadows(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
 	uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
 	// Displace by the offset in the atlas
     currentPixelCoordinate += _MomentShadowmapSlotST.zw;
-    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _MomentShadowmapSlotST.x);
 
     // If this pixel is outside of the range of the current kernel, skip it
     if(float(currentPixelCoordinate.x) >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || float(currentPixelCoordinate.y) >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
@@ -153,7 +152,6 @@ void HORIZONTAL_FILTER_PASS(uint2 groupThreadId : SV_GroupThreadID, uint2 groupI
 	uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
 	// Displace by the offset in the atlas
     currentPixelCoordinate += _MomentShadowmapSlotST.zw;
-    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _MomentShadowmapSlotST.x);
 
     // If this pixel is outside of the range of the current kernel, skip it
     if(currentPixelCoordinate.x >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || currentPixelCoordinate.y >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
@@ -213,7 +211,6 @@ void VERTICAL_FILTER_PASS(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
 	uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
 	// Displace by the offset in the atlas
     currentPixelCoordinate += _MomentShadowmapSlotST.zw;
-    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _MomentShadowmapSlotST.x);
 
     // If this pixel is outside of the range of the current kernel, skip it
     if(currentPixelCoordinate.x >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || currentPixelCoordinate.y >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)

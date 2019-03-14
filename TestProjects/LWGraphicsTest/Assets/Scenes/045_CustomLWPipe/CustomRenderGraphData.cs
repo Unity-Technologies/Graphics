@@ -1,9 +1,9 @@
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     //[CreateAssetMenu()]
-    public class CustomRenderGraphData : IRendererData
+    public class CustomRenderGraphData : ScriptableRendererData
     {
-        public override IRendererSetup Create()
+        protected override ScriptableRenderer Create()
         {
             return new CustomLWPipe(this);
         }

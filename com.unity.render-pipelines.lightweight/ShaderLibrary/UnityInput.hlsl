@@ -104,6 +104,8 @@ half4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative 
 real4 unity_LightData;
 real4 unity_LightIndices[2];
 
+half4 unity_ProbesOcclusion;
+
 // Reflection Probe 0 block feature
 // HDR environment map decode instructions
 real4 unity_SpecCube0_HDR;

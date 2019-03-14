@@ -1,89 +1,262 @@
-#pragma kernel AreaBilateralShadow
+/*
+** Adapted from "Combining Analytic Direct Illumination and Stochastic", by Heitz et al.
+** https://eheitzresearch.wordpress.com/705-2/
+*/
+
+#pragma kernel AreaShadowEstimateNoise
+#pragma kernel AreaShadowDenoiseFirstPass   AREA_SHADOW_DENOISE=AreaShadowDenoiseFirstPass
+#pragma kernel AreaShadowDenoiseSecondPass  AREA_SHADOW_DENOISE=AreaShadowDenoiseSecondPass  FINAL_PASS
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition\Runtime\ShaderLibrary\ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 
 // Tile size of this compute
 #define AREA_BILLATERAL_TILE_SIZE 8
 
-// Input integration textures
-RWTexture2D<float4>     _SNTextureUAV;
-RWTexture2D<float4>     _UNTextureUAV;
+// Input/intermediate integration texture (containing Sn, Un, U, E)
+Texture2D<float4>       _DenoiseInputTexture;
+RWTexture2D<float4>     _DenoiseOutputTextureRW;
 
 // ScreenSpace buffers
-Texture2D<float>						_DepthTexture;
+Texture2D<float>        _DepthTexture;
 
 // Filter parameters
-int                 _DenoiseRadius;
-float               _GaussianSigma;
+int                     _DenoiseRadius;
 
 // Output texture data
-int                             _RaytracingShadowSlot;
-RWTexture2DArray<float>         _AreaShadowTextureRW;
+int                     _RaytracingShadowSlot;
+RWTexture2DArray<float> _AreaShadowTextureRW;
 
-float square(float value)
+// Bilateral filter parameters
+#define NORMAL_WEIGHT               1.0
+#define PLANE_WEIGHT                1.0
+#define DEPTH_WEIGHT                1.0
+#define ANALYTIC_WEIGHT             1.0
+
+// This value is the one that we have choosen for the moment as a sufficient limit for the noise
+// estimation. It would require an other pass to check if we can lower it
+#define MAX_ESTIMATION_RADIUS 10
+
+// Couple helper functions
+float sqr(float value)
 {
-	return value * value;
+    return value * value;
+}
+float gaussian(float radius, float sigma)
+{
+    return exp(-sqr(radius / sigma));
 }
 
-float3 ReadNormalValue(uint2 positionSS)
+/****************************** Noise Estimation Kernel ******************************/
+
+// Sample the signal used for the noise estimation at coordSS
+float TapRatio(uint2 coordSS)
 {
-    NormalData normalData;
-    float4 normalBuffer  = _NormalBufferTexture[COORD_TEXTURE2D_X(positionSS)];
-    DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
-    return normalData.normalWS;
+    const float Sn = _DenoiseInputTexture[coordSS].x;
+    const float Un = _DenoiseInputTexture[coordSS].y;
+
+    return (Un > 0.0) ? (Sn / Un) : 1.0;
 }
 
-float ReadDepthValue(uint2 positionSS)
+// Estimate desired radius from the second derivative of the signal
+float EstimateNoise(uint2 coordSS, float2 axis)
 {
-    float hitDeviceDepth = LOAD_TEXTURE2D(_DepthTexture, positionSS).r;
-    return LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
-}
+    // Radius is supposed to be always >= 1
+    const int noiseEsimationRadius = min(_DenoiseRadius, MAX_ESTIMATION_RADIUS);
+    float v2 = TapRatio(coordSS - noiseEsimationRadius * axis);
+    float v1 = TapRatio(coordSS - (noiseEsimationRadius - 1) * axis);
 
-[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
-void AreaBilateralShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-	// Fetch the current pixel coordinate
-	uint2 currentPixelCoordinate = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
-    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _ScreenSize.x);
+    float d2mag = 0.0;
+    uint n = 0;
 
-    // Read the central pixel values
-    float depthValue  = ReadDepthValue(currentPixelCoordinate);
-	float3 normalValue  = ReadNormalValue(currentPixelCoordinate);
-
-    float denoisedSN = 0.0f;
-    float denoisedUN = 0.0f;
-    int totalWeight = 0;
-
-    for(int i = -_DenoiseRadius; i < _DenoiseRadius; ++i)
+    // The first two points are accounted for above
+    for (int r = -(noiseEsimationRadius - 2); r <= noiseEsimationRadius; ++r, ++n)
     {
-    	for(int j = -_DenoiseRadius; j < _DenoiseRadius; ++j)
-    	{
-            // Compute the pixel coordinate candidate position
-    		uint2 pixelpos = uint2(currentPixelCoordinate.x + i, currentPixelCoordinate.y + j);
-/*
-            // Sample values for the current pixel
-    		float sampleDepth = ReadDepthValue(pixelpos);
-            float3 sampleNormal = ReadNormalValue(pixelpos);
+        float v0 = TapRatio(coordSS + r * axis);
 
+        // Second derivative
+        const float d2 = v2 - 2.0 * v1 + v0;
 
-            // Evaluate the validity of the pixel
-            bool sampleValid  = abs(sampleDepth - depthValue) < 0.1f && dot(normalValue, sampleNormal) > 0.99;
+        d2mag += abs(d2);
 
-            if(true)
-            */
-            {
-                float actualRadius = sqrt(float(i * i + j * j));
-                float gaussian = true ? exp(-square(actualRadius / _GaussianSigma)) : 0.0f;
-                denoisedSN += Luminance(_SNTextureUAV[pixelpos].xyz) * gaussian;
-                denoisedUN += Luminance(_UNTextureUAV[pixelpos].xyz) * gaussian;
-            }
-    	}
+        // Shift weights in the window
+        v2 = v1; v1 = v0;
     }
 
-    // Return the right color
-    float luminanceValue = clamp(denoisedSN / denoisedUN, 0.0, 1.0);
-    _AreaShadowTextureRW[uint3(currentPixelCoordinate, _RaytracingShadowSlot)] = luminanceValue;
+    return saturate(sqrt(d2mag / n));
+}
+
+// Estimate noise to drive denoising kernel radius
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowEstimateNoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    // Quasi-random angular offset, to break pattern
+    float angle = ScramblingValue(centerCoord.x, centerCoord.y).x * (PI / 256);
+
+    float maxNoise = 0.0;
+    float2 axis;
+
+    const int N = 4;
+    for (float t = 0; t < N; ++t, angle += PI/N)
+    {
+        sincos(angle, axis.y, axis.x);
+        maxNoise = max(EstimateNoise(centerCoord, axis), maxNoise);
+    }
+
+    _DenoiseOutputTextureRW[centerCoord] = float4(_DenoiseInputTexture[centerCoord].xyz, maxNoise);
+}
+
+/********************************* Denoising Kernel *********************************/
+
+struct BilateralData
+{
+    float3 position;
+    float  z;
+    float3 normal;
+    float  analytic;
+};
+
+BilateralData TapBilateralData(uint2 coordSS)
+{
+    BilateralData key;
+    PositionInputs posInput;
+
+    if (DEPTH_WEIGHT > 0.0 || PLANE_WEIGHT > 0.0)
+    {
+        posInput.deviceDepth = LOAD_TEXTURE2D(_DepthTexture, coordSS).r;
+        key.z = Linear01Depth(posInput.deviceDepth, _ZBufferParams);
+    }
+
+    if (PLANE_WEIGHT > 0.0)
+    {
+        posInput = GetPositionInput_Stereo(coordSS, _ScreenSize.zw, posInput.deviceDepth,
+                                           UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+        key.position = posInput.positionWS;
+    }
+
+    if ((NORMAL_WEIGHT > 0.0) || (PLANE_WEIGHT > 0.0))
+    {
+        NormalData normalData;
+        const float4 normalBuffer = _NormalBufferTexture[COORD_TEXTURE2D_X(coordSS)];
+        DecodeFromNormalBuffer(normalBuffer, coordSS, normalData);
+        key.normal = normalData.normalWS;
+    }
+
+    if (ANALYTIC_WEIGHT > 0.0)
+    {
+        key.analytic = _DenoiseInputTexture[coordSS].z;
+    }
+
+    return key;
+}
+
+float ComputeBilateralWeight(BilateralData center, BilateralData tap)
+{
+    float depthWeight    = 1.0;
+    float normalWeight   = 1.0;
+    float planeWeight    = 1.0;
+    float analyticWeight = 1.0;
+
+    if (DEPTH_WEIGHT > 0.0)
+    {
+        depthWeight = max(0.0, 1.0 - abs(tap.z - center.z) * DEPTH_WEIGHT);
+    }
+
+    if (NORMAL_WEIGHT > 0.0)
+    {
+        const float normalCloseness = sqr(sqr(dot(tap.normal, center.normal)));
+        const float normalError = (1.0 - normalCloseness);
+        normalWeight = max((1.0 - normalError * NORMAL_WEIGHT), 0.0);
+    }
+
+    if (PLANE_WEIGHT > 0.0)
+    {
+        // Change in position in camera space
+        const float3 dq = center.position - tap.position;
+
+        // How far away is this point from the original sample
+        // in camera space? (Max value is unbounded)
+        const float distance2 = dot(dq, dq);
+
+        // How far off the expected plane (on the perpendicular) is this point? Max value is unbounded.
+        const float planeError = max(abs(dot(dq, tap.normal)), abs(dot(dq, center.normal)));
+
+        planeWeight = (distance2 < 0.0001) ? 1.0 :
+            pow(max(0.0, 1.0 - 2.0 * PLANE_WEIGHT * planeError / sqrt(distance2)), 2.0);
+    }
+
+    if (ANALYTIC_WEIGHT > 0.0)
+    {
+        const float aDiff = abs(tap.analytic - center.analytic);
+        analyticWeight = max(0.0, 1.0 - (aDiff * ANALYTIC_WEIGHT));
+    }
+
+    return depthWeight * normalWeight * planeWeight * analyticWeight;
+}
+
+// Simple box filter to smooth out the noise estimate
+float FilterNoiseEstimate(uint2 coordSS)
+{
+    float result = 0.0;
+
+    const int R = 1; // Box radius (add 0.5 for center pixel)
+    for (int j = -R; j <= R; ++j)
+    {
+        for (int i = -R; i <= R; ++i)
+        {
+            result += _DenoiseInputTexture[coordSS + int2(i, j)].w;
+        }
+    }
+
+    return result / sqr(2 * R + 1);
+}
+
+// Separated bilateral filter (two passes, each with 2*Radius taps)
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AREA_SHADOW_DENOISE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    float2 SU = 0.0;
+    float wSum = 0.0;
+
+    #if FINAL_PASS
+    const uint2 passIncr = uint2(1, 0);
+    const float noiseEstimate = _DenoiseInputTexture[centerCoord].w ;
+    #else
+    const uint2 passIncr = uint2(0, 1);
+    const float noiseEstimate = FilterNoiseEstimate(centerCoord);
+    #endif
+
+    const float sigma = noiseEstimate * _DenoiseRadius;
+    const int effectiveRadius = min(sigma * 2.0, _DenoiseRadius);
+
+    const BilateralData center = TapBilateralData(centerCoord);
+
+    uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
+    for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
+    {
+        // Compute the weight (skip computation for the center)
+        const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
+
+        SU += _DenoiseInputTexture[tapCoord].xy * w;
+        wSum += w;
+    }
+
+    #if FINAL_PASS
+        // Return the final ratio
+        _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] =
+        (wSum > 0.0 && SU.y / wSum > 0.0) ? saturate(SU.x / SU.y) : 1.0;
+    #else
+        // Store the intermediate result
+        _DenoiseOutputTextureRW[centerCoord] = float4(SU / wSum, _DenoiseInputTexture[centerCoord].z, noiseEstimate);
+    #endif
 }

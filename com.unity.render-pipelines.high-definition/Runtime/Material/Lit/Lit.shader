@@ -143,6 +143,9 @@ Shader "HDRP/Lit"
         // Motion vector pass
         [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilMask.ObjectsVelocity
         [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity
+        // Distortion vector pass
+        [HideInInspector] _StencilRefDistortionVec("_StencilRefDistortionVec", Int) = 64 // StencilBitMask.DistortionVectors
+        [HideInInspector] _StencilWriteMaskDistortionVec("_StencilWriteMaskDistortionVec", Int) = 64 // StencilBitMask.DistortionVectors
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -571,6 +574,14 @@ Shader "HDRP/Lit"
             Name "DistortionVectors"
             Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
 
+            Stencil
+            {
+                WriteMask [_StencilRefDistortionVec]
+                Ref [_StencilRefDistortionVec]
+                Comp Always
+                Pass Replace
+            }
+
             Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
             BlendOp Add, [_DistortionBlurBlendOp]
             ZTest [_ZTestModeDistortion]
@@ -779,8 +790,8 @@ Shader "HDRP/Lit"
     {
         Pass
         {
-            Name "ReflectionDXR"
-            Tags{ "LightMode" = "ReflectionDXR" }
+            Name "IndirectDXR"
+            Tags{ "LightMode" = "IndirectDXR" }
 
             HLSLPROGRAM
 
@@ -790,9 +801,12 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             
-            #define SHADERPASS SHADERPASS_RAYTRACING_REFLECTION
+            #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
-             // We use the low shadow maps for raytracing
+            // multi compile that allows us to 
+            #pragma multi_compile _ DIFFUSE_LIGHTNG_ONLY
+
+            // We use the low shadow maps for raytracing
             #define SHADOW_LOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -811,7 +825,7 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracingData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingReflection.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl"
 
             ENDHLSL
         }
@@ -829,7 +843,9 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             
-             // We use the low shadow maps for raytracing
+            #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
+
+            // We use the low shadow maps for raytracing
             #define SHADOW_LOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -861,6 +877,8 @@ Shader "HDRP/Lit"
             HLSLPROGRAM
 
             #pragma raytracing test
+
+            #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 

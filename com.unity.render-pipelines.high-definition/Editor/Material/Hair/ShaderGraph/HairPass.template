@@ -33,8 +33,6 @@ Pass
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
     $Material.KajiyaKay:                #define _MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1
-    /* Always on */                     #define _MATERIAL_FEATURE_TRANSMISSION 1
-    $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
     $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
     $BlendMode.Alpha:                   #define _BLENDMODE_ALPHA 1
     $BlendMode.Add:                     #define _BLENDMODE_ADD 1
@@ -50,6 +48,7 @@ Pass
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DoubleSided:                       #define _DOUBLESIDED_ON 1
     $TransparentWritesVelocity:         #define _WRITE_TRANSPARENT_VELOCITY 1
+    $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $UseLightFacingNormal:              #define _USE_LIGHT_FACING_NORMAL 1
 
     //-------------------------------------------------------------------------------------
@@ -59,11 +58,6 @@ Pass
     #pragma vertex Vert
     #pragma fragment Frag
 
-    // If we use subsurface scattering, enable output split lighting (for forward pass)
-    #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    #define OUTPUT_SPLIT_LIGHTING
-    #endif
-    
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
@@ -113,7 +107,9 @@ Pass
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
+    #define MATERIAL_INCLUDE_TRANSMISSION // temp hack
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+    #undef  MATERIAL_INCLUDE_TRANSMISSION // temp hack
 #else
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
 #endif
@@ -181,11 +177,10 @@ $include("SharedCode.template.hlsl")
         // copy across graph values, if defined
         $SurfaceDescription.Albedo:                         surfaceData.diffuseColor =                  surfaceDescription.Albedo;
         $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
-        $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;        
+        $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;
         $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
-        $SurfaceDescription.DiffusionProfileHash:           surfaceData.diffusionProfileHash =          asuint(surfaceDescription.DiffusionProfileHash);
-        $SurfaceDescription.SubsurfaceMask:                 surfaceData.subsurfaceMask =                surfaceDescription.SubsurfaceMask;
-        $SurfaceDescription.Thickness:                      surfaceData.thickness =                     surfaceDescription.Thickness;
+        $SurfaceDescription.Transmittance:                  surfaceData.transmittance =                 surfaceDescription.Transmittance;
+        $SurfaceDescription.RimTransmissionIntensity:       surfaceData.rimTransmissionIntensity =      surfaceDescription.RimTransmissionIntensity;
 
         $SurfaceDescription.SpecularTint:                   surfaceData.specularTint =                  surfaceDescription.SpecularTint;
         $SurfaceDescription.SpecularShift:                  surfaceData.specularShift =                 surfaceDescription.SpecularShift;
@@ -199,15 +194,7 @@ $include("SharedCode.template.hlsl")
 
         // Transform the preprocess macro into a material feature
 #ifdef _MATERIAL_FEATURE_HAIR_KAJIYA_KAY
-        surfaceData.materialFeatures = MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
-#endif
-
-#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_SUBSURFACE_SCATTERING;
-#endif
-
-#ifdef _MATERIAL_FEATURE_TRANSMISSION
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_TRANSMISSION;
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
 #endif
 
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
@@ -330,31 +317,22 @@ $include("SharedCode.template.hlsl")
         $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
         $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
 
+        $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
     
-        // For diffuse GI, we should compute the integral around the entire hair strand (0 to 2 * Pi).
-        // For performance reasons, we use a (poor) double-tap approximation, one at the front and
-        // one at the back of the hair strand. The motivation is that frontal and back
-        // lighting makes the most significant visual contribution.
-        // We also don't perform any normalization for energy conservation (since it's all a big hack).
-
         // Builtin Data
-
-        // We use the reflected bent normal for back lighting.
-        // It allows us to preserve the symmetry of geometry.
-        float3 backBentNormalWS = reflect(-bentNormalWS, surfaceData.hairStrandDirectionWS);
-
-        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, backBentNormalWS, fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        // For back lighting we use the oposite vertex normal 
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
-        $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+        $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
-        // TODO: Handle depth offset
-        //builtinData.depthOffset = 0.0;
+        $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
     }
