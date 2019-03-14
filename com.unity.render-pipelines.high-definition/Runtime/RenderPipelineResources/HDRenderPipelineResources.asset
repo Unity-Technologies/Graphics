@@ -9,6 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
@@ -145,19 +146,23 @@ MonoBehaviour:
     bloomUpsampleCS: {fileID: 7200000, guid: 5dbb0ac12cb11f84084b7e5633481bd1, type: 3}
     FXAACS: {fileID: 7200000, guid: 1535d29f35ea86b4282b6ca652002e2a, type: 3}
     finalPassPS: {fileID: 4800000, guid: 5ac9ef0c50282754b93c7692488e7ee7, type: 3}
+    areaShadowRaytracingCS: {fileID: 7200000, guid: 3d966b6aa00dce1418677e93a8a6979c,
+      type: 3}
+    areaShadowsRaytracingRT: {fileID: 4807578003741378534, guid: 562bbaa310be359439258321ea2e6b3b,
+      type: 3}
+    areaShadowFilterCS: {fileID: 7200000, guid: 757ff50c499f3c44ba741a41c7ab8510,
+      type: 3}
+    aoRaytracing: {fileID: 4807578003741378534, guid: 82dc8cd069971d2488c502b0f32b94fb,
+      type: 3}
     reflectionRaytracing: {fileID: 4807578003741378534, guid: 1a500e5079fba734aa90fe92e70ea131,
       type: 3}
     indirectDiffuseRaytracing: {fileID: 4807578003741378534, guid: f9b74dc8a89fc7c489e244f0be35baa8,
       type: 3}
     indirectDiffuseAccumulation: {fileID: 7200000, guid: e1ac59550ddb4e64492ba7f7428e280b,
       type: 3}
-    shadowsRaytracing: {fileID: 4807578003741378534, guid: 562bbaa310be359439258321ea2e6b3b,
-      type: 3}
     raytracingFlagMask: {fileID: 4800000, guid: 7822c8a69a1f21144a20cf6d84e5e706,
       type: 3}
     forwardRaytracing: {fileID: 4807578003741378534, guid: d3a89a2d3f73b3e4da6f191e844fe68c,
-      type: 3}
-    areaBillateralFilterCS: {fileID: 7200000, guid: 757ff50c499f3c44ba741a41c7ab8510,
       type: 3}
     reflectionBilateralFilterCS: {fileID: 7200000, guid: 07c445e7aa373284a9cc1584ca9b3f84,
       type: 3}

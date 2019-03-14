@@ -129,16 +129,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Shader finalPassPS;
 
 #if ENABLE_RAYTRACING
-            // Raytracing shaders
+            // Reflection
             public RaytracingShader reflectionRaytracing;
-            public RaytracingShader shadowsRaytracing;
-            public Shader           raytracingFlagMask;
-            public RaytracingShader forwardRaytracing;
-            public ComputeShader areaBillateralFilterCS;
             public ComputeShader reflectionBilateralFilterCS;
+
+            // Shadows
+            public RaytracingShader areaShadowsRaytracingRT;
+            public ComputeShader areaShadowRaytracingCS;
+            public ComputeShader areaShadowFilterCS;
+
+            // Primary visibility
+            public RaytracingShader forwardRaytracing;
+            public Shader           raytracingFlagMask;
+
+            // Light cluster
             public ComputeShader lightClusterBuildCS;
             public ComputeShader lightClusterDebugCS;
-            public ComputeShader countTracedRays;
 
             // Indirect Diffuse
             public RaytracingShader indirectDiffuseRaytracing;
@@ -147,6 +153,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Ambient Occlusion
             public RaytracingShader aoRaytracing;
             public ComputeShader raytracingAOFilterCS;
+
+            // Ray count
+            public ComputeShader countTracedRays;
 #endif
         }
 
@@ -327,14 +336,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aoRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace"),
                 raytracingAOFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusionFilter.compute"),
 
+                // Area Shadow data
+                areaShadowRaytracingCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingAreaShadows.compute"),
+                areaShadowsRaytracingRT = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingAreaShadows.raytrace"),
+                areaShadowFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/AreaShadows/AreaShadowFilter.raytrace"),
+
+                // Reflection
                 reflectionRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace"),
+                reflectionBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflectionFilter.compute"),
+                
+                // Indirect Diffuse
                 indirectDiffuseRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingIndirectDiffuse.raytrace"),
                 indirectDiffuseAccumulation = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAccumulation.compute"),
-                shadowsRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingAreaShadows.raytrace"),
-                areaBillateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/AreaBilateralShadow.compute"),
-                reflectionBilateralFilterCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingReflectionFilter.compute"),
+
+                // Primary Visibility
+                forwardRaytracing = Load<RaytracingShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace"),
+                raytracingFlagMask = Load<Shader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.shader"),
+                
+                // Light cluster
                 lightClusterBuildCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute"),
                 lightClusterDebugCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute"),
+                
+                // Ray count
 				countTracedRays = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipeline/Raytracing/Shaders/CountTracedRays.compute"),
 #endif
         };

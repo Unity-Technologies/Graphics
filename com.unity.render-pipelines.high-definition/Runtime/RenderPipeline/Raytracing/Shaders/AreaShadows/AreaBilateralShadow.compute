@@ -42,7 +42,7 @@ int                     _RaytracingShadowSlot;
 RWTexture2DArray<float> _AreaShadowTextureRW;
 
 // History buffer
-Texture2D<float>            _AnalyticBuffer;
+Texture2D<float2>           _AnalyticProbBuffer;
 RWTexture2DArray<float>     _AnalyticHistoryBuffer;
 RWTexture2DArray<float2>    _AreaShadowHistoryRW;
 
@@ -79,7 +79,7 @@ void AreaAnalyticHistoryUpdate(uint2 groupThreadId : SV_GroupThreadID, uint2 gro
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Merge them into the previous buffer
-    _AnalyticHistoryBuffer[uint3(centerCoord, _RaytracingShadowSlot)] = _AnalyticBuffer[centerCoord];
+    _AnalyticHistoryBuffer[uint3(centerCoord, _RaytracingShadowSlot)] = _AnalyticProbBuffer[centerCoord].x;
 }
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
@@ -108,14 +108,16 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     uint2 historyPixelCoord =  centerCoord - velocity * _ScreenSize.xy;
 
     // Ok so here, if we do not match cloesly the previous analytic value, it means either TAA has invalidated the sample or the pixel just appeared
-    if(abs(_AnalyticHistoryBuffer[uint3(historyPixelCoord,_RaytracingShadowSlot)] - _AnalyticBuffer[centerCoord]) > 1e-6)
+    float currentAnalyticValue = _AnalyticProbBuffer[centerCoord];
+    float historyAnalyticValue = _AnalyticHistoryBuffer[uint3(historyPixelCoord,_RaytracingShadowSlot)];
+    if (abs(historyAnalyticValue - currentAnalyticValue) <= 1e-5 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)))
     {
         // Fetch the current value
         float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).xy;
 
         // Set it as the output and leave the function
         _AreaShadowHistoryRW[uint3(centerCoord, _RaytracingShadowSlot)] = color;
-        _DenoiseOutputTextureRW[centerCoord] = float4(color, _AnalyticBuffer[centerCoord].x, 1.0);
+        _DenoiseOutputTextureRW[centerCoord] = float4(color, _AnalyticProbBuffer[centerCoord].x, 1.0);
         return;
     }
 
@@ -157,7 +159,7 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     color = clamp(color, 0.0, CLAMP_MAX);
     
     _AreaShadowHistoryRW[uint3(centerCoord, _RaytracingShadowSlot)] = color;
-    _DenoiseOutputTextureRW[centerCoord] = float4(color, _AnalyticBuffer[centerCoord].x, 1.0);
+    _DenoiseOutputTextureRW[centerCoord] = float4(color, _AnalyticProbBuffer[centerCoord].x, 1.0);
 }
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
@@ -210,7 +212,7 @@ void AreaShadowApplyTAA2(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     //_DebugTextureRW[coordSS] = float4(diff, alpha * 0.1, 0.0, 1.0);
 
     _AreaShadowHistoryRW[uint3(coordSS, _RaytracingShadowSlot)] = result;
-    _DenoiseOutputTextureRW[coordSS] = float4(result, _AnalyticBuffer[coordSS].x, 1.0);
+    _DenoiseOutputTextureRW[coordSS] = float4(result, _AnalyticProbBuffer[coordSS].x, 1.0);
 }
 
 // Couple helper functions

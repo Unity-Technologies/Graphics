@@ -56,6 +56,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty shadowNumSamples;
         public SerializedProperty numAreaLightShadows;
         public SerializedProperty shadowFilterRadius;
+        public SerializedProperty splitIntegration;
 
         // Indirect diffuse Properties
         public SerializedProperty raytracedIndirectDiffuse;
@@ -105,6 +106,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             shadowNumSamples = o.Find(x => x.shadowNumSamples);
             numAreaLightShadows = o.Find(x => x.numAreaLightShadows);
             shadowFilterRadius = o.Find(x => x.shadowFilterRadius);
+            splitIntegration = o.Find(x => x.splitIntegration);
 
             // Light Cluster Attributes
             maxNumLightsPercell = o.Find(x => x.maxNumLightsPercell);
