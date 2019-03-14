@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed shader warning
+- Fixed missing resources in existing asset when updating package
 
 ## [5.8.0-preview] - 2019-03-13
 
