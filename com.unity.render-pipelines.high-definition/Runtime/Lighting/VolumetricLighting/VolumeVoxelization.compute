@@ -359,7 +359,7 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Compute a ray direction s.t. ViewSpace(rayDirWS).z = 1.
 #if defined(USING_STEREO_MATRICES)
-    float3 rayDirWS       = ComputeWorldSpacePosition(voxelCoord * _VBufferResolution.zw, 1.0, UNITY_MATRIX_I_VP) - GetCurrentViewPosition();
+    float3 rayDirWS       = normalize(ComputeWorldSpacePosition(centerCoord * _VBufferResolution.zw, 1.0, UNITY_MATRIX_I_VP) - GetCurrentViewPosition());
 #else
     float3 rayDirWS       = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
 #endif
