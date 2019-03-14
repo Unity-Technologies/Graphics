@@ -52,13 +52,6 @@ Because you cannot control the distances HDRP derives from the shadow map, the b
 
 
 
-## Diffusion Profile Override Volume
-
-HDRP can only handle 15 Diffusion Profiles in view at once. To have more than 15 Diffusion Profiles in a Scene, you can use the __Diffusion Profile Override__ component available inside [Volumes](Volumes.html). This allows you to specify which Diffusion Profile to use in a certain area (or in the Scene if the volume is global). 
-When the Volume is local, you have access to the __Fill profiles with scene materials__ button which fetches the Diffusion Profiles from Materials inside the Volume's bounds and fills the __Diffusion Profile List__ with them.
-
-
-
 ## Upgrading to the new diffusion profile system
 
 For HDRP 5.5.0-preview and 6.3.0-preview or newer. 

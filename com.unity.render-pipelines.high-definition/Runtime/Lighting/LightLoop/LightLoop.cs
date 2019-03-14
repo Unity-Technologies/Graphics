@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int s_TileSizeBigTile = 64;
 
         // feature variants
-        public static int s_NumFeatureVariants = 27;
+        public static int s_NumFeatureVariants = 29;
 
         // Following define the maximum number of bits use in each feature category.
         public static uint s_LightFeatureMaskFlags = 0xFFF000;
@@ -2303,6 +2303,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
         {
+            bool runLightList = m_lightCount > 0;
+
             var camera = hdCamera.camera;
             cmd.BeginSample("Build Light List");
 
@@ -2347,7 +2349,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
             // generate screen-space AABBs (used for both fptl and clustered).
-            if (m_lightCount != 0)
+            if (runLightList)
             {
                 temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
                 temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
@@ -2387,7 +2389,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
-            if (m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+            if (runLightList && m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
             {
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
@@ -2415,9 +2417,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var numTilesY = GetNumTileFtplY(hdCamera);
             var numTiles = numTilesX * numTilesY;
             bool enableFeatureVariants = GetFeatureVariantsEnabled();
+            bool tileFlagsWritten = false;
+            bool computeMaterialVariants = m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
+            bool computeLightVariants = m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
 
             // optimized for opaques only
-            if (m_FrameSettings.fptl)
+            if (runLightList && m_FrameSettings.fptl)
             {
                 var genListPerTileKernel = isProjectionOblique ? s_GenListPerTileKernel_Oblique : s_GenListPerTileKernel;
 
@@ -2450,32 +2455,51 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
                     }
-                    if (!m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants))
+                    if (!computeMaterialVariants)
                     {
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                     }
                     cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
                     cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    tileFlagsWritten = true;
                 }
 
                 cmd.DispatchCompute(buildPerTileLightListShader, genListPerTileKernel, numTilesX, numTilesY, 1);
             }
 
             // Cluster
-            VoxelLightListGeneration(cmd, hdCamera, m_LightListProjscrMatrices, m_LightListInvProjscrMatrices, cameraDepthBufferRT);
+            if(runLightList)
+                VoxelLightListGeneration(cmd, hdCamera, m_LightListProjscrMatrices, m_LightListInvProjscrMatrices, cameraDepthBufferRT);
 
             if (enableFeatureVariants)
             {
-                // material classification
-                if (m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants))
+                // We need to touch up the tile flags if we need material classification or, if disabled, to patch up for missing flags during the skipped light tile gen 
+                bool needModifyingTileFeatures = !tileFlagsWritten || computeMaterialVariants;
+                if (needModifyingTileFeatures)
                 {
-                    int buildMaterialFlagsKernel = s_BuildMaterialFlagsOrKernel;
+                    int buildMaterialFlagsKernel = (!tileFlagsWritten || !computeLightVariants) ? s_BuildMaterialFlagsWriteKernel  : s_BuildMaterialFlagsOrKernel;
 
                     uint baseFeatureFlags = 0;
-                    if (!m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants))
+                    if (!computeLightVariants)
                     {
-                        buildMaterialFlagsKernel = s_BuildMaterialFlagsWriteKernel;
                         baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
+                    }
+
+                    // If we haven't run the light list building, we are missing some basic lighting flags. 
+                    if(!tileFlagsWritten)
+                    {
+                        if (m_lightList.directionalLights.Count > 0)
+                        {
+                            baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
+                        }
+                        if (skyEnabled)
+                        {
+                            baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
+                        }
+                        if (!computeMaterialVariants)
+                        {
+                            baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
+                        }
                     }
 
                     cmd.SetComputeIntParam(buildMaterialFlagsShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);

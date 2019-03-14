@@ -778,13 +778,13 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
 
     // Calculate color deltas:
     float4 delta;
-    float3 C = pow(SMAASamplePoint(colorTex, texcoord).rgb, GAMMA_FOR_EDGE_DETECTION);
+    float3 C = PositivePow(SMAASamplePoint(colorTex, texcoord).rgb, GAMMA_FOR_EDGE_DETECTION);
 
-    float3 Cleft = pow(SMAASamplePoint(colorTex, offset[0].xy).rgb, GAMMA_FOR_EDGE_DETECTION);
+    float3 Cleft = PositivePow(SMAASamplePoint(colorTex, offset[0].xy).rgb, GAMMA_FOR_EDGE_DETECTION);
     float3 t = abs(C - Cleft);
     delta.x = max(max(t.r, t.g), t.b);
 
-    float3 Ctop = pow(SMAASamplePoint(colorTex, offset[0].zw).rgb, GAMMA_FOR_EDGE_DETECTION);
+    float3 Ctop = PositivePow(SMAASamplePoint(colorTex, offset[0].zw).rgb, GAMMA_FOR_EDGE_DETECTION);
     t = abs(C - Ctop);
     delta.y = max(max(t.r, t.g), t.b);
 
@@ -796,11 +796,11 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
         discard;
 
     // Calculate right and bottom deltas:
-    float3 Cright = pow(SMAASamplePoint(colorTex, offset[1].xy).rgb, GAMMA_FOR_EDGE_DETECTION);
+    float3 Cright = PositivePow(SMAASamplePoint(colorTex, offset[1].xy).rgb, GAMMA_FOR_EDGE_DETECTION);
     t = abs(C - Cright);
     delta.z = max(max(t.r, t.g), t.b);
 
-    float3 Cbottom = pow(SMAASamplePoint(colorTex, offset[1].zw).rgb, GAMMA_FOR_EDGE_DETECTION);
+    float3 Cbottom = PositivePow(SMAASamplePoint(colorTex, offset[1].zw).rgb, GAMMA_FOR_EDGE_DETECTION);
     t = abs(C - Cbottom);
     delta.w = max(max(t.r, t.g), t.b);
 
@@ -808,11 +808,11 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
     float2 maxDelta = max(delta.xy, delta.zw);
 
     // Calculate left-left and top-top deltas:
-    float3 Cleftleft = pow(SMAASamplePoint(colorTex, offset[2].xy).rgb, GAMMA_FOR_EDGE_DETECTION);
+    float3 Cleftleft = PositivePow(SMAASamplePoint(colorTex, offset[2].xy).rgb, GAMMA_FOR_EDGE_DETECTION);
     t = abs(Cleft - Cleftleft);
     delta.z = max(max(t.r, t.g), t.b);
 
-    float3 Ctoptop = pow(SMAASamplePoint(colorTex, offset[2].zw).rgb, GAMMA_FOR_EDGE_DETECTION);
+    float3 Ctoptop = PositivePow(SMAASamplePoint(colorTex, offset[2].zw).rgb, GAMMA_FOR_EDGE_DETECTION);
     t = abs(Ctop - Ctoptop);
     delta.w = max(max(t.r, t.g), t.b);
 

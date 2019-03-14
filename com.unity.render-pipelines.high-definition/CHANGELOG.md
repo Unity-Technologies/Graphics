@@ -27,7 +27,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed multi-edition inspector's blend distances for HDReflectionProbe, PlanarReflectionProbe and DensityVolume
 - Fixed metric distance that changed along size in DensityVolume
 - Fixed DensityVolume shape handles that have not same behaviour in advance and normal edition mode
-- Fixed normal map blending in TerrainLit by only blending the derivatives### Changed
+- Fixed normal map blending in TerrainLit by only blending the derivatives
+- Fixed Xbox One rendering just a grey screen instead of the scene
+- Fixed probe handles for multiselection
+- Fixed baked cubemap import settings for convolution
+- Fixed regression causing crash when attempting to open HDRenderPipelineWizard without an HDRenderPipelineAsset setted
+- Fixed FullScreenDebug modes: SSAO, SSR, Contact shadow, Prerefraction Color Pyramid, Final Color Pyramid
+- Fixed volumetric rendering with stereo instancing
+- Fixed shader warning
+- Fixed missing resources in existing asset when updating package
+- Fixed PBR master node preview in forward rendering or transparent surface
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
@@ -37,6 +46,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimize distortion pass with stencil
 - Disable SceneSelectionPass in shader graph preview
 - Control punctual light and area light shadow atlas separately
+- Move SMAA anti-aliasing option to after Temporal Anti Aliasing one, to avoid problem with previously serialized project settings
+- Optimize rendering with static only lighting and when no cullable lights/decals/density volumes are present. 
 
 ## [6.5.0-preview] - 2019-03-07
 

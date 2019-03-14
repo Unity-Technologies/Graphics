@@ -131,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_SkyTypesDict = new Dictionary<int, Type>();
 
-                var skyTypes = CoreUtils.GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(SkySettings)) && !t.IsAbstract);
+                var skyTypes = CoreUtils.GetAllTypesDerivedFrom<SkySettings>().Where(t => !t.IsAbstract);
                 foreach (Type skyType in skyTypes)
                 {
                     var uniqueIDs = skyType.GetCustomAttributes(typeof(SkyUniqueID), false);
