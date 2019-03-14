@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed shader warning
 - Fixed missing resources in existing asset when updating package
+- Fixed PBR master node preview in forward rendering or transparent surface
 
 ## [5.8.0-preview] - 2019-03-13
 
@@ -42,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed regression causing crash when attempting to open HDRenderPipelineWizard without an HDRenderPipelineAsset setted
 - Fixed FullScreenDebug modes: SSAO, SSR, Contact shadow, Prerefraction Color Pyramid, Final Color Pyramid
 - Fixed volumetric rendering with stereo instancing
+
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
