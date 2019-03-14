@@ -113,6 +113,10 @@ PackedVaryingsType SpeedTree7Vert(SpeedTreeVertexInput input)
     float3 viewDirWS = _WorldSpaceCameraPos - positionWS;
 
     float4 positionCS = TransformWorldToHClip(positionWS);
+
+#if (SHADERPASS == SHADERPASS_DEPTH_ONLY)
+    positionCS.z -= _ZBias;
+#endif
     
 #ifdef EFFECT_BUMP
     output.vmesh.interpolators1 = normalWS;

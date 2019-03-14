@@ -9,6 +9,7 @@ Shader "HDRP/Nature/SpeedTree7"
         _DetailTex("Detail", 2D) = "black" {}
         _BumpMap("Normal Map", 2D) = "bump" {}
         _Cutoff("Alpha Cutoff", Range(0,1)) = 0.333
+        _ZBias("Depth Bias", Range(0, 0.1)) = 0.0
 
         [HideInInspector] _EmissionColor("Color", Color) = (0, 0, 0)    // Base Lit material UI assumes there is an _EmissionColor, so we have it here as a placeholder.
         [MaterialEnum(Off,0,Front,1,Back,2)] _Cull("Cull", Int) = 2
@@ -228,6 +229,9 @@ Shader "HDRP/Nature/SpeedTree7"
             Name "ForwardLit"
             Tags { "LightMode" = "ForwardOnly" }
 
+            
+            Cull Off
+
             HLSLPROGRAM
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
@@ -240,6 +244,10 @@ Shader "HDRP/Nature/SpeedTree7"
 
             #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+
+            #ifdef GEOM_TYPE_LEAF
+            #define _SURFACE_TYPE_TRANSPARENT
+            #endif
 
             #pragma vertex SpeedTree7Vert
 

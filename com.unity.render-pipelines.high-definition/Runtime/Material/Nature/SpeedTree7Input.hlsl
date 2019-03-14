@@ -105,5 +105,6 @@ SAMPLER(sampler_SpecTex);
 
 float4 _Color;
 float3 _EmissiveColor;
+float _ZBias;
 
 #endif

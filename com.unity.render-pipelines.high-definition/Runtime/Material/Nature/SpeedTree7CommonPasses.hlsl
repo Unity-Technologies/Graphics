@@ -61,7 +61,6 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     output.worldToTangent = BuildWorldToTangent(input.interpolators2, input.interpolators1);
 #else
     output.worldToTangent = BuildWorldToTangent(input.interpolators2, input.interpolators1);
-    //output.worldToTangent[0] = cross(output.worldToTangent[2], output.worldToTangent[1]);
 #endif
     output.worldToTangent[0] = GetOddNegativeScale() * cross(output.worldToTangent[2], output.worldToTangent[1]);
 #endif
