@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed player not building
+- Fixed shader warning
 
 ## [5.8.1-preview] - 2019-03-13
 

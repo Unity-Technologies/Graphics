@@ -17,8 +17,8 @@ Shader "CoreResources/FilterAreaLightCookies"
         uniform float4  _SourceSize;
 
         // Shared constants
-        static const float  DELTA_SCALE = 1.0;
-        static const float4 KERNEL_WEIGHTS = float4( 0.00390625, 0.10937500, 0.21875000, 0.27343750 ) / 0.9375;
+        const float  DELTA_SCALE = 1.0;
+        const float4 KERNEL_WEIGHTS = float4( 0.00390625, 0.10937500, 0.21875000, 0.27343750 ) / 0.9375;
 
         struct Attributes
         {
