@@ -94,11 +94,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 
 #ifndef TERRAIN_SPLAT_BASEPASS
 
-<<<<<<< HEAD
 void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
-=======
-void SplatmapMix(Varyings IN, half4 defaultAlpha, out half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
->>>>>>> origin/master
 {
     half4 diffAlbedo[4];
     

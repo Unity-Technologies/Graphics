@@ -22,14 +22,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
-<<<<<<< HEAD
             public Shader defaultSpeedTree7Shader;
             public Shader defaultSpeedTree8Shader;
-=======
+
             public Shader terrainDetailLitShader;
             public Shader terrainDetailGrassShader;
             public Shader terrainDetailGrassBillboardShader;
->>>>>>> origin/master
         }
 
         [Serializable, ReloadGroup]
@@ -69,25 +67,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
 <<<<<<< HEAD
-        // Note: move this to a static using once we can target C#6+
-        T Load<T>(string path) where T : UnityEngine.Object
-        {
-            return AssetDatabase.LoadAssetAtPath<T>(path);
-        }
-
-        public void Init()
-        {
-            // Load default renderPipelineResources / Material / Shader
-            string HDRenderPipelinePath = HDUtils.GetHDRenderPipelinePath() + "Runtime/";
-
-            // Shaders
-            shaders = new ShaderResources
-            {
-                defaultSpeedTree7Shader = Load<Shader>(HDRenderPipelinePath + "Material/Nature/SpeedTree7Lit.shader"),
-                defaultSpeedTree8Shader = Load<Shader>(HDRenderPipelinePath + "Material/Nature/SpeedTree7Lit.shader"),
-            };
-=======
->>>>>>> origin/master
 
 
     [UnityEditor.CustomEditor(typeof(HDRenderPipelineEditorResources))]

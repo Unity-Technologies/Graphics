@@ -30,7 +30,6 @@ TEXTURE2D(_Normal2);
 TEXTURE2D(_Normal3);
 #endif
 
-<<<<<<< HEAD
 #ifdef _MASKMAP
 TEXTURE2D(_Mask0);      SAMPLER(sampler_Mask0);
 TEXTURE2D(_Mask1);
@@ -40,7 +39,6 @@ TEXTURE2D(_Mask3);
 
 =======
 TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
->>>>>>> origin/master
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
 CBUFFER_START(UnityPerMaterial)

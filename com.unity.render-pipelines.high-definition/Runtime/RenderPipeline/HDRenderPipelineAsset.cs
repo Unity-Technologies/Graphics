@@ -241,7 +241,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailGrassBillboardShader;
             }
         }
-<<<<<<< HEAD
 
         public override Shader defaultSpeedTree7Shader
         {
@@ -254,8 +253,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #endif
-=======
->>>>>>> origin/master
 
         // Note: This function is HD specific
         public Material GetDefaultDecalMaterial()
