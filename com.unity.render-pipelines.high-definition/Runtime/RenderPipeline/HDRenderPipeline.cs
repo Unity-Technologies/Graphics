@@ -1801,6 +1801,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 StartStereoRendering(cmd, renderContext, camera);
 
 #if (ENABLE_RAYTRACING)
+                // DEMO_HACK: comment this code for now for external RT GI with probe to work
+                /*
                 {
                     {   
                         HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
@@ -1819,6 +1821,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
                 }
+                */
 #endif
 
                 RenderDeferredLighting(hdCamera, cmd);

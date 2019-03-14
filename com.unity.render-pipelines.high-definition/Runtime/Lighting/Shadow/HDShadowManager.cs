@@ -568,8 +568,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Dispose()
         {
-            m_ShadowDataBuffer.Dispose();
-            m_DirectionalShadowDataBuffer.Dispose();
+            // DEMO_HACK: warning! we comment these lines for the demo because it is causing crash.
+            // m_ShadowDataBuffer.Dispose();
+            // m_DirectionalShadowDataBuffer.Dispose();
             m_Atlas.Release();
             m_AreaLightShadowAtlas.Release();
             m_CascadeAtlas.Release();
