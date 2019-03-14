@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FullScreenDebug modes: SSAO, SSR, Contact shadow, Prerefraction Color Pyramid, Final Color Pyramid
 - Fixed volumetric rendering with stereo instancing
 - Fixed shader warning
+- Fixed missing resources in existing asset when updating package
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
