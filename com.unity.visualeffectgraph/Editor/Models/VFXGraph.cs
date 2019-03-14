@@ -129,6 +129,12 @@ namespace UnityEditor.VFX
         // size refactor
         public static readonly int CurrentVersion = 1;
 
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            m_ExpressionGraphDirty = true;
+        }
+
         public VisualEffectResource visualEffectResource
         {
             get
