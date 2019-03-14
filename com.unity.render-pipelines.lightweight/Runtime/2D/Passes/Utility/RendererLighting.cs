@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                 RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
 
                             // Light code could be combined...
-                            if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform)
+                            if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                             {
                                 cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
                             }
@@ -176,7 +176,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                         RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
 
                                     // Could be combined...
-                                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform)
+                                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                                     {
                                         cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
                                     }
