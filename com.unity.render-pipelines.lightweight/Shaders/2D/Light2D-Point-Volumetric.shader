@@ -23,17 +23,17 @@ Shader "Hidden/Light2d-Point-Volumetric"
             {
                 float3 positionOS   : POSITION;
                 float2 texcoord     : TEXCOORD0;
-                float4 volumeColor	: TANGENT;
+                float4 volumeColor  : TANGENT;
             };
 
             struct Varyings
             {
-                float4  positionCS		: SV_POSITION;
-                float2  uv				: TEXCOORD0;
-                float2	screenUV		: TEXCOORD1;
-                float2	lookupUV		: TEXCOORD2;  // This is used for light relative direction
-                float2	lookupNoRotUV	: TEXCOORD3;  // This is used for screen relative direction of a light
-                float4  volumeColor		: TANGENT;
+                float4  positionCS      : SV_POSITION;
+                float2  uv              : TEXCOORD0;
+                float2	screenUV        : TEXCOORD1;
+                float2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
+                float2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
+                float4  volumeColor     : TANGENT;
 
 #if LIGHT_QUALITY_FAST
                 float4	lightDirection	: TEXCOORD4;

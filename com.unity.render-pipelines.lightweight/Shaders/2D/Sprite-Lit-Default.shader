@@ -35,14 +35,14 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
             {
                 float3 positionOS   : POSITION;
                 float2 uv           : TEXCOORD0;
-                half4 color			: COLOR;
+                half4 color         : COLOR;
             };
 
             struct Varyings
             {
                 float2 uv       : TEXCOORD0;
                 float4 vertex   : SV_POSITION;
-                half4  color	: COLOR;
+                half4  color    : COLOR;
             };
 
             TEXTURE2D(_MainTex);

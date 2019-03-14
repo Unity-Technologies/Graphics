@@ -4,18 +4,18 @@
 struct Attributes
 {
     float3 positionOS   : POSITION;
-    float4 color		: COLOR;
-    half2  uv			: TEXCOORD0;
+    float4 color        : COLOR;
+    half2  uv           : TEXCOORD0;
 };
 
 struct Varyings
 {
-    float4  positionCS		: SV_POSITION;
-    float4  color			: COLOR;
-    half2	uv				: TEXCOORD0;
-    half2	lightingUV		: TEXCOORD1;
-    float4  vertexWorldPos	: TEXCOORD3;
-    half2	pixelScreenPos	: TEXCOORD4;
+    float4  positionCS      : SV_POSITION;
+    float4  color           : COLOR;
+    half2	uv              : TEXCOORD0;
+    half2	lightingUV      : TEXCOORD1;
+    float4  vertexWorldPos  : TEXCOORD3;
+    half2	pixelScreenPos  : TEXCOORD4;
 };
 
 TEXTURE2D(_MainTex);
