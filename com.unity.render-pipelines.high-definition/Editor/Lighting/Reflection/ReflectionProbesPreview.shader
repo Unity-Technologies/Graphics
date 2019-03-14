@@ -21,6 +21,9 @@ Shader "Debug/ReflectionProbePreview"
             Tags{ "LightMode" = "Forward" }
 
             HLSLPROGRAM
+
+            #pragma editor_sync_compilation
+
             #pragma vertex vert
             #pragma fragment frag
 

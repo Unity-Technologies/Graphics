@@ -13,11 +13,6 @@ namespace UnityEditor.ShaderGraph
             name = "Blend";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Blend-Node"; }
-        }
-
         string GetCurrentBlendName()
         {
             return System.Enum.GetName(typeof(BlendMode), m_BlendMode);
@@ -55,7 +50,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out =  1.0 - (1.0 - Blend)/Base;
+    Out =  1.0 - (1.0 - Blend)/(Base + 0.000000000001);
     Out = lerp(Base, Out, Opacity);
 }";
         }
@@ -97,7 +92,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = Base / (1.0 - Blend);
+    Out = Base / (1.0 - clamp(Blend, 0.000001, 0.999999));
     Out = lerp(Base, Out, Opacity);
 }";
         }
@@ -335,6 +330,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
+    Base = clamp(Base, 0.000001, 0.999999);
     {precision}{slot2dimension} result1 = 1.0 - (1.0 - Blend) / (2.0 * Base);
     {precision}{slot2dimension} result2 = Blend / (2.0 * (1.0 - Base));
     {precision}{slot2dimension} zeroOrOne = step(0.5, Base);
@@ -358,7 +354,7 @@ namespace UnityEditor.ShaderGraph
 }
 ";
         }
-        
+
         static string Unity_Blend_Overwrite(
             [Slot(0, Binding.None)] DynamicDimensionVector Base,
             [Slot(1, Binding.None)] DynamicDimensionVector Blend,

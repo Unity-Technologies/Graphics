@@ -22,11 +22,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Channel-Mask-Node"; }
-        }
-
         const int InputSlotId = 0;
         const int OutputSlotId = 1;
         const string kInputSlotName = "In";
@@ -48,7 +43,7 @@ namespace UnityEditor.ShaderGraph
                 bool alpha = (channelMask & 8) != 0;
                 channelSum = string.Format("{0}{1}{2}{3}", red ? "Red" : "", green ? "Green" : "", blue ? "Blue" : "", alpha ? "Alpha" : "");
             }
-            return string.Format("Unity_ChannelMask_{0}_{1}", channelSum, precision);
+            return string.Format("Unity_ChannelMask_{0}_{1}", channelSum, NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType));
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

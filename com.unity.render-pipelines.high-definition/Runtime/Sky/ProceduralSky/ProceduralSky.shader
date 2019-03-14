@@ -8,7 +8,6 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
     HLSLINCLUDE
 
     #pragma vertex Vert
-    #pragma fragment Frag
 
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
@@ -36,16 +35,20 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
     struct Attributes
     {
         uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     Varyings Vert(Attributes input)
     {
         Varyings output;
+        UNITY_SETUP_INSTANCE_ID(input);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID, UNITY_RAW_FAR_CLIP_VALUE);
         return output;
     }
@@ -119,7 +122,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
         return getMiePhase(-focusedEyeCos, focusedEyeCos * focusedEyeCos);
     }
 
-    float4 Frag(Varyings input) : SV_Target
+    float4 RenderSky(Varyings input)
     {
         float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy, (float3x3)_PixelCoordToViewDirWS);
 
@@ -269,7 +272,20 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
         }
     #endif
 
-        return float4(col * exp2(_SkyParam.x), 1.0);
+        return float4(col * _SkyParam.x, 1.0);
+    }
+
+    float4 FragBaking(Varyings input) : SV_Target
+    {
+        return RenderSky(input);
+    }
+
+    float4 FragRender(Varyings input) : SV_Target
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        float4 color = RenderSky(input);
+        color.rgb *= GetCurrentExposureMultiplier();
+        return color;
     }
 
     ENDHLSL
@@ -285,8 +301,8 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
             Cull Off
 
             HLSLPROGRAM
+                #pragma fragment FragBaking
             ENDHLSL
-
         }
 
         // For fullscreen Sky
@@ -298,6 +314,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
             Cull Off
 
             HLSLPROGRAM
+                #pragma fragment FragRender
             ENDHLSL
         }
 

@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return types;
         }
 
-        static readonly GUIContent s_OverrideTooltip = CoreEditorUtils.GetContent("|Override this setting in component.");
+        static readonly GUIContent s_OverrideTooltip = EditorGUIUtility.TrTextContent("", "Override this setting in component.");
         public static bool FlagToggle<TEnum>(TEnum v, SerializedProperty property)
             where TEnum : struct, IConvertible // restrict to ~enum
         {
@@ -161,6 +161,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 bounds.Encapsulate(b);
                 return bounds;
             };
+        }
+
+        /// <summary>
+        /// Give a human readable string representing the inputed weight given in byte.
+        /// </summary>
+        public static string HumanizeWeight(long weightInByte)
+        {
+            if (weightInByte < 500)
+            {
+                return weightInByte + " B";
+            }
+            else if (weightInByte < 500000L)
+            {
+                float res = weightInByte / 1000f;
+                return res.ToString("n2") + " KB";
+            }
+            else if (weightInByte < 500000000L)
+            {
+                float res = weightInByte / 1000000f;
+                return res.ToString("n2") + " MB";
+            }
+            else
+            {
+                float res = weightInByte / 1000000000f;
+                return res.ToString("n2") + " GB";
+            }
+        }
+    }
+
+    public static partial class SerializedPropertyExtention
+    {
+        /// <summary>
+        /// Helper to get an enum value from a SerializedProperty
+        /// </summary>
+        public static T GetEnumValue<T>(this SerializedProperty property)
+        {
+            return (T)System.Enum.GetValues(typeof(T)).GetValue(property.enumValueIndex);
+        }
+
+        /// <summary>
+        /// Helper to get an enum name from a SerializedProperty
+        /// </summary>
+        public static T GetEnumName<T>(this SerializedProperty property)
+        {
+            return (T)System.Enum.GetNames(typeof(T)).GetValue(property.enumValueIndex);
         }
     }
 }

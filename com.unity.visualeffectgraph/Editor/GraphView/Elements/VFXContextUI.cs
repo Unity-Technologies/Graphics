@@ -78,6 +78,8 @@ namespace UnityEditor.VFX.UI
                 mainContainer.RemoveFromClassList("empty");
             }
 
+            m_Divider.visible = hasSettings;
+
             m_HeaderIcon.image = GetIconForVFXType(controller.model.inputType);
             m_HeaderIcon.visible = m_HeaderIcon.image != null;
 
@@ -204,6 +206,8 @@ namespace UnityEditor.VFX.UI
             RefreshContext();
         }
 
+        VisualElement m_Divider;
+
         public VFXContextUI() : base("uxml/VFXContext")
         {
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
@@ -215,6 +219,9 @@ namespace UnityEditor.VFX.UI
             AddToClassList("selectable");
 
             this.mainContainer.style.overflow = Overflow.Visible;
+
+
+            m_Divider = this.mainContainer.Q("divider");
 
             m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
@@ -244,7 +251,6 @@ namespace UnityEditor.VFX.UI
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
             m_TextField.RegisterCallback<BlurEvent>(OnTitleBlur);
             m_Label.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
-
         }
 
         bool m_CanHaveBlocks = false;
@@ -445,27 +451,27 @@ namespace UnityEditor.VFX.UI
             controller.RemoveBlock(block.controller.model);
         }
 
-        private void InstantiateBlock(VFXBlockController blockController)
+        private VFXBlockUI InstantiateBlock(VFXBlockController blockController)
         {
             Profiler.BeginSample("VFXContextUI.InstantiateBlock");
             Profiler.BeginSample("VFXContextUI.new VFXBlockUI");
             var blockUI = new VFXBlockUI();
             Profiler.EndSample();
             blockUI.controller = blockController;
-
-            m_BlockContainer.Add(blockUI);
+            blocks[blockController] = blockUI;
             Profiler.EndSample();
+
+            return blockUI;
         }
+
+        Dictionary<VFXBlockController, VFXBlockUI> blocks = new Dictionary<VFXBlockController, VFXBlockUI>();
+
 
         public void RefreshContext()
         {
             Profiler.BeginSample("VFXContextUI.RefreshContext");
             var blockControllers = controller.blockControllers;
             int blockControllerCount = blockControllers.Count();
-
-            // recreate the children list based on the controller list to keep the order.
-
-            var blocksUIs = new Dictionary<VFXBlockController, VFXBlockUI>();
 
             bool somethingChanged = m_BlockContainer.childCount < blockControllerCount || (!m_CanHaveBlocks && m_NoBlock.parent != null);
 
@@ -475,8 +481,6 @@ namespace UnityEditor.VFX.UI
                 var child = m_BlockContainer.ElementAt(i) as VFXBlockUI;
                 if (child != null)
                 {
-                    blocksUIs.Add(child.controller, child);
-
                     if (!somethingChanged && blockControllerCount > cptBlock && child.controller != blockControllers[cptBlock])
                     {
                         somethingChanged = true;
@@ -486,10 +490,11 @@ namespace UnityEditor.VFX.UI
             }
             if (somethingChanged || cptBlock != blockControllerCount)
             {
-                foreach (var kv in blocksUIs)
+                foreach (var controller in blocks.Keys.Except(blockControllers).ToArray())
                 {
-                    kv.Value.RemoveFromClassList("first");
-                    m_BlockContainer.Remove(kv.Value);
+                    GetFirstAncestorOfType<VFXView>().RemoveNodeEdges(blocks[controller]);
+                    m_BlockContainer.Remove(blocks[controller]);
+                    blocks.Remove(controller);
                 }
                 if (blockControllers.Count() > 0 || !m_CanHaveBlocks)
                 {
@@ -501,17 +506,24 @@ namespace UnityEditor.VFX.UI
                 }
                 if (blockControllers.Count > 0)
                 {
+                    VFXBlockUI prevBlock = null;
                     foreach (var blockController in blockControllers)
                     {
                         VFXBlockUI blockUI;
-                        if (blocksUIs.TryGetValue(blockController, out blockUI))
+                        if (blocks.TryGetValue(blockController, out blockUI))
                         {
-                            m_BlockContainer.Add(blockUI);
+                            if (prevBlock != null)
+                                blockUI.PlaceInFront(prevBlock);
+                            else
+                                blockUI.SendToBack();
                         }
                         else
                         {
-                            InstantiateBlock(blockController);
+                            blockUI = InstantiateBlock(blockController);
+                            m_BlockContainer.Add(blockUI);
+                            m_BlockContainer.Insert(prevBlock == null ? 0: m_BlockContainer.IndexOf(prevBlock) +1, blockUI);
                         }
+                        prevBlock = blockUI;
                     }
                     VFXBlockUI firstBlock = m_BlockContainer.Query<VFXBlockUI>();
                     firstBlock.AddToClassList("first");

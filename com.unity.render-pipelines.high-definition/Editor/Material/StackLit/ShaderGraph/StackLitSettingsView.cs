@@ -117,7 +117,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 --indentLevel;
             }
 
-            ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Alpha Clipping", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -304,7 +304,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Specular AA (for geometry)", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Geometric Specular AA", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -372,6 +372,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 {
                     toggle.value = m_Node.debug.isOn;
                     toggle.OnToggleChanged(ChangeDebug);
+                });
+            });
+            
+            ps.Add(new PropertyRow(CreateLabel("Override Baked GI", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.overrideBakedGI.isOn;
+                    toggle.OnToggleChanged(ChangeoverrideBakedGI);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Depth Offset", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.depthOffset.isOn;
+                    toggle.OnToggleChanged(ChangeDepthOffset);
                 });
             });
 
@@ -471,7 +489,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
         void ChangeSortPriority(ChangeEvent<int> evt)
         {
-            m_Node.sortPriority = Math.Max(-HDRenderQueue.k_TransparentPriorityQueueRange, Math.Min(evt.newValue, HDRenderQueue.k_TransparentPriorityQueueRange));
+            m_Node.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(evt.newValue);
             // Force the text to match.
             m_SortPiorityField.value = m_Node.sortPriority;
             if (Equals(m_Node.sortPriority, evt.newValue))
@@ -600,6 +618,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.anisotropyForAreaLights = td;
         }
 
+        void ChangeoverrideBakedGI(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("overrideBakedGI Change");
+            ToggleData td = m_Node.overrideBakedGI;
+            td.isOn = evt.newValue;
+            m_Node.overrideBakedGI = td;
+        }
+
         void ChangeRecomputeStackPerLight(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("RecomputeStackPerLight Change");
@@ -622,6 +648,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.debug;
             td.isOn = evt.newValue;
             m_Node.debug = td;
+        }
+
+        void ChangeDepthOffset(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DepthOffset Change");
+            ToggleData td = m_Node.depthOffset;
+            td.isOn = evt.newValue;
+            m_Node.depthOffset = td;
         }
 
         public AlphaMode GetAlphaMode(StackLitMasterNode.AlphaModeLit alphaModeLit)

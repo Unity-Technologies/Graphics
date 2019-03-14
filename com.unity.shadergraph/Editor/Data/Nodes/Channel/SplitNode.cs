@@ -26,10 +26,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Split-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -53,9 +49,6 @@ namespace UnityEditor.ShaderGraph
             {
                 numInputChannels = SlotValueHelper.GetChannelCount(inputSlot.concreteValueType);
                 if (numInputChannels > 4)
-                    numInputChannels = 0;
-
-                if (!owner.GetEdges(inputSlot.slotReference).Any())
                     numInputChannels = 0;
             }
 

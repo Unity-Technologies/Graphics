@@ -1,0 +1,203 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "UberPostFeatures.cs.hlsl"
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel KMain_Variant0 MAIN=KMain_Variant0 VARIANT=0
+#pragma kernel KMain_Variant1 MAIN=KMain_Variant1 VARIANT=1
+#pragma kernel KMain_Variant2 MAIN=KMain_Variant2 VARIANT=2
+#pragma kernel KMain_Variant3 MAIN=KMain_Variant3 VARIANT=3
+#pragma kernel KMain_Variant4 MAIN=KMain_Variant4 VARIANT=4
+#pragma kernel KMain_Variant5 MAIN=KMain_Variant5 VARIANT=5
+#pragma kernel KMain_Variant6 MAIN=KMain_Variant6 VARIANT=6
+#pragma kernel KMain_Variant7 MAIN=KMain_Variant7 VARIANT=7
+
+TEXTURE2D_X(_InputTexture);
+TEXTURE2D_X(_BloomTexture);
+TEXTURE2D(_BloomDirtTexture);
+TEXTURE2D(_ChromaSpectralLut);
+TEXTURE3D(_LogLut3D);
+TEXTURE2D(_VignetteMask);
+
+RW_TEXTURE2D_X(float3, _OutputTexture);
+
+SAMPLER(sampler_LinearClamp);
+SAMPLER(sampler_ChromaSpectralLut);
+SAMPLER(sampler_LogLut3D);
+SAMPLER(sampler_VignetteMask);
+
+CBUFFER_START(cb0)
+    float4 _ChromaParams;
+    float4 _VignetteParams1;
+    float4 _VignetteParams2;
+    float4 _VignetteColor;
+    float4 _DistortionParams1;
+    float4 _DistortionParams2;
+    float4 _LogLut3D_Params;        // x: 1 / lut_size, y: lut_size - 1, z: postexposure, w: unused
+    float4 _BloomParams;
+    float4 _BloomTint;
+    float4 _BloomDirtScaleOffset;
+    float4 _BloomBicubicParams;
+CBUFFER_END
+
+#define DistCenter              _DistortionParams1.xy
+#define DistAxis                _DistortionParams1.zw
+#define DistTheta               _DistortionParams2.x
+#define DistSigma               _DistortionParams2.y
+#define DistScale               _DistortionParams2.z
+#define DistIntensity           _DistortionParams2.w
+
+#define ChromaAmount            _ChromaParams.x
+#define ChromaMaxSamples        int(_ChromaParams.y)
+
+#define VignetteCenter          _VignetteParams1.xy
+#define VignetteMode            uint(_VignetteParams1.z)
+#define VignetteIntensity       _VignetteParams2.x
+#define VignetteSmoothness      _VignetteParams2.y
+#define VignetteRoundness       _VignetteParams2.z
+#define VignetteRounded         _VignetteParams2.w
+#define VignetteColor           _VignetteColor.xyz
+#define VignetteOpacity         _VignetteColor.w
+
+#define PostExposure            _LogLut3D_Params.z
+
+#define BloomTint               _BloomTint.xyz
+#define BloomIntensity          _BloomParams.x
+#define DirtIntensity           _BloomParams.y
+#define BloomEnabled            _BloomParams.z
+#define DirtEnabled             _BloomParams.w
+#define DirtScale               _BloomDirtScaleOffset.xy
+#define DirtOffset              _BloomDirtScaleOffset.zw
+
+float2 DistortUV(float2 uv)
+{
+    // Lens distortion
+    // Note: this variant should never be set with XR
+    if (VARIANT & UBERPOSTFEATUREFLAGS_LENS_DISTORTION)
+    {
+        uv = (uv - 0.5) * DistScale + 0.5;
+        float2 ruv = DistAxis * (uv - 0.5 - DistCenter);
+        float ru = length(float2(ruv));
+
+        UNITY_BRANCH
+        if (DistIntensity > 0.0)
+        {
+            float wu = ru * DistTheta;
+            ru = tan(wu) * (rcp(ru * DistSigma));
+            uv = uv + ruv * (ru - 1.0);
+        }
+        else
+        {
+            ru = rcp(ru) * DistTheta * atan(ru * DistSigma);
+            uv = uv + ruv * (ru - 1.0);
+        }
+    }
+
+    return uv;
+}
+
+#define GROUP_SIZE 8
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    float2 uv = posInputs.positionNDC;
+    float2 uvDistorted = DistortUV(uv);
+    float3 color = 0.0;
+
+    // Chromatic aberration    
+    // Inspired by the method described in "Rendering Inside" [Playdead 2016]
+    // https://twitter.com/pixelmager/status/717019757766123520
+    if (VARIANT & UBERPOSTFEATUREFLAGS_CHROMATIC_ABERRATION)
+    {
+        float2 coords = 2.0 * uv - 1.0;
+        float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
+        float2 diff = end - uv;
+        int samples = clamp(int(length(_ScreenSize.xy * diff / 2.0)), 3, ChromaMaxSamples);
+        float2 delta = diff / samples;
+        float2 pos = uv;
+        float3 sum = 0.0, filterSum = 0.0;
+
+        for (int i = 0; i < samples; i++)
+        {
+            float t = (i + 0.5) / samples;
+            float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(DistortUV(pos)), 0.0).xyz;
+            float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(t, 0.0), 0).xyz;
+
+            sum += s * filter;
+            filterSum += filter;
+            pos += delta;
+        }
+
+        color = sum / filterSum;
+    }
+    else
+    {
+        color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
+    }
+
+    // Bloom
+    UNITY_BRANCH
+    if (BloomEnabled)
+    {
+        #if 0 // Bilinear
+        float3 bloom = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(uvDistorted), 0.0).xyz;
+        #else
+        float3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), uvDistorted * _ScreenToTargetScale.xy, _BloomBicubicParams, _ScreenToTargetScale.xy, unity_StereoEyeIndex).xyz;
+        #endif
+
+        color = lerp(color, bloom * BloomTint, BloomIntensity);
+
+        UNITY_BRANCH
+        if (DirtEnabled)
+        {
+            // UVs for the dirt texture should be DistortUV(uv * DirtScale + DirtOffset) but
+            // considering we use a cover-style scale on the dirt texture the difference isn't massive
+            // so we chose to save a few ALUs here instead in case lens distortion is active
+            float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, uvDistorted * DirtScale + DirtOffset, 0.0).xyz;
+            color += bloom * dirt * DirtIntensity;
+        }
+    }
+
+    // Vignette
+    if (VARIANT & UBERPOSTFEATUREFLAGS_VIGNETTE)
+    {
+        UNITY_BRANCH
+        if (VignetteMode == 0u) // Procedural
+        {
+            float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
+            d.x *= lerp(1.0, _ScreenSize.x / _ScreenSize.y, VignetteRounded);
+            d = pow(saturate(d), VignetteRoundness);
+            float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
+            color *= lerp(VignetteColor, (1.0).xxx, vfactor);
+        }
+        else // Masked
+        {
+            float vfactor = SAMPLE_TEXTURE2D_LOD(_VignetteMask, sampler_VignetteMask, uvDistorted, 0).w;
+            vfactor = FastSRGBToLinear(vfactor);
+            float3 newColor = color * lerp(VignetteColor, (1.0).xxx, vfactor);
+            color = lerp(color, newColor, VignetteOpacity);
+        }
+    }
+
+    // Grading, tonemapping
+    // This is always on when post-processing is enabled
+    {
+        // Artist request to fine tune exposure in post without affecting bloom, dof etc
+        color *= PostExposure;
+
+        // Move from linear to LogC
+        float3 colorLutSpace = saturate(LinearToLogC(color));
+
+        // Color lookup in the LogC lut
+        color = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
+    }
+
+    // Done
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = color;
+}

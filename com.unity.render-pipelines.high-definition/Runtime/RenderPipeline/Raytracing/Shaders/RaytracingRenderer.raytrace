@@ -1,0 +1,90 @@
+// We need N bounces given that we want to support complex light paths
+#pragma max_recursion_depth 10
+
+// WARNING: This define must be kept in sync with the c# code
+#define RAYTRACING_MAX_RECURSION 10
+
+// HDRP include
+#define SHADER_TARGET 50
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+// Raytracing includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+
+// The target acceleration structure that we will evaluate the reflexion in
+Texture2D<float>			          	_StencilTexture;
+Texture2D<float>						_DepthTexture;
+
+// Output structure of the reflection raytrace shader
+Texture2D<float> 						_RaytracingFlagMask;
+RWTexture2D<float4> 					_CameraColorTextureRW;
+
+[shader("miss")]
+void MissShaderRenderer(inout RayIntersection rayIntersection : SV_RayPayload)
+{
+	rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0);
+}
+
+[shader("raygeneration")]
+void RayGenRenderer()
+{
+	uint2 LaunchIndex = DispatchRaysIndex();
+    uint2 LaunchDim = DispatchRaysDimensions();
+
+	// Pixel coordinate of the current pixel
+    uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
+
+    // If we do not need to override the pixel, stop right away
+    if (_RaytracingFlagMask[currentPixelCoord] < 0.5f)
+    	return;
+
+	// Read the depth value
+	float depthValue  = _DepthTexture[currentPixelCoord];
+
+	// Convert this to a world space position
+    PositionInputs posInput = GetPositionInput_Stereo(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0, 0);
+	posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+	// Compute the incident vector on the surfaces
+	float3 incidentWS = normalize(posInput.positionWS - _WorldSpaceCameraPos);
+	
+	// Create the ray descriptor for this pixel
+	RayDesc rayDescriptor;
+	rayDescriptor.Origin = _WorldSpaceCameraPos;
+	rayDescriptor.Direction = incidentWS;
+	rayDescriptor.TMin = 0;
+	rayDescriptor.TMax = _RaytracingRayMaxLength;
+
+	// Create and init the RayIntersection structure for this
+	RayIntersection rayIntersection;
+	rayIntersection.color = float3(0.0, 0.0, 0.0);
+	rayIntersection.incidentDirection = rayDescriptor.Direction;
+	rayIntersection.origin = rayDescriptor.Origin;
+	rayIntersection.t = 0.0f;
+	rayIntersection.remainingDepth = min(RAYTRACING_MAX_RECURSION, _RaytracingMaxRecursion);
+
+	// In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
+	rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+	rayIntersection.cone.width = 0.0f;
+	
+	// Evaluate the ray intersection
+	TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+
+	// Alright we are done :D
+    _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color * GetCurrentExposureMultiplier(), 1.0f);
+}
+
+[shader("closesthit")]
+void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+{   
+	// When we do not hit any known closest hit, that means that no shader was specified for the target object meaning either it has nothing to do in the acceleration structure or we need to add raytracing subshaders to it
+	rayIntersection.color = float3(1.0, 0.0, 0.5);
+}

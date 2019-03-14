@@ -157,18 +157,20 @@ namespace UnityEditor.VFX
 
         protected override void AssetField()
         {
-            var component = (VisualEffect)target;
             using (new GUILayout.HorizontalScope())
             {
                 EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
 
-                GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                GUI.enabled = ! m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
                 if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
                 {
                     VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-                    window.LoadAsset(component.visualEffectAsset, component);
+                    var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
+
+                    window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
                 }
+                GUI.enabled = true;
             }
         }
 
@@ -176,7 +178,7 @@ namespace UnityEditor.VFX
         {
             EditMode.DoEditModeInspectorModeButton(
                 EditMode.SceneViewEditMode.Collider,
-                "Show Parameters",
+                "Show Parameter Gizmos",
                 EditorGUIUtility.IconContent("EditCollider"),
                 this
             );
@@ -234,16 +236,23 @@ namespace UnityEditor.VFX
 
             GUILayout.BeginHorizontal();
 
+
+            GUILayout.Space(overrideWidth);
+            // Make the label half the width to make the tooltip
+            EditorGUILayout.LabelField(GetGUIContent(name, tooltip), EditorStyles.boldLabel, GUILayout.Width(EditorGUIUtility.labelWidth));
+
+            GUILayout.FlexibleSpace();
+
+            // Toggle Button
             EditorGUI.BeginChangeCheck();
-            bool result = GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GetCurrentSkin().button, GUILayout.Width(overrideWidth));
+            bool result = GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent("Edit Gizmo"), EditorStyles.miniButton);
+
             if (EditorGUI.EndChangeCheck() && result)
             {
                 m_GizmoedParameter = parameter;
             }
 
-            // Make the label half the width to make the tooltip
-            EditorGUILayout.LabelField(GetGUIContent(name, tooltip));
-            GUILayout.FlexibleSpace();
+            //GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
 
@@ -268,6 +277,13 @@ namespace UnityEditor.VFX
             public VFXGizmo gizmo;
         }
 
+        protected override void PropertyOverrideChanged()
+        {
+            foreach(var context in m_ContextsPerComponent.Values.Select(t=>t.context))
+            {
+                context.Unprepare();
+            }
+        }
 
         Dictionary<VisualEffect, ContextAndGizmo> m_ContextsPerComponent = new Dictionary<VisualEffect, ContextAndGizmo>();
 
@@ -339,16 +355,11 @@ namespace UnityEditor.VFX
                 get
                 {
                     m_SerializedObject.Update();
-                    if (m_Stack.Count == 0)
-                        m_Stack.Add(System.Activator.CreateInstance(portType));
-                    else
-                        m_Stack.RemoveRange(1, m_Stack.Count - 1);
-                    int stackSize = m_Stack.Count;
+                    m_Stack.Clear();
 
                     foreach (var cmd in m_ValueCmdList)
                     {
                         cmd(m_Stack);
-                        stackSize = m_Stack.Count;
                     }
 
 
@@ -369,6 +380,27 @@ namespace UnityEditor.VFX
                 }
 
                 return VFXGizmoUtility.NullProperty<T>.defaultProperty;
+            }
+
+
+            void AddNewValue(List<object> l, object o, SerializedProperty vfxField,string propertyPath,string[] memberPath,int depth)
+            {
+                vfxField.InsertArrayElementAtIndex(vfxField.arraySize);
+                var newEntry = vfxField.GetArrayElementAtIndex(vfxField.arraySize - 1);
+                newEntry.FindPropertyRelative("m_Overridden").boolValue = true;
+
+                var valueProperty = newEntry.FindPropertyRelative("m_Value");
+
+                VFXSlot slot = m_Parameter.outputSlots[0];
+                for(int i = 0; i < memberPath.Length&& i< depth; ++i)
+                {
+                    slot = slot.children.First(t => t.name == memberPath[i]);
+                }
+
+                l.Add(slot.value); // find the default value which is in the parameter.
+                newEntry.FindPropertyRelative("m_Name").stringValue = propertyPath;
+
+                Unprepare(); // if we set the value we'll have to regenerate the cmdList for next time.
             }
 
             bool BuildPropertyValue<T>(List<Action<List<object>, object>> cmdList, Type type, string propertyPath, string[] memberPath, int depth, FieldInfo specialSpacableVector3CaseField = null)
@@ -401,9 +433,24 @@ namespace UnityEditor.VFX
                         property = property.FindPropertyRelative("m_Value");
                         cmdList.Add((l, o) => overrideProperty.boolValue = true);
                     }
-                    else
+                    else if( vfxField != null)
                     {
-                        return false;
+                        cmdList.Add((l, o) =>
+                        {
+                            AddNewValue(l,o,vfxField,propertyPath, memberPath,depth);
+                        });
+
+                        if (depth < memberPath.Length)
+                        {
+                            if (!BuildPropertySubValue<T>(cmdList, type, memberPath, depth))
+                                return false;
+                        }
+                        cmdList.Add((l, o) =>
+                        {
+                            SetObjectValue(vfxField.GetArrayElementAtIndex(vfxField.arraySize - 1).FindPropertyRelative("m_Value"), l[l.Count - 1]);
+                        });
+
+                        return true;
                     }
 
                     if (depth < memberPath.Length)
@@ -501,6 +548,8 @@ namespace UnityEditor.VFX
                 m_ValueCmdList.Clear();
                 m_Stack.Clear();
 
+                m_ValueCmdList.Add(o => o.Add(m_Parameter.value));
+
                 BuildValue(m_ValueCmdList, portType, m_Parameter.exposedName);
             }
 
@@ -526,13 +575,9 @@ namespace UnityEditor.VFX
                     }
                     if (property != null)
                     {
+                        var overrideProperty = property.FindPropertyRelative("m_Overridden");
                         property = property.FindPropertyRelative("m_Value");
-
-
-                        //Debug.Log("PushProperty" + propertyPath + "("+property.propertyType.ToString()+")");
-                        cmdList.Add(
-                            o => PushProperty(o, property)
-                        );
+                        cmdList.Add(o => { if (overrideProperty.boolValue) PushProperty(o, property); });
                     }
                 }
                 else
@@ -541,13 +586,11 @@ namespace UnityEditor.VFX
                     {
                         if (fieldInfo.FieldType == typeof(VFXCoordinateSpace))
                             continue;
-                        //Debug.Log("Push "+type.UserFriendlyName()+"."+fieldInfo.Name+"("+fieldInfo.FieldType.UserFriendlyName());
                         cmdList.Add(o =>
                         {
                             Push(o, fieldInfo);
                         });
                         BuildValue(cmdList, fieldInfo.FieldType, propertyPath + "_" + fieldInfo.Name);
-                        //Debug.Log("Pop "+type.UserFriendlyName()+"."+fieldInfo.Name+"("+fieldInfo.FieldType.UserFriendlyName());
                         cmdList.Add(o =>
                             Pop(o, fieldInfo)
                         );

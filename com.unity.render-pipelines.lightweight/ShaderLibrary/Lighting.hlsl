@@ -47,15 +47,11 @@ struct Light
 
 int GetPerObjectLightIndex(int index)
 {
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    return _AdditionalLightsBuffer[unity_LightData.x + index];
-#else
     // The following code is more optimal than indexing unity_4LightIndices0.
     // Conditional moves are branch free even on mali-400
     half2 lightIndex2 = (index < 2.0h) ? unity_LightIndices[0].xy : unity_LightIndices[0].zw;
     half i_rem = (index < 2.0h) ? index : index - 2.0h;
     return (i_rem < 1.0h) ? lightIndex2.x : lightIndex2.y;
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -64,13 +60,13 @@ int GetPerObjectLightIndex(int index)
 
 // Matches Unity Vanila attenuation
 // Attenuation smoothly decreases to light range.
-half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
+float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
 {
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
-    half lightAtten = 1.0h / distanceSqr;
+    float lightAtten = rcp(distanceSqr);
 
-#if defined(SHADER_HINT_NICE_QUALITY)
+#if SHADER_HINT_NICE_QUALITY
     // Use the smoothing factor also used in the Unity lightmapper.
     half factor = distanceSqr * distanceAttenuation.x;
     half smoothFactor = saturate(1.0h - factor * factor);
@@ -113,6 +109,9 @@ Light GetMainLight()
     Light light;
     light.direction = _MainLightPosition.xyz;
     light.distanceAttenuation = unity_LightData.z;
+    #if defined(LIGHTMAP_ON)
+        light.distanceAttenuation *= unity_ProbesOcclusion.x;
+    #endif
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
@@ -143,14 +142,30 @@ Light GetAdditionalLight(int i, float3 positionWS)
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
-    half attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy);
-    attenuation *= AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
+    half attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
 
     Light light;
     light.direction = lightDirection;
     light.distanceAttenuation = attenuation;
     light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
     light.color = _AdditionalLightsColor[perObjectLightIndex].rgb;
+
+    // In case we're using light probes, we can sample the attenuation from the `unity_ProbesOcclusion`
+#if defined(LIGHTMAP_ON)
+    // First find the probe channel from the light.
+    // Then sample `unity_ProbesOcclusion` for the baked occlusion.
+    // If the light is not baked, the channel is -1, and we need to apply no occlusion.
+    half4 lightOcclusionProbeInfo = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
+
+    // probeChannel is the index in 'unity_ProbesOcclusion' that holds the proper occlusion value.
+    int probeChannel = lightOcclusionProbeInfo.x;
+
+    // lightProbeContribution is set to 0 if we are indeed using a probe, otherwise set to 1.
+    half lightProbeContribution = lightOcclusionProbeInfo.y;
+
+    half probeOcclusionValue = unity_ProbesOcclusion[probeChannel];
+    light.distanceAttenuation *= max(probeOcclusionValue, lightProbeContribution);
+#endif
 
     return light;
 }
@@ -356,11 +371,11 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     half4 transformCoords = half4(1, 1, 0, 0);
         
 #ifdef DIRLIGHTMAP_COMBINED
-    return SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
-        TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
+    return SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
+        TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
         lightmapUV, transformCoords, normalWS, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON)
-    return SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
+    return SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
 #else
     return half3(0.0, 0.0, 0.0);
 #endif
@@ -377,7 +392,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
 {
-#if !defined(_GLOSSYREFLECTIONS_OFF)
+#if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 
@@ -448,12 +463,12 @@ half3 LightingLambert(half3 lightColor, half3 lightDir, half3 normal)
     return lightColor * NdotL;
 }
 
-half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specularGloss, half shininess)
+half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specular, half smoothness)
 {
     half3 halfVec = SafeNormalize(lightDir + viewDir);
     half NdotH = saturate(dot(normal, halfVec));
-    half modifier = pow(NdotH, shininess) * specularGloss.a;
-    half3 specularReflection = specularGloss.rgb * modifier;
+    half modifier = pow(NdotH, smoothness);
+    half3 specularReflection = specular.rgb * modifier;
     return lightColor * specularReflection;
 }
 
@@ -519,14 +534,14 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
     return half4(color, alpha);
 }
 
-half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half shininess, half3 emission, half alpha)
+half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
-    half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
+    half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
 
 #ifdef _ADDITIONAL_LIGHTS
     int pixelLightCount = GetAdditionalLightsCount();
@@ -535,7 +550,7 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
         Light light = GetAdditionalLight(i, inputData.positionWS);
         half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
-        specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, shininess);
+        specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
     }
 #endif
 

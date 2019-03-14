@@ -16,6 +16,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.OnEnable();
 
+            m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode
+                | (uint)SkySettingsUIElement.Exposure
+                | (uint)SkySettingsUIElement.Multiplier;
+
             var o = new PropertyFetcher<GradientSky>(serializedObject);
 
             m_Bottom = Unpack(o.Find(x => x.bottom));
@@ -30,10 +34,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_Middle);
             PropertyField(m_Bottom);
             PropertyField(m_GradientMultiplier);
-
-            EditorGUILayout.Space();
-
-            m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode;
 
             base.CommonSkySettingsGUI();
         }

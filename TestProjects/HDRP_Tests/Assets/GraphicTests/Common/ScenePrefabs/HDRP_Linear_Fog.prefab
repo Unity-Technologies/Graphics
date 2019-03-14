@@ -1,22 +1,12 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &100100000
-Prefab:
-  m_ObjectHideFlags: 1
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications: []
-    m_RemovedComponents: []
-  m_ParentPrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1236722492438354}
-  m_IsPrefabParent: 1
 --- !u!1 &1236722492438354
 GameObject:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 5
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
   m_Component:
   - component: {fileID: 4496973766071904}
   - component: {fileID: 114792932516774662}
@@ -30,9 +20,10 @@ GameObject:
   m_IsActive: 1
 --- !u!4 &4496973766071904
 Transform:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1236722492438354}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -43,12 +34,14 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114792932516774662
 MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1236722492438354}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -59,14 +52,44 @@ MonoBehaviour:
   sharedProfile: {fileID: 11400000, guid: f29f339b4b4684d459ee715bcffe226e, type: 2}
 --- !u!114 &114886291329372540
 MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1236722492438354}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: f29f339b4b4684d459ee715bcffe226e, type: 2}
-  m_BakingSkyUniqueID: 1
+  m_StaticLightingSkyUniqueID: 1
+  m_AmbientProbe:
+    sh[ 0]: 0.36619583
+    sh[ 1]: 0.24391612
+    sh[ 2]: 0.037738614
+    sh[ 3]: -0.026826128
+    sh[ 4]: -0.018389188
+    sh[ 5]: -0.012338176
+    sh[ 6]: 0.008457642
+    sh[ 7]: -0.025612198
+    sh[ 8]: 0.019362798
+    sh[ 9]: 0.38478458
+    sh[10]: 0.27344176
+    sh[11]: 0.044167534
+    sh[12]: -0.020586394
+    sh[13]: -0.01673734
+    sh[14]: -0.011714626
+    sh[15]: 0.009876955
+    sh[16]: -0.02227405
+    sh[17]: 0.018512892
+    sh[18]: 0.42536855
+    sh[19]: 0.34723294
+    sh[20]: 0.04797615
+    sh[21]: -0.015339125
+    sh[22]: -0.013920437
+    sh[23]: -0.0057440735
+    sh[24]: 0.009158893
+    sh[25]: -0.017950522
+    sh[26]: 0.011070346

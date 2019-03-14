@@ -27,6 +27,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!HDUtils.IsQuaternionValid(probeSettings.proxyCaptureRotationProxySpace.quaternionValue))
                 probeSettings.proxyCaptureRotationProxySpace.quaternionValue = Quaternion.LookRotation(Vector3.forward);
 
+#if !ENABLE_BAKED_PLANAR
+            // Switch to realtime mode as other modes are not supported.
+            probeSettings.mode.enumValueIndex = (int)ProbeSettings.Mode.Realtime;
+#endif
+
             serializedObject.ApplyModifiedProperties();
         }
     }

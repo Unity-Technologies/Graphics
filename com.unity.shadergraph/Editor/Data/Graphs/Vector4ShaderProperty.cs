@@ -27,6 +27,11 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        public override bool isExposable
+        {
+            get { return true; }
+        }
+
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return string.Format("float4 {0}{1}", referenceName, delimiter);
@@ -41,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector4Node();
             node.FindInputSlot<Vector1MaterialSlot>(Vector4Node.InputSlotXId).value = value.x;
@@ -51,7 +56,7 @@ namespace UnityEditor.ShaderGraph
             return node;
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new Vector4ShaderProperty();
             copied.displayName = displayName;

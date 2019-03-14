@@ -13,7 +13,9 @@
 // PackingRules = Exact
     float4 _ShadowAtlasSize;
     float4 _CascadeShadowAtlasSize;
+    float4 _AreaShadowAtlasSize;
     float4x4 _Env2DCaptureVP[32];
+    float _Env2DCaptureForward[96];
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;
@@ -35,6 +37,7 @@
     uint _CascadeShadowCount;
     int _DebugSingleShadowIndex;
     int _EnvSliceSize;
-
-
+    uint _CookieSizePOT;
+    int _RaytracedAreaShadow;
+    int _RaytracedIndirectDiffuse;
 #endif

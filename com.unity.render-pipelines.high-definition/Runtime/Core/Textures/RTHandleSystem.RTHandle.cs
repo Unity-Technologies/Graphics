@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering
             internal RenderTargetIdentifier     m_NameID;
             internal bool                       m_EnableMSAA = false;
             internal bool                       m_EnableRandomWrite = false;
+            internal bool                       m_EnableHWDynamicScale = false;
             internal string                     m_Name;
 
             internal Vector2 scaleFactor        = Vector2.one;

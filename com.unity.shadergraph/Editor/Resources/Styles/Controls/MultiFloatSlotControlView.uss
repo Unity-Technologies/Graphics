@@ -8,14 +8,14 @@ MultiFloatSlotControlView {
     margin-right: 0;
     margin-bottom: 0;
     cursor: slide-arrow;
-    text-alignment: middle-left;
+    -unity-text-align: middle-left;
 }
 
 .unity-base-field {
-    width: 30;
-    margin-top: 1;
-    margin-bottom: 1;
-    text-alignment: middle-left;
+    width: 30px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    -unity-text-align: middle-left;
 }
 
 .unity-base-field__input{

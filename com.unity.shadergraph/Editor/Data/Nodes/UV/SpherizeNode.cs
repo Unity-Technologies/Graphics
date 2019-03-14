@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Spherize";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Spherize-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

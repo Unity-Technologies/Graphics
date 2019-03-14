@@ -1,0 +1,84 @@
+#pragma kernel JointBilateralFilter
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition\Runtime\ShaderLibrary\ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+// Tile size of this compute
+#define AREA_BILLATERAL_TILE_SIZE 8
+
+// Input integration textures
+RWTexture2D<float4>     _SourceTexture;
+RWTexture2D<float4>     _OutputTexture;
+
+// ScreenSpace buffers
+Texture2D<float>						_DepthTexture;
+
+// Filter parameters
+int                 _DenoiseRadius;
+float               _GaussianSigma;
+
+float3 ReadNormalValue(uint2 positionSS)
+{
+    NormalData normalData;
+    float4 normalBuffer  = _NormalBufferTexture[COORD_TEXTURE2D_X(positionSS)];
+    DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
+    return normalData.normalWS;
+}
+
+float ReadDepthValue(uint2 positionSS)
+{
+    float hitDeviceDepth = LOAD_TEXTURE2D(_DepthTexture, positionSS).r;
+    return LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
+}
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void JointBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+	// Fetch the current pixel coordinate
+	uint2 currentPixelCoordinate = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _ScreenSize.x);
+
+    // Read the central pixel values
+    float depthValue  = ReadDepthValue(currentPixelCoordinate);
+    NormalData normalData;
+    DecodeFromNormalBuffer(_NormalBufferTexture[COORD_TEXTURE2D_X(currentPixelCoordinate)], currentPixelCoordinate, normalData);
+
+    float3 denoisedColor = float3(0.0f, 0.0f, 0.0f);
+
+    // Based on the smoothness value, we need to estimate the size of the kernel
+    // int DenoiseRadius = normalData.perceptualRoughness >= 0.01 ? lerp(20, 25, normalData.perceptualRoughness) : 1;
+    int DenoiseRadius = _DenoiseRadius;
+    float GaussianSigma = _GaussianSigma;
+
+
+    float totalWeight = 0;
+    for(int i = -DenoiseRadius; i < DenoiseRadius; ++i)
+    {
+    	for(int j = -DenoiseRadius; j < DenoiseRadius; ++j)
+    	{
+            // Compute the pixel coordinate candidate position
+    		uint2 pixelpos = uint2(currentPixelCoordinate.x + i, currentPixelCoordinate.y + j);
+
+            // Sample values for the current pixel
+    		float sampleDepth = ReadDepthValue(pixelpos);
+            float3 sampleNormal = ReadNormalValue(pixelpos);
+
+            // Evaluate the validity of the pixel
+            bool sampleValid  = abs(sampleDepth - depthValue) < 0.1f && dot(normalData.normalWS, sampleNormal) > 0.99;
+
+            if(sampleValid)
+            {
+                float actualRadius = float(i * i + j * j);
+                float gaussian = exp(- actualRadius / (2.0f * GaussianSigma * GaussianSigma)) / ( 2 * PI * GaussianSigma * GaussianSigma);
+                denoisedColor += _SourceTexture[pixelpos].xyz * gaussian;
+                totalWeight+=gaussian;
+            }
+    	}
+    }
+
+    denoisedColor /= totalWeight;
+
+    // Return the right color
+    _OutputTexture[currentPixelCoordinate] = float4(denoisedColor, 1.0f);
+}

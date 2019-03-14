@@ -55,8 +55,7 @@ struct VaryingsMeshToPS
     float4 color;
 #endif
 
-UNITY_VERTEX_INPUT_INSTANCE_ID
-
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct PackedVaryingsMeshToPS

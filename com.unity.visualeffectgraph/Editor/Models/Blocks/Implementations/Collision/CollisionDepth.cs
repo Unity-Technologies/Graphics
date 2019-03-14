@@ -15,15 +15,12 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting]
+        public CameraMode camera;
+
+        [VFXSetting, SerializeField]
         SurfaceThickness surfaceThickness = SurfaceThickness.Infinite;
 
         public override string name { get { return "Collider (Depth)"; } }
-
-        public class InputProperties
-        {
-            public CameraType Camera = CameraType.defaultValue;
-            public Texture2D DepthBuffer = null;
-        }
 
         public class ThicknessProperties
         {
@@ -47,6 +44,8 @@ namespace UnityEditor.VFX.Block
             get
             {
                 var inputs = base.inputProperties;
+                if (camera == CameraMode.Custom)
+                    inputs = inputs.Concat(PropertiesFromType(typeof(CameraHelper.CameraProperties)));
                 if (surfaceThickness == SurfaceThickness.Custom)
                     inputs = inputs.Concat(PropertiesFromType("ThicknessProperties"));
                 return inputs;
@@ -57,28 +56,24 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var expressions = base.parameters;
+                var expressions = CameraHelper.AddCameraExpressions(base.parameters, camera);
 
-                var fov = expressions.First(e => e.name == "Camera_fieldOfView");
-                var aspect = expressions.First(e => e.name == "Camera_aspectRatio");
-                var near = expressions.First(e => e.name == "Camera_nearPlane");
-                var far = expressions.First(e => e.name == "Camera_farPlane");
-                var cameraMatrix = expressions.First(e => e.name == "Camera_transform");
+                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions);
 
-                expressions = expressions.Where(t => !(t.Equals(fov) || t.Equals(aspect) || t.Equals(cameraMatrix)));
+                // Filter unused expressions
+                expressions = expressions.Where(t =>
+                    t.name != "Camera_fieldOfView" &&
+                    t.name != "Camera_aspectRatio" &&
+                    t.name != "Camera_transform" &&
+                    t.name != "Camera_colorBuffer");
 
                 foreach (var e in expressions)
                     yield return e;
 
-                VFXExpression ViewToVFX = cameraMatrix.exp;
-                VFXExpression VFXToView = new VFXExpressionInverseMatrix(ViewToVFX);
-                VFXExpression ViewToClip = VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp);
-                VFXExpression ClipToView = new VFXExpressionInverseMatrix(ViewToClip);
-
-                yield return new VFXNamedExpression(ViewToVFX, "ViewToVFX");
-                yield return new VFXNamedExpression(VFXToView, "VFXToView");
-                yield return new VFXNamedExpression(ViewToClip, "ViewToClip");
-                yield return new VFXNamedExpression(ClipToView, "ClipToView");
+                yield return camMat.ViewToVFX;
+                yield return camMat.VFXToView;
+                yield return camMat.ViewToClip;
+                yield return camMat.ClipToView;
             }
         }
 
@@ -97,7 +92,7 @@ float2 aProjPos = abs(projPos.xy);
 if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 {
     float2 uv = projPos.xy * 0.5f + 0.5f;
-    float depth = LoadTexture(DepthBuffer,int3(uv*Camera_pixelDimensions, 0)).r;
+    float depth = LoadTexture(Camera_depthBuffer,int3(uv*Camera_pixelDimensions, 0)).r;
     #if UNITY_REVERSED_Z
     depth = 1.0f - depth; // reversed z
     #endif
@@ -123,8 +118,8 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
         int2 depthPos10 = clamp(int2((projPos10 * 0.5f + 0.5f) * Camera_pixelDimensions), 0, Camera_pixelDimensions - 1);
         int2 depthPos01 = clamp(int2((projPos01 * 0.5f + 0.5f) * Camera_pixelDimensions), 0, Camera_pixelDimensions - 1);
 
-        float depth10 = LoadTexture(DepthBuffer, int3(depthPos10, 0)).r;
-        float depth01 = LoadTexture(DepthBuffer, int3(depthPos01, 0)).r;
+        float depth10 = LoadTexture(Camera_depthBuffer, int3(depthPos10, 0)).r;
+        float depth01 = LoadTexture(Camera_depthBuffer, int3(depthPos01, 0)).r;
 
         #if UNITY_REVERSED_Z
         depth10 = 1.0f - depth10;

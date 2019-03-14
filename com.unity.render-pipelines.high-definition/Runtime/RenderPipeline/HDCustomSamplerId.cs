@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HTileForSSS,
         Forward,
         RenderSSAO,
+        ResolveSSAO,
         RenderShadows,
         ScreenSpaceShadows,
         BuildLightList,
@@ -22,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DBufferRender,
         DBufferPrepareDrawData,
         DBufferNormal,
+        DecalsForwardEmissive,
         DisplayDebugDecalsAtlas,
         DisplayDebugViewMaterial,
         DebugViewMaterialGBuffer,
@@ -38,6 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
+        AfterPostProcessing,
         RenderDebug,
         ClearBuffers,
         ClearDepthStencil,
@@ -55,6 +58,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         GizmosPrePostprocess,
         Gizmos,
 
+        RaytracingBuildCluster,
+        RaytracingCullLights,
+        RaytracingIntegrateReflection,
+        RaytracingFilterReflection,
+        RaytracingAmbientOcclusion,
+        RaytracingFilterAO,
+        RaytracingShadowIntegration,
+        RaytracingShadowCombination,
+        RaytracingDebug,
+
         // Profile sampler for tile pass
         TPPrepareLightsForGPU,
         TPPushGlobalParameters,
@@ -68,6 +81,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Misc
         VolumeUpdate,
+
+        // Post-processing
+        StopNaNs,
+        Exposure,
+        TemporalAntialiasing,
+        DepthOfField,
+        DepthOfFieldKernel,
+        DepthOfFieldCoC,
+        DepthOfFieldPrefilter,
+        DepthOfFieldPyramid,
+        DepthOfFieldDilate,
+        DepthOfFieldTileMax,
+        DepthOfFieldGatherFar,
+        DepthOfFieldGatherNear,
+        DepthOfFieldPreCombine,
+        DepthOfFieldCombine,
+        MotionBlur,
+        MotionBlurVelocityPrep,
+        MotionBlurTileMinMax,
+        MotionBlurTileNeighbourhood,
+        MotionBlurKernel,
+        PaniniProjection,
+        Bloom,
+        ColorGradingLUTBuilder,
+        UberPost,
+        FXAA,
+        SMAA,
+        FinalPost,
 
         Max
     }

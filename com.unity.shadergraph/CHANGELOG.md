@@ -4,12 +4,64 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.3.0] - 2018-11-xx
+## [6.6.0] - 2019-XX-XX
+### Added
+- You can now add Matrix, Sampler State and Gradient properties to the Blackboard.
+- Added Custom Function node. Use this node to define a custom HLSL function either via string directly in the graph, or via a path to an HLSL file.
+- You can now group nodes by pressing Ctrl + G.
+- Added "Delete Group and Contents" and removed "Ungroup All Nodes" from the context menu for groups.
+
+### Changed
+- Removed Blackboard fields, which had no effect on Sub Graph input ports, from the Sub Graph Blackboard.
+- Subgraph Output node is now called Outputs.
+- Subgraph Output node now supports renaming of ports.
+- Subgraph Output node now supports all port types.
+- Subgraph Output node now supports reordering ports.
+- When you convert nodes to a Sub Graph, Shader Graph generates properties and output ports in the Sub Graph, and now by default, names those resulting properties and output ports based on their types.
+- When you delete a group, Shader Graph now deletes the Group UI, but doesn't delete the nodes inside.
+
+### Fixed
+- You can now undo edits to Vector port default input fields.
+- You can now undo edits to Gradient port default input fields.
+- Boolean port input fields now display correct values when you undo changes.
+- Vector type properties now behave as expected when you undo changes.
+- Fixed an error that previously occurred when you opened saved Shader Graphs containing one or more Voronoi nodes.
+- You can now drag normal map type textures on to a Shader Graph to create Sample Texture 2D nodes with the correct type set.
+- Fixed the Multiply node so default input values are applied correctly.
+- Added padding on input values for Blend node to prevent NaN outputs.
+- Fixed an issue where `IsFaceSign` would not compile within Sub Graph Nodes.
+- Null reference errors no longer occur when you remove ports with connected edges.
+
+## [6.5.0] - 2019-03-07
+
+### Fixed
+- Fixed master preview for HDRP master nodes when alpha clip is enabled.
+
+## [6.4.0] - 2019-02-21
+### Fixed
+- Fixed the Transform node, so going from Tangent Space to any other space now works as expected.
+
+## [6.3.0] - 2019-02-18
+### Fixed
+- Fixed an issue where the Normal Reconstruct Z Node sometimes caused Not a Number (NaN) errors when using negative values.
+
+## [6.2.0] - 2019-02-15
+### Fixed
+- Fixed the property blackboard so it no longer goes missing or turns very small.
+
+### Changed
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
+
+## [6.1.0] - 2019-02-13
+
+## [6.0.0] - 2019-02-23
 ### Added
 - When you hover your cursor over a property in the blackboard, this now highlights the corresponding property elements in your Shader Graph. Similarly, if you hover over a property in the Shader Graph itself, this highlights the corresponding property in the blackboard.
+- Property nodes in your Shader Graph now have a similar look and styling as the properties in the blackboard.
 
 ### Changed
 - Errors in the compiled shader are now displayed as badges on the appropriate node.
+- In the `Scene Depth` node you can now choose the depth sampling mode: `Linear01`, `Raw` or `Eye`.
 
 ### Fixed
 - When you convert an inline node to a `Property` node, this no longer allows duplicate property names.
@@ -26,10 +78,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reverted the visual styling of various graph elements to their previous correct states.
 - Previews now repaint correctly when Unity does not have focus.
 - Code generation now works correctly for exposed Vector1 shader properties where the decimal separator is not a dot.
+- The `Rotate About Axis` node's Modes now use the correct function versions.
+- Shader Graph now preserves grouping when you convert nodes between property and inline.
+- The `Flip` node now greys out labels for inactive controls.
+- The `Boolean` property type now uses the `ToggleUI` property attribute, so as to not generate keywords.
+- The `Normal Unpack` node no longer generates errors in Object space.
+- The `Split` node now uses values from its default Port input fields.
+- The `Channel Mask` node now allows multiple node instances, and no longer generates any errors.
+- Serialized the Alpha control value on the `Flip` node.
+- The `Is Infinite` and `Is NaN` nodes now use `Vector 1` input ports, but the output remains the same.
+- You can no longer convert a node inside a `Sub Graph` into a `Sub Graph`, which previously caused errors.
+- The `Transformation Matrix` node's Inverse Projection and Inverse View Projection modes no longer produce errors.
+- The term `Shader Graph` is now captilized correctly in the Save Graph prompt. 
 
 ## [5.2.0] - 2018-11-27
 ### Added
 - Shader Graph now has __Group Node__, where you can group together several nodes. You can use this to keep your Graphs organized and nice.
+
+### Fixed
+- The expanded state of blackboard properties are now remembered during a Unity session.
 
 ## [5.1.0] - 2018-11-19
 ### Added

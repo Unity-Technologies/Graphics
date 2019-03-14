@@ -208,9 +208,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     default:
                     case InfluenceShape.Box:
-                    return boxSize * 0.5f;
+                        return Vector3.Max(Vector3.one * 0.0001f, boxSize * 0.5f);
                     case InfluenceShape.Sphere:
-                    return sphereRadius * Vector3.one;
+                        return Mathf.Max(0.0001f, sphereRadius) * Vector3.one;
             }
         }
     }

@@ -19,20 +19,22 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
 
 #if defined(PLATFORM_NEEDS_UNORM_UAV_SPECIFIER) && defined(PLATFORM_SUPPORTS_EXPLICIT_BINDING)
         // Explicit binding is needed on D3D since we bind the UAV to slot 1 and we don't have a colour RT bound to fix a D3D warning.
-        RW_TEXTURE2D(unorm float4, _NormalBuffer) : register(u1);
+        RW_TEXTURE2D_X(unorm float4, _NormalBuffer) : register(u1);
 #else
-        RW_TEXTURE2D(float4, _NormalBuffer);
+        RW_TEXTURE2D_X(float4, _NormalBuffer);
 #endif
 
         struct Attributes
         {
             uint vertexID : SV_VertexID;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
             float2 texcoord   : TEXCOORD0;
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
@@ -40,6 +42,8 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
         Varyings Vert(Attributes input)
         {
             Varyings output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
             return output;
@@ -49,16 +53,18 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
         [earlydepthstencil]
         void FragNearest(Varyings input)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             FETCH_DBUFFER(DBuffer, _DBufferTexture, input.texcoord * _ScreenSize.xy);
             DecalSurfaceData decalSurfaceData;
             DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
-            float4 GBufferNormal = _NormalBuffer[input.texcoord * _ScreenSize.xy];
+            uint2 positionSS = uint2(input.texcoord * _ScreenSize.xy);
+            float4 GBufferNormal = _NormalBuffer[COORD_TEXTURE2D_X(positionSS)];
             NormalData normalData;
             DecodeFromNormalBuffer(GBufferNormal, uint2(0, 0), normalData);
             normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
             EncodeIntoNormalBuffer(normalData, uint2(0, 0), GBufferNormal);
-            _NormalBuffer[input.texcoord * _ScreenSize.xy] = GBufferNormal;
+            _NormalBuffer[COORD_TEXTURE2D_X(positionSS)] = GBufferNormal;
         }
 
     ENDHLSL
@@ -76,10 +82,11 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
 
             Stencil
             {
-                ReadMask[_DecalNormalBufferStencilReadMask]
-                Ref[_DecalNormalBufferStencilRef]
+                WriteMask [_DecalNormalBufferStencilReadMask]
+                ReadMask [_DecalNormalBufferStencilReadMask]
+                Ref [_DecalNormalBufferStencilRef]
                 Comp Equal
-                Pass Zero   // doesn't really matter, but clear to 0 for debugging
+                Pass Zero   // Clear bits since they are not needed anymore.
             }
 
             HLSLPROGRAM

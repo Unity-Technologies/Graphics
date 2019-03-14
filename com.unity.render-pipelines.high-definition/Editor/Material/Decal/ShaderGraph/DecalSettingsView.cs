@@ -30,7 +30,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             PropertySheet ps = new PropertySheet();
             
             int indentLevel = 0;
-            ps.Add(new PropertyRow(CreateLabel("Affect Metal", indentLevel)), (row) =>
+
+            ps.Add(new PropertyRow(CreateLabel("Affects Albedo", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.affectsAlbedo.isOn;
+                    toggle.RegisterValueChangedCallback(ChangeAffectsAlbedo);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Affects Normal", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.affectsNormal.isOn;
+                    toggle.RegisterValueChangedCallback(ChangeAffectsNormal);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Affects Metal", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -39,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Affect AO", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Affects AO", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -48,7 +67,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Affect Smoothness", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Affects Smoothness", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -56,7 +75,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     toggle.RegisterValueChangedCallback(ChangeAffectsSmoothness);
                 });
             });
+
+            ps.Add(new PropertyRow(CreateLabel("Affects Emission", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.affectsEmission.isOn;
+                    toggle.RegisterValueChangedCallback(ChangeAffectsEmission);
+                });
+            });
+
             Add(ps);
+        }
+
+        void ChangeAffectsAlbedo(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Albedo Change");
+            ToggleData td = m_Node.affectsAlbedo;
+            td.isOn = evt.newValue;
+            m_Node.affectsAlbedo = td;
+        }
+
+        void ChangeAffectsNormal(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Normal Change");
+            ToggleData td = m_Node.affectsNormal;
+            td.isOn = evt.newValue;
+            m_Node.affectsNormal = td;
         }
 
         void ChangeAffectsMetal(ChangeEvent<bool> evt)
@@ -82,5 +127,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             td.isOn = evt.newValue;
             m_Node.affectsSmoothness = td;
         }
+
+        void ChangeAffectsEmission(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Affects Emission Change");
+            ToggleData td = m_Node.affectsEmission;
+            td.isOn = evt.newValue;
+            m_Node.affectsEmission = td;
+        }
+
     }
 }

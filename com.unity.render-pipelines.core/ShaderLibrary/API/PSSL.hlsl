@@ -1,5 +1,7 @@
 // This file assume SHADER_API_D3D11 is defined
 
+#define PLATFORM_LANE_COUNT 64
+
 #define SUPPORTS_WAVE_INTRINSICS
 
 #define INTRINSIC_BITFIELD_EXTRACT
@@ -26,6 +28,7 @@
 #define INTRINSIC_WAVE_LOGICAL_OPS
 #define WaveActiveBitAnd CrossLaneAnd
 #define WaveActiveBitOr CrossLaneOr
+#define WaveGetID GetWaveID
 
 #define INTRINSIC_WAVE_ACTIVE_ALL_ANY
 bool WaveActiveAllTrue(bool expression)
@@ -36,6 +39,21 @@ bool WaveActiveAllTrue(bool expression)
 bool WaveActiveAnyTrue(bool expression)
 {
     return (popcnt(WaveActiveBallot(expression))) != 0;
+}
+
+uint WaveGetLaneIndex()
+{
+    return __v_mbcnt_hi_u32_b32(0xffffffff, __v_mbcnt_lo_u32_b32(0xffffffff, 0));
+}
+
+bool WaveIsFirstLane()
+{
+    return MaskBitCnt(__s_read_exec()) == 0;
+}
+
+uint WaveGetLaneCount()
+{
+    return PLATFORM_LANE_COUNT;
 }
 
 
@@ -52,6 +70,7 @@ bool WaveActiveAnyTrue(bool expression)
 
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
+
 
 // flow control attributes
 #define UNITY_BRANCH        [branch]
@@ -101,27 +120,27 @@ bool WaveActiveAnyTrue(bool expression)
 #define SAMPLER(samplerName)                  SamplerState samplerName
 #define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 
-#define TEXTURE2D_ARGS(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-#define TEXTURECUBE_ARGS(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
-#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-#define TEXTURE3D_ARGS(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
+#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
+#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
+#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
 
-#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
-#define TEXTURECUBE_ARRAY_SHADOW_ARGS(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
+#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
+#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
+#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 
-#define TEXTURE2D_PARAM(textureName, samplerName)                textureName, samplerName
-#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)          textureName, samplerName
-#define TEXTURECUBE_PARAM(textureName, samplerName)              textureName, samplerName
-#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)        textureName, samplerName
-#define TEXTURE3D_PARAM(textureName, samplerName)                textureName, samplerName
+#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
+#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)          textureName, samplerName
+#define TEXTURECUBE_ARGS(textureName, samplerName)              textureName, samplerName
+#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)        textureName, samplerName
+#define TEXTURE3D_ARGS(textureName, samplerName)                textureName, samplerName
 
-#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)         textureName, samplerName
-#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)   textureName, samplerName
-#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)       textureName, samplerName
-#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName) textureName, samplerName
+#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)         textureName, samplerName
+#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)   textureName, samplerName
+#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)       textureName, samplerName
+#define TEXTURECUBE_ARRAY_SHADOW_ARGS(textureName, samplerName) textureName, samplerName
 
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2)                               textureName.Sample(samplerName, coord2)
 #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod)                      textureName.SampleLevel(samplerName, coord2, lod)
@@ -152,7 +171,7 @@ bool WaveActiveAnyTrue(bool expression)
 #define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)                          textureName.Load(int3(unCoord2, lod))
 #define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)                 textureName.Load(unCoord2, sampleIndex)
 #define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)                      textureName.Load(int4(unCoord2, index, 0))
-#define LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, index, sampleIndex)    textureName.Load(int4(unCoord2, index, 0), sampleIndex)
+#define LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, index, sampleIndex)    textureName.Load(int3(unCoord2, index), sampleIndex)
 #define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod)             textureName.Load(int4(unCoord2, index, lod))
 #define LOAD_TEXTURE3D(textureName, unCoord3)                                   textureName.Load(int4(unCoord3, 0))
 #define LOAD_TEXTURE3D_LOD(textureName, unCoord3, lod)                          textureName.Load(int4(unCoord3, lod))

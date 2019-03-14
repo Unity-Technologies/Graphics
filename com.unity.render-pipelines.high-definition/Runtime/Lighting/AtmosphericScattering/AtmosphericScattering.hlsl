@@ -64,7 +64,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V)
         }
         case FOGTYPE_VOLUMETRIC:
         {
-            float4 value = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
+            float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
                                          posInput.positionNDC,
                                          fragDist,
                                          _VBufferResolution,
@@ -111,7 +111,7 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V)
         }
     }
 
-    return float4(fogColor, fogFactor);
+    return float4(fogColor * GetCurrentExposureMultiplier(), fogFactor);
 }
 
 #endif

@@ -3,17 +3,13 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    [FormerName("UnityEditor.ShaderGraph.VoronoAbstractMaterialNode")]
     [Title("Procedural", "Noise", "Voronoi")]
     class VoronoiNode : CodeFunctionNode
     {
         public VoronoiNode()
         {
             name = "Voronoi";
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Voronoi-Node"; }
         }
 
         protected override MethodInfo GetFunctionToConvert()

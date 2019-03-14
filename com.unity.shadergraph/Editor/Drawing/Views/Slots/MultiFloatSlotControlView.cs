@@ -9,12 +9,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 {
     class MultiFloatSlotControlView : VisualElement
     {
-        readonly INode m_Node;
+        readonly AbstractMaterialNode m_Node;
         readonly Func<Vector4> m_Get;
         readonly Action<Vector4> m_Set;
         int m_UndoGroup = -1;
 
-        public MultiFloatSlotControlView(INode node, string[] labels, Func<Vector4> get, Action<Vector4> set)
+        public MultiFloatSlotControlView(AbstractMaterialNode node, string[] labels, Func<Vector4> get, Action<Vector4> set)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/MultiFloatSlotControlView"));
             m_Node = node;
@@ -34,41 +34,46 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             var field = new FloatField { userData = index, value = initialValue[index] };
             var dragger = new FieldMouseDragger<double>(field);
             dragger.SetDragZone(label);
-            field.RegisterValueChangedCallback(evt =>
+            field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
                 {
-                    var value = m_Get();
-                    value[index] = (float)evt.newValue;
-                    m_Set(value);
-                    m_Node.Dirty(ModificationScope.Node);
-                    m_UndoGroup = -1;
-                });
-            field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
-                {
+                    // Record Undo for input field edit
                     if (m_UndoGroup == -1)
                     {
                         m_UndoGroup = Undo.GetCurrentGroup();
                         m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                     }
-                    float newValue;
-                    if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
-                        newValue = 0f;
-                    var value = m_Get();
-                    if (Math.Abs(value[index] - newValue) > 1e-9)
-                    {
-                        value[index] = newValue;
-                        m_Set(value);
-                        m_Node.Dirty(ModificationScope.Node);
-                    }
-                });
-            field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
-                {
+                    // Handle scaping input field edit
                     if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
                     {
                         Undo.RevertAllDownToGroup(m_UndoGroup);
                         m_UndoGroup = -1;
                         evt.StopPropagation();
                     }
+                    // Dont record Undo again until input field is unfocused
+                    m_UndoGroup++;
                     this.MarkDirtyRepaint();
+                });
+            // Called after KeyDownEvent
+            field.RegisterValueChangedCallback(evt =>
+                {
+                    // Only true when setting value via FieldMouseDragger
+                    // Undo recorded once per dragger release              
+                    if (m_UndoGroup == -1)
+                    {
+                        m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+                    }
+                    var value = m_Get();
+                    if(value[index] != (float)evt.newValue)
+                    {
+                        value[index] = (float)evt.newValue;
+                        m_Set(value);
+                        m_Node.Dirty(ModificationScope.Node);
+                    }
+                });
+            // Reset UndoGroup when done editing input field
+            field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+                {
+                    m_UndoGroup = -1;
                 });
             Add(field);
         }

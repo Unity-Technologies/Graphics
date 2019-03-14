@@ -30,9 +30,6 @@ namespace UnityEngine.Rendering
             new Vector3(0.0f, 1.0f, 0.0f),
         };
 
-        // Note: Color.Black have alpha channel set to 1. Most of the time we want alpha channel set to 0 as we use black to clear render target
-        public static Color clearColorAllBlack { get { return new Color(0f, 0f, 0f, 0f); } }
-
         public const int editMenuPriority1 = 320;
         public const int editMenuPriority2 = 331;
         public const int editMenuPriority3 = 342;
@@ -139,17 +136,17 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
-            SetRenderTarget(cmd, buffer, clearFlag, clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
-            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
-            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
@@ -160,17 +157,17 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
         {
-            SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, clearColorAllBlack);
+            SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, Color.clear);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
-            SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, clearColorAllBlack);
+            SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, Color.clear);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
-            cmd.SetRenderTarget(colorBuffers, depthBuffer);
+            cmd.SetRenderTarget(colorBuffers, depthBuffer, 0, CubemapFace.Unknown, -1);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
@@ -183,7 +180,7 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag)
         {
-            SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, clearColorAllBlack);
+            SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, Color.clear);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
@@ -198,7 +195,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
             ClearFlag clearFlag)
         {
-            SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, clearColorAllBlack);
+            SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, Color.clear);
         }
 
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
@@ -267,7 +264,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
+            commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -275,7 +272,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
+            commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -337,6 +334,13 @@ namespace UnityEngine.Rendering
         public static bool HasFlag<T>(T mask, T flag) where T : IConvertible
         {
             return (mask.ToUInt32(null) & flag.ToUInt32(null)) != 0;
+        }
+
+        public static void Swap<T>(ref T a, ref T b)
+        {
+            var tmp = a;
+            a = b;
+            b = tmp;
         }
 
         public static void SetKeyword(CommandBuffer cmd, string keyword, bool state)
@@ -411,6 +415,15 @@ namespace UnityEngine.Rendering
             return m_AssemblyTypes;
         }
 
+        public static IEnumerable<Type> GetAllTypesDerivedFrom<T>()
+        {
+#if UNITY_EDITOR && UNITY_2019_2_OR_NEWER
+            return UnityEditor.TypeCache.GetTypesDerivedFrom<T>();
+#else
+            return GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(T)));
+#endif
+        }
+
         public static void Destroy(params UnityObject[] objs)
         {
             if (objs == null)
@@ -472,16 +485,16 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        public static void DisplayUnsupportedAPIMessage()
+        public static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
         {
             // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
 #if UNITY_EDITOR
             var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             string currentPlatform = buildTarget.ToString();
-            string graphicAPI = UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
+            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
 #else
             string currentPlatform = SystemInfo.operatingSystem;
-            string graphicAPI = SystemInfo.graphicsDeviceType.ToString();
+            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
 #endif
 
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported, no rendering will occur";
@@ -492,6 +505,31 @@ namespace UnityEngine.Rendering
         {
             string msg = "AR/VR devices are not supported, no rendering will occur";
             DisplayUnsupportedMessage(msg);
+        }
+
+        // Returns 'true' if "Post Processes" are enabled for the view associated with the given camera.
+        public static bool ArePostProcessesEnabled(Camera camera)
+        {
+            bool enabled = true;
+
+        #if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                enabled = false;
+
+                // Determine whether the "Post Processes" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                {
+                    if (sv.camera == camera && sv.sceneViewState.showImageEffects)
+                    {
+                        enabled = true;
+                        break;
+                    }
+                }
+            }
+        #endif
+
+            return enabled;
         }
 
         // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.

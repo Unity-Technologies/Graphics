@@ -19,7 +19,6 @@ namespace  UnityEditor.VFX.UI
     class VFXViewWindow : EditorWindow
     {
         ShortcutHandler m_ShortcutHandler;
-
         protected void SetupFramingShortcutHandler(VFXView view)
         {
             m_ShortcutHandler = new ShortcutHandler(
@@ -41,12 +40,6 @@ namespace  UnityEditor.VFX.UI
         }
 
         public static VFXViewWindow currentWindow;
-
-
-        [MenuItem("Window/Visual Effects", false, 3010)]
-        public static void AAToCreateSubmenuAtRightPlace()
-        {
-        }
         
         [MenuItem("Window/Visual Effects/Visual Effect Graph",false,3011)]
         public static void ShowWindow()
@@ -129,6 +122,8 @@ namespace  UnityEditor.VFX.UI
             return selectedResource;
         }
 
+        Action m_OnUpdateAction;
+
         protected void OnEnable()
         {
             VFXManagerEditor.CheckVFXManager();
@@ -139,15 +134,18 @@ namespace  UnityEditor.VFX.UI
 
             rootVisualElement.Add(graphView);
 
-
-            var currentAsset = GetCurrentResource();
-            if (currentAsset != null)
+            // make sure we don't do something that might touch the model on the view OnEnable because
+            // the models OnEnable might be called after in the case of a domain reload.
+            m_OnUpdateAction = () =>
             {
-                LoadResource(currentAsset);
-            }
+                var currentAsset = GetCurrentResource();
+                if (currentAsset != null)
+                {
+                    LoadResource(currentAsset);
+                }
+            };
 
             autoCompile = true;
-
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
@@ -159,10 +157,6 @@ namespace  UnityEditor.VFX.UI
 
             currentWindow = this;
 
-            /*if (m_ViewScale != Vector3.zero)
-            {
-                graphView.UpdateViewTransform(m_ViewPosition, m_ViewScale);
-            }*/
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
@@ -193,12 +187,6 @@ namespace  UnityEditor.VFX.UI
             currentWindow = null;
         }
 
-        void OnFocus()
-        {
-            if (graphView != null)
-                graphView.UpdateGlobalSelection();
-        }
-
         void OnEnterPanel(AttachToPanelEvent e)
         {
             rootVisualElement.AddManipulator(m_ShortcutHandler);
@@ -215,6 +203,12 @@ namespace  UnityEditor.VFX.UI
         {
             if (graphView == null)
                 return;
+
+            if(m_OnUpdateAction != null)
+            {
+                m_OnUpdateAction();
+                m_OnUpdateAction = null;
+            }
             VFXViewController controller = graphView.controller;
             var filename = "No Asset";
             if (controller != null)

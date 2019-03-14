@@ -4,16 +4,84 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.3.0] - 2018-11-xx
+## [6.6.0] - 2019-XX-XX
 ### Added
-- LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
-- You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
+- Added support for Baked Indirect mixed lighting.
+- You can now use Light Probes for occlusion. This means that baked lights can now occlude dynamic objects.
+
+### Fixed
+- Fixed a project import issue in the LWRP template.
+- Fixed the warnings that appear when you create new Unlit Shader Graphs using the Lightweight Render Pipeline.
+- Fixed light attenuation precision on mobile platforms.
+
+## [6.5.0] - 2019-03-07
+### Added
+- You can now create a custom forward renderer by clicking on `Assets/Create/Rendering/Lightweight Render Pipeline/Forward Renderer`. This creates an Asset in your Project. You can add additional features to it and drag-n-drop the renderer to either the pipeline Asset or to a camera.
+- You can now add `ScriptableRendererFeature`  to the `ScriptableRenderer` to extend it with custom effects. A feature is an `ScriptableObject` that can be drag-n-dropped in the renderer and adds one or more `ScriptableRenderPass` to the renderer.
+- `ScriptableRenderer` now exposes interface to configure lights. To do so, implement `SetupLights` when you create a new renderer.
+- `ScriptableRenderer` now exposes interface to configure culling. To do so, implement `SetupCullingParameters` when you create a new renderer.
+- `ScriptableRendererData` contains rendering resources for `ScriptableRenderer`. A renderer can be overridden globally for all cameras or on a per-camera basis.
+- `ScriptableRenderPass` now has a `RenderPassEvents`. This controls where in the pipeline the render pass is added.
+- `ScriptableRenderPass` now exposes `ConfigureTarget` and `ConfigureClear`. This allows the renderer to automatically figure out the currently active rendering targets.
+- `ScriptableRenderPass` now exposes `Blit`. This performs a blit and sets the active render target in the renderer.
+- `ScriptableRenderPass` now exposes `RenderPostProcessing`. This renders post-processing and sets the active render target in the renderer.
+- `ScriptableRenderPass` now exposes `CreateDrawingSettings` as a helper for render passes that need to call `ScriptableRenderContext.DrawRenderers`.
 
 ### Changed
-- You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Initialize.
+- Removed `RegisterShaderPassName` from `ScriptableRenderPass`. Instead, `CreateDrawingSettings` now  takes one or a list of `ShaderTagId`. 
+- Removed remaining experimental namespace from LWRP. All APIrelated to `ScriptableRenderer`, `ScriptableRenderPass`, and render pass injection is now out of preview.
+- Removed `SetRenderTarget` from `ScriptableRenderPass`. You should never call it. Instead, call `ConfigureTarget`, and the renderer automatically sets up targets for you. 
+- Removed `RenderFullscreenQuad` from `ScriptableRenderer`. Use `CommandBuffer.DrawMesh` and `RenderingUtils.fullscreenMesh` instead.
+- Removed `RenderPostProcess` from `ScriptableRenderer`. Use `ScriptableRenderPass.RenderPostProcessing` instead.
+- Removed `postProcessingContext` property from `ScriptableRenderer`. This is now exposed in `RenderingUtils.postProcessingContext`.
+- Removed `GetCameraClearFlag` from `ScriptableRenderer`.
+
+### Fixed
+- Fixed y-flip in VR when post-processing is active.
+- Fixed occlusion mesh for VR not rendering before rendering opaques.
+- Enabling or disabling SRP Batcher in runtime works now.
+- Fixed video player recorder when post-processing is enabled.
+
+## [6.4.0] - 2019-02-21
+
+## [6.3.0] - 2019-02-18
+
+## [6.2.0] - 2019-02-15
+
+### Changed
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
+
+## [6.1.0] - 2019-02-13
+
+## [6.0.0] - 2019-02-23
+### Added
+- You can now implement a custom renderer for LWRP. To do so, implement an `IRendererData` that contains all resources used in rendering. Then create an `IRendererSetup` that creates and queues `ScriptableRenderPass`. Change the renderer type either in the Pipeline Asset or in the Camera Inspector.
+- LWRP now uses the Unity recorder extension. You can use this to capture the output of Cameras.
+- You can now inject a custom render pass before LWRP renders opaque objects. To do so, implement an `IBeforeRender` interface.
+- Distortion support in all Particle Shaders.
+- An upgrade system for LWRP Materials with `MaterialPostprocessor`.
+- An upgrade path for Unlit shaders
+- Tooltips for Shaders.
+- SRP Batcher support for Particle Shaders.
+- Docs for these Shaders: Baked Lit, Particles Lit, Particles Simple Lit, and Particles Unlit.
+- LWRP now supports dynamic resolution scaling. The target platform must also support it.
+- LWRP now includes version defines for both C# and Shaders in the format of `LWRP_X_Y_Z_OR_NEWER`. For example, `LWRP_5_3_0_OR_NEWER` defines version 5.3.0.
+- The Terrain Lit Shader now samples Spherical Harmonics if you haven't baked any lightmaps for terrain.
+- Added a __Priority__ option, which you can use to tweak the rendering order. This is similar to render queue in the built-in render pipeline. These Shaders now have this option: Lit, Simple Lit, Baked Lit, Unlit, and all three Particle Shaders.
+- Added support for overriding terrain detail rendering shaders, via the render pipeline editor resources asset.
+
+### Changed
+- You can now only initialize a camera by setting a Background Type. The supported options are Skybox, Solid Color, and Don't Care.
 - LWRP now uses non-square shadowmap textures when it renders directional shadows with 2 shadow cascades. 
-- LWRP now uses ARGB2101010 as the HDR format on mobile devices, when this format is supported.
+- LWRP now uses RGB111110 as the HDR format on mobile devices, when this format is supported.
 - Removed `IAfterDepthPrePass` interface.
+- We’ve redesigned the Shader GUI. For example, all property names in Shaders are now inline across the board
+- The Simple Lit Shader now has Smoothness, which can be stored in the alpha of specular or albedo maps.
+- The Simple Lit and Particles Simple Lit Shaders now take shininess from the length (brightness) of the specular map.
+- The __Double sided__ property is now __Render Face__. This means you can also do front face culling.
+- Changed the docs for Lit Shader, Simple Lit Shader and Unlit Shader according to Shader GUI changes.
+- When you create a new LWRP Asset, it will now be initialized with settings that favor performance on mobile platforms.
+- Updated the [FAQ](faq.md) and the [Built-in/LWRP feature comparison table](lwrp-builtin-feature-comparison.md).
 
 ### Fixed
 - Several tweaks to reduce bandwidth consumption on mobile devices.
@@ -27,6 +95,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Framedebugger now renders correctly when stepping through drawcalls.
 - Cameras that request MSAA and Opaque Textures now use less frame bandwidth when they render.
 - Fixed rendering in the gamma color space, so it doesn't appear darker.
+- Particles SImple Lit and Particles Unlit Shaders now work correctly.
+- __Soft Particles__ now work correctly.
+- Camera fading for particles.
+- Fixed a typo in the Unlit `IgnoreProjector` tag.
+- Particles render in both eyes with stereo instancing
+- Fixed specular issues on mobile. [case 1109017](https://issuetracker.unity3d.com/issues/scaled-objects-render-shadows-and-specularity-incorrectly-in-the-lwrp-on-device)
+- Fixed issue causing LWRP to create MSAA framebuffer even when MSAA setting was disabled.
+- Post-processing in mobile VR is now forced to be disabled. It was causing many rendering issues.
+- Fixed Editor Previews breaking in Play Mode when VR is enabled. [Case 1109009](https://issuetracker.unity3d.com/issues/lwrp-editor-previews-break-in-play-mode-if-vr-is-enabled)
+- A camera's HDR enable flag is now respected when rendering in XR.
+- Terrain detail rendering now works correctly when LWRP is installed but inactive.
 
 ## [5.2.0] - 2018-11-27
 ### Added
@@ -288,7 +367,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 ### Added
  - Added Cascade Split selection UI
  - Added SHADER_HINT_NICE_QUALITY. If user defines this to 1 in the shader Lightweight pipeline will favor quality even on mobile platforms.
- 
+
 ### Changed
  - Shadowmap uses 16bit format instead of 32bit.
  - Small shader performance improvements
@@ -297,7 +376,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Subtractive Mode
  - Shadow Distance does not accept negative values anymore
 
- 
+
 ## [0.1.24]
 
 ### Added
@@ -305,7 +384,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Added HDR global setting on pipeline asset. 
  - Added Soft Particles settings on pipeline asset.
  - Ported particles shaders to SRP library
- 
+
 ### Changed
  - HDR RT now uses what format is configured in Tier settings.
  - Refactored lightweight standard shaders and shader library to improve ease of use.
@@ -313,7 +392,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
  - Reduced GC pressure
  - Reduced shader variant count by ~56% by improving fog and lightmap keywords
  - Converted LW shader library files to use real/half when necessary.
- 
+
 ### Fixed
  - Realtime shadows on OpenGL
  - Shader compiler errors in GLES 2.0

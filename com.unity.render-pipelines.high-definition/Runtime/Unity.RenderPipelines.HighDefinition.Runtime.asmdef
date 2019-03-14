@@ -2,7 +2,7 @@
     "name": "Unity.RenderPipelines.HighDefinition.Runtime",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.Postprocessing.Runtime"
+		"Unity.ugui"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

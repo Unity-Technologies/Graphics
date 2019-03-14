@@ -20,10 +20,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Integer-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -82,7 +78,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             return new Vector1ShaderProperty { value = value, floatType = FloatType.Integer };
         }

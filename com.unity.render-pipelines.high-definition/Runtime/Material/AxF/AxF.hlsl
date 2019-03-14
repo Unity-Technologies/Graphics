@@ -15,8 +15,6 @@
 
 
 //-----------------------------------------------------------------------------
-#define CLEAR_COAT_ROUGHNESS 0.03
-#define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
 
 #define AUTO_PATCH_FOR_INCOMPLETE_BRDF_COLOR_TABLE // This requires importer version >= 0.1.5-preview or manually setting the diagonal clamping enable + scalings to offset the diagonal
 #define FLAKES_JUST_BTF
@@ -112,6 +110,11 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
     }
 }
 
+void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
+{
+    result = surfaceData.diffuseColor;
+}
+
 
 
 // This function is used to help with debugging and must be implemented by any lit material
@@ -141,6 +144,15 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
     if (overrideNormal)
     {
         surfaceData.normalWS = worldToTangent[2];
+    }
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
+    {
+        surfaceData.diffuseColor = pbrDiffuseColorValidate(surfaceData.diffuseColor, surfaceData.specularColor, false, false).xyz;
+    }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLORs)
+    {
+        surfaceData.diffuseColor = pbrSpecularColorValidate(surfaceData.diffuseColor, surfaceData.specularColor, false, false).xyz;
     }
 #endif
 }
@@ -751,10 +763,15 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
+    // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnelF0)
+        ? bsdfData.fresnelF0
+        : preLightData.diffuseFGD * bsdfData.diffuseColor;
 #else
-    builtinData.bakeDiffuseLighting *= bsdfData.diffuseColor;
+    builtinData.bakeDiffuseLighting *= ReplaceDiffuseForReflectionPass(bsdfData.fresnelF0)
+        ? bsdfData.fresnelF0
+        : bsdfData.diffuseColor;
 #endif
     //TODO attenuate diffuse lighting for coat ie with (1.0 - preLightData.coatFGD)
 }
@@ -1888,7 +1905,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
-    float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
+    float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
     float3 reflectanceFactor = 0.0;
     bool HasClearcoat = (_Flags & 0x2U);
 
@@ -1953,14 +1970,12 @@ float GetEnvMipLevel(EnvLightData lightData, float iblPerceptualRoughness)
 
     // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-#if !defined(SHADER_API_METAL)
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(iblPerceptualRoughness, _ColorPyramidScale.z);
     }
     else
-#endif
     {
         iblMipLevel = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
     }

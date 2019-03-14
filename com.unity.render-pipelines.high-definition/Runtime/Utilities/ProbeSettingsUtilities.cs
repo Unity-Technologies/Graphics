@@ -9,11 +9,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal enum PositionMode
         {
             UseProbeTransform,
-            MirrorReferenceTransfromWithProbePlane
+            MirrorReferenceTransformWithProbePlane
         }
 
-        // This is viable to use a static variable here because ApplySettings() must be called only on main thread.
-        static FrameSettings s_ApplySettings_TMP = new FrameSettings();
         /// <summary>
         /// Apply <paramref name="settings"/> and <paramref name="probePosition"/> to
         /// <paramref name="cameraPosition"/> and <paramref name="cameraSettings"/>.
@@ -36,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (settings.type)
             {
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    positionMode = PositionMode.MirrorReferenceTransfromWithProbePlane;
+                    positionMode = PositionMode.MirrorReferenceTransformWithProbePlane;
                     useReferenceTransformAsNearClipPlane = true;
                     break;
                 case ProbeSettings.ProbeType.ReflectionProbe:
@@ -59,9 +57,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var proxyMatrix = Matrix4x4.TRS(probePosition.proxyPosition, probePosition.proxyRotation, Vector3.one);
                         cameraPosition.position = proxyMatrix.MultiplyPoint(settings.proxySettings.capturePositionProxySpace);
                         cameraPosition.rotation = proxyMatrix.rotation * settings.proxySettings.captureRotationProxySpace;
+
+                        
                         break;
                     }
-                case PositionMode.MirrorReferenceTransfromWithProbePlane:
+                case PositionMode.MirrorReferenceTransformWithProbePlane:
                     {
                         cameraPosition.mode = CameraPositionSettings.Mode.UseWorldToCameraMatrixField;
                         ApplyMirroredReferenceTransform(
@@ -82,20 +82,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Frame Settings Overrides
-            var hd = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
             switch (settings.mode)
             {
                 default:
                 case ProbeSettings.Mode.Realtime:
-                    hd.asset.GetRealtimeReflectionFrameSettings().CopyTo(s_ApplySettings_TMP);
+                    cameraSettings.defaultFrameSettings = FrameSettingsRenderType.RealtimeReflection;
                     break;
                 case ProbeSettings.Mode.Baked:
                 case ProbeSettings.Mode.Custom:
-                    hd.asset.GetBakedOrCustomReflectionFrameSettings().CopyTo(s_ApplySettings_TMP);
+                    cameraSettings.defaultFrameSettings = FrameSettingsRenderType.CustomOrBakedReflection;
                     break;
             }
-            cameraSettings.frameSettings.ApplyOverrideOn(s_ApplySettings_TMP);
-            s_ApplySettings_TMP.CopyTo(cameraSettings.frameSettings);
+
+            switch (settings.type)
+            {
+                case ProbeSettings.ProbeType.ReflectionProbe:
+                    cameraSettings.customRenderingSettings = true;
+                    // Disable specular lighting for reflection probes, they must not have view dependent information when baking
+                    cameraSettings.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.SpecularLighting, false);
+                    cameraSettings.renderingPathCustomFrameSettingsOverrideMask.mask[(int)FrameSettingsField.SpecularLighting] = true;
+                    break;
+            }
         }
 
         internal static void ApplyMirroredReferenceTransform(

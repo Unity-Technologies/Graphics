@@ -8,8 +8,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using _ = UnityEditor.Rendering.CoreEditorUtils;
-
     [CustomEditorForRenderPipeline(typeof(PlanarReflectionProbe), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
     sealed class PlanarReflectionProbeEditor : HDProbeEditor<PlanarReflectionProbeUISettingsProvider, SerializedPlanarReflectionProbe>
@@ -24,7 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override bool HasPreviewGUI()
         {
-            foreach (PlanarReflectionProbe p in m_TypedTargets)
+            foreach (var p in m_TypedTargets)
             {
                 if (p.texture != null)
                     return true;
@@ -32,15 +30,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return false;
         }
 
-        public override GUIContent GetPreviewTitle() => _.GetContent("Planar Reflection");
+        public override GUIContent GetPreviewTitle() => EditorGUIUtility.TrTextContent("Planar Reflection");
 
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
             m_PreviewedTextures.Clear();
-            foreach (PlanarReflectionProbe p in m_TypedTargets)
-            {
+            foreach (var p in m_TypedTargets)
                 m_PreviewedTextures.Add(p.texture);
-            }
 
             var space = Vector2.one;
             var rowSize = Mathf.CeilToInt(Mathf.Sqrt(m_PreviewedTextures.Count));
@@ -59,7 +55,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (m_PreviewedTextures[i] != null)
                     EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], CameraEditorUtils.GUITextureBlit2SRGBMaterial, ScaleMode.ScaleToFit, 0, 1);
                 else
-                    EditorGUI.LabelField(itemRect, _.GetContent("Not Available"));
+                    EditorGUI.LabelField(itemRect, EditorGUIUtility.TrTextContent("Not Available"));
             }
         }
 
@@ -76,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
 
             ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(serialized.localReferencePosition, _.GetContent("Reference Local Position"));
+            EditorGUILayout.PropertyField(serialized.localReferencePosition, EditorGUIUtility.TrTextContent("Reference Local Position"));
             --EditorGUI.indentLevel;
         }
 
@@ -84,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.DrawHandles(serialized, owner);
 
-            SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
+            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Planar Probe"), OnOverlayGUI, -100, target);
 
             if (serialized.probeSettings.mode.intValue != (int)ProbeSettings.Mode.Realtime)
             {
@@ -102,7 +98,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
             var previewSize = new Rect();
-            foreach(PlanarReflectionProbe p in m_TypedTargets)
+            foreach(var p in m_TypedTargets)
             {
                 if (p.texture == null)
                     continue;
@@ -114,12 +110,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             // Get and reserve rect
-            Rect cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
+            var cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
 
             if (Event.current.type == EventType.Repaint)
             {
                 var c = new Rect(cameraRect);
-                foreach(PlanarReflectionProbe p in m_TypedTargets)
+                foreach(var p in m_TypedTargets)
                 {
                     if (p.texture == null)
                         continue;
@@ -143,7 +139,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
                 null,
                 CallingConventions.Any,
-                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption },
+                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption, typeof(EditorWindow) },
                 null);
         static void SceneViewOverlay_Window(GUIContent title, Action<Object, SceneView> sceneViewFunc, int order, Object target)
         {
@@ -152,7 +148,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 title, DelegateUtility.Cast(sceneViewFunc, k_SceneViewOverlay_WindowFunction),
                 order,
                 target,
-                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1)
+                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1),
+                null
             });
         }
 

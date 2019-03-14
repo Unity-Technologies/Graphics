@@ -2,13 +2,13 @@
 
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && defined(LIGHTLOOP_TILE_PASS) && SHADERPASS == SHADERPASS_FORWARD)
+#define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 
 //-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
 
-void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout float3 diffuseLighting, inout float3 specularLighting)
+void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
@@ -30,27 +30,34 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
         specularLighting = float3(0.0, 0.0, 0.0);
 
         const float3 s_CascadeColors[] = {
-            float3(1.0, 0.0, 0.0),
-            float3(0.0, 1.0, 0.0),
-            float3(0.0, 0.0, 1.0),
-            float3(1.0, 1.0, 0.0),
+            float3(0.5, 0.5, 0.7),
+            float3(0.5, 0.7, 0.5),
+            float3(0.7, 0.7, 0.5),
+            float3(0.7, 0.5, 0.5),
             float3(1.0, 1.0, 1.0)
         };
 
         diffuseLighting = float3(1.0, 1.0, 1.0);
-        if (_DirectionalLightCount > 0)
+        if (_DirectionalShadowIndex >= 0)
         {
-            int   shadowIdx = _DirectionalShadowIndex;
-            float shadow    = lightLoopContext.shadowValue; // Not affected by the shadow dimmer
-
-            uint  payloadOffset;
-            real  alpha;
+            real alpha;
             int cascadeCount;
 
-            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, shadowIdx, positionWS, alpha, cascadeCount);
+            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, _DirectionalShadowIndex, posInput.positionWS, alpha, cascadeCount);
             if (shadowSplitIndex >= 0)
             {
-                diffuseLighting = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex+1], alpha) * shadow;
+                float shadow = 1.0;
+                if (_DirectionalShadowIndex >= 0)
+                {
+                    DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+                    float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
+                    shadow = EvaluateRuntimeSunShadow(lightLoopContext, posInput, light, shadowBiasNormal);
+                }
+
+                float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
+                // We can't mix with the lighting as it can be HDR and it is hard to find a good lerp operation for this case that is still compliant with
+                // exposure. So disable exposure instead and replace color.
+                diffuseLighting = cascadeShadowColor * shadow;
             }
 
         }
@@ -60,12 +67,6 @@ void ApplyDebug(LightLoopContext lightLoopContext, float3 positionWS, inout floa
     diffuseLighting *= exp2(_DebugExposure);
     specularLighting *= exp2(_DebugExposure);
 #endif
-}
-
-// Factor all test so we can disable it easily
-bool IsMatchingLightLayer(uint lightLayers, uint renderingLayers)
-{
-    return (lightLayers & renderingLayers) != 0;
 }
 
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
@@ -143,7 +144,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         uint lightCount, lightStart;
         bool fastPath = false;
 
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
 
 #if SCALARIZE_LIGHT_LOOP
@@ -152,7 +153,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         fastPath = WaveActiveAllTrue(lightStart == lightStartLane0); 
 #endif
 
-#else   // LIGHTLOOP_TILE_PASS
+#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         lightCount = _PunctualLightCount;
         lightStart = 0;
 #endif
@@ -213,7 +214,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     {
         uint lightCount, lightStart;
 
-    #ifdef LIGHTLOOP_TILE_PASS
+    #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_AREA, lightStart, lightCount);
     #else
         lightCount = _AreaLightCount;
@@ -235,6 +236,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             while (i <= last && lightData.lightType == GPULIGHTTYPE_TUBE)
             {
                 lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
+                lightData.cookieIndex = -1;              // Enforce constant propagation
 
                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
                 {
@@ -279,7 +281,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         bool fastPath = false;
         // Fetch first env light to provide the scene proxy for screen space computation
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
 
     #if SCALARIZE_LIGHT_LOOP
@@ -288,7 +290,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         fastPath = WaveActiveAllTrue(envLightStart == envStartFirstLane); 
     #endif
 
-#else   // LIGHTLOOP_TILE_PASS
+#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         envLightCount = _EnvLightCount;
         envLightStart = 0;
 #endif
@@ -408,12 +410,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 #undef EVALUATE_BSDF_ENV
-#undef EVALUATE_BSDF_ENV_SKY    
+#undef EVALUATE_BSDF_ENV_SKY
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
     PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting,
                         diffuseLighting, specularLighting);
 
-    ApplyDebug(context, posInput.positionWS, diffuseLighting, specularLighting);
+    ApplyDebug(context, posInput, bsdfData, diffuseLighting, specularLighting);
 }

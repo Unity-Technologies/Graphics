@@ -30,10 +30,6 @@ namespace UnityEditor.ShaderGraph
             name = "Rotate About Axis";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rotate-About-Axis-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -53,6 +49,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
+    Rotation = radians(Rotation);
+
     {precision} s = sin(Rotation);
     {precision} c = cos(Rotation);
     {precision} one_minus_c = 1.0 - c;
@@ -79,8 +77,6 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Rotation = radians(Rotation);
-
     {precision} s = sin(Rotation);
     {precision} c = cos(Rotation);
     {precision} one_minus_c = 1.0 - c;

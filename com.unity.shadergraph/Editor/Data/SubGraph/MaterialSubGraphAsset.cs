@@ -4,9 +4,14 @@ namespace UnityEditor.ShaderGraph
 {
     class MaterialSubGraphAsset : ScriptableObject
     {
-        [SerializeField] private SubGraph m_MaterialSubGraph = new SubGraph();
+        [SerializeField]
+        private GraphData m_MaterialSubGraph = new GraphData()
+        {
+            isSubGraph
+                = true
+        };
 
-        public SubGraph subGraph
+        public GraphData subGraph
         {
             get { return m_MaterialSubGraph; }
             set { m_MaterialSubGraph = value; }

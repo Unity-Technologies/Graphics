@@ -5,8 +5,6 @@ using static UnityEditor.Experimental.Rendering.HDPipeline.HDEditorUtils;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    using _ = UnityEditor.Rendering.CoreEditorUtils;
-
     internal partial class ProbeSettingsUI
     {
         public static void Draw(
@@ -29,33 +27,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if ((displayedFields.probe & lighting) != 0)
             {
-                GUI.enabled = hd.renderPipelineSettings.supportLightLayers;
-                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, _.GetContent("Light Layer"), @override.probe, displayedFields.probe, overridableFields.probe);
+
+                GUI.enabled = hd.currentPlatformRenderPipelineSettings.supportLightLayers;
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, EditorGUIUtility.TrTextContent("Light Layer", "Specifies the Light Layer the Reflection Probe uses to capture its view of the Scene. The Probe only uses Lights on the Light Layer you specify."), @override.probe, displayedFields.probe, overridableFields.probe);
+
                 GUI.enabled = true;
-                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingMultiplier, serialized.lightingMultiplier, _.GetContent("Multiplier"), @override.probe, displayedFields.probe, overridableFields.probe);
-                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingWeight, serialized.lightingWeight, _.GetContent("Weight"), @override.probe, displayedFields.probe, overridableFields.probe);
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingMultiplier, serialized.lightingMultiplier, EditorGUIUtility.TrTextContent("Multiplier", "Sets the multiplier value that reflective Materials apply to the results from the Reflection Probe."), @override.probe, displayedFields.probe, overridableFields.probe);
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingWeight, serialized.lightingWeight, EditorGUIUtility.TrTextContent("Weight", "Sets the weight of this Reflection Probe. When multiple Probes both affect the same area of a reflective Material, the Material uses the Weight of each Probe to determine their contribution to the reflective effect."), @override.probe, displayedFields.probe, overridableFields.probe);
                 EditorGUILayout.Space();
             }
 
             if ((displayedFields.probe & proxy) != 0)
             {
-                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyUseInfluenceVolumeAsProxyVolume, serialized.proxyUseInfluenceVolumeAsProxyVolume, _.GetContent("Use Influence Volume As Proxy Volume"), @override.probe, displayedFields.probe, overridableFields.probe);
-                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyCapturePositionProxySpace, serialized.proxyCapturePositionProxySpace, _.GetContent("Capture Position|Capture Position in Proxy Space"), @override.probe, displayedFields.probe, overridableFields.probe,
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyUseInfluenceVolumeAsProxyVolume, serialized.proxyUseInfluenceVolumeAsProxyVolume, EditorGUIUtility.TrTextContent("Use Influence Volume As Proxy Volume", "When enabled, this Reflection Probe uses the boundaries of the Influence Volume as its Proxy Volume."), @override.probe, displayedFields.probe, overridableFields.probe);
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyCapturePositionProxySpace, serialized.proxyCapturePositionProxySpace, EditorGUIUtility.TrTextContent("Capture Position", "Sets the position, relative to the Transform Position, from which the Reflection Probe captures its surroundings."), @override.probe, displayedFields.probe, overridableFields.probe,
                     (p, l) =>
                     {
                         EditorGUILayout.PropertyField(p, l);
                         HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.CapturePosition, owner, GUILayout.Width(28f), GUILayout.MinHeight(22f));
                     }
                 );
-                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyCaptureRotationProxySpace, serialized.proxyCaptureRotationProxySpace, _.GetContent("Capture Rotation|Capture Rotation in Proxy Space"), @override.probe, displayedFields.probe, overridableFields.probe);
-                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyMirrorPositionProxySpace, serialized.proxyMirrorPositionProxySpace, _.GetContent("Mirror Position|Mirror Position in Proxy Space"), @override.probe, displayedFields.probe, overridableFields.probe,
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyCaptureRotationProxySpace, serialized.proxyCaptureRotationProxySpace, EditorGUIUtility.TrTextContent("Capture Rotation", "Sets the rotation of the capture point relative to the Transform Rotation."), @override.probe, displayedFields.probe, overridableFields.probe);
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyMirrorPositionProxySpace, serialized.proxyMirrorPositionProxySpace, EditorGUIUtility.TrTextContent("Mirror Position", "Sets the position of the Planar Reflection Probe relative to the Transform Position."), @override.probe, displayedFields.probe, overridableFields.probe,
                     (p, l) =>
                     {
                         EditorGUILayout.PropertyField(p, l);
                         HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.MirrorPosition, owner, GUILayout.Width(28f), GUILayout.MinHeight(22f));
                     }
                 );
-                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyMirrorRotationProxySpace, serialized.proxyMirrorRotationProxySpace, _.GetContent("Mirror Rotation|Mirror Rotation in Proxy Space"), @override.probe, displayedFields.probe, overridableFields.probe,
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.proxyMirrorRotationProxySpace, serialized.proxyMirrorRotationProxySpace, EditorGUIUtility.TrTextContent("Mirror Rotation", "Sets the rotation of the Planar Reflection Probe relative to the Transform Rotation."), @override.probe, displayedFields.probe, overridableFields.probe,
                     (p, l) =>
                     {
                         EditorGUILayout.PropertyField(p, l);

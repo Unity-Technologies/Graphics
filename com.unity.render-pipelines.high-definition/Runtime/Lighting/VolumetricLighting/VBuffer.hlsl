@@ -12,7 +12,7 @@
 // if (clampToBorder), samples outside of the buffer return 0 (we perform a smooth fade).
 // Otherwise, the sampler simply clamps the texture coordinate to the edge of the texture.
 // Warning: clamping to border may not work as expected with the quadratic filter due to its extent.
-float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
+float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float2 positionNDC,
                      float  linearDistance,
                      float4 VBufferResolution,
@@ -38,6 +38,11 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
     }
 
     float4 result = 0;
+
+    #if defined(UNITY_STEREO_INSTANCING_ENABLED)
+        // XRTODO: figure out a better way to avoid leaks between eyes (double-wide might be safer, or guard bands, or 2 separate textures)
+        w = (w + unity_StereoEyeIndex) * 0.5f;
+    #endif
 
     if (coordIsInsideFrustum)
     {
@@ -71,7 +76,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
     return result;
 }
 
-float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
+float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float3   positionWS,
                      float3   cameraPositionWS,
                      float4x4 viewProjMatrix,
@@ -86,7 +91,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
     float2 positionNDC = ComputeNormalizedDeviceCoordinates(positionWS, viewProjMatrix);
     float  linearDistance = distance(positionWS, cameraPositionWS);
 
-    return SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
+    return SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                          positionNDC,
                          linearDistance,
                          VBufferResolution,

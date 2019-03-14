@@ -68,12 +68,15 @@ Shader "HDRP/AxF"
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Stencil state
-        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
-        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 7 // StencilMask.Lighting  (fixed at compile time)
-        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilLightingUsage.RegularLighting  (fixed at compile time)
-        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity  (fixed at compile time)
-        [HideInInspector] _StencilDepthPrepassRef("_StencilDepthPrepassRef", Int) = 16
-        [HideInInspector] _StencilDepthPrepassWriteMask("_StencilDepthPrepassWriteMask", Int) = 16
+        // Forward
+        [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
+        [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 3 // StencilMask.Lighting
+        // Depth prepass
+        [HideInInspector] _StencilRefDepth("_StencilRefDepth", Int) = 16 // DecalsForwardOutputNormalBuffer
+        [HideInInspector] _StencilWriteMaskDepth("_StencilWriteMaskDepth", Int) = 48 // DoesntReceiveSSR | DecalsForwardOutputNormalBuffer
+        // Motion vector pass
+        [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 128 // StencilMask.ObjectsVelocity
+        [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 128 // StencilMask.ObjectsVelocity
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -117,19 +120,19 @@ Shader "HDRP/AxF"
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
-    #pragma shader_feature _AXF_BRDF_TYPE_SVBRDF _AXF_BRDF_TYPE_CAR_PAINT _AXF_BRDF_TYPE_BTF
+    #pragma shader_feature_local _AXF_BRDF_TYPE_SVBRDF _AXF_BRDF_TYPE_CAR_PAINT _AXF_BRDF_TYPE_BTF
 
-    #pragma shader_feature _ALPHATEST_ON
-    #pragma shader_feature _DOUBLESIDED_ON
+    #pragma shader_feature_local _ALPHATEST_ON
+    #pragma shader_feature_local _DOUBLESIDED_ON
 
     #pragma shader_feature _DISABLE_DECALS
     #pragma shader_feature _DISABLE_SSR
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
-    #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -156,10 +159,6 @@ Shader "HDRP/AxF"
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFProperties.hlsl"
 
-    // All our shaders use same name for entry point
-    #pragma vertex Vert
-    #pragma fragment Frag
-
     ENDHLSL
 
     SubShader
@@ -169,7 +168,7 @@ Shader "HDRP/AxF"
 
         Pass
         {
-            Name "SceneSelectionPass" // Name is not used
+            Name "SceneSelectionPass"
             Tags { "LightMode" = "SceneSelectionPass" }
 
             Cull Off
@@ -188,12 +187,15 @@ Shader "HDRP/AxF"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+
             ENDHLSL
         }
 
         Pass
         {
-            Name "Depth prepass"
+            Name "DepthForwardOnly"
             Tags{ "LightMode" = "DepthForwardOnly" }
 
             Cull[_CullMode]
@@ -202,8 +204,8 @@ Shader "HDRP/AxF"
 
             Stencil
             {
-                WriteMask[_StencilDepthPrepassWriteMask]
-                Ref[_StencilDepthPrepassRef]
+                WriteMask[_StencilRefDepth]
+                Ref[_StencilWriteMaskDepth]
                 Comp Always
                 Pass Replace
             }
@@ -221,12 +223,15 @@ Shader "HDRP/AxF"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+
             ENDHLSL
         }
 
         Pass
         {
-            Name "Motion Vectors"
+            Name "MotionVectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
 
             // If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity
@@ -255,6 +260,9 @@ Shader "HDRP/AxF"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+
             ENDHLSL
         }
 
@@ -263,7 +271,7 @@ Shader "HDRP/AxF"
         Pass
         {
             Name "META"
-            Tags{ "LightMode" = "Meta" }
+            Tags{ "LightMode" = "META" }
 
             Cull Off
 
@@ -280,6 +288,9 @@ Shader "HDRP/AxF"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             ENDHLSL
         }
@@ -308,13 +319,16 @@ Shader "HDRP/AxF"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
+            #pragma vertex Vert
+            #pragma fragment Frag
+
             ENDHLSL
         }
 
         // AxF shader always render in forward
         Pass
         {
-            Name "Forward" // Name is not used
+            Name "ForwardOnly"
             Tags { "LightMode" = "ForwardOnly" }
 
             Stencil
@@ -344,14 +358,12 @@ Shader "HDRP/AxF"
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
-            // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Lighting/Forward.hlsl" : nothing left in there.
-            //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
-            #define LIGHTLOOP_TILE_PASS
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define SHADERPASS SHADERPASS_FORWARD
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-            #ifndef _SURFACE_TYPE_TRANSPARENT
+            // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+            #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
                 #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
             #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -378,6 +390,9 @@ Shader "HDRP/AxF"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             ENDHLSL
         }

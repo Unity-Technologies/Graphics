@@ -13,12 +13,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector4 baseColor;
             [SurfaceDataAttributes("Normal", true)]
             public Vector4 normalWS;
-            [SurfaceDataAttributes("Mask", true)]
+            [SurfaceDataAttributes("Mask", true)]            
             public Vector4 mask; // Metal, AmbientOcclusion, Smoothness, smoothness opacity
+            [SurfaceDataAttributes("Emissive")]
+            public Vector4 emissive;
             [SurfaceDataAttributes("AOSBlend", true)]
             public Vector2 MAOSBlend; // Metal opacity and Ambient occlusion opacity
             [SurfaceDataAttributes("HTileMask")]
             public uint HTileMask;
+
         };
 
         [GenerateHLSL(PackingRules.Exact)]
@@ -42,13 +45,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // should this be combined into common class shared with Lit.cs???
         static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
 
-        static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.RG16 };
-        static bool[] m_sRGBFlags = { true, false, false, false };
+        static GraphicsFormat[] m_RTFormat = { GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8_UNorm};
 
-        static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlags)
+        static public void GetMaterialDBufferDescription(out GraphicsFormat[] RTFormat)
         {
             RTFormat = m_RTFormat;
-            sRGBFlags = m_sRGBFlags;
         }
 
         // relies on the order shader passes are declared in decal.shader

@@ -15,7 +15,7 @@ This component override is useful in situations where you need to animate your l
 
 An example of a useful situation of where an Indirect Lighting Controller would be useful is when your Camera is in a dark area and you want to light the area suddenly. To create this effect with this override:
 
-1. Create a **Scene Settings** GameObject (menu: **GameObject > Rendering > Scene Settings**) and add an **Indirect Lighting Controller** (click on the Scene Settings GameObject and then, in the Volume component in the Inspector, click **Add component overrides** and select **Indirect Lighting Controller**). 
+1. Create a **Scene Settings** GameObject (menu: **GameObject > Rendering > Scene Settings**) and add an **Indirect Lighting Controller** (click on the Scene Settings GameObject and then, in the Volume component in the Inspector, click **Add Override** and select **Indirect Lighting Controller**). 
 2. Add a Collider to the Scene Settings GameObject and enable the **Is Trigger** checkbox. Set the **Size** of the Collider to be the size of the area you want to change the indirect lighting for.
 3. In the **Indirect Lighting Controller**, set the **Indirect Diffuse Intensity** and **Indirect Specular Intensity** to 0. This dims all indirect lighting to black.
 4. When you light the area, animate (using Timeline or an Animation) the Volume's **Weight** property to transition from 1 to 0. This will progressively interpolate between the values set inside the Volume and the values from other Volumes that affect your Camera.

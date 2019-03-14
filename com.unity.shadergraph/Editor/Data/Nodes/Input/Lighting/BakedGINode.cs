@@ -7,19 +7,15 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEditor.ShaderGraph.LightProbeNode")]
     [Title("Input", "Lighting", "Baked GI")]
-    class BakedGINode : CodeFunctionNode
+    class BakedGAbstractMaterialNode : CodeFunctionNode
     {
         public override bool hasPreview { get { return false; } }
 
-        public BakedGINode()
+        public BakedGAbstractMaterialNode()
         {
             name = "Baked GI";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Baked-GI-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

@@ -59,7 +59,7 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
 {
     BuiltinData builtinData = (BuiltinData)0;
 
-    InitBuiltinData(opacity, surfaceData.normalWS, -surfaceData.normalWS, posInputs.positionWS, (float4)0, (float4)0, builtinData); // We dont care about uvs are we dont sample lightmaps
+    InitBuiltinData(posInputs, opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData); // We dont care about uvs are we dont sample lightmaps
 
     #if HDRP_USE_EMISSIVE
     builtinData.emissiveColor = float3(1,1,1);
@@ -81,7 +81,7 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     return builtinData;
 }
 
-SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfile, out float opacity)
+SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfileHash, out float opacity)
 {
     SurfaceData surfaceData = (SurfaceData)0;
 
@@ -112,7 +112,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #if IS_OPAQUE_PARTICLE
     opacity = 1.0f;
     #else
-    opacity = color.a;
+    opacity = saturate(color.a);
     #endif
 
     #if HDRP_MATERIAL_TYPE_STANDARD
@@ -130,7 +130,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #ifdef VFX_VARYING_THICKNESS
     surfaceData.thickness = i.VFX_VARYING_THICKNESS * opacity;
     #endif
-    surfaceData.diffusionProfile = diffusionProfile;
+    surfaceData.diffusionProfileHash = diffusionProfileHash;
     surfaceData.subsurfaceMask = 1.0f;
     #endif
 

@@ -1,11 +1,9 @@
-using System;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
+using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
-    /// Render all opaque forward objects into the given color and depth target 
+    /// Render all opaque forward objects into the given color and depth target
     ///
     /// You can use this pass to render objects that have a material and/or shader
     /// with the pass names LightweightForward or SRPDefaultUnlit. The pass only
@@ -13,89 +11,34 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     /// </summary>
     internal class RenderOpaqueForwardPass : ScriptableRenderPass
     {
-        const string k_RenderOpaquesTag = "Render Opaques";
-        FilteringSettings m_OpaqueFilterSettings;
+        FilteringSettings m_FilteringSettings;
+        const string m_ProfilerTag = "Render Opaques";
+        private List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
-        RenderTargetHandle colorAttachmentHandle { get; set; }
-        RenderTargetHandle depthAttachmentHandle { get; set; }
-        RenderTextureDescriptor descriptor { get; set; }
-        ClearFlag clearFlag { get; set; }
-        Color clearColor { get; set; }
-
-        PerObjectData rendererConfiguration;
-
-        public RenderOpaqueForwardPass()
+        public RenderOpaqueForwardPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
-            RegisterShaderPassName("LightweightForward");
-            RegisterShaderPassName("SRPDefaultUnlit");
-
-            m_OpaqueFilterSettings = new FilteringSettings(RenderQueueRange.opaque);
-        }
-
-        /// <summary>
-        /// Configure the pass before execution
-        /// </summary>
-        /// <param name="baseDescriptor">Current target descriptor</param>
-        /// <param name="colorAttachmentHandle">Color attachment to render into</param>
-        /// <param name="depthAttachmentHandle">Depth attachment to render into</param>
-        /// <param name="clearFlag">Camera clear flag</param>
-        /// <param name="clearColor">Camera clear color</param>
-        /// <param name="configuration">Specific render configuration</param>
-        public void Setup(
-            RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle colorAttachmentHandle,
-            RenderTargetHandle depthAttachmentHandle,
-            ClearFlag clearFlag,
-            Color clearColor,
-            PerObjectData configuration)
-        {
-            this.colorAttachmentHandle = colorAttachmentHandle;
-            this.depthAttachmentHandle = depthAttachmentHandle;
-            this.clearColor = CoreUtils.ConvertSRGBToActiveColorSpace(clearColor);
-            this.clearFlag = clearFlag;
-            descriptor = baseDescriptor;
-            this.rendererConfiguration = configuration;
+            m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
+            m_ShaderTagIdList.Add(new ShaderTagId("SRPDefaultUnlit"));
+            renderPassEvent = evt;
+            m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-            
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderOpaquesTag);
-            using (new ProfilingSample(cmd, k_RenderOpaquesTag))
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            using (new ProfilingSample(cmd, m_ProfilerTag))
             {
-                RenderBufferLoadAction colorLoadOp = (CoreUtils.HasFlag(clearFlag, ClearFlag.Color))
-                    ? RenderBufferLoadAction.DontCare
-                    : RenderBufferLoadAction.Load;
-                RenderBufferStoreAction colorStoreOp = RenderBufferStoreAction.Store;
-
-                RenderBufferLoadAction depthLoadOp = (CoreUtils.HasFlag(clearFlag, ClearFlag.Depth))
-                    ? RenderBufferLoadAction.DontCare
-                    : RenderBufferLoadAction.Load;
-
-                RenderBufferStoreAction depthStoreOp = RenderBufferStoreAction.Store;
-
-                SetRenderTarget(cmd, colorAttachmentHandle.Identifier(), colorLoadOp, colorStoreOp,
-                    depthAttachmentHandle.Identifier(), depthLoadOp, depthStoreOp, clearFlag, clearColor, descriptor.dimension);
-
-                // TODO: We need a proper way to handle multiple camera/ camera stack. Issue is: multiple cameras can share a same RT
-                // (e.g, split screen games). However devs have to be dilligent with it and know when to clear/preserve color.
-                // For now we make it consistent by resolving viewport with a RT until we can have a proper camera management system
-                //if (colorAttachmentHandle == -1 && !cameraData.isDefaultViewport)
-                //    cmd.SetViewport(camera.pixelRect);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                XRUtils.DrawOcclusionMesh(cmd, camera, renderingData.cameraData.isStereoEnabled);
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(camera, sortFlags, rendererConfiguration, renderingData.supportsDynamicBatching, renderingData.lightData.mainLightIndex);
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_OpaqueFilterSettings);
+                var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                renderer.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_OpaqueFilterSettings, SortingCriteria.None);
+                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

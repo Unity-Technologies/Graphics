@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -20,10 +20,6 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return false; } }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Scene-Color-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -38,7 +34,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV);
+    Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV.xy);
 }
 ";
         }

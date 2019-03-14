@@ -52,6 +52,11 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        public override bool isExposable
+        {
+            get { return true; }
+        }
+
         public override string GetPropertyBlockString()
         {
             if (!generatePropertyBlock)
@@ -93,12 +98,12 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new ColorNode { color = new ColorNode.Color(value, colorMode) };
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new ColorShaderProperty();
             copied.displayName = displayName;

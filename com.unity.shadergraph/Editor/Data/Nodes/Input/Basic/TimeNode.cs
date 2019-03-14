@@ -24,10 +24,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Time-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

@@ -21,17 +21,19 @@ namespace UnityEditor.VFX.Utils
         SerializedProperty m_ExecuteInEditor;
 
         GenericMenu m_Menu;
-        Editor m_ElementEditor;
+        VFXBinderEditor m_ElementEditor;
 
-        static Color validColor = new Color(0.5f, 1.0f, 0.2f);
-        static Color invalidColor = new Color(1.0f, 0.5f, 0.2f);
+        static readonly Color validColor = new Color(0.5f, 1.0f, 0.2f);
+        static readonly Color invalidColor = new Color(1.0f, 0.5f, 0.2f);
+        static readonly Color errorColor = new Color(1.0f, 0.2f, 0.2f);
+
 
         static class Styles
         {
             public static GUIStyle labelStyle;
             static Styles()
             {
-                labelStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset(20, 0, 2, 0) };
+                labelStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset(20, 0, 2, 0), richText = true};
             }
         }
 
@@ -100,7 +102,7 @@ namespace UnityEditor.VFX.Utils
                         }
                         else
                         {
-                            EditorGUILayout.PropertyField(property);
+                            EditorGUILayout.PropertyField(property, true);
                         }
                     }
                 }
@@ -161,7 +163,7 @@ namespace UnityEditor.VFX.Utils
             {
                 foreach (Type t in assembly.GetTypes())
                 {
-                    if (t.BaseType == typeof(VFXBinderBase))
+                    if (typeof(VFXBinderBase).IsAssignableFrom(t) && !t.IsAbstract)
                         relevantTypes.Add(t);
                 }
             }
@@ -192,7 +194,11 @@ namespace UnityEditor.VFX.Utils
         public void UpdateSelection(int selected)
         {
             if (selected >= 0)
-                CreateCachedEditor(m_Elements.GetArrayElementAtIndex(selected).objectReferenceValue, typeof(Editor), ref m_ElementEditor);
+            {
+                Editor editor = null;
+                CreateCachedEditor(m_Elements.GetArrayElementAtIndex(selected).objectReferenceValue, typeof(VFXBinderEditor), ref editor);
+                m_ElementEditor = editor as VFXBinderEditor;
+            }
             else
                 m_ElementEditor = null;
         }
@@ -205,24 +211,42 @@ namespace UnityEditor.VFX.Utils
         public void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             var target = m_Elements.GetArrayElementAtIndex(index).objectReferenceValue as VFXBinderBase;
-            var element = target.ToString();
-
-            GUI.Label(rect, new GUIContent(element), Styles.labelStyle);
-
-            var component = (m_Component.objectReferenceValue as VisualEffect);
-            bool valid = target.IsValid(component);
-
             Rect iconRect = new Rect(rect.xMin + 4, rect.yMin + 4, 8, 8);
-            EditorGUI.DrawRect(iconRect, valid ? validColor : invalidColor);
+
+            if (target != null)
+            {
+                var element = target.ToString();
+
+                GUI.Label(rect, new GUIContent(element), Styles.labelStyle);
+
+                var component = (m_Component.objectReferenceValue as VisualEffect);
+                bool valid = target.IsValid(component);
+
+
+                EditorGUI.DrawRect(iconRect, valid ? validColor : invalidColor);
+            }
+            else
+            {
+                EditorGUI.DrawRect(iconRect, errorColor);
+                GUI.Label(rect, "<color=red>(Missing or Null Parameter Binder)</color>", Styles.labelStyle);
+            }
+
         }
 
         public void RemoveElement(ReorderableList list)
         {
             int index = m_List.index;
             var element = m_Elements.GetArrayElementAtIndex(index).objectReferenceValue;
-            Undo.DestroyObjectImmediate(element);
-            m_Elements.DeleteArrayElementAtIndex(index);
-            m_Elements.DeleteArrayElementAtIndex(index);
+            if(element != null)
+            {
+                Undo.DestroyObjectImmediate(element);
+                m_Elements.DeleteArrayElementAtIndex(index); // Delete object reference
+            }
+            else
+            {
+                Undo.RecordObject(serializedObject.targetObject, "Remove null entry");
+            }
+            m_Elements.DeleteArrayElementAtIndex(index); // Remove list entry
             UpdateSelection(-1);
         }
 

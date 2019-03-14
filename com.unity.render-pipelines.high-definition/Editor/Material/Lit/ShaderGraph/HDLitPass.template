@@ -24,8 +24,7 @@ Pass
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     //#pragma enable_d3d11_debug_symbols
 
-    #pragma multi_compile_instancing
-    #pragma instancing_options renderinglayer
+    $splice(InstancingOptions)
 
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -54,6 +53,9 @@ Pass
     $RefractionSphere:                   #define _REFRACTION_SPHERE 1
     $DisableDecals:                      #define _DISABLE_DECALS 1
     $DisableSSR:                         #define _DISABLE_SSR 1
+    $DoubleSided:                        #define _DOUBLESIDED_ON 1
+    $TransparentWritesVelocity:          #define _WRITE_TRANSPARENT_VELOCITY 1
+    $DepthOffset:                        #define _DEPTHOFFSET_ON 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -62,16 +64,12 @@ Pass
     #pragma vertex Vert
     #pragma fragment Frag
 
-    // This will be enabled in an upcoming change. 
-    // #define SURFACE_GRADIENT
-
     // If we use subsurface scattering, enable output split lighting (for forward pass)
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING
     #endif
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 
@@ -170,7 +168,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Metallic:                   surfaceData.metallic =                  surfaceDescription.Metallic;
         $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
-        $SurfaceDescription.DiffusionProfile:           surfaceData.diffusionProfile =          surfaceDescription.DiffusionProfile;
+        $SurfaceDescription.DiffusionProfileHash:       surfaceData.diffusionProfileHash =      asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.Specular:                   surfaceData.specularColor =             surfaceDescription.Specular;
         $SurfaceDescription.CoatMask:                   surfaceData.coatMask =                  surfaceDescription.CoatMask;
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
@@ -228,15 +226,19 @@ $include("SharedCode.template.hlsl")
         surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
 #endif
 
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
         $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
 
         // compute world space normal
-        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS);
+        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
         bentNormalWS = surfaceData.normalWS;
-        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS);
+        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
         surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
 
@@ -289,14 +291,11 @@ $include("SharedCode.template.hlsl")
         LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-        // This applies the double sided tangent space correction
-        // Must match /Runtime/Material/MaterialUtilities.hlsl:ApplyDoubleSidedFlipOrMirror()
-        $DoubleSided:            if (!fragInputs.isFrontFace)
-        $DoubleSided:            {
-        $DoubleSided.Flip:           fragInputs.worldToTangent[1] = -fragInputs.worldToTangent[1];     // bitangent
-        $DoubleSided.Flip:           fragInputs.worldToTangent[2] = -fragInputs.worldToTangent[2];     // normal
-        $DoubleSided.Mirror:         fragInputs.worldToTangent[2] = -fragInputs.worldToTangent[2];     // normal
-        $DoubleSided:            }
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
+        ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
@@ -307,18 +306,23 @@ $include("SharedCode.template.hlsl")
         $AlphaTestPrepass:  DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
         $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
         $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
+        
+        $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
-        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+
+        // override sampleBakedGI:
+        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
+        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
-        // TODO: Handle depth offset
-        //builtinData.depthOffset = 0.0;
+        $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
 #if (SHADERPASS == SHADERPASS_DISTORTION)
         builtinData.distortion = surfaceDescription.Distortion;

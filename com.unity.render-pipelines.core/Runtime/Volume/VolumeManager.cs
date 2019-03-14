@@ -10,13 +10,8 @@ namespace UnityEngine.Rendering
 
     public sealed class VolumeManager
     {
-        //>>> System.Lazy<T> is broken in Unity (legacy runtime) so we'll have to do it ourselves :|
-        static readonly VolumeManager s_Instance = new VolumeManager();
-        public static VolumeManager instance { get { return s_Instance; } }
-
-        // Explicit static constructor to tell the C# compiler not to mark type as beforefieldinit
-        static VolumeManager() {}
-        //<<<
+        static readonly Lazy<VolumeManager> s_Instance = new Lazy<VolumeManager>(() => new VolumeManager());
+        public static VolumeManager instance => s_Instance.Value;
 
         // Internal stack
         public VolumeStack stack { get; private set; }
@@ -71,8 +66,8 @@ namespace UnityEngine.Rendering
             m_ComponentsDefaultState.Clear();
 
             // Grab all the component types we can find
-            baseComponentTypes = CoreUtils.GetAllAssemblyTypes()
-                .Where(t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract);
+            baseComponentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
+                .Where(t => !t.IsAbstract);
 
             // Keep an instance of each type to be used in a virtual lowest priority global volume
             // so that we have a default state to fallback to when exiting volumes
@@ -155,7 +150,7 @@ namespace UnityEngine.Rendering
             Register(volume, newLayer);
         }
 
-        // Go through all listed components and lerp overriden values in the global state
+        // Go through all listed components and lerp overridden values in the global state
         void OverrideData(VolumeStack stack, List<VolumeComponent> components, float interpFactor)
         {
             foreach (var component in components)

@@ -18,10 +18,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Texture-3D-Asset-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -65,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             var prop = new Texture3DShaderProperty { value = m_Texture };
             if (texture != null)

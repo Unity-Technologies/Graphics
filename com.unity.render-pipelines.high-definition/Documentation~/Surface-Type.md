@@ -14,7 +14,7 @@ If you set the **Surface Type** to **Transparent**, HDRP exposes options to set 
 | Property                       | Description                                                  |
 | ------------------------------ | ------------------------------------------------------------ |
 | **Blending Mode**              | Use the drop-down to determine how HDRP calculates the color of each pixel of the transparent Material by blending the Material with the background pixels. |
-| **- Alpha**                    | Uses the Material’s alpha value to change how transparent an object is.0 is fully transparent. 1 appears fully opaque, but the Material is still rendered during the Transparent render pass. This is useful for visuals that you want to be fully visible but to also fade over time, like clouds. |
+| **- Alpha**                    | Uses the Material’s alpha value to change how transparent an object is. 0 is fully transparent. 1 appears fully opaque, but the Material is still rendered during the Transparent render pass. This is useful for visuals that you want to be fully visible but to also fade over time, like clouds. |
 | **- Additive**                 | Adds the Material’s RGB values to the background color. The alpha channel of the Material modulates the intensity. A value of 0 adds nothing and a value of 1 adds 100% of the Material color to the background color. |
 | - **Premultiply**              | Assumes that you have already multiplied the RGB values of the Material by the alpha channel. This gives better results than **Alpha** blending when filtering images or composing different layers. |
 | **Preserve specular lighting** | Preserves the specular elements on the transparent surface, such as sunbeams shining off glass or water |

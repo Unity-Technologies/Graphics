@@ -48,6 +48,9 @@ Pass
     $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
+    $DoubleSided:                       #define _DOUBLESIDED_ON 1
+    $TransparentWritesVelocity:         #define _WRITE_TRANSPARENT_VELOCITY 1
+    $DepthOffset:                        #define _DEPTHOFFSET_ON 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -56,16 +59,12 @@ Pass
     #pragma vertex Vert
     #pragma fragment Frag
 
-    // This will be enabled in an upcoming change. 
-    // #define SURFACE_GRADIENT
-
     // If we use subsurface scattering, enable output split lighting (for forward pass)
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING
     #endif
     
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Wind.hlsl"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 
@@ -184,7 +183,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
         $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;        
         $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
-        $SurfaceDescription.DiffusionProfile:               surfaceData.diffusionProfile =              surfaceDescription.DiffusionProfile;
+        $SurfaceDescription.DiffusionProfileHash:           surfaceData.diffusionProfileHash =          asuint(surfaceDescription.DiffusionProfileHash);
         $SurfaceDescription.SubsurfaceMask:                 surfaceData.subsurfaceMask =                surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                      surfaceData.thickness =                     surfaceDescription.Thickness;
 
@@ -211,21 +210,41 @@ $include("SharedCode.template.hlsl")
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_TRANSMISSION;
 #endif
 
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
         $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
 
         // compute world space normal
-        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS);
+        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
         bentNormalWS = surfaceData.normalWS;
-        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS);
+        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
         surfaceData.geomNormalWS = fragInputs.worldToTangent[2];
 
-        surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);    // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-        $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.worldToTangent);
-        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+        // For a typical Unity quad, you have tangent vectors pointing to the right (X axis),
+        // and bitangent vectors pointing up (Y axis).
+        // The current hair setup uses mesh cards (e.g. quads).
+        // Hair is usually painted top-down, from the root to the tip.
+        // Therefore, DefaultHairStrandTangent = -MeshCardBitangent.
+        // Both the SurfaceData and the BSDFData store the hair tangent
+        // (which represents the hair strand direction, root to tip).
+        surfaceData.hairStrandDirectionWS = -fragInputs.worldToTangent[1].xyz;
+        // The hair strand direction texture contains tangent-space vectors.
+        // We use the same convention for the texture, which means that
+        // to get the default behavior (DefaultHairStrandTangent = -MeshCardBitangent),
+        // the artist has to paint (0, -1, 0).
+        // TODO: pending artist feedback...
+        $HairStrandDirection: surfaceData.hairStrandDirectionWS = TransformTangentToWorld(surfaceDescription.HairStrandDirection, fragInputs.worldToTangent);
+        // The original Kajiya-Kay BRDF model expects an orthonormal TN frame.
+        // Since we use the tangent shift hack (http://web.engr.oregonstate.edu/~mjb/cs519/Projects/Papers/HairRendering.pdf),
+        // we may as well not bother to orthonormalize anymore.
+        // The tangent should still be a unit vector, though.
+        surfaceData.hairStrandDirectionWS = normalize(surfaceData.hairStrandDirectionWS);
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
         // If user provide bent normal then we process a better term
@@ -276,14 +295,11 @@ $include("SharedCode.template.hlsl")
         LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-        // This applies the double sided tangent space correction
-        // Must match /Runtime/Material/MaterialUtilities.hlsl:ApplyDoubleSidedFlipOrMirror()
-        $DoubleSided:            if (!fragInputs.isFrontFace)
-        $DoubleSided:            {
-        $DoubleSided.Flip:           fragInputs.worldToTangent[1] = -fragInputs.worldToTangent[1];     // bitangent
-        $DoubleSided.Flip:           fragInputs.worldToTangent[2] = -fragInputs.worldToTangent[2];     // normal
-        $DoubleSided.Mirror:         fragInputs.worldToTangent[2] = -fragInputs.worldToTangent[2];     // normal
-        $DoubleSided:            }
+        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
+        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+
+        ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
@@ -295,17 +311,22 @@ $include("SharedCode.template.hlsl")
         $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
         $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
 
+        $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
     
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
-        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+
+        // override sampleBakedGI:
+        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
+        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
+
+        $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
-
-        // TODO: Handle depth offset
-        //builtinData.depthOffset = 0.0;
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
     }

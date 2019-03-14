@@ -36,5 +36,8 @@ Material:
     m_Floats:
     - Vector1_3C23F346: 0.5
     - _AlphaClipTexture: 0.5
+    - _DiffusionProfileHash: 2.6072488
     m_Colors:
+    - _DiffusionProfileAsset: {r: 5.558654e-17, g: 3.2117024e+22, b: 1.5756676e-18,
+        a: -8.2284094e+24}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

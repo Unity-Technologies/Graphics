@@ -54,8 +54,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // MaterialFeature dependent attribute
 
             // SSS
-            [SurfaceDataAttributes("Diffusion Profile")]
-            public uint diffusionProfile;
+            [SurfaceDataAttributes("Diffusion Profile Hash")]
+            public uint diffusionProfileHash;
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
 
@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // MaterialFeature dependent attribute
 
             // SSS
-            public uint diffusionProfile;
+            public uint diffusionProfileIndex;
             public float subsurfaceMask;
 
             // Transmission

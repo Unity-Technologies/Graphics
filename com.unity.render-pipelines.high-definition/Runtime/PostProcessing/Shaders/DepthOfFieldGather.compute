@@ -1,0 +1,149 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "DepthOfFieldCommon.hlsl"
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel KMainFar           MAIN=KMainFar         FAR
+#pragma kernel KMainFarTiles      MAIN=KMainFarTiles    FAR USE_TILES
+#pragma kernel KMainNear          MAIN=KMainNear        NEAR
+#pragma kernel KMainNearTiles     MAIN=KMainNearTiles   NEAR USE_TILES
+
+TEXTURE2D_X(_InputTexture);
+TEXTURE2D_X(_InputCoCTexture);
+TEXTURE2D_X(_InputDilatedCoCTexture);
+
+RW_TEXTURE2D_X(float3, _OutputTexture);
+RW_TEXTURE2D_X(float, _OutputAlphaTexture);
+
+SAMPLER(sampler_LinearClamp);
+SAMPLER(sampler_TrilinearClamp);
+
+#if FAR
+#define SamplerTap sampler_TrilinearClamp
+#else
+#define SamplerTap sampler_LinearClamp
+#endif
+
+StructuredBuffer<uint> _BokehKernel;
+
+#if USE_TILES
+ConsumeStructuredBuffer<TileData> _TileList;
+
+// Tile coordinates extracted from _TileList for the thread group
+groupshared uint2 gs_tileCoord;
+#endif
+
+CBUFFER_START(cb0)
+    float4 _Params;
+    float4 _TexelSize;
+CBUFFER_END
+
+#define SampleCount         _Params.x
+#define TotalSampleCount    _Params.y
+#define BarrelClipping      _Params.z
+#define Radius              _Params.w
+
+#define GROUP_RES  8u
+#define GROUP_SIZE (GROUP_RES * GROUP_RES)
+
+#if USE_TILES
+[numthreads(GROUP_SIZE, 1, 1)]
+void MAIN(uint groupThreadId : SV_GroupThreadID)
+#else
+[numthreads(GROUP_RES, GROUP_RES, 1)]
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+#endif
+{
+#if USE_TILES
+    // First thread of the group is responsible for grabbing the tile coordinates
+    if (groupThreadId == 0u)
+    {
+        TileData tileData = _TileList.Consume();
+        gs_tileCoord = UnpackTileCoord(tileData);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Compute the actual pixel coordinate we're working
+    uint2 dispatchThreadId = gs_tileCoord + uint2(groupThreadId % GROUP_RES, groupThreadId / GROUP_RES);
+#else
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+#endif
+
+    if (any(dispatchThreadId.xy >= uint2(_TexelSize.xy)))
+        return; // Out of bounds, discard
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw, uint2(GROUP_RES, GROUP_RES));
+    float2 uv = posInputs.positionNDC;
+    float2 barrelUV = (uv * 2.0 - 1.0) * BarrelClipping;
+
+    // Current pixel CoC
+#if NEAR
+    float samp0CoC = LOAD_TEXTURE2D_X(_InputDilatedCoCTexture, posInputs.positionSS).x;
+#else // FAR
+    float samp0CoC = LOAD_TEXTURE2D_X(_InputCoCTexture, posInputs.positionSS).x;
+#endif
+
+    const float kMaxMips = 4.0;
+    float2 sampDist = _TexelSize.zw * samp0CoC * Radius;
+
+#if NEAR
+    float mip = 0.0;
+#else
+    float mip = min(kMaxMips, (1.0 / (SampleCount - 1.5)) * samp0CoC * Radius);
+#endif
+
+    // Avoid bleeding with the RTHandle autosize system
+#if FAR
+        // A bit more generous maxCoord because of trilinear being involved.
+    float texelsToClamp = 2.0f;
+#else
+    float texelsToClamp = 1.0f;
+#endif
+    float4 acc = 0.0;
+    float nearWeightAcc = 0.0;
+
+    // Gather samples
+    UNITY_LOOP
+    for (uint i = 0u; i < uint(TotalSampleCount); i++)
+    {
+        float2 sampTap = UnpackKernelCoord(_BokehKernel, i);
+
+        // Note: this barrel clipping / optical vignetting trick isn't correct as we're symetrically
+        // shifting samples instead of actually clipping them but due to the low number of samples
+        // we can't do a proper implementation so this will do for now and it looks close-enough at
+        // low clipping values
+        float clipping = 1.0 - abs(dot(sampTap, barrelUV));
+        sampTap = sampTap * sampDist * clipping + uv;
+        sampTap = ClampAndScaleUV(sampTap, _TexelSize.zw, texelsToClamp);
+
+        float3 sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).xyz;
+        float sampCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;
+
+        #if NEAR
+        {
+            float weight = saturate(1.0 - (sampCoC - samp0CoC));
+            acc += float4(sampColor, sampCoC > 0.0) * weight;
+            nearWeightAcc += weight;
+        }
+        #else // FAR
+        {
+            // Weight & pre-multiply to limit bleeding on the focused area
+            float weight = saturate(1.0 - (samp0CoC - sampCoC));
+            acc += float4(sampColor, sampCoC) * weight;
+        }
+        #endif
+    }
+
+
+#if NEAR
+    float alpha = saturate(sqrt((acc.w / TotalSampleCount) * PI));
+    alpha = smoothstep(0.0, 1.0, alpha);
+
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = acc.xyz / (nearWeightAcc + 1e-5); // zero-div guard
+    _OutputAlphaTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = alpha;
+#else // FAR
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = acc.xyz / (acc.w + 1e-5); // zero-div guard
+#endif
+}

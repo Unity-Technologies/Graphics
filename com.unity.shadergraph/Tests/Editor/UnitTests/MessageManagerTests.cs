@@ -212,7 +212,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             var n0 = new AndNode {tempId = node0};
             var n2 = new AndNode {tempId = node2};
-            var nodesToClear = new List<INode>() { n0, n2 };
+            var nodesToClear = new List<AbstractMaterialNode>() { n0, n2 };
             m_ComplexMgr.ClearNodesFromProvider(p1, nodesToClear);
 
             var ret = GetListFrom(m_ComplexMgr);
@@ -225,7 +225,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             var n0 = new AndNode {tempId = node0};
             var n2 = new AndNode {tempId = node2};
-            var nodesToClear = new List<INode>() { n0, n2 };
+            var nodesToClear = new List<AbstractMaterialNode>() { n0, n2 };
             m_ComplexMgr.ClearNodesFromProvider(p1, nodesToClear);
 
             var ret = GetListFrom(m_ComplexMgr);

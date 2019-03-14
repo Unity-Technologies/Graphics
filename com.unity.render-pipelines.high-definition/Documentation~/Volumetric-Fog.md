@@ -4,13 +4,13 @@ Volumetric fog is the most advanced implementation of fog available in the High 
 
 ## Adding Fog to your Scene
 
-To use volumetric fog in your Scene,create a Scene Settings GameObect (menu: __GameObject > Rendering > Scene Settings__). This contains a Volume component that has a [Visual Environment](Visual-Environment.html) override component that you can use to override HDRP’s default environment settings.
+To use volumetric fog in your Scene, create a Scene Settings GameObect (menu: __GameObject > Rendering > Scene Settings__). This contains a Volume component that has a [Visual Environment](Visual-Environment.html) override that you can use to override HDRP’s default environment settings.
 
 Configure the Visual Environment override so that it uses __Volumetric Fog__ as its __Fog Type__.
 
 ![](Images/VolumetricFog1.png)
 
-Now add a __Volumetric Fog__ override to the Volume. Click __Add component overrides__ and then click __Volumetric Fog__.
+Now add a __Volumetric Fog__ override to the Volume. Click __Add Override__ and then click __Volumetric Fog__.
 
 Within the Scene, there is usually a single Volume set to __IsGlobal__ that contains a Visual Environment override. Having a single global Visual Environment means that Unity uses the same __Sky Type__ and __Fog Type__ everywhere in the Scene. You can still use local Volumes with different __Sky Types__ and __Fog Types__, but the transition between them is obvious and instantaneous. If you want to use multiple Visual Environments in different Volumes in your Scene, it is best to make the transition on Camera cuts.
 
@@ -38,7 +38,7 @@ __Volumetric Fog__ properties:
 | **Global Light Probe Dimmer** | Reduces the intensity of the global Light Probe that the sky generates. |
 | **Max Fog Distance** | Controls the distance (in Unity units) when applying fog to the skybox or background. Also determines the range of the Distant Fog. For optimal results, set this to be larger than the Camera’s Far value for its Clipping Plane. Otherwise, a discrepancy occurs between the fog on the Scene’s GameObjects and on the skybox. Note that the Camera’s Far Clipping Plane is flat whereas HDRP applies fog within a sphere surrounding the Camera. |
 | **Distant Fog** | Activates the fog with precomputed lighting behind the volumetric section of the Camera’s frustum. The fog stretches from the maximum Distance Range in the Volumetric Lighting Controller to the Max Fog Distance. |
-| **Color Mode**              | Provides two methods HDRP can use to set the lighting intensity of the distant fog. This property is only visible when Enable Distant Fog is checked. |
+| **Color Mode**              | Provides two methods HDRP can use to set the lighting intensity of the distant fog. This property is only visible when you enable the Distant Fog checkbox. |
 | **- Constant Color**    | HDRP illuminates distant fog uniformly using the provided Color property. |
 | **- - Color**           | The color that HDRP uses to illuminate the distant fog.      |
 | **- Sky Color**         | HDRP illuminates distant fog depending on the skybox, the view direction, and the distance. The cubemap of the sky provides all lighting. |
@@ -85,7 +85,7 @@ To create a Density Volume, right click in the Hierarchy and select __Rendering 
 
 2.2. Set the __Channel__ to __Alpha__.
 
-2.3. Check __Read/Write Enabled__.
+2.3. Enable the __Read/Write Enabled__ checkbox.
 
 3. Navigate to __Window > Rendering > Density Volume Texture Tool__.
 4. Drag and drop your texture into the __Slice Texture__ field and set the __Texture Slice Size__ to 32.

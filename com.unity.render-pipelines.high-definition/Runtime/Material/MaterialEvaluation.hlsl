@@ -51,15 +51,21 @@ struct AmbientOcclusionFactor
 // Get screen space ambient occlusion only:
 float GetScreenSpaceDiffuseOcclusion(float2 positionSS)
 {
-    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
-    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
-    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
-     // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, positionSS).x;
-#else
-    float indirectAmbientOcclusion = 1.0;
-#endif
+    #if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
+        // When we are in raytracing mode, we do not want to take the screen space computed AO texture
+        float indirectAmbientOcclusion = 1.0;
+    #else
+        // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+        // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+        // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+        // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
+        #ifndef _SURFACE_TYPE_TRANSPARENT
+        float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D_X(_AmbientOcclusionTexture, positionSS).x;
+        #else
+        float indirectAmbientOcclusion = 1.0;
+        #endif
+    #endif
+
     return indirectAmbientOcclusion;
 }
 
@@ -146,7 +152,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
-         case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
+        case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
             #ifdef SHADOWS_SHADOWMASK
             diffuseLighting = float3(
                 builtinData.shadowMask0 / 2 + builtinData.shadowMask1 / 2,

@@ -1867,7 +1867,7 @@ namespace UnityEditor.VFX.UI
 
                 VFXContextType type = VFXContextType.kNone;
                 VFXContext prevContext = null;
-                var orderedContexts = systems[i].Keys.OrderBy(t => t.contextType).ThenBy(t => systems[i][t]).ThenBy(t => t.position.x).ThenBy(t => t.position.y).ToArray();
+                var orderedContexts = contextToController.Keys.OrderBy(t => t.contextType).ThenBy(t => systems[i][t]).ThenBy(t => t.position.x).ThenBy(t => t.position.y).ToArray();
 
                 char letter = 'A';
                 foreach (var context in orderedContexts)

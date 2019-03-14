@@ -68,7 +68,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1401_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
-  - enabled: 0
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1402_StackLitSG_Testers.unity
+    guid: 23d1a6dbc0bbc7d4abf6ce5e9cd0e132
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1402_StackLitSG_PLM.unity
+    guid: baf6b66103b82f74e95a5ce4e8051db7
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1501_Fabric.unity
     guid: ce2b258da0df8d245b659390b6c2ac51
   - enabled: 1
@@ -80,7 +86,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1602_TerrainLit_Normal.unity
     guid: 493570d0c7a7cd0449d5ceb578701b5e
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1701_HairGraph/1701_HairGraph.unity
     guid: 7c0b384fd32894841954edea3211d084
   - enabled: 1
@@ -92,7 +98,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2003_Light_Parameters.unity
     guid: ac9787fadf0b4ed4391bee6ba1d8e213
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2004_AnimatedCookie.unity
     guid: 9f03abfd8e9cc614c89458cbdb208e7c
   - enabled: 1
@@ -101,7 +107,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2006_Spot_Angle_Distance.unity
     guid: c39638d0d6bfcf644b4b6966af6fc876
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2007_FogFallback.unity
     guid: d04c39af67e5e18449a44f6a7778862f
   - enabled: 1
@@ -119,33 +125,33 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2202_ReflectionProbes_Volume.unity
     guid: 9b3132db666b3ae48aa17349ab100118
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2203_PlanarProbes.unity
     guid: b8fa5b1235e91884799163adaf34e5d6
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2204_ReflectionProbes_Lights.unity
     guid: 21d198bbbf9143d40b227ad2fe71706f
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2205_ReflectionProbes_influence.unity
-    guid: 423802799a6e57644a5d581a894f4646
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2206_LightLoopCullWOblique.unity
-    guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 0
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2205_LightLoopCullWOblique.unity
+    guid: 2fb467d07511ad0498c47a86eb170d71
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2206_PlanarReflectionVFace.unity
     guid: d4d352e2cbfbfac4686e77b69fe84ec0
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2207_ReflectionProbeVFace.unity
     guid: 4814073d6e6ec404bba1f26bec73307a
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2208_PlanarReflectionCullingStencil.unity
     guid: a550f264fed1623459f813b5001bea48
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2209_ReflectionProbeCullingStencil.unity
     guid: b8090c44833d0a842bcd90e27dc43b6b
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2210_ReflectionProbes_CaptureAtVolumeAnchor.unity
     guid: 6abac8c2689f0ed48b18d05bc496d5c4
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2211_Probes_Specular.unity
+    guid: 39d1e1615890a9549ac33171a52cba4c
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2301_Shadow_Mask.unity
     guid: 1029947770f955b4290bbdd8b641f7f1
@@ -164,7 +170,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2306_Contact_Shadow_SpotLight.unity
     guid: a8ecf1e3cee864a48bd6bca2c797fdb3
-  - enabled: 0
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2307_ShadowVeryHigh.unity
+    guid: c110cc3f909bb664b82eb554f0494597
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
     guid: 3f6529c22f7d2ca46814b2e7afd04ef9
   - enabled: 1
@@ -177,8 +186,11 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2602_BakedSpotShape.unity
     guid: c034386e3fb58f44783743edf9b0f4a4
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2307_ShadowVeryHigh.unity
-    guid: c110cc3f909bb664b82eb554f0494597
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2701_TexturedAreaLights.unity
+    guid: 3b6ce72f472558240a2a8d61a932c6d0
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2801_SSR.unity
+    guid: 62f2b88cccb280246a9211bbcf0c8245
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
     guid: 21522d96110c8dd41ab353d89fd740c3
@@ -210,14 +222,14 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8101_Opaque.unity
     guid: 3f9e911b4dbc9464e85add595c37cb89
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8104_Unlit.unity
-    guid: 7529f10e11b78924b9c1ee1727b1405f
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8102_Transparent.unity
     guid: c2f6e1c5441279d42b05dbe99212bf2d
   - enabled: 0
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8103_PrePostPass.unity
     guid: 92280049d357c564b9a9297b39e02a92
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8104_Unlit.unity
+    guid: 7529f10e11b78924b9c1ee1727b1405f
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8201_VertexAnimation.unity
     guid: 328570ab5ddac484bbf26d8504f7f417
@@ -230,6 +242,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8204_CustomSpecOcclusion.unity
     guid: ea4b63b16805d5d40a81ed8842d96847
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8205_SceneDepthColorNodes.unity
+    guid: 17a399a27d6d4504cb53093dcadfe715
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9001_Decals.unity
     guid: a27cb5a638892574f99eb333bb3c7722
@@ -293,10 +308,25 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9302_MotionVectorsOn-DefferedDecal-Static.unity
     guid: aa2b8ed7d0d276340b794c91ebc7cdce
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/9x_Other/9401_MSAAForwardOnly.unity
     guid: b8bed8c61a04a644f87582e26e3596f2
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9401_MSAAForwardBoth.unity
     guid: 3355ad2efd7c699418d5a0db666d2d01
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9501_MultiViewport.unity
+    guid: ee1bdf0fe4a145549a0172f292129c20
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/9x_Other/9601_MotionBlur_Camera.unity
+    guid: 892e89367e6a34d4ea96b674a1370de5
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/9x_Other/9602_MotionBlur_PerObject.unity
+    guid: 74db5310e2f20b340b2efb3b4c4d9edf
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9701_AfterPostProcess.unity
+    guid: 2bb5d28daf3968e40aad1ae3211c2e9d
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2308_Shadow_AreaLight.unity
+    guid: b03383077f153b7439af7708ebe1155a
   m_configObjects: {}

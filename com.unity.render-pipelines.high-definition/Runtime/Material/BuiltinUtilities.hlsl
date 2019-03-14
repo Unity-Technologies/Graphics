@@ -3,7 +3,7 @@ float4x4 GetProbeVolumeWorldToObject()
 {
     return ApplyCameraTranslationToInverseMatrix(unity_ProbeVolumeWorldToObject);
 }
-    
+
 // In unity we can have a mix of fully baked lightmap (static lightmap) + enlighten realtime lightmap (dynamic lightmap)
 // for each case we can have directional lightmap or not.
 // Else we have lightprobe for dynamic/moving entity. Either SH9 per object lightprobe or SH4 per pixel per object volume probe
@@ -12,8 +12,6 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     // If there is no lightmap, it assume lightprobe
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
 
-// TODO: Confirm with Ionut but it seems that UNITY_LIGHT_PROBE_PROXY_VOLUME is always define for high end and
-// unity_ProbeVolumeParams always bind.
     if (unity_ProbeVolumeParams.x == 0.0)
     {
         // TODO: pass a tab of coefficient instead!
@@ -30,8 +28,14 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     }
     else
     {
-        return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
-                                    unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
+#if SHADEROPTIONS_RAYTRACING
+        if (unity_ProbeVolumeParams.w == 1.0)
+            return SampleProbeVolumeSH9(TEXTURE2D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
+                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
+        else
+#endif
+            return SampleProbeVolumeSH4(TEXTURE2D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
+                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
     }
 
 #else
@@ -52,21 +56,21 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 
     #ifdef LIGHTMAP_ON
         #ifdef DIRLIGHTMAP_COMBINED
-        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
-                                                        TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
+        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
+                                                        TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
                                                         uvStaticLightmap, unity_LightmapST, normalWS, useRGBMLightmap, decodeInstructions);
         #else
-        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, useRGBMLightmap, decodeInstructions);
+        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST, useRGBMLightmap, decodeInstructions);
         #endif
     #endif
 
     #ifdef DYNAMICLIGHTMAP_ON
         #ifdef DIRLIGHTMAP_COMBINED
-        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_DynamicLightmap, samplerunity_DynamicLightmap),
-                                                        TEXTURE2D_PARAM(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
+        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+                                                        TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
                                                         uvDynamicLightmap, unity_DynamicLightmapST, normalWS, false, decodeInstructions);
         #else
-        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
+        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
         #endif
     #endif
 
@@ -84,7 +88,7 @@ float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS
     float4 rawOcclusionMask;
     if (unity_ProbeVolumeParams.x == 1.0)
     {
-        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, GetProbeVolumeWorldToObject(),
+        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, GetProbeVolumeWorldToObject(),
                                                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
     }
     else
@@ -102,7 +106,7 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 {
     // This test on define is required to remove warning of divide by 0 when initializing empty struct
     // TODO: Add forward opaque MRT case...
-#if (SHADERPASS == SHADERPASS_VELOCITY)
+#if (SHADERPASS == SHADERPASS_VELOCITY) || defined(_WRITE_TRANSPARENT_VELOCITY)
     // Encode velocity
     positionCS.xy = positionCS.xy / positionCS.w;
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
@@ -125,23 +129,30 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 // 3. PostInitBuiltinData - Handle debug mode + allow the current lighting model to update the data with ModifyBakedDiffuseLighting
 
 // This method initialize BuiltinData usual values and after update of builtinData by the caller must be follow by PostInitBuiltinData
-void InitBuiltinData(   float alpha, float3 normalWS, float3 backNormalWS, float3 positionRWS, float4 texCoord1, float4 texCoord2,
+void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, float3 backNormalWS, float4 texCoord1, float4 texCoord2,
                         out BuiltinData builtinData)
 {
     ZERO_INITIALIZE(BuiltinData, builtinData);
 
     builtinData.opacity = alpha;
 
+#if SHADEROPTIONS_RAYTRACING && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_FORWARD)
+    if (_RaytracedIndirectDiffuse == 1)
+    {
+        builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_IndirectDiffuseTexture, posInput.positionSS).xyz;
+    }
+    else
+#endif
     // Sample lightmap/lightprobe/volume proxy
-    builtinData.bakeDiffuseLighting = SampleBakedGI(positionRWS, normalWS, texCoord1.xy, texCoord2.xy);
+    builtinData.bakeDiffuseLighting = SampleBakedGI(posInput.positionWS, normalWS, texCoord1.xy, texCoord2.xy);
     // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler
     // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
     // however it may not optimize the lightprobe case due to the proxy volume relying on dynamic if (to verify), not a problem for SH9, but a problem for proxy volume.
-    // TODO: optimize more this code.    
-    builtinData.backBakeDiffuseLighting = SampleBakedGI(positionRWS, backNormalWS, texCoord1.xy, texCoord2.xy);
+    // TODO: optimize more this code.
+    builtinData.backBakeDiffuseLighting = SampleBakedGI(posInput.positionWS, backNormalWS, texCoord1.xy, texCoord2.xy);
 
 #ifdef SHADOWS_SHADOWMASK
-    float4 shadowMask = SampleShadowMask(positionRWS, texCoord1.xy);
+    float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy);
     builtinData.shadowMask0 = shadowMask.x;
     builtinData.shadowMask1 = shadowMask.y;
     builtinData.shadowMask2 = shadowMask.z;
@@ -180,7 +191,7 @@ void ApplyDebugToBuiltinData(inout BuiltinData builtinData)
 void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
                             inout BuiltinData builtinData)
 {
-    // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive 
+    // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
     // color in case of lit deferred for example and avoid material to have to deal with it
     builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
     builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;

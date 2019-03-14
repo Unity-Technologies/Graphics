@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         Pass m_PassMETA = new Pass()
         {
             Name = "META",
-            LightMode = "Meta",
+            LightMode = "META",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
@@ -98,22 +98,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 HDUnlitMasterNode.PositionSlotId
             },
-            UseInPreview = true
+            UseInPreview = false
         };
 
         Pass m_PassDepthForwardOnly = new Pass()
         {
-            Name = "DepthOnly",
+            Name = "DepthForwardOnly",
             LightMode = "DepthForwardOnly",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ZWriteOverride = "ZWrite On",
-            ColorMaskOverride = "ColorMask 0",
+            // Caution: When using MSAA we have normal and depth buffer bind.
+            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
+            // This is not a problem in no MSAA mode as there is no buffer bind
+            ColorMaskOverride = "ColorMask 0 0",
 
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+                // Note we don't need to define WRITE_NORMAL_BUFFER
             },            
 
             Includes = new List<string>()
@@ -131,18 +135,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDUnlitMasterNode.PositionSlotId
             },
             UseInPreview = false,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as HDUnlitMasterNode;
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(false, false, false, ref pass);
+            }
         };
 
         Pass m_PassMotionVectors = new Pass()
         {
-            Name = "Motion Vectors",
+            Name = "MotionVectors",
             LightMode = "MotionVectors",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
             ShaderPassName = "SHADERPASS_VELOCITY",
+
+            // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
+            // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
+            // This is not a problem in no MSAA mode as there is no buffer bind
+            ColorMaskOverride = "ColorMask 0 1",
+
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+                // Note we don't need to define WRITE_NORMAL_BUFFER
             },
             Includes = new List<string>()
             {
@@ -166,27 +183,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as HDUnlitMasterNode;
-
-                int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-                int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
-
-                pass.StencilOverride = new List<string>()
-                {
-                    "// If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity",
-                    "Stencil",
-                    "{",
-                    string.Format("   WriteMask {0}", stencilWriteMaskMV),
-                    string.Format("   Ref  {0}", stencilRefMV),
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(false, false, true, ref pass);
             }
         };
 
         Pass m_PassDistortion = new Pass()
         {
-            Name = "Distortion",
+            Name = "DistortionVectors",
             LightMode = "DistortionVectors",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
@@ -195,6 +198,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
+            },
+            StencilOverride = new List<string>()
+            {
+                "// Stencil setup",
+                "Stencil",
+                "{",
+                string.Format("   WriteMask {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
+                string.Format("   Ref  {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
+                "   Comp Always",
+                "   Pass Replace",
+                "}"
             },
             PixelShaderSlots = new List<int>()
             {
@@ -240,7 +254,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassForwardOnly = new Pass()
         {
-            Name = "Forward Unlit",
+            Name = "ForwardOnly",
             LightMode = "ForwardOnly",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
@@ -264,10 +278,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 HDUnlitMasterNode.PositionSlotId
             },
-            UseInPreview = true
+            UseInPreview = true,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as HDUnlitMasterNode;
+                HDSubShaderUtilities.GetStencilStateForForwardUnlit(ref pass);
+            }
         };
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(INode iMasterNode, Pass pass)
+        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
 
@@ -346,7 +366,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, masterNode.alphaTest.isOn, masterNode.drawBeforeRefraction.isOn, masterNode.sortPriority);
+                //Handle data migration here as we need to have a renderingPass already set with accurate data at this point.
+                if (masterNode.renderingPass == HDRenderQueue.RenderQueueType.Unknown)
+                {
+                    switch (masterNode.surfaceType)
+                    {
+                        case SurfaceType.Opaque:
+                            masterNode.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+                            break;
+                        case SurfaceType.Transparent:
+#pragma warning disable CS0618 // Type or member is obsolete
+                            if (masterNode.m_DrawBeforeRefraction)
+                            {
+                                masterNode.m_DrawBeforeRefraction = false;
+#pragma warning restore CS0618 // Type or member is obsolete
+                                masterNode.renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
+                            }
+                            else
+                            {
+                                masterNode.renderingPass = HDRenderQueue.RenderQueueType.Transparent;
+                            }
+                            break;
+                        default:
+                            throw new System.ArgumentException("Unknown SurfaceType");
+                    }
+                }
+
+                HDMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn, HDMaterialTags.RenderType.HDUnlitShader);
 
                 // Add tags at the SubShader level
                 {
@@ -380,6 +426,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
+
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitGUI""");
 
             return subShader.GetShaderString(0);

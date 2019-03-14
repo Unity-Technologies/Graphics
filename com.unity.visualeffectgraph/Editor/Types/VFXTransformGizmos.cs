@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace UnityEditor.VFX
         {
             PositionGizmo(transform.position, m_PositionProperty, false);
             RotationGizmo(transform.position, transform.angles, m_AnglesProperty, false);
-            ScaleGizmo(transform.position, transform.scale, m_ScaleProperty, false);
+            ScaleGizmo(transform.position, transform.scale, Quaternion.Euler(transform.angles),m_ScaleProperty, false);
         }
 
         public override Bounds OnGetSpacedGizmoBounds(Transform value)

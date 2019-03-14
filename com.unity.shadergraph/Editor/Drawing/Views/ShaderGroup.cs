@@ -12,14 +12,16 @@ namespace UnityEditor.ShaderGraph
 {
     sealed class ShaderGroup : Group
     {
+        GraphData m_Graph;
         public new GroupData userData
         {
             get => (GroupData)base.userData;
             set => base.userData = value;
         }
 
-        public ShaderGroup()
+        public ShaderGroup(GraphData graph)
         {
+            m_Graph = graph;
             VisualElementExtensions.AddManipulator(this, new ContextualMenuManipulator(BuildContextualMenu));
         }
 
@@ -27,21 +29,14 @@ namespace UnityEditor.ShaderGraph
         {
             if (evt.target is ShaderGroup)
             {
-                evt.menu.AppendAction("Ungroup All Nodes", RemoveNodesInsideGroup, DropdownMenuAction.AlwaysEnabled);
+                evt.menu.AppendAction("Delete Group and Contents", RemoveNodesInsideGroup, DropdownMenuAction.AlwaysEnabled);
             }
         }
 
         void RemoveNodesInsideGroup(DropdownMenuAction action)
         {
-            var elements = containedElements.ToList();
-            foreach (GraphElement element in elements)
-            {
-                var node = element.userData as INode;
-                if (node == null)
-                    continue;
-
-                RemoveElement(element);
-            }
+            m_Graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
+            m_Graph.RemoveElements(m_Graph.GetNodesInGroup(userData), Enumerable.Empty<IEdge>(), new [] {userData});
         }
     }
 }

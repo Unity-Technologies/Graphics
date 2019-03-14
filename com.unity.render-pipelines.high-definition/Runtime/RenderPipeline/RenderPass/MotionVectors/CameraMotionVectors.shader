@@ -14,23 +14,29 @@ Shader "Hidden/HDRP/CameraMotionVectors"
         struct Attributes
         {
             uint vertexID : SV_VertexID;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         Varyings Vert(Attributes input)
         {
             Varyings output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             return output;
         }
 
         void Frag(Varyings input, out float4 outColor : SV_Target0)
         {
-            float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+            float depth = LoadCameraDepth(input.positionCS.xy);
 
             PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
@@ -68,10 +74,11 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             // We will perform camera motion velocity only where there is no object velocity
             Stencil
             {
+                WriteMask 128
                 ReadMask 128
                 Ref  128 // StencilBitMask.ObjectVelocity
                 Comp NotEqual
-                Pass Keep
+                Fail Zero   // We won't need the bit anymore.
             }
 
             Cull Off ZWrite Off ZTest Always

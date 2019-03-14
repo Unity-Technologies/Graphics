@@ -32,7 +32,11 @@ StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 
-#define NR_THREADS          64
+#ifdef PLATFORM_LANE_COUNT      // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
+#define NR_THREADS              PLATFORM_LANE_COUNT  
+#else
+#define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
+#endif
 
 // output buffer
 RWStructuredBuffer<uint> g_vLightList : register( u0 );     // don't support RWBuffer yet in unity
@@ -120,7 +124,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 
     if(t==0) lightOffs = 0;
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -149,7 +153,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
         }
     }
 
-#if /*!defined(SHADER_API_XBOXONE) && */!defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_SWITCH) // not sure why XB1 and Switch need the barrier (it will not be correct without)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -202,8 +206,8 @@ void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 scree
             lightsListLDS[l]=UINT_MAX;
     }
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
-        GroupMemoryBarrierWithGroupSync();
+#if NR_THREADS > PLATFORM_LANE_COUNT
+    GroupMemoryBarrierWithGroupSync();
 #endif
 }
 #endif
@@ -307,8 +311,8 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
             }
         }
     }
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
-        GroupMemoryBarrierWithGroupSync();
+#if NR_THREADS > PLATFORM_LANE_COUNT
+    GroupMemoryBarrierWithGroupSync();
 #endif
 }
 #endif

@@ -9,6 +9,12 @@ namespace UnityEngine.Rendering.LWRP
         UsePipelineSettings,
     }
 
+    public enum RendererOverrideOption
+    {
+        Custom,
+        UsePipelineSettings,
+    }
+
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
@@ -25,6 +31,10 @@ namespace UnityEngine.Rendering.LWRP
         [Tooltip("If enabled opaque color texture will render for this camera and bound as _CameraOpaqueTexture.")]
         [SerializeField]
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
+
+        [SerializeField] RendererOverrideOption m_RendererOverrideOption = RendererOverrideOption.UsePipelineSettings;
+        [SerializeField] ScriptableRendererData m_RendererData = null;
+        ScriptableRenderer m_Renderer = null;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
@@ -87,6 +97,20 @@ namespace UnityEngine.Rendering.LWRP
                 }
             }
             set { m_RequiresOpaqueTextureOption = (value) ? CameraOverrideOption.On : CameraOverrideOption.Off; }
+        }
+
+        public ScriptableRenderer scriptableRenderer
+        {
+            get
+            {
+                if (m_RendererOverrideOption == RendererOverrideOption.UsePipelineSettings || m_RendererData == null)
+                    return LightweightRenderPipeline.asset.scriptableRenderer;
+
+                if (m_RendererData.isInvalidated || m_Renderer == null)
+                    m_Renderer = m_RendererData.InternalCreateRenderer();
+
+                return m_Renderer;
+            }
         }
 
         public void OnBeforeSerialize()

@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.UI
         public Toggle valueToggle;
         public Image checkmarkImage;
 
-        DebugUI.BoolField m_Field;
+        protected DebugUI.BoolField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)
         {
@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.UI
             UpdateValueLabel();
         }
 
-        void UpdateValueLabel()
+        protected virtual void UpdateValueLabel()
         {
             if (valueToggle != null)
                 valueToggle.isOn = m_Field.GetValue();
