@@ -11,6 +11,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
         static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
+        static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
+        const int k_NumberOfLocalShaderKeywords = 4 + 3;  // 4 keywords +  volume bit, shape bit, additive
+
         static readonly string[] k_UseLightOperationKeywords =
         {
             "USE_SHAPE_LIGHT_TYPE_0",
@@ -50,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // The array size should be determined by the number of 'feature bit' the material index has. See GetLightMaterialIndex().
             // Not all slots must be filled because certain combinations of the feature bits don't make sense (e.g. sprite bit on + shape bit off).
             if (s_LightMaterials == null)
-                s_LightMaterials = new Material[64];
+                s_LightMaterials = new Material[1 << k_NumberOfLocalShaderKeywords];
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
@@ -108,8 +111,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 if (light != null && light.lightType != Light2D.LightType.Global && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
-                    Material shapeLightMaterial = GetLightMaterial(light, false);
-                    if (shapeLightMaterial != null)
+                    Material lightMaterial = GetLightMaterial(light, false);
+                    if (lightMaterial != null)
                     {
                         Mesh lightMesh = light.GetMesh();
                         if (lightMesh != null)
@@ -122,17 +125,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                             cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
 
-                            if (!light.hasDirection)
-                            {
-                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightMaterial);
-                            }
-                            else
-                            {
+                            if(light.useNormalMap)
                                 RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
-                                //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
+
+                            // Light code could be combined...
+                            if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform)
+                            {
+                                cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
+                            }
+                            else if(light.lightType == Light2D.LightType.Point)
+                            {
                                 Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                                 Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightMaterial);
+                                cmdBuffer.DrawMesh(lightMesh, matrix, lightMaterial);
                             }
                         }
                     }
@@ -155,8 +160,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     {
                         if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
-                            Material shapeLightVolumeMaterial = GetLightMaterial(light, true);
-                            if (shapeLightVolumeMaterial != null)
+                            Material lightVolumeMaterial = GetLightMaterial(light, true);
+                            if (lightVolumeMaterial != null)
                             {
                                 Mesh lightMesh = light.GetMesh();
                                 if (lightMesh != null)
@@ -166,17 +171,20 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                                     cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
 
-                                    if (!light.hasDirection)
-                                    {
-                                        cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, shapeLightVolumeMaterial);
-                                    }
-                                    else
-                                    {
+                                    // Is this needed
+                                    if (light.useNormalMap)
                                         RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
-                                        //Vector3 scale = new Vector3(2 * light.m_PointLightOuterRadius, 2 * light.m_PointLightOuterRadius, 1);
+
+                                    // Could be combined...
+                                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform)
+                                    {
+                                        cmdBuffer.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
+                                    }
+                                    else if (light.lightType == Light2D.LightType.Point)
+                                    {
                                         Vector3 scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                                         Matrix4x4 matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                                        cmdBuffer.DrawMesh(lightMesh, matrix, shapeLightVolumeMaterial);
+                                        cmdBuffer.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
                                     }
                                 }
                             }
@@ -375,8 +383,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             uint pointCookieBit = (!light.IsShapeLight() && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
             uint pointFastQualityBit = (!light.IsShapeLight() && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
+            bitIndex++;
+            uint useNormalMap = light.useNormalMap ? 1u << bitIndex : 0u;
 
-            return pointFastQualityBit | pointCookieBit | spriteBit | additiveBit | shapeBit | volumeBit;
+            return pointFastQualityBit | pointCookieBit | spriteBit | additiveBit | shapeBit | volumeBit | useNormalMap;
         }
 
         static Material CreateLightMaterial(Light2D light, bool isVolume)
@@ -405,6 +415,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (!isShape && light.pointLightQuality == Light2D.PointLightQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);
+
+            if (light.useNormalMap)
+                material.EnableKeyword(k_UseNormalMap);
 
             return material;
         }

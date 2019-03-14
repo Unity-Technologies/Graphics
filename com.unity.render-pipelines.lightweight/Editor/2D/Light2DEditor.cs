@@ -63,6 +63,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static GUIContent generalFalloffIntensity = EditorGUIUtility.TrTextContent("Falloff Intensity", "Adjusts the falloff curve");
             public static GUIContent generalLightColor = EditorGUIUtility.TrTextContent("Color", "Specify the light color");
             public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light color's intensity");
+            public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
             public static GUIContent generalVolumeOpacity = EditorGUIUtility.TrTextContent("Volume Opacity", "Specify the light's volumetric light volume opacity");
             public static GUIContent generalLightOperation = EditorGUIUtility.TrTextContent("Light Operation", "Specify the light operation");
 
@@ -102,6 +103,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_LightType;
         SerializedProperty m_LightColor;
         SerializedProperty m_LightIntensity;
+        SerializedProperty m_UseNormalMap;
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricAlpha;
         SerializedProperty m_LightOperation;
@@ -142,6 +144,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_LightType = serializedObject.FindProperty("m_LightType");
             m_LightColor = serializedObject.FindProperty("m_Color");
             m_LightIntensity = serializedObject.FindProperty("m_Intensity");
+            m_UseNormalMap = serializedObject.FindProperty("m_UseNormalMap");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
             m_LightOperation = serializedObject.FindProperty("m_LightOperationIndex");
@@ -625,6 +628,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
+            EditorGUILayout.PropertyField(m_UseNormalMap, Styles.generalUseNormalMap);
             m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
             bool updateGlobalLights = EditorGUI.EndChangeCheck();
 

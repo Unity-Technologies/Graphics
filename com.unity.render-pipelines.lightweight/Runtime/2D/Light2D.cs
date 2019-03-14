@@ -67,6 +67,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
         [SerializeField] Sprite m_LightCookieSprite = null;
+        [SerializeField] bool m_UseNormalMap = false;
 
         int         m_PreviousLightOperationIndex;
         float       m_PreviousLightVolumeOpacity;
@@ -105,8 +106,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public float volumeOpacity => m_LightVolumeOpacity;
         public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffCurve => m_FalloffCurve;
-
-        public bool hasDirection { get { return m_LightType == LightType.Point; } }
+        public bool useNormalMap => m_UseNormalMap;
 
 
         //==========================================================================================
