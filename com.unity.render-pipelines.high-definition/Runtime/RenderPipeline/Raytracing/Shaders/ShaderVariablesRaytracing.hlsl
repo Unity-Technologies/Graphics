@@ -1,3 +1,6 @@
+#define RAYTRACING_OPAQUE_FLAG      0x0f
+#define RAYTRACING_TRANSPARENT_FLAG 0xf0
+
 // The target acceleration acceleration structure should only be defined for non compute shaders
 #ifndef SHADER_STAGE_COMPUTE
 RaytracingAccelerationStructure         _RaytracingAccelerationStructure;
@@ -5,6 +8,7 @@ RaytracingAccelerationStructure         _RaytracingAccelerationStructure;
 float                                   _RaytracingRayBias;
 float                                   _RaytracingRayMaxLength;
 int                                     _RaytracingNumSamples;
+int                         			_RaytracingSampleIndex;
 int                                     _RaytracingMaxRecursion;
 float                                   _RaytracingIntensityClamp;
 float                                   _RaytracingReflectionMaxDistance;

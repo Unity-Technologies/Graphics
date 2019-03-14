@@ -157,6 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int numAreaLightShadows = 1;
         [Range(0, 32)]
         public int shadowFilterRadius = 8;
+        public bool splitIntegration = true;
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Indirect diffuse

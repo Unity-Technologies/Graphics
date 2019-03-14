@@ -481,6 +481,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");
         public static readonly int _RaytracingNumSamples            = Shader.PropertyToID("_RaytracingNumSamples");
+        public static readonly int _RaytracingSampleIndex           = Shader.PropertyToID("_RaytracingSampleIndex");
         public static readonly int _RaytracingRayMaxLength          = Shader.PropertyToID("_RaytracingRayMaxLength");
         public static readonly int _PixelSpreadAngle                = Shader.PropertyToID("_PixelSpreadAngle");
         public static readonly int _RaytracingFrameIndex            = Shader.PropertyToID("_RaytracingFrameIndex");
@@ -518,12 +519,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingTargetAreaLight       = Shader.PropertyToID("_RaytracingTargetAreaLight");
         public static readonly int _RaytracingShadowSlot            = Shader.PropertyToID("_RaytracingShadowSlot");
         public static readonly int _RaytracingAreaWorldToLocal      = Shader.PropertyToID("_RaytracingAreaWorldToLocal");
-        public static readonly int _RaytracedAreaShadowOutput       = Shader.PropertyToID("_RaytracedAreaShadowOutput");
-
+        public static readonly int _RaytracedAreaShadowSample       = Shader.PropertyToID("_RaytracedAreaShadowSample");
+        public static readonly int _RaytracedAreaShadowIntegration  = Shader.PropertyToID("_RaytracedAreaShadowIntegration");
+        public static readonly int _RaytracingDirectionBuffer       = Shader.PropertyToID("_RaytracingDirectionBuffer");
+        public static readonly int _RaytracingDistanceBuffer        = Shader.PropertyToID("_RaytracingDistanceBuffer");
         public static readonly int _AreaShadowTexture               = Shader.PropertyToID("_AreaShadowTexture");
         public static readonly int _AreaShadowTextureRW             = Shader.PropertyToID("_AreaShadowTextureRW");
         public static readonly int _AreaShadowHistoryRW             = Shader.PropertyToID("_AreaShadowHistoryRW");
-        public static readonly int _AnalyticBuffer                  = Shader.PropertyToID("_AnalyticBuffer");
+        public static readonly int _AnalyticProbBuffer              = Shader.PropertyToID("_AnalyticProbBuffer");
         public static readonly int _AnalyticHistoryBuffer           = Shader.PropertyToID("_AnalyticHistoryBuffer");
         
         // Ambient occlusion
