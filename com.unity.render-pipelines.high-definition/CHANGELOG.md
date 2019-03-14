@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volumetric rendering with stereo instancing
 - Fixed shader warning
 - Fixed missing resources in existing asset when updating package
+- Fixed PBR master node preview in forward rendering or transparent surface
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
