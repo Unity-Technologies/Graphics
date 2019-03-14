@@ -110,7 +110,7 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     // Ok so here, if we do not match cloesly the previous analytic value, it means either TAA has invalidated the sample or the pixel just appeared
     float currentAnalyticValue = _AnalyticProbBuffer[centerCoord];
     float historyAnalyticValue = _AnalyticHistoryBuffer[uint3(historyPixelCoord,_RaytracingShadowSlot)];
-    if (abs(historyAnalyticValue - currentAnalyticValue) <= 1e-6 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)))
+    if (abs(historyAnalyticValue - currentAnalyticValue) <= 1e-5 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)))
     {
         // Fetch the current value
         float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).xy;
