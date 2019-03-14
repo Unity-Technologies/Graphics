@@ -7,16 +7,13 @@
 bool ShouldEvaluateThickObjectTransmission(float3 V, float3 L, PreLightData preLightData,
                                            BSDFData bsdfData, int shadowIndex)
 {
-#ifdef MATERIAL_INCLUDE_TRANSMISSION
     // Currently, we don't consider (NdotV < 0) as transmission.
     // TODO: ignore normal map? What about double sided-surfaces with one-sided normals?
     float NdotL = dot(bsdfData.normalWS, L);
 
+    // If a material does not support transmission, it will never have this flag.
     return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT) &&
            (shadowIndex >= 0) && (NdotL < 0);
-#else
-    return false;
-#endif
 }
 
 DirectLighting ShadeSurface_Infinitesimal(PreLightData preLightData, BSDFData bsdfData,

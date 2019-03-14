@@ -107,9 +107,7 @@ Pass
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
-    #define MATERIAL_INCLUDE_TRANSMISSION // temp hack
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
-    #undef  MATERIAL_INCLUDE_TRANSMISSION // temp hack
 #else
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl"
 #endif

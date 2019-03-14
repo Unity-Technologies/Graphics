@@ -36,16 +36,6 @@ void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
     bsdfData.roughnessB = max(minRoughness, bsdfData.roughnessB);
 }
 
-float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
-{
-    return ComputeMicroShadowing(bsdfData.ambientOcclusion, NdotL, _MicroShadowOpacity);
-}
-
-bool MaterialSupportsTransmission(BSDFData bsdfData)
-{
-    return true;
-}
-
 // This function is use to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
@@ -167,8 +157,6 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
         bsdfData.anisotropy = 0.8; // For hair we fix the anisotropy
     }
-
-    bsdfData.transmittance = 1; // TODO!
 
     ApplyDebugToBSDFData(bsdfData);
 
@@ -398,12 +386,6 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
 
         float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
-        // Probably worth branching here for perf reasons.
-        if (max(NdotL, NdotV) > 0)
-        {
-            cbxdf.specR = F * (hairSpec1 + hairSpec2) * saturate(NdotL);
-        }
-
     #if (_USE_LIGHT_FACING_NORMAL)
         // See "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces".
         cbxdf.diffR = rcp(PI * PI) * saturate(NdotL);
@@ -413,6 +395,7 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
         // Double-sided Lambert.
         cbxdf.diffR = Lambert() * saturate(NdotL);
     #endif
+
         // Bypass the normal map...
         float geomNdotV = dot(bsdfData.geomNormalWS, V);
 

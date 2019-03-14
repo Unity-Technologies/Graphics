@@ -8,7 +8,7 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
-void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
+void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
@@ -43,15 +43,24 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
             real alpha;
             int cascadeCount;
 
-            int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, _DirectionalShadowIndex, posInput.positionWS, alpha, cascadeCount);
+            int shadowSplitIndex = EvalShadow_GetSplitIndex(context.shadowContext, _DirectionalShadowIndex, posInput.positionWS, alpha, cascadeCount);
             if (shadowSplitIndex >= 0)
             {
                 float shadow = 1.0;
                 if (_DirectionalShadowIndex >= 0)
                 {
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
-                    float3 shadowBiasNormal = GetNormalForShadowBias(bsdfData);
-                    shadow = EvaluateRuntimeSunShadow(lightLoopContext, posInput, light, shadowBiasNormal);
+
+                    float3 L = -light.forward;
+
+                    // TODO: the shadow code should do it for us. That would be far more efficient.
+                    float3 sN  = GetNormalForShadowBias(bsdfData);
+                           sN *= FastSign(dot(sN, L));
+
+                    shadow = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                             posInput.positionWS, sN,
+                                                             light.shadowIndex, L,
+                                                             posInput.positionSS);
                 }
 
                 float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
