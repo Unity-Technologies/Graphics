@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue that remove the edge when dragging an edge from slot to the same slot.
 - Exception when undoing an edge deletion on a dynamic operator. 
 - Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
+- Missing graph invalidation in VFXGraph.OnEnable, was causing trouble with value invalidation until next recompilation
 
 ## [5.8.0-preview] - 2019-03-13
 ### Added
