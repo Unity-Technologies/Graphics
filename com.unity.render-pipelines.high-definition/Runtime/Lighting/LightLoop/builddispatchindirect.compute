@@ -31,7 +31,7 @@ void BUILDINDIRECT(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
 
-    uint featureFlags = g_TileFeatureFlags[dispatchThreadId.x];
+    uint featureFlags = g_TileFeatureFlags[dispatchThreadId.x + unity_StereoEyeIndex * g_NumTiles];
 
     uint tileY = (dispatchThreadId.x + 0.5f) / (float)g_NumTilesX;    // Integer division is extremely expensive, so we better avoid it
     uint tileX = dispatchThreadId.x - tileY * g_NumTilesX;
@@ -51,6 +51,8 @@ void BUILDINDIRECT(uint3 dispatchThreadId : SV_DispatchThreadID)
         InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, offset);
 #endif
 
-        g_TileList[variant * g_NumTiles + offset] = (tileY << 16) | tileX;
+        // See LightDefinitions class in LightLoop.cs
+        uint tileIndex = (unity_StereoEyeIndex << TILE_INDEX_SHIFT_EYE) | (tileY << TILE_INDEX_SHIFT_Y) | (tileX << TILE_INDEX_SHIFT_X);
+        g_TileList[variant * g_NumTiles + offset] = tileIndex;
     }
 }
