@@ -39,6 +39,10 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
 
     float4 result = 0;
 
+    #if defined(UNITY_STEREO_INSTANCING_ENABLED)
+        w = (w + unity_StereoEyeIndex) * 0.5f;
+    #endif
+
     if (coordIsInsideFrustum)
     {
         if (quadraticFilterXY)
