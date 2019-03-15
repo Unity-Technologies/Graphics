@@ -91,7 +91,7 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
 		if (!intersects) 
 		{	
 			float3 distanceToCenter = abs(cellCenterPosition - currentLight.position) * 2.0;
-			intersects = (distanceToCenter.x < _ClusterDimension.x) && (distanceToCenter.y < _ClusterDimension.y) && (distanceToCenter.z < _ClusterDimension.z);
+			intersects = (distanceToCenter.x < _ClusterCellSize.x) && (distanceToCenter.y < _ClusterCellSize.y) && (distanceToCenter.z < _ClusterCellSize.z);
 		}
 
 		if(intersects)
