@@ -19,6 +19,7 @@ Shader "Hidden/Light2D-Point"
 			#pragma multi_compile_local USE_NORMAL_MAP __
 
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+			#include "Include/Lighting2D.hlsl"
     
             struct Attributes
             {
@@ -34,11 +35,7 @@ Shader "Hidden/Light2D-Point"
                 float2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
                 float2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
 
-#if LIGHT_QUALITY_FAST
-                float4	lightDirection	: TEXCOORD4;
-#else
-                float4	positionWS      : TEXCOORD4;
-#endif
+				UNITY_2D_LIGHTING_COORDS(TEXCOORD4)
             };
 
 #if USE_POINT_LIGHT_COOKIES
@@ -56,8 +53,9 @@ Shader "Hidden/Light2D-Point"
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
 
+			UNITY_2D_LIGHTING_VARIABLES
+
             half4	    _LightColor;
-            float4	    _LightPosition;
             half4x4	    _LightInvMatrix;
             half4x4	    _LightNoRotInvMatrix;
             half	    _LightZDistance;
@@ -81,28 +79,19 @@ Shader "Hidden/Light2D-Point"
                 output.lookupUV = 0.5 * (lightSpacePos.xy + 1);
                 output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
 
-#if LIGHT_QUALITY_FAST
-                output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
-                output.lightDirection.z = _LightZDistance;
-                output.lightDirection.w = 0;
-                output.lightDirection.xyz = normalize(output.lightDirection.xyz);
-#else
-                output.positionWS = worldSpacePos;
-#endif
-
                 float4 clipVertex = output.positionCS / output.positionCS.w;
                 output.screenUV = ComputeScreenPos(clipVertex).xy;
+
+				UNITY_2D_TRANSFER_LIGHTING(output, worldSpacePos)
 
                 return output;
             }
 
             half4 frag(Varyings input) : SV_Target
             {
-                half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);
                 half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
                 half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
-
-                float3 normalUnpacked = UnpackNormal(normal);
+                
 
                 // Inner Radius
                 half attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
@@ -116,29 +105,13 @@ Shader "Hidden/Light2D-Point"
                 mappedUV.y = _FalloffCurve;
                 attenuation = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
 
-
-#if USE_NORMAL_MAP				
-                // Calculate final color
-#if LIGHT_QUALITY_FAST
-                float3 dirToLight = input.lightDirection.xyz;
-#else
-                // This will be the code later for accurate point lights
-                float3 dirToLight;
-                dirToLight.xy = _LightPosition.xy - input.positionWS.xy; // Calculate this in the vertex shader so we have less precision issues...
-                dirToLight.z = _LightZDistance;
-                dirToLight = normalize(dirToLight);
-#endif
-				float cosAngle = saturate(dot(dirToLight, normalUnpacked));
-#else
-				float cosAngle = 1;
-#endif
-
 #if USE_POINT_LIGHT_COOKIES
                 half4 cookieColor = SAMPLE_TEXTURE2D(_PointLightCookieTex, sampler_PointLightCookieTex, input.lookupUV);
-                half4 lightColor = cookieColor * _LightColor * attenuation * cosAngle;
+                half4 lightColor = cookieColor * _LightColor * attenuation;
 #else
-                half4 lightColor = _LightColor * attenuation * cosAngle;
+                half4 lightColor = _LightColor * attenuation;
 #endif
+				UNITY_2D_APPLY_LIGHTING(lightColor);
 
                 return lightColor * _InverseLightIntensityScale;
             }
