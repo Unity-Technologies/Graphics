@@ -3,13 +3,13 @@ using UnityEngine.Rendering;
 
 public class CustomLWPipe : ScriptableRenderer
 {
-    private RenderOpaqueForwardPass m_RenderOpaqueForwardPass;
+    private DrawObjectsPass m_RenderOpaqueForwardPass;
 
     ForwardLights m_ForwardLights;
 
     public CustomLWPipe(CustomRenderGraphData data) : base(data)
     {
-        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, -1);
+        m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, -1, StencilState.defaultValue, 0);
         m_ForwardLights = new ForwardLights();
     }
 
