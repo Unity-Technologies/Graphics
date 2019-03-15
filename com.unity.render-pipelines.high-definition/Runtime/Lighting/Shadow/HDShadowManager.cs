@@ -150,8 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas    = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas        = HDShadowAtlasInitParams.GetDefault(),
-			shadowQuality = HDShadowQuality.Low
-
+			shadowQuality               = HDShadowQuality.Low
         };
 
         public const int k_DefaultShadowAtlasResolution = 4096;
