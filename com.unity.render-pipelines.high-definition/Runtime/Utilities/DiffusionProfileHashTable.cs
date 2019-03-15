@@ -87,8 +87,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // If the asset is not in the list, we regenerate it's hash using the GUID (which leads to the same result every time)
             else if (!diffusionProfileHashes.ContainsKey(profile.GetInstanceID()))
             {
-                profile.profile.hash = GenerateUniqueHash(profile);
-                EditorUtility.SetDirty(profile);
+                uint newHash = GenerateUniqueHash(profile);
+                if (newHash != profile.profile.hash)
+                {
+                    profile.profile.hash = newHash;
+                    EditorUtility.SetDirty(profile);
+                }
             }
             else // otherwise, no issue, we don't change the hash and we keep it to check for collisions
                 diffusionProfileHashes.Add(profile.GetInstanceID(), profile.profile.hash);

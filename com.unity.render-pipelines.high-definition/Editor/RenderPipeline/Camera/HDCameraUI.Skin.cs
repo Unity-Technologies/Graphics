@@ -48,6 +48,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent anamorphismContent = EditorGUIUtility.TrTextContent("Anamorphism");
 
         static readonly GUIContent antialiasingContent = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
+        static readonly GUIContent SMAAQualityPresetContent = EditorGUIUtility.TrTextContent("SMAA Quality Preset", "The quality preset for SMAA, low has the best performance but worst quality, High has the highest quality but worst performance.");
+
         static readonly GUIContent ditheringContent = EditorGUIUtility.TrTextContent("Dithering", "Should we apply 8-bit dithering to the final render?");
         static readonly GUIContent stopNaNsContent = EditorGUIUtility.TrTextContent("Stop NaNs", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will slightly affect performances and should only be used if you experience NaN issues that you can't fix.");
 
@@ -74,7 +76,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             new GUIContent("No Anti-aliasing"),
             new GUIContent("Fast Approximate Anti-aliasing (FXAA)"),
-            new GUIContent("Temporal Anti-aliasing (TAA)")
+            new GUIContent("Temporal Anti-aliasing (TAA)"),
+            new GUIContent("Subpixel Morphological Anti-aliasing (SMAA)")
         };
     }
 }

@@ -439,7 +439,7 @@ namespace UnityEditor.VFX.UI
             {
                 parametersToRemove = parametersToRemove.Concat(controller.RemoveCategory(m_Blackboard.GetCategoryIndex(category)));
             }
-            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()));
+            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()), true);
         }
 
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
@@ -1139,6 +1139,12 @@ namespace UnityEditor.VFX.UI
             else if (change.elementsToRemove != null)
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
+                
+                foreach( var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
+                {
+                    RemoveElement(dataEdge);
+                    dataEdges.Remove(dataEdge.controller);
+                }
             }
 
             return change;

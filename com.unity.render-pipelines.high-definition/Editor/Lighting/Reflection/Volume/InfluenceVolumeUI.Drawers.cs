@@ -151,11 +151,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUI.BeginChangeCheck();
-                var positive = serialized.editorAdvancedModeFaceFadePositive.vector3Value;
-                var negative = serialized.editorAdvancedModeFaceFadeNegative.vector3Value;
-                CoreEditorUtils.DrawVector6(faceFadeContent, ref positive, ref negative, Vector3.zero, Vector3.one, k_HandlesColor);
-                serialized.editorAdvancedModeFaceFadePositive.vector3Value = positive;
-                serialized.editorAdvancedModeFaceFadeNegative.vector3Value = negative;
+                CoreEditorUtils.DrawVector6(faceFadeContent, serialized.editorAdvancedModeFaceFadePositive, serialized.editorAdvancedModeFaceFadeNegative, Vector3.zero, Vector3.one, k_HandlesColor);
                 if (EditorGUI.EndChangeCheck())
                 {
                     serialized.boxSideFadePositive.vector3Value = serialized.editorAdvancedModeFaceFadePositive.vector3Value;
@@ -185,17 +181,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.BeginChangeCheck();
                 blendDistancePositive.vector3Value = editorAdvancedModeBlendDistancePositive.vector3Value;
                 blendDistanceNegative.vector3Value = editorAdvancedModeBlendDistanceNegative.vector3Value;
-                var positive = blendDistancePositive.vector3Value;
-                var negative = blendDistanceNegative.vector3Value;
-                CoreEditorUtils.DrawVector6(
-                    content,
-                    ref positive, ref negative, Vector3.zero, maxBlendDistance, k_HandlesColor);
-                blendDistancePositive.vector3Value = positive;
-                blendDistanceNegative.vector3Value = negative;
+                CoreEditorUtils.DrawVector6(content, blendDistancePositive, blendDistanceNegative, Vector3.zero, maxBlendDistance, k_HandlesColor);
                 if (EditorGUI.EndChangeCheck())
                 {
                     editorAdvancedModeBlendDistancePositive.vector3Value = blendDistancePositive.vector3Value;
                     editorAdvancedModeBlendDistanceNegative.vector3Value = blendDistanceNegative.vector3Value;
+
+                    //Note it strangely do not propagate to main apply so apply here.
+                    serialized.Apply();
                 }
             }
             else

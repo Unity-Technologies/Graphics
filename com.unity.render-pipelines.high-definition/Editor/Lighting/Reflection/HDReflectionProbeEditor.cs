@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             => ((ReflectionProbe)editorTarget).GetComponent<HDAdditionalReflectionData>();
         protected override SerializedHDReflectionProbe NewSerializedObject(SerializedObject so)
         {
-            var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
+            var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(so.targetObjects);
             var addSO = new SerializedObject(additionalData);
             return new SerializedHDReflectionProbe(so, addSO);
         }

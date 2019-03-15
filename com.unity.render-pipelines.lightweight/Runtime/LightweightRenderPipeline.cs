@@ -128,21 +128,27 @@ namespace UnityEngine.Rendering.LWRP
             if (!camera.TryGetCullingParameters(IsStereoEnabled(camera), out var cullingParameters))
                 return;
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
+            var settings = asset;
+            LWRPAdditionalCameraData additionalCameraData = null;
+            if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
+                additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
+
+            InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
+            SetupPerCameraShaderConstants(cameraData);
+
+            ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
+            if (renderer == null)
+            {
+                Debug.LogWarning(string.Format("Trying to render {0} with an invalid renderer. Camera rendering will be skipped.", camera.name));
+                return;
+            }
+
+            CommandBuffer cmd = CommandBufferPool.Get(camera.name);
             using (new ProfilingSample(cmd, k_RenderCameraTag))
             {
-                var settings = asset;
-                LWRPAdditionalCameraData additionalCameraData = null;
-                if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
-                    additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
-
-                InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
-                SetupPerCameraShaderConstants(cameraData);
-                
-                ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
-                
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -172,7 +178,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.None,
                 defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
-                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive,
+                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.Subtractive | SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly,
                 lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed,
                 lightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
                 lightProbeProxyVolumes = false,
@@ -395,7 +401,7 @@ namespace UnityEngine.Rendering.LWRP
 
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
         {
-            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData;
+            var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe;
 
             if (additionalLightsCount > 0)
                 configuration |= PerObjectData.LightIndices;

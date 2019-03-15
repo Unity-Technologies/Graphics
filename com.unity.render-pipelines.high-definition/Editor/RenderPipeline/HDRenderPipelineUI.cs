@@ -254,17 +254,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_SectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportShadowMask, k_SupportShadowMaskContent);
-            
-            EditorGUILayout.LabelField(k_ShadowAtlasSubTitle);
+
+            serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits.intValue = EditorGUILayout.IntPopup(k_DirectionalShadowPrecisionContent, serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits.intValue, k_ShadowBitDepthNames, k_ShadowBitDepthValues);
+
+            EditorGUILayout.LabelField(k_ShadowPunctualLightAtlasSubTitle);
             ++EditorGUI.indentLevel;
-            serialized.renderPipelineSettings.hdShadowInitParams.shadowAtlasResolution.intValue = (int)(ShadowResolutionValue)EditorGUILayout.EnumPopup(k_ResolutionContent, (ShadowResolutionValue)serialized.renderPipelineSettings.hdShadowInitParams.shadowAtlasResolution.intValue);
-            serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue = EditorGUILayout.IntPopup(k_PrecisionContent, serialized.renderPipelineSettings.hdShadowInitParams.shadowMapDepthBits.intValue, k_ShadowBitDepthNames, k_ShadowBitDepthValues);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.useDynamicViewportRescale, k_DynamicRescaleContent);
+            serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapResolution.intValue = (int)(ShadowResolutionValue)EditorGUILayout.EnumPopup(k_ResolutionContent, (ShadowResolutionValue)serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapResolution.intValue);
+            serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits.intValue = EditorGUILayout.IntPopup(k_PrecisionContent, serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits.intValue, k_ShadowBitDepthNames, k_ShadowBitDepthValues);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.useDynamicViewportRescale, k_DynamicRescaleContent);
+            --EditorGUI.indentLevel;
+
+            EditorGUILayout.LabelField(k_ShadowAreaLightAtlasSubTitle);
+            ++EditorGUI.indentLevel;
+            serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapResolution.intValue = (int)(ShadowResolutionValue)EditorGUILayout.EnumPopup(k_ResolutionContent, (ShadowResolutionValue)serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapResolution.intValue);
+            serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapDepthBits.intValue = EditorGUILayout.IntPopup(k_PrecisionContent, serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapDepthBits.intValue, k_ShadowBitDepthNames, k_ShadowBitDepthValues);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.useDynamicViewportRescale, k_DynamicRescaleContent);
             --EditorGUI.indentLevel;
             
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests, k_MaxRequestContent);
-            
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality, k_FilteringQuality);
+
+            bool isDeferredOnly = serialized.renderPipelineSettings.supportedLitShaderMode.intValue == (int)RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
+
+            // Deferred Only mode does not allow to change filtering quality, but rather it is hardcoded. 
+            if (isDeferredOnly)
+            {
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality.intValue = (int)HDShadowQuality.Low;
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality, k_FilteringQuality);
+            }
         }
 
         static void Drawer_SectionDecalSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -354,6 +373,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.colorBufferFormat, k_ColorBufferFormatContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedLitShaderMode, k_SupportLitShaderModeContent);
 
             // MSAA is an option that is only available in full forward but Camera can be set in Full Forward only. Thus MSAA have no dependency currently

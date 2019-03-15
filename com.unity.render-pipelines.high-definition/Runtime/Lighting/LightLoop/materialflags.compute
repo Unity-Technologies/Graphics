@@ -16,8 +16,8 @@
 
 #define USE_MATERIAL_FEATURE_FLAGS
 
-#if PLATFORM_THREAD_GROUP_OPTIMAL_SIZE
-#define NR_THREADS              PLATFORM_THREAD_GROUP_OPTIMAL_SIZE  // use platform optimal thread group size if possible
+#ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
+#define NR_THREADS              PLATFORM_LANE_COUNT  
 #else
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
@@ -33,13 +33,16 @@ RWStructuredBuffer<uint> g_TileFeatureFlags;
 TEXTURE2D_X(_StencilTexture);               // DXGI_FORMAT_R8_UINT is not supported by Unity
 
 [numthreads(NR_THREADS, 1, 1)]
-void MATERIALFLAGSGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
+void MATERIALFLAGSGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
     uint2 tileIDX = u3GroupID.xy;
 
     uint iWidth = g_viDimensions.x;
     uint iHeight = g_viDimensions.y;
     uint nrTilesX = (iWidth + (TILE_SIZE_FPTL - 1)) / TILE_SIZE_FPTL;
+    uint nrTilesY = (iHeight + (TILE_SIZE_FPTL - 1)) / TILE_SIZE_FPTL;
 
     // 16 * 4 = 64. We process data by group of 4 pixel
     uint2 viTilLL = 16 * tileIDX;
@@ -74,10 +77,16 @@ void MATERIALFLAGSGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
     if(threadID == 0)
     {
+        uint tileIndex = tileIDX.y * nrTilesX + tileIDX.x;
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+        tileIndex += unity_StereoEyeIndex * nrTilesX * nrTilesY;
+#endif
+
 #ifdef USE_OR
-        g_TileFeatureFlags[tileIDX.y * nrTilesX + tileIDX.x] |= ldsFeatureFlags;
+        g_TileFeatureFlags[tileIndex] |= ldsFeatureFlags;
 #else // Use in case we have disabled light classification
-        g_TileFeatureFlags[tileIDX.y * nrTilesX + tileIDX.x] = ldsFeatureFlags;
+        g_TileFeatureFlags[tileIndex] = ldsFeatureFlags;
 #endif
     }
 }

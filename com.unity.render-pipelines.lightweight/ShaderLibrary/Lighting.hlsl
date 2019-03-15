@@ -60,13 +60,13 @@ int GetPerObjectLightIndex(int index)
 
 // Matches Unity Vanila attenuation
 // Attenuation smoothly decreases to light range.
-half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
+float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
 {
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
-    half lightAtten = rcp(distanceSqr);
+    float lightAtten = rcp(distanceSqr);
 
-#if defined(SHADER_HINT_NICE_QUALITY)
+#if SHADER_HINT_NICE_QUALITY
     // Use the smoothing factor also used in the Unity lightmapper.
     half factor = distanceSqr * distanceAttenuation.x;
     half smoothFactor = saturate(1.0h - factor * factor);
@@ -109,6 +109,9 @@ Light GetMainLight()
     Light light;
     light.direction = _MainLightPosition.xyz;
     light.distanceAttenuation = unity_LightData.z;
+    #if defined(LIGHTMAP_ON)
+        light.distanceAttenuation *= unity_ProbesOcclusion.x;
+    #endif
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
@@ -139,14 +142,30 @@ Light GetAdditionalLight(int i, float3 positionWS)
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
-    half attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy);
-    attenuation *= AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
+    half attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
 
     Light light;
     light.direction = lightDirection;
     light.distanceAttenuation = attenuation;
     light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
     light.color = _AdditionalLightsColor[perObjectLightIndex].rgb;
+
+    // In case we're using light probes, we can sample the attenuation from the `unity_ProbesOcclusion`
+#if defined(LIGHTMAP_ON)
+    // First find the probe channel from the light.
+    // Then sample `unity_ProbesOcclusion` for the baked occlusion.
+    // If the light is not baked, the channel is -1, and we need to apply no occlusion.
+    half4 lightOcclusionProbeInfo = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
+
+    // probeChannel is the index in 'unity_ProbesOcclusion' that holds the proper occlusion value.
+    int probeChannel = lightOcclusionProbeInfo.x;
+
+    // lightProbeContribution is set to 0 if we are indeed using a probe, otherwise set to 1.
+    half lightProbeContribution = lightOcclusionProbeInfo.y;
+
+    half probeOcclusionValue = unity_ProbesOcclusion[probeChannel];
+    light.distanceAttenuation *= max(probeOcclusionValue, lightProbeContribution);
+#endif
 
     return light;
 }

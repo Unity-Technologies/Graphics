@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
+            commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
+            commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -413,6 +413,15 @@ namespace UnityEngine.Rendering
             }
 
             return m_AssemblyTypes;
+        }
+
+        public static IEnumerable<Type> GetAllTypesDerivedFrom<T>()
+        {
+#if UNITY_EDITOR && UNITY_2019_2_OR_NEWER
+            return UnityEditor.TypeCache.GetTypesDerivedFrom<T>();
+#else
+            return GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(T)));
+#endif
         }
 
         public static void Destroy(params UnityObject[] objs)

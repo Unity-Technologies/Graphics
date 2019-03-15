@@ -3,6 +3,7 @@
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
+  * [Advanced Properties](Advanced-Properties)
   * Overviews
     * [Materials Overview](Materials-Shaders-Overview)
     * [Fog Overview](Fog-Overview)
@@ -10,17 +11,23 @@
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
-  * [Volume Component Overrides](Volume-Components)
-* Volume Components
+  * [Volume Overrides](Volume-Components)
+* Volume Overrides
+  * Fog
+    * [Exponential Fog](Exponential-Fog)
+    * [Linear Fog](Linear-Fog)
+    * [Volumetric Fog](Volumetric-Fog)
+  * Lighting
+    * [Indirect Lighting Controller](Indirect-Lighting-Controller)
+    * [Volumetric Lighting Quality](Volumetric-Lighting-Controller)
+  * Shadowing
+    * [Contact Shadows](Contact-Shadows)
+    * [Shadows](HD-Shadow-Settings)
+  * Sky
+    * [Gradient Sky](Gradient-Sky)
+    * [HDRI Sky](HDRI-Sky)
+    * [Procedural Sky](Procedural-Sky)
   * [Visual Environment](Visual-Environment)
-  * [Gradient Sky](Gradient-Sky)
-  * [HDRI Sky](HDRI-Sky)
-  * [Procedural Sky](Procedural-Sky)
-  * [HD Shadow Settings](HD-Shadow-Settings)
-  * [Contact Shadows](Contact-Shadows)
-  * [Volumetric Fog](Volumetric-Fog)
-  * [Indirect Lighting Controller](Indirect-Lighting-Controller)
-  * [Volumetric Lighting Controller](Volumetric-Lighting-Controller)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
@@ -47,7 +54,8 @@
   * [Environment Lighting](Environment-Lighting)
   * [Static Lighting Sky](Static-Lighting-Sky)
   * [Atmospheric Scattering](Atmospheric-Scattering)
-  * [Shadows](Shadows)
+  * [Light Layers](Light-Layers)
+  * [Shadows](Shadows-in-HDRP)
   * [Volumetric Lighting](Volumetric-Lighting)
   * [Physical Light Units and Intensities](Physical-Light-Units)
 * Object Sorting
@@ -56,5 +64,6 @@
   * [Decal Projector](Decal-Projector)
 * Camera
   * [Multisampling Anti-Aliasing](MSAA)
+* [VR in HDRP](VR-in-HDRP)
 * [HDRP Glossary](Glossary)
 

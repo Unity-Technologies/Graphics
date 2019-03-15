@@ -50,6 +50,7 @@ Pass
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DoubleSided:                       #define _DOUBLESIDED_ON 1
+    $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
     //-------------------------------------------------------------------------------------
@@ -286,21 +287,22 @@ $include("SharedCode.template.hlsl")
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
 
+        $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
-        InitBuiltinData(surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
+        
+        $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
-
-        // TODO: Handle depth offset
-        //builtinData.depthOffset = 0.0;
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
     }

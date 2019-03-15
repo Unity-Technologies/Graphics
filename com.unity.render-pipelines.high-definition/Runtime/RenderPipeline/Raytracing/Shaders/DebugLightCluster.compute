@@ -55,7 +55,6 @@ void DebugLightCluster(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
 {
 	// Fetch the current pixel coordinate
 	uint2 currentPixelCoordinate = groupId * DEBUG_LIGHT_CLUSTER_TILE_SIZE + groupThreadId;
-    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
 	// Convert this to a world space position
     float depth = LoadCameraDepth(currentPixelCoordinate.xy);
