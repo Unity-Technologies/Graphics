@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                             cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
 
-                            if(light.useNormalMap)
+                            if(light.useNormalMap || light.lightType == Light2D.LightType.Point)
                                 RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
 
                             // Light code could be combined...

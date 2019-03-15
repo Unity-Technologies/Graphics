@@ -16,6 +16,7 @@ Shader "Hidden/Light2D-Point"
             #pragma fragment frag
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
             #pragma multi_compile_local LIGHT_QUALITY_FAST __
+			#pragma multi_compile_local USE_NORMAL_MAP __
 
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
     
@@ -101,7 +102,6 @@ Shader "Hidden/Light2D-Point"
                 half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
                 half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
-                float usingDefaultNormalMap = (normal.x + normal.y + normal.z) == 0;  // 1 if using a black normal map, 0 if using a custom normal map
                 float3 normalUnpacked = UnpackNormal(normal);
 
                 // Inner Radius
@@ -116,6 +116,8 @@ Shader "Hidden/Light2D-Point"
                 mappedUV.y = _FalloffCurve;
                 attenuation = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
 
+
+#if USE_NORMAL_MAP				
                 // Calculate final color
 #if LIGHT_QUALITY_FAST
                 float3 dirToLight = input.lightDirection.xyz;
@@ -126,8 +128,10 @@ Shader "Hidden/Light2D-Point"
                 dirToLight.z = _LightZDistance;
                 dirToLight = normalize(dirToLight);
 #endif
-
-                float cosAngle = (1 - usingDefaultNormalMap) * saturate(dot(dirToLight, normalUnpacked)) + usingDefaultNormalMap;
+				float cosAngle = saturate(dot(dirToLight, normalUnpacked));
+#else
+				float cosAngle = 1;
+#endif
 
 #if USE_POINT_LIGHT_COOKIES
                 half4 cookieColor = SAMPLE_TEXTURE2D(_PointLightCookieTex, sampler_PointLightCookieTex, input.lookupUV);
