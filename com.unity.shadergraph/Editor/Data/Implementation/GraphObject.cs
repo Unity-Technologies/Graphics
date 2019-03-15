@@ -15,6 +15,9 @@ namespace UnityEditor.Graphing
         [SerializeField]
         bool m_IsSubGraph;
 
+        [SerializeField]
+        string m_AssetGuid;
+
         [NonSerialized]
         GraphData m_Graph;
         
@@ -52,6 +55,7 @@ namespace UnityEditor.Graphing
             {
                 m_SerializedGraph = SerializationHelper.Serialize(graph);
                 m_IsSubGraph = graph.isSubGraph;
+                m_AssetGuid = graph.assetGuid;
             }
         }
 
@@ -59,13 +63,14 @@ namespace UnityEditor.Graphing
         {
             var deserializedGraph = SerializationHelper.Deserialize<GraphData>(m_SerializedGraph, GraphUtil.GetLegacyTypeRemapping());
             deserializedGraph.isSubGraph = m_IsSubGraph;
+            deserializedGraph.assetGuid = m_AssetGuid;
             if (graph == null)
                 graph = deserializedGraph;
             else
                 m_DeserializedGraph = deserializedGraph;
         }
 
-        void Validate()
+        public void Validate()
         {
             if (graph != null)
             {
