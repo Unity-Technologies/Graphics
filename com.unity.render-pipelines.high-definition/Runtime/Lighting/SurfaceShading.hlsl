@@ -11,7 +11,10 @@ bool ShouldEvaluateThickObjectTransmission(float3 V, float3 L, PreLightData preL
     // TODO: ignore normal map? What about double sided-surfaces with one-sided normals?
     float NdotL = dot(bsdfData.normalWS, L);
 
-    // If a material does not support transmission, it will never have this flag.
+    // If a material does not support transmission, it will never have this flag, and
+    // the optimization pass of the compiler will remove all of the associated code.
+    // However, this will take a lot more CPU time than doing the same thing using
+    // the preprocessor.
     return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT) &&
            (shadowIndex >= 0) && (NdotL < 0);
 }
@@ -28,6 +31,10 @@ DirectLighting ShadeSurface_Infinitesimal(PreLightData preLightData, BSDFData bs
     {
         CBxDF cbxdf = EvaluateCBxDF(V, L, preLightData, bsdfData);
 
+        // If transmittance or the CBxDF's transmission components are known to be 0,
+        // the optimization pass of the compiler will remove all of the associated code.
+        // However, this will take a lot more CPU time than doing the same thing using
+        // the preprocessor.
         lighting.diffuse  = (cbxdf.diffR + cbxdf.diffT * bsdfData.transmittance) * diffuseDimmer  * lightColor;
         lighting.specular = (cbxdf.specR + cbxdf.specT * bsdfData.transmittance) * specularDimmer * lightColor;
     }
