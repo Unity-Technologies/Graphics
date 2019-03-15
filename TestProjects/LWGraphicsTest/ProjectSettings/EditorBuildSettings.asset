@@ -146,4 +146,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/055_Lighting_Attenuation_Spot_Point.unity
     guid: 362b9a0c21a9b4e798504044c7604e80
+  - enabled: 1
+    path: Assets/Scenes/056_2D_Lights.unity
+    guid: c0c276a91b93d254b957277941d2329b
   m_configObjects: {}
