@@ -43,6 +43,9 @@
 #define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_IOR (1263)
 #define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL (1264)
 #define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1265)
+#define DEBUGVIEW_AXF_BSDFDATA_MATERIAL_FEATURES (1266)
+#define DEBUGVIEW_AXF_BSDFDATA_TRANSMITTANCE (1267)
+#define DEBUGVIEW_AXF_BSDFDATA_AMBIENT_OCCLUSION (1268)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.AxF+SurfaceData
 // PackingRules = Exact
@@ -82,6 +85,9 @@ struct BSDFData
     float3 clearcoatNormalWS;
     float clearcoatIOR;
     float3 geomNormalWS;
+    uint materialFeatures;
+    float3 transmittance;
+    float ambientOcclusion;
 };
 
 //
@@ -198,6 +204,15 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
             result = bsdfdata.geomNormalWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATA_MATERIAL_FEATURES:
+            result = GetIndexColor(bsdfdata.materialFeatures);
+            break;
+        case DEBUGVIEW_AXF_BSDFDATA_TRANSMITTANCE:
+            result = bsdfdata.transmittance;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATA_AMBIENT_OCCLUSION:
+            result = bsdfdata.ambientOcclusion.xxx;
             break;
     }
 }

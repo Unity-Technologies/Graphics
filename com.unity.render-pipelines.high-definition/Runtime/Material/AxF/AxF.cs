@@ -103,6 +103,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
             public Vector3 geomNormalWS;
+
+            public uint    materialFeatures;
+            public Vector3 transmittance;
+            public float   ambientOcclusion;
         };
 
         //-----------------------------------------------------------------------------
