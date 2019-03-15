@@ -3,12 +3,13 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
     Properties 
     {
         _MainTex ("Main Texture", 2D) = "white" {  }
+        _Cutoff ("Cutoff", float) = 0.5
     }    
     SubShader 
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
         LOD 100
-        
+        AlphaTest Greater [_Cutoff]
         ZWrite On
         
         // Lightmapped
@@ -23,7 +24,8 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
             
             #pragma vertex Vert
             #pragma fragment Frag
-
+            #define _ALPHATEST_ON
+			
             // -------------------------------------
             // Lightweight Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
@@ -37,7 +39,8 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
             // Unity defined keywords
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
-            
+
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
     
@@ -105,11 +108,13 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
     
             half4 Frag(Varyings input) : SV_Target
             {
+                half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);				
+                AlphaDiscard(tex.a * input.Color.a, _Cutoff);
+		 
                 half3 bakedGI = SampleLightmap(input.LightmapUV, half3(0.0, 1.0, 0.0));
                 
                 half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
 
-                half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
                 half4 color = 1.0;
                 color.rgb = input.Color.rgb * tex.rgb * lighting;
     
@@ -136,12 +141,13 @@ Shader "Hidden/TerrainEngine/Details/Vertexlit"
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
+            #define _ALPHATEST_ON
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/UnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
         }
