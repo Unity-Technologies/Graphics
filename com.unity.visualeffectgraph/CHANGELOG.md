@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add missing blend value slot in Inherit Source Attribute blocks [Case 1120568](https://issuetracker.unity3d.com/issues/source-attribute-blend-source-attribute-blocks-are-not-useful-without-the-blend-value)
 - Visual Effect Inspector Cosmetic Improvements
 - Missing graph invalidation in VFXGraph.OnEnable, was causing trouble with value invalidation until next recompilation
+- Issue that remove the edge when dragging an edge from slot to the same slot.
+- Exception when undoing an edge deletion on a dynamic operator. 
+- Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
 
 ## [6.5.0-preview] - 2019-03-07
 
