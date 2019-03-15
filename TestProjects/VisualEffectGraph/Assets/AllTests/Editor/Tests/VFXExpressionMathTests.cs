@@ -347,6 +347,7 @@ namespace UnityEditor.VFX.Test
         };
 
         static private Min_Max_Expression_Folding_TestCase[] k_Min_Max_Expression_Folding_TestCase = Generate_Min_Max_Expression_Folding_TestCase().ToArray();
+        static private string[] k_Min_Max_Expression_Folding_TestCase_Names = k_Min_Max_Expression_Folding_TestCase.Select(o => o.name).ToArray();
 
         static private IEnumerable<Min_Max_Expression_Folding_TestCase> Generate_Min_Max_Expression_Folding_TestCase()
         {
@@ -378,8 +379,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void Min_Max_Expression_Folding([ValueSource("k_Min_Max_Expression_Folding_TestCase")] Min_Max_Expression_Folding_TestCase testCase)
+        public void Min_Max_Expression_Folding([ValueSource("k_Min_Max_Expression_Folding_TestCase_Names")] string testCaseName)
         {
+            var testCase = k_Min_Max_Expression_Folding_TestCase.First(o => o.name == testCaseName);
             var context = new VFXExpression.Context(VFXExpressionContextOption.Reduction);
             var resultCompiled = context.Compile(testCase.expression);
 
@@ -391,6 +393,51 @@ namespace UnityEditor.VFX.Test
             {
                 Assert.IsFalse(resultCompiled is VFXExpressionSaturate);
             }
+        }
+
+        struct RoundExpression_TestCase
+        {
+            public float x;
+            public float r;
+            public string name { get { return string.Format("round({0}) = {1}", x, r); } }
+        }
+
+        static private IEnumerable<RoundExpression_TestCase> Generate_RoundExpression_TestCase()
+        {
+            yield return new RoundExpression_TestCase() { x = 0.0f, r = 0.0f };
+            yield return new RoundExpression_TestCase() { x = 0.4999997f, r = 0.0f };
+            yield return new RoundExpression_TestCase() { x = 0.5f, r = 0.0f }; //< Not really intuitive but fit with default HLSL behavior (nearbyintf)
+            yield return new RoundExpression_TestCase() { x = 0.5000001f, r = 1.0f };
+            yield return new RoundExpression_TestCase() { x = 1.5f, r = 2.0f };
+            yield return new RoundExpression_TestCase() { x = 2.5f, r = 2.0f };
+            yield return new RoundExpression_TestCase() { x = 3.5f, r = 4.0f };
+            yield return new RoundExpression_TestCase() { x = 4.5f, r = 4.0f };
+            yield return new RoundExpression_TestCase() { x = 6.5f, r = 6.0f };
+
+            yield return new RoundExpression_TestCase() { x = -0.4999997f, r = 0.0f };
+            yield return new RoundExpression_TestCase() { x = -0.5f, r = 0.0f };
+            yield return new RoundExpression_TestCase() { x = -0.5000001f, r = -1.0f };
+            yield return new RoundExpression_TestCase() { x = -1.5f, r = -2.0f };
+            yield return new RoundExpression_TestCase() { x = -2.5f, r = -2.0f };
+            yield return new RoundExpression_TestCase() { x = -3.5f, r = -4.0f };
+            yield return new RoundExpression_TestCase() { x = -4.5f, r = -4.0f };
+            yield return new RoundExpression_TestCase() { x = -6.5f, r = -6.0f };
+        }
+
+        static private RoundExpression_TestCase[] k_RoundExpression_TestCase = Generate_RoundExpression_TestCase().ToArray();
+        static private string[] k_RoundExpression_TestCase_Names = k_RoundExpression_TestCase.Select(o => o.name).ToArray();
+
+        [Test]
+        public void Round_Expression([ValueSource("k_RoundExpression_TestCase_Names")] string testCaseName)
+        {
+            var testCase = k_RoundExpression_TestCase.First(o => o.name == testCaseName);
+            var valueConstant = new VFXValue<float>(testCase.x);
+            var round = new VFXExpressionRound(valueConstant);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding);
+            var resultCompiled = context.Compile(round);
+            Assert.IsTrue(resultCompiled is VFXValue);
+            Assert.AreEqual(testCase.r, (resultCompiled as VFXValue).Get<float>());
         }
     }
 }
