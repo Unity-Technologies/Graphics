@@ -423,6 +423,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_DebugSelectedLightShadowIndex;
         int m_DebugSelectedLightShadowCount;
 
+        public bool HasLightToCull()
+        {
+            return m_lightCount > 0;
+        }
+
         public ComputeBuffer GetBigTileLightList()
         {
             return s_BigTileLightList;
