@@ -307,8 +307,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             bool viewPortRescaling = false;
             // Compute dynamic shadow resolution
-            viewPortRescaling = viewPortRescaling || (shadowMapType == ShadowMapType.PunctualAtlas && initParameters.punctualLightShadowAtlas.useDynamicViewportRescale);
-            viewPortRescaling = viewPortRescaling || (shadowMapType == ShadowMapType.AreaLightAtlas && initParameters.areaLightShadowAtlas.useDynamicViewportRescale);
+
+            viewPortRescaling |= (shadowMapType == ShadowMapType.PunctualAtlas && initParameters.punctualLightShadowAtlas.useDynamicViewportRescale);
+            viewPortRescaling |= (shadowMapType == ShadowMapType.AreaLightAtlas && initParameters.areaLightShadowAtlas.useDynamicViewportRescale);
 
             if (viewPortRescaling)
             {

@@ -6,12 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.9.0-preview] - 2019-XX-XX
 
+### Added
+- Added Homothety and Symetry quick edition modifier on volume used in ReflectionProbe, PlanarReflectionProbe and DensityVolume
+- Added multi-edition support for DecalProjectorComponent
+
 ### Fixed
 - Fixed shader warning
 - Fixed missing resources in existing asset when updating package
 - Fixed PBR master node preview in forward rendering or transparent surface
 - Fixed volumetric rendering with stereo instancing 
 - Fixed deferred shading with stereo instancing
+- Fixed "look at" edition mode of Rotation tool for DecalProjectorComponent
+- Fixed issue when switching mode in ReflectionProbe and PlanarReflectionProbe
+- Fixed issue where migratable component version where not always serialized when part of prefab's instance
+
+### Changed
+- Updated handles for DecalProjectorComponent for enhanced spacial position readability and have edition mode for better SceneView management
+- DecalProjectorComponent are now scale independent in order to have reliable metric unit (see new Size field for changing the size of the volume)
 
 ## [5.8.0-preview] - 2019-03-13
 
@@ -22,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added depth offset input in shader graph master nodes
 - Added a Parallax Occlusion Mapping node
 - Added SMAA support
+
 
 ### Fixed
 - Fixed instance identifier semantic string used by Shader Graph
@@ -45,7 +57,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed regression causing crash when attempting to open HDRenderPipelineWizard without an HDRenderPipelineAsset setted
 - Fixed FullScreenDebug modes: SSAO, SSR, Contact shadow, Prerefraction Color Pyramid, Final Color Pyramid
 - Fixed volumetric rendering with stereo instancing
-
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode

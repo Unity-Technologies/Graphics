@@ -311,8 +311,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShaderGraphResources shaderGraphs;
     }
 
-
-
 #if UNITY_EDITOR
     [UnityEditor.CustomEditor(typeof(RenderPipelineResources))]
     class RenderPipelineResourcesEditor : UnityEditor.Editor
