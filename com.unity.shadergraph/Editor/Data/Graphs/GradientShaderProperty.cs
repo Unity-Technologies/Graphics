@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
 
         private static string GetColorKey(int index, Color color, float time)
         {
-            return string.Format("g.colors[{0}] = float4({1}, {2}, {3}, {4});", index, color.r, color.g, color.b, time);
+            return string.Format("g.colors[{0}] = float4({1}, {2}, {3}, {4});", index, NodeUtils.FloatToShaderValue(color.r), NodeUtils.FloatToShaderValue(color.g), NodeUtils.FloatToShaderValue(color.b),  NodeUtils.FloatToShaderValue(time));
         }
 
         private static string GetAlphaKey(int index, float alpha, float time)
