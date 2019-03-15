@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed "look at" edition mode of Rotation tool for DecalProjectorComponent
 - Fixed issue when switching mode in ReflectionProbe and PlanarReflectionProbe
 - Fixed issue where migratable component version where not always serialized when part of prefab's instance
+- Fixed an issue where shadow would not be rendered properly when light layer are not enabled
 
 ### Changed
 - Updated handles for DecalProjectorComponent for enhanced spacial position readability and have edition mode for better SceneView management
