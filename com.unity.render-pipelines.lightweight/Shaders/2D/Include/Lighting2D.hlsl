@@ -1,19 +1,32 @@
 #if USE_NORMAL_MAP
 	#if LIGHT_QUALITY_FAST
-		#define UNITY_2D_LIGHTING_COORDS(TEXCOORD) float4	lightDirection	: TEXCOORD;
+		#define UNITY_2D_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
+			float4	lightDirection	: TEXCOORDA;\
+			float2	screenUV   : TEXCOORDB;
+
 		#define UNITY_2D_TRANSFER_LIGHTING(output, worldSpacePos)\
+			float4 clipVertex = output.positionCS / output.positionCS.w;\
+			output.screenUV = ComputeScreenPos(clipVertex).xy;\
             output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;\
 			output.lightDirection.z = _LightZDistance;\
 			output.lightDirection.w = 0;\
 			output.lightDirection.xyz = normalize(output.lightDirection.xyz);
-		#define UNITY_2D_APPLY_LIGHTING(lightColor)\
+			
+		#define UNITY_2D_APPLY_LIGHTING(input, lightColor)\
 			half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
 			float3 normalUnpacked = UnpackNormal(normal);\
 			lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
 	#else
-		#define UNITY_2D_LIGHTING_COORDS(TEXCOORD) float4	positionWS : TEXCOORD;
-		#define UNITY_2D_TRANSFER_LIGHTING(output, worldSpacePos) output.positionWS = worldSpacePos;
-		#define UNITY_2D_APPLY_LIGHTING(lightColor)\
+		#define UNITY_2D_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
+			float4	positionWS : TEXCOORDA;\
+			float2	screenUV   : TEXCOORDB;
+
+		#define UNITY_2D_TRANSFER_LIGHTING(output, worldSpacePos) \
+			float4 clipVertex = output.positionCS / output.positionCS.w;\
+			output.screenUV = ComputeScreenPos(clipVertex).xy; \
+			output.positionWS = worldSpacePos;
+
+		#define UNITY_2D_APPLY_LIGHTING(input, lightColor)\
 			half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
 			float3 normalUnpacked = UnpackNormal(normal);\
 			float3 dirToLight;\
@@ -23,10 +36,14 @@
 			lightColor = lightColor * saturate(dot(dirToLight, normalUnpacked));
 	#endif
 
-	#define UNITY_2D_LIGHTING_VARIABLES			   float4	_LightPosition;
+	#define UNITY_2D_LIGHTING_VARIABLES \
+            TEXTURE2D(_NormalMap); \
+			SAMPLER(sampler_NormalMap); \
+			float4	_LightPosition;\
+			half	    _LightZDistance;
 #else
-	#define UNITY_2D_LIGHTING_COORDS(TEXCOORD)
+	#define UNITY_2D_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB)
 	#define UNITY_2D_LIGHTING_VARIABLES
 	#define UNITY_2D_TRANSFER_LIGHTING(output, worldSpacePos)
-	#define UNITY_2D_APPLY_LIGHTING(lightColor)
+	#define UNITY_2D_APPLY_LIGHTING(input, lightColor)
 #endif

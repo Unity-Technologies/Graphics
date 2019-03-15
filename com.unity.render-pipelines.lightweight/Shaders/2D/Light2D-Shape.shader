@@ -21,8 +21,10 @@ Shader "Hidden/Light2D-Shape"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local SPRITE_LIGHT __
+			#pragma multi_compile_local USE_NORMAL_MAP __
 
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+			#include "Include/Lighting2D.hlsl"
 
             struct Attributes
             {
@@ -39,6 +41,7 @@ Shader "Hidden/Light2D-Shape"
                 float4  positionCS	: SV_POSITION;
                 float4  color		: COLOR;
                 float2  uv			: TEXCOORD0;
+				UNITY_2D_LIGHTING_COORDS(TEXCOORD1, TEXCOORD2)
             };
 
             float _InverseLightIntensityScale;
@@ -51,6 +54,7 @@ Shader "Hidden/Light2D-Shape"
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif
+			UNITY_2D_LIGHTING_VARIABLES
 
             Varyings vert(Attributes attributes)
             {
@@ -65,6 +69,11 @@ Shader "Hidden/Light2D-Shape"
                 o.uv = float2(o.color.a, _FalloffCurve);
 #endif
 
+				float4 worldSpacePos;
+				worldSpacePos.xyz = TransformObjectToWorld(attributes.positionOS);
+				worldSpacePos.w = 1;
+				UNITY_2D_TRANSFER_LIGHTING(o, worldSpacePos)
+
                 return o;
             }
 
@@ -76,6 +85,8 @@ Shader "Hidden/Light2D-Shape"
 #else
                 color *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 #endif
+				UNITY_2D_APPLY_LIGHTING(i, color);
+
                 return color;
             }
             ENDHLSL

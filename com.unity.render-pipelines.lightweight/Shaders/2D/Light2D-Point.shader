@@ -31,11 +31,10 @@ Shader "Hidden/Light2D-Point"
             {
                 float4  positionCS      : SV_POSITION;
                 float2  uv              : TEXCOORD0;
-                float2	screenUV        : TEXCOORD1;
                 float2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
                 float2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
 
-				UNITY_2D_LIGHTING_COORDS(TEXCOORD4)
+				UNITY_2D_LIGHTING_COORDS(TEXCOORD4, TEXCOORD5)
             };
 
 #if USE_POINT_LIGHT_COOKIES
@@ -50,15 +49,11 @@ Shader "Hidden/Light2D-Point"
             TEXTURE2D(_LightLookup);
             SAMPLER(sampler_LightLookup);
 
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
-
 			UNITY_2D_LIGHTING_VARIABLES
 
             half4	    _LightColor;
             half4x4	    _LightInvMatrix;
             half4x4	    _LightNoRotInvMatrix;
-            half	    _LightZDistance;
             half	    _OuterAngle;			    // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half	    _InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half	    _InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
@@ -78,9 +73,6 @@ Shader "Hidden/Light2D-Point"
                 float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
                 output.lookupUV = 0.5 * (lightSpacePos.xy + 1);
                 output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
-
-                float4 clipVertex = output.positionCS / output.positionCS.w;
-                output.screenUV = ComputeScreenPos(clipVertex).xy;
 
 				UNITY_2D_TRANSFER_LIGHTING(output, worldSpacePos)
 
@@ -111,7 +103,7 @@ Shader "Hidden/Light2D-Point"
 #else
                 half4 lightColor = _LightColor * attenuation;
 #endif
-				UNITY_2D_APPLY_LIGHTING(lightColor);
+				UNITY_2D_APPLY_LIGHTING(input, lightColor);
 
                 return lightColor * _InverseLightIntensityScale;
             }
