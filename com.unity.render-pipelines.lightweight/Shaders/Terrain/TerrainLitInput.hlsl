@@ -37,7 +37,6 @@ TEXTURE2D(_Mask2);
 TEXTURE2D(_Mask3);
 #endif
 
-=======
 TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 

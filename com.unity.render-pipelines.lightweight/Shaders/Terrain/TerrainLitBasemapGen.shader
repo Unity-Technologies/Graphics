@@ -40,7 +40,7 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Basemap Gen)"
         
         #include "TerrainLitInput.hlsl"
         #include "TerrainLitPasses.hlsl"
-        
+        /*
         struct Attributes
         {
             float4 vertex : POSITION;
@@ -54,6 +54,7 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Basemap Gen)"
             float4 uvSplat01 : TEXCOORD1;
             float4 uvSplat23 : TEXCOORD2;
         };
+        */
        
         ENDHLSL
         
@@ -76,8 +77,9 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Basemap Gen)"
             Varyings Vert(Attributes IN)
             {
                 Varyings output;
-                
-                output.clipPos = TransformWorldToHClip(IN.vertex);
+
+                float3 positionWS = TransformObjectToWorld(IN.positionOS.xyz);
+                output.clipPos = TransformWorldToHClip(positionWS);
                 
                 // NOTE : This is basically coming from the vertex shader in TerrainLitPasses
                 // There are other plenty of other values that the original version computes, but for this
@@ -154,7 +156,8 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Basemap Gen)"
             {
                 Varyings output;
                 
-                output.clipPos = TransformWorldToHClip(IN.vertex);
+                float3 positionWS = TransformObjectToWorld(IN.positionOS.xyz);
+                output.clipPos = TransformWorldToHClip(positionWS);
                 
                 // This is just like the other in that it is from TerrainLitPasses
                 output.uvMainAndLM.xy = IN.texcoord;

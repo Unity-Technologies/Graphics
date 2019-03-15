@@ -8,8 +8,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
-    GetNormalWS(input, float3(0.0, 0.0, 1.0), surfaceData.normalWS);
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
+
+    ApplyDoubleSidedFlipOrMirror(input, doubleSidedConstants); // Apply double sided flip on the vertex normal
+    GetNormalWS(input, float3(0.0, 0.0, 1.0), surfaceData.normalWS, doubleSidedConstants);
 
     surfaceData.geomNormalWS = input.worldToTangent[2];
 
@@ -41,7 +47,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = 0;
     surfaceData.thickness = 1;
-    surfaceData.diffusionProfile = 0;
+    surfaceData.diffusionProfileHash = 0;
 
 #ifdef EFFECT_BUMP
     float3 tanNorm = 2.0 * ( SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, input.texCoord0.xy).rgb - float3(0.5, 0.5, 0.5) );
@@ -70,6 +76,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    InitBuiltinData(alpha, surfaceData.normalWS, -surfaceData.geomNormalWS, input.positionRWS, input.texCoord1, input.texCoord2, builtinData);
+    InitBuiltinData(posInput, alpha, surfaceData.normalWS, -surfaceData.geomNormalWS, input.texCoord1, input.texCoord2, builtinData);
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
 }

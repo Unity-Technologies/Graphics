@@ -66,9 +66,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShaderGraphResources shaderGraphs;
     }
 
-<<<<<<< HEAD
-
-
     [UnityEditor.CustomEditor(typeof(HDRenderPipelineEditorResources))]
     class HDRenderPipelineEditorResourcesEditor : UnityEditor.Editor
     {

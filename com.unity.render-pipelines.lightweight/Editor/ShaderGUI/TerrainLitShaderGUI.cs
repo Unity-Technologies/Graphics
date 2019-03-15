@@ -2,9 +2,9 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.LWRP.ShaderGUI
 {
-    internal class TerrainLitShaderGUI : ShaderGUI, ITerrainLayerCustomUI
+    internal class TerrainLitShaderGUI : UnityEditor.ShaderGUI, ITerrainLayerCustomUI
     {
         private class StylesLayer
         {
@@ -70,9 +70,9 @@ namespace UnityEditor.Rendering.LWRP
         }
         protected void FindMaterialProperties(MaterialProperty[] props)
         {
-            enableHeightBlend = FindProperty(kEnableHeightBlend, props, false);
-            heightTransition = FindProperty(kHeightTransition, props, false);
-            enableInstancedPerPixelNormal = FindProperty(kEnableInstancedPerPixelNormal, props, false);
+            enableHeightBlend = BaseShaderGUI.FindProperty(kEnableHeightBlend, props, false);
+            heightTransition = BaseShaderGUI.FindProperty(kHeightTransition, props, false);
+            enableInstancedPerPixelNormal = BaseShaderGUI.FindProperty(kEnableInstancedPerPixelNormal, props, false);
         }
 
         static public void SetupMaterialKeywords(Material material)

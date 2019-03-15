@@ -60,7 +60,8 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
         Varyings Vert(Attributes input)
         {
             Varyings output;
-            output.positionCS = TransformWorldToHClip(input.vertex);
+            
+            output.positionCS = TransformWorldToHClip(input.vertex.xyz);
             output.texcoord.xy = TRANSFORM_TEX(input.texcoord, _Control0);
             output.texcoord.zw = ComputeControlUV(output.texcoord.xy);
             return output;

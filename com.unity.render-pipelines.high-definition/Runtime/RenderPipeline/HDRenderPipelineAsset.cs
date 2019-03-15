@@ -319,6 +319,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
         }
-#endif
     }
 }
