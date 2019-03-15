@@ -25,8 +25,8 @@ float3 IntegrateSpecularCottonWoolIBLRef(LightLoopContext lightLoopContext,
 
         if (NdotL > 0.0)
         {
-            float LdotV, NdotH, LdotH, NdotV, invLenLV;
-            GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+            float LdotV, NdotH, LdotH, invLenLV;
+            GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
             // Incident Light intensity
             float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);

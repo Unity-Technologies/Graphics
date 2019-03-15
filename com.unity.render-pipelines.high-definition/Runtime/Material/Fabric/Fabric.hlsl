@@ -42,16 +42,6 @@ void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
     bsdfData.roughnessB = max(minRoughness, bsdfData.roughnessB);
 }
 
-float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
-{
-    return ComputeMicroShadowing(bsdfData.ambientOcclusion, NdotL, _MicroShadowOpacity);
-}
-
-bool MaterialSupportsTransmission(BSDFData bsdfData)
-{
-    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION);
-}
-
 // This function is use to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
@@ -355,6 +345,13 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
+bool IsNonZeroCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
+{
+    float NdotL = dot(bsdfData.normalWS, L);
+
+    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION) || (NdotL > 0);
+}
+
 // Ref: https://www.slideshare.net/jalnaga/custom-fabric-shader-for-unreal-engine-4
 // For Fabric we have two type of BRDF
 // Non-Metal: Cotton, deim, flax and common fabrics
@@ -362,31 +359,37 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // Metal: Silk, satin, velvet, nylon and polyester
 // Silk: Roughness 0.3 - 0.7 - anisotropic - varying specular color
 
-// This function apply BSDF. Assumes that NdotL is positive.
-void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-            out float3 diffuseLighting,
-            out float3 specularLighting)
+CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
-    float LdotV, NdotH, LdotH, NdotV, invLenLV;
-    GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+    CBxDF cbxdf;
+    ZERO_INITIALIZE(CBxDF, cbxdf);
 
+    float3 N = bsdfData.normalWS;
 
+    float NdotV        = preLightData.NdotV;
+    float NdotL        = dot(N, L);
+    float clampedNdotV = ClampNdotV(NdotV);
+    float clampedNdotL = max(NdotL, 0);
+
+    float LdotV, NdotH, LdotH, invLenLV;
+    GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
+
+    float  diffTerm;
+    float3 specTerm;
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
         float D = D_Charlie(NdotH, bsdfData.roughnessT);
         // V_Charlie is expensive, use approx with V_Ashikhmin instead
         // float Vis = V_Charlie(NdotL, NdotV, bsdfData.roughness);
-        float Vis = V_Ashikhmin(NdotL, NdotV);
+        float Vis = V_Ashikhmin(NdotL, clampedNdotV);
 
         // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
         // We don't use Fresnel term for CharlieD
         float3 F = bsdfData.fresnel0;
 
-        specularLighting = F * Vis * D;
-
-        // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
-        diffuseLighting = FabricLambert(bsdfData.roughnessT);
+        specTerm = F * Vis * D;
+        diffTerm = FabricLambert(bsdfData.roughnessT);
     }
     else // MATERIALFEATUREFLAGS_FABRIC_SILK
     {
@@ -400,17 +403,29 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         float BdotL = dot(bsdfData.bitangentWS, L);
 
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-        float DV = DV_SmithJointGGXAniso(   TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
-                                            bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
+        float DV = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, clampedNdotV, TdotL, BdotL, clampedNdotL,
+                                         bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
 
         // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
         float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
-        specularLighting = F * DV;
-
-        // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
-        diffuseLighting = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
+        specTerm = F * DV;
+        diffTerm = DisneyDiffuse(abs(NdotV), abs(NdotL), LdotV, bsdfData.perceptualRoughness);
     }
+
+    // The compiler should optimize these. Can revisit later if necessary.
+    cbxdf.diffR = diffTerm * clampedNdotL;
+    cbxdf.diffT = diffTerm * max(-NdotL, 0);
+
+    // Probably worth branching here for perf reasons.
+    // This branch will be optimized away if there's no transmission.
+    if (NdotL > 0)
+    {
+        cbxdf.specR = specTerm * clampedNdotL;
+    }
+
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    return cbxdf;
 }
 
 //-----------------------------------------------------------------------------
@@ -433,22 +448,24 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
-                                    bsdfData, bsdfData.normalWS, V);
+    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
+                                    preLightData, lightData, bsdfData, V);
 }
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricReference.hlsl"
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData,
+                                     BSDFData bsdfData, BuiltinData builtinData)
 {
-    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
-                                 bsdfData, bsdfData.normalWS, V);
+    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
+                                 preLightData, lightData, bsdfData, V);
 }
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricReference.hlsl"
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Line

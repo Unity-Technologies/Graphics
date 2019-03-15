@@ -143,7 +143,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Kajiya kay
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
-        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);        
+        bsdfData.secondaryPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.secondaryPerceptualSmoothness);
         bsdfData.specularTint = surfaceData.specularTint;
         bsdfData.secondarySpecularTint = surfaceData.secondarySpecularTint;
         bsdfData.specularShift = surfaceData.specularShift;
@@ -367,10 +367,13 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
     // Double-sided Lambert.
     float NdotL = dot(N, L);
 #endif
-    float NdotV = preLightData.NdotV;
 
-    float LdotV, NdotH, LdotH, clampedNdotV, invLenLV;
-    GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, clampedNdotV, invLenLV);
+    float NdotV        = preLightData.NdotV;
+    float clampedNdotV = ClampNdotV(NdotV);
+    float clampedNdotL = max(NdotL, 0);
+
+    float LdotV, NdotH, LdotH, invLenLV;
+    GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
@@ -388,19 +391,24 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
 
     #if (_USE_LIGHT_FACING_NORMAL)
         // See "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces".
-        cbxdf.diffR = rcp(PI * PI) * saturate(NdotL);
+        cbxdf.diffR = rcp(PI * PI) * clampedNdotL;
         // Transmission is built into the model, and it's not exactly clear how to split it.
         cbxdf.diffT = cbxdf.specT = 0;
     #else
         // Double-sided Lambert.
-        cbxdf.diffR = Lambert() * saturate(NdotL);
+        cbxdf.diffR = Lambert() * clampedNdotL;
     #endif
 
         // Bypass the normal map...
         float geomNdotV = dot(bsdfData.geomNormalWS, V);
 
-        // G = NdotL * NdotV.
-        cbxdf.specR = 0.25 * F * (hairSpec1 + hairSpec2) * saturate(NdotL) * saturate(geomNdotV * FLT_MAX);
+        // Probably worth branching here for perf reasons.
+        // This branch will be optimized away if there's no transmission.
+        if (NdotL > 0)
+        {
+            // G = NdotL * NdotV.
+            cbxdf.specR = 0.25 * F * (hairSpec1 + hairSpec2) * clampedNdotL * saturate(geomNdotV * FLT_MAX);
+        }
 
         // Yibing's and Morten's hybrid scatter model hack.
         float scatterFresnel1 = pow(saturate(-LdotV), 9.0) * pow(saturate(1 - geomNdotV * geomNdotV), 12.0);

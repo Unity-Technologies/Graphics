@@ -600,7 +600,7 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
 
         // We are in the supposition that N == V
         float LdotV, NdotH, LdotH, invLenLV;
-        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
         // BRDF data
         real F = 1;
