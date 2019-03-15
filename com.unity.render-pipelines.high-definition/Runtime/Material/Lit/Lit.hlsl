@@ -1199,6 +1199,7 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
     float NdotL        = dot(N, L);
     float clampedNdotV = ClampNdotV(NdotV);
     float clampedNdotL = max(NdotL, 0);
+    float flippedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
 
     float LdotV, NdotH, LdotH, invLenLV;
     GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
@@ -1277,7 +1278,7 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
 
     // The compiler should optimize these. Can revisit later if necessary.
     cbxdf.diffR = diffTerm * clampedNdotL;
-    cbxdf.diffT = diffTerm * max(-NdotL, 0);
+    cbxdf.diffT = diffTerm * flippedNdotL;
 
     // Probably worth branching here for perf reasons.
     // This branch will be optimized away if there's no transmission.

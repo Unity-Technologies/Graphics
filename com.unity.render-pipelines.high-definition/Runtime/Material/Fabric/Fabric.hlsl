@@ -149,7 +149,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
     // However in practice we keep parity between deferred and forward, so we should constrain the various features.
     // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
-    
+
     bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
@@ -309,7 +309,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
         builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
     }
 
-    // For SSS we need to take into account the state of diffuseColor 
+    // For SSS we need to take into account the state of diffuseColor
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
     {
         bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
@@ -370,6 +370,7 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
     float NdotL        = dot(N, L);
     float clampedNdotV = ClampNdotV(NdotV);
     float clampedNdotL = max(NdotL, 0);
+    float flippedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
 
     float LdotV, NdotH, LdotH, invLenLV;
     GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
@@ -415,7 +416,7 @@ CBxDF EvaluateCBxDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdf
 
     // The compiler should optimize these. Can revisit later if necessary.
     cbxdf.diffR = diffTerm * clampedNdotL;
-    cbxdf.diffT = diffTerm * max(-NdotL, 0);
+    cbxdf.diffT = diffTerm * flippedNdotL;
 
     // Probably worth branching here for perf reasons.
     // This branch will be optimized away if there's no transmission.

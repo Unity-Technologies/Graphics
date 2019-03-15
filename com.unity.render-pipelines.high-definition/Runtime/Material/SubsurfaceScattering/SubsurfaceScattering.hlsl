@@ -150,6 +150,10 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 #define MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 1) // Note: The texture mode is 2bit, thus go from '<< 1' to '<< 3'
 #define MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT    ((MATERIALFEATUREFLAGS_SSS_TRANSMISSION_START) << 3)
 
+// 15 degrees
+#define TRANSMISSION_WRAP_ANGLE (PI/12)
+#define TRANSMISSION_WRAP_LIGHT cos(PI/2 - TRANSMISSION_WRAP_ANGLE)
+
 #ifdef MATERIAL_INCLUDE_SUBSURFACESCATTERING
 
 void FillMaterialSSS(uint diffusionProfileIndex, float subsurfaceMask, inout BSDFData bsdfData)
@@ -210,10 +214,10 @@ uint FindDiffusionProfileIndex(uint diffusionProfileHash)
 {
     if (diffusionProfileHash == 0)
         return 0;
-    
+
     uint diffusionProfileIndex = 0;
     uint i = 0;
-    
+
     // Fetch the 4 bit index number by looking for the diffusion profile unique ID:
     for (i = 0; i < _DiffusionProfileCount; i++)
     {
