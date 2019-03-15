@@ -1800,9 +1800,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Might float this higher if we enable stereo w/ deferred
                 StartStereoRendering(cmd, renderContext, camera);
 
-#if (ENABLE_RAYTRACING)
-                // DEMO_HACK: comment this code for now for external RT GI with probe to work
-                /*
+#if (ENABLE_RAYTRACING)                
                 {
                     {   
                         HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
@@ -1820,10 +1818,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             HDRaytracingLightProbeBakeManager.Bake(hdCamera.camera, cmd);
                         }
                     }
-                }
-                */
+                }                
 #endif
-
                 RenderDeferredLighting(hdCamera, cmd);
 
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
