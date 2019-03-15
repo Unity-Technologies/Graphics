@@ -41,7 +41,7 @@ Shader "Hidden/Light2D-Shape"
                 float4  positionCS	: SV_POSITION;
                 float4  color		: COLOR;
                 float2  uv			: TEXCOORD0;
-				UNITY_2D_LIGHTING_COORDS(TEXCOORD1, TEXCOORD2)
+				NORMALS_LIGHTING_COORDS(TEXCOORD1, TEXCOORD2)
             };
 
             float _InverseLightIntensityScale;
@@ -54,7 +54,7 @@ Shader "Hidden/Light2D-Shape"
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif
-			UNITY_2D_LIGHTING_VARIABLES
+			NORMALS_LIGHTING_VARIABLES
 
             Varyings vert(Attributes attributes)
             {
@@ -72,7 +72,7 @@ Shader "Hidden/Light2D-Shape"
 				float4 worldSpacePos;
 				worldSpacePos.xyz = TransformObjectToWorld(attributes.positionOS);
 				worldSpacePos.w = 1;
-				UNITY_2D_TRANSFER_LIGHTING(o, worldSpacePos)
+				TRANSFER_NORMALS_LIGHTING(o, worldSpacePos)
 
                 return o;
             }
@@ -85,7 +85,7 @@ Shader "Hidden/Light2D-Shape"
 #else
                 color *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
 #endif
-				UNITY_2D_APPLY_LIGHTING(i, color);
+				APPLY_NORMALS_LIGHTING(i, color);
 
                 return color;
             }

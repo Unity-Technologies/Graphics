@@ -108,13 +108,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_VolumetricAlpha;
         SerializedProperty m_LightOperation;
         SerializedProperty m_FalloffCurve;
+        SerializedProperty m_PointZDistance;
 
         // Point Light Properties
         SerializedProperty m_PointInnerAngle;
         SerializedProperty m_PointOuterAngle;
         SerializedProperty m_PointInnerRadius;
         SerializedProperty m_PointOuterRadius;
-        SerializedProperty m_PointZDistance;
         SerializedProperty m_PointLightCookie;
         SerializedProperty m_PointLightQuality;
 
@@ -149,13 +149,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
             m_LightOperation = serializedObject.FindProperty("m_LightOperationIndex");
             m_FalloffCurve = serializedObject.FindProperty("m_FalloffCurve");
+            m_PointZDistance = serializedObject.FindProperty("m_PointLightDistance");
 
             // Point Light
             m_PointInnerAngle = serializedObject.FindProperty("m_PointLightInnerAngle");
             m_PointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             m_PointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             m_PointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            m_PointZDistance = serializedObject.FindProperty("m_PointLightDistance");
             m_PointLightCookie = serializedObject.FindProperty("m_LightCookieSprite");
             m_PointLightQuality = serializedObject.FindProperty("m_PointLightQuality");
 
@@ -237,11 +237,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.PropertyField(m_PointOuterRadius, Styles.pointLightOuterRadius);
             if (EditorGUI.EndChangeCheck())
                 m_PointOuterRadius.floatValue = Mathf.Max(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_PointZDistance, Styles.pointLightZDistance);
-            if (EditorGUI.EndChangeCheck())
-                m_PointZDistance.floatValue = Mathf.Max(0.0f, m_PointZDistance.floatValue);
 
             EditorGUILayout.Slider(m_FalloffCurve, 0, 1, Styles.generalFalloffIntensity);
             EditorGUILayout.PropertyField(m_PointLightCookie, Styles.pointLightCookie);
@@ -628,12 +623,21 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
-            EditorGUILayout.PropertyField(m_UseNormalMap, Styles.generalUseNormalMap);
-            m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
-            bool updateGlobalLights = EditorGUI.EndChangeCheck();
 
+            bool updateGlobalLights = false;
             if (m_LightType.intValue != (int)Light2D.LightType.Global)
+            {
+                EditorGUILayout.PropertyField(m_UseNormalMap, Styles.generalUseNormalMap);
+                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
+                updateGlobalLights |= EditorGUI.EndChangeCheck();
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_PointZDistance, Styles.pointLightZDistance);
+                if (EditorGUI.EndChangeCheck())
+                    m_PointZDistance.floatValue = Mathf.Max(0.0f, m_PointZDistance.floatValue);
+
                 EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
+            }
 
             OnTargetSortingLayers();
 
