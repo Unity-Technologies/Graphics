@@ -228,7 +228,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 SubGraphNode subgraphNode = node as SubGraphNode;
 
-                var path = AssetDatabase.GetAssetPath(subgraphNode.subGraphAsset);
+                var path = AssetDatabase.GUIDToAssetPath(subgraphNode.subGraphGuid);
                 ShaderGraphImporterEditor.ShowGraphEditWindow(path);
             }
         }
@@ -357,9 +357,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateTitle()
         {
-            var subGraphNode = node as SubGraphNode;
-            if (subGraphNode != null && subGraphNode.subGraphAsset != null)
-                title = subGraphNode.subGraphAsset.name + " (sub)";
+            if (node is SubGraphNode subGraphNode && subGraphNode.subGraphData != null)
+                title = subGraphNode.subGraphAsset.name;
             else
                 title = node.name;
         }
