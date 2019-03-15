@@ -102,7 +102,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(target as UnityEngine.Object);
             }
-            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
 #endif
             return true;
         }
