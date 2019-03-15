@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
+        [SerializeField] StencilStateData m_DefaultStencilState = null;
+
         protected override ScriptableRenderer Create()
         {
             return new ForwardRenderer(this);
@@ -44,6 +46,11 @@ namespace UnityEngine.Rendering.LWRP
         public LayerMask transparentLayerMask
         {
             get => m_TransparentLayerMask;
+        }
+
+        public StencilStateData defaultStencilState
+        {
+            get => m_DefaultStencilState;
         }
     }
 }
