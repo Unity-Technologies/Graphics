@@ -212,6 +212,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.DispatchCompute(shadowsCompute, shadowComputeKernel, numTilesX, numTilesY, 1);
 
                         // This pass will use the previously generated sample and add it to the integration buffer
+                        cmd.SetRaytracingBufferParam(shadowRaytrace, m_RayGenShadowSingleName, HDShaderIDs._LightDatas, m_LightLoop.lightDatas);
                         cmd.SetRaytracingTextureParam(shadowRaytrace, m_RayGenShadowSingleName, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                         cmd.SetRaytracingTextureParam(shadowRaytrace, m_RayGenShadowSingleName, HDShaderIDs._RaytracedAreaShadowSample, m_DenoiseBuffer1);
                         cmd.SetRaytracingTextureParam(shadowRaytrace, m_RayGenShadowSingleName, HDShaderIDs._RaytracedAreaShadowIntegration, m_DenoiseBuffer0);
