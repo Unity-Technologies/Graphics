@@ -63,6 +63,7 @@
     // existing HDRP code uses the combined function to go directly from packed to frag inputs
     FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     {
+        UNITY_SETUP_INSTANCE_ID(input);
         VaryingsMeshToPS unpacked= UnpackVaryingsMeshToPS(input);
         return BuildFragInputs(unpacked);
     }

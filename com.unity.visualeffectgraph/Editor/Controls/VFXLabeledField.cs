@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using System;
 
 namespace UnityEditor.VFX.UIElements
@@ -161,29 +160,30 @@ namespace UnityEditor.VFX.UIElements
         {
             if (typeof(IValueField<U>).IsAssignableFrom(typeof(T)))
             {
+                m_Label.styleSheets.Add(Resources.Load<StyleSheet>("VFXLabeledField"));
                 if (typeof(U) == typeof(float))
                 {
                     var dragger = new VFXFieldMouseDragger<float>((IValueField<float>)m_Control, DragValueFinished);
                     dragger.SetDragZone(m_Label);
-                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
+                    m_Label.AddToClassList("cursor-slide-arrow");
                 }
                 else if (typeof(U) == typeof(double))
                 {
                     var dragger = new VFXFieldMouseDragger<double>((IValueField<double>)m_Control, DragValueFinished);
                     dragger.SetDragZone(m_Label);
-                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
+                    m_Label.AddToClassList("cursor-slide-arrow");
                 }
                 else if (typeof(U) == typeof(long))
                 {
                     var dragger = new VFXFieldMouseDragger<long>((IValueField<long>)m_Control, DragValueFinished);
                     dragger.SetDragZone(m_Label);
-                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
+                    m_Label.AddToClassList("cursor-slide-arrow");
                 }
                 else if (typeof(U) == typeof(int))
                 {
                     var dragger = new VFXFieldMouseDragger<int>((IValueField<int>)m_Control, DragValueFinished);
                     dragger.SetDragZone(m_Label);
-                    m_Label.style.cursor = UIElementsEditorUtility.CreateDefaultCursorStyle(MouseCursor.SlideArrow);
+                    m_Label.AddToClassList("cursor-slide-arrow");
                 }
             }
 
@@ -208,7 +208,7 @@ namespace UnityEditor.VFX.UIElements
             m_Control = new T();
             Add(m_Control);
 
-            m_Control.RegisterCallback<ChangeEvent<U>>(OnControlChange);
+            m_Control.RegisterValueChangedCallback(OnControlChange);
         }
 
         void OnControlChange(ChangeEvent<U> e)
@@ -231,22 +231,9 @@ namespace UnityEditor.VFX.UIElements
             get { return m_Label; }
         }
 
-
-        public void OnValueChanged(EventCallback<ChangeEvent<U>> callback)
-        {
-            (m_Control as INotifyValueChanged<U>).OnValueChanged(callback);
-        }
-
-        public void RemoveOnValueChanged(EventCallback<ChangeEvent<U>> callback)
-        {
-            (m_Control as INotifyValueChanged<U>).RemoveOnValueChanged(callback);
-        }
-
         public void SetValueAndNotify(U newValue)
         {
-            #pragma warning disable 0618
-            (m_Control as INotifyValueChanged<U>).SetValueAndNotify(newValue);
-            #pragma warning restore 0618
+            (m_Control as INotifyValueChanged<U>).value = newValue;
         }
 
         public void SetValueWithoutNotify(U newValue)

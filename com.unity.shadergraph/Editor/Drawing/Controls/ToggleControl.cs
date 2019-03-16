@@ -2,12 +2,12 @@ using System;
 using System.Reflection;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [Serializable]
-    public struct ToggleData
+    struct ToggleData
     {
         public bool isOn;
         public bool isEnabled;
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     }
 
     [AttributeUsage(AttributeTargets.Property)]
-    public class ToggleControlAttribute : Attribute, IControlAttribute
+    class ToggleControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -41,18 +41,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    public class ToggleControlView : VisualElement, INodeModificationListener
+    class ToggleControlView : VisualElement, AbstractMaterialNodeModificationListener
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
 
-        UnityEngine.Experimental.UIElements.Toggle m_Toggle;
+        Label m_Label;
+        Toggle m_Toggle;
 
         public ToggleControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
             m_Node = node;
             m_PropertyInfo = propertyInfo;
-            AddStyleSheetPath("Styles/Controls/ToggleControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/ToggleControlView"));
 
             if (propertyInfo.PropertyType != typeof(ToggleData))
                 throw new ArgumentException("Property must be a Toggle.", "propertyInfo");
@@ -62,7 +63,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var value = (ToggleData)m_PropertyInfo.GetValue(m_Node, null);
             var panel = new VisualElement { name = "togglePanel" };
             if (!string.IsNullOrEmpty(label))
-                panel.Add(new Label(label));
+            {
+                m_Label = new Label(label);
+                m_Label.SetEnabled(value.isEnabled);
+                panel.Add(m_Label);
+            }
+
             m_Toggle = new Toggle();
             m_Toggle.OnToggleChanged(OnChangeToggle);
             m_Toggle.SetEnabled(value.isEnabled);
@@ -75,6 +81,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             var value = (ToggleData)m_PropertyInfo.GetValue(m_Node, null);
             m_Toggle.SetEnabled(value.isEnabled);
+            if (m_Label != null)
+                m_Label.SetEnabled(value.isEnabled);
 
             if (scope == ModificationScope.Graph)
             {

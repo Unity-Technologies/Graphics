@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Maximum")]
-    public class MaximumNode : CodeFunctionNode
+    class MaximumNode : CodeFunctionNode
     {
         public MaximumNode()
         {
             name = "Maximum";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Maximum-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

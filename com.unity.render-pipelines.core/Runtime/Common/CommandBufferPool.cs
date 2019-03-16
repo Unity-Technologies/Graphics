@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Events;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     class ObjectPool<T> where T : new()
     {

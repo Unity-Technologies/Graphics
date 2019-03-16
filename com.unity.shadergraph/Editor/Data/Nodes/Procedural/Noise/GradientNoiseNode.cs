@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Noise", "Gradient Noise")]
-    public class GradientNoiseNode : CodeFunctionNode
+    class GradientNoiseNode : CodeFunctionNode
     {
         public GradientNoiseNode()
         {
             name = "Gradient Noise";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Gradient-Noise-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="Windows-1252"?>
-<UXML xmlns:ui="UnityEngine.Experimental.UIElements">
+<UXML xmlns:ui="UnityEngine.UIElements">
     <ui:VisualElement name="sectionHeader" pickingMode="Ignore">
         <ui:Label name="sectionTitleLabel" pickingMode="Ignore"/>
     </ui:VisualElement>

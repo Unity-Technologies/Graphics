@@ -7,7 +7,7 @@
 
 ## Noise
 
-| [Gradient Noise](Gradient-Noise.md) | [Simple Noise](Simple-Noise.md) |
+| [Gradient Noise](Gradient-Noise-Node.md) | [Simple Noise](Simple-Noise-Node.md) |
 | :------------------------ | :---------------------------- |
 | ![Image](images/GradientNoiseNodeThumb.png) | ![Image](images/SimpleNoiseNodeThumb.png) |
 | Generates a gradient, or Perlin, noise based on input UV. | Generates a simple, or Value, noise based on input UV. |
@@ -22,5 +22,5 @@
 | ![Image](images/EllipseNodeThumb.png)                        | ![Image](images/PolygonNodeThumb.png)                        |
 | Generates an ellipse shape based on input UV at the size specified by inputs Width and Height. | Generates a regular polygon shape based on input UV at  the size specified by inputs Width and Height. The polygon's amount of  sides is determined by input Sides. |
 | [**Rectangle**](Rectangle-Node.md) | [**Rounded Rectangle**](Rounded-Rectangle-Node.md) |
-| ![Image](images/RectangleNodeThumb.png)                      | ![Image](images/RoundedrectangleNodeThumb.png)               |
+| ![Image](images/RectangleNodeThumb.png)                      | ![Image](images/RoundedRectangleNodeThumb.png)               |
 | Generates a rectangle shape based on input UV at the size specified by inputs Width and Height. | Generates a rounded rectangle shape based on input UV at the size specified by inputs Width and Height. The radius of each  corner is defined by input Radius. |

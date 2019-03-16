@@ -51,8 +51,10 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool onlyAmbientLighting = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Range(1, 15)]
-        protected uint diffusionProfile = 1;
+#if VFX_HAS_HDRP
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected UnityEngine.Experimental.Rendering.HDPipeline.DiffusionProfileSettings diffusionProfileAsset;
+#endif
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool multiplyThicknessWithAlpha = false;
@@ -193,6 +195,7 @@ namespace UnityEditor.VFX
 
             yield return slotExpressions.First(o => o.name == "smoothness");
 
+            uint diffusionProfileHash;
             switch (materialType)
             {
                 case MaterialType.Standard:
@@ -207,7 +210,12 @@ namespace UnityEditor.VFX
                 case MaterialType.Translucent:
                 case MaterialType.SimpleLitTranslucent:
                     yield return slotExpressions.First(o => o.name == "thickness");
-                    yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfile), "diffusionProfile");
+#if VFX_HAS_HDRP
+                    diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
+#else
+                    diffusionProfileHash = 0;
+#endif
+                    yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
                     break;
 
                 default: break;
@@ -323,6 +331,9 @@ namespace UnityEditor.VFX
 
                 if (onlyAmbientLighting && !isBlendModeOpaque)
                     yield return "USE_ONLY_AMBIENT_LIGHTING";
+
+                if (isBlendModeOpaque && materialType != MaterialType.SimpleLit && materialType != MaterialType.SimpleLitTranslucent)
+                    yield return "IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE";
             }
         }
 
@@ -335,7 +346,7 @@ namespace UnityEditor.VFX
 
                 if (materialType != MaterialType.Translucent && materialType != MaterialType.SimpleLitTranslucent)
                 {
-                    yield return "diffusionProfile";
+                    yield return "diffusionProfileHash";
                     yield return "multiplyThicknessWithAlpha";
                 }
 
@@ -403,6 +414,9 @@ namespace UnityEditor.VFX
                     forwardDefines.WriteLine("#define _SURFACE_TYPE_TRANSPARENT");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);
+                var forwardPassName = new VFXShaderWriter();
+                forwardPassName.Write(materialType == MaterialType.SimpleLit || materialType == MaterialType.SimpleLitTranslucent ? "ForwardOnly" : "Forward");
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardPassName}", forwardPassName);
             }
         }
     }

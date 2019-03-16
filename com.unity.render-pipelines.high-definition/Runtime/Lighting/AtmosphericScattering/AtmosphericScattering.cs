@@ -13,44 +13,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static readonly int m_MipFogParam = Shader.PropertyToID("_MipFogParameters");
 
         // Fog Color
-        public FogColorParameter       colorMode = new FogColorParameter(FogColorMode.SkyColor);
-        [Tooltip("Constant Fog Color")]
-        public ColorParameter          color = new ColorParameter(Color.grey);
-        public ClampedFloatParameter   density = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
-        [Tooltip("Maximum mip map used for mip fog (0 being lowest and 1 highest mip).")]
-        public ClampedFloatParameter   mipFogMaxMip = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
-        [Tooltip("Distance at which minimum mip of blurred sky texture is used as fog color.")]
-        public MinFloatParameter       mipFogNear = new MinFloatParameter(0.0f, 0.0f);
-        [Tooltip("Distance at which maximum mip of blurred sky texture is used as fog color.")]
-        public MinFloatParameter       mipFogFar = new MinFloatParameter(1000.0f, 0.0f);
+        public FogColorParameter     colorMode = new FogColorParameter(FogColorMode.SkyColor);
+        [Tooltip("Specifies the constant color of the fog.")]
+        public ColorParameter        color = new ColorParameter(Color.grey, hdr: true, showAlpha: false, showEyeDropper: true);
+        [Tooltip("Controls the overall density of the fog. Acts as a global multiplier.")]
+        public ClampedFloatParameter density = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        [Tooltip("Sets the maximum fog distance HDRP uses when it shades the skybox or the Far Clipping Plane of the Camera.")]
+        public MinFloatParameter     maxFogDistance = new MinFloatParameter(5000.0f, 0.0f);
+        [Tooltip("Controls the maximum mip map HDRP uses for mip fog (0 is the lowest mip and 1 is the highest mip).")]
+        public ClampedFloatParameter mipFogMaxMip = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        [Tooltip("Sets the distance at which HDRP uses the minimum mip image of the blurred sky texture as the fog color.")]
+        public MinFloatParameter     mipFogNear = new MinFloatParameter(0.0f, 0.0f);
+        [Tooltip("Sets the distance at which HDRP uses the maximum mip image of the blurred sky texture as the fog color.")]
+        public MinFloatParameter     mipFogFar = new MinFloatParameter(1000.0f, 0.0f);
 
         public abstract void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd);
 
-        public static void PushNeutralShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)FogType.None);
-
-            // In case volumetric lighting is enabled, we need to make sure that all rendering passes
-            // (not just the atmospheric scattering one) receive neutral parameters.
-            if (hdCamera.frameSettings.enableVolumetrics)
-            {
-                var data = DensityVolumeEngineData.GetNeutralValues();
-
-                cmd.SetGlobalVector(HDShaderIDs._HeightFogBaseScattering, data.scattering);
-                cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseExtinction, data.extinction);
-
-                cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents, Vector2.one);
-                cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseHeight, 0.0f);
-                cmd.SetGlobalFloat(HDShaderIDs._GlobalFogAnisotropy, 0.0f);
-            }
-        }
-
-        // Not used by the volumetric fog.
         public void PushShaderParametersCommon(HDCamera hdCamera, CommandBuffer cmd, FogType type)
         {
-            Debug.Assert(hdCamera.frameSettings.enableAtmosphericScattering);
+            Debug.Assert(hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering));
 
             cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)type);
+            cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
 
             // Fog Color
             cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode.value);

@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum TextureChannel
+    enum TextureChannel
     {
         Red,
         Green,
@@ -14,17 +14,12 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Artistic", "Mask", "Channel Mask")]
-    public class ChannelMaskNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class ChannelMaskNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public ChannelMaskNode()
         {
             name = "Channel Mask";
             UpdateNodeAfterDeserialization();
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Channel-Mask-Node"; }
         }
 
         const int InputSlotId = 0;
@@ -48,7 +43,7 @@ namespace UnityEditor.ShaderGraph
                 bool alpha = (channelMask & 8) != 0;
                 channelSum = string.Format("{0}{1}{2}{3}", red ? "Red" : "", green ? "Green" : "", blue ? "Blue" : "", alpha ? "Alpha" : "");
             }
-            return string.Format("Unity_ChannelMask_{0}_{1}", channelSum, precision);
+            return string.Format("Unity_ChannelMask_{0}_{1}", channelSum, NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType));
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

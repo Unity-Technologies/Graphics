@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Advanced", "Modulo")]
-    public class ModuloNode : CodeFunctionNode
+    class ModuloNode : CodeFunctionNode
     {
         public ModuloNode()
         {
             name = "Modulo";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Modulo-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

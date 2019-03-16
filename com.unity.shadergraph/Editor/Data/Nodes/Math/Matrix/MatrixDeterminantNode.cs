@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Matrix", "Matrix Determinant")]
-    public class MatrixDeterminantNode : CodeFunctionNode
+    class MatrixDeterminantNode : CodeFunctionNode
     {
         public MatrixDeterminantNode()
         {
             name = "Matrix Determinant";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Matrix-Determinant-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

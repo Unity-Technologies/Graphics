@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
@@ -406,6 +406,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return VFXContextController.IsTypeExpandable(portType); }
         }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return true; } }
 
         public virtual string iconName
         {
@@ -754,7 +755,8 @@ namespace UnityEditor.VFX.UI
 
                 if (subSlot != null)
                 {
-                    if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
+                    object result = null ;
+                    if (m_Controller.viewController.CanGetEvaluatedContent(subSlot) && ( result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
                     {
                         m_ValueBuilder.Add(o => o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
                     }

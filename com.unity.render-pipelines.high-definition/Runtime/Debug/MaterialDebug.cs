@@ -76,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // className include the additional "/"
-        int FillWithProperties(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string className, Type overrideTypeForIndex = null, int baseIndex = 0)
+        void FillWithProperties(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string className)
         {
             var attributes = type.GetCustomAttributes(true);
             // Get attribute to get the start number of the value for the enum
@@ -84,23 +84,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!attr.needParamDebug)
             {
-                return baseIndex;
+                return;
             }
 
             var fields = type.GetFields();
 
-            var localIndex = baseIndex;
-            if(overrideTypeForIndex != null)
-            {
-                var attr2 = overrideTypeForIndex.GetCustomAttributes(true)[0] as GenerateHLSL;
-                localIndex += attr2.paramDefinesStart - attr.paramDefinesStart;
-            }
+            var localIndex = 0;
             foreach (var field in fields)
             {
                 // Note: One field can have multiple name. This is to allow to have different debug view mode for the same field
                 // like for example display normal in world space or in view space. Same field but two different modes.
                 List<String> displayNames = new List<string>();
-                displayNames.Add(field.Name);
+
+                if (Attribute.IsDefined(field, typeof(PackingAttribute)))
+                {
+                    var packingAttributes = (PackingAttribute[])field.GetCustomAttributes(typeof(PackingAttribute), false);
+                    foreach(PackingAttribute packAttr in packingAttributes)
+                    {
+                        displayNames.AddRange(packAttr.displayNames);
+                    }
+                }
+                else
+                {
+                    displayNames.Add(field.Name);
+                }
 
                 // Check if the display name have been override by the users
                 if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
@@ -121,12 +128,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     localIndex++;
                 }
             }
-            if (overrideTypeForIndex != null)
-            {
-                var attr2 = overrideTypeForIndex.GetCustomAttributes(true)[0] as GenerateHLSL;
-                localIndex -= attr2.paramDefinesStart - attr.paramDefinesStart;
-            }
-            return localIndex;
         }
 
         void FillWithPropertiesEnum(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string prefix)
@@ -214,8 +215,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // BuiltinData are duplicated for each material
                     // Giving the material specific types allow to move iterator at a separate range for each material
                     // Otherwise, all BuiltinData will be at same offset and will broke the enum
-                    int nbElement = FillWithProperties(typeof(Builtin.BuiltinData), ref debugViewMaterialStringsList, ref debugViewMaterialValuesList, item.className, overrideTypeForIndex: item.surfaceDataType);
-                    FillWithProperties(item.surfaceDataType, ref debugViewMaterialStringsList, ref debugViewMaterialValuesList, item.className, baseIndex: nbElement);
+                    FillWithProperties(typeof(Builtin.BuiltinData), ref debugViewMaterialStringsList, ref debugViewMaterialValuesList, item.className);
+                    FillWithProperties(item.surfaceDataType, ref debugViewMaterialStringsList, ref debugViewMaterialValuesList, item.className);
                 }
 
                 // Engine properties debug
@@ -261,33 +262,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 debugViewMaterialGBufferValues = debugViewMaterialGBufferValuesList.ToArray();
 
                 isDebugViewMaterialInit = true;
-
-                //raise warning if indexes collide
-                unsafe
-                {
-                    if(CoreUnsafeUtils.HaveDuplicates(debugViewMaterialValues))
-                    {
-                        Debug.LogError("DebugMenu: debugViewMaterialValues have duplicate values. This will broke the runtime UI.");
-                    }
-                    if (CoreUnsafeUtils.HaveDuplicates(debugViewEngineValues))
-                    {
-                        Debug.LogError("DebugMenu: debugViewEngineValues have duplicate values. This will broke the runtime UI.");
-                    }
-                    if (CoreUnsafeUtils.HaveDuplicates(debugViewMaterialVaryingValues))
-                    {
-                        Debug.LogError("DebugMenu: debugViewMaterialVaryingValues have duplicate values. This will broke the runtime UI.");
-                    }
-                    if (CoreUnsafeUtils.HaveDuplicates(debugViewMaterialPropertiesValues))
-                    {
-                        Debug.LogError("DebugMenu: debugViewMaterialPropertiesValues have duplicate values. This will broke the runtime UI.");
-                    }
-                    if (CoreUnsafeUtils.HaveDuplicates(debugViewMaterialGBufferValues))
-                    {
-                        Debug.LogError("DebugMenu: debugViewMaterialGBufferValues have duplicate values. This will broke the runtime UI.");
-                    }
-                }
             }
         }
+
+        //Validator Settings
+        public Color materialValidateLowColor = new Color(1.0f, 0.0f, 0.0f);
+        public Color materialValidateHighColor = new Color(0.0f, 0.0f, 1.0f);
+        public Color materialValidateTrueMetalColor = new Color(1.0f, 1.0f, 0.0f);
+        public bool  materialValidateTrueMetal = false;
 
         public int debugViewMaterial { get { return m_DebugViewMaterial; } }
         public int debugViewEngine { get { return m_DebugViewEngine; } }

@@ -1,36 +1,49 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering.UI;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
     using UnityObject = UnityEngine.Object;
 
+    public interface IDebugData
+    {
+        Action GetReset();
+        //Action GetLoad();
+        //Action GetSave();
+    }
+
     public sealed partial class DebugManager
     {
-        static readonly DebugManager s_Instance = new DebugManager();
-        public static DebugManager instance { get { return s_Instance; } }
-
-        // Explicit static constructor to tell the C# compiler not to mark type as beforefieldinit
-        static DebugManager() {}
+        static readonly Lazy<DebugManager> s_Instance = new Lazy<DebugManager>(() => new DebugManager());
+        public static DebugManager instance => s_Instance.Value;
 
         ReadOnlyCollection<DebugUI.Panel> m_ReadOnlyPanels;
         readonly List<DebugUI.Panel> m_Panels = new List<DebugUI.Panel>();
+
+        void UpdateReadOnlyCollection()
+        {
+            m_Panels.Sort();
+            m_ReadOnlyPanels = m_Panels.AsReadOnly();
+        }
 
         public ReadOnlyCollection<DebugUI.Panel> panels
         {
             get
             {
                 if (m_ReadOnlyPanels == null)
-                    m_ReadOnlyPanels = m_Panels.AsReadOnly();
-
+                    UpdateReadOnlyCollection();
                 return m_ReadOnlyPanels;
             }
         }
 
         public event Action<bool> onDisplayRuntimeUIChanged = delegate {};
         public event Action onSetDirty = delegate {};
+
+        event Action resetData;
 
         public bool refreshEditorRequested;
 
@@ -40,48 +53,40 @@ namespace UnityEngine.Experimental.Rendering
         GameObject m_PersistentRoot;
         DebugUIHandlerPersistentCanvas m_RootUIPersistentCanvas;
 
+        // Knowing if the DebugWindows is open, is done by event as it is in another assembly.
+        // The DebugWindows is responsible to link its event to ToggleEditorUI.
+        bool m_EditorOpen = false;
+        public bool displayEditorUI => m_EditorOpen;
+        public void ToggleEditorUI(bool open) => m_EditorOpen = open;
+
         public bool displayRuntimeUI
         {
-            get
-            {
-                var uiManager = UnityObject.FindObjectOfType<DebugUIHandlerCanvas>();
-
-                // Might be needed to update the reference after domain reload
-                if (uiManager != null)
-                {
-                    m_Root = uiManager.gameObject;
-                }
-
-                return m_Root != null && m_Root.activeInHierarchy;
-            }
+            get => m_Root != null && m_Root.activeInHierarchy;
             set
             {
-                if (value && m_Root == null)
+                if (value)
                 {
-                    var uiManager = UnityObject.FindObjectOfType<DebugUIHandlerCanvas>();
-
-                    if (uiManager != null)
-                    {
-                        m_Root = uiManager.gameObject;
-                        return;
-                    }
-
                     m_Root = UnityObject.Instantiate(Resources.Load<Transform>("DebugUI Canvas")).gameObject;
                     m_Root.name = "[Debug Canvas]";
                     m_Root.transform.localPosition = Vector3.zero;
                     m_RootUICanvas = m_Root.GetComponent<DebugUIHandlerCanvas>();
+                    m_Root.SetActive(true);
                 }
-
-                if (m_Root != null)
-                    m_Root.SetActive(value);
+                else
+                {
+                    CoreUtils.Destroy(m_Root);
+                    m_Root = null;
+                    m_RootUICanvas = null;
+                }
 
                 onDisplayRuntimeUIChanged(value);
             }
         }
 
+
         public bool displayPersistentRuntimeUI
         {
-            get { return m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy; }
+            get => m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy;
             set
             {
                 CheckPersistentCanvas();
@@ -102,9 +107,19 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Reset()
         {
-            if (m_Panels != null)
-                m_Panels.Clear();
+            resetData?.Invoke();
+            ReDrawOnScreenDebug();
         }
+
+        public void ReDrawOnScreenDebug()
+        {
+            if (displayRuntimeUI)
+                m_RootUICanvas?.ResetAllHierarchy();
+        }
+        
+        public void RegisterData(IDebugData data) => resetData += data.GetReset();
+
+        public void UnregisterData(IDebugData data) => resetData -= data.GetReset();
 
         public int GetState()
         {
@@ -114,6 +129,13 @@ namespace UnityEngine.Experimental.Rendering
                 hash = hash * 23 + panel.GetHashCode();
 
             return hash;
+        }
+
+        internal void RegisterRootCanvas(DebugUIHandlerCanvas root)
+        {
+            Assert.IsNotNull(root);
+            m_Root = root.gameObject;
+            m_RootUICanvas = root;
         }
 
         internal void ChangeSelection(DebugUIHandlerWidget widget, bool fromNext)
@@ -164,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // TODO: Optimally we should use a query path here instead of a display name
-        public DebugUI.Panel GetPanel(string displayName, bool createIfNull = false)
+        public DebugUI.Panel GetPanel(string displayName, bool createIfNull = false, int groupIndex = 0)
         {
             foreach (var panel in m_Panels)
             {
@@ -176,10 +198,10 @@ namespace UnityEngine.Experimental.Rendering
 
             if (createIfNull)
             {
-                p = new DebugUI.Panel { displayName = displayName };
+                p = new DebugUI.Panel { displayName = displayName, groupIndex = groupIndex };
                 p.onSetDirty += OnPanelDirty;
                 m_Panels.Add(p);
-                m_ReadOnlyPanels = m_Panels.AsReadOnly();
+                UpdateReadOnlyCollection();
             }
 
             return p;
@@ -209,7 +231,7 @@ namespace UnityEngine.Experimental.Rendering
                 return;
 
             m_Panels.Remove(panel);
-            m_ReadOnlyPanels = m_Panels.AsReadOnly();
+            UpdateReadOnlyCollection();
         }
 
         public DebugUI.Widget GetItem(string queryPath)

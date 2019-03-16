@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Projection")]
-    public class ProjectionNode : CodeFunctionNode
+    class ProjectionNode : CodeFunctionNode
     {
         public ProjectionNode()
         {
             name = "Projection";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Projection-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

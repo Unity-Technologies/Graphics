@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using UnityEditor.Build;
 using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -14,45 +10,101 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
+            // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
             bool isGBufferPass = snippet.passName == "GBuffer";
-            //bool isForwardPass = snippet.passName == "Forward";
+            bool isForwardPass = snippet.passName == "Forward";
             bool isDepthOnlyPass = snippet.passName == "DepthOnly";
-            bool isTransparentForwardPass = snippet.passName == "TransparentDepthPostpass" || snippet.passName == "TransparentBackface" || snippet.passName == "TransparentDepthPrepass";
+            bool isMotionPass = snippet.passName == "MotionVectors";
+            bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
+            bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
+            bool isTransparentBackface = snippet.passName == "TransparentBackface";
+            bool isDistortionPass = snippet.passName == "DistortionVectors";
+            bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass || isDistortionPass;
+
+            // Using Contains to include the Tessellation variants
+            bool isBuiltInLit = shader.name.Contains("HDRP/Lit") || shader.name.Contains("HDRP/LayeredLit") || shader.name.Contains("HDRP/TerrainLit");
 
             // When using forward only, we never need GBuffer pass (only Forward)
-            if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && isGBufferPass)
+            // Gbuffer Pass is suppose to exist only for Lit shader thus why we test the condition here in case another shader generate a GBuffer pass (like VFX)
+            if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && isGBufferPass)
                 return true;
 
-            if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
+            // Variant of light layer only exist in GBuffer pass, so we test it here
+            if (inputData.shaderKeywordSet.IsEnabled(m_LightLayers) && isGBufferPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportLightLayers)
+                return true;
+
+            // This test include all Lit variant from Shader Graph (Because we check "DepthOnly" pass)
+            // Other forward material ("DepthForwardOnly") don't use keyword for WriteNormalBuffer but #define
+            if (isDepthOnlyPass)
             {
-                // If transparent, we never need GBuffer pass.
-                if (isGBufferPass)
+                // When we are full forward, we don't have depth prepass or motion vectors pass without writeNormalBuffer
+                if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                    return true;
+
+                // When we are deferred, we don't have depth prepass or motion vectors pass with writeNormalBuffer
+                // Note: This rule is safe with Forward Material because WRITE_NORMAL_BUFFER is not a keyword for them, so it will not be removed
+                if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
                     return true;
             }
-            else // Opaque
+
+            // Apply following set of rules only to inspector version of shader as we don't have Transparent keyword with shader graph
+            if (isBuiltInLit)
             {
-                // If opaque, we never need transparent specific passes (even in forward only mode)
-                if (isTransparentForwardPass)
-                    return true;
-
-                // TODO: This check is disabled currently as it doesn't work. We have issue with lit VFX from VFX graph not working correctly, mean we are too agressive on
-                // removal. Need to check why.
-                // When we are in deferred (i.e !hdrpAsset.renderPipelineSettings.supportOnlyForward), we only support tile lighting
-                //if (!hdrpAsset.renderPipelineSettings.supportOnlyForward && inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
-                //    return true;
-
-                if (isDepthOnlyPass)
+                // TODO: Currently there is no way to detect that Motion vector pass is from any ShaderGraph or from Lit.shader
+                // Forward material don't use keyword for WriteNormalBuffer but #define so we can't test for the keyword outside of isBuiltInLit
+                // otherwise the pass will be remove for non-lit shader graph version (like StackLit)
+                if (isMotionPass)
                 {
-                    // When we are full forward, we don't have depth prepass without writeNormalBuffer
-                    if (hdrpAsset.renderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                    // When we are full forward, we don't have depth prepass or motion vectors pass without writeNormalBuffer
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                        return true;
+
+                    // When we are deferred, we don't have depth prepass or motion vectors pass with writeNormalBuffer
+                    // Note: This rule is safe with Forward Material because WRITE_NORMAL_BUFFER is not a keyword for them, so it will not be removed
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
                         return true;
                 }
 
-                // TODO: add an option to say we are using only the deferred shader variant (for Lit)
-                //if (0)
+                if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
                 {
-                    // If opaque and not forward only, then we only need the forward debug pass.
-                    //if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                    // If transparent, we never need GBuffer pass.
+                    if (isGBufferPass)
+                        return true;
+
+                    // If transparent we don't need the depth only pass
+                    if (isDepthOnlyPass)
+                        return true;
+
+                    // If transparent we don't need the motion vector pass
+                    if (isMotionPass)
+                        return true;
+
+                    // If we are transparent we use cluster lighting and not tile lighting
+                    if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
+                        return true;
+                }
+                else // Opaque
+                {
+                    // If opaque, we never need transparent specific passes (even in forward only mode)
+                    if (isTransparentForwardPass)
+                        return true;
+
+                    // Note: We can't apply following rules to Shader Graph as we don't know if we are transparent or opaque.
+                    // TODO: Find a way to be able to apply these rules to Shader Graph lit shader
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
+                    {
+                        // When we are in deferred, we only support tile lighting
+                        if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
+                            return true;
+                        
+                        if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                            return true;
+                    }
+
+                    // TODO: Should we remove Cluster version if we know MSAA is disabled ? This prevent to manipulate LightLoop Settings (useFPTL option)
+                    // For now comment following code
+                    // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
                     //    return true;
                 }
             }

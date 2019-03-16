@@ -1,9 +1,84 @@
 // This files include various function uses to evaluate lights
 
+// Samples the area light's associated cookie
+//  cookieIndex, the index of the cookie texture in the Texture2DArray
+//  L, the 4 local-space corners of the area light polygon transformed by the LTC M^-1 matrix
+//  F, the *normalized* vector irradiance
+float3 SampleAreaLightCookie(int cookieIndex, float4x3 L, float3 F)
+{
+    // L[0] = top-right
+    // L[1] = bottom-right
+    // L[2] = bottom-left
+    // L[3] = top-left
+    float3  origin = L[2];
+    float3  right = L[1] - origin;
+    float3  up = L[3] - origin;
+
+    float3  normal = cross(right, up);
+    float   sqArea = dot(normal, normal);
+    normal *= rsqrt(sqArea);
+
+    // Compute intersection of irradiance vector with the area light plane
+    float   hitDistance = dot(origin, normal) / dot(F, normal);
+    float3  hitPosition = hitDistance * normal;
+    hitPosition -= origin;  // Relative to bottom-left corner
+
+                            // Here, right and up vectors are not necessarily orthonormal
+                            // We create the orthogonal vector "ortho" by projecting "up" onto the vector orthogonal to "right"
+                            //  ortho = up - (up.right') * right'
+                            // Where right' = right / sqrt( dot( right, right ) ), the normalized right vector
+    float   recSqLengthRight = 1.0 / dot(right, right);
+    float   upRightMixing = dot(up, right);
+    float3  ortho = up - upRightMixing * right * recSqLengthRight;
+
+    // The V coordinate along the "up" vector is simply the projection against the ortho vector
+    float   v = dot(hitPosition, ortho) / dot(ortho, ortho);
+
+    // The U coordinate is not only the projection against the right vector
+    //  but also the subtraction of the influence of the up vector upon the right vector
+    //  (indeed, if the up & right vectors are not orthogonal then a certain amount of
+    //  the up coordinate also influences the right coordinate)
+    //
+    //       |    up
+    // ortho ^....*--------*
+    //       |   /:       /
+    //       |  / :      /
+    //       | /  :     /
+    //       |/   :    /
+    //       +----+-->*----->
+    //            : right
+    //          mix of up into right that needs to be subtracted from simple projection on right vector
+    //
+    float   u = (dot(hitPosition, right) - upRightMixing * v) * recSqLengthRight;
+    // Currently the texture happens to be reversed when comparing it to the area light emissive mesh itself. This needs
+    // Further investigation to solve the problem. So for the moment we simply decided to inverse the x coordinate of hitUV
+    // as a temporary solution
+    // TODO: Invesigate more!
+    float2  hitUV = float2(1.0 - u, v);
+
+    // Assuming the original cosine lobe distribution Do is enclosed in a cone of 90° aperture,
+    //  following the idea of orthogonal projection upon the area light's plane we find the intersection
+    //  of the cone to be a disk of area PI*d² where d is the hit distance we computed above.
+    // We also know the area of the transformed polygon A = sqrt( sqArea ) and we pose the ratio of covered area as PI.d² / A.
+    //
+    // Knowing the area in square texels of the cookie texture A_sqTexels = texture width * texture height (default is 128x128 square texels)
+    //  we can deduce the actual area covered by the cone in square texels as:
+    //  A_covered = Pi.d² / A * A_sqTexels
+    //
+    // From this, we find the mip level as: mip = log2( sqrt( A_covered ) ) = log2( A_covered ) / 2
+    // Also, assuming that A_sqTexels is of the form 2^n * 2^n we get the simplified expression: mip = log2( Pi.d² / A ) / 2 + n
+    //
+    const float COOKIE_MIPS_COUNT = _CookieSizePOT;
+    float   mipLevel = 0.5 * log2(1e-8 + PI * hitDistance*hitDistance * rsqrt(sqArea)) + COOKIE_MIPS_COUNT;
+
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, hitUV, cookieIndex, mipLevel).xyz;
+}
+
 //-----------------------------------------------------------------------------
 // Directional Light evaluation helper
 //-----------------------------------------------------------------------------
 
+#ifndef OVERRIDE_EVALUATE_COOKIE_DIRECTIONAL
 float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData light,
                                   float3 lightToSample)
 {
@@ -22,6 +97,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     // We let the sampler handle clamping to border.
     return SampleCookie2D(lightLoopContext, positionNDC, light.cookieIndex, light.tileCookie);
 }
+#endif
 
 // Does not account for precomputed (screen-space or baked) shadows.
 float EvaluateRuntimeSunShadow(LightLoopContext lightLoopContext, PositionInputs posInput,
@@ -61,9 +137,8 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     {
         float cosZenithAngle = L.y;
         float fragmentHeight = posInput.positionWS.y;
-        attenuation *= Transmittance(OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                                           _HeightFogExponents, cosZenithAngle,
-                                                           fragmentHeight));
+        attenuation *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                              _HeightFogExponents, cosZenithAngle, fragmentHeight);
     }
 
     if (light.cookieIndex >= 0)
@@ -83,11 +158,6 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
         shadow = lightLoopContext.shadowValue;
-
-        // Transparents have no contact shadow information
-    #ifndef _SURFACE_TYPE_TRANSPARENT
-        shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
-    #endif
 
     #ifdef SHADOWS_SHADOWMASK
         // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
@@ -115,6 +185,11 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
         shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }
+
+    // Transparents have no contact shadow information
+#ifndef _SURFACE_TYPE_TRANSPARENT
+    shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
+#endif
 
 #ifdef DEBUG_DISPLAY
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
@@ -167,6 +242,7 @@ void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, o
     }
 }
 
+#ifndef OVERRIDE_EVALUATE_COOKIE_PUNCTUAL
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData light,
                                float3 lightToSample)
 {
@@ -201,6 +277,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     return cookie;
 }
+#endif
 
 // None of the outputs are premultiplied.
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, light.forward).
@@ -226,9 +303,9 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         float cosZenithAngle = L.y;
         float distToLight    = (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX) ? distances.w : distances.x;
         float fragmentHeight = posInput.positionWS.y;
-        attenuation *= Transmittance(OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                                           _HeightFogExponents, cosZenithAngle,
-                                                           fragmentHeight, distToLight));
+        attenuation *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                              _HeightFogExponents, cosZenithAngle,
+                                              fragmentHeight, distToLight);
     }
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
@@ -248,12 +325,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
-
-        // Transparents have no contact shadow information
-    #ifndef _SURFACE_TYPE_TRANSPARENT
-        shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
-    #endif
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
 
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
@@ -269,6 +341,11 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         shadow = lerp(shadowMask, shadow, light.shadowDimmer);
     }
 
+    // Transparents have no contact shadow information
+#ifndef _SURFACE_TYPE_TRANSPARENT
+    shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
+#endif
+
 #ifdef DEBUG_DISPLAY
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
         debugShadowAttenuation = step(FLT_EPS, attenuation) * shadow;
@@ -277,6 +354,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     attenuation *= shadow;
 }
 
+#ifndef OVERRIDE_EVALUATE_ENV_INTERSECTION
 // Environment map share function
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 
@@ -323,3 +401,4 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     weight = Smoothstep01(weight);
     weight *= light.weight;
 }
+#endif

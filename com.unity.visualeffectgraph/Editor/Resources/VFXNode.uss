@@ -3,9 +3,16 @@
     border-color: rgba(35,35,35,0.8);
 }
 
+#collapse-button >#icon 
+{
+
+    visibility: visible;
+}
+   
+
 #divider.horizontal {
-    height:0.01;
-    border-bottom-width: 1;
+    height: 0.01px;
+    border-bottom-width: 1px;
 }
 
 #divider.horizontal.hidden {
@@ -14,8 +21,8 @@
 }
 
 #divider.vertical {
-    width:0.01;
-    border-right-width: 1;
+    width: 0.01px;
+    border-right-width: 1px;
 }
 
 #divider.vertical.hidden {
@@ -39,19 +46,14 @@
     background-color: rgba(63,63,63,0.8);
 }
 
-.VFXNodeUI.node #contents > #top > #input
-{
-    background-color: rgba(0,0,0,0.0);
-}
-
 
 .VFXNodeUI #settings
 {
-    margin-top:6;
-    margin-bottom:6;
-    margin-right:4;
-    margin-left:16; /* this is meant to compense for data anchors connector, so that settings labels are aligned with input labels. */
-    padding-right:4;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    margin-right: 4px;
+    margin-left: 16px; /* this is meant to compense for data anchors connector, so that settings labels are aligned with input labels. */
+    padding-right: 4px;
     overflow:hidden;
 }
 
@@ -82,9 +84,16 @@
 
 .VFXNodeUI.node #contents > #top > #input
 {
-    padding-top:6;
-    padding-bottom:6;
+    padding-top: 6px;
+    padding-bottom: 6px;
     flex: 1 1 auto;
+    background-color: rgba(0,0,0,0.0);
+}
+
+.VFXNodeUI.node #contents > #top > #output
+{
+    padding-top: 6px;
+    padding-bottom: 6px;
 }
 
 #line
@@ -96,8 +105,8 @@
 {
     background-color: rgba(35,35,35,0.8);
     border-color: rgba(35,35,35,0.8);
-    height:0.01;
-    border-bottom-width: 1;
+    height: 0.01px;
+    border-bottom-width: 1px;
 }
 
 #settings-divider.hidden
@@ -110,8 +119,4 @@
 {
     height:0;
     border-bottom-width: 0;
-}
-#collapse-button:hover:enabled > #icon {
-    background-color:#DDD;
-    visibility:visible;
 }

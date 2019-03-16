@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class SpaceMaterialSlot : Vector3MaterialSlot
+    abstract class SpaceMaterialSlot : Vector3MaterialSlot
     {
         [SerializeField]
         private CoordinateSpace m_Space = CoordinateSpace.World;

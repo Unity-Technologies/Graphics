@@ -8,35 +8,132 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public static class GradientUtils
+    static class GradientUtils
     {
-        public static void GetGradientDeclaration(Gradient gradient, ref ShaderStringBuilder s)
+        public static string GetGradientValue(Gradient gradient, AbstractMaterialNode.OutputPrecision precision, bool inline, string delimiter = ";")
         {
-            string[] colors = new string[8];
-            for (int i = 0; i < colors.Length; i++)
-                colors[i] = string.Format("g.colors[{0}] = float4(0, 0, 0, 0);", i.ToString());
-            for (int i = 0; i < gradient.colorKeys.Length; i++)
-                colors[i] = GetColorKey(i, gradient.colorKeys[i].color, gradient.colorKeys[i].time);
+            string colorKeys = "";
+            for(int i = 0; i < 8; i++)
+            {
+                if(i < gradient.colorKeys.Length)
+                {
+                    colorKeys += string.Format("{0}4({1}, {2}, {3}, {4})"
+                        , precision
+                        , gradient.colorKeys[i].color.r
+                        , gradient.colorKeys[i].color.g
+                        , gradient.colorKeys[i].color.b
+                        , gradient.colorKeys[i].time);
+                }
+                else
+                    colorKeys += string.Format("{0}4(0, 0, 0, 0)", precision);
+                if(i < 7)
+                    colorKeys += ",";
+            }
 
-            string[] alphas = new string[8];
-            for (int i = 0; i < colors.Length; i++)
-                alphas[i] = string.Format("g.alphas[{0}] = float2(0, 0);", i.ToString());
-            for (int i = 0; i < gradient.alphaKeys.Length; i++)
-                alphas[i] = GetAlphaKey(i, gradient.alphaKeys[i].alpha, gradient.alphaKeys[i].time);
+            string alphaKeys = "";
+            for(int i = 0; i < 8; i++)
+            {
+                if(i < gradient.alphaKeys.Length)
+                {
+                    alphaKeys += string.Format("{0}2({1}, {2})"
+                        , precision
+                        , gradient.alphaKeys[i].alpha
+                        , gradient.alphaKeys[i].time);
+                }
+                else
+                    alphaKeys += string.Format("{0}2(0, 0)", precision);
+                if(i < 7)
+                    alphaKeys += ",";
+            }
 
-            s.AppendLine("Gradient g;");
-            s.AppendLine("g.type = {0};",
-                (int)gradient.mode);
-            s.AppendLine("g.colorsLength = {0};",
-                gradient.colorKeys.Length);
-            s.AppendLine("g.alphasLength = {0};",
-                gradient.alphaKeys.Length);
+            if(inline)
+            {
+                return string.Format("NewGradient({0}, {1}, {2}, {3}, {4}){5}"
+                    , (int)gradient.mode
+                    , gradient.colorKeys.Length
+                    , gradient.alphaKeys.Length
+                    , colorKeys
+                    , alphaKeys
+                    , delimiter);
+            }
+            else
+            {
+                return string.Format("{{{0}, {1}, {2}, {{{3}}}, {{{4}}}}}{5}"
+                    , (int)gradient.mode
+                    , gradient.colorKeys.Length
+                    , gradient.alphaKeys.Length
+                    , colorKeys
+                    , alphaKeys
+                    , delimiter);
+            }
+        }
 
-            for (int i = 0; i < colors.Length; i++)
-                s.AppendLine(colors[i]);
+        public static string GetGradientForPreview(string name)
+        {
+            string colorKeys = "";
+            for(int i = 0; i < 8; i++)
+            {
+                colorKeys += string.Format("{0}_ColorKey{1}", name, i);
+                if(i < 7)
+                    colorKeys += ",";
+            }
 
-            for (int i = 0; i < alphas.Length; i++)
-                s.AppendLine(alphas[i]);
+            string alphaKeys = "";
+            for(int i = 0; i < 8; i++)
+            {
+                alphaKeys += string.Format("{0}_AlphaKey{1}", name, i);
+                if(i < 7)
+                    alphaKeys += ",";
+            }
+
+            return string.Format("NewGradient({0}_Type, {0}_ColorsLength, {0}_AlphasLength, {1}, {2})"
+                , name
+                , colorKeys
+                , alphaKeys);
+        }
+
+        public static void GetGradientPropertiesForPreview(PropertyCollector properties, string name, Gradient value)
+        {
+            properties.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = string.Format("{0}_Type", name),
+                value = (int)value.mode,
+                generatePropertyBlock = false
+            });
+
+            properties.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = string.Format("{0}_ColorsLength", name),
+                value = value.colorKeys.Length,
+                generatePropertyBlock = false
+            });
+
+            properties.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = string.Format("{0}_AlphasLength", name),
+                value = value.alphaKeys.Length,
+                generatePropertyBlock = false
+            });
+
+            for (int i = 0; i < 8; i++)
+            {
+                properties.AddShaderProperty(new Vector4ShaderProperty()
+                {
+                    overrideReferenceName = string.Format("{0}_ColorKey{1}", name, i),
+                    value = i < value.colorKeys.Length ? GradientUtils.ColorKeyToVector(value.colorKeys[i]) : Vector4.zero,
+                    generatePropertyBlock = false
+                });
+            }
+
+            for (int i = 0; i < 8; i++)
+            {
+                properties.AddShaderProperty(new Vector2ShaderProperty()
+                {
+                    overrideReferenceName = string.Format("{0}_AlphaKey{1}", name, i),
+                    value = i < value.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(value.alphaKeys[i]) : Vector2.zero,
+                    generatePropertyBlock = false
+                });
+            }
         }
 
         public static bool CheckEquivalency(Gradient A, Gradient B)
@@ -70,16 +167,6 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
 
-        private static string GetColorKey(int index, Color color, float time)
-        {
-            return string.Format("g.colors[{0}] = float4({1}, {2}, {3}, {4});", index, color.r, color.g, color.b, time);
-        }
-
-        private static string GetAlphaKey(int index, float alpha, float time)
-        {
-            return string.Format("g.alphas[{0}] = float2({1}, {2});", index, alpha, time);
-        }
-
         public static Vector4 ColorKeyToVector(GradientColorKey key)
         {
             return new Vector4(key.color.r, key.color.g, key.color.b, key.time);
@@ -92,17 +179,13 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Serializable]
-    public class GradientShaderProperty : AbstractShaderProperty<Gradient>
+    class GradientShaderProperty : AbstractShaderProperty<Gradient>
     {
         public GradientShaderProperty()
         {
             displayName = "Gradient";
             value = new Gradient();
         }
-
-        private bool m_OverrideMembers = false;
-
-        private string m_OverrideSlotName;
 
         public override PropertyType propertyType
         {
@@ -119,53 +202,64 @@ namespace UnityEditor.ShaderGraph
             get { return false; }
         }
 
+        public override bool isExposable
+        {
+            get { return false; }
+        }
+
         public override string GetPropertyBlockString()
         {
             return string.Empty;
         }
 
-        public void OverrideMembers(string slotName)
-        {
-            m_OverrideMembers = true;
-            m_OverrideSlotName = slotName;
-        }
-
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            if (m_OverrideMembers)
+            ShaderStringBuilder s = new ShaderStringBuilder();
+            s.AppendLine("Gradient {0}_Definition()", referenceName);
+            using (s.BlockScope())
             {
-                ShaderStringBuilder s = new ShaderStringBuilder();
-                s.AppendLine("Gradient Unity{0} ()",
-                    referenceName);
-                using (s.BlockScope())
-                {
-                    s.AppendLine("Gradient g;");
-                    s.AppendLine("g.type = {0}_Type;", m_OverrideSlotName);
-                    s.AppendLine("g.colorsLength = {0}_ColorsLength;", m_OverrideSlotName);
-                    s.AppendLine("g.alphasLength = {0}_AlphasLength;", m_OverrideSlotName);
-                    for (int i = 0; i < 8; i++)
-                    {
-                        s.AppendLine("g.colors[{0}] = {1}_ColorKey{0};", i, m_OverrideSlotName);
-                    }
-                    for (int i = 0; i < 8; i++)
-                    {
-                        s.AppendLine("g.alphas[{0}] = {1}_AlphaKey{0};", i, m_OverrideSlotName);
-                    }
-                    s.AppendLine("return g;", true);
-                }
-                return s.ToString();
+                string[] colors = new string[8];
+                for (int i = 0; i < colors.Length; i++)
+                    colors[i] = string.Format("g.colors[{0}] = float4(0, 0, 0, 0);", i);
+                for (int i = 0; i < value.colorKeys.Length; i++)
+                    colors[i] = string.Format("g.colors[{0}] = float4({1}, {2}, {3}, {4});"
+                        , i
+                        , value.colorKeys[i].color.r
+                        , value.colorKeys[i].color.g
+                        , value.colorKeys[i].color.b
+                        , value.colorKeys[i].time);
+
+                string[] alphas = new string[8];
+                for (int i = 0; i < alphas.Length; i++)
+                    alphas[i] = string.Format("g.alphas[{0}] = float2(0, 0);", i);
+                for (int i = 0; i < value.alphaKeys.Length; i++)
+                    alphas[i] = string.Format("g.alphas[{0}] = float2({1}, {2});"
+                        , i
+                        , value.alphaKeys[i].alpha
+                        , value.alphaKeys[i].time);
+
+                s.AppendLine("Gradient g;");
+                s.AppendLine("g.type = {0};",
+                    (int)value.mode);
+                s.AppendLine("g.colorsLength = {0};",
+                    value.colorKeys.Length);
+                s.AppendLine("g.alphasLength = {0};",
+                    value.alphaKeys.Length);
+
+                for (int i = 0; i < colors.Length; i++)
+                    s.AppendLine(colors[i]);
+
+                for (int i = 0; i < alphas.Length; i++)
+                    s.AppendLine(alphas[i]);
+                s.AppendLine("return g;", true);
             }
-            else
-            {
-                ShaderStringBuilder s = new ShaderStringBuilder();
-                s.AppendLine("Gradient Unity{0} ()", referenceName);
-                using (s.BlockScope())
-                {
-                    GradientUtils.GetGradientDeclaration(value, ref s);
-                    s.AppendLine("return g;", true);
-                }
-                return s.ToString();
-            }
+            s.AppendLine("#define {0} {0}_Definition()", referenceName);
+            return s.ToString();
+        }
+
+        public override string GetPropertyAsArgumentString()
+        {
+            return "Gradient " + referenceName;
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
@@ -177,12 +271,12 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new GradientNode { gradient = value };
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             return new GradientShaderProperty
             {

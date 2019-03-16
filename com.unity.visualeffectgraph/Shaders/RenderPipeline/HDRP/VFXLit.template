@@ -3,9 +3,9 @@
 void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, out BSDFData bsdfData, out PreLightData preLightData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, uint2 tileIndex)
 {	
 	#if HDRP_MATERIAL_TYPE_TRANSLUCENT
-	${VFXLoadParameter:{diffusionProfile}} // Loads diffusion profile
+	${VFXLoadParameter:{diffusionProfileHash}} // Loads diffusion profile
 	#else
-	const uint diffusionProfile = 0;
+	const uint diffusionProfileHash = 0;
 	#endif
 	
 	float3 posRWS = VFXGetPositionRWS(i);
@@ -13,14 +13,11 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 	PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
 	
 	float alpha;
-	surfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile,alpha);	
+	surfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfileHash,alpha);	
 	bsdfData = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);
 
-#if HDRP_MATERIAL_TYPE_SIMPLE
-	preLightData = SimpleGetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
-#else
 	preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
-#endif
+	
 	preLightData.diffuseFGD = 1.0f;
     //TODO: investigate why this is needed
     preLightData.coatPartLambdaV = 0;

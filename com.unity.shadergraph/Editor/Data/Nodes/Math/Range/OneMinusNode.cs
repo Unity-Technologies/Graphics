@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "One Minus")]
-    public class OneMinusNode : CodeFunctionNode
+    class OneMinusNode : CodeFunctionNode
     {
         public OneMinusNode()
         {
             name = "One Minus";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/One-Minus-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

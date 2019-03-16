@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public abstract class GeometryNode : AbstractMaterialNode
+    abstract class GeometryNode : AbstractMaterialNode
     {
         [SerializeField]
         private CoordinateSpace m_Space = CoordinateSpace.World;

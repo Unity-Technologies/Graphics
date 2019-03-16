@@ -9,7 +9,7 @@
 //-----------------------------------------------------------------------------
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl" // Require for GetIndexColor auto generated
-#include "BuiltinData.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // helper macro
@@ -40,16 +40,21 @@ void EncodeVelocity(float2 velocity, out float4 outBuffer)
     outBuffer = float4(velocity.xy, 0.0, 0.0);
 }
 
+bool PixelSetAsNoMotionVectors(float4 inBuffer)
+{
+	return inBuffer.x > 1.0f;
+}
+
 void DecodeVelocity(float4 inBuffer, out float2 velocity)
 {
-    velocity = inBuffer.xy;
+	velocity = PixelSetAsNoMotionVectors(inBuffer) ? 0.0f : inBuffer.xy;
 }
 
 void EncodeDistortion(float2 distortion, float distortionBlur, bool isValidSource, out float4 outBuffer)
 {
     // RT - 16:16:16:16 float
     // distortionBlur in alpha for a different blend mode
-    outBuffer = float4(distortion, isValidSource, distortionBlur);
+    outBuffer = float4(distortion, isValidSource, distortionBlur); // Caution: Blend mode depends on order of attribut here, can't change without updating blend mode.
 }
 
 void DecodeDistortion(float4 inBuffer, out float2 distortion, out float distortionBlur, out bool isValidSource)

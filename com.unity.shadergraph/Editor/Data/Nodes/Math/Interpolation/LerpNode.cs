@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Interpolation", "Lerp")]
-    public class LerpNode : CodeFunctionNode
+    class LerpNode : CodeFunctionNode
     {
         public LerpNode()
         {
             name = "Lerp";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Lerp-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

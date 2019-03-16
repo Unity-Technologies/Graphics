@@ -2,7 +2,7 @@
 
 ## Description
 
-An **Edge** defines a connection between two [Ports](Port.md). **Edges** define how data flows through the [Shader Graph](Shader-Graph.md) node network. They can only be connected from an input [Port](Por.mdt) to an output [Port](Port.md).
+An **Edge** defines a connection between two [Ports](Port.md). **Edges** define how data flows through the [Shader Graph](Shader-Graph.md) node network. They can only be connected from an input [Port](Port.md) to an output [Port](Port.md).
 
 Each **Edge** has a [Data Type](Data-Types.md) which defines what [Ports](Port.md) it can be connected to. Each [Data Type](Data-Types.md) has an associated color for identifying its type.
 

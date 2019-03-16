@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DebugFullScreen"
+Shader "Hidden/HDRP/DebugFullScreen"
 {
     SubShader
     {
@@ -30,7 +30,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             float _FullScreenDebugMode;
             CBUFFER_END
 
-            TEXTURE2D(_DebugFullScreenTexture);
+            TEXTURE2D_X(_DebugFullScreenTexture);
 
             struct Attributes
             {
@@ -117,7 +117,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             float2 SampleMotionVectors(float2 coords)
             {
                 float2 velocityNDC;
-                DecodeVelocity(SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, coords), velocityNDC);
+                DecodeVelocity(SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, coords), velocityNDC);
 
                 return velocityNDC;
             }
@@ -125,29 +125,23 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                if (ShouldFlipDebugTexture())
-                {
-                    // Texcoord are already scaled by _ScreenToTargetScale but we need to account for the flip here anyway.
-                    input.texcoord.y = 1.0 * _ScreenToTargetScale.y - input.texcoord.y;
-                }
-
                 // Note: If the single shadow debug mode is enabled, we don't render other full screen debug modes
                 // and the value of _FullScreenDebugMode is forced to 0
                 if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
                 }
                 // SSAO
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SSAO)
                 {
-                    return 1.0f - SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).xxxx;
+                    return 1.0f - SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).xxxx;
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
 
-                    if (AnyIsNan(color) || any(isinf(color)))
+                    if (AnyIsNaN(color) || AnyIsInf(color))
                     {
                         color = float4(1.0, 0.0, 0.0, 1.0);
                     }
@@ -156,6 +150,21 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                         color.rgb = Luminance(color.rgb).xxx;
                     }
 
+                    return color;
+                }
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_LIGHT_CLUSTER)
+                {
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    return color;
+                }
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_INDIRECT_DIFFUSE)
+                {
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    return color;
+                }
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_RAYTRACED_AREA_SHADOW)
+                {
+                    float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);
                     return color;
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_MOTION_VECTORS)
@@ -183,25 +192,18 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     float cols = kGrid;
                     float2 size = _ScreenSize.xy / float2(cols, rows);
                     float body = min(size.x, size.y) / sqrt(2.0);
-                    float2 texcoord = input.positionCS.xy;
-                    float2 center = (floor(texcoord / size) + 0.5) * size;
-                    texcoord -= center;
+                    float2 positionSS = input.texcoord.xy / _ScreenToTargetScale.xy;
+                    positionSS *= _ScreenSize.xy;
+                    float2 center = (floor(positionSS / size) + 0.5) * size;
+                    positionSS -= center;
 
                     // Sample the center of the cell to get the current arrow vector
                     float2 arrow_coord = center * _ScreenSize.zw;
 
-                    if (ShouldFlipDebugTexture())
-                    {
-                        arrow_coord.y = 1.0 - arrow_coord.y;
-                    }
                     arrow_coord *= _ScreenToTargetScale.xy;
 
                     float2 mv_arrow = SampleMotionVectors(arrow_coord);
-
-                    if (!ShouldFlipDebugTexture())
-                    {
-                        mv_arrow.y *= -1;
-                    }
+                    mv_arrow.y *= -1;
 
                     // Skip empty motion
                     float d = 0.0;
@@ -210,9 +212,9 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                         // Rotate the arrow according to the direction
                         mv_arrow = normalize(mv_arrow);
                         float2x2 rot = float2x2(mv_arrow.x, -mv_arrow.y, mv_arrow.y, mv_arrow.x);
-                        texcoord = mul(rot, texcoord);
+                        positionSS = mul(rot, positionSS);
 
-                        d = DrawArrow(texcoord, body, 0.25 * body, 0.5, 2.0, 1.0);
+                        d = DrawArrow(positionSS, body, 0.25 * body, 0.5, 2.0, 1.0);
                         d = 1.0 - saturate(d);
                     }
 
@@ -220,20 +222,20 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return float4(1.0f - color.rrr, 0.0);
                 }
 
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return float4(color.rgb, 1.0f);
                 }
 
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)
                 {
-                    float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return float4(color.rgb, 1.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_PYRAMID)
@@ -241,7 +243,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     // Reuse depth display function from DebugViewMaterial
                     int2 mipOffset = _DebugDepthPyramidOffsets[_DebugDepthPyramidMip];
                     uint2 pixCoord = (uint2)input.positionCS.xy >> _DebugDepthPyramidMip;
-                    float depth = LOAD_TEXTURE2D(_DepthPyramidTexture, pixCoord + mipOffset).r;
+                    float depth = LOAD_TEXTURE2D_X(_DepthPyramidTexture, pixCoord + mipOffset).r;
                     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                     float linearDepth = frac(posInput.linearDepth * 0.1);
                     return float4(linearDepth.xxx, 1.0);

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [ExecuteAlways]
     public class Volume : MonoBehaviour
@@ -16,15 +16,15 @@ namespace UnityEngine.Experimental.Rendering
 
         [Range(0f, 1f), Tooltip("Total weight of this volume in the scene. 0 means it won't do anything, 1 means full effect.")]
         public float weight = 1f;
-
+        
         // Modifying sharedProfile will change the behavior of all volumes using this profile, and
         // change profile settings that are stored in the project too
-        public VolumeProfile sharedProfile;
+        public VolumeProfile sharedProfile = null;
 
         // This property automatically instantiates the profile and makes it unique to this volume
         // so you can safely edit it via scripting at runtime without changing the original asset
         // in the project.
-        // Note that if you pass in your own profile, it is your responsability to destroy it once
+        // Note that if you pass in your own profile, it is your responsibility to destroy it once
         // it's not in use anymore.
         public VolumeProfile profile
         {
@@ -46,26 +46,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 return m_InternalProfile;
             }
-            set
-            {
-                m_InternalProfile = value;
-            }
+            set => m_InternalProfile = value;
         }
 
-        internal VolumeProfile profileRef
-        {
-            get
-            {
-                return m_InternalProfile == null
-                    ? sharedProfile
-                    : m_InternalProfile;
-            }
-        }
+        internal VolumeProfile profileRef => m_InternalProfile == null ? sharedProfile : m_InternalProfile;
 
-        public bool HasInstantiatedProfile()
-        {
-            return m_InternalProfile != null;
-        }
+        public bool HasInstantiatedProfile() => m_InternalProfile != null;
 
         // Needed for state tracking (see the comments in Update)
         int m_PreviousLayer;
@@ -125,7 +111,7 @@ namespace UnityEngine.Experimental.Rendering
             var scale = transform.localScale;
             var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
             Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
-            Gizmos.color = new Color(0f, 1f, 0.1f, 0.35f);
+            Gizmos.color = CoreRenderPipelinePreferences.volumeGizmoColor;
 
             // Draw a separate gizmo for each collider
             foreach (var collider in colliders)
@@ -173,7 +159,6 @@ namespace UnityEngine.Experimental.Rendering
 
             colliders.Clear();
         }
-
 #endif
     }
 }

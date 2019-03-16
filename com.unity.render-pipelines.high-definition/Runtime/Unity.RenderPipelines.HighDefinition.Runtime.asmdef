@@ -2,7 +2,7 @@
     "name": "Unity.RenderPipelines.HighDefinition.Runtime",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.Postprocessing.Runtime"
+		"Unity.ugui"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
@@ -11,5 +11,12 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "0.0.0",
+            "define": "HDRP_1_OR_NEWER"
+        }
+    ]
 }

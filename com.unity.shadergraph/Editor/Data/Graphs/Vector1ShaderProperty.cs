@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum FloatType
+    enum FloatType
     {
         Default,
         Slider,
@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
-    public class Vector1ShaderProperty : AbstractShaderProperty<float>
+    class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
         public Vector1ShaderProperty()
         {
@@ -32,6 +32,11 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool isBatchable
+        {
+            get { return true; }
+        }
+
+        public override bool isExposable
         {
             get { return true; }
         }
@@ -63,10 +68,21 @@ namespace UnityEditor.ShaderGraph
                 m_RangeValues = value;
             }
         }
+        
+        [SerializeField]
+        bool    m_Hidden = false;
+
+        public bool hidden
+        {
+            get { return m_Hidden; }
+            set { m_Hidden = value; }
+        }
 
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
+            if (hidden)
+                result.Append("[HideInInspector] ");
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);
@@ -74,7 +90,7 @@ namespace UnityEditor.ShaderGraph
             {
                 case FloatType.Slider:
                     result.Append("\", Range(");
-                    result.Append(m_RangeValues.x + ", " + m_RangeValues.y);
+                    result.Append(NodeUtils.FloatToShaderValue(m_RangeValues.x) + ", " + NodeUtils.FloatToShaderValue(m_RangeValues.y));
                     result.Append(")) = ");
                     break;
                 case FloatType.Integer:
@@ -102,7 +118,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)
             {
@@ -117,7 +133,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new Vector1ShaderProperty();
             copied.displayName = displayName;

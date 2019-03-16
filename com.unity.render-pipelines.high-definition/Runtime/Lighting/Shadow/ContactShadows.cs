@@ -1,8 +1,9 @@
 using System;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [Serializable]
+    [Serializable, VolumeComponentMenu("Shadowing/Contact Shadows")]
     public class ContactShadows : VolumeComponent
     {
         // Contact shadows
@@ -13,5 +14,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MinFloatParameter            maxDistance = new MinFloatParameter(50.0f, 0.0f);
         public MinFloatParameter            fadeDistance = new MinFloatParameter(5.0f, 0.0f);
         public NoInterpClampedIntParameter  sampleCount = new NoInterpClampedIntParameter(8, 4, 64);
+
+        ContactShadows()
+        {
+            displayName = "Contact Shadows";
+        }
     }
 }

@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Fraction")]
-    public class FractionNode : CodeFunctionNode
+    class FractionNode : CodeFunctionNode
     {
         public FractionNode()
         {
             name = "Fraction";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Fraction-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

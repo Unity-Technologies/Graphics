@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Polar Coordinates")]
-    public class PolarCoordinatesNode : CodeFunctionNode
+    class PolarCoordinatesNode : CodeFunctionNode
     {
         public PolarCoordinatesNode()
         {
             name = "Polar Coordinates";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Polar-Coordinates-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

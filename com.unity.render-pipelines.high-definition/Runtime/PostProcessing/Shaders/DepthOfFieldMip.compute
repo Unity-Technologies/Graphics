@@ -1,0 +1,88 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel KMainColor   MAIN=KMainColor     CTYPE=float3
+#pragma kernel KMainCoC     MAIN=KMainCoC       CTYPE=float
+
+RW_TEXTURE2D_X(CTYPE, _InputTexture);
+
+RW_TEXTURE2D_X(CTYPE, _OutputMip1);
+RW_TEXTURE2D_X(CTYPE, _OutputMip2);
+RW_TEXTURE2D_X(CTYPE, _OutputMip3);
+RW_TEXTURE2D_X(CTYPE, _OutputMip4);
+
+groupshared CTYPE gs_cache[64];
+
+void StorePixel(uint index, CTYPE color)
+{
+    gs_cache[index] = color;
+}
+
+CTYPE LoadPixel(uint index)
+{
+    return gs_cache[index];
+}
+
+#define GROUP_SIZE 8
+
+// Generate four mips in one pass
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
+{
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    uint2 ul = dispatchThreadId.xy << 1u;
+
+    // First mip
+    CTYPE color = _InputTexture[COORD_TEXTURE2D_X(ul)];
+    color += _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 0u))];
+    color += _InputTexture[COORD_TEXTURE2D_X(ul + uint2(0u, 1u))];
+    color += _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 1u))];
+    color *= 0.25;
+    StorePixel(groupIndex, color);
+
+    _OutputMip1[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = color;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Second mip - checks that X and Y are even
+    if ((groupIndex & 0x9) == 0)
+    {
+        color += LoadPixel(groupIndex + 1u);
+        color += LoadPixel(groupIndex + 8u);
+        color += LoadPixel(groupIndex + 9u);
+        color *= 0.25;
+        StorePixel(groupIndex, color);
+
+        _OutputMip2[COORD_TEXTURE2D_X(dispatchThreadId.xy / 2u)] = color;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Third mip - checks that X and Y are multiples of four
+    if ((groupIndex & 0x1b) == 0)
+    {
+        color += LoadPixel(groupIndex +  2u);
+        color += LoadPixel(groupIndex + 16u);
+        color += LoadPixel(groupIndex + 18u);
+        color *= 0.25;
+        StorePixel(groupIndex, color);
+
+        _OutputMip3[COORD_TEXTURE2D_X(dispatchThreadId.xy / 4u)] = color;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Last mip - only one thread
+    if (groupIndex == 0)
+    {
+        color += LoadPixel(groupIndex +  4u);
+        color += LoadPixel(groupIndex + 32u);
+        color += LoadPixel(groupIndex + 36u);
+        color *= 0.25;
+
+        _OutputMip4[COORD_TEXTURE2D_X(dispatchThreadId.xy / 8u)] = color;
+    }
+}

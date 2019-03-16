@@ -40,7 +40,7 @@ float3 GetPrimaryCameraPosition()
 // Could be e.g. the position of a primary camera or a shadow-casting light.
 float3 GetCurrentViewPosition()
 {
-#if (defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)) && (!UNITY_SINGLE_PASS_STEREO) // Can't use camera position when rendering stereo
+#if (defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS))
     return GetPrimaryCameraPosition();
 #else
     // This is a generic solution.
@@ -55,6 +55,13 @@ float3 GetViewForwardDir()
 {
     float4x4 viewMat = GetWorldToViewMatrix();
     return -viewMat[2].xyz;
+}
+
+// Returns the forward (up) direction of the current view in the world space.
+float3 GetViewUpDir()
+{
+    float4x4 viewMat = GetWorldToViewMatrix();
+    return viewMat[1].xyz;
 }
 
 // Returns 'true' if the current view performs a perspective projection.
@@ -137,7 +144,42 @@ float2 TexCoordStereoOffset(float2 texCoord)
 {
 #if defined(UNITY_SINGLE_PASS_STEREO)
     return texCoord + float2(unity_StereoEyeIndex * _ScreenSize.x, 0.0);
-#endif
+#else
     return texCoord;
+#endif
 }
+
+// In stereo, shadowmaps are generated only once for all eyes from the combined center view (original camera matrix)
+// For camera-relative code to work in stereo, we need to translate input position from eye-relative to camera-relative
+float3 StereoCameraRelativeEyeToCenter(float3 pos)
+{
+#if defined(USING_STEREO_MATRICES) && (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    return pos + _WorldSpaceCameraPosEyeOffset;
+#else
+    return pos;
+#endif
+}
+
+// This function assumes the bitangent flip is encoded in tangentWS.w
+float3x3 BuildWorldToTangent(float4 tangentWS, float3 normalWS)
+{
+    // tangentWS must not be normalized (mikkts requirement)
+
+    // Normalize normalWS vector but keep the renormFactor to apply it to bitangent and tangent
+    float3 unnormalizedNormalWS = normalWS;
+    float renormFactor = 1.0 / length(unnormalizedNormalWS);
+
+    // bitangent on the fly option in xnormal to reduce vertex shader outputs.
+    // this is the mikktspace transformation (must use unnormalized attributes)
+    float3x3 worldToTangent = CreateWorldToTangent(unnormalizedNormalWS, tangentWS.xyz, tangentWS.w > 0.0 ? 1.0 : -1.0);
+
+    // surface gradient based formulation requires a unit length initial normal. We can maintain compliance with mikkts
+    // by uniformly scaling all 3 vectors since normalization of the perturbed normal will cancel it.
+    worldToTangent[0] = worldToTangent[0] * renormFactor;
+    worldToTangent[1] = worldToTangent[1] * renormFactor;
+    worldToTangent[2] = worldToTangent[2] * renormFactor;		// normalizes the interpolated vertex normal
+
+    return worldToTangent;
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

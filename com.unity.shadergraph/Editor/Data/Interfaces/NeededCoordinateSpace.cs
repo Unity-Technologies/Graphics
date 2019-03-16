@@ -3,7 +3,7 @@ using System;
 namespace UnityEditor.ShaderGraph
 {
     [Flags]
-    public enum NeededCoordinateSpace
+    enum NeededCoordinateSpace
     {
         None = 0,
         Object = 1 << 0,
@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
         Tangent = 1 << 3
     }
 
-    public enum CoordinateSpace
+    enum CoordinateSpace
     {
         Object,
         View,
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         Tangent
     }
 
-    public enum InterpolatorType
+    enum InterpolatorType
     {
         Normal,
         BiTangent,
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
         Position
     }
 
-    public static class CoordinateSpaceNameExtensions
+    static class CoordinateSpaceNameExtensions
     {
         static int s_SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
         static int s_InterpolatorCount = Enum.GetValues(typeof(InterpolatorType)).Length;

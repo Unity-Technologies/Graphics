@@ -14,6 +14,8 @@ namespace UnityEditor.VFX
 
         public VFXExpressionCastUintToFloat(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from })
         {
+            if (from.valueType != VFXValueType.Uint32)
+                throw new InvalidCastException("Invalid VFXExpressionCastUintToFloat");
         }
 
         sealed public override VFXExpressionOperation operation
@@ -43,6 +45,8 @@ namespace UnityEditor.VFX
 
         public VFXExpressionCastIntToFloat(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from })
         {
+            if (from.valueType != VFXValueType.Int32)
+                throw new InvalidCastException("Invalid VFXExpressionCastIntToFloat");
         }
 
         sealed public override VFXExpressionOperation operation
@@ -72,6 +76,8 @@ namespace UnityEditor.VFX
 
         public VFXExpressionCastFloatToUint(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from })
         {
+            if (from.valueType != VFXValueType.Float)
+                throw new InvalidCastException("Invalid VFXExpressionCastFloatToUint");
         }
 
         sealed public override VFXExpressionOperation operation
@@ -100,6 +106,8 @@ namespace UnityEditor.VFX
 
         public VFXExpressionCastIntToUint(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from })
         {
+            if (from.valueType != VFXValueType.Int32)
+                throw new InvalidCastException("Invalid VFXExpressionCastIntToUint");
         }
 
         sealed public override VFXExpressionOperation operation
@@ -129,6 +137,8 @@ namespace UnityEditor.VFX
 
         public VFXExpressionCastFloatToInt(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from })
         {
+            if (from.valueType != VFXValueType.Float)
+                throw new InvalidCastException("Invalid VFXExpressionCastFloatToInt");
         }
 
         sealed public override VFXExpressionOperation operation
@@ -158,6 +168,8 @@ namespace UnityEditor.VFX
 
         public VFXExpressionCastUintToInt(VFXExpression from) : base(Flags.None, new VFXExpression[1] { from })
         {
+            if (from.valueType != VFXValueType.Uint32)
+                throw new InvalidCastException("Invalid VFXExpressionCastUintToInt");
         }
 
         sealed public override VFXExpressionOperation operation

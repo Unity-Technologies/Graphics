@@ -5,24 +5,20 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ExponentialBase
+    enum ExponentialBase
     {
         BaseE,
         Base2
     };
 
     [Title("Math", "Advanced", "Exponential")]
-    public class ExponentialNode : CodeFunctionNode
+    class ExponentialNode : CodeFunctionNode
     {
         public ExponentialNode()
         {
             name = "Exponential";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Exponential-Node"; }
-        }
 
         [SerializeField]
         private ExponentialBase m_ExponentialBase = ExponentialBase.BaseE;

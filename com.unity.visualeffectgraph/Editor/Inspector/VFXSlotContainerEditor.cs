@@ -20,12 +20,14 @@ public class VFXSlotContainerEditor : Editor
 {
     protected void OnEnable()
     {
-        SceneView.onSceneGUIDelegate += OnSceneGUI;
+        //SceneView.onSceneGUIDelegate += OnSceneGUI;
+        SceneView.duringSceneGui += OnSceneGUI;
     }
 
     protected void OnDisable()
     {
-        SceneView.onSceneGUIDelegate -= OnSceneGUI;
+        //SceneView.onSceneGUIDelegate -= OnSceneGUI;
+        SceneView.duringSceneGui -= OnSceneGUI;
     }
 
     public virtual void DoInspectorGUI()
@@ -195,6 +197,7 @@ public class VFXSlotContainerEditor : Editor
         public static GUIStyle header;
         public static GUIStyle cell;
         public static GUIStyle foldout;
+        public static GUIStyle letter;
         public static GUIStyle warningStyle;
         public static GUIStyle frameButtonStyle;
         static Styles()
@@ -229,6 +232,9 @@ public class VFXSlotContainerEditor : Editor
 
             foldout = new GUIStyle(EditorStyles.foldout);
             foldout.fontStyle = FontStyle.Bold;
+
+            letter = new GUIStyle(GUI.skin.label);
+            letter.fontSize = 36;
         }
 
         static Dictionary<VFXAttributeMode, Color> attributeModeColors = new Dictionary<VFXAttributeMode, Color>()

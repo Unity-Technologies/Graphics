@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Derivative", "DDY")]
-    public class DDYNode : CodeFunctionNode
+    class DDYNode : CodeFunctionNode
     {
         public DDYNode()
         {
             name = "DDY";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/DDY-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

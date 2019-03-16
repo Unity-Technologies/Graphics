@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Advanced", "Absolute")]
-    public class AbsoluteNode : CodeFunctionNode
+    class AbsoluteNode : CodeFunctionNode
     {
         public AbsoluteNode()
         {
             name = "Absolute";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Absolute-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

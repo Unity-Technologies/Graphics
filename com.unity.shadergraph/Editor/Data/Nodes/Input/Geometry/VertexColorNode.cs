@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Geometry", "Vertex Color")]
-    public class VertexColorNode : AbstractMaterialNode, IMayRequireVertexColor
+    class VertexColorNode : AbstractMaterialNode, IMayRequireVertexColor
     {
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Out";
@@ -22,10 +22,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Vertex-Color-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

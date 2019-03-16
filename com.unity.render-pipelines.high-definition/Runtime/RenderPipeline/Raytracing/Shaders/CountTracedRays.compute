@@ -1,0 +1,90 @@
+#pragma kernel ClearBuffer
+#pragma kernel TextureReduction
+#pragma kernel BufferReduction
+
+#pragma only_renderers d3d11
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+#define REDUCTION_GROUP_SIZE 32
+#define REDUCTION_TOTAL_THREADS 1024
+
+RWStructuredBuffer<uint4>       _OutputRayCountBuffer;
+uint                            _OutputBufferDimension;
+
+[numthreads(REDUCTION_GROUP_SIZE, REDUCTION_GROUP_SIZE,1)]
+void ClearBuffer(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID)
+{
+    uint2 sampleIdx = groupId.xy * REDUCTION_GROUP_SIZE + groupThreadId.xy;
+    _OutputRayCountBuffer[sampleIdx.y * _OutputBufferDimension + sampleIdx.x] = uint4(0, 0, 0, 0);
+}
+
+Texture2D<uint4>                _InputRayCountTexture;
+StructuredBuffer<uint4>         _InputRayCountBuffer;
+uint                            _InputBufferDimension;
+
+groupshared uint4 gs_rayCount[REDUCTION_TOTAL_THREADS];
+
+[numthreads(REDUCTION_GROUP_SIZE, REDUCTION_GROUP_SIZE, 1)]
+void TextureReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID)
+{
+    // Compute the thread id and global texture index
+    uint threadIdx = groupThreadId.y * REDUCTION_GROUP_SIZE + groupThreadId.x;
+    uint2 sampleIdx = groupId.xy * REDUCTION_GROUP_SIZE + groupThreadId.xy;
+
+    // Copy the local values to to kernel
+    gs_rayCount[threadIdx] = _InputRayCountTexture[sampleIdx];
+
+    // Make sure everyone has copied it value to the LDS
+    GroupMemoryBarrierWithGroupSync();
+
+    // do reduction in shared mem
+    UNITY_UNROLL
+    for(uint s = REDUCTION_TOTAL_THREADS / 2u; s > 0u; s >>= 1u)
+    {
+        if(threadIdx < s)
+        {
+            gs_rayCount[threadIdx] += gs_rayCount[threadIdx + s];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // write result for this block to global mem
+    if (threadIdx == 0u)
+    {
+        _OutputRayCountBuffer[groupId.y * _OutputBufferDimension + groupId.x] = gs_rayCount[0];
+    }
+}
+
+[numthreads(REDUCTION_GROUP_SIZE, REDUCTION_GROUP_SIZE, 1)]
+void BufferReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID)
+{
+    // Compute the thread id and global texture index
+    uint threadIdx = groupThreadId.y * REDUCTION_GROUP_SIZE + groupThreadId.x;
+    uint2 sampleIdx = groupId.xy * REDUCTION_GROUP_SIZE + groupThreadId.xy;
+
+    // Copy the local values to to kernel
+    gs_rayCount[threadIdx] = _InputRayCountBuffer[sampleIdx.x + _InputBufferDimension * sampleIdx.y];
+
+    // Make sure everyone has copied it value to the LDS
+    GroupMemoryBarrierWithGroupSync();
+
+    // do reduction in shared mem
+    UNITY_UNROLL
+    for(uint s = REDUCTION_TOTAL_THREADS / 2u; s > 0u; s >>= 1u)
+    {
+        if(threadIdx < s)
+        {
+            gs_rayCount[threadIdx] += gs_rayCount[threadIdx + s];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // write result for this block to global mem
+    if (threadIdx == 0u)
+    {
+        _OutputRayCountBuffer[groupId.y * _OutputBufferDimension + groupId.x] = gs_rayCount[0];
+    }
+}

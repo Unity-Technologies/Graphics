@@ -1,19 +1,18 @@
-using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using System.Linq;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class FabricGUI : ShaderGUI
     {
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             materialEditor.PropertiesDefaultGUI(props);
+
             if (materialEditor.EmissionEnabledProperty())
             {
-                // Use the overload version of this function once the following PR is merged: Pull request #74105
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
-                //materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
+                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
             }
 
             // Make sure all selected materials are initialized.
@@ -33,7 +32,7 @@ namespace UnityEditor.ShaderGraph
                 // If using multi-select, apply toggled material to all materials.
                 bool enabled = ((Material)materialEditor.target).GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
                 EditorGUI.BeginChangeCheck();
-                enabled = EditorGUILayout.Toggle("Enable Motion Vector For Vertex Animation", enabled);
+                enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
                 if (EditorGUI.EndChangeCheck())
                 {
                     foreach (var obj in materialEditor.targets)
@@ -43,6 +42,9 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
+
+            if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
+                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props));
         }
     }
 }

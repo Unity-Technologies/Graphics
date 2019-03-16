@@ -4,17 +4,12 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Filter", "Dither")]
-    public class DitherNode : CodeFunctionNode
+    class DitherNode : CodeFunctionNode
     {
         public DitherNode()
         {
             name = "Dither";
             UpdateNodeAfterDeserialization();
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Dither-Node"; }
         }
 
         protected override MethodInfo GetFunctionToConvert()

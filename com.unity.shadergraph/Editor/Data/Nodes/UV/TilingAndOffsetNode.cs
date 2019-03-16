@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Tiling And Offset")]
-    public class TilingAndOffsetNode : CodeFunctionNode
+    class TilingAndOffsetNode : CodeFunctionNode
     {
         public TilingAndOffsetNode()
         {
             name = "Tiling And Offset";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Tiling-And-Offset-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

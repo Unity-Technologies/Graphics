@@ -6,14 +6,14 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ColorMode
+    enum ColorMode
     {
         Default,
         HDR
     }
 
     [Title("Input", "Basic", "Color")]
-    public class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
@@ -24,10 +24,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Color-Node"; }
-        }
 
         [SerializeField]
         Color m_Color = new Color(UnityEngine.Color.clear, ColorMode.Default);
@@ -107,7 +103,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             return new ColorShaderProperty { value = color.color, colorMode = color.mode };
         }

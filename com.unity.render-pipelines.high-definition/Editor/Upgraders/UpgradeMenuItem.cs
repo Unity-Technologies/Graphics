@@ -1,12 +1,9 @@
-using System;
 using System.IO;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.SceneManagement;
-using UnityEditor.SceneManagement;
-using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -119,7 +116,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             bool dirty = false;
 
-            if (mat.shader.name == "HDRenderPipeline/Decal")
+            if (mat.shader.name == "HDRP/Decal")
             {
                 float maskBlendMode = mat.GetFloat("_MaskBlendMode");
 
@@ -182,15 +179,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         string.Format("{0} / {1} materials updated.", i, length),
                         i / (float)(length - 1));
 
-                    if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
-                        mat.shader.name == "HDRenderPipeline/Lit" ||
-                        mat.shader.name == "HDRenderPipeline/LayeredLit" ||
-                        mat.shader.name == "HDRenderPipeline/LayeredLitTessellation" ||
-                        mat.shader.name == "HDRenderPipeline/StackLit" ||
-                        mat.shader.name == "HDRenderPipeline/Unlit" ||
-                        mat.shader.name == "HDRenderPipeline/Fabric" ||
-                        mat.shader.name == "HDRenderPipeline/Decal" ||
-                        mat.shader.name == "HDRenderPipeline/TerrainLit"
+                    if (mat.shader.name == "HDRP/LitTessellation" ||
+                        mat.shader.name == "HDRP/Lit" ||
+                        mat.shader.name == "HDRP/LayeredLit" ||
+                        mat.shader.name == "HDRP/LayeredLitTessellation" ||
+                        mat.shader.name == "HDRP/StackLit" ||
+                        mat.shader.name == "HDRP/Unlit" ||
+                        mat.shader.name == "HDRP/Fabric" ||
+                        mat.shader.name == "HDRP/Decal" ||
+                        mat.shader.name == "HDRP/TerrainLit"
                          )
                     {
                         // We don't handle embed material as we can't rewrite fbx files
@@ -251,6 +248,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // This function go through all loaded materials so it can be used to update any materials that is
+        // not serialized as an asset (i.e materials saved in scenes)
+        static void UpgradeSceneMaterials()
+        {
+#pragma warning disable 618
+            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            // For each loaded materials
+            foreach (var mat in Resources.FindObjectsOfTypeAll<Material>())
+            {
+                DiffusionProfileSettings.UpgradeMaterial(mat, hdAsset.diffusionProfileSettings);
+            }
+#pragma warning restore 618
+        }
+
         [MenuItem("Edit/Render Pipeline/Upgrade all Materials to newer version", priority = CoreUtils.editMenuPriority3)]
         static public void UpdateMaterialToNewerVersion()
         {
@@ -266,6 +277,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UpdateMaterialToNewerVersion("(Decals_2)", 2.0f, UpdateMaterial_Decals_2, UpdateMaterialFile_Decals_2);
 
             // Caution: Version of latest script and default version in all HDRP shader must match 
+
+            UpgradeSceneMaterials();
         }
     }
 }

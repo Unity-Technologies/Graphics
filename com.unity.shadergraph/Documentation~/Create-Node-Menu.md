@@ -10,6 +10,6 @@ Selecting a [Node](Node.md) in the **Create Node Menu** will add it to the works
 
 ### Contextual Create Node Menu
 
-A contextual **Create Node Menu** filters the [Nodes](Node.md) available to show only those that use the [Data Type](Data-Type.md) of a selected edge. It will list every available [Port](Port.md) on these [Nodes](Node.md) that matches that [Data Type](Data-Type.md).
+A contextual **Create Node Menu** filters the [Nodes](Node.md) available to show only those that use the [Data Type](Data-Types.md) of a selected edge. It will list every available [Port](Port.md) on these [Nodes](Node.md) that matches that [Data Type](Data-Types.md).
 
 You can open a contextual **Create Node Menu** by dragging an [Edge](Edge.md) from a [Port](Port.md) with left mouse button and releasing it in an empty area of the workspace.

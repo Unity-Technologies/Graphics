@@ -6,12 +6,12 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class FabricSubShader : IFabricSubShader
+    class FabricSubShader : IFabricSubShader
     {
         Pass m_PassMETA = new Pass()
         {
             Name = "META",
-            LightMode = "Meta",
+            LightMode = "META",
             TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
@@ -37,48 +37,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AmbientOcclusionSlotId,
                 FabricMasterNode.SpecularColorSlotId,
-                FabricMasterNode.DiffusionProfileSlotId,
+                FabricMasterNode.DiffusionProfileHashSlotId,
                 FabricMasterNode.SubsurfaceMaskSlotId,
                 FabricMasterNode.ThicknessSlotId,
                 FabricMasterNode.TangentSlotId,
                 FabricMasterNode.AnisotropySlotId,
                 FabricMasterNode.EmissionSlotId,
                 FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaThresholdSlotId,
+                FabricMasterNode.AlphaClipThresholdSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 //FabricMasterNode.PositionSlotId
             },
             UseInPreview = false
-        };
-
-        Pass m_SceneSelectionPass = new Pass()
-        {
-            Name = "SceneSelectionPass",
-            LightMode = "SceneSelectionPass",
-            TemplateName = "FabricPass.template",
-            MaterialName = "Fabric",
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
-            ExtraDefines = new List<string>()
-            {
-                "#define SCENESELECTIONPASS",
-            },
-            ColorMaskOverride = "ColorMask 0",
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaThresholdSlotId
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                FabricMasterNode.PositionSlotId
-            },
-            UseInPreview = true
         };
 
         Pass m_PassShadowCaster = new Pass()
@@ -102,44 +74,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaThresholdSlotId
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 FabricMasterNode.PositionSlotId
             },
-
             UseInPreview = false
         };
 
-        Pass m_PassDepthForwardOnly = new Pass()
+        Pass m_SceneSelectionPass = new Pass()
         {
+            Name = "SceneSelectionPass",
+            LightMode = "SceneSelectionPass",
             TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
-
-            Name = "Depth prepass",
-            LightMode = "DepthForwardOnly",
-
-
-            ZWriteOverride = "ZWrite On",
-
-            StencilOverride = new List<string>()
-            {
-                "Stencil",
-                "{",
-                "   WriteMask 16",         // [DecalsForwardOutputNormalBuffer]
-                "   Ref 16",               // [_StencilDepthPrepassRef]
-                "   Comp Always",
-                "   Pass Replace",
-                "}"
-            },
-
+            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            ColorMaskOverride = "ColorMask 0",
             ExtraDefines = new List<string>()
             {
-                "#define WRITE_NORMAL_BUFFER",
-                "#pragma multi_compile _ WRITE_MSAA_DEPTH"
-            },
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+                "#define SCENESELECTIONPASS",
+            },            
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -147,8 +103,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaThresholdSlotId
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
             },
+            VertexShaderSlots = new List<int>()
+            {
+                FabricMasterNode.PositionSlotId
+            },
+            UseInPreview = false
+        };
+
+        Pass m_PassDepthForwardOnly = new Pass()
+        {
+            Name = "DepthForwardOnly",
+            LightMode = "DepthForwardOnly",
+            TemplateName = "FabricPass.template",
+            MaterialName = "Fabric",
+            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            ZWriteOverride = "ZWrite On",
+
+            ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
+            
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                FabricMasterNode.NormalSlotId,
+                FabricMasterNode.SmoothnessSlotId,
+                FabricMasterNode.AlphaSlotId,
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
+            },
+
             RequiredFields = new List<string>()
             {
                 "AttributesMesh.normalOS",
@@ -167,41 +155,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "FragInputs.texCoord3",
                 "FragInputs.color",
             },
-            
+
             VertexShaderSlots = new List<int>()
             {
                 FabricMasterNode.PositionSlotId
             },
+            UseInPreview = true,
 
-            UseInPreview = false
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as FabricMasterNode;
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(masterNode.receiveDecals.isOn, masterNode.receiveSSR.isOn, false, ref pass);
+            }           
         };
 
         Pass m_PassMotionVectors = new Pass()
         {
-            Name = "Motion Vectors",
+            Name = "MotionVectors",
             LightMode = "MotionVectors",
             TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_VELOCITY",
-            ExtraDefines = new List<string>()
-            {
-                "#define WRITE_NORMAL_BUFFER",
-                "#pragma multi_compile _ WRITE_MSAA_DEPTH"
-            },
+            ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
-            },
-            StencilOverride = new List<string>()
-            {
-                "// If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity",
-                "Stencil",
-                "{",
-                "   WriteMask 128",         // [_StencilWriteMaskMV]        (int) HDRenderPipeline.StencilBitMask.ObjectVelocity   // this requires us to pull in the HD Pipeline assembly...
-                "   Ref 128",               // [_StencilRefMV]
-                "   Comp Always",
-                "   Pass Replace",
-                "}"
             },
             RequiredFields = new List<string>()
             {
@@ -223,38 +201,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             PixelShaderSlots = new List<int>()
             {
+                FabricMasterNode.NormalSlotId,
+                FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaThresholdSlotId
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 FabricMasterNode.PositionSlotId
             },
-            UseInPreview = false
+            UseInPreview = false,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as FabricMasterNode;
+                HDSubShaderUtilities.GetStencilStateForDepthOrMV(masterNode.receiveDecals.isOn, masterNode.receiveSSR.isOn, true, ref pass);
+            }
         };
 
         Pass m_PassForwardOnly = new Pass()
         {
-            Name = "Forward",
+            Name = "ForwardOnly",
             LightMode = "ForwardOnly",
             TemplateName = "FabricPass.template",
             MaterialName = "Fabric",
             ShaderPassName = "SHADERPASS_FORWARD",
-            ExtraDefines = new List<string>()
-            {
-                "#pragma multi_compile _ DEBUG_DISPLAY",
-                "#pragma multi_compile _ LIGHTMAP_ON",
-                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
-                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
-                "#pragma multi_compile _ SHADOWS_SHADOWMASK",
-
-                "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
-                "#define LIGHTLOOP_TILE_PASS",
-
-                "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
-                "#pragma multi_compile PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH",
-                "#pragma multi_compile DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH"
-            },
+            // ExtraDefines are set when the pass is generated
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
@@ -282,17 +255,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FabricMasterNode.AlbedoSlotId,
                 FabricMasterNode.SpecularOcclusionSlotId,
                 FabricMasterNode.NormalSlotId,
+                FabricMasterNode.BentNormalSlotId,
                 FabricMasterNode.SmoothnessSlotId,
                 FabricMasterNode.AmbientOcclusionSlotId,
                 FabricMasterNode.SpecularColorSlotId,
-                FabricMasterNode.DiffusionProfileSlotId,
+                FabricMasterNode.DiffusionProfileHashSlotId,
                 FabricMasterNode.SubsurfaceMaskSlotId,
                 FabricMasterNode.ThicknessSlotId,
                 FabricMasterNode.TangentSlotId,
                 FabricMasterNode.AnisotropySlotId,
                 FabricMasterNode.EmissionSlotId,
                 FabricMasterNode.AlphaSlotId,
-                FabricMasterNode.AlphaThresholdSlotId,
+                FabricMasterNode.AlphaClipThresholdSlotId,
+                FabricMasterNode.LightingSlotId,
+                FabricMasterNode.BackLightingSlotId,
+                FabricMasterNode.DepthOffsetSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -303,41 +280,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as FabricMasterNode;
-                pass.StencilOverride = new List<string>()
-                {
-                    "// Stencil setup",
-                    "Stencil",
-                    "{",
-                    "   WriteMask 7",
-                        masterNode.RequiresSplitLighting() ? "   Ref  1" : "   Ref  2",
-                    "   Comp Always",
-                    "   Pass Replace",
-                    "}"
-                };
+                HDSubShaderUtilities.GetStencilStateForForward(masterNode.RequiresSplitLighting(), ref pass);
 
-                pass.ExtraDefines.Remove("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
+                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");                
+
                 if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
                 {
-                    pass.ExtraDefines.Add("#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST");
+                    // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+                    // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+                    pass.ExtraDefines.Add("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
                     pass.ZTestOverride = "ZTest Equal";
                 }
                 else
                 {
                     pass.ZTestOverride = null;
                 }
-
-                if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.backThenFrontRendering.isOn)
-                {
-                    pass.CullOverride = "Cull Back";
-                }
-                else
-                {
-                    pass.CullOverride = null;
-                }
             }
         };
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(INode iMasterNode, Pass pass)
+        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
 
@@ -361,8 +322,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         activeFields.Add("DoubleSided.Mirror");
                     }
-                        
-                    activeFields.Add("FragInputs.isFrontFace");     // will need this for determining normal flip mode
+                    // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
+                    activeFields.Add("FragInputs.isFrontFace");
                 }
             }
 
@@ -381,23 +342,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (masterNode.alphaTest.isOn)
             {
-                int count = 0;
-                if (pass.PixelShaderUsesSlot(FabricMasterNode.AlphaThresholdSlotId))
-                { 
+                if (pass.PixelShaderUsesSlot(FabricMasterNode.AlphaClipThresholdSlotId))
+                {
                     activeFields.Add("AlphaTest");
-                    ++count;
                 }
-                if (pass.PixelShaderUsesSlot(FabricMasterNode.AlphaThresholdDepthPrepassSlotId))
-                {
-                    activeFields.Add("AlphaTestPrepass");
-                    ++count;
-                }
-                if (pass.PixelShaderUsesSlot(FabricMasterNode.AlphaThresholdDepthPostpassSlotId))
-                {
-                    activeFields.Add("AlphaTestPostpass");
-                    ++count;
-                }
-                UnityEngine.Debug.Assert(count == 1, "Alpha test value not set correctly");
             }
 
             if (masterNode.surfaceType != SurfaceType.Opaque)
@@ -428,11 +376,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (masterNode.receiveDecals.isOn)
+            if (!masterNode.receiveDecals.isOn)
             {
-                activeFields.Add("Decals");
+                activeFields.Add("DisableDecals");
             }
 
+            if (!masterNode.receiveSSR.isOn)
+            {
+                activeFields.Add("DisableSSR");
+            }
 
             if (masterNode.energyConservingSpecular.isOn)
             {
@@ -441,12 +393,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (masterNode.transmission.isOn)
             {
-                activeFields.Add("SurfaceDescription.Transmission");
+                activeFields.Add("Material.Transmission");
             }
 
-            if (masterNode.subsurfaceScattering.isOn)
+            if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
             {
-                activeFields.Add("SurfaceDescription.SubsurfaceScattering");
+                activeFields.Add("Material.SubsurfaceScattering");
+            }
+
+            if (masterNode.IsSlotConnected(FabricMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.BentNormalSlotId))
+            {
+                activeFields.Add("BentNormal");
             }
 
             if (masterNode.IsSlotConnected(FabricMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.TangentSlotId))
@@ -474,11 +431,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (pass.PixelShaderUsesSlot(FabricMasterNode.AmbientOcclusionSlotId))
             {
                 var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(FabricMasterNode.AmbientOcclusionSlotId);
-                if (occlusionSlot.value != occlusionSlot.defaultValue)
+
+                bool connected = masterNode.IsSlotConnected(FabricMasterNode.AmbientOcclusionSlotId);
+                if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
                 {
-                    activeFields.Add("Occlusion");
+                    activeFields.Add("AmbientOcclusion");
                 }
             }
+
+            if (masterNode.IsSlotConnected(FabricMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.LightingSlotId))
+            {
+                activeFields.Add("LightingGI");
+            }
+            if (masterNode.IsSlotConnected(FabricMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(FabricMasterNode.BackLightingSlotId))
+            {
+                activeFields.Add("BackLightingGI");
+            }
+
+            if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(FabricMasterNode.DepthOffsetSlotId))
+                activeFields.Add("DepthOffset");
 
             return activeFields;
         }
@@ -521,12 +492,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                SurfaceMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, masterNode.alphaTest.isOn, masterNode.drawBeforeRefraction.isOn, masterNode.sortPriority);
+                HDMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, masterNode.sortPriority, masterNode.alphaTest.isOn);
 
                 // Add tags at the SubShader level
                 {
                     var tagsVisitor = new ShaderStringBuilder();
-                    materialTags.GetTags(tagsVisitor);
+                    materialTags.GetTags(tagsVisitor, HDRenderPipeline.k_ShaderTagName);
                     subShader.AddShaderChunk(tagsVisitor.ToString(), false);
                 }
 
@@ -541,16 +512,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (opaque)
                 {
                     GenerateShaderPassLit(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
-
-
+                // Assign define here based on opaque or transparent to save some variant
+                m_PassForwardOnly.ExtraDefines = opaque ? HDSubShaderUtilities.s_ExtraDefinesForwardOpaque : HDSubShaderUtilities.s_ExtraDefinesForwardTransparent;
                 GenerateShaderPassLit(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
-            // subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.ShaderGraph.FabricGUI""");
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.FabricGUI""");
 
             return subShader.GetShaderString(0);
         }

@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Basic", "Time")]
-    public class TimeNode : AbstractMaterialNode, IMayRequireTime
+    class TimeNode : AbstractMaterialNode, IMayRequireTime
     {
         private const string kOutputSlotName = "Time";
         private const string kOutputSlot1Name = "Sine Time";
@@ -24,10 +24,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Time-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

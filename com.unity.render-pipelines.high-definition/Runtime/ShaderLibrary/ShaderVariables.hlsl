@@ -4,15 +4,12 @@
 #define UNITY_SHADER_VARIABLES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
 // CAUTION:
 // Currently the shaders compiler always include regualr Unity shaderVariables, so I get a conflict here were UNITY_SHADER_VARIABLES_INCLUDED is already define, this need to be fixed.
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
 // This need to be fixed.
-
-#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    #define USING_STEREO_MATRICES
-#endif
 
 #if defined(USING_STEREO_MATRICES)
     #define glstate_matrix_projection unity_StereoMatrixP[unity_StereoEyeIndex]
@@ -25,6 +22,8 @@
     #define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
     #define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
     #define _WorldSpaceCameraPos _WorldSpaceCameraPosStereo[unity_StereoEyeIndex].xyz
+    #define _WorldSpaceCameraPosEyeOffset _WorldSpaceCameraPosStereoEyeOffset[unity_StereoEyeIndex].xyz
+    #define _PrevCamPosRWS _PrevCamPosRWSStereo[unity_StereoEyeIndex].xyz
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
@@ -81,8 +80,8 @@ CBUFFER_START(UnityPerDraw)
     // z = Texel size on U texture coordinate
     float4 unity_ProbeVolumeParams;
     float4x4 unity_ProbeVolumeWorldToObject;
-    float3 unity_ProbeVolumeSizeInv;
-    float3 unity_ProbeVolumeMin;
+    float4 unity_ProbeVolumeSizeInv; // Note: This variable is float4 and not float3 (compare to builtin unity) to be compatible with SRP batcher
+    float4 unity_ProbeVolumeMin; // Note: This variable is float4 and not float3 (compare to builtin unity) to be compatible with SRP batcher
 
     // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
     float4 unity_ProbesOcclusion;
@@ -93,6 +92,7 @@ CBUFFER_START(UnityPerDraw)
     //X : Use last frame positions (right now skinned meshes are the only objects that use this
     //Y : Force No Motion
     //Z : Z bias value
+    //W : Camera only
     float4 unity_MotionVectorsParams;
 
 CBUFFER_END
@@ -114,29 +114,6 @@ CBUFFER_START(UnityStereoGlobals)
 CBUFFER_END
 #endif
 
-#if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-CBUFFER_START(UnityStereoEyeIndices)
-    float4 unity_StereoEyeIndices[2];
-CBUFFER_END
-#endif
-
-#if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
-    #define unity_StereoEyeIndex UNITY_VIEWID
-    UNITY_DECLARE_MULTIVIEW(2);
-#elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    static uint unity_StereoEyeIndex;
-#elif defined(UNITY_SINGLE_PASS_STEREO)
-#if SHADER_STAGE_COMPUTE
-    // Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
-    // Instead, we manually update _ComputeEyeIndex in SRP code. 
-    #define unity_StereoEyeIndex _ComputeEyeIndex
-#else
-    CBUFFER_START(UnityStereoEyeIndex)
-        int unity_StereoEyeIndex;
-    CBUFFER_END
-#endif
-#endif
-
 CBUFFER_START(UnityPerDrawRare)
     float4x4 glstate_matrix_transpose_modelview0;
 CBUFFER_END
@@ -150,11 +127,15 @@ SAMPLER(s_linear_clamp_sampler);
 SAMPLER(s_linear_repeat_sampler);
 SAMPLER(s_trilinear_clamp_sampler);
 SAMPLER(s_trilinear_repeat_sampler);
+SAMPLER_CMP(s_linear_clamp_compare_sampler);
 
 // ----------------------------------------------------------------------------
 
-TEXTURE2D(_CameraDepthTexture);
+TEXTURE2D_X(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
+
+// Color pyramid (width, height, lodcount, Unused)
+TEXTURE2D_X(_ColorPyramidTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
@@ -176,6 +157,10 @@ SAMPLER(samplerunity_ShadowMask);
 TEXTURE3D(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 
+// Exposure texture - 1x1 RG16F (r: exposure mult, g: exposure EV100)
+TEXTURE2D(_ExposureTexture);
+TEXTURE2D(_PrevExposureTexture);
+
 // ----------------------------------------------------------------------------
 
 // Define that before including all the sub systems ShaderVariablesXXX.hlsl files in order to include constant buffer properties.
@@ -193,7 +178,6 @@ CBUFFER_START(UnityGlobal)
         float4x4 unity_MatrixInvV;
         float4x4 unity_MatrixVP;
         float4 unity_StereoScaleOffset;
-        int unity_StereoEyeIndex;
     #endif
 
     // ================================
@@ -213,10 +197,11 @@ CBUFFER_START(UnityGlobal)
 
     // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
     // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
-#if defined(USING_STEREO_MATRICES)
-    float3 _Align16;
-#else
+#ifndef USING_STEREO_MATRICES
     float3 _WorldSpaceCameraPos;
+    float  _Pad0;
+    float3 _PrevCamPosRWS;
+    float  _Pad1;
 #endif
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
     float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
@@ -253,8 +238,13 @@ CBUFFER_START(UnityGlobal)
 
     float4 _FrustumPlanes[6];           // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
-    // TAA Frame Index ranges from 0 to 7. This gives you two rotations per cycle.
-    float4 _TaaFrameRotation;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), 0, 0 }
+    // TAA Frame Index ranges from 0 to 7.
+    // First two channels of this gives you two rotations per cycle.
+    float4 _TaaFrameInfo;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), taaFrame, taaEnabled ? 1 : 0 }
+
+    // Current jitter strength (0 if TAA is disabled)
+    float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
+
     // t = animateMaterials ? Time.realtimeSinceStartup : 0.
     float4 _Time;                       // { t/20, t, t*2, t*3 }
     float4 _LastTime;                   // { t/20, t, t*2, t*3 }
@@ -269,21 +259,23 @@ CBUFFER_START(UnityGlobal)
     float3 _HeightFogBaseScattering;
     float  _HeightFogBaseExtinction;
 
-    float2 _HeightFogExponents;         // {a, 1/a}
+    float2 _HeightFogExponents;         // { 1/H, H }
     float  _HeightFogBaseHeight;
     float  _GlobalFogAnisotropy;
 
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
-    float4 _VBufferSliceCount;          // { count, 1/count, 0, 0 }
+    uint   _VBufferSliceCount;
+    float  _VBufferRcpSliceCount;
+    float  _Pad2;
+    float  _Pad3;
     float4 _VBufferUvScaleAndLimit;     // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
-    float4 _VBufferDepthEncodingParams; // See the call site for description
-    float4 _VBufferDepthDecodingParams; // See the call site for description
+    float4 _VBufferDistanceEncodingParams; // See the call site for description
+    float4 _VBufferDistanceDecodingParams; // See the call site for description
 
     // TODO: these are only used for reprojection.
     // Once reprojection is performed in a separate pass, we should probably
     // move these to a dedicated CBuffer to avoid polluting the global one.
     float4 _VBufferPrevResolution;
-    float4 _VBufferPrevSliceCount;
     float4 _VBufferPrevUvScaleAndLimit;
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
@@ -296,6 +288,11 @@ CBUFFER_START(UnityGlobal)
 
     #define DEFAULT_LIGHT_LAYERS 0xFF
     uint _EnableLightLayers;
+    uint _EnableSpecularLighting;
+
+    uint _EnableSSRefraction;
+
+    uint _OffScreenRendering;
 
 CBUFFER_END
 
@@ -311,25 +308,32 @@ float4x4 _InvProjMatrixStereo[2];
 float4x4 _InvViewProjMatrixStereo[2];
 float4x4 _PrevViewProjMatrixStereo[2];
 float4   _WorldSpaceCameraPosStereo[2];
-#if SHADER_STAGE_COMPUTE
-// Currently the Unity engine doesn't automatically update stereo indices, offsets, and matrices for compute shaders.
-// Instead, we manually update _ComputeEyeIndex in SRP code. 
-float _ComputeEyeIndex;
-#endif
+float4   _WorldSpaceCameraPosStereoEyeOffset[2];
+float4   _PrevCamPosRWSStereo[2];
 CBUFFER_END
 
 #endif // USING_STEREO_MATRICES
 
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
-float SampleCameraDepth(uint2 pixelCoords)
+float LoadCameraDepth(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_LOD(_CameraDepthTexture, pixelCoords, 0).r;
+    return LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, pixelCoords, 0).r;
 }
 
 float SampleCameraDepth(float2 uv)
 {
-    return SampleCameraDepth(uint2(uv * _ScreenSize.xy));
+    return LoadCameraDepth(uint2(uv * _ScreenSize.xy));
+}
+
+float3 LoadCameraColor(uint2 pixelCoords)
+{
+    return LOAD_TEXTURE2D_X_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
+}
+
+float3 SampleCameraColor(float2 uv)
+{
+    return LoadCameraColor(uint2(uv * _ScreenSize.xy));
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
@@ -369,6 +373,69 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 #endif
 }
 
+
+float GetCurrentExposureMultiplier()
+{
+#if SHADEROPTIONS_PRE_EXPOSITION
+    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
+#else
+    return 1.0;
+#endif
+}
+
+float GetPreviousExposureMultiplier()
+{
+#if SHADEROPTIONS_PRE_EXPOSITION
+    return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x;
+#else
+    return 1.0;
+#endif
+}
+
+float GetInverseCurrentExposureMultiplier()
+{
+    float exposure = GetCurrentExposureMultiplier();
+    return rcp(exposure + (exposure == 0.0)); // zero-div guard
+}
+
+float GetInversePreviousExposureMultiplier()
+{
+    float exposure = GetCurrentExposureMultiplier();
+    return rcp(exposure + (exposure == 0.0)); // zero-div guard
+}
+
+// Functions to clamp UVs to use when RTHandle system is used.
+
+float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels)
+{
+    float2 maxCoord = 1.0f - numberOfTexels * texelSize;
+    return min(UV, maxCoord) * _ScreenToTargetScale.xy;
+}
+
+// This is assuming half a texel offset in the clamp.
+float2 ClampAndScaleUVForBilinear(float2 UV, float2 texelSize)
+{
+    return ClampAndScaleUV(UV, texelSize, 0.5f);
+}
+
+// This is assuming full screen buffer and .
+float2 ClampAndScaleUVForBilinear(float2 UV)
+{
+    return ClampAndScaleUV(UV, _ScreenSize.zw, 0.5f);
+}
+
+float2 ClampAndScaleUVForPoint(float2 UV)
+{
+    return min(UV, 1.0f) * _ScreenToTargetScale.xy;
+}
+
+bool ReplaceDiffuseForReflectionPass(float3 fresnel0)
+{
+    // we want to use Fresnel0 instead diffuse when doing reflection (reflection probe, planar reflection,
+    // DXR reflection). Dieletric are suppose to have a fresnel of around 0.04. Let's consider anything above 0.3 as metal.
+    return (_EnableSpecularLighting.x == 0) && Max3(fresnel0.r, fresnel0.g, fresnel0.b) > 0.3;
+}
+
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
@@ -378,7 +445,7 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
 #define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
 
-// To get instanding working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
+// To get instancing working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 

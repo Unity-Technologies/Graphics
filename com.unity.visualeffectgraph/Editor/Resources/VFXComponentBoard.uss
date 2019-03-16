@@ -1,6 +1,6 @@
 VFXComponentBoard.graphElement
 {
-    position-type:Absolute;
+    position:Absolute;
 
     background-color: #2b2b2b;
     border-color: #191919;
@@ -10,13 +10,13 @@ VFXComponentBoard.graphElement
     padding-top:0;
     padding-bottom:0;
 
-    min-width:140;
-    min-height:100;
+    min-width: 140px;
+    min-height: 100px;
 }
 
  *
 {
-    font-size:11;
+    font-size: 11px;
 }
 
 #divider {
@@ -25,12 +25,12 @@ VFXComponentBoard.graphElement
 }
 
 #divider.horizontal {
-    height:0.01;
-    border-bottom-width: 1;
+    height: 0.01px;
+    border-bottom-width: 1px;
 }
 
 
-VFXComponentBoard ScrollView
+VFXComponentBoard .unity-scroll-view
 {
     flex-direction:column;
     align-items:stretch;
@@ -43,20 +43,20 @@ VFXComponentBoard, #component-container
     flex-direction:column;
     align-items:stretch;
     overflow:hidden;
-    padding-top:8;
+    padding-top: 8px;
 }
 
 #header {
     flex-direction: row;
     align-items: stretch;
     background-color: #393939;
-    border-bottom-width: 1;
+    border-bottom-width: 1px;
     border-color: #212121;
-    border-top-right-radius: 4;
-    border-top-left-radius: 4;
-    padding-left: 1;
-    padding-top: 4;
-    padding-bottom: 2;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    padding-left: 1px;
+    padding-top: 4px;
+    padding-bottom: 2px;
 }
 #header > #labelContainer {
     flex:1 0 auto;
@@ -64,26 +64,25 @@ VFXComponentBoard, #component-container
     align-items: stretch;
 }
 #header > #labelContainer > #titleLabel {
-    font-size : 14;
-    text-color: #c1c1c1;
+    font-size : 14px;
+    color: #c1c1c1;
 }
 #header > #labelContainer > #subTitleLabel {
-    font-size: 11;
-    text-color: #606060;
-    word-wrap:true;
-
+    font-size: 11px;
+    color: #606060;
+    white-space: normal;
 }
 
 
-VFXComponentBoardEventUI Button, #on-play-button, #on-stop-button,#attach, #select,#component-path
+VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach, #select,#component-path
 {
-    height:20;
+    height: 20px;
 }
 
 
 #attach, #select
 {
-    width:60;
+    width: 60px;
 }
 
 #component-path
@@ -98,8 +97,8 @@ VFXComponentBoardEventUI Button, #on-play-button, #on-stop-button,#attach, #sele
 
 #attach-container
 {
-    padding-top: 8;
-    padding-bottom: 8;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 #particle-count-container > #particle-count
 {
@@ -111,45 +110,45 @@ VFXComponentBoardEventUI Button, #on-play-button, #on-stop-button,#attach, #sele
     flex-direction:row;
 }
 
-#toolbar Button
+#toolbar .unity-button
 {
     flex:1 0 auto;
-    height:24;
+    height: 24px;
     align-items:center;
 }
 
-#toolbar Button#stop #icon
+#toolbar .unity-button#stop #icon
 {
-    image:resource("VFX/Stop");
+    --unity-image:resource("VFX/Stop");
 }
-#toolbar Button#play #icon
+#toolbar .unity-button#play #icon
 {
-    image:resource("VFX/Pause");
+    --unity-image:resource("VFX/Pause");
 }
-#toolbar Button#play.paused #icon
+#toolbar .unity-button#play.paused #icon
 {
-    image:resource("VFX/Play");
+    --unity-image:resource("VFX/Play");
 }
-#toolbar Button#step #icon
+#toolbar .unity-button#step #icon
 {
-    image:resource("VFX/Step");
+    --unity-image:resource("VFX/Step");
 }
-#toolbar Button#restart #icon
+#toolbar .unity-button#restart #icon
 {
-    image:resource("VFX/Restart");
+    --unity-image:resource("VFX/Restart");
 }
 
 #play-rate-container
 {
     flex-direction:row;
-    height:28;
+    height: 28px;
     align-items: center;
-    padding-bottom:8;
+    padding-bottom: 8px;
 }
 
 #events-label
 {
-    padding-top:8;
+    padding-top: 8px;
 }
 
 #play-rate-container #play-rate-slider
@@ -159,16 +158,16 @@ VFXComponentBoardEventUI Button, #on-play-button, #on-stop-button,#attach, #sele
 
 #play-rate-container #play-rate-field
 {
-    width:80;
+    width: 80px;
 }
 
 #play-rate-container #play-rate-menu
 {
     padding-left:0;
-    border-left:0;
-    border-top:0;
-    width:40;
-    height:16;
+    border-left-width:0;
+    border-top-width:0;
+    width: 40px;
+    height: 16px;
 }
 
 VFXComponentBoardEventUI

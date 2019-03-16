@@ -1,38 +1,6 @@
 #ifndef UNITY_VBUFFER_INCLUDED
 #define UNITY_VBUFFER_INCLUDED
 
-// Interpolation of log-encoded values is non-linear.
-// Therefore, given 'logEncodedDepth', we compute a new depth value
-// which allows us to perform HW interpolation which is linear in the view space.
-float ComputeLerpPositionForLogEncoding(float  linearDepth,
-                                        float  logEncodedDepth,
-                                        float2 VBufferSliceCount,
-                                        float4 VBufferDepthDecodingParams)
-{
-    float z = linearDepth;
-    float d = logEncodedDepth;
-
-    float numSlices    = VBufferSliceCount.x;
-    float rcpNumSlices = VBufferSliceCount.y;
-
-    float s  = d * numSlices - 0.5;
-    float s0 = floor(s);
-    float s1 = ceil(s);
-    float d0 = saturate(s0 * rcpNumSlices + (0.5 * rcpNumSlices));
-    float d1 = saturate(s1 * rcpNumSlices + (0.5 * rcpNumSlices));
-    float z0 = DecodeLogarithmicDepthGeneralized(d0, VBufferDepthDecodingParams);
-    float z1 = DecodeLogarithmicDepthGeneralized(d1, VBufferDepthDecodingParams);
-
-    // Compute the linear interpolation weight.
-    float t = saturate((z - z0) / (z1 - z0));
-
-    // Do not saturate here, we want to know whether we are outside of the near/far plane bounds.
-    return d0 + t * rcpNumSlices;
-}
-
-// if (correctLinearInterpolation), we use ComputeLerpPositionForLogEncoding() to correct weighting
-// of both slices at the cost of extra ALUs.
-//
 // if (quadraticFilterXY), we perform biquadratic (3x3) reconstruction for each slice to reduce
 // aliasing at the cost of extra ALUs and bandwidth.
 // Warning: you MUST pass a linear sampler in order for the quadratic filter to work.
@@ -44,38 +12,20 @@ float ComputeLerpPositionForLogEncoding(float  linearDepth,
 // if (clampToBorder), samples outside of the buffer return 0 (we perform a smooth fade).
 // Otherwise, the sampler simply clamps the texture coordinate to the edge of the texture.
 // Warning: clamping to border may not work as expected with the quadratic filter due to its extent.
-float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
+float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float2 positionNDC,
-                     float  linearDepth,
+                     float  linearDistance,
                      float4 VBufferResolution,
-                     float2 VBufferSliceCount,
                      float2 VBufferUvScale,
                      float2 VBufferUvLimit,
-                     float4 VBufferDepthEncodingParams,
-                     float4 VBufferDepthDecodingParams,
-                     bool   correctLinearInterpolation,
+                     float4 VBufferDistanceEncodingParams,
+                     float4 VBufferDistanceDecodingParams,
                      bool   quadraticFilterXY,
                      bool   clampToBorder)
 {
     // These are the viewport coordinates.
     float2 uv = positionNDC;
-    float  w;
-
-    // The distance between slices is log-encoded.
-    float z = linearDepth;
-    float d = EncodeLogarithmicDepthGeneralized(z, VBufferDepthEncodingParams);
-
-    if (correctLinearInterpolation)
-    {
-        // Adjust the texture coordinate for HW linear filtering.
-        w = ComputeLerpPositionForLogEncoding(z, d, VBufferSliceCount, VBufferDepthDecodingParams);
-    }
-    else
-    {
-        // Ignore non-linearity (for performance reasons) at the cost of accuracy.
-        // The results are exact for a stationary camera, but can potentially cause some judder in motion.
-        w = d;
-    }
+    float  w  = EncodeLogarithmicDepthGeneralized(linearDistance, VBufferDistanceEncodingParams);
 
     bool coordIsInsideFrustum = true;
 
@@ -121,65 +71,31 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
     return result;
 }
 
-float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
+float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float3   positionWS,
+                     float3   cameraPositionWS,
                      float4x4 viewProjMatrix,
                      float4   VBufferResolution,
-                     float2   VBufferSliceCount,
                      float2   VBufferUvScale,
                      float2   VBufferUvLimit,
-                     float4   VBufferDepthEncodingParams,
-                     float4   VBufferDepthDecodingParams,
-                     bool     correctLinearInterpolation,
+                     float4   VBufferDistanceEncodingParams,
+                     float4   VBufferDistanceDecodingParams,
                      bool     quadraticFilterXY,
                      bool     clampToBorder)
 {
     float2 positionNDC = ComputeNormalizedDeviceCoordinates(positionWS, viewProjMatrix);
-    float  linearDepth = mul(viewProjMatrix, float4(positionWS, 1)).w;
+    float  linearDistance = distance(positionWS, cameraPositionWS);
 
-    return SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
+    return SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                          positionNDC,
-                         linearDepth,
+                         linearDistance,
                          VBufferResolution,
-                         VBufferSliceCount,
                          VBufferUvScale,
                          VBufferUvLimit,
-                         VBufferDepthEncodingParams,
-                         VBufferDepthDecodingParams,
-                         correctLinearInterpolation,
+                         VBufferDistanceEncodingParams,
+                         VBufferDistanceDecodingParams,
                          quadraticFilterXY,
                          clampToBorder);
-}
-
-// Returns interpolated {volumetric radiance, transmittance}.
-float4 SampleVolumetricLighting(TEXTURE3D_ARGS(VBufferLighting, clampSampler),
-                                float2 positionNDC,
-                                float  linearDepth,
-                                float4 VBufferResolution,
-                                float2 VBufferSliceCount,
-                                float2 VBufferUvScale,
-                                float2 VBufferUvLimit,
-                                float4 VBufferDepthEncodingParams,
-                                float4 VBufferDepthDecodingParams,
-                                bool   correctLinearInterpolation,
-                                bool   quadraticFilterXY)
-{
-    // TODO: add some slowly animated noise (dither?) to the reconstructed value.
-    float4 value = SampleVBuffer(TEXTURE3D_PARAM(VBufferLighting, clampSampler),
-                                 positionNDC,
-                                 linearDepth,
-                                 VBufferResolution,
-                                 VBufferSliceCount,
-                                 VBufferUvScale,
-                                 VBufferUvLimit,
-                                 VBufferDepthEncodingParams,
-                                 VBufferDepthDecodingParams,
-                                 correctLinearInterpolation,
-                                 quadraticFilterXY,
-                                 false);
-
-    // TODO: re-enable tone mapping after implementing pre-exposure.
-    return DelinearizeRGBA(float4(/*FastTonemapInvert*/(value.rgb), value.a));
 }
 
 #endif // UNITY_VBUFFER_INCLUDED

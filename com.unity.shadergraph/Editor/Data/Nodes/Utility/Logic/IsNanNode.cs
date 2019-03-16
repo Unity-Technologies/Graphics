@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Is NaN")]
-    public class IsNanNode : CodeFunctionNode
+    class IsNanNode : CodeFunctionNode
     {
         public IsNanNode()
         {
             name = "Is NaN";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Is-NaN-Node"; }
-        }
 
         public override bool hasPreview
         {
@@ -27,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_IsNaN(
-            [Slot(0, Binding.None)] DynamicDimensionVector In,
+            [Slot(0, Binding.None)] Vector1 In,
             [Slot(1, Binding.None)] out Boolean Out)
         {
             return

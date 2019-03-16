@@ -5,17 +5,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Channel", "Combine")]
-    public class CombineNode : CodeFunctionNode
+    class CombineNode : CodeFunctionNode
     {
         public CombineNode()
         {
             name = "Combine";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Combine-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

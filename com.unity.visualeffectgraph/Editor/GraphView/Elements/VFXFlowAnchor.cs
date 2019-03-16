@@ -1,6 +1,5 @@
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.UIElements.StyleSheets;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using System.Linq;
@@ -47,7 +46,7 @@ namespace UnityEditor.VFX.UI
 
         protected VFXFlowAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type) : base(anchorOrientation, anchorDirection, Capacity.Multi, type)
         {
-            AddStyleSheetPath("VFXFlow");
+            this.AddStyleSheetPath("VFXFlow");
             AddToClassList("EdgeConnector");
         }
 
@@ -208,7 +207,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition),  new VFXNodeProvider(viewController, AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition - new Vector2(376*0.5f* VFXViewWindow.currentWindow.graphView.scale, 0), view.ViewToScreenPosition(Event.current.mousePosition),  new VFXNodeProvider(viewController, AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
             }
         }
     }

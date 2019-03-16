@@ -4,16 +4,11 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "Replace Color")]
-    public class ReplaceColorNode : CodeFunctionNode
+    class ReplaceColorNode : CodeFunctionNode
     {
         public ReplaceColorNode()
         {
             name = "Replace Color";
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Replace-Color-Node"; }
         }
 
         protected override MethodInfo GetFunctionToConvert()

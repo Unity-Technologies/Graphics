@@ -2,12 +2,12 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireMeshUV
+    interface IMayRequireMeshUV
     {
         bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
-    public static class MayRequireMeshUVExtensions
+    static class MayRequireMeshUVExtensions
     {
         public static bool RequiresMeshUV(this ISlot slot, UVChannel channel)
         {

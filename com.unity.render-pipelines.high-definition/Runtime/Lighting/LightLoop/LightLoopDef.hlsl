@@ -56,7 +56,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.lightLayers = 0xFFFFFFFF; // Enable sky for all layers
     output.influenceShapeType = ENVSHAPETYPE_SKY;
     // 31 bit index, 1 bit cache type
-    output.envIndex = ENVCACHETYPE_CUBEMAP | (envIndex << 1);
+    output.envIndex = envIndex;
 
     output.influenceForward = float3(0.0, 0.0, 1.0);
     output.influenceUp = float3(0.0, 1.0, 0.0);
@@ -64,7 +64,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influencePositionRWS = float3(0.0, 0.0, 0.0);
 
     output.weight = 1.0;
-    output.multiplier = 1.0;
+    output.multiplier = ReplaceDiffuseForReflectionPass(float3(1.0, 1.0, 1.0)) ? 0.0 : 1.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
@@ -75,8 +75,8 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     return output;
 }
 
-bool IsEnvIndexCubemap(int index)   { return (index & 1) == ENVCACHETYPE_CUBEMAP; }
-bool IsEnvIndexTexture2D(int index) { return (index & 1) == ENVCACHETYPE_TEXTURE2D; }
+bool IsEnvIndexCubemap(int index)   { return index >= 0; }
+bool IsEnvIndexTexture2D(int index) { return index < 0; }
 
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
@@ -85,8 +85,9 @@ bool IsEnvIndexTexture2D(int index) { return (index & 1) == ENVCACHETYPE_TEXTURE
 float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, int sliceIdx = 0)
 {
     // 31 bit index, 1 bit cache type
-    uint cacheType = index & 1;
-    index = index >> 1;
+    uint cacheType = IsEnvIndexCubemap(index) ? ENVCACHETYPE_CUBEMAP : ENVCACHETYPE_TEXTURE2D;
+    // Index start at 1, because -0 == 0, so we can't known which cache to sample for that index. Thus it is invalid.
+    index = abs(index) - 1;
 
     float4 color = float4(0.0, 0.0, 0.0, 1.0);
 
@@ -99,7 +100,21 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, _Env2DCaptureVP[index]);
 
             color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, lod).rgb;
-            color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
+#if UNITY_REVERSED_Z
+            // We check that the sample was capture by the probe according to its frustum planes, except the far plane.
+            //   When using oblique projection, the far plane is so distorded that it is not reliable for this check.
+            //   and most of the time, what we want, is the clipping from the oblique near plane.
+            color.a = any(ndc.xy < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
+#else
+            color.a = any(ndc.xyz < 0) || any(ndc.xy > 1) ? 0.0 : 1.0;
+#endif
+            float3 capturedForwardWS = float3(
+                _Env2DCaptureForward[index * 3 + 0],
+                _Env2DCaptureForward[index * 3 + 1],
+                _Env2DCaptureForward[index * 3 + 2]
+            );
+            if (dot(capturedForwardWS, texCoord) < 0.0)
+                color.a = 0.0;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
@@ -118,7 +133,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 // Single Pass and Tile Pass
 // ----------------------------------------------------------------------------
 
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
 // Calculate the offset in global light index light for current light category
 int GetTileOffset(PositionInputs posInput, uint lightCategory)
@@ -148,11 +163,11 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
     GetCountAndStartTile(posInput, lightCategory, start, lightCount);
 }
 
-uint FetchIndex(uint tileOffset, uint lightIndex)
+uint FetchIndex(uint tileOffset, uint lightOffset)
 {
-    const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
+    const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
     // Light index are store on 16bit
-    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1)] >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
+    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
 }
 
 #elif defined(USE_CLUSTERED_LIGHTLIST)
@@ -162,18 +177,6 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
 uint GetTileSize()
 {
     return TILE_SIZE_CLUSTERED;
-}
-
-float GetLightClusterMinLinearDepth(uint2 tileIndex, uint clusterIndex)
-{
-    float logBase = g_fClustBase;
-    if (g_isLogBaseBufferEnabled)
-    {
-        // XRTODO: Stereo-ize access to g_logBaseBuffer
-        logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
-    }
-
-    return ClusterIdxToZFlex(clusterIndex, logBase, g_isLogBaseBufferEnabled != 0);
 }
 
 uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
@@ -215,11 +218,24 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
     GetCountAndStartCluster(posInput, lightCategory, start, lightCount);
 }
 
-uint FetchIndex(uint tileOffset, uint lightIndex)
+uint FetchIndex(uint lightStart, uint lightOffset)
 {
-    return g_vLightListGlobal[tileOffset + lightIndex];
+    return g_vLightListGlobal[lightStart + lightOffset];
 }
 
+#elif defined(USE_BIG_TILE_LIGHTLIST)
+
+uint FetchIndex(uint lightStart, uint lightOffset)
+{
+    return g_vBigTileLightList[lightStart + lightOffset];
+}
+
+#else
+// Fallback case (mainly for raytracing right now)
+uint FetchIndex(uint lightStart, uint lightOffset)
+{
+    return 0;
+}
 #endif // USE_FPTL_LIGHTLIST
 
 #else
@@ -229,12 +245,12 @@ uint GetTileSize()
     return 1;
 }
 
-uint FetchIndex(uint globalOffset, uint lightIndex)
+uint FetchIndex(uint lightStart, uint lightOffset)
 {
-    return globalOffset + lightIndex;
+    return lightStart + lightOffset;
 }
 
-#endif // LIGHTLOOP_TILE_PASS
+#endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
 uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
 {
@@ -250,9 +266,14 @@ uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
 
 LightData FetchLight(uint start, uint i)
 {
-    int j = FetchIndex(start, i);
+    uint j = FetchIndex(start, i);
 
     return _LightDatas[j];
+}
+
+LightData FetchLight(uint index)
+{
+    return _LightDatas[index];
 }
 
 EnvLightData FetchEnvLight(uint start, uint i)
@@ -260,6 +281,11 @@ EnvLightData FetchEnvLight(uint start, uint i)
     int j = FetchIndex(start, i);
 
     return _EnvLightDatas[j];
+}
+
+EnvLightData FetchEnvLight(uint index)
+{
+    return _EnvLightDatas[index];
 }
 
 // We always fetch the screen space shadow texture to reduce the number of shader variant, overhead is negligible,
@@ -272,7 +298,7 @@ float InitContactShadow(PositionInputs posInput)
     // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
     // We use this property to have a neutral value for contact shadows that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
     // We store inverse contact shadow so neutral is white. So either we sample inside or outside the texture it return 1 in case of neutral
-    return 1.0 - LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
+    return 1.0 - LOAD_TEXTURE2D_X(_DeferredShadowTexture, posInput.positionSS).x;
 }
 
 float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowIndex)

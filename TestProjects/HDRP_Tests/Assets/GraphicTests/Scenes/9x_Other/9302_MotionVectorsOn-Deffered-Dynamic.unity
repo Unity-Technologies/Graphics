@@ -88,6 +88,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
+    m_ExportTrainingData: 0
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -119,6 +120,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
+      propertyPath: m_Name
+      value: HDRP_Test_Camera
+      objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -163,10 +168,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
-      propertyPath: m_Name
-      value: HDRP_Test_Camera
-      objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: captureFramerate
@@ -196,6 +197,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2472328029072527916, guid: 55cca2fd4a9f7de47acfe03b14416d0f,
+        type: 3}
+      propertyPath: m_Name
+      value: PrefabAllHDMatsDynamic
+      objectReference: {fileID: 0}
     - target: {fileID: 2472328029072527907, guid: 55cca2fd4a9f7de47acfe03b14416d0f,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -251,10 +257,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2472328029072527916, guid: 55cca2fd4a9f7de47acfe03b14416d0f,
+    - target: {fileID: 2472328028440997081, guid: 55cca2fd4a9f7de47acfe03b14416d0f,
         type: 3}
-      propertyPath: m_Name
-      value: PrefabAllHDMatsDynamic
+      propertyPath: version
+      value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 2472328028440997081, guid: 55cca2fd4a9f7de47acfe03b14416d0f,
+        type: 3}
+      propertyPath: m_Version
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2472328028440997081, guid: 55cca2fd4a9f7de47acfe03b14416d0f,
+        type: 3}
+      propertyPath: shadowNearPlane
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2472328028196276286, guid: 55cca2fd4a9f7de47acfe03b14416d0f,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 2e61fe8e172d4854b83dab01937d1289, type: 2}
+    - target: {fileID: 2472328028611026447, guid: 55cca2fd4a9f7de47acfe03b14416d0f,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 2e61fe8e172d4854b83dab01937d1289, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 55cca2fd4a9f7de47acfe03b14416d0f, type: 3}

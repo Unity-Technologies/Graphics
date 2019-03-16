@@ -5,11 +5,11 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 
-TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
+TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
 TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
 
-// Must match Lightweigth ShaderGraph master node
+// Must match Lightweight ShaderGraph master node
 struct SurfaceData
 {
     half3 albedo;
@@ -40,16 +40,16 @@ half Alpha(half albedoAlpha, half4 color, half cutoff)
     return alpha;
 }
 
-half4 SampleAlbedoAlpha(float2 uv, TEXTURE2D_ARGS(albedoAlphaMap, sampler_albedoAlphaMap))
+half4 SampleAlbedoAlpha(float2 uv, TEXTURE2D_PARAM(albedoAlphaMap, sampler_albedoAlphaMap))
 {
     return SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv);
 }
 
-half3 SampleNormal(float2 uv, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), half scale = 1.0h)
+half3 SampleNormal(float2 uv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = 1.0h)
 {
 #ifdef _NORMALMAP
     half4 n = SAMPLE_TEXTURE2D(bumpMap, sampler_bumpMap, uv);
-    #ifdef BUMP_SCALE_NOT_SUPPORTED
+    #if BUMP_SCALE_NOT_SUPPORTED
         return UnpackNormal(n);
     #else
         return UnpackNormalScale(n, scale);
@@ -59,7 +59,7 @@ half3 SampleNormal(float2 uv, TEXTURE2D_ARGS(bumpMap, sampler_bumpMap), half sca
 #endif
 }
 
-half3 SampleEmission(float2 uv, half3 emissionColor, TEXTURE2D_ARGS(emissionMap, sampler_emissionMap))
+half3 SampleEmission(float2 uv, half3 emissionColor, TEXTURE2D_PARAM(emissionMap, sampler_emissionMap))
 {
 #ifndef _EMISSION
     return 0;

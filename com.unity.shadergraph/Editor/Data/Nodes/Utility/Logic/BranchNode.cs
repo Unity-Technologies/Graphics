@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Branch")]
-    public class BranchNode : CodeFunctionNode
+    class BranchNode : CodeFunctionNode
     {
         public BranchNode()
         {
             name = "Branch";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Branch-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

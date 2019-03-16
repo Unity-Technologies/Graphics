@@ -1,6 +1,6 @@
 #include "UnityCG.cginc"
 
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+Texture2D _CameraDepthTexture;
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
@@ -46,7 +46,7 @@ float4x4 VFXGetViewToWorldMatrix()
 
 float VFXSampleDepth(float4 posSS)
 {
-    return _CameraDepthTexture.Load(int3(posSS.xd, 0)).r;
+    return _CameraDepthTexture.Load(int3(posSS.xy, 0)).r;
 }
 
 float VFXLinearEyeDepth(float depth)
@@ -59,7 +59,22 @@ float4 VFXApplyShadowBias(float4 posCS)
     return UnityApplyLinearShadowBias(posCS);
 }
 
+void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)
+{
+    posCS = UnityApplyLinearShadowBias(posCS);
+}
+
+void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS)
+{
+    posCS = UnityApplyLinearShadowBias(posCS);
+}
+
 float4 VFXApplyFog(float4 color,float4 posSS,float3 posWS)
 {
     return color; // TODO
+}
+
+float4 VFXApplyPreExposure(float4 color)
+{
+    return color;
 }

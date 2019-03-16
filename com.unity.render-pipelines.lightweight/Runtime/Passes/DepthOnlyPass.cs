@@ -1,7 +1,6 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Render all objects that have a 'DepthOnly' pass into the given depth buffer.
@@ -9,81 +8,70 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// You can use this pass to prime a depth buffer for subsequent rendering.
     /// Use it as a z-prepass, or use it to generate a depth buffer.
     /// </summary>
-    public class DepthOnlyPass : ScriptableRenderPass
+    internal class DepthOnlyPass : ScriptableRenderPass
     {
-        const string k_DepthPrepassTag = "Depth Prepass";
-
         int kDepthBufferBits = 32;
 
         private RenderTargetHandle depthAttachmentHandle { get; set; }
         internal RenderTextureDescriptor descriptor { get; private set; }
-        private FilteringSettings opaqueFilterSettings { get; set; }
+
+        FilteringSettings m_FilteringSettings;
+        string m_ProfilerTag = "Depth Prepass";
+        ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
 
         /// <summary>
         /// Create the DepthOnlyPass
         /// </summary>
-        public DepthOnlyPass()
+        public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange)
         {
-            RegisterShaderPassName("DepthOnly");
-            opaqueFilterSettings = new FilteringSettings(RenderQueueRange.opaque);
+            m_FilteringSettings = new FilteringSettings(renderQueueRange);
+            renderPassEvent = evt;
         }
-        
+
         /// <summary>
         /// Configure the pass
         /// </summary>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle depthAttachmentHandle,
-            SampleCount samples)
+            RenderTargetHandle depthAttachmentHandle)
         {
             this.depthAttachmentHandle = depthAttachmentHandle;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = kDepthBufferBits;
 
-            if ((int)samples > 1)
-            {
-                baseDescriptor.bindMS = false;
-                baseDescriptor.msaaSamples = (int)samples;
-            }
-
+            // Depth-Only pass don't use MSAA
+            baseDescriptor.msaaSamples = 1;
             descriptor = baseDescriptor;
         }
 
-        /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            if (renderer == null)
-                throw new ArgumentNullException("renderer");
-            
-            CommandBuffer cmd = CommandBufferPool.Get(k_DepthPrepassTag);
-            using (new ProfilingSample(cmd, k_DepthPrepassTag))
-            {
-                cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
-                SetRenderTarget(
-                    cmd,
-                    depthAttachmentHandle.Identifier(),
-                    RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store,
-                    ClearFlag.Depth,
-                    Color.black,
-                    descriptor.dimension);
+            cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
+            ConfigureTarget(depthAttachmentHandle.Identifier());
+            ConfigureClear(ClearFlag.All, Color.black);
+        }
 
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+            using (new ProfilingSample(cmd, m_ProfilerTag))
+            {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                m_FilteringSettings.layerMask = renderingData.cameraData.camera.cullingMask;
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-                var drawSettings = CreateDrawingSettings(renderingData.cameraData.camera, sortFlags, PerObjectData.None, renderingData.supportsDynamicBatching);
-                var filteringSettings = opaqueFilterSettings;
-                
-                if (renderingData.cameraData.isStereoEnabled)
-                {
-                    Camera camera = renderingData.cameraData.camera;
+                var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
+                drawSettings.perObjectData = PerObjectData.None;
+
+                ref CameraData cameraData = ref renderingData.cameraData;
+                Camera camera = cameraData.camera;
+                if (cameraData.isStereoEnabled)
                     context.StartMultiEye(camera);
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
-                    context.StopMultiEye(camera);
-                }
-                else
-                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
+
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -94,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
+
             if (depthAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
                 cmd.ReleaseTemporaryRT(depthAttachmentHandle.id);

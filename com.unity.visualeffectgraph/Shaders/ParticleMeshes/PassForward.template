@@ -5,6 +5,7 @@ Pass
 	
 	HLSLPROGRAM
 	#pragma target 4.5
+	${VFXPassForwardAdditionalPragma}
 	
 	struct ps_input
 	{
@@ -53,8 +54,10 @@ Pass
 		ps_output o = (ps_output)0;
 		o.color = VFXGetFragmentColor(i);
 		o.color *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);
+        o.color = VFXApplyPreExposure(o.color);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
+		o.color.a = saturate(o.color.a);
 		return o;
 	}
 	ENDHLSL

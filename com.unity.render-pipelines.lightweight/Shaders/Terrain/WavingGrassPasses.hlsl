@@ -142,7 +142,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
 
     float2 uv = input.uv;
-    half4 diffuseAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
+    half4 diffuseAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
     half3 diffuse = diffuseAlpha.rgb * input.color.rgb;
 
     half alpha = diffuseAlpha.a;
@@ -150,7 +150,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     alpha *= input.color.a;
 
     half3 emission = 0;
-    half4 specularGloss = 0.1;// SampleSpecularGloss(uv, diffuseAlpha.a, _SpecColor, TEXTURE2D_PARAM(_SpecGlossMap, sampler_SpecGlossMap));
+    half4 specularGloss = 0.1;// SampleSpecularSmoothness(uv, diffuseAlpha.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
     half shininess = input.posWSShininess.w;
 
     InputData inputData;
@@ -192,7 +192,7 @@ VertexOutput DepthOnlyVertex(VertexInput v)
 
 half4 DepthOnlyFragment(VertexOutput IN) : SV_TARGET
 {
-    Alpha(SampleAlbedoAlpha(IN.uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).a, IN.color, _Cutoff);
+    Alpha(SampleAlbedoAlpha(IN.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, IN.color, _Cutoff);
 return 0;
 }
 

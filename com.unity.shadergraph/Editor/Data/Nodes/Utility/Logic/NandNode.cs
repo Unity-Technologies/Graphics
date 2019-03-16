@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Nand")]
-    public class NandNode : CodeFunctionNode
+    class NandNode : CodeFunctionNode
     {
         public NandNode()
         {
             name = "Nand";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Nand-Node"; }
-        }
 
         public override bool hasPreview
         {

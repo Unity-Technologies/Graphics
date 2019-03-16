@@ -7,17 +7,12 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "Channel Mixer")]
-    public class ChannelMixerNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class ChannelMixerNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public ChannelMixerNode()
         {
             name = "Channel Mixer";
             UpdateNodeAfterDeserialization();
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Channel-Mixer-Node"; }
         }
 
         const int InputSlotId = 0;

@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Radial Shear")]
-    public class RadialShearNode : CodeFunctionNode
+    class RadialShearNode : CodeFunctionNode
     {
         public RadialShearNode()
         {
             name = "Radial Shear";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Radial-Shear-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

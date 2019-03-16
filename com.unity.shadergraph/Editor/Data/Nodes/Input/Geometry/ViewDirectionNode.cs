@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEngine.MaterialGraph.ViewDirectionNode")]
     [Title("Input", "Geometry", "View Direction")]
-    public class ViewDirectionNode : GeometryNode, IMayRequireViewDirection
+    class ViewDirectionNode : GeometryNode, IMayRequireViewDirection
     {
         private const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
@@ -16,10 +16,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/View-Direction-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

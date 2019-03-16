@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum DielectricMaterialType
+    enum DielectricMaterialType
     {
         Common,
         RustedMetal,
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input", "PBR", "Dielectric Specular")]
-    public class DielectricSpecularNode : AbstractMaterialNode, IGeneratesBodyCode
+    class DielectricSpecularNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         public DielectricSpecularNode()
         {
@@ -26,10 +26,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Dielectric-Specular-Node"; }
-        }
 
         [SerializeField]
         DielectricMaterial m_Material = new DielectricMaterial(DielectricMaterialType.Common, 0.5f, 1.0f);
@@ -68,10 +64,10 @@ namespace UnityEditor.ShaderGraph
 
         static Dictionary<DielectricMaterialType, string> m_MaterialList = new Dictionary<DielectricMaterialType, string>
         {
-            {DielectricMaterialType.RustedMetal, "(0.030, 0.030, 0.030)"},
-            {DielectricMaterialType.Water, "(0.020, 0.020, 0.020)"},
-            {DielectricMaterialType.Ice, "(0.018, 0.018, 0.018)"},
-            {DielectricMaterialType.Glass, "(0.040, 0.040, 0.040)"}
+            {DielectricMaterialType.RustedMetal, "0.030"},
+            {DielectricMaterialType.Water, "0.020"},
+            {DielectricMaterialType.Ice, "0.018"},
+            {DielectricMaterialType.Glass, "0.040"}
         };
 
         private const int kOutputSlotId = 0;
@@ -86,7 +82,7 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector3MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector1MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
@@ -110,13 +106,13 @@ namespace UnityEditor.ShaderGraph
             switch (material.type)
             {
                 case DielectricMaterialType.Common:
-                    sb.AppendLine("{0}3 {1} = lerp(0.034, 0.048, _{2}_Range);", precision, GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
+                    sb.AppendLine("{0} {1} = lerp(0.034, 0.048, _{2}_Range);", precision, GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
                     break;
                 case DielectricMaterialType.Custom:
-                    sb.AppendLine("{0}3 {1} = pow(_{2}_IOR - 1, 2) / pow(_{2}_IOR + 1, 2);", precision, GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
+                    sb.AppendLine("{0} {1} = pow(_{2}_IOR - 1, 2) / pow(_{2}_IOR + 1, 2);", precision, GetVariableNameForSlot(kOutputSlotId), GetVariableNameForNode());
                     break;
                 default:
-                    sb.AppendLine("{0}3 {1} = {0}3{2};", precision, GetVariableNameForSlot(kOutputSlotId), m_MaterialList[material.type].ToString(CultureInfo.InvariantCulture));
+                    sb.AppendLine("{0} {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), m_MaterialList[material.type].ToString(CultureInfo.InvariantCulture));
                     break;
             }
             visitor.AddShaderChunk(sb.ToString(), false);

@@ -1,19 +1,20 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.UIElements;
+using UnityEngine.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
     [Serializable]
-    public class WindowDockingLayout
+    class WindowDockingLayout
     {
         [SerializeField]
         bool m_DockingLeft;
 
         public bool dockingLeft
         {
-            get { return m_DockingLeft; }
+            get => m_DockingLeft;
+            set => m_DockingLeft = value;
         }
 
         [SerializeField]
@@ -21,7 +22,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool dockingTop
         {
-            get { return m_DockingTop; }
+            get => m_DockingTop;
+            set => m_DockingTop = value;
         }
 
         [SerializeField]
@@ -29,7 +31,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public float verticalOffset
         {
-            get { return m_VerticalOffset; }
+            get => m_VerticalOffset;
+            set => m_VerticalOffset = value;
         }
 
         [SerializeField]
@@ -37,7 +40,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public float horizontalOffset
         {
-            get { return m_HorizontalOffset; }
+            get => m_HorizontalOffset;
+            set => m_HorizontalOffset = value;
         }
 
         [SerializeField]
@@ -45,7 +49,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Vector2 size
         {
-            get { return m_Size; }
+            get => m_Size;
+            set => m_Size = value;
         }
 
         public void CalculateDockingCornerAndOffset(Rect layout, Rect parentLayout)
@@ -87,31 +92,31 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (dockingLeft)
             {
-                target.style.positionRight = StyleValue<float>.Create(float.NaN);
-                target.style.positionLeft = StyleValue<float>.Create(horizontalOffset);
+                target.style.right = float.NaN;
+                target.style.left = horizontalOffset;
             }
             else
             {
-                target.style.positionLeft = StyleValue<float>.Create(float.NaN);
-                target.style.positionRight = StyleValue<float>.Create(horizontalOffset);
+                target.style.left = float.NaN;
+                target.style.right = horizontalOffset;
             }
 
             if (dockingTop)
             {
-                target.style.positionBottom = StyleValue<float>.Create(float.NaN);
-                target.style.positionTop = StyleValue<float>.Create(verticalOffset);
+                target.style.bottom = float.NaN;
+                target.style.top = verticalOffset;
             }
             else
             {
-                target.style.positionTop = StyleValue<float>.Create(float.NaN);
-                target.style.positionBottom = StyleValue<float>.Create(verticalOffset);
+                target.style.top = float.NaN;
+                target.style.bottom = verticalOffset;
             }
         }
 
         public void ApplySize(VisualElement target)
         {
-            target.style.width = StyleValue<float>.Create(size.x);
-            target.style.height = StyleValue<float>.Create(size.y);
+            target.style.width = size.x;
+            target.style.height = size.y;
         }
 
         public Rect GetLayout(Rect parentLayout)

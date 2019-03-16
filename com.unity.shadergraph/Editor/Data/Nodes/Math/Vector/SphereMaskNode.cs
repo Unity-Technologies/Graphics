@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Sphere Mask")]
-    public class SphereMaskNode : CodeFunctionNode
+    class SphereMaskNode : CodeFunctionNode
     {
         public SphereMaskNode()
         {
             name = "Sphere Mask";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sphere-Mask-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

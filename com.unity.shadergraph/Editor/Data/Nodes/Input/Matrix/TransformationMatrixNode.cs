@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum TransformationMatrixType
+    enum TransformationMatrixType
     {
         None = -1,
         ModelView,
@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         WorldToObject
     };
 
-    public enum UnityMatrixType
+    enum UnityMatrixType
     {
         Model,
         InverseModel,
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Input", "Matrix", "Transformation Matrix")]
-    public class TransformationMatrixNode : AbstractMaterialNode
+    class TransformationMatrixNode : AbstractMaterialNode
     {
         static Dictionary<UnityMatrixType, string> m_MatrixList = new Dictionary<UnityMatrixType, string>
         {
@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
             {UnityMatrixType.ViewProjection, "UNITY_MATRIX_VP"},
             {UnityMatrixType.InverseViewProjection, "UNITY_MATRIX_I_VP"},
         };
-        
+
         static Dictionary<TransformationMatrixType, UnityMatrixType> m_MatrixUpgrade = new Dictionary<TransformationMatrixType, UnityMatrixType>
         {
             {TransformationMatrixType.ModelView, UnityMatrixType.Model},
@@ -89,10 +89,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Transformation-Matrix-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

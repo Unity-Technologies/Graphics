@@ -12,7 +12,7 @@ struct NormalData
 };
 
 // SSSBuffer texture declaration
-TEXTURE2D(_NormalBufferTexture);
+TEXTURE2D_X(_NormalBufferTexture);
 
 void EncodeIntoNormalBuffer(NormalData normalData, uint2 positionSS, out float4 outNormalBuffer0)
 {
@@ -42,9 +42,8 @@ void DecodeFromNormalBuffer(float4 normalBuffer, uint2 positionSS, out NormalDat
 
 void DecodeFromNormalBuffer(uint2 positionSS, out NormalData normalData)
 {
-    float4 normalBuffer = LOAD_TEXTURE2D(_NormalBufferTexture, positionSS);
+    float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, positionSS);
     DecodeFromNormalBuffer(normalBuffer, positionSS, normalData);
 }
 
 // OUTPUT_NORMAL_NORMALBUFFER start from SV_Target0 as it is used during depth prepass where there is no color buffer
-#define DECODE_FROM_NORMALBUFFER(UNPOSITIONSS, NORMAL_DATA) DecodeFromNormalBuffer(UNPOSITIONSS, NORMAL_DATA)

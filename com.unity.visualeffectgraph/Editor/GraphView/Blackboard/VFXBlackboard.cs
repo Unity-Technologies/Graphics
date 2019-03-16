@@ -1,11 +1,9 @@
 using System;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.UIElements;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.Experimental.UIElements;
-
-using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
@@ -13,6 +11,8 @@ using System.Linq;
 using System.Text;
 using UnityEditor.Graphs;
 using UnityEditor.SceneManagement;
+
+using PositionType = UnityEngine.UIElements.Position;
 
 namespace  UnityEditor.VFX.UI
 {
@@ -41,6 +41,8 @@ namespace  UnityEditor.VFX.UI
                     {
                         m_Controller.RegisterHandler(this);
                     }
+
+                    m_AddButton.SetEnabled(m_Controller != null);
                 }
             }
         }
@@ -58,6 +60,8 @@ namespace  UnityEditor.VFX.UI
 
         VFXView m_View;
 
+        Button m_AddButton;
+
         public VFXBlackboard(VFXView view)
         {
             m_View = view;
@@ -72,38 +76,44 @@ namespace  UnityEditor.VFX.UI
             Add(m_DefaultCategory);
             m_DefaultCategory.headerVisible = false;
 
-            AddStyleSheetPath("VFXBlackboard");
+            styleSheets.Add(Resources.Load<StyleSheet>("VFXBlackboard"));
 
             RegisterCallback<MouseDownEvent>(OnMouseClick, TrickleDown.TrickleDown);
-
-
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
             RegisterCallback<KeyDownEvent>(OnKeyDown);
 
-            focusIndex = 0;
+            focusable = true;
 
+            m_AddButton = this.Q<Button>(name: "addButton");
 
             m_DragIndicator = new VisualElement();
 
             m_DragIndicator.name = "dragIndicator";
-            m_DragIndicator.style.positionType = PositionType.Absolute;
-            shadow.Add(m_DragIndicator);
+            m_DragIndicator.style.position = PositionType.Absolute;
+            hierarchy.Add(m_DragIndicator);
 
-            clippingOptions = ClippingOptions.ClipContents;
+            cacheAsBitmap = true;
             SetDragIndicatorVisible(false);
 
             Resizer resizer = this.Query<Resizer>();
 
-            shadow.Add(new ResizableElement());
+            hierarchy.Add(new ResizableElement());
 
-            style.positionType = PositionType.Absolute;
+            style.position = PositionType.Absolute;
 
             subTitle = "Parameters";
 
             resizer.RemoveFromHierarchy();
+
+            if(s_LayoutManual != null)
+                s_LayoutManual.SetValue(this, false);
+
+            m_AddButton.SetEnabled(false);
         }
+
+        static System.Reflection.PropertyInfo s_LayoutManual = typeof(VisualElement).GetProperty("isLayoutManual",System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
         void OnKeyDown(KeyDownEvent e)
         {
@@ -132,12 +142,12 @@ namespace  UnityEditor.VFX.UI
         {
             if (visible && (m_DragIndicator.parent == null))
             {
-                shadow.Add(m_DragIndicator);
+                hierarchy.Add(m_DragIndicator);
                 m_DragIndicator.visible = true;
             }
             else if ((visible == false) && (m_DragIndicator.parent != null))
             {
-                shadow.Remove(m_DragIndicator);
+                hierarchy.Remove(m_DragIndicator);
             }
         }
 
@@ -205,7 +215,7 @@ namespace  UnityEditor.VFX.UI
                     {
                         VisualElement lastChild = this[childCount - 1];
 
-                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.style.marginBottom)).y;
+                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
                     }
                     else
                     {
@@ -216,12 +226,12 @@ namespace  UnityEditor.VFX.UI
                 {
                     VisualElement childAtInsertIndex = this[m_InsertIndex];
 
-                    indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.style.marginTop)).y;
+                    indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
                 }
 
                 SetDragIndicatorVisible(true);
 
-                m_DragIndicator.style.positionTop =  indicatorY - m_DragIndicator.style.height * 0.5f;
+                m_DragIndicator.style.top =  indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
 
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
@@ -301,6 +311,8 @@ namespace  UnityEditor.VFX.UI
                 VFXParameter model = parameter.model as VFXParameter;
 
                 var type = model.type;
+                if (type == typeof(GPUEvent))
+                    continue;
 
                 menu.AddItem(EditorGUIUtility.TextContent(type.UserFriendlyName()), false, OnAddParameter, parameter);
             }

@@ -58,6 +58,18 @@ real ComputeCubemapTexelSolidAngle(real2 uv)
     return pow(1 + u * u + v * v, -1.5);
 }
 
+real ConvertEvToLuminance(real ev)
+{
+    return exp2(ev - 3.0);
+}
+
+real ConvertLuminanceToEv(real luminance)
+{
+    real k = 12.5f;
+
+    return log2((luminance * 100.0) / k);
+}
+
 //-----------------------------------------------------------------------------
 // Attenuation functions
 //-----------------------------------------------------------------------------
@@ -255,7 +267,7 @@ real SphericalCapIntersectionSolidArea(real cosC1, real cosC2, real cosB)
     {
         real diff = abs(r1 - r2);
         real den = r1 + r2 - diff;
-        real x = 1.0 - saturate((rd - diff) / den);
+        real x = 1.0 - saturate((rd - diff) / max(den, 0.0001));
         area = smoothstep(0.0, 1.0, x);
         area *= TWO_PI - TWO_PI * max(cosC1, cosC2);
     }
@@ -400,6 +412,12 @@ real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV, bool test
         orthoBasisViewNormal[1] = cross(orthoBasisViewNormal[2], orthoBasisViewNormal[0]);
     }
     return orthoBasisViewNormal;
+}
+
+// Move this here since it's used by both LightLoop.hlsl and RaytracingLightLoop.hlsl
+bool IsMatchingLightLayer(uint lightLayers, uint renderingLayers)
+{
+    return (lightLayers & renderingLayers) != 0;
 }
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

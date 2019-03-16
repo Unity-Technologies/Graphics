@@ -26,11 +26,12 @@ TEXTURE2D(_Normal2);
 TEXTURE2D(_Normal3);
 #endif
 
+TEXTURE2D(_MainTex);            SAMPLER(sampler_MainTex);
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
 CBUFFER_START(UnityPerMaterial)
 float4 _MainTex_ST;
-half4 _Color;
+half4 _BaseColor;
 half _Cutoff;
 CBUFFER_END
 
@@ -56,7 +57,7 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
 
     outSurfaceData.smoothness = specGloss.a;
-    outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_PARAM(_BumpMap, sampler_BumpMap));
+    outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
     outSurfaceData.occlusion = 1;
     outSurfaceData.emission = 0;
 }

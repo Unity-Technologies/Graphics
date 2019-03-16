@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Geometry", "Bitangent Vector")]
-    public class BitangentVectorNode : GeometryNode, IMayRequireBitangent
+    class BitangentVectorNode : GeometryNode, IMayRequireBitangent
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
@@ -15,10 +15,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Bitangent-Vector-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

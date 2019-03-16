@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Cross Product")]
-    public class CrossProductNode : CodeFunctionNode
+    class CrossProductNode : CodeFunctionNode
     {
         public CrossProductNode()
         {
             name = "Cross Product";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Cross-Product-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

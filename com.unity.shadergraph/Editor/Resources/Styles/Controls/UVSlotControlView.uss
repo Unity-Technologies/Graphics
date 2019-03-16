@@ -1,7 +1,12 @@
-UVSlotControlView > EnumField {
+.unity-base-field {
+    width: 40px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.unity-base-field__input{
     margin-top: 0;
     margin-bottom: 0;
     margin-left: 0;
     margin-right: 0;
-    width: 40;
 }

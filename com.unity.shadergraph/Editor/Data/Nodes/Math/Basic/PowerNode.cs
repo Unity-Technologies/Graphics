@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Basic", "Power")]
-    public class PowerNode : CodeFunctionNode
+    class PowerNode : CodeFunctionNode
     {
         public PowerNode()
         {
             name = "Power";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Power-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

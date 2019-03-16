@@ -5,7 +5,6 @@ using ICSharpCode.NRefactory.Ast;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -131,17 +130,28 @@ namespace UnityEditor.Experimental.Rendering
 
                     foreach (var gen in it.Value)
                     {
-                        if (gen.hasFields && gen.needAccessors)
+                        if (gen.hasFields && gen.needAccessors && !gen.hasPackedInfo)
                         {
-                            writer.Write(gen.EmitAccessors() + "\n");
+                            writer.Write(gen.EmitAccessors());
+                            writer.Write(gen.EmitSetters());
+                            const bool emitInitters = true;
+                            writer.Write(gen.EmitSetters(emitInitters));
                         }
                     }
 
                     foreach (var gen in it.Value)
                     {
-                        if (gen.hasStatics && gen.hasFields && gen.needParamDebug)
+                        if (gen.hasStatics && gen.hasFields && gen.needParamDebug && !gen.hasPackedInfo)
                         {
                             writer.Write(gen.EmitFunctions() + "\n");
+                        }
+                    }
+
+                    foreach (var gen in it.Value)
+                    {
+                        if(gen.hasPackedInfo)
+                        {
+                            writer.Write(gen.EmitPackedInfo() + "\n");
                         }
                     }
 

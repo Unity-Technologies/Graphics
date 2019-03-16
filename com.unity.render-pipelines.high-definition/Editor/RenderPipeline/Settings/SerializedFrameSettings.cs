@@ -1,374 +1,101 @@
+using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class SerializedFrameSettings
     {
-        public SerializedProperty root;
+        SerializedProperty rootData;
+        SerializedProperty rootOverride;
 
-        public SerializedProperty enableShadow;
-        public SerializedProperty enableContactShadow;
-        public SerializedProperty enableSSR;
-        public SerializedProperty enableSSAO;
-        public SerializedProperty enableSubsurfaceScattering;
-        public SerializedProperty enableTransmission;
-        public SerializedProperty enableAtmosphericScattering;
-        public SerializedProperty enableVolumetrics;
-        public SerializedProperty enableReprojectionForVolumetrics;
-        public SerializedProperty enableLightLayers;
-
-        public SerializedProperty diffuseGlobalDimmer;
-        public SerializedProperty specularGlobalDimmer;
-
-        public SerializedProperty litShaderMode;
-        public SerializedProperty enableDepthPrepassWithDeferredRendering;
-
-        public SerializedProperty enableTransparentPrepass;
-        public SerializedProperty enableMotionVectors;
-        public SerializedProperty enableObjectMotionVectors;
-        public SerializedProperty enableDecals;
-        public SerializedProperty enableRoughRefraction;
-        public SerializedProperty enableTransparentPostpass;
-        public SerializedProperty enableDistortion;
-        public SerializedProperty enablePostprocess;
-
-        public SerializedProperty enableAsyncCompute;
-
-        public SerializedProperty enableOpaqueObjects;
-        public SerializedProperty enableTransparentObjects;
-        public SerializedProperty enableRealtimePlanarReflection;        
-
-        public SerializedProperty enableMSAA;
-
-        public SerializedProperty enableShadowMask;
-
-        public SerializedLightLoopSettings lightLoopSettings;
-
-        private  SerializedProperty overrides;
-        public bool overridesShadow
+        public SerializedObject serializedObject => rootData.serializedObject;
+        
+        public LitShaderMode? litShaderMode
         {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.Shadow) > 0; }
-            set
+            get
             {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.Shadow;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.Shadow;
+                bool? val = IsEnabled(FrameSettingsField.LitShaderMode);
+                return val == null
+                    ? (LitShaderMode?)null
+                    : val.Value == true
+                        ? LitShaderMode.Deferred
+                        : LitShaderMode.Forward;
             }
-        }
-        public bool overridesContactShadow
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.ContactShadow) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.ContactShadow;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.ContactShadow;
-            }
-        }
-        public bool overridesShadowMask
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.ShadowMask) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.ShadowMask;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.ShadowMask;
-            }
-        }
-        public bool overridesSSR
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.SSR) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.SSR;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.SSR;
-            }
-        }
-        public bool overridesSSAO
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.SSAO) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.SSAO;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.SSAO;
-            }
-        }
-        public bool overridesSubsurfaceScattering
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.SubsurfaceScattering) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.SubsurfaceScattering;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.SubsurfaceScattering;
-            }
-        }
-        public bool overridesTransmission
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.Transmission) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.Transmission;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.Transmission;
-            }
-        }
-        public bool overridesAtmosphericScaterring
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.AtmosphericScaterring) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.AtmosphericScaterring;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.AtmosphericScaterring;
-            }
-        }
-        public bool overridesVolumetrics
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.Volumetrics) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.Volumetrics;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.Volumetrics;
-            }
-        }
-        public bool overridesProjectionForVolumetrics
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.ReprojectionForVolumetrics) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.ReprojectionForVolumetrics;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.ReprojectionForVolumetrics;
-            }
-        }
-        public bool overridesLightLayers
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.LightLayers) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.LightLayers;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.LightLayers;
-            }
-        }
-        public bool overridesTransparentPrepass
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.TransparentPrepass) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.TransparentPrepass;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.TransparentPrepass;
-            }
-        }
-        public bool overridesTransparentPostpass
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.TransparentPostpass) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.TransparentPostpass;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.TransparentPostpass;
-            }
-        }
-        public bool overridesMotionVectors
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.MotionVectors) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.MotionVectors;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.MotionVectors;
-            }
-        }
-        public bool overridesObjectMotionVectors
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.ObjectMotionVectors) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.ObjectMotionVectors;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.ObjectMotionVectors;
-            }
-        }
-        public bool overridesDecals
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.Decals) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.Decals;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.Decals;
-            }
-        }
-        public bool overridesRoughRefraction
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.RoughRefraction) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.RoughRefraction;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.RoughRefraction;
-            }
-        }
-        public bool overridesDistortion
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.Distortion) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.Distortion;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.Distortion;
-            }
-        }
-        public bool overridesPostprocess
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.Postprocess) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.Postprocess;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.Postprocess;
-            }
-        }
-        public bool overridesShaderLitMode
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.ShaderLitMode) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.ShaderLitMode;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.ShaderLitMode;
-            }
-        }
-        public bool overridesDepthPrepassWithDeferredRendering
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.DepthPrepassWithDeferredRendering) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.DepthPrepassWithDeferredRendering;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.DepthPrepassWithDeferredRendering;
-            }
-        }
-        public bool overridesAsyncCompute
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.AsyncCompute) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.AsyncCompute;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.AsyncCompute;
-            }
-        }
-        public bool overridesOpaqueObjects
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.OpaqueObjects) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.OpaqueObjects;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.OpaqueObjects;
-            }
-        }
-        public bool overridesTransparentObjects
-        {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.TransparentObjects) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.TransparentObjects;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.TransparentObjects;
-            }
+            set => SetEnabled(FrameSettingsField.LitShaderMode, value == LitShaderMode.Deferred);
         }
 
-        public bool overridesRealtimePlanarReflection
+        public bool? IsEnabled(FrameSettingsField field) => HaveMultipleValue(field) ? (bool?)null : rootData.GetBitArrayAt((uint)field);
+        public void SetEnabled(FrameSettingsField field, bool value)
         {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.RealtimePlanarReflection) > 0; }
-            set
+            if(rootData.serializedObject.isEditingMultipleObjects)
             {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.RealtimePlanarReflection;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.RealtimePlanarReflection;
+                var objects = rootData.serializedObject.targetObjects;
+                for (int index = 0; index < objects.Length; ++index)
+                    GetData(objects[index]).SetEnabled(field, value);
             }
-        }        
-
-        public bool overridesMSAA
+            else
+                rootData.SetBitArrayAt((uint)field, value);
+        }
+        public bool HaveMultipleValue(FrameSettingsField field)
         {
-            get { return (overrides.intValue & (int)FrameSettingsOverrides.MSAA) > 0; }
-            set
-            {
-                if (value)
-                    overrides.intValue |= (int)FrameSettingsOverrides.MSAA;
-                else
-                    overrides.intValue &= ~(int)FrameSettingsOverrides.MSAA;
-            }
+            var objects = rootData.serializedObject.targetObjects;
+            bool value = GetData(objects[0]).IsEnabled(field);
+            for (int index = 1; index < objects.Length; ++index)
+                if (value ^ (GetData(objects[index]).IsEnabled(field)))
+                    return true;
+            return false;
         }
 
-        public SerializedFrameSettings(SerializedProperty root)
+        public bool GetOverrides(FrameSettingsField field) => rootOverride?.GetBitArrayAt((uint)field) ?? false; //rootOverride can be null in case of hdrpAsset defaults
+        public void SetOverrides(FrameSettingsField field, bool value) => rootOverride?.SetBitArrayAt((uint)field, value); //rootOverride can be null in case of hdrpAsset defaults
+        public bool HaveMultipleOverride(FrameSettingsField field)
         {
-            this.root = root;
+            bool value = GetOverrides(field);
+            var objects = rootOverride?.serializedObject?.targetObjects;
+            for (int index = 1; index < (objects?.Length ?? 0); ++index)
+                if (value ^ (GetMask(objects[index])?.mask[(uint)field] ?? false))
+                    return true;
+            return false;
+        }
 
-            enableShadow = root.Find((FrameSettings d) => d.enableShadow);
-            enableContactShadow = root.Find((FrameSettings d) => d.enableContactShadows);
-            enableSSR = root.Find((FrameSettings d) => d.enableSSR);
-            enableSSAO = root.Find((FrameSettings d) => d.enableSSAO);
-            enableSubsurfaceScattering = root.Find((FrameSettings d) => d.enableSubsurfaceScattering);
-            enableTransmission = root.Find((FrameSettings d) => d.enableTransmission);
-            enableAtmosphericScattering = root.Find((FrameSettings d) => d.enableAtmosphericScattering);
-            enableVolumetrics = root.Find((FrameSettings d) => d.enableVolumetrics);
-            enableReprojectionForVolumetrics = root.Find((FrameSettings d) => d.enableReprojectionForVolumetrics);
-            enableLightLayers = root.Find((FrameSettings d) => d.enableLightLayers);
-            diffuseGlobalDimmer = root.Find((FrameSettings d) => d.diffuseGlobalDimmer);
-            specularGlobalDimmer = root.Find((FrameSettings d) => d.specularGlobalDimmer);
-            litShaderMode = root.Find((FrameSettings d) => d.shaderLitMode);
-            enableDepthPrepassWithDeferredRendering = root.Find((FrameSettings d) => d.enableDepthPrepassWithDeferredRendering);
-            enableTransparentPrepass = root.Find((FrameSettings d) => d.enableTransparentPrepass);
-            enableMotionVectors = root.Find((FrameSettings d) => d.enableMotionVectors);
-            enableObjectMotionVectors = root.Find((FrameSettings d) => d.enableObjectMotionVectors);
-            enableDecals = root.Find((FrameSettings d) => d.enableDecals);
-            enableRoughRefraction = root.Find((FrameSettings d) => d.enableRoughRefraction);
-            enableTransparentPostpass = root.Find((FrameSettings d) => d.enableTransparentPostpass);
-            enableDistortion = root.Find((FrameSettings d) => d.enableDistortion);
-            enablePostprocess = root.Find((FrameSettings d) => d.enablePostprocess);
-            enableAsyncCompute = root.Find((FrameSettings d) => d.enableAsyncCompute);
-            enableOpaqueObjects = root.Find((FrameSettings d) => d.enableOpaqueObjects);
-            enableTransparentObjects = root.Find((FrameSettings d) => d.enableTransparentObjects);
-            enableRealtimePlanarReflection = root.Find((FrameSettings d) => d.enableRealtimePlanarReflection);
-            enableMSAA = root.Find((FrameSettings d) => d.enableMSAA);
-            enableShadowMask = root.Find((FrameSettings d) => d.enableShadowMask);
-            overrides = root.Find((FrameSettings d) => d.overrides);
+        ref FrameSettings GetData(Object obj)
+        {
+            if (obj is HDAdditionalCameraData)
+                return ref (obj as HDAdditionalCameraData).renderingPathCustomFrameSettings;
+            if (obj is HDProbe)
+                return ref (obj as HDProbe).frameSettings;
+            if (obj is HDRenderPipelineAsset)
+                switch (HDRenderPipelineUI.selectedFrameSettings)
+                {
+                    case HDRenderPipelineUI.SelectedFrameSettings.Camera:
+                        return ref (obj as HDRenderPipelineAsset).GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                    case HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection:
+                        return ref (obj as HDRenderPipelineAsset).GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
+                    case HDRenderPipelineUI.SelectedFrameSettings.RealtimeReflection:
+                        return ref (obj as HDRenderPipelineAsset).GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
+                    default:
+                        throw new System.ArgumentException("Unknown kind of HDRenderPipelineUI.SelectedFrameSettings");
+                }
+            throw new System.ArgumentException("Unknown kind of object");
+        }
 
-            lightLoopSettings = new SerializedLightLoopSettings(root.Find((FrameSettings d) => d.lightLoopSettings));
+        FrameSettingsOverrideMask? GetMask(Object obj)
+        {
+            if (obj is HDAdditionalCameraData)
+                return (obj as HDAdditionalCameraData).renderingPathCustomFrameSettingsOverrideMask;
+            if (obj is HDProbe)
+                return (obj as HDProbe).frameSettingsOverrideMask;
+            if (obj is HDRenderPipelineAsset)
+                return null;
+            throw new System.ArgumentException("Unknown kind of object");
+        }
+
+
+        public SerializedFrameSettings(SerializedProperty rootData, SerializedProperty rootOverride)
+        {
+            this.rootData = rootData.FindPropertyRelative("bitDatas");
+            this.rootOverride = rootOverride?.FindPropertyRelative("mask");  //rootOverride can be null in case of hdrpAsset defaults
         }
     }
 }

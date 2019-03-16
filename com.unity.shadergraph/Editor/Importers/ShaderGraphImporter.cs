@@ -8,8 +8,8 @@ using UnityEditor.Experimental.AssetImporters;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(20, Extension)]
-    public class ShaderGraphImporter : ScriptedImporter
+    [ScriptedImporter(23, Extension, 1)]
+    class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
 
@@ -59,7 +59,7 @@ Shader ""Hidden/GraphErrorShader2""
         {
             var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
             if (oldShader != null)
-                ShaderUtil.ClearShaderErrors(oldShader);
+                ShaderUtil.ClearShaderMessages(oldShader);
 
             List<PropertyCollector.TextureInfo> configuredTextures;
             string path = ctx.assetPath;
@@ -80,7 +80,15 @@ Shader ""Hidden/GraphErrorShader2""
             ctx.SetMainObject(shader);
 
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
+            {
+                // Ensure that dependency path is relative to project
+                if (!sourceAssetDependencyPath.StartsWith("Packages/") && !sourceAssetDependencyPath.StartsWith("Assets/"))
+                {
+                    Debug.LogWarning($"Invalid dependency path: {sourceAssetDependencyPath}");
+                    continue;
+                }
                 ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
+            }
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths)
@@ -90,12 +98,13 @@ Shader ""Hidden/GraphErrorShader2""
             try
             {
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
-                graph.LoadedFromDisk();
+                var graph = JsonUtility.FromJson<GraphData>(textGraph);
+                graph.OnEnable();
+                graph.ValidateGraph();
 
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures, sourceAssetDependencyPaths);
+                shaderString = ((IMasterNode)graph.outputNode).GetShader(GenerationMode.ForReals, shaderName, out configuredTextures, sourceAssetDependencyPaths);
 
                 if (sourceAssetDependencyPaths != null)
                 {

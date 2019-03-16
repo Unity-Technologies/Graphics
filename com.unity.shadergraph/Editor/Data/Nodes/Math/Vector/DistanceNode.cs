@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Distance")]
-    public class DistanceNode : CodeFunctionNode
+    class DistanceNode : CodeFunctionNode
     {
         public DistanceNode()
         {
             name = "Distance";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Distance-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

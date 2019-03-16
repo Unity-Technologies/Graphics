@@ -57,7 +57,19 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public class BoolField : Field<bool> {}
+        public class BoolField : Field<bool> { }
+        public class HistoryBoolField : BoolField
+        {
+            public Func<bool>[] historyGetter { get; set; }
+            public int historyDepth => historyGetter?.Length ?? 0;
+            public bool GetHistoryValue(int historyIndex)
+            {
+                Assert.IsNotNull(historyGetter);
+                Assert.IsTrue(historyIndex >= 0 && historyIndex < historyGetter.Length, "out of range historyIndex");
+                Assert.IsNotNull(historyGetter[historyIndex]);
+                return historyGetter[historyIndex]();
+            }
+        }
 
         public class IntField : Field<int>
         {
@@ -116,6 +128,12 @@ namespace UnityEngine.Experimental.Rendering
             public GUIContent[] enumNames;
             public int[] enumValues;
             public int[] quickSeparators;
+            public int[] indexes;
+            
+            public Func<int> getIndex { get; set; }
+            public Action<int> setIndex { get; set; }
+
+            public int currentIndex { get { return getIndex(); } set { setIndex(value); } }
 
             public Type autoEnum
             {
@@ -131,6 +149,7 @@ namespace UnityEngine.Experimental.Rendering
                     for (int i = 0; i < values.Length; i++)
                         enumValues[i] = (int)values.GetValue(i);
 
+                    InitIndexes();
                     InitQuickSeparators();
                 }
             }
@@ -157,6 +176,55 @@ namespace UnityEngine.Experimental.Rendering
                     lastPrefix = currentTestedPrefix;
                     quickSeparators[i] = wholeNameIndex++;
                 }
+            }
+            
+            public void InitIndexes()
+            {
+                indexes = new int[enumNames.Length];
+                for (int i = 0; i < enumNames.Length; i++)
+                {
+                    indexes[i] = i;
+                }
+            }
+        }
+        public class HistoryEnumField : EnumField
+        {
+            public Func<int>[] historyIndexGetter { get; set; }
+            public int historyDepth => historyIndexGetter?.Length ?? 0;
+            public int GetHistoryValue(int historyIndex)
+            {
+                Assert.IsNotNull(historyIndexGetter);
+                Assert.IsTrue(historyIndex >= 0 && historyIndex < historyIndexGetter.Length, "out of range historyIndex");
+                Assert.IsNotNull(historyIndexGetter[historyIndex]);
+                return historyIndexGetter[historyIndex]();
+            }
+        }
+
+        public class BitField : Field<Enum>
+        {
+            public GUIContent[] enumNames { get; private set; }
+            public int[] enumValues { get; private set; }
+
+            internal Type m_EnumType;
+
+            public Type enumType
+            {
+                set
+                {
+                    enumNames = Enum.GetNames(value).Select(x => new GUIContent(x)).ToArray();
+
+                    // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
+                    //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
+
+                    var values = Enum.GetValues(value);
+                    enumValues = new int[values.Length];
+                    for (int i = 0; i < values.Length; i++)
+                        enumValues[i] = (int)values.GetValue(i);
+
+                    m_EnumType = value;
+                }
+
+                get { return m_EnumType; }
             }
         }
 

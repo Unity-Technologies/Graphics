@@ -1,7 +1,7 @@
 using System;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     /// Perform post-processing using the given color attachment
@@ -10,14 +10,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     /// You can use this pass to apply post-processing to the given color
     /// buffer. The pass uses the currently configured post-process stack.
     /// </summary>
-    public class PostProcessPass : ScriptableRenderPass
+    internal class PostProcessPass : ScriptableRenderPass
     {
-        const string k_PostProcessingTag = "Render PostProcess Effects";
-        private RenderTargetHandle source { get; set; }
-        private RenderTextureDescriptor descriptor { get; set; }
-        private RenderTargetHandle destination { get; set; }
-        private bool flip { get; set; }
-        bool opaquePost { get; set; }
+        RenderTargetHandle m_Source;
+        RenderTargetHandle m_Destination;
+        RenderTextureDescriptor m_Descriptor;
+
+        RenderTargetHandle m_TemporaryColorTexture;
+        bool m_IsOpaquePostProcessing;
+        
+        const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
+
+        public PostProcessPass(RenderPassEvent evt, bool renderOpaques = false)
+        {
+            m_IsOpaquePostProcessing = renderOpaques;
+            m_TemporaryColorTexture.Init("_TemporaryColorTexture");
+
+            renderPassEvent = evt;
+        }
 
         /// <summary>
         /// Setup the pass
@@ -25,31 +35,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         /// <param name="baseDescriptor"></param>
         /// <param name="sourceHandle">Source of rendering to execute the post on</param>
         /// <param name="destinationHandle">Destination target for the final blit</param>
-        public void Setup(
-            RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle sourceHandle,
-            RenderTargetHandle destinationHandle,
-            bool opaquePost,
-            bool flip)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle sourceHandle, RenderTargetHandle destinationHandle)
         {
-            if (sourceHandle == destinationHandle)
-                throw new InvalidOperationException($"{nameof(sourceHandle)} should not be the same as {nameof(destinationHandle)}");
-
-            source = sourceHandle;
-            destination = destinationHandle;
-            descriptor = baseDescriptor;
-            this.flip = flip;
-            this.opaquePost = opaquePost;
+            m_Descriptor = baseDescriptor;
+            m_Source = sourceHandle;
+            m_Destination = destinationHandle;
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderer == null)
-                throw new ArgumentNullException(nameof(renderer));
-            
-            CommandBuffer cmd = CommandBufferPool.Get(k_PostProcessingTag);
-            renderer.RenderPostProcess(cmd, ref renderingData.cameraData, descriptor.colorFormat, source.Identifier(), destination.Identifier(), opaquePost, flip);
+            ref CameraData cameraData = ref renderingData.cameraData;
+            bool isLastRenderPass = (m_Destination == RenderTargetHandle.CameraTarget);
+            bool flip = isLastRenderPass && cameraData.camera.targetTexture == null;
+
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderPostProcessingTag);
+            RenderPostProcessing(cmd, ref renderingData.cameraData, m_Descriptor, m_Source.Identifier(),
+                    m_Destination.Identifier(), m_IsOpaquePostProcessing, flip);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

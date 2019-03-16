@@ -23,7 +23,7 @@ The following example code represents one possible outcome of this node.
 
 ```
 float3 _Camera_Position = _WorldSpaceCameraPos;
-float3 _Camera_Direction = -1 * mul(unity_ObjectToWorld, transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V)) [2].xyz);
+float3 _Camera_Direction = -1 * mul(UNITY_MATRIX_M, transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V)) [2].xyz);
 float _Camera_Orthographic = unity_OrthoParams.w;
 float _Camera_NearPlane = _ProjectionParams.y;
 float _Camera_FarPlane = _ProjectionParams.z;

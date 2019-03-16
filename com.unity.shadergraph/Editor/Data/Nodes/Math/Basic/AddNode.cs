@@ -3,16 +3,11 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Basic", "Add")]
-    public class AddNode : CodeFunctionNode
+    class AddNode : CodeFunctionNode
     {
         public AddNode()
         {
             name = "Add";
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Add-Node"; }
         }
 
         protected override MethodInfo GetFunctionToConvert()

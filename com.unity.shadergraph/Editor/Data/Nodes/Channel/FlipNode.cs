@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Channel", "Flip")]
-    public class FlipNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
+    class FlipNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public FlipNode()
         {
@@ -15,10 +15,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Flip-Node"; }
-        }
 
         const int InputSlotId = 0;
         const int OutputSlotId = 1;
@@ -92,6 +88,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
         private bool m_AlphaChannel;
 
         [ToggleControl("Alpha")]

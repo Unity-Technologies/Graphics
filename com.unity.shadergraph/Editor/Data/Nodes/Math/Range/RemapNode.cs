@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Remap")]
-    public class RemapNode : CodeFunctionNode
+    class RemapNode : CodeFunctionNode
     {
         public RemapNode()
         {
             name = "Remap";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Remap-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

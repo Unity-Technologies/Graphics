@@ -1,13 +1,13 @@
 using System;
 using System.Reflection;
-using UnityEditor.Experimental.UIElements;
+using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class ButtonControlAttribute : Attribute, IControlAttribute
+    class ButtonControlAttribute : Attribute, IControlAttribute
     {
         public ButtonControlAttribute()
         {
@@ -20,13 +20,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     }
 
     [Serializable]
-    public struct ButtonConfig
+    struct ButtonConfig
     {
         public string text;
         public Action action;
     }
 
-    public class ButtonControlView : VisualElement
+    class ButtonControlView : VisualElement
     {
         public ButtonControlView(AbstractMaterialNode node, PropertyInfo propertyInfo)
         {

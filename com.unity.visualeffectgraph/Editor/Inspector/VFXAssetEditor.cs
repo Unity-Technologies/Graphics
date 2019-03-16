@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-
+using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
@@ -173,9 +173,42 @@ public class VisualEffectAssetEditor : Editor
         return false;
     }
 
+    ReorderableList m_ReorderableList;
+    List<IVFXSubRenderer> m_OutputContexts = new List<IVFXSubRenderer>();
+
+    void OnReorder(ReorderableList list)
+    {
+        for(int i = 0; i < m_OutputContexts.Count(); ++i)
+        {
+            m_OutputContexts[i].sortPriority =i;
+        }
+    }
+    private void DrawOutputContextItem(Rect rect, int index, bool isActive, bool isFocused)
+    {
+        EditorGUI.LabelField(rect, EditorGUIUtility.TempContent((m_OutputContexts[index] as VFXContext).fileName));
+    }
+
+    private void DrawHeader(Rect rect)
+    {
+        EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent("Output Render Order"));
+    }
+
     static Mesh s_CubeWireFrame;
     void OnEnable()
     {
+        VisualEffectAsset target = this.target as VisualEffectAsset;
+
+        m_OutputContexts.Clear();
+        m_OutputContexts.AddRange(target.GetResource().GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+
+        m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
+        m_ReorderableList.displayRemove = false;
+        m_ReorderableList.displayAdd = false;
+        m_ReorderableList.onReorderCallback = OnReorder;
+        m_ReorderableList.drawHeaderCallback = DrawHeader;
+
+        m_ReorderableList.drawElementCallback = DrawOutputContextItem;
+
         if (m_VisualEffectGO == null)
         {
             m_PreviewUtility = new PreviewRenderUtility();
@@ -198,7 +231,7 @@ public class VisualEffectAssetEditor : Editor
             m_VisualEffectGO.transform.localRotation = Quaternion.identity;
             m_VisualEffectGO.transform.localScale = Vector3.one;
 
-            m_VisualEffect.visualEffectAsset = target as VisualEffectAsset;
+            m_VisualEffect.visualEffectAsset = target;
 
             m_CurrentBounds = new Bounds(Vector3.zero, Vector3.one);
             m_FrameCount = 0;
@@ -252,6 +285,8 @@ public class VisualEffectAssetEditor : Editor
         resourceUpdateModeProperty = resourceObject.FindProperty("m_Infos.m_UpdateMode");
         cullingFlagsProperty = resourceObject.FindProperty("m_Infos.m_CullingFlags");
         motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
+        prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
+        prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
     }
 
     PreviewRenderUtility m_PreviewUtility;
@@ -335,10 +370,8 @@ public class VisualEffectAssetEditor : Editor
             m_Distance *= 1 + (Event.current.delta.y * .015f);
         }
 
-        if (m_Mat == null)
-        {
+        if(m_Mat == null)
             m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
-        }
 
         if (isRepaint)
         {
@@ -392,11 +425,14 @@ public class VisualEffectAssetEditor : Editor
     SerializedProperty resourceUpdateModeProperty;
     SerializedProperty cullingFlagsProperty;
     SerializedProperty motionVectorRenderModeProperty;
+    SerializedProperty prewarmDeltaTime;
+    SerializedProperty prewarmStepCount;
+
+    private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
 
     public override void OnInspectorGUI()
     {
         resourceObject.Update();
-
 
         bool enable = GUI.enabled; //Everything in external asset is disabled by default
         GUI.enabled = true;
@@ -414,7 +450,7 @@ public class VisualEffectAssetEditor : Editor
         EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
         EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
         EditorGUI.BeginChangeCheck();
-        int newOption =  EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
+        int newOption = EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
         if (EditorGUI.EndChangeCheck())
         {
             cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
@@ -422,41 +458,109 @@ public class VisualEffectAssetEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
-        bool needRecompile = false;
-        EditorGUI.BeginChangeCheck();
-
-
-        EditorGUI.showMixedValue = motionVectorRenderModeProperty.hasMultipleDifferentValues;
-        EditorGUI.BeginChangeCheck();
-        bool motionVector = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Use Motion Vectors"), motionVectorRenderModeProperty.intValue == (int)MotionVectorGenerationMode.Object);
-        if (EditorGUI.EndChangeCheck())
+        if (prewarmDeltaTime!= null && prewarmStepCount != null)
         {
-            motionVectorRenderModeProperty.intValue = motionVector ? (int)MotionVectorGenerationMode.Object : (int)MotionVectorGenerationMode.Camera;
-            resourceObject.ApplyModifiedProperties();
-            needRecompile = true;
-        }
-
-        if (needRecompile)
-        {
-            foreach (VisualEffectResource resource in resourceObject.targetObjects)
+            if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
             {
-                VFXGraph graph = resource.GetOrCreateGraph() as VFXGraph;
-                if (graph != null)
+                var currentDeltaTime = prewarmDeltaTime.floatValue;
+                var currentStepCount = prewarmStepCount.intValue;
+                var currentTotalTime = currentDeltaTime * currentStepCount;
+                EditorGUI.BeginChangeCheck();
+                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time"), currentTotalTime);
+                if (EditorGUI.EndChangeCheck())
                 {
-                    graph.SetExpressionGraphDirty();
-                    graph.RecompileIfNeeded();
+                    if (currentStepCount <= 0)
+                    {
+                        prewarmStepCount.intValue = currentStepCount = 1;
+                    }
+
+                    currentDeltaTime = currentTotalTime / currentStepCount;
+                    prewarmDeltaTime.floatValue = currentDeltaTime;
+                    resourceObject.ApplyModifiedProperties();
+                }
+
+                EditorGUI.BeginChangeCheck();
+                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count"), currentStepCount);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (currentStepCount <= 0 && currentTotalTime != 0.0f)
+                    {
+                        prewarmStepCount.intValue = currentStepCount = 1;
+                    }
+                    
+                    currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
+                    prewarmDeltaTime.floatValue = currentDeltaTime;
+                    prewarmStepCount.intValue = currentStepCount;
+                    resourceObject.ApplyModifiedProperties();
+                }
+
+                EditorGUI.BeginChangeCheck();
+                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time"), currentDeltaTime);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (currentDeltaTime < k_MinimalCommonDeltaTime)
+                    {
+                        prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
+                    }
+
+                    if (currentDeltaTime > currentTotalTime)
+                    {
+                        currentTotalTime = currentDeltaTime;
+                    }
+
+                    if (currentTotalTime != 0.0f)
+                    {
+                        var candidateStepCount_A = Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
+                        var candidateStepCount_B = Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
+
+                        var totalTime_A = currentDeltaTime * candidateStepCount_A;
+                        var totalTime_B = currentDeltaTime * candidateStepCount_B;
+
+                        if (Mathf.Abs(totalTime_A - currentTotalTime) < Mathf.Abs(totalTime_B - currentTotalTime))
+                        {
+                            currentStepCount = candidateStepCount_A;
+                        }
+                        else
+                        {
+                            currentStepCount = candidateStepCount_B;
+                        }
+
+                        prewarmStepCount.intValue = currentStepCount;
+                    }
+                    prewarmDeltaTime.floatValue = currentDeltaTime;
+                    resourceObject.ApplyModifiedProperties();
+                }
+            }
+            else
+            {
+                //Multi selection case, can't resolve total time easily
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
+                EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count"));
+                EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
+                EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time"));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
+                        prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
+                    resourceObject.ApplyModifiedProperties();
                 }
             }
         }
 
         if (!serializedObject.isEditingMultipleObjects)
         {
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
             VisualEffectAsset asset = (VisualEffectAsset)target;
             VisualEffectResource resource = asset.GetResource();
 
-            var shaderSources = resource.shaderSources;
+            m_OutputContexts.Clear();
+            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
 
+            m_ReorderableList.DoLayoutList();
+
+            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
+
+            var shaderSources = resource.shaderSources;
 
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);

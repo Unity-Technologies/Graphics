@@ -2,18 +2,17 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireTime
+    interface IMayRequireTime
     {
         bool RequiresTime();
     }
 
 
-    public static class MayRequireTimeExtensions
+    static class MayRequireTimeExtensions
     {
-        public static bool RequiresTime(this INode node)
+        public static bool RequiresTime(this AbstractMaterialNode node)
         {
-            var mayRequireTime = node as IMayRequireTime;
-            return mayRequireTime != null && mayRequireTime.RequiresTime();
+            return node is IMayRequireTime mayRequireTime && mayRequireTime.RequiresTime();
         }
     }
 }

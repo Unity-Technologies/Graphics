@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Texture 2D Array Asset")]
-    public class Texture2DArrayAssetNode : AbstractMaterialNode, IPropertyFromNode
+    class Texture2DArrayAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
 
@@ -18,10 +18,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Texture-2D-Array-Asset-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -65,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             var prop = new Texture2DArrayShaderProperty { value = m_Texture };
             if (texture != null)

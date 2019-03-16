@@ -12,16 +12,16 @@
 	out DBufferType3 MERGE_NAME(NAME, 3) : SV_Target3
 
 #define DECLARE_DBUFFER_TEXTURE(NAME)	\
-	TEXTURE2D(MERGE_NAME(NAME, 0));		\
-	TEXTURE2D(MERGE_NAME(NAME, 1));		\
-	TEXTURE2D(MERGE_NAME(NAME, 2));		\
-	TEXTURE2D(MERGE_NAME(NAME, 3));
+	TEXTURE2D_X(MERGE_NAME(NAME, 0));		\
+	TEXTURE2D_X(MERGE_NAME(NAME, 1));		\
+	TEXTURE2D_X(MERGE_NAME(NAME, 2));		\
+	TEXTURE2D_X(MERGE_NAME(NAME, 3));
 
 #define FETCH_DBUFFER(NAME, TEX, unCoord2)												\
-	DBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 0), unCoord2);	\
-	DBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 1), unCoord2);	\
-	DBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 2), unCoord2);	\
-	DBufferType3 MERGE_NAME(NAME, 3) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 3), unCoord2).xy; // Caution: We do .xy to match #define DBufferType3 float2 and avoid a shader warning
+	DBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 0), unCoord2);	\
+	DBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 1), unCoord2);	\
+	DBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 2), unCoord2);	\
+	DBufferType3 MERGE_NAME(NAME, 3) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 3), unCoord2).xy; // Caution: We do .xy to match #define DBufferType3 float2 and avoid a shader warning
 
 #define ENCODE_INTO_DBUFFER(DECAL_SURFACE_DATA, NAME) EncodeIntoDBuffer(DECAL_SURFACE_DATA, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2), MERGE_NAME(NAME,3))
 #define DECODE_FROM_DBUFFER(NAME, DECAL_SURFACE_DATA) DecodeFromDBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2), MERGE_NAME(NAME,3), DECAL_SURFACE_DATA)
@@ -34,14 +34,14 @@
 	out DBufferType2 MERGE_NAME(NAME, 2) : SV_Target2
 
 #define DECLARE_DBUFFER_TEXTURE(NAME)	\
-	TEXTURE2D(MERGE_NAME(NAME, 0));		\
-	TEXTURE2D(MERGE_NAME(NAME, 1));		\
-	TEXTURE2D(MERGE_NAME(NAME, 2));
+	TEXTURE2D_X(MERGE_NAME(NAME, 0));		\
+	TEXTURE2D_X(MERGE_NAME(NAME, 1));		\
+	TEXTURE2D_X(MERGE_NAME(NAME, 2));
 
 #define FETCH_DBUFFER(NAME, TEX, unCoord2)												\
-	DBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 0), unCoord2);	\
-	DBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 1), unCoord2);	\
-	DBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 2), unCoord2);
+	DBufferType0 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 0), unCoord2);	\
+	DBufferType1 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 1), unCoord2);	\
+	DBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D_X(MERGE_NAME(TEX, 2), unCoord2);
 
 #define ENCODE_INTO_DBUFFER(DECAL_SURFACE_DATA, NAME) EncodeIntoDBuffer(DECAL_SURFACE_DATA, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
 #define DECODE_FROM_DBUFFER(NAME, DECAL_SURFACE_DATA) DecodeFromDBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2), DECAL_SURFACE_DATA)
@@ -59,7 +59,7 @@ void EncodeIntoDBuffer( DecalSurfaceData surfaceData
                         )
 {
     outDBuffer0 = surfaceData.baseColor;
-    outDBuffer1 = surfaceData.normalWS;
+    outDBuffer1 = float4(surfaceData.normalWS.xyz * 0.5 + 0.5, surfaceData.normalWS.w);
     outDBuffer2 = surfaceData.mask;
 #ifdef DECALS_4RT
 	outDBuffer3 = surfaceData.MAOSBlend;

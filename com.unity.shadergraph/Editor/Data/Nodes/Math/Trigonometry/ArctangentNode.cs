@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Trigonometry", "Arctangent")]
-    public class ArctangentNode : CodeFunctionNode
+    class ArctangentNode : CodeFunctionNode
     {
         public ArctangentNode()
         {
             name = "Arctangent";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Arctangent-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

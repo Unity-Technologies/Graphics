@@ -1,4 +1,3 @@
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
@@ -58,7 +57,7 @@ float4x4 VFXGetViewToWorldMatrix()
 
 float VFXSampleDepth(float4 posSS)
 {
-    return LOAD_TEXTURE2D(_CameraDepthTexture, posSS.xy).r;
+    return LoadCameraDepth(posSS.xy);
 }
 
 float VFXLinearEyeDepth(float depth)
@@ -66,9 +65,12 @@ float VFXLinearEyeDepth(float depth)
     return LinearEyeDepth(depth,_ZBufferParams);
 }
 
-float4 VFXApplyShadowBias(float4 posCS)
+void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)
 {
-    return posCS;
+}
+
+void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS)
+{
 }
 
 float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
@@ -77,7 +79,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
     posWS = GetCameraRelativePositionWS(posWS); // posWS is absolute in World Space
 #endif
     PositionInputs posInput = GetPositionInput(posCS.xy, _ScreenSize.zw, posCS.z, posCS.w, posWS, uint2(0,0));
-    float4 fog = EvaluateAtmosphericScattering(posInput);
+    float4 fog = EvaluateAtmosphericScattering(posInput, GetWorldSpaceNormalizeViewDir(posWS));
 #if VFX_BLENDMODE_ALPHA
     color.rgb = lerp(color.rgb, fog.rgb, fog.a);
 #elif VFX_BLENDMODE_ADD
@@ -85,5 +87,11 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 #elif VFX_BLENDMODE_PREMULTIPLY
     color.rgb = lerp(color.rgb, fog.rgb * color.a, fog.a);
 #endif
+    return color;
+}
+
+float4 VFXApplyPreExposure(float4 color)
+{
+    color.xyz = color.xyz * GetCurrentExposureMultiplier();
     return color;
 }

@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Round", "Truncate")]
-    public class TruncateNode : CodeFunctionNode
+    class TruncateNode : CodeFunctionNode
     {
         public TruncateNode()
         {
             name = "Truncate";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Truncate-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

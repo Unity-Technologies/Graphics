@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Round", "Floor")]
-    public class FloorNode : CodeFunctionNode
+    class FloorNode : CodeFunctionNode
     {
         public FloorNode()
         {
             name = "Floor";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Floor-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

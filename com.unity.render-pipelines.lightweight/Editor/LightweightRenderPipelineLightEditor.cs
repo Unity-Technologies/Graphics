@@ -1,10 +1,9 @@
-using System;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.LightweightPipeline;
+using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.LightweightPipeline
+namespace UnityEditor.Rendering.LWRP
 {
     [CanEditMultipleObjects]
     [CustomEditorForRenderPipeline(typeof(Light), typeof(LightweightRenderPipelineAsset))]
@@ -95,10 +94,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 return;
             m_AdditionalLightDataSO = new SerializedObject(additionalLightData);
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
-
-            LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
-            settings.shadowsBias.floatValue = asset.shadowDepthBias;
-            settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
+            
             settings.ApplyModifiedProperties();
         }
 
@@ -240,6 +236,11 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 {
                     lightProperty.gameObject.AddComponent<LWRPAdditionalLightData>();
                     m_AdditionalLightData = lightProperty.gameObject.GetComponent<LWRPAdditionalLightData>();
+
+                    LightweightRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
+                    settings.shadowsBias.floatValue = asset.shadowDepthBias;
+                    settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
+
                     init(m_AdditionalLightData);
                 }
 

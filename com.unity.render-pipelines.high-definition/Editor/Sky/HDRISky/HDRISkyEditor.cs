@@ -1,3 +1,4 @@
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
@@ -32,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_IntensityMode = Unpack(o.Find(x => x.skyIntensityMode));
             m_UpperHemisphereLuxValue = Unpack(o.Find(x => x.upperHemisphereLuxValue));
             
-            m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false);
+            m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
             readBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
@@ -91,10 +92,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_CommonUIElementsMask &= ~(uint)(SkySettingsUIElement.Exposure | SkySettingsUIElement.Multiplier);
                 m_CommonUIElementsMask |= (uint)SkySettingsUIElement.IndentExposureAndMultiplier;
 
-                // Show the multiplier as read-only
-                EditorGUI.BeginDisabledGroup(true);
-                PropertyField(m_UpperHemisphereLuxValue);
-                EditorGUI.EndDisabledGroup();
+                // Show the multiplier
+                EditorGUILayout.HelpBox(System.String.Format("Upper hemisphere lux value: {0}\nAbsolute multiplier: {1}",
+                    m_UpperHemisphereLuxValue.value.floatValue,
+                    (m_DesiredLuxValue.value.floatValue / m_UpperHemisphereLuxValue.value.floatValue)
+                ), MessageType.Info);
                 EditorGUI.indentLevel--;
             }
             else

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
+    class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
         public enum DefaultType
         {
@@ -52,6 +52,11 @@ namespace UnityEditor.ShaderGraph
             get { return false; }
         }
 
+        public override bool isExposable
+        {
+            get { return true; }
+        }
+
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
@@ -75,7 +80,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyAsArgumentString()
         {
-            return string.Format("TEXTURE2D_ARGS({0}, sampler{0})", referenceName);
+            return string.Format("TEXTURE2D_PARAM({0}, sampler{0})", referenceName);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
@@ -87,12 +92,12 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override INode ToConcreteNode()
+        public override AbstractMaterialNode ToConcreteNode()
         {
             return new Texture2DAssetNode { texture = value.texture };
         }
 
-        public override IShaderProperty Copy()
+        public override AbstractShaderProperty Copy()
         {
             var copied = new TextureShaderProperty();
             copied.displayName = displayName;

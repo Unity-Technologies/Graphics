@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
+Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
 {
     SubShader
     {
@@ -19,34 +19,44 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
-            // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
-            #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
             #define DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+            // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
+            // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
+            // the deferred shader will require to use multicompile.
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
             float4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
                 // input.positionCS is SV_Position
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
+                float depth = LoadCameraDepth(input.positionCS.xy);
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 BSDFData bsdfData;
@@ -65,7 +75,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo
                 else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
                 {
-                    result = builtinData.bakeDiffuseLighting;;
+                    result = builtinData.bakeDiffuseLighting;
                     result *= exp2(_DebugExposure);
                     needLinearToSRGB = true;
                 }

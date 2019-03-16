@@ -38,9 +38,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
                 if (roughSurface)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
-                if (radiusMode == RadiusMode.FromSize)
-                    foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
-                        yield return size;
+                // No need for size attributes here, they are explicitely used in collision parameters
             }
         }
 
@@ -59,9 +57,11 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXNamedExpression(VFXValue.Constant(0.0f), "radius");
                 else if (radiusMode == RadiusMode.FromSize)
                 {
-                    VFXExpression maxSizeExp = new VFXAttributeExpression(VFXAttribute.SizeX);
-                    foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()).Skip(1))
-                        maxSizeExp = new VFXExpressionMax(new VFXAttributeExpression(size.attrib), maxSizeExp);
+                    VFXExpression uniformSizeExp = new VFXAttributeExpression(VFXAttribute.Size);
+                    VFXExpression maxSizeExp = new VFXAttributeExpression(VFXAttribute.ScaleX);
+                    maxSizeExp = new VFXExpressionMax(new VFXAttributeExpression(VFXAttribute.ScaleY), maxSizeExp);
+                    maxSizeExp = new VFXExpressionMax(new VFXAttributeExpression(VFXAttribute.ScaleZ), maxSizeExp);
+                    maxSizeExp *= uniformSizeExp;
                     maxSizeExp *= VFXValue.Constant(0.5f);
                     yield return new VFXNamedExpression(maxSizeExp, "radius");
                 }
@@ -73,7 +73,11 @@ namespace UnityEditor.VFX.Block
             get
             {
                 foreach (var p in GetExpressionsFromSlots(this))
+                {
+
+
                     yield return p;
+                }
 
                 foreach (var p in collisionParameters)
                     yield return p;
@@ -157,7 +161,7 @@ namespace UnityEditor.VFX.Block
 
         public class RadiusProperties
         {
-            [Tooltip("How much to randomly adjust the normal after a collision.")]
+            [Tooltip("The radius of the particle used for collision detection.")]
             public float radius = 0.1f;
         }
     }

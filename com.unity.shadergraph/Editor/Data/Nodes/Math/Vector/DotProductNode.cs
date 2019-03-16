@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Dot Product")]
-    public class DotProductNode : CodeFunctionNode
+    class DotProductNode : CodeFunctionNode
     {
         public DotProductNode()
         {
             name = "Dot Product";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Dot-Product-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

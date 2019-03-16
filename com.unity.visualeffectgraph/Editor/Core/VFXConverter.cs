@@ -10,44 +10,8 @@ using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX
 {
-    class FloatNAffector : IFloatNAffector<float>, IFloatNAffector<Vector2>, IFloatNAffector<Vector3>, IFloatNAffector<Vector4>
-    {
-        float IFloatNAffector<float>.GetValue(object floatN)
-        {
-            return (FloatN)floatN;
-        }
-
-        Vector2 IFloatNAffector<Vector2>.GetValue(object floatN)
-        {
-            return (FloatN)floatN;
-        }
-
-        Vector3 IFloatNAffector<Vector3>.GetValue(object floatN)
-        {
-            return (FloatN)floatN;
-        }
-
-        Vector4 IFloatNAffector<Vector4>.GetValue(object floatN)
-        {
-            return (FloatN)floatN;
-        }
-
-        public static FloatNAffector Default = new FloatNAffector();
-    }
-
     static class VFXConverter
     {
-        public static bool CanConvert(Type type)
-        {
-            return type == typeof(Color) ||
-                type == typeof(Vector4) ||
-                type == typeof(Vector3) ||
-                type == typeof(Position) ||
-                type == typeof(Vector) ||
-                type == typeof(Vector2) ||
-                type == typeof(float);
-        }
-
         public static T ConvertTo<T>(object value)
         {
             return (T)ConvertTo(value, typeof(T));
@@ -252,6 +216,11 @@ namespace UnityEditor.VFX
             result = converter(value);
 
             return true;
+        }
+
+        public static bool CanConvertTo(Type from,Type to)
+        {
+            return GetConverter(from, to) != null;
         }
     }
 }

@@ -4,7 +4,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Geometry", "Tangent Vector")]
-    public class TangentVectorNode : GeometryNode, IMayRequireTangent
+    class TangentVectorNode : GeometryNode, IMayRequireTangent
     {
         public const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
@@ -15,10 +15,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Tangent-Vector-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

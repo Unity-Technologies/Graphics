@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/DrawDiffusionProfile"
+Shader "Hidden/HDRP/DrawDiffusionProfile"
 {
     SubShader
     {
@@ -11,13 +11,12 @@ Shader "Hidden/HDRenderPipeline/DrawDiffusionProfile"
             Blend  Off
 
             HLSLPROGRAM
+            #pragma editor_sync_compilation
             #pragma target 4.5
             #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
-
-            #pragma multi_compile SSS_MODEL_BASIC SSS_MODEL_DISNEY
 
             //-------------------------------------------------------------------------------------
             // Include

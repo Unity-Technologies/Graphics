@@ -18,7 +18,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightingConvexHullUtils.hlsl"
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL) && !defined(SHADER_API_SWITCH)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/SortingComputeUtils.hlsl"
 #endif
 
@@ -37,7 +37,6 @@ uniform int _EnvLightIndexShift;
 uniform int _DecalIndexShift;
 uniform uint g_BaseFeatureFlags;
 
-Texture2D g_depth_tex : register( t0 );
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
@@ -46,7 +45,13 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
 #endif
 
-#define NR_THREADS          64
+#ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
+#define NR_THREADS              PLATFORM_LANE_COUNT  
+#else
+#define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
+#endif
+
+#define PIXEL_PER_THREAD      ((TILE_SIZE_FPTL*TILE_SIZE_FPTL) / NR_THREADS) // 8 or 4
 
 // output buffer
 RWStructuredBuffer<uint> g_vLightList : register( u0 );             // don't support RWBuffer yet in unity
@@ -127,7 +132,11 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #endif
 
 #ifdef FINE_PRUNING_ENABLED
+#if PIXEL_PER_THREAD == 4
 void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths);
+#else
+void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vLinDepths[PIXEL_PER_THREAD]);
+#endif
 #endif
 
 [numthreads(NR_THREADS, 1, 1)]
@@ -154,7 +163,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         lightOffs = 0;
     }
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -165,15 +174,19 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     float dpt_mi=asfloat(uFltMax), dpt_ma=0.0;
 
 
+#if PIXEL_PER_THREAD == 4
     float4 vLinDepths;
+#else
+    float vLinDepths[PIXEL_PER_THREAD];
+#endif
     {
         // Fetch depths and calculate min/max
         UNITY_UNROLL
-        for(int i = 0; i < 4; i++)
+        for(int i = 0; i < PIXEL_PER_THREAD; i++)
         {
             int idx = i * NR_THREADS + t;
             uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
-            const float fDepth = FetchDepth(g_depth_tex, uCrd);
+            const float fDepth = FetchDepth(uCrd);
             vLinDepths[i] = GetLinearDepth(uCrd+float2(0.5,0.5), fDepth);
             if(fDepth<VIEWPORT_SCALE_Z)     // if not skydome
             {
@@ -185,8 +198,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         InterlockedMax(ldsZMax, asuint(dpt_ma));
         InterlockedMin(ldsZMin, asuint(dpt_mi));
 
-
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) // not sure why Switch needs the barrier (it will not be correct without)
         GroupMemoryBarrierWithGroupSync();
 #endif
     }
@@ -230,7 +242,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     if(t<2) ldsDoesLightIntersect[t] = 0;
 #endif
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -258,7 +270,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     if(t==0) ldsFeatureFlags=0;
 #endif
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -273,7 +285,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     }
 
     // sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT
     SORTLIST(prunedList, nrLightsCombinedList, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
     //MERGESORTLIST(prunedList, coarseList, nrLightsCombinedList, t, NR_THREADS);
 #endif
@@ -336,7 +348,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
     for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
         prunedList[l]=coarseList[l];
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -361,7 +373,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
         }
     }
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -373,7 +385,11 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #ifdef FINE_PRUNING_ENABLED
 // initializes ldsNrLightsFinal with the number of accepted lights.
 // all accepted entries delivered in prunedList[].
-void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths)
+#if PIXEL_PER_THREAD == 4
+void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths) // keep float4 vectorization when possible, as shader compiler may generate bad code for array of floats.
+#else
+void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vLinDepths[PIXEL_PER_THREAD])
+#endif
 {
     uint t = threadID;
     uint iWidth = g_viDimensions.x;
@@ -396,9 +412,9 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
             // TODO: Change by SebL
             const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
 
-            // serially check 4 pixels
+            // serially check PIXEL_PER_THREAD pixels
             uint uVal = 0;
-            for(int i=0; i<4; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -426,9 +442,9 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
 
-            // serially check 4 pixels
+            // serially check PIXEL_PER_THREAD pixels
             uint uVal = 0;
-            for(int i=0; i<4; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -453,9 +469,9 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
 
-            // serially check 4 pixels
+            // serially check PIXEL_PER_THREAD pixels
             uint uVal = 0;
-            for(int i=0; i<4; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -483,7 +499,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
     InterlockedOr(ldsDoesLightIntersect[1], uLightsFlags[1]);
     if(t==0) ldsNrLightsFinal = 0;
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 

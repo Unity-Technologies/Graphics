@@ -4,16 +4,11 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Mask", "Color Mask")]
-    public class ColorMaskNode : CodeFunctionNode
+    class ColorMaskNode : CodeFunctionNode
     {
         public ColorMaskNode()
         {
             name = "Color Mask";
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Color-Mask-Node"; }
         }
 
         protected override MethodInfo GetFunctionToConvert()

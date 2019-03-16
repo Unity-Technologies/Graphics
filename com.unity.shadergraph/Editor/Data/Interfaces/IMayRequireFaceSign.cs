@@ -2,12 +2,12 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireFaceSign
+    interface IMayRequireFaceSign
     {
         bool RequiresFaceSign(ShaderStageCapability stageCapability = ShaderStageCapability.Fragment);
     }
 
-    public static class IMayRequireFaceSignExtensions
+    static class IMayRequireFaceSignExtensions
     {
         public static bool RequiresFaceSign(this ISlot slot)
         {

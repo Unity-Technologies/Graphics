@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Minimum")]
-    public class MinimumNode : CodeFunctionNode
+    class MinimumNode : CodeFunctionNode
     {
         public MinimumNode()
         {
             name = "Minimum";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Minimum-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

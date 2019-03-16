@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Not")]
-    public class NotNode : CodeFunctionNode
+    class NotNode : CodeFunctionNode
     {
         public NotNode()
         {
             name = "Not";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Not-Node"; }
-        }
 
         public override bool hasPreview
         {

@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Advanced", "Length")]
-    public class LengthNode : CodeFunctionNode
+    class LengthNode : CodeFunctionNode
     {
         public LengthNode()
         {
             name = "Length";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Length-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

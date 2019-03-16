@@ -18,7 +18,7 @@ Shader "Hidden/Lightweight Render Pipeline/CopyDepth"
 
             #pragma multi_compile _DEPTH_NO_MSAA _DEPTH_MSAA_2 _DEPTH_MSAA_4
 
-            #include "CopyDepthPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Utils/CopyDepthPass.hlsl"
 
             ENDHLSL
         }

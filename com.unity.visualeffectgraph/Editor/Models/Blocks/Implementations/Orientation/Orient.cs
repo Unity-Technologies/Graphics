@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    class OrientationModeProvider : IVariantProvider
+    class OrientationModeProvider : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {
@@ -169,7 +169,7 @@ axisZ = cross(axisX,axisY);
             }
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
             if (mode == Mode.LookAtPosition)
             {
@@ -181,7 +181,7 @@ axisZ = cross(axisX,axisY);
                     AddSlot(VFXSlot.Create(new VFXProperty(typeof(Position), "Position"), VFXSlot.Direction.kInput, oldValue));
                 }
             }
-            base.Sanitize();
+            base.Sanitize(version);
         }
     }
 }

@@ -5,23 +5,18 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum HueMode
+    enum HueMode
     {
         Degrees,
         Normalized
     };
 
     [Title("Artistic", "Adjustment", "Hue")]
-    public class HueNode : CodeFunctionNode
+    class HueNode : CodeFunctionNode
     {
         public HueNode()
         {
             name = "Hue";
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Hue-Node"; }
         }
 
         [SerializeField]

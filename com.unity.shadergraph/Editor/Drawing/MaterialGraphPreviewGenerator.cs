@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class MaterialGraphPreviewGenerator : IDisposable
+    class MaterialGraphPreviewGenerator : IDisposable
     {
         private readonly Scene m_Scene;
         static Mesh s_Quad;

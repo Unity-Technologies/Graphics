@@ -19,6 +19,8 @@
 #define VFX_FLT_MIN 1.175494351e-38
 #define VFX_EPSILON 1e-5
 
+#pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
+
 struct VFXSampler2D
 {
     Texture2D t;
@@ -70,6 +72,37 @@ float3 GetViewVFXPosition()                     { return mul(VFXGetWorldToObject
 float4 SampleTexture(VFXSampler2D s,float2 coords,float level = 0.0f)
 {
     return s.t.SampleLevel(s.s,coords, level);
+}
+
+// Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
+// Inverts upper left by calculating its determinant and multiplying it to the symmetric
+// adjust matrix of each element. Finally deals with the translation by transforming the
+// original translation using by the calculated inverse.
+//https://github.com/erich666/GraphicsGems/blob/master/gemsii/inverse.c
+float4x4 VFXInverseTRSMatrix(float4x4 input)
+{
+    float4x4 output = (float4x4)0;
+
+    //Fill output with cofactor
+    output._m00 = input._m11 * input._m22 - input._m21 * input._m12;
+    output._m01 = input._m21 * input._m02 - input._m01 * input._m22;
+    output._m02 = input._m01 * input._m12 - input._m11 * input._m02;
+    output._m10 = input._m20 * input._m12 - input._m10 * input._m22;
+    output._m11 = input._m00 * input._m22 - input._m20 * input._m02;
+    output._m12 = input._m10 * input._m02 - input._m00 * input._m12;
+    output._m20 = input._m10 * input._m21 - input._m20 * input._m11;
+    output._m21 = input._m20 * input._m01 - input._m00 * input._m21;
+    output._m22 = input._m00 * input._m11 - input._m10 * input._m01;
+
+    //Multiply by reciprocal determinant
+    float det = determinant((float3x3)input);
+    output *= rcp(det);
+
+    // Do the translation part
+    output._m03_m13_m23 = -mul((float3x3)output, input._m03_m13_m23);
+    output._m33 = 1.0f;
+
+    return output;
 }
 
 float4 SampleTexture(VFXSampler2DArray s,float2 coords,float slice,float level = 0.0f)
@@ -361,6 +394,17 @@ float3x3 GetEulerMatrix(float3 angles)
     return float3x3(c.y * c.z + s.x * s.y * s.z,    c.z * s.x * s.y - c.y * s.z,    c.x * s.y,
                     c.x * s.z,                      c.x * c.z,                      -s.x,
                     -c.z * s.y + c.y * s.x * s.z,   c.y * c.z * s.x + s.y * s.z,    c.x * c.y);
+}
+
+float4x4 GetTRSMatrix(float3 pos, float3 angles, float3 scale)
+{
+	float3x3 rotAndScale = GetEulerMatrix(radians(angles));
+	rotAndScale = mul(rotAndScale,GetScaleMatrix(scale));
+    return float4x4(
+        float4(rotAndScale[0],pos.x),
+        float4(rotAndScale[1],pos.y),
+        float4(rotAndScale[2],pos.z),
+        float4(0,0,0,1));
 }
 
 float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3x3 rot,float3 pivot,float3 size,float3 pos)

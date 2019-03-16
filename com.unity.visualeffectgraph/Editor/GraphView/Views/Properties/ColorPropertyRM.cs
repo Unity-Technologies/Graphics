@@ -3,14 +3,13 @@
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
-using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.FloatField, float>;
+using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.UIElements.FloatField, float>;
 
 
 namespace UnityEditor.VFX.UI
@@ -26,7 +25,7 @@ namespace UnityEditor.VFX.UI
             m_ColorField = new UnityEditor.VFX.UIElements.VFXColorField(m_Label);
             m_ColorField.OnValueChanged = OnValueChanged;
 #else
-            m_ColorField = new LabeledField<UnityEditor.Experimental.UIElements.ColorField, Color>(m_Label);
+            m_ColorField = new LabeledField<UnityEditor.UIElements.ColorField, Color>(m_Label);
             m_ColorField.RegisterCallback<ChangeEvent<Color>>(OnValueChanged);
 #endif
 
@@ -123,7 +122,7 @@ namespace UnityEditor.VFX.UI
 #if USE_MY_COLOR_FIELD
         UnityEditor.VFX.UIElements.VFXColorField m_ColorField;
 #else
-        LabeledField<UnityEditor.Experimental.UIElements.ColorField, Color> m_ColorField;
+        LabeledField<UnityEditor.UIElements.ColorField, Color> m_ColorField;
 #endif
 
         public override void UpdateGUI(bool force)

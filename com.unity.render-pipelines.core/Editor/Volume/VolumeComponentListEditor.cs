@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     public sealed class VolumeComponentListEditor
     {
@@ -171,13 +171,13 @@ namespace UnityEditor.Experimental.Rendering
                 if (m_Editors.Count > 0)
                     CoreEditorUtils.DrawSplitter();
                 else
-                    EditorGUILayout.HelpBox("No override set on this volume. Drop a component here or use the Add button.", MessageType.Info);
+                    EditorGUILayout.HelpBox("This Volume Profile contains no overrides.", MessageType.Info);
 
                 EditorGUILayout.Space();
 
                 using (var hscope = new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button(CoreEditorUtils.GetContent("Add component overrides..."), EditorStyles.miniButton))
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add Override"), EditorStyles.miniButton))
                     {
                         var r = hscope.rect;
                         var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
@@ -192,29 +192,29 @@ namespace UnityEditor.Experimental.Rendering
             var menu = new GenericMenu();
 
             if (id == 0)
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Up"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Up"));
             else
-                menu.AddItem(CoreEditorUtils.GetContent("Move Up"), false, () => MoveComponent(id, -1));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, -1));
 
             if (id == m_Editors.Count - 1)
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Down"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Down"));
             else
-                menu.AddItem(CoreEditorUtils.GetContent("Move Down"), false, () => MoveComponent(id, 1));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
-            menu.AddItem(CoreEditorUtils.GetContent("Remove"), false, () => RemoveComponent(id));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
             menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Copy Settings"), false, () => CopySettings(targetComponent));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));
 
             if (CanPaste(targetComponent))
-                menu.AddItem(CoreEditorUtils.GetContent("Paste Settings"), false, () => PasteSettings(targetComponent));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Paste Settings"), false, () => PasteSettings(targetComponent));
             else
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Paste Settings"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Paste Settings"));
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Toggle All"), false, () => m_Editors[id].SetAllOverridesTo(true));
-            menu.AddItem(CoreEditorUtils.GetContent("Toggle None"), false, () => m_Editors[id].SetAllOverridesTo(false));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Toggle All"), false, () => m_Editors[id].SetAllOverridesTo(true));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Toggle None"), false, () => m_Editors[id].SetAllOverridesTo(false));
 
             menu.DropDown(new Rect(position, Vector2.zero));
         }
@@ -232,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering
             m_SerializedObject.Update();
 
             var component = CreateNewComponent(type);
-            Undo.RegisterCreatedObjectUndo(component, "Add Volume Component");
+            Undo.RegisterCreatedObjectUndo(component, "Add Volume Override");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
             // Only when we're not dealing with an instantiated asset
@@ -317,7 +317,7 @@ namespace UnityEditor.Experimental.Rendering
 
             // Create a new object
             var newComponent = CreateNewComponent(type);
-            Undo.RegisterCreatedObjectUndo(newComponent, "Reset Volume Component");
+            Undo.RegisterCreatedObjectUndo(newComponent, "Reset Volume Overrides");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
             AssetDatabase.AddObjectToAsset(newComponent, asset);

@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Trigonometry", "Arccosine")]
-    public class ArccosineNode : CodeFunctionNode
+    class ArccosineNode : CodeFunctionNode
     {
         public ArccosineNode()
         {
             name = "Arccosine";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Arccosine-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

@@ -1,6 +1,6 @@
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     public class LightweightRenderPipelineEditorResources : ScriptableObject
     {
@@ -21,6 +21,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         [FormerlySerializedAs("AutodeskInteractiveMaskedShader"), SerializeField]
         private Shader m_AutodeskInteractiveMaskedShader = null;
+
+        [SerializeField]
+        private Shader m_TerrainDetailLitShader = null;
+
+        [SerializeField]
+        private Shader m_TerrainDetailGrassShader = null;
+
+        [SerializeField]
+        private Shader m_TerrainDetailGrassBillboardShader = null;
 
         public Material litMaterial
         {
@@ -52,5 +61,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_AutodeskInteractiveMaskedShader; }
         }
 
+        public Shader terrainDetailLitShader
+        {
+            get { return m_TerrainDetailLitShader; }
+        }
+
+        public Shader terrainDetailGrassShader
+        {
+            get { return m_TerrainDetailGrassShader; }
+        }
+
+        public Shader terrainDetailGrassBillboardShader
+        {
+            get { return m_TerrainDetailGrassBillboardShader; }
+        }
     }
 }

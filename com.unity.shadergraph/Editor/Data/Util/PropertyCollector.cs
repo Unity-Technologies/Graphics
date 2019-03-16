@@ -4,7 +4,7 @@ using System.Text;
 
 namespace UnityEditor.ShaderGraph
 {
-    public class PropertyCollector
+    class PropertyCollector
     {
         public struct TextureInfo
         {
@@ -13,9 +13,9 @@ namespace UnityEditor.ShaderGraph
             public bool modifiable;
         }
 
-        private readonly List<IShaderProperty> m_Properties = new List<IShaderProperty>();
+        private readonly List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
 
-        public void AddShaderProperty(IShaderProperty chunk)
+        public void AddShaderProperty(AbstractShaderProperty chunk)
         {
             if (m_Properties.Any(x => x.referenceName == chunk.referenceName))
                 return;
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         public string GetPropertiesBlock(int baseIndentLevel)
         {
             var sb = new StringBuilder();
-            foreach (var prop in m_Properties.Where(x => x.generatePropertyBlock))
+            foreach (var prop in m_Properties.Where(x => x.isExposable && x.generatePropertyBlock))
             {
                 for (var i = 0; i < baseIndentLevel; i++)
                 {
@@ -47,14 +47,14 @@ namespace UnityEditor.ShaderGraph
         public void GetPropertiesDeclaration(ShaderStringBuilder builder)
         {
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-            foreach (var prop in m_Properties.Where(n => n.isBatchable))
+            foreach (var prop in m_Properties.Where(n => n.isBatchable && n.generatePropertyBlock))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }
             builder.AppendLine("CBUFFER_END");
             builder.AppendNewLine();
 
-            foreach (var prop in m_Properties.Where(n => !n.isBatchable))
+            foreach (var prop in m_Properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }

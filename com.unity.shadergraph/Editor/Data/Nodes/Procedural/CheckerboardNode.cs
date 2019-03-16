@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Checkerboard")]
-    public class CheckerboardNode : CodeFunctionNode
+    class CheckerboardNode : CodeFunctionNode
     {
         public CheckerboardNode()
         {
             name = "Checkerboard";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Checkerboard-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

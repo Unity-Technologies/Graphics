@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
     using IProvider = FilterWindow.IProvider;
     using Element = FilterWindow.Element;
@@ -49,7 +49,7 @@ namespace UnityEditor.Experimental.Rendering
 
         public void CreateComponentTree(List<Element> tree)
         {
-            tree.Add(new GroupElement(0, "Volume Components"));
+            tree.Add(new GroupElement(0, "Volume Overrides"));
 
             var attrType = typeof(VolumeComponentMenu);
             var types = VolumeManager.instance.baseComponentTypes;

@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.UI
     {
         public Text nameLabel;
         public Text valueLabel;
-        DebugUI.EnumField m_Field;
+        protected DebugUI.EnumField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)
         {
@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.UI
                 return;
 
             var array = m_Field.enumValues;
-            int index = Array.IndexOf(array, m_Field.GetValue());
+            int index = m_Field.currentIndex;
 
             if (index == array.Length - 1)
             {
@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.UI
                 if (fast)
                 {
                     //check if quickSeparators have not been constructed
-                    //it is thecase when not constructed with autoenum
+                    //it is the case when not constructed with autoenum
                     var separators = m_Field.quickSeparators;
                     if(separators == null)
                     {
@@ -78,6 +78,7 @@ namespace UnityEngine.Experimental.Rendering.UI
             }
 
             m_Field.SetValue(array[index]);
+            m_Field.currentIndex = index;
             UpdateValueLabel();
         }
 
@@ -87,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.UI
                 return;
 
             var array = m_Field.enumValues;
-            int index = Array.IndexOf(array, m_Field.GetValue());
+            int index = m_Field.currentIndex;
 
             if (index == 0)
             {
@@ -114,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.UI
                 if (fast)
                 {
                     //check if quickSeparators have not been constructed
-                    //it is thecase when not constructed with autoenum
+                    //it is the case when not constructed with autoenum
                     var separators = m_Field.quickSeparators;
                     if (separators == null)
                     {
@@ -133,12 +134,13 @@ namespace UnityEngine.Experimental.Rendering.UI
             }
 
             m_Field.SetValue(array[index]);
+            m_Field.currentIndex = index;
             UpdateValueLabel();
         }
 
-        void UpdateValueLabel()
+        protected virtual void UpdateValueLabel()
         {
-            int index = Array.IndexOf(m_Field.enumValues, m_Field.GetValue());
+            int index = m_Field.currentIndex;
 
             // Fallback just in case, we may be handling sub/sectionned enums here
             if (index < 0)

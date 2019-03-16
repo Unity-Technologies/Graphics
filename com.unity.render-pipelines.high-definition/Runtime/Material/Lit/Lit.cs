@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
 
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, false, true, 1000)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1000)]
         public struct SurfaceData
         {
             [SurfaceDataAttributes("MaterialFeatures")]
@@ -59,8 +59,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 specularColor;
 
             // SSS
-            [SurfaceDataAttributes("Diffusion Profile")]
-            public uint diffusionProfile;
+            [SurfaceDataAttributes("Diffusion Profile Hash")]
+            public uint diffusionProfileHash;
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
 
@@ -82,6 +82,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float iridescenceMask;
 
             // Forward property only
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            public Vector3 geomNormalWS;
 
             // Transparency
             // Reuse thickness from SSS
@@ -100,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, true, 1050)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1050)]
         public struct BSDFData
         {
             public uint materialFeatures;
@@ -123,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // SpecularColor fold into fresnel0
 
             // SSS
-            public uint diffusionProfile;
+            public uint diffusionProfileIndex;
             public float subsurfaceMask;
 
             // Transmission
@@ -149,6 +151,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float coatRoughness; // Automatically fill
 
             // Forward property only
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            public Vector3 geomNormalWS;
 
             // Transparency
             public float ior;
@@ -166,8 +170,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
         {
             // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in 
-            supportShadowMask = asset.renderPipelineSettings.supportShadowMask;
-            supportLightLayers = asset.renderPipelineSettings.supportLightLayers;
+            supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
+            supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
             gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
         }
 
@@ -182,32 +186,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return gBufferCount;
         }
 
-        public override void GetMaterialGBufferDescription(HDRenderPipelineAsset asset, out RenderTextureFormat[] RTFormat, out bool[] sRGBFlag, out GBufferUsage[] gBufferUsage, out bool[] enableWrite)
+        public override void GetMaterialGBufferDescription(HDRenderPipelineAsset asset, out GraphicsFormat[] RTFormat, out GBufferUsage[] gBufferUsage, out bool[] enableWrite)
         {
             int gBufferCount;
             bool supportShadowMask;
             bool supportLightLayers;
             GetGBufferOptions(asset, out gBufferCount, out supportShadowMask, out supportLightLayers);
 
-            RTFormat = new RenderTextureFormat[gBufferCount];
-            sRGBFlag = new bool[gBufferCount];
+            RTFormat = new GraphicsFormat[gBufferCount];
             gBufferUsage = new GBufferUsage[gBufferCount];
             enableWrite = new bool[gBufferCount];
 
-            RTFormat[0] = RenderTextureFormat.ARGB32; // Albedo sRGB / SSSBuffer
-            sRGBFlag[0] = true;
+            RTFormat[0] = GraphicsFormat.R8G8B8A8_SRGB; // Albedo sRGB / SSSBuffer
             gBufferUsage[0] = GBufferUsage.SubsurfaceScattering;
             enableWrite[0] = false;
-            RTFormat[1] = RenderTextureFormat.ARGB32; // Normal Buffer
-            sRGBFlag[1] = false;
+            RTFormat[1] = GraphicsFormat.R8G8B8A8_UNorm; // Normal Buffer
             gBufferUsage[1] = GBufferUsage.Normal;
             enableWrite[1] = true;                    // normal buffer is used as RWTexture to composite decals in forward
-            RTFormat[2] = RenderTextureFormat.ARGB32; // Data
-            sRGBFlag[2] = false;
+            RTFormat[2] = GraphicsFormat.R8G8B8A8_UNorm; // Data
             gBufferUsage[2] = GBufferUsage.None;
             enableWrite[2] = false;
             RTFormat[3] = Builtin.GetLightingBufferFormat();
-            sRGBFlag[3] = Builtin.GetLightingBufferSRGBFlag();
             gBufferUsage[3] = GBufferUsage.None;
             enableWrite[3] = false;
 
@@ -215,8 +214,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (supportLightLayers)
             {
-                RTFormat[index] = RenderTextureFormat.ARGB32;
-                sRGBFlag[index] = false;
+                RTFormat[index] = GraphicsFormat.R8G8B8A8_UNorm;
                 gBufferUsage[index] = GBufferUsage.LightLayers;
                 index++;
             }
@@ -226,7 +224,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (supportShadowMask)
             {
                 RTFormat[index] = Builtin.GetShadowMaskBufferFormat();
-                sRGBFlag[index] = Builtin.GetShadowMaskBufferSRGBFlag();
                 gBufferUsage[index] = GBufferUsage.ShadowMask;
                 index++;
             }
@@ -256,10 +253,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse, cmd);
         }
 
-        public override void Bind()
+        public override void Bind(CommandBuffer cmd)
         {
-            PreIntegratedFGD.instance.Bind(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
-            LTCAreaLight.instance.Bind();
+            PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
+            LTCAreaLight.instance.Bind(cmd);
         }
     }
 }

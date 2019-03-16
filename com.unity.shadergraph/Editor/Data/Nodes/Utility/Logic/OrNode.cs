@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "Or")]
-    public class OrNode : CodeFunctionNode
+    class OrNode : CodeFunctionNode
     {
         public OrNode()
         {
             name = "Or";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Or-Node"; }
-        }
 
         public override bool hasPreview
         {

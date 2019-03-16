@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/preIntegratedFGD_CharlieFabricLambert"
+Shader "Hidden/HDRP/preIntegratedFGD_CharlieFabricLambert"
 {
     SubShader
     {
@@ -8,6 +8,9 @@ Shader "Hidden/HDRenderPipeline/preIntegratedFGD_CharlieFabricLambert"
             ZTest Always Cull Off ZWrite Off
 
             HLSLPROGRAM
+
+            #pragma editor_sync_compilation
+
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 4.5

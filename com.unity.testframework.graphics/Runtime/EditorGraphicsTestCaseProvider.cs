@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine.TestTools.Graphics;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -23,12 +22,26 @@ namespace UnityEditor.TestTools.Graphics
             m_ReferenceImagePath = referenceImagePath;
         }
 
+        public static IEnumerable<string> GetTestScenePaths()
+        {
+            return EditorBuildSettings.scenes
+                .Where(s => s.enabled)
+                .Select(s => s.path)
+                .Where(s =>
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<SceneAsset>(s);
+                    var labels = AssetDatabase.GetLabels(asset);
+                    return !labels.Contains("ExcludeGfxTests");
+                });
+        }
+
         public IEnumerable<GraphicsTestCase> GetTestCases()
         {
             var allImages = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath, QualitySettings.activeColorSpace, Application.platform,
                 SystemInfo.graphicsDeviceType);
 
-            foreach (var scenePath in EditorBuildSettings.scenes.Where(s => s.enabled == true).Select(s => s.path).ToArray())
+            var scenes = GetTestScenePaths();
+            foreach (var scenePath in scenes)
             {
                 Texture2D referenceImage = null;
 

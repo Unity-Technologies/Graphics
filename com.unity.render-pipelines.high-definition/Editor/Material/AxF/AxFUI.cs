@@ -1,16 +1,17 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class AxFGUI : BaseUnlitGUI
     {
-        protected override uint defaultExpendedState { get { return (uint)(Expendable.Base | Expendable.Detail | Expendable.Emissive | Expendable.Input | Expendable.Other | Expendable.Tesselation | Expendable.Transparency | Expendable.VertexAnimation); } }
+        protected override uint defaultExpandedState { get { return (uint)(Expandable.Base | Expandable.Detail | Expandable.Emissive | Expandable.Input | Expandable.Other | Expandable.Tesselation | Expandable.Transparency | Expandable.VertexAnimation); } }
 
         protected static class Styles
         {
-            public static string InputsText = "Inputs";
+            public static string InputsText = "Surface Inputs";
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // SVBRDF Parameters
@@ -34,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Car Paint Parameters
             public static GUIContent    BRDFColorMapText = new GUIContent("BRDF Color");
             public static GUIContent    BRDFColorMapScaleText = new GUIContent("BRDF Color Scale");
+            public static GUIContent    BRDFColorMapUVScaleText = new GUIContent("BRDF Color Map UV scale restriction");
 
             public static GUIContent    BTFFlakesMapText = new GUIContent("BTF Flake Color Texture2DArray");
             public static GUIContent    BTFFlakesMapScaleText = new GUIContent("BTF Flakes Scale");
@@ -50,6 +52,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent    clearcoatColorMapText = new GUIContent("Clearcoat Color");
             public static GUIContent    clearcoatNormalMapText = new GUIContent("Clearcoat Normal");
             public static GUIContent    clearcoatIORMapText = new GUIContent("Clearcoat IOR");
+
+            public static GUIContent    supportDecalsText = new GUIContent("Enable Decal", "Specify whether the material can receive decals.");
+            public static GUIContent    receivesSSRText = new GUIContent("Receives SSR", "Specify whether the material can receive screen space reflection.");
         }
 
         enum    AxfBrdfType
@@ -160,6 +165,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static string               m_CarPaint2_BRDFColorMapScaleText = "_CarPaint2_BRDFColorMapScale";
         protected MaterialProperty  m_CarPaint2_BRDFColorMapScale;
 
+        static string               m_CarPaint2_BRDFColorMapUVScaleText = "_CarPaint2_BRDFColorMapUVScale";
+        protected MaterialProperty  m_CarPaint2_BRDFColorMapUVScale;
+
         static string               m_CarPaint2_BTFFlakeMapText = "_CarPaint2_BTFFlakeMap";
         protected MaterialProperty  m_CarPaint2_BTFFlakeMap = null;
 
@@ -190,6 +198,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty  m_ClearcoatNormalMap = null;
         static string               m_ClearcoatIORMapText = "_SVBRDF_ClearcoatIORMap";
         protected MaterialProperty  m_ClearcoatIORMap = null;
+
+        // Stencil refs and masks
+        protected const string kStencilRef = "_StencilRef";
+        protected const string kStencilWriteMask = "_StencilWriteMask";
+        protected const string kStencilRefDepth = "_StencilRefDepth";
+        protected const string kStencilWriteMaskDepth = "_StencilWriteMaskDepth";
+        protected const string kStencilRefMV = "_StencilRefMV";
+        protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
+
+        // Decals and SSR
+        protected const string kEnableDecals = "_SupportDecals";
+        protected const string kEnableSSR = "_ReceivesSSR";
+        protected MaterialProperty m_SupportDecals = null;
+        protected MaterialProperty m_ReceivesSSR = null;
+
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
@@ -231,6 +254,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_CarPaint2_FlakeThetaFISliceLUTMap = FindProperty(m_CarPaint2_FlakeThetaFISliceLUTMapText, props);
 
             m_CarPaint2_BRDFColorMapScale = FindProperty(m_CarPaint2_BRDFColorMapScaleText, props);
+            m_CarPaint2_BRDFColorMapUVScale = FindProperty(m_CarPaint2_BRDFColorMapUVScaleText, props);
             m_CarPaint2_BTFFlakeMapScale = FindProperty(m_CarPaint2_BTFFlakeMapScaleText, props);
             m_CarPaint2_FlakeTiling = FindProperty(m_CarPaint2_FlakeTilingText, props);
 
@@ -245,9 +269,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ClearcoatColorMap = FindProperty(m_ClearcoatColorMapText, props);
             m_ClearcoatNormalMap = FindProperty(m_ClearcoatNormalMapText, props);
             m_ClearcoatIORMap = FindProperty(m_ClearcoatIORMapText, props);
+
+            // Decals and SSR
+            m_SupportDecals = FindProperty(kEnableDecals, props);
+            m_ReceivesSSR = FindProperty(kEnableSSR, props);
         }
 
-        protected unsafe override void MaterialPropertiesGUI(Material _material)
+        protected override void BaseMaterialPropertiesGUI()
+        {
+            base.BaseMaterialPropertiesGUI(); // This is from BaseUnlitGUI (BaseUnlitUI.cs) and finish with the double sided option.
+            if (m_SupportDecals != null)
+            {
+                m_MaterialEditor.ShaderProperty(m_SupportDecals, Styles.supportDecalsText);
+            }            
+            if(m_ReceivesSSR != null)
+            {
+                m_MaterialEditor.ShaderProperty(m_ReceivesSSR, Styles.receivesSSRText);
+            }
+        }
+
+        protected unsafe override void MaterialPropertiesGUI(Material material)
         {
             EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
 
@@ -383,6 +424,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.TexturePropertySingleLine(Styles.BRDFColorMapText, m_CarPaint2_BRDFColorMap);
                     m_CarPaint2_BRDFColorMapScale.floatValue = EditorGUILayout.FloatField(Styles.BRDFColorMapScaleText, m_CarPaint2_BRDFColorMapScale.floatValue);
 
+                    bool    brdfColorUseDiagonalClamp = EditorGUILayout.Toggle("BRDF Color Table Diagonal Clamping", (flags & 16) != 0);
+                    if (brdfColorUseDiagonalClamp)
+                    {
+                        ++EditorGUI.indentLevel;
+                        m_CarPaint2_BRDFColorMapUVScale.vectorValue = EditorGUILayout.Vector2Field(Styles.BRDFColorMapUVScaleText, m_CarPaint2_BRDFColorMapUVScale.vectorValue);
+                        --EditorGUI.indentLevel;
+                    }
+                    
+
                     m_MaterialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap);
                     //EditorGUILayout.LabelField( "Texture Dimension = " + m_CarPaint_BTFFlakesMap_sRGB.textureDimension );
                     //EditorGUILayout.LabelField( "Texture Format = " + m_CarPaint_BTFFlakesMap_sRGB.textureValue. );
@@ -421,6 +471,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     flags |= hasClearcoat ? 2U : 0U;
                     flags |= clearcoatUsesRefraction ? 4U : 0U;
                     flags |= useDisplacementMap ? 8U : 0U;
+                    flags |= brdfColorUseDiagonalClamp ? 16U : 0U;
 
 //                    cmd.SetGlobalFloat( HDShaderIDs._TexturingModeFlags, *(float*) &texturingModeFlags );
                     m_Flags.floatValue = (float)flags;
@@ -431,7 +482,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        protected override void MaterialPropertiesAdvanceGUI(Material _material)
+        protected override void MaterialPropertiesAdvanceGUI(Material material)
         {
         }
 
@@ -439,27 +490,78 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
         }
 
-        protected override bool ShouldEmissionBeEnabled(Material _material)
+        protected override bool ShouldEmissionBeEnabled(Material material)
         {
-            return false;//_material.GetFloat(kEmissiveIntensity) > 0.0f;
+            return false;
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material _material)
+        protected override void SetupMaterialKeywordsAndPassInternal(Material material)
         {
-            SetupMaterialKeywordsAndPass(_material);
+            SetupMaterialKeywordsAndPass(material);
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material _material)
+        static public void SetupMaterialKeywordsAndPass(Material material)
         {
-            SetupBaseUnlitKeywords(_material);
-            SetupBaseUnlitMaterialPass(_material);
+            SetupBaseUnlitKeywords(material);
+            SetupBaseUnlitMaterialPass(material);
 
-            AxfBrdfType   BRDFType = (AxfBrdfType)_material.GetFloat(m_AxF_BRDFTypeText);
+            AxfBrdfType   BRDFType = (AxfBrdfType)material.GetFloat(m_AxF_BRDFTypeText);
 
-            CoreUtils.SetKeyword(_material, "_AXF_BRDF_TYPE_SVBRDF", BRDFType == AxfBrdfType.SVBRDF);
-            CoreUtils.SetKeyword(_material, "_AXF_BRDF_TYPE_CAR_PAINT", BRDFType == AxfBrdfType.CAR_PAINT);
-            CoreUtils.SetKeyword(_material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
+            CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_SVBRDF", BRDFType == AxfBrdfType.SVBRDF);
+            CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_CAR_PAINT", BRDFType == AxfBrdfType.CAR_PAINT);
+            CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_BTF", BRDFType == AxfBrdfType.BTF);
+
+            // Keywords for opt-out of decals and SSR:
+            bool decalsEnabled = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", decalsEnabled == false);
+            bool ssrEnabled = material.HasProperty(kEnableSSR) && material.GetFloat(kEnableSSR) > 0.0f;
+            CoreUtils.SetKeyword(material, "_DISABLE_SSR", ssrEnabled == false);
+
+            // Set the reference values for the stencil test
+
+            // Stencil usage rules:
+            // DoesntReceiveSSR and DecalsForwardOutputNormalBuffer need to be tagged during depth prepass
+            // LightingMask need to be tagged during either GBuffer or Forward pass
+            // ObjectVelocity need to be tagged in velocity pass.
+            // As velocity pass can be use as a replacement of depth prepass it also need to have DoesntReceiveSSR and DecalsForwardOutputNormalBuffer
+            // Object velocity is always render after a full depth buffer (if there is no depth prepass for GBuffer all object motion vectors are render after GBuffer)
+            // so we have a guarantee than when we write object velocity no other object will be draw on top (and so would have require to overwrite velocity).
+            // Final combination is:
+            // Prepass: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer
+            // Motion vectors: DoesntReceiveSSR,  DecalsForwardOutputNormalBuffer, ObjectVelocity
+            // GBuffer: LightingMask, DecalsForwardOutputNormalBuffer, ObjectVelocity
+            // Forward: LightingMask
+
+            int stencilRef = (int)StencilLightingUsage.RegularLighting;
+            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
+            int stencilRefDepth = 0;
+            int stencilWriteMaskDepth = 0;
+            int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
+            int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectVelocity;
+
+            if (!ssrEnabled)
+            {
+                stencilRefDepth |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+                stencilRefMV |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
+            }
+
+            if (decalsEnabled)
+            {
+                stencilRefDepth |= (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+                stencilRefMV |= (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+            }
+
+            stencilWriteMaskDepth |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+            stencilWriteMaskMV |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+
+            // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
+            material.SetInt(kStencilRef, stencilRef);
+            material.SetInt(kStencilWriteMask, stencilWriteMask);
+            material.SetInt(kStencilRefDepth, stencilRefDepth);
+            material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
+            material.SetInt(kStencilRefMV, stencilRefMV);
+            material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
         }
     }
 } // namespace UnityEditor

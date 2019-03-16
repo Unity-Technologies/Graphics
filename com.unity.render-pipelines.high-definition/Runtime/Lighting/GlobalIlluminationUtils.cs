@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Color cct = new Color(1.0f, 1.0f, 1.0f);
 #if UNITY_EDITOR
             if (add.useColorTemperature)
-                cct = LightUtils.CorrelatedColorTemperatureToRGB(l.colorTemperature);
+                cct = Mathf.CorrelatedColorTemperatureToRGB(l.colorTemperature);
 #endif
 
             // TODO: Only take into account the light dimmer when we have real time GI.
@@ -162,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ld.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
                 ld.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
             }
-            else if (add.lightTypeExtent == LightTypeExtent.Line)
+            else if (add.lightTypeExtent == LightTypeExtent.Tube)
             {
                 ld.InitNoBake(ld.instanceID);
             }

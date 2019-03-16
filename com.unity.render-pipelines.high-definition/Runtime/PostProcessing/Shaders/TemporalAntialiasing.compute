@@ -1,0 +1,185 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#pragma kernel KTAA_Persp     MAIN=KTAA_Persp
+#pragma kernel KTAA_Ortho     MAIN=KTAA_Ortho       ORTHOGRAPHIC
+#pragma kernel KCopyHistory
+
+#define HDR_MAPUNMAP        1
+#define CLIP_AABB           1
+#define RADIUS              0.75
+#define FEEDBACK_MIN        0.96
+#define FEEDBACK_MAX        0.91
+#define SHARPEN             0
+#define SHARPEN_STRENGTH    0.35
+
+#define CLAMP_MAX       65472.0 // HALF_MAX minus one (2 - 2^-9) * 2^15
+
+#if UNITY_REVERSED_Z
+    #define COMPARE_DEPTH(a, b) step(b, a)
+#else
+    #define COMPARE_DEPTH(a, b) step(a, b)
+#endif
+
+TEXTURE2D_X(_InputTexture);
+TEXTURE2D_X(_InputHistoryTexture);
+
+RW_TEXTURE2D_X(float4, _OutputHistoryTexture);
+RW_TEXTURE2D_X(float4, _OutputTexture);
+
+SAMPLER(sampler_LinearClamp);
+
+CBUFFER_START(cb0)
+    float4 _ScreenToTargetScaleHistory;
+CBUFFER_END
+
+float3 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
+{
+    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    return SAMPLE_TEXTURE2D_X_LOD(tex, sampler_LinearClamp, uv, 0).xyz;
+}
+
+float3 Map(float3 x)
+{
+    #if HDR_MAPUNMAP
+    return FastTonemap(x);
+    #else
+    return x;
+    #endif
+}
+
+float3 Unmap(float3 x)
+{
+    #if HDR_MAPUNMAP
+    return FastTonemapInvert(x);
+    #else
+    return x;
+    #endif
+}
+
+float3 ClipToAABB(float3 color, float3 minimum, float3 maximum)
+{
+    // note: only clips towards aabb center (but fast!)
+    float3 center  = 0.5 * (maximum + minimum);
+    float3 extents = 0.5 * (maximum - minimum);
+
+    // This is actually `distance`, however the keyword is reserved
+    float3 offset = color - center;
+    
+    float3 ts = abs(extents) / max(abs(offset), 1e-4);
+    float t = saturate(Min3(ts.x, ts.y,  ts.z));
+    return center + offset * t;
+}
+
+float2 GetClosestFragment(PositionInputs posInputs)
+{
+    float center  = LoadCameraDepth(posInputs.positionSS);
+    float nw = LoadCameraDepth(posInputs.positionSS + int2(-1, -1));
+    float ne = LoadCameraDepth(posInputs.positionSS + int2( 1, -1));
+    float sw = LoadCameraDepth(posInputs.positionSS + int2(-1,  1));
+    float se = LoadCameraDepth(posInputs.positionSS + int2( 1,  1));
+
+    float4 neighborhood = float4(nw, ne, sw, se);
+
+    float3 closest = float3(0.0, 0.0, center);
+    closest = lerp(closest, float3(-1.0, -1.0, neighborhood.x), COMPARE_DEPTH(neighborhood.x, closest.z));
+    closest = lerp(closest, float3( 1.0, -1.0, neighborhood.y), COMPARE_DEPTH(neighborhood.y, closest.z));
+    closest = lerp(closest, float3(-1.0,  1.0, neighborhood.z), COMPARE_DEPTH(neighborhood.z, closest.z));
+    closest = lerp(closest, float3( 1.0,  1.0, neighborhood.w), COMPARE_DEPTH(neighborhood.w, closest.z));
+
+    return posInputs.positionSS + closest.xy;
+}
+
+#define GROUP_SIZE 8
+
+#ifdef SHADER_API_XBOXONE
+#define GROUP_SIZE 16
+#endif
+
+[numthreads(GROUP_SIZE, GROUP_SIZE,1)]
+void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    
+    float2 jitter = _TaaJitterStrength.zw;
+
+    #if defined(ORTHOGRAPHIC)
+    // Don't dilate in ortho
+    float2 closest = posInputs.positionSS;
+    #else
+    float2 closest = GetClosestFragment(posInputs);
+    #endif
+
+    float2 velocity;
+    DecodeVelocity(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
+    float velocityLength = length(velocity);
+
+    float2 uv = posInputs.positionNDC - jitter;
+
+    float3 color = Fetch(_InputTexture, uv, 0.0, _ScreenToTargetScale.xy);
+    float3 history = Fetch(_InputHistoryTexture, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy);
+
+    float3 topLeft = Fetch(_InputTexture, uv, -RADIUS, _ScreenToTargetScale.xy);
+    float3 bottomRight = Fetch(_InputTexture, uv, RADIUS, _ScreenToTargetScale.xy);
+
+    float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
+
+    // Sharpen output
+    #if SHARPEN
+    float3 topRight = Fetch(_InputTexture, uv, float2(RADIUS, -RADIUS), _ScreenToTargetScale.xy);
+    float3 bottomLeft = Fetch(_InputTexture, uv, float2(-RADIUS, RADIUS), _ScreenToTargetScale.xy);
+    float3 blur = (topLeft + topRight + bottomLeft + bottomRight) * 0.25;
+    color += (color - blur) * SHARPEN_STRENGTH;
+    #endif
+    
+    color = clamp(color, 0.0, CLAMP_MAX);
+
+    float3 average = Map((corners + color) / 7.0);
+
+    topLeft = Map(topLeft);
+    bottomRight = Map(bottomRight);
+    color = Map(color);
+
+    float colorLuma = Luminance(color);
+    float averageLuma = Luminance(average);
+    float nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+
+    float3 minimum = min(bottomRight, topLeft) - nudge;
+    float3 maximum = max(topLeft, bottomRight) + nudge;
+
+    history = Map(history);
+
+    // Clip history samples
+    #if CLIP_AABB
+    history = ClipToAABB(history, minimum, maximum);
+    #else
+    history = clamp(history, minimum, maximum);
+    #endif
+
+    // Blend color & history
+    // Feedback weight from unbiased luminance diff (Timothy Lottes)
+    float historyLuma = Luminance(history);
+    float diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
+    float weight = 1.0 - diff;
+    float feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+
+    color = Unmap(lerp(color, history, feedback));
+    color = clamp(color, 0.0, CLAMP_MAX);
+    
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(color.xyz, 1.0);
+    _OutputHistoryTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(color.xyz, 1.0);
+}
+
+[numthreads(8,8,1)]
+void KCopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
+        return;  // Out of bounds, discard
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+}

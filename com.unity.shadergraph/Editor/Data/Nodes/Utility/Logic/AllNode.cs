@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "All")]
-    public class AllNode : CodeFunctionNode
+    class AllNode : CodeFunctionNode
     {
         public AllNode()
         {
             name = "All";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/All-Node"; }
-        }
 
         public override bool hasPreview
         {

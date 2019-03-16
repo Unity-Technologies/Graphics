@@ -154,12 +154,12 @@ namespace UnityEngine.Experimental.Rendering
             return plane;
         }
 
-        public static Vector4 CameraSpacePlane(Matrix4x4 worldToCamera, Vector3 pos, Vector3 normal, float sideSign = 1, float clipPlaneOffset = 0)
+        public static Vector4 CameraSpacePlane(Matrix4x4 worldToCamera, Vector3 positionWS, Vector3 normalWS, float sideSign = 1, float clipPlaneOffset = 0)
         {
-            var offsetPos = pos + normal * clipPlaneOffset;
-            var cpos = worldToCamera.MultiplyPoint(offsetPos);
-            var cnormal = worldToCamera.MultiplyVector(normal).normalized * sideSign;
-            return new Vector4(cnormal.x, cnormal.y, cnormal.z, -Vector3.Dot(cpos, cnormal));
+            var offsetPosWS = positionWS + normalWS * clipPlaneOffset;
+            var posCS = worldToCamera.MultiplyPoint(offsetPosWS);
+            var normalCS = worldToCamera.MultiplyVector(normalWS).normalized * sideSign;
+            return new Vector4(normalCS.x, normalCS.y, normalCS.z, -Vector3.Dot(posCS, normalCS));
         }
 
         public static Matrix4x4 CalculateWorldToCameraMatrixRHS(Vector3 position, Quaternion rotation)
@@ -251,7 +251,11 @@ namespace UnityEngine.Experimental.Rendering
                 return Matrix4x4.Ortho(-w, w, -h, h, camera.nearClipPlane, camera.farClipPlane);
             }
             else
+#if UNITY_2019_1_OR_NEWER
+                return Matrix4x4.Perspective(camera.GetGateFittedFieldOfView(), camera.aspect, camera.nearClipPlane, camera.farClipPlane);
+#else
                 return Matrix4x4.Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, camera.farClipPlane);
+#endif
         }
     } // class GeometryUtils
 }

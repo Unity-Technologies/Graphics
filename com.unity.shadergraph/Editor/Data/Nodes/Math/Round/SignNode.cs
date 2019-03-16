@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Round", "Sign")]
-    public class SignNode : CodeFunctionNode
+    class SignNode : CodeFunctionNode
     {
         public SignNode()
         {
             name = "Sign";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sign-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

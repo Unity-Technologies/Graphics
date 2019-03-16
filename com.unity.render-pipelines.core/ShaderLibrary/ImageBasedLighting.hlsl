@@ -1,11 +1,11 @@
 #ifndef UNITY_IMAGE_BASED_LIGHTING_INCLUDED
 #define UNITY_IMAGE_BASED_LIGHTING_INCLUDED
 
-#include "CommonLighting.hlsl"
-#include "CommonMaterial.hlsl"
-#include "BSDF.hlsl"
-#include "Random.hlsl"
-#include "Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
 #ifndef UNITY_SPECCUBE_LOD_STEPS
     #define UNITY_SPECCUBE_LOD_STEPS 6
@@ -128,7 +128,7 @@ real3 GetSpecularDominantDir(real3 N, real3 R, real perceptualRoughness, real Nd
 // Importance sampling BSDF functions
 // ----------------------------------------------------------------------------
 
-void SampleGGXDir(real2   u,
+void SampleGGXDir2(real2   u,
                   real3   V,
                   real3x3 localToWorld,
                   real    roughness,
@@ -136,7 +136,8 @@ void SampleGGXDir(real2   u,
               out real    NdotL,
               out real    NdotH,
               out real    VdotH,
-                  bool     VeqN = false)
+              out real    LdotH,
+              bool     VeqN = false)
 {
     // GGX NDF sampling
     real cosTheta = sqrt(SafeDiv(1.0 - u.x, 1.0 + (roughness * roughness - 1.0) * u.x));
@@ -164,7 +165,23 @@ void SampleGGXDir(real2   u,
     real3 localL = -localV + 2.0 * VdotH * localH;
     NdotL = localL.z;
 
+    LdotH = saturate(dot(localL, localH));
+
     L = mul(localL, localToWorld);
+}
+
+void SampleGGXDir(real2   u,
+                  real3   V,
+                  real3x3 localToWorld,
+                  real    roughness,
+              out real3   L,
+              out real    NdotL,
+              out real    NdotH,
+              out real    VdotH,
+                  bool     VeqN = false)
+{
+    float LdotH = 0.0f;
+    SampleGGXDir2(u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH, LdotH, VeqN);
 }
 
 // Ref: "A Simpler and Exact Sampling Routine for the GGX Distribution of Visible Normals".
@@ -426,7 +443,7 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
 }
 
 // Ref: Listing 19 in "Moving Frostbite to PBR"
-real4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
+real4 IntegrateLD(TEXTURECUBE_PARAM(tex, sampl),
                    TEXTURE2D(ggxIblSamples),
                    real3 V,
                    real3 N,
@@ -542,7 +559,7 @@ real4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     return real4(lightInt / cbsdfInt, 1.0);
 }
 
-real4 IntegrateLDCharlie(TEXTURECUBE_ARGS(tex, sampl),
+real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
                    real3 V,
                    real3 N,
                    real roughness,
@@ -652,7 +669,7 @@ uint BinarySearchRow(uint j, real needle, TEXTURE2D(haystack), uint n)
 }
 
 #if !defined SHADER_API_GLES
-real4 IntegrateLD_MIS(TEXTURECUBE_ARGS(envMap, sampler_envMap),
+real4 IntegrateLD_MIS(TEXTURECUBE_PARAM(envMap, sampler_envMap),
                        TEXTURE2D(marginalRowDensities),
                        TEXTURE2D(conditionalDensities),
                        real3 V,

@@ -1,4 +1,4 @@
-<UXML xmlns:ui="UnityEngine.Experimental.UIElements">
+<UXML xmlns:ui="UnityEngine.UIElements">
     <ui:VisualElement name="left" pickingMode="Ignore" >
         <ui:VisualElement name="top-left-resize"/>
         <ui:VisualElement name="left-resize"/>

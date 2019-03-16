@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    // Attribute used to normalize a FloatN
+    // Attribute used to normalize a Vector or float
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     public sealed class NormalizeAttribute : PropertyAttribute
     {
@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
                     switch (attribute.m_Type)
                     {
                         case Type.kRange:
-                            exp = VFXOperatorUtility.UnifyOp(VFXOperatorUtility.Clamp, exp, VFXValue.Constant(attribute.m_Min), VFXValue.Constant(attribute.m_Max));
+                            exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant(attribute.m_Min), VFXValue.Constant(attribute.m_Max));
                             break;
                         case Type.kMin:
                             exp = new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(attribute.m_Min), exp.valueType));

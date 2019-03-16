@@ -2,23 +2,18 @@ ChannelEnumControlView {
     flex-direction: row;
 }
 
-ChannelEnumControlView > .popupField {
-    width: 76;
+ChannelEnumControlView > .unity-popup-field {
+    width: 76px;
     flex: 0;
     margin-left: 0;
-    margin-right: 8;
-    margin-top: 4;
-    margin-bottom: 4;
+    margin-right: 8px;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
 ChannelEnumControlView > Label {
-    width: 100;
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-left: 8;
-    margin-right: 8;
-    margin-top: 4;
-    margin-bottom: 4;
+    width: 100px;
+    margin-left: 8px;
+    margin-right: 8px;
+    -unity-text-align : middle-left;
 }

@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Sampler State")]
-    public class SamplerStateNode : AbstractMaterialNode
+    class SamplerStateNode : AbstractMaterialNode, IPropertyFromNode
     {
         [SerializeField]
         private TextureSamplerState.FilterMode m_filter = TextureSamplerState.FilterMode.Linear;
@@ -48,10 +48,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sampler-State-Node"; }
-        }
 
         public override bool hasPreview { get { return false; } }
 
@@ -73,7 +69,7 @@ namespace UnityEditor.ShaderGraph
         {
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
-                overrideReferenceName = GetVariableNameForNode(),
+                overrideReferenceName = NodeUtils.GetHLSLSafeName(name),
                 generatePropertyBlock = false,
 
                 value = new TextureSamplerState()
@@ -86,10 +82,23 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForNode()
         {
-            string ss = NodeUtils.GetHLSLSafeName(name) + "_"
-                + Enum.GetName(typeof(TextureSamplerState.FilterMode), filter) + "_"
-                + Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap) + "_sampler";
-            return ss;
+            return string.Format(@"{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), 
+                Enum.GetName(typeof(TextureSamplerState.FilterMode), filter), 
+                Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap));
         }
+
+        public AbstractShaderProperty AsShaderProperty()
+        {
+            return new SamplerStateShaderProperty 
+            { 
+                value = new TextureSamplerState()
+                {
+                    filter = this.filter,
+                    wrap = this.wrap
+                }
+            };
+        }
+
+        public int outputSlotId { get { return kOutputSlotId; } }
     }
 }

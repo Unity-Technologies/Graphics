@@ -4,16 +4,11 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "White Balance")]
-    public class WhiteBalanceNode : CodeFunctionNode
+    class WhiteBalanceNode : CodeFunctionNode
     {
         public WhiteBalanceNode()
         {
             name = "White Balance";
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/White-Balance-Node"; }
         }
 
         protected override MethodInfo GetFunctionToConvert()

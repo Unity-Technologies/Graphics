@@ -1,8 +1,10 @@
-using UnityEngine;
-using UnityEditor;
-using UnityEngine.Experimental.UIElements;
+using System.Linq;
 using System.Reflection;
 
+using UnityEngine;
+using UnityEngine.UIElements;
+
+using UnityEditor;
 
 static class VisualElementExtensions
 {
@@ -29,7 +31,15 @@ static class VisualElementExtensions
     public static bool HasFocus(this VisualElement visualElement)
     {
         if (visualElement.panel == null) return false;
+
         return visualElement.panel.focusController.focusedElement == visualElement;
+    }
+
+    public static void AddStyleSheetPath(this VisualElement visualElement, string path)
+    {
+        var sheet = Resources.Load<StyleSheet>(path);
+        if (sheet != null)
+            visualElement.styleSheets.Add(sheet);
     }
 
     public static void AddStyleSheetPathWithSkinVariant(this VisualElement visualElement, string path)
@@ -45,6 +55,23 @@ static class VisualElementExtensions
         }*/
     }
 
+    public static void ResetPositionProperties(this VisualElement visualElement)
+    {
+        var style = visualElement.style;
+        style.position = StyleKeyword.Null;
+        style.marginLeft = StyleKeyword.Null;
+        style.marginRight = StyleKeyword.Null;
+        style.marginBottom = StyleKeyword.Null;
+        style.marginTop = StyleKeyword.Null;
+        style.left = StyleKeyword.Null;
+        style.top = StyleKeyword.Null;
+        style.right = StyleKeyword.Null;
+        style.bottom = StyleKeyword.Null;
+        style.width = StyleKeyword.Null;
+        style.height = StyleKeyword.Null;
+
+    }
+
     public static Vector2 GlobalToBound(this VisualElement visualElement, Vector2 position)
     {
         return visualElement.worldTransform.inverse.MultiplyPoint3x4(position);
@@ -52,13 +79,7 @@ static class VisualElementExtensions
 
     public static Vector2 BoundToGlobal(this VisualElement visualElement, Vector2 position)
     {
-        /*do
-        {*/
         position = visualElement.worldTransform.MultiplyPoint3x4(position);
-        /*
-        visualElement = visualElement.parent;
-    }
-    while (visualElement != null;)*/
 
         return position;
     }

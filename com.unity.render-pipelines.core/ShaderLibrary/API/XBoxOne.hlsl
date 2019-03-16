@@ -1,5 +1,20 @@
 // This file assume SHADER_API_XBOXONE is defined
 
+#define GENERATE_INTRINSIC_VARIANTS_1_ARG(FunctionName, BaseIntrinsicName, Parameter0) \
+    float FunctionName(float Parameter0) { return BaseIntrinsicName##F32(Parameter0); } \
+    int   FunctionName(int   Parameter0) { return BaseIntrinsicName##I32(Parameter0); } \
+    uint  FunctionName(uint  Parameter0) { return BaseIntrinsicName##U32(Parameter0); }
+
+#define GENERATE_INTRINSIC_VARIANTS_3_ARGS(FunctionName, BaseIntrinsicName, Parameter0, Parameter1, Parameter2) \
+    float FunctionName(float Parameter0, float Parameter1, float Parameter2) { return BaseIntrinsicName##F32(Parameter0, Parameter1, Parameter2); } \
+    int   FunctionName(int   Parameter0, int   Parameter1, int   Parameter2) { return BaseIntrinsicName##I32(Parameter0, Parameter1, Parameter2); } \
+    uint  FunctionName(uint  Parameter0, uint  Parameter1, uint  Parameter2) { return BaseIntrinsicName##U32(Parameter0, Parameter1, Parameter2); }
+
+#define GENERATE_INTRINSIC_INT24_VARIANTS_3_ARGS(FunctionName, BaseIntrinsicName, Parameter0, Parameter1, Parameter2) \
+    int   FunctionName(int   Parameter0, int   Parameter1, int   Parameter2) { return BaseIntrinsicName##I24(Parameter0, Parameter1, Parameter2); } \
+    uint  FunctionName(uint  Parameter0, uint  Parameter1, uint  Parameter2) { return BaseIntrinsicName##U24(Parameter0, Parameter1, Parameter2); } 
+
+
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1
 #define UNITY_NEAR_CLIP_VALUE (1.0)
@@ -14,37 +29,82 @@
 #define CBUFFER_START(name) cbuffer name {
 #define CBUFFER_END };
 
+#define PLATFORM_SUPPORTS_EXPLICIT_BINDING 1
+#define PLATFORM_NEEDS_UNORM_UAV_SPECIFIER 1
+#define PLATFORM_LANE_COUNT 64
+
 // Intrinsics
 #define SUPPORTS_WAVE_INTRINSICS
 
 #define INTRINSIC_WAVEREADFIRSTLANE
-#define WaveReadFirstLane __XB_MakeUniform
-#define INTRINSIC_MINMAX3
-#define Min3 __XB_Min3_F32
-#define Max3 __XB_Max3_F32
-#define INTRINSIC_MAD24
-#define Mad24Int __XB_MadI24
-#define Mad24Uint __XB_MadU24
-#define INTRINSIC_BITFIELD_EXTRACT
-#define BitFieldExtract __XB_UBFE
-#define INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
-#define BitFieldExtractSignExtend __XB_IBFE
+#define WaveReadLaneFirst __XB_MakeUniform
 #define INTRINSIC_BITFIELD_INSERT
 #define BitFieldInsert __XB_BFI
-#define INTRINSIC_WAVE_MINMAX
-#define WaveMinInt __XB_WaveMin_I32
-#define WaveMinUint __XB_WaveMin_U32
-#define WaveMinFloat __XB_WaveMin_F32
-#define WaveMaxInt __XB_WaveMax_I32
-#define WaveMaxUint __XB_WaveMax_U32
-#define WaveMaxFloat __XB_WaveMax_F32
 #define INTRINSIC_BALLOT
-#define Ballot __XB_Ballot64
-#define INTRINSIC_WAVE_SUM
-#define WaveAdd __XB_WaveAdd_F32
+#define WaveActiveBallot __XB_Ballot64
 #define INTRINSIC_WAVE_LOGICAL_OPS
-#define WaveAnd __XB_WaveAND
-#define WaveOr __XB_WaveOR
+#define WaveActiveBitAnd __XB_WaveAND
+#define WaveActiveBitOr __XB_WaveOR
+#define WaveGetID __XB_GetWaveID
+
+#define INTRINSIC_BITFIELD_EXTRACT
+uint BitFieldExtract(uint data, uint offset, uint numBits)
+{
+    return __XB_UBFE(numBits, offset, data);
+}
+
+#define INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
+int BitFieldExtractSignExtend(uint data, uint offset, uint numBits)
+{
+    return __XB_IBFE(numBits, offset, data);
+}
+
+#define INTRINSIC_WAVE_ACTIVE_ALL_ANY
+bool WaveActiveAllTrue(bool expression)
+{
+    return all(WaveActiveBallot(true) == WaveActiveBallot(expression));
+}
+
+bool WaveActiveAnyTrue(bool expression)
+{
+    return (__XB_S_BCNT1_U64(WaveActiveBallot(expression))) != 0;
+}
+
+uint WaveGetLaneIndex()
+{
+    return __XB_GetLaneID();
+}
+
+bool WaveIsFirstLane()
+{
+    return (__XB_MBCNT64(WaveActiveBallot(true))) == 0;
+}
+
+uint WaveGetLaneCount()
+{
+    return PLATFORM_LANE_COUNT;
+}
+
+
+// There is a bug in the xbox compiler for Hull shader and __XB_Min3_/__XB_Max
+#ifndef SHADER_STAGE_HULL
+#define INTRINSIC_MINMAX3
+GENERATE_INTRINSIC_VARIANTS_3_ARGS(Min3, __XB_Min3_, a, b, c);
+GENERATE_INTRINSIC_VARIANTS_3_ARGS(Max3, __XB_Max3_, a, b, c);
+#endif
+
+#define INTRINSIC_WAVE_MINMAX
+GENERATE_INTRINSIC_VARIANTS_1_ARG(WaveActiveMin, __XB_WaveMin_, value);
+GENERATE_INTRINSIC_VARIANTS_1_ARG(WaveActiveMax, __XB_WaveMax_, value);
+
+#define INTRINSIC_MAD24
+GENERATE_INTRINSIC_INT24_VARIANTS_3_ARGS(Mad24, __XB_Mad, a, b, c);
+
+#define INTRINSIC_WAVE_SUM
+float WaveActiveSum(float value)
+{
+    return __XB_WaveAdd_F32(value);
+}
 
 // flow control attributes
 #define UNITY_BRANCH        [branch]
@@ -94,27 +154,27 @@
 #define SAMPLER(samplerName)                  SamplerState samplerName
 #define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 
-#define TEXTURE2D_ARGS(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
-#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
-#define TEXTURECUBE_ARGS(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
-#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
-#define TEXTURE3D_ARGS(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
+#define TEXTURE2D_PARAM(textureName, samplerName)                 TEXTURE2D(textureName),         SAMPLER(samplerName)
+#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)           TEXTURE2D_ARRAY(textureName),   SAMPLER(samplerName)
+#define TEXTURECUBE_PARAM(textureName, samplerName)               TEXTURECUBE(textureName),       SAMPLER(samplerName)
+#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)         TEXTURECUBE_ARRAY(textureName), SAMPLER(samplerName)
+#define TEXTURE3D_PARAM(textureName, samplerName)                 TEXTURE3D(textureName),         SAMPLER(samplerName)
 
-#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
-#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
-#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
-#define TEXTURECUBE_ARRAY_SHADOW_ARGS(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
+#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)          TEXTURE2D(textureName),         SAMPLER_CMP(samplerName)
+#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)    TEXTURE2D_ARRAY(textureName),   SAMPLER_CMP(samplerName)
+#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)        TEXTURECUBE(textureName),       SAMPLER_CMP(samplerName)
+#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName)  TEXTURECUBE_ARRAY(textureName), SAMPLER_CMP(samplerName)
 
-#define TEXTURE2D_PARAM(textureName, samplerName)                textureName, samplerName
-#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)          textureName, samplerName
-#define TEXTURECUBE_PARAM(textureName, samplerName)              textureName, samplerName
-#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName)        textureName, samplerName
-#define TEXTURE3D_PARAM(textureName, samplerName)                textureName, samplerName
+#define TEXTURE2D_ARGS(textureName, samplerName)                textureName, samplerName
+#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName)          textureName, samplerName
+#define TEXTURECUBE_ARGS(textureName, samplerName)              textureName, samplerName
+#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName)        textureName, samplerName
+#define TEXTURE3D_ARGS(textureName, samplerName)                textureName, samplerName
 
-#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName)         textureName, samplerName
-#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName)   textureName, samplerName
-#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName)       textureName, samplerName
-#define TEXTURECUBE_ARRAY_SHADOW_PARAM(textureName, samplerName) textureName, samplerName
+#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName)         textureName, samplerName
+#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName)   textureName, samplerName
+#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName)       textureName, samplerName
+#define TEXTURECUBE_ARRAY_SHADOW_ARGS(textureName, samplerName) textureName, samplerName
 
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2)                               textureName.Sample(samplerName, coord2)
 #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod)                      textureName.SampleLevel(samplerName, coord2, lod)
@@ -145,7 +205,7 @@
 #define LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)                          textureName.Load(int3(unCoord2, lod))
 #define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)                 textureName.Load(unCoord2, sampleIndex)
 #define LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, index)                      textureName.Load(int4(unCoord2, index, 0))
-#define LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, index, sampleIndex)    textureName.Load(int4(unCoord2, index, 0), sampleIndex)
+#define LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, index, sampleIndex)    textureName.Load(int3(unCoord2, index), sampleIndex)
 #define LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, index, lod)             textureName.Load(int4(unCoord2, index, lod))
 #define LOAD_TEXTURE3D(textureName, unCoord3)                                   textureName.Load(int4(unCoord3, 0))
 #define LOAD_TEXTURE3D_LOD(textureName, unCoord3, lod)                          textureName.Load(int4(unCoord3, lod))

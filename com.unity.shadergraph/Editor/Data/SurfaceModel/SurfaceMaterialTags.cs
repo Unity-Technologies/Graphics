@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class SurfaceMaterialTags
+    class SurfaceMaterialTags
     {
         public enum RenderType
         {
@@ -44,12 +44,12 @@ namespace UnityEditor.ShaderGraph
             renderType = RenderType.Opaque;
         }
 
-        public void GetTags(ShaderStringBuilder builder)
+        public void GetTags(ShaderStringBuilder builder, string pipeline)
         {
             builder.AppendLine("Tags");
             using (builder.BlockScope())
             {
-                builder.AppendLine(@"""RenderPipeline""=""HDRenderPipeline""");
+                builder.AppendLine("\"RenderPipeline\"=\"{0}\"", pipeline);
                 builder.AppendLine("\"RenderType\"=\"{0}\"", renderType);
 
                 string seperator = renderQueueOffset >= 0 ? "+" : "";

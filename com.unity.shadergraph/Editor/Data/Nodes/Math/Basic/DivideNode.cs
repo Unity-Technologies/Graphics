@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Basic", "Divide")]
-    public class DivideNode : CodeFunctionNode
+    class DivideNode : CodeFunctionNode
     {
         public DivideNode()
         {
             name = "Divide";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Divide-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

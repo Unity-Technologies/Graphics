@@ -2,12 +2,12 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface IMayRequireDepthTexture
+    interface IMayRequireDepthTexture
     {
         bool RequiresDepthTexture(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
-    public static class MayRequireDepthTextureExtensions
+    static class MayRequireDepthTextureExtensions
     {
         public static bool RequiresDepthTexture(this ISlot slot)
         {

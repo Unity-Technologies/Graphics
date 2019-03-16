@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Round", "Round")]
-    public class RoundNode : CodeFunctionNode
+    class RoundNode : CodeFunctionNode
     {
         public RoundNode()
         {
             name = "Round";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Round-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

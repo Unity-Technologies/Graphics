@@ -1,28 +1,28 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.Experimental.Rendering;
+using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [VolumeComponentEditor(typeof(VolumetricFog))]
     public class VolumetricFogEditor : AtmosphericScatteringEditor
     {
-        private SerializedDataParameter m_Albedo;
-        private SerializedDataParameter m_MeanFreePath;
-        private SerializedDataParameter m_BaseHeight;
-        private SerializedDataParameter m_MeanHeight;
-        private SerializedDataParameter m_Anisotropy;
-        private SerializedDataParameter m_GlobalLightProbeDimmer;
+        SerializedDataParameter m_Albedo;
+        SerializedDataParameter m_MeanFreePath;
+        SerializedDataParameter m_BaseHeight;
+        SerializedDataParameter m_MeanHeight;
+        SerializedDataParameter m_Anisotropy;
+        SerializedDataParameter m_GlobalLightProbeDimmer;
+        SerializedDataParameter m_EnableDistantFog;
 
-        static GUIContent s_AlbedoLabel                 = new GUIContent("Single Scattering Albedo", "Hue and saturation control the color of the fog (the wavelength of in-scattered light). Value controls scattering (0 = max absorption & no scattering, 1 = no absorption & max scattering).");
-        static GUIContent s_MeanFreePathLabel           = new GUIContent("Base Mean Free Path", "Controls the density, which determines how far you can seen through the fog. It's the distance in meters at which 50% of background light is lost in the fog (due to absorption and out-scattering).");
-        static GUIContent s_BaseHeightLabel             = new GUIContent("Base Height", "Height at which the exponential density falloff starts.");
-        static GUIContent s_MeanHeightLabel             = new GUIContent("Mean Height", "Controls the rate of falloff of height fog. Higher values stretch the fog vertically, making it thinner.");
-        static GUIContent s_AnisotropyLabel             = new GUIContent("Global Anisotropy", "Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, -1 is backward scattering.");
-        static GUIContent s_GlobalLightProbeDimmerLabel = new GUIContent("Global Light Probe Dimmer", "Reduces the intensity of the global light probe.");
+        static GUIContent s_AlbedoLabel                 = new GUIContent("Single Scattering Albedo", "Specifies the color this fog scatteres light to.");
+        static GUIContent s_MeanFreePathLabel           = new GUIContent("Base Fog Distance", "Sets the density at the base of the fog. Determines how far you can see through the fog in meters.");
+        static GUIContent s_BaseHeightLabel             = new GUIContent("Base Height", "Sets the height of the boundary between the constant and exponential fog.");
+        static GUIContent s_MeanHeightLabel             = new GUIContent("Mean Height", "Sets the rate of falloff for the height fog. Higher values stretch the fog vertically.");
+        static GUIContent s_AnisotropyLabel             = new GUIContent("Global Anisotropy", "Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering.");
+        static GUIContent s_GlobalLightProbeDimmerLabel = new GUIContent("Global Light Probe Dimmer", "Controls the intensity reduction of the global Light Probe that the sky generates.");
+        static GUIContent s_EnableDistantFog            = new GUIContent("Distant Fog", "When enabled, activates fog with precomputed lighting behind the volumetric section of the Camera’s frustum.");
 
         public override void OnEnable()
         {
@@ -35,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MeanHeight             = Unpack(o.Find(x => x.meanHeight));
             m_Anisotropy             = Unpack(o.Find(x => x.anisotropy));
             m_GlobalLightProbeDimmer = Unpack(o.Find(x => x.globalLightProbeDimmer));
+            m_EnableDistantFog       = Unpack(o.Find(x => x.enableDistantFog));
         }
 
         public override void OnInspectorGUI()
@@ -45,6 +46,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_MeanHeight,             s_MeanHeightLabel);
             PropertyField(m_Anisotropy,             s_AnisotropyLabel);
             PropertyField(m_GlobalLightProbeDimmer, s_GlobalLightProbeDimmerLabel);
+            PropertyField(m_MaxFogDistance);
+            PropertyField(m_EnableDistantFog,       s_EnableDistantFog);
+
+            if (m_EnableDistantFog.value.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                base.OnInspectorGUI(); // Color
+                EditorGUI.indentLevel--;
+            }
+
+            if (!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
+                ?.currentPlatformRenderPipelineSettings.supportVolumetrics ?? false)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The current HDRP Asset does not support Volumetrics.", MessageType.Error, wide: true);
+            }
         }
     }
 }

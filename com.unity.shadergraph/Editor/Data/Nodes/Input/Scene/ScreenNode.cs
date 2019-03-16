@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Screen")]
-    public sealed class ScreenNode : AbstractMaterialNode
+    sealed class ScreenNode : AbstractMaterialNode
     {
         const string kOutputSlotName = "Width";
         const string kOutputSlot1Name = "Height";
@@ -18,10 +18,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Screen-Node"; }
-        }
 
         public override void UpdateNodeAfterDeserialization()
         {

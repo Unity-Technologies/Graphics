@@ -54,6 +54,8 @@
 #define REJECTED_VALUE asfloat(0x7f7fffff) // MAX_FLOAT
 #endif
 
+#pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
+
 struct KVP
 {
     float key;

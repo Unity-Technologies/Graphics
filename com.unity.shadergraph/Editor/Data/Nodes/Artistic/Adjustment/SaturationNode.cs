@@ -4,16 +4,11 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "Saturation")]
-    public class SaturationNode : CodeFunctionNode
+    class SaturationNode : CodeFunctionNode
     {
         public SaturationNode()
         {
             name = "Saturation";
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Saturation-Node"; }
         }
 
         protected override MethodInfo GetFunctionToConvert()

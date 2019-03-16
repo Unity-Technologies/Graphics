@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Rendering.LWRP
 {
     public enum MixedLightingSetup
     {
@@ -20,6 +19,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public LightData lightData;
         public ShadowData shadowData;
         public bool supportsDynamicBatching;
+        public PerObjectData perObjectData;
+        public bool killAlphaInFinalBlit;
     }
 
     public struct LightData
@@ -35,14 +36,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public struct CameraData
     {
         public Camera camera;
+        public RenderTextureDescriptor cameraTargetDescriptor;
         public float renderScale;
-        public int msaaSamples;
         public bool isSceneViewCamera;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
-        public Downsampling opaqueTextureDownsampling;
 
         public SortingCriteria defaultOpaqueSortFlags;
 
@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public float maxShadowDistance;
         public bool postProcessEnabled;
         public PostProcessLayer postProcessLayer;
-        public IRendererSetup rendererSetup;
+        public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > captureActions;
     }
 
     public struct ShadowData
@@ -83,6 +83,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
+
+        public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+        public static readonly string KillAlpha = "_KILL_ALPHA";
     }
 
     public sealed partial class LightweightRenderPipeline
@@ -94,13 +97,45 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-            bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRGraphics.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            bool isGameCamera = camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR;
+            return XRGraphics.enabled && isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
 
         void SortCameras(Camera[] cameras)
         {
             Array.Sort(cameras, (lhs, rhs) => (int)(lhs.depth - rhs.depth));
+        }
+
+        static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
+            bool isStereoEnabled, bool isHdrEnabled, int msaaSamples)
+        {
+            RenderTextureDescriptor desc;
+            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
+
+            if (isStereoEnabled)
+            {
+                desc = XRGraphics.eyeTextureDesc;
+                renderTextureFormatDefault = desc.colorFormat;
+            }
+            else
+            {
+                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                desc.width = (int)((float)desc.width * renderScale);
+                desc.height = (int)((float)desc.height * renderScale);
+            }
+
+            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format.
+            bool useRGB111110 = Application.isMobilePlatform &&
+                                SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+            RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
+            desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
+            desc.depthBufferBits = 32;
+            desc.enableRandomWrite = false;
+            desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            desc.msaaSamples = msaaSamples;
+            desc.bindMS = false;
+            desc.useDynamicScale = camera.allowDynamicResolution;
+            return desc;
         }
     }
 }

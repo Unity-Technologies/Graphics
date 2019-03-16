@@ -54,7 +54,19 @@ namespace UnityEditor.VFX
     {
         protected static string RenderPipeTemplate(string fileName)
         {
-            return UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath + "/templates/" + fileName;
+            return UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath + "/Templates/" + fileName;
+        }
+
+        [SerializeField]
+        private string m_Label;
+
+        public string label
+        {
+            get { return m_Label; }
+            set {
+                m_Label = value;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
         }
 
         private VFXContext() { m_UICollapsed = false; } // Used by serialization
@@ -327,7 +339,7 @@ namespace UnityEditor.VFX
 
         public void SetDefaultData(bool notify)
         {
-            InnerSetData(VFXData.CreateDataType(ownedType), notify);
+            InnerSetData(VFXData.CreateDataType(GetGraph(),ownedType), notify);
         }
 
         public virtual void OnDataChanges(VFXData oldData, VFXData newData)
@@ -429,6 +441,68 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXContextSlot[] m_OutputFlowSlot;
 
+        public char letter { get; set; }
+
+
+        string shaderNamePrefix = "Hidden/VFX";
+
+        public string shaderName
+        {
+            get
+            {
+                string prefix = shaderNamePrefix;
+                if( GetData() != null)
+                {
+                    string dataName = GetData().fileName;
+                    if( !string.IsNullOrEmpty(dataName))
+                        prefix += "/"+dataName;
+                }
+
+                if (letter != '\0')
+                {
+                    if (string.IsNullOrEmpty(label))
+                        return string.Format("{2}/({0}) {1}", letter, libraryName, prefix);
+                    else
+                        return string.Format("{2}/({0}) {1}", letter, label, prefix);
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(label))
+                        return string.Format("{1}/{0}", libraryName, prefix);
+                    else
+                        return string.Format("{1}/{0}",label, prefix);
+                }
+            }
+        }
+        public string fileName
+        {
+            get
+            {
+                string prefix = string.Empty;
+                if (GetData() != null)
+                {
+                    string dataName = GetData().fileName;
+                    if (!string.IsNullOrEmpty(dataName))
+                        prefix += "[" + dataName + "]";
+                }
+
+                if (letter != '\0')
+                {
+                    if (string.IsNullOrEmpty(label))
+                        return string.Format("{2}{0} {1}", letter, libraryName, prefix);
+                    else
+                        return string.Format("{2}{0} {1}", letter, label, prefix);
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(label))
+                        return string.Format("{1}{0}", libraryName, prefix);
+                    else
+                        return string.Format("{1}{0}", label, prefix);
+                }
+            }
+        }
+
         public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return space;
@@ -468,12 +542,4 @@ namespace UnityEditor.VFX
             }
         }
     }
-
-    // TODO Do that later!
-    /* class VFXSubContext : VFXModel<VFXContext, VFXModel>
-     {
-         // In and out sub context, if null directly connected to the context input/output
-         private VFXSubContext m_In;
-         private VFXSubContext m_Out;
-     }*/
 }

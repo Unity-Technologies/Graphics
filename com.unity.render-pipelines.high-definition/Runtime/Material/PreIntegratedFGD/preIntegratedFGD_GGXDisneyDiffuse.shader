@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/preIntegratedFGD_GGXDisneyDiffuse"
+Shader "Hidden/HDRP/preIntegratedFGD_GGXDisneyDiffuse"
 {
     SubShader
     {
@@ -8,6 +8,9 @@ Shader "Hidden/HDRenderPipeline/preIntegratedFGD_GGXDisneyDiffuse"
             ZTest Always Cull Off ZWrite Off
 
             HLSLPROGRAM
+
+            #pragma editor_sync_compilation
+
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 4.5
@@ -16,7 +19,7 @@ Shader "Hidden/HDRenderPipeline/preIntegratedFGD_GGXDisneyDiffuse"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "PreIntegratedFGD.cs.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.cs.hlsl"
 
             struct Attributes
             {

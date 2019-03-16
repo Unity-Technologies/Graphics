@@ -41,6 +41,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1381370728658774}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -58,8 +59,37 @@ MonoBehaviour:
   m_GameObject: {fileID: 1381370728658774}
   m_Enabled: 1
   m_EditorHideFlags: 0
+  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: 5f6186e446f8c9c499bb524507dc29aa, type: 2}
-  m_BakingSkyUniqueID: 1
+  m_StaticLightingSkyUniqueID: 1
+  m_AmbientProbe:
+    sh[ 0]: 0.44514447
+    sh[ 1]: -0.0037752576
+    sh[ 2]: 0.0046681017
+    sh[ 3]: 0.4510911
+    sh[ 4]: -0.007157373
+    sh[ 5]: -0.00008966027
+    sh[ 6]: -0.015382482
+    sh[ 7]: 0.00344944
+    sh[ 8]: 0.056722604
+    sh[ 9]: 0.49594525
+    sh[10]: 0.5264953
+    sh[11]: 0.0011602938
+    sh[12]: -0.0006567368
+    sh[13]: -0.00093016436
+    sh[14]: 0.0015959144
+    sh[15]: -0.019262163
+    sh[16]: 0.00007606351
+    sh[17]: -0.05777155
+    sh[18]: 0.443802
+    sh[19]: -0.005488793
+    sh[20]: 0.4520967
+    sh[21]: -0.004802606
+    sh[22]: 0.000082672996
+    sh[23]: -0.007623684
+    sh[24]: 0.036968607
+    sh[25]: -0.0035715024
+    sh[26]: 0.0037938424

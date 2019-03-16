@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Round", "Step")]
-    public class StepNode : CodeFunctionNode
+    class StepNode : CodeFunctionNode
     {
         public StepNode()
         {
             name = "Step";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Step-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

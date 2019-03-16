@@ -1,11 +1,7 @@
-Shader "Hidden/HDRenderPipeline/Deferred"
+Shader "Hidden/HDRP/Deferred"
 {
     Properties
     {
-        // We need to be able to control the blend mode for deferred shader in case we do multiple pass
-        [HideInInspector] _SrcBlend("", Float) = 1
-        [HideInInspector] _DstBlend("", Float) = 1
-
         [HideInInspector] _StencilMask("_StencilMask", Int) = 7
         [HideInInspector] _StencilRef("", Int) = 0
         [HideInInspector] _StencilCmp("", Int) = 3
@@ -26,7 +22,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             ZWrite Off
             ZTest  Always
-            Blend [_SrcBlend] [_DstBlend], One Zero
+            Blend Off
             Cull Off
 
             HLSLPROGRAM
@@ -37,7 +33,7 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             #pragma fragment Frag
 
             // Chose supported lighting architecture in case of deferred rendering
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
+            #pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
@@ -55,28 +51,52 @@ Shader "Hidden/HDRenderPipeline/Deferred"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+        #ifdef DEBUG_DISPLAY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+        #endif
+
+            // The light loop (or lighting architecture) is in charge to:
+            // - Define light list
+            // - Define the light loop
+            // - Setup the constant/data
+            // - Do the reflection hierarchy
+            // - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
+
+            #define HAS_LIGHTLOOP
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+
             // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
             // the deferred shader will require to use multicompile.
-            #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #ifdef DEBUG_DISPLAY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-            #endif
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
 
+            //#define ENABLE_RAYTRACING
+            #ifdef ENABLE_RAYTRACING
+            CBUFFER_START(UnityDeferred)
+                // Uniform variables that defines if we shall be using the shadow area texture or not
+                int _RaytracedAreaShadow;
+            CBUFFER_END
+            #endif
+
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             struct Outputs
@@ -92,16 +112,20 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
 
             Outputs Frag(Varyings input)
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
                 // This need to stay in sync with deferred.compute
 
                 // input.positionCS is SV_Position
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
+                float depth = LoadCameraDepth(input.positionCS.xy);
 
                 PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize(), unity_StereoEyeIndex);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
@@ -115,6 +139,9 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 float3 diffuseLighting;
                 float3 specularLighting;
                 LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+
+                diffuseLighting *= GetCurrentExposureMultiplier();
+                specularLighting *= GetCurrentExposureMultiplier();
 
                 Outputs outputs;
 

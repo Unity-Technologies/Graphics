@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Logic", "And")]
-    public class AndNode : CodeFunctionNode
+    class AndNode : CodeFunctionNode
     {
         public AndNode()
         {
             name = "And";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/And-Node"; }
-        }
 
         public override bool hasPreview
         {

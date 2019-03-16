@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Matrix", "Matrix Transpose")]
-    public class MatrixTransposeNode : CodeFunctionNode
+    class MatrixTransposeNode : CodeFunctionNode
     {
         public MatrixTransposeNode()
         {
             name = "Matrix Transpose";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Matrix-Transpose-Node"; }
-        }
 
         public override bool hasPreview
         {

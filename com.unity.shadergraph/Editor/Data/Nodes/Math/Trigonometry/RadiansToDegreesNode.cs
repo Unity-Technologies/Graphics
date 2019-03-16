@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Trigonometry", "Radians To Degrees")]
-    public class RadiansToDegreesNode : CodeFunctionNode
+    class RadiansToDegreesNode : CodeFunctionNode
     {
         public RadiansToDegreesNode()
         {
             name = "Radians To Degrees";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Radians-To-Degrees-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

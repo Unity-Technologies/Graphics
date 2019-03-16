@@ -18,8 +18,6 @@ namespace UnityEditor.VFX
                 return 3;
             else if (slotType == typeof(Vector4) || slotType == typeof(Color))
                 return 4;
-            else if (slotType == typeof(FloatN))
-                return ((FloatN)slot.refSlot.value).realSize;
             return 0;
         }
 
@@ -45,8 +43,6 @@ namespace UnityEditor.VFX
                 return 3;
             else if (slotType == typeof(Vector4) || slotType == typeof(Color))
                 return 4;
-            else if (slotType == typeof(FloatN))
-                throw new InvalidOperationException("With the direct version FloatN is unsupported");
             return 0;
         }
 

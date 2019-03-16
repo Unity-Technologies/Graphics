@@ -39,19 +39,65 @@ namespace UnityEditor.VFX
             get { return m_Owners; }
         }
 
+        public string title;
+
+        public int index
+        {
+            get
+            {
+                if ( m_Parent == null)
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(this);
+                    m_Parent = VisualEffectResource.GetResourceAtPath(assetPath).GetOrCreateGraph();
+                }
+                
+                VFXGraph graph = GetGraph();
+
+                HashSet<VFXData> datas = new HashSet<VFXData>();
+
+                foreach (var child in graph.children.OfType<VFXContext>())
+                {
+                        VFXData data = (child as VFXContext).GetData();
+                        if (data != null)
+                            datas.Add(data);
+                        if (data == this)
+                            return datas.Count();
+                }
+                throw new InvalidOperationException("Can't determine index of a VFXData without context");
+            }
+        }
+
+        public string fileName {
+            get {
+                if( ! string.IsNullOrWhiteSpace(title))
+                    return title;
+                int i = this.index;
+                if (i < 0)
+                    return string.Empty;
+                return string.IsNullOrEmpty(title)?string.Format("System {0}",index):title;
+            }
+        }
+
         public IEnumerable<VFXContext> implicitContexts
         {
             get { return Enumerable.Empty<VFXContext>(); }
         }
 
-        public static VFXData CreateDataType(VFXDataType type)
+        public static VFXData CreateDataType(VFXGraph graph,VFXDataType type)
         {
+            VFXData newVFXData;
             switch (type)
             {
-                case VFXDataType.kParticle:     return ScriptableObject.CreateInstance<VFXDataParticle>();
-                case VFXDataType.kMesh:         return ScriptableObject.CreateInstance<VFXDataMesh>();
+                case VFXDataType.kParticle:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataParticle>();
+                    break;
+                case VFXDataType.kMesh:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataMesh>();
+                    break;
                 default:                        return null;
             }
+            newVFXData.m_Parent = graph;
+            return newVFXData;
         }
 
         public override void OnEnable()
@@ -75,6 +121,17 @@ namespace UnityEditor.VFX
 
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} owners that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
+            }
+        }
+
+        public override void Sanitize(int version)
+        {
+            base.Sanitize(version);
+
+            if( m_Parent == null)
+            {
+                string assetPath = AssetDatabase.GetAssetPath(this);
+                m_Parent = VisualEffectResource.GetResourceAtPath(assetPath).GetOrCreateGraph();
             }
         }
 
@@ -298,6 +355,24 @@ namespace UnityEditor.VFX
             DebugLogAttributes();
         }
 
+        public void ProcessDependencies()
+        {
+            ComputeLayer();
+
+            // Update attributes
+            foreach (var childData in m_DependenciesOut)
+            {
+                foreach (var attrib in childData.m_ReadSourceAttributes)
+                { 
+                    if (!m_StoredCurrentAttributes.ContainsKey(attrib))
+                    {
+                        m_LocalCurrentAttributes.Remove(attrib);
+                        m_StoredCurrentAttributes.Add(attrib, 0);
+                    }
+                }
+            }
+        }
+
         private static uint ComputeLayer(IEnumerable<VFXData> dependenciesIn)
         {
             if (dependenciesIn.Any())
@@ -307,7 +382,7 @@ namespace UnityEditor.VFX
             return 0u;
         }
 
-        public void ComputeLayer()
+        private void ComputeLayer()
         {
             if (!m_DependenciesIn.Any() && !m_DependenciesOut.Any())
             {
@@ -493,6 +568,9 @@ namespace UnityEditor.VFX
 
         private void DebugLogAttributes()
         {
+            if (!VFXViewPreference.advancedLogs)
+                return;
+
             var builder = new StringBuilder();
 
             builder.AppendLine(string.Format("Attributes for data {0} of type {1}", GetHashCode(), GetType()));
@@ -520,8 +598,8 @@ namespace UnityEditor.VFX
                 foreach (var attrib in m_LocalCurrentAttributes)
                     builder.AppendLine(string.Format("\t\tAttribute {0} {1}", attrib.name, attrib.type));
             }
-            if (VFXViewPreference.advancedLogs)
-                Debug.Log(builder.ToString());
+
+            Debug.Log(builder.ToString());
         }
 
         public uint layer

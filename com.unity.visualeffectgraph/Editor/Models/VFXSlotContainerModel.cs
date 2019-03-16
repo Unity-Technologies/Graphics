@@ -202,9 +202,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void Sanitize()
+        public override void Sanitize(int version)
         {
-            base.Sanitize();
+            base.Sanitize(version);
             if (ResyncSlots(true))
                 Debug.Log(string.Format("Slots have been resynced in {0} of type {1}", name, GetType()));
         }
@@ -315,7 +315,7 @@ namespace UnityEditor.VFX
             {
                 var existingSlots = new List<VFXSlot>(currentSlots);
 
-                // Remove all slots (TODO Uncomment)
+                // Remove all slots
                 for (int i = nbSlots - 1; i >= 0; --i)
                     InnerRemoveSlot(currentSlots[i], false);
 
@@ -352,6 +352,10 @@ namespace UnityEditor.VFX
                     // Find the first slot with same type (should perform a more clever selection based on name distance)
                     if (srcSlot == null)
                         srcSlot = existingSlots.FirstOrDefault(s => s.property.type == dstSlot.property.type);
+
+                    // Try to find a slot that can be implicitely converted
+                    if (srcSlot == null)
+                        srcSlot = existingSlots.FirstOrDefault(s => VFXConverter.CanConvertTo(s.property.type,dstSlot.property.type));
 
                     if (srcSlot != null)
                     {

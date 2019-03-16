@@ -1,0 +1,143 @@
+#pragma kernel RaytracingLightCluster
+#pragma kernel RaytracingLightCull
+
+// SRP & HDRP includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition\Runtime\ShaderLibrary\ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition\Runtime\RenderPipeline\Raytracing/HDRaytracingLightCluster.cs.hlsl"
+
+#define CLUSTER_GROUP_SIZE 8
+
+// Light Data
+StructuredBuffer<LightVolume> 		_LightVolumes;
+uint 								_LightVolumeCount;
+
+// The target data that this computer shader must fill
+RWStructuredBuffer<uint> 			_RaytracingLightCluster;
+float3								_MinClusterPos;
+float3								_MaxClusterPos;
+float3								_ClusterCellSize;
+uint 								_LightPerCellCount;
+
+static const float3 CornerSubDirections[8] = {
+    float3(-0.5f, -0.5f, -0.5f),
+    float3(-0.5f, -0.5f, 0.5f),
+    float3(0.5f, -0.5f, -0.5f),
+    float3(0.5f, -0.5f, 0.5f),
+
+    float3(-0.5f, 0.5f, -0.5f),
+    float3(-0.5f, 0.5f, 0.5f),
+    float3(0.5f, 0.5f, -0.5f),
+    float3(0.5f, 0.5f, 0.5f)
+};
+
+#define CULL_GROUP_SIZE 16
+
+// The target data that this computer shader must fill
+RWStructuredBuffer<uint> 			_RaytracingLightCullResult;
+float3								_ClusterCenterPosition;
+float3								_ClusterDimension;
+
+[numthreads(CLUSTER_GROUP_SIZE, CLUSTER_GROUP_SIZE, CLUSTER_GROUP_SIZE)]
+void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : SV_GroupID)
+{
+	// Fetch the coordinates of the current cell
+	uint3 targetCellIndex = groupId * CLUSTER_GROUP_SIZE + threadID;
+
+	// Get its global cell index
+	uint cellIndex = targetCellIndex.z + targetCellIndex.y * 32 + targetCellIndex.x * 2048;
+
+	// The size of a cell data-wise
+	uint cellDataSize = _LightPerCellCount + 3;
+
+	// Diagonal direction of the cluster
+	float3 bottomCorner = _MinClusterPos + float3(0.5f, 0.5f, 0.5f) * _ClusterCellSize;
+	// Let's compute the position of this cell
+	float3 cellCenterPosition = bottomCorner + (_MaxClusterPos - _MinClusterPos) * targetCellIndex / float3(64.0, 64.0, 32.0);
+
+	// The actual light count that intersects with this cell
+	uint actualLightCount = 0;
+	uint punctualLightCount = 0;
+	uint areaLightCount = 0;
+
+	// Now let's loop through the lights and fill the cell's information
+	for(uint lightIdx = 0; lightIdx < _LightVolumeCount; ++lightIdx)
+	{
+		// If no more lights can fit, just skip
+		if(actualLightCount >= _LightPerCellCount) break;
+
+		// Fetch the target light data
+   		LightVolume currentLight = _LightVolumes[lightIdx];
+
+   		// If this light should be skipped, skip it
+   		// if(_RaytracingLightCullResult[lightIdx] == 1) continue;
+   		// if(_LightVolumes[lightIdx].active == 0) continue;
+
+   		float squareRange = currentLight.range * currentLight.range;
+		// So basically we need to flag this cell if one of the corners of the cell happens to be in the sphere
+		bool intersects = false;
+		for(uint cIdx = 0; cIdx < 8; ++cIdx)
+		{
+			// Check if this corner is inside the shphere
+			float3 dir = currentLight.position - (cellCenterPosition + CornerSubDirections[cIdx] * _ClusterCellSize);
+			if(dot(dir, dir) <= squareRange)
+			{
+				intersects = true;
+				break;
+			}
+		}
+
+		if(intersects)
+		{
+			// Flag this light in this cell and increase the light count
+			_RaytracingLightCluster[cellIndex * cellDataSize + 3 + actualLightCount] = lightIdx;
+			actualLightCount++;
+
+			// Also increase the matching light count
+			punctualLightCount = currentLight.lightType == 0 ? punctualLightCount + 1 : punctualLightCount;
+			areaLightCount = currentLight.lightType == 1 ? areaLightCount + 1 : areaLightCount;
+		}
+	}
+
+	// Set the light count for the cell
+	_RaytracingLightCluster[cellIndex * cellDataSize] = actualLightCount;
+	_RaytracingLightCluster[cellIndex * cellDataSize + 1] = punctualLightCount;
+	_RaytracingLightCluster[cellIndex * cellDataSize + 2] = areaLightCount + punctualLightCount;
+}
+
+
+[numthreads(CULL_GROUP_SIZE, 1, 1)]
+void RaytracingLightCull(uint2 threadID : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+	// Fetch the coordinates of the current cell
+	uint targetLightIndex = groupId.x * CULL_GROUP_SIZE + threadID.x;
+
+	// Reset the culling information of this light
+	_RaytracingLightCullResult[targetLightIndex] = 0;
+
+	// if this index is beyond the target index, it is done
+	if(_LightVolumeCount <= targetLightIndex) return;
+
+	// Fetch the target light data
+	LightVolume currentLight = _LightVolumes[targetLightIndex];
+
+	// Square range value of the light
+	float squareRange = currentLight.range * currentLight.range;
+
+	// So basically we need to flag this cell if one of the corners of the cell happens to be in the sphere
+	bool intersects = false;
+	for(uint cIdx = 0; cIdx < 8; ++cIdx)
+	{
+		// Check if this corner is inside the shphere
+		float3 dir = currentLight.position - (_ClusterCenterPosition + CornerSubDirections[cIdx] * _ClusterDimension);
+		if(dot(dir, dir) <= squareRange)
+		{
+			intersects = true;
+			break;
+		}
+	}
+
+	// Set the light count for the cell
+	_RaytracingLightCullResult[targetLightIndex] = intersects ? 0 : 1;
+	// _RaytracingLightCullResult[targetLightIndex] = intersects ? 0 : 1;
+}

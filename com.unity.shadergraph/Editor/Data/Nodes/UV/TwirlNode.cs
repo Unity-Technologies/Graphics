@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("UV", "Twirl")]
-    public class TwirlNode : CodeFunctionNode
+    class TwirlNode : CodeFunctionNode
     {
         public TwirlNode()
         {
             name = "Twirl";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Twirl-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

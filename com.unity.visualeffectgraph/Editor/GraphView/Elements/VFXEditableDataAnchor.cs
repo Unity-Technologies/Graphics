@@ -1,97 +1,12 @@
-using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine.UIElements;
 using System.Collections.Generic;
 using Type = System.Type;
 using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXDataGUIStyles
-    {
-        public static VFXDataGUIStyles instance
-        {
-            get
-            {
-                if (s_Instance == null)
-                    s_Instance = new VFXDataGUIStyles();
-                return s_Instance;
-            }
-        }
-
-        static VFXDataGUIStyles s_Instance;
-
-        public GUIStyle baseStyle;
-
-        VFXDataGUIStyles()
-        {
-            baseStyle = GUI.skin.textField;
-        }
-
-        public GUIStyle GetGUIStyleForExpandableType(Type type)
-        {
-            GUIStyle style = null;
-
-            if (typeStyles.TryGetValue(type, out style))
-            {
-                return style;
-            }
-
-            GUIStyle typeStyle = new GUIStyle(baseStyle);
-            typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_plus");
-            if (typeStyle.normal.background == null)
-                typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default_plus");
-            typeStyle.active.background = typeStyle.focused.background = null;
-            typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/" + type.Name + "_minus");
-            if (typeStyle.onNormal.background == null)
-                typeStyle.onNormal.background = Resources.Load<Texture2D>("VFX/Default_minus");
-            typeStyle.border.top = 0;
-            typeStyle.border.left = 0;
-            typeStyle.border.bottom = typeStyle.border.right = 0;
-            typeStyle.padding.top = 3;
-
-            typeStyles.Add(type, typeStyle);
-
-
-            return typeStyle;
-        }
-
-        public GUIStyle GetGUIStyleForType(Type type)
-        {
-            GUIStyle style = null;
-
-            if (typeStyles.TryGetValue(type, out style))
-            {
-                return style;
-            }
-
-            GUIStyle typeStyle = new GUIStyle(baseStyle);
-            typeStyle.normal.background = Resources.Load<Texture2D>("VFX/" + type.Name);
-            if (typeStyle.normal.background == null)
-                typeStyle.normal.background = Resources.Load<Texture2D>("VFX/Default");
-            typeStyle.active.background = typeStyle.focused.background = null;
-            typeStyle.border.top = 0;
-            typeStyle.border.left = 0;
-            typeStyle.border.bottom = typeStyle.border.right = 0;
-
-            typeStyles.Add(type, typeStyle);
-
-
-            return typeStyle;
-        }
-
-        static Dictionary<Type, GUIStyle> typeStyles = new Dictionary<Type, GUIStyle>();
-
-        public void Reset()
-        {
-            typeStyles.Clear();
-        }
-
-        public float lineHeight
-        { get { return 16; } }
-    }
-
     partial class VFXEditableDataAnchor : VFXDataAnchor
     {
         PropertyRM      m_PropertyRM;
@@ -123,6 +38,11 @@ namespace UnityEditor.VFX.UI
         void OnAttachToPanel(AttachToPanelEvent e)
         {
             m_View = GetFirstAncestorOfType<VFXView>();
+            if( m_View == null)
+            {
+                //This can happen with asynchnous events.
+                return;
+            }
             m_View.allDataAnchors.Add(this);
         }
 

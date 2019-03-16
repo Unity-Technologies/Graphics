@@ -1,0 +1,296 @@
+// We need only need one bounce given that we want to see the objects and then direct lighting is not done using raytracing
+#pragma max_recursion_depth 1
+
+// HDRP include
+#define SHADER_TARGET 50
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
+
+// Raytracing includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingConsts.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+
+// The target acceleration structure that we will evaluate the reflexion in
+Texture2D<float>                        _StencilTexture;
+Texture2D<float>                        _DepthTexture;
+
+// Flag value that defines if a given pixel recieves reflections or not
+// int                                       _SsrStencilExclusionValue;
+
+// Output structure of the reflection raytrace shader
+RWTexture2D<float4>                     _SsrLightingTextureRW;
+RWTexture2D<float4>                     _SsrHitPointTexture;
+Texture2D<float4>                       _SsrClearCoatMaskTexture;
+
+[shader("miss")]
+void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload)
+{
+    rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0).xyz;
+    rayIntersection.t = _RaytracingRayMaxLength;
+}
+
+[shader("raygeneration")]
+void RayGenHalfRes()
+{
+    // Grab the dimensions of the current dispatch
+    uint3 LaunchIndex = DispatchRaysIndex();
+    uint3 LaunchDim = DispatchRaysDimensions();
+
+    // Compute the pixel coordinate (which matches the half res of the effect)
+    uint2 halfResCoord = uint2(LaunchIndex.x, LaunchIndex.y);
+
+    // Get the scramblingValue of this pixel
+    uint2 scramblingValue = ScramblingValue(halfResCoord.x, halfResCoord.y);
+
+    // Pick which subpixel we will be launching our effects from
+    float subPixelSample = GetRaytracingNoiseSample(_RaytracingFrameIndex, 3, scramblingValue.x);
+    int subPixel =  clamp((int)(subPixelSample * 4.0), 0, 3);
+    uint2 shift = HalfResIndexToCoordinateShift[subPixel];
+
+    // Pixel where we will store the result of the raytracing
+    uint2 outputCoord = halfResCoord * 2;
+
+    // Pixel coordinate in full res of the pixel that we will be using for our calculus
+    uint2 sourceCoord = outputCoord + shift;
+
+    // Clear the textures (in case the sample that we generate does doesn't generate any )
+    _SsrLightingTextureRW[outputCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    _SsrHitPointTexture[outputCoord] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Read the depth value
+    float depthValue  = _DepthTexture[sourceCoord];
+
+    // This point is part of the background, we don't really care
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Let's compute the full resolution of the texture
+    float2 fullResolution = 0.5f/LaunchDim.xy;
+
+    // Convert this to a world space position
+    PositionInputs posInput = GetPositionInput(sourceCoord, fullResolution, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
+    float distanceToCamera = length(posInput.positionWS);
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Compute the incident vector on the surfaces
+    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(sourceCoord, normalData);
+    // Override the roughness by the clearcoat value of this is a clear coat
+    float4 coatMask = _SsrClearCoatMaskTexture[sourceCoord];
+    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+
+    // If this value is beyond the smoothness that we allow, no need to compute it
+    if (_RaytracingReflectionMinSmoothness > PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness))
+        return;
+
+    // Create the local ortho basis
+    float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
+
+    // Compute the actual roughness
+    float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
+
+    int globalSampleIndex = _RaytracingFrameIndex;
+
+    float2 sample = float2(0.0, 0.0);
+    sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+    sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+
+    // Importance sample the direction
+    float3 sampleDir = float3(0.0, 0.0, 0.0);
+    float NdotL, NdotH, VdotH, LdotH;
+    // TODO: use Eric's paper on visible normal distribution sampling in order to make all samples worth it
+    SampleGGXDir2(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH, LdotH, false);
+
+    // If this direction is under the surface, let's generate a new one that won't be
+    // TODO: use Eric's paper on visible normal distribution sampling
+    globalSampleIndex += 8;
+    for (int i = 1; i < 8; ++i)
+    {
+        if (dot(sampleDir, normalData.normalWS) >= 0.00f && dot(normalData.normalWS, viewWS) >= 0.00f)
+            break;
+
+        sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+        sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+        SampleGGXDir2(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH, LdotH, false);
+    }
+
+    // Create the ray descriptor for this pixel
+    RayDesc rayDescriptor;
+    rayDescriptor.Origin = positionWS + normalData.normalWS * _RaytracingRayBias;
+    rayDescriptor.Direction = sampleDir;
+    rayDescriptor.TMin = 0;
+    rayDescriptor.TMax = _RaytracingRayMaxLength;
+
+    // Create and init the RayIntersection structure for this
+    RayIntersection rayIntersection;
+    rayIntersection.color = float3(0.0, 0.0, 0.0);
+    rayIntersection.incidentDirection = rayDescriptor.Direction;
+    rayIntersection.origin = rayDescriptor.Origin;
+    rayIntersection.t = -1.0f;
+
+    // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
+    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+    rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
+    if (_RayCountEnabled > 0)
+    {
+        _RayCountTexture[outputCoord].y = _RayCountTexture[outputCoord].y + 1;
+    }
+
+    // Evaluate the ray intersection
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+
+    // Compute the PDF
+    float samplePDF = 1.0f;
+
+    // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
+    if (roughness > 0.001)
+    {
+        samplePDF = D_GGX(NdotH, roughness) * NdotH / (4.0f * LdotH);
+    }
+
+    // Make sure we pre-expose and then we clamp
+    float3 exposedValue = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
+
+    // We store the clamped, pre-exposed value and the index of the target pixel in the first texture
+    _SsrLightingTextureRW[outputCoord] = float4(exposedValue, subPixelSample);
+    // In the second texture, we store the sampled direction and the invPDF of the sample
+    _SsrHitPointTexture[outputCoord] = float4(sampleDir, 1.0f / samplePDF);
+}
+
+[shader("raygeneration")]
+void RayGenIntegration()
+{
+    // Grab the dimensions of the current dispatch
+    uint3 LaunchIndex = DispatchRaysIndex();
+    uint3 LaunchDim = DispatchRaysDimensions();
+
+    // Compute the pixel coordinate to evaluate
+    uint2 currentCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
+
+    // Get the scramblingValue of this pixel
+    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
+
+    // Clear the output color texture
+    _SsrLightingTextureRW[currentCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    // Read the depth value
+    float depthValue = _DepthTexture[currentCoord];
+
+    // This point is part of the background, we don't really care
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Convert this to a world space position
+    PositionInputs posInput = GetPositionInput(currentCoord, 1.0f/LaunchDim.xy, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
+    float distanceToCamera = length(posInput.positionWS);
+
+    // Should we compute the reflection for this pixel?
+    //if (_RaytracingReflectionMaxDistance < distanceToCamera)
+    //    return;
+
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Compute the incident vector on the surfaces
+    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord, normalData);
+    // Override the roughness by the clearcoat value of this is a clear coat
+    float4 coatMask = _SsrClearCoatMaskTexture[currentCoord];
+    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+    
+    // Create the local ortho basis
+    float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
+
+    // If this value is beyond the smothness that we allow, no need to compute it
+    if (_RaytracingReflectionMinSmoothness > PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness))
+        return;
+
+    // Compute the actual roughness
+    float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
+
+    // Clamp the sample count if the surface is a completely smooth
+    int realSampleCount = normalData.perceptualRoughness < 0.01 ? 1 : _RaytracingNumSamples;
+
+    // Variable that accumulate the radiance
+    float3 finalColor = float3(0.0, 0.0, 0.0);
+    
+    if (_RayCountEnabled > 0)
+    {
+        _RayCountTexture[currentCoord].y = _RayCountTexture[currentCoord].y + (uint)realSampleCount;
+    }
+
+    // Loop through the samples and add their contribution
+    for (int sampleIndex = 0; sampleIndex < realSampleCount; ++sampleIndex)
+    {
+        // Compute the current sample index
+        int globalSampleIndex = _RaytracingFrameIndex * realSampleCount + sampleIndex;
+
+    	// Generate the new sample (follwing values of the sequence)
+        float2 sample = float2(0.0, 0.0);
+        sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
+        sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
+
+        // Importance sample the direction using GGX
+        float3 sampleDir = float3(0.0, 0.0, 0.0);
+        float NdotL, NdotH, VdotH, LdotH;
+        SampleGGXDir2(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH, LdotH, false);
+
+        // Create the ray descriptor for this pixel
+        RayDesc rayDescriptor;
+        rayDescriptor.Origin = positionWS + normalData.normalWS * _RaytracingRayBias;
+        rayDescriptor.Direction = sampleDir;
+        rayDescriptor.TMin = 0.0f;
+        rayDescriptor.TMax = _RaytracingRayMaxLength;
+
+        // Create and init the RayIntersection structure for this
+        RayIntersection rayIntersection;
+        rayIntersection.color = float3(0.0, 0.0, 0.0);
+        rayIntersection.incidentDirection = rayDescriptor.Direction;
+        rayIntersection.origin = rayDescriptor.Origin;
+        rayIntersection.t = -1.0f;
+
+        // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
+        rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+        rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
+
+        // Evaluate the ray intersection
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+
+        // Contribute to the pixel
+        finalColor += rayIntersection.color;
+    }
+
+   	// Normalize the value
+    finalColor *= 1.0f / realSampleCount;
+
+    // Expose and clamp the final color
+    finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
+
+    // We store the sampled color and the weight that shall be used for it (1.0f)
+    _SsrLightingTextureRW[currentCoord] = float4(finalColor, 1.0f);
+}
+
+[shader("closesthit")]
+void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+{
+	// When we do not hit any known closest hit, that means that no shader was specified for the target object meaning either it has nothing to do in the acceleration structure or we need to add raytracing subshaders to it
+	rayIntersection.color = float3(1.0, 0.0, 0.5);
+}

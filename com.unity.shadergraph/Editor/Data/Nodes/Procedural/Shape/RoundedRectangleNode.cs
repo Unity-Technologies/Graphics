@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Shape", "Rounded Rectangle")]
-    public class RoundedRectangleNode : CodeFunctionNode
+    class RoundedRectangleNode : CodeFunctionNode
     {
         public RoundedRectangleNode()
         {
             name = "Rounded Rectangle";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rounded-Rectangle-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

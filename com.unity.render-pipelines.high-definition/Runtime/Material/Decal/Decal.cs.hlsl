@@ -23,6 +23,7 @@ struct DecalSurfaceData
     float4 baseColor;
     float4 normalWS;
     float4 mask;
+    float4 emissive;
     float2 MAOSBlend;
     uint HTileMask;
 };
@@ -37,6 +38,8 @@ struct DecalData
     float4 normalScaleBias;
     float4 maskScaleBias;
     float4 baseColor;
+    float4 remappingAOS;
+    float4 scalingMAB;
     float3 blendParams;
 };
 

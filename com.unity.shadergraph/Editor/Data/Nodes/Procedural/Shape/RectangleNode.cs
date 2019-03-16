@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Shape", "Rectangle")]
-    public class RectangleNode : CodeFunctionNode
+    class RectangleNode : CodeFunctionNode
     {
         public RectangleNode()
         {
             name = "Rectangle";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rectangle-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

@@ -3,13 +3,13 @@ using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class PopupControlAttribute : Attribute, IControlAttribute
+    class PopupControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
 
@@ -25,13 +25,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     }
 
     [Serializable]
-    public struct PopupList
+    struct PopupList
     {
         public int selectedEntry;
         public List<string> popupEntries;
     }
 
-    public class PopupControlView : VisualElement
+    class PopupControlView : VisualElement
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public PopupControlView(string label, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
-            AddStyleSheetPath("Styles/Controls/PopupControlView");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/Controls/PopupControlView"));
             m_Node = node;
             m_PropertyInfo = propertyInfo;
 
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             Add(new Label(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name)));
             var value = (PopupList)propertyInfo.GetValue(m_Node, null);
             m_PopupField = new PopupField<string>(value.popupEntries, value.selectedEntry);
-            m_PopupField.OnValueChanged(OnValueChanged);
+            m_PopupField.RegisterValueChangedCallback(OnValueChanged);
             Add(m_PopupField);
         }
 

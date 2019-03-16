@@ -5,14 +5,14 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum RotationUnit
+    enum RotationUnit
     {
         Radians,
         Degrees
     };
 
     [Title("UV", "Rotate")]
-    public class RotateNode : CodeFunctionNode
+    class RotateNode : CodeFunctionNode
     {
         [SerializeField]
         private RotationUnit m_Unit = RotationUnit.Radians;
@@ -36,10 +36,6 @@ namespace UnityEditor.ShaderGraph
             name = "Rotate";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rotate-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

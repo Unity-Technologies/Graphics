@@ -8,12 +8,12 @@ For an introduction to **Shader Graph** see [Getting Started](Getting-Started.md
 This repository and its documentation is under active development. Everything is subject to change.
 
 ## Contents
-* [Getting Started](GettingStarted.md)
+* [Getting Started](Getting-Started.md)
    * [Custom Nodes with CodeFunctionNode](Custom-Nodes-With-CodeFunctionNode.md)
 * [Shader Graph](Shader-Graph.md)
    * [Shader Graph Window](Shader-Graph-Window.md)
    * [Blackboard](Blackboard.md)
-   * [Master Preview](Preview.md)
+   * [Master Preview](Master-Preview.md)
    * [Create Node Menu](Create-Node-Menu.md)
    * [Shader Graph Asset](Shader-Graph-Asset.md)
 * [Sub-graph](Sub-graph.md)
@@ -27,9 +27,3 @@ This repository and its documentation is under active development. Everything is
    * [Data Types](Data-Types.md)
    * [Port Bindings](Port-Bindings.md)
 * [Node Library](Node-Library.md)
-* [Scripting API](Scripting-API.md)
-   * [CodeFunctionNode](CodeFunctionNode.md)
-      * [Port Types](CodeFunctionNode-Port-Types.md)
-      * [SlotAttribute](CodeFunctionNode.SlotAttribute.md)
-      * [Binding](CodeFunctionNode.Binding.md)
-      * [GetFunctionToConvert](CodeFunctionNode.GetFunctionToConvert.md)

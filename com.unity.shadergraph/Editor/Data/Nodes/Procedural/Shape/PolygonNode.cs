@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Shape", "Polygon")]
-    public class PolygonNode : CodeFunctionNode
+    class PolygonNode : CodeFunctionNode
     {
         public PolygonNode()
         {
             name = "Polygon";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Polygon-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

@@ -4,16 +4,11 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Artistic", "Adjustment", "Contrast")]
-    public class ContrastNode : CodeFunctionNode
+    class ContrastNode : CodeFunctionNode
     {
         public ContrastNode()
         {
             name = "Contrast";
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Contrast-Node"; }
         }
 
         protected override MethodInfo GetFunctionToConvert()

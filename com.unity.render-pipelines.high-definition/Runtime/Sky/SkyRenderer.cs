@@ -1,3 +1,5 @@
+using UnityEngine.Rendering;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public abstract class SkyRenderer
@@ -14,9 +16,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float debugExposure = 0.0f;
             if (debugSettings != null && debugSettings.DebugNeedsExposure())
             {
-                debugExposure = debugSettings.lightingDebugSettings.debugExposure;
+                debugExposure = debugSettings.data.lightingDebugSettings.debugExposure;
             }
-            return skySettings.exposure + debugExposure;
+            return ColorUtils.ConvertEV100ToExposure(-(skySettings.exposure + debugExposure));
         }
     }
 }

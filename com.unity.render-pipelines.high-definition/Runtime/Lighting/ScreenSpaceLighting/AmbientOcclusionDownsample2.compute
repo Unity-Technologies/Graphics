@@ -1,0 +1,76 @@
+//
+// This is a modified version of the SSAO renderer from Microsoft's MiniEngine
+// library. The copyright notice from the original version is included below.
+//
+// The original source code of MiniEngine is available on GitHub.
+// https://github.com/Microsoft/DirectX-Graphics-Samples
+//
+
+//
+// Copyright (c) Microsoft. All rights reserved.
+// This code is licensed under the MIT License (MIT).
+// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
+// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
+// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
+// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
+//
+// Developed by Minigraph
+//
+// Author:  James Stanard
+//
+
+#pragma warning(disable : 3568)
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel KMain            MAIN=KMain
+#pragma kernel KMain_MSAA       MAIN=KMain_MSAA      MSAA
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+TEXTURE2D_X(_DS4x);
+
+#if MSAA
+RW_TEXTURE2D_X(float2, _DS8x);
+RW_TEXTURE2D_ARRAY(float2, _DS8xAtlas);
+RW_TEXTURE2D_X(float2, _DS16x);
+RW_TEXTURE2D_ARRAY(float2, _DS16xAtlas);
+#else
+RW_TEXTURE2D_X(float, _DS8x);
+RW_TEXTURE2D_ARRAY(float, _DS8xAtlas);
+RW_TEXTURE2D_X(float, _DS16x);
+RW_TEXTURE2D_ARRAY(float, _DS16xAtlas);
+#endif
+
+[numthreads(8, 8, 1)]
+void MAIN(uint GI : SV_GroupIndex, uint3 DTid : SV_DispatchThreadID)
+{
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(DTid.z);
+
+#ifdef MSAA
+    float2 m1 = _DS4x[COORD_TEXTURE2D_X(DTid.xy << 1)].xy;
+#else
+    float m1 = _DS4x[COORD_TEXTURE2D_X(DTid.xy << 1)].x;
+#endif
+
+    uint2 st = DTid.xy;
+    uint2 stAtlas = st >> 2;
+    uint stSlice = ((st.x & 3) | (st.y << 2)) & 15;
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    stSlice += DTid.z << 4; // stereo eye indexing (16 slices per eye)
+#endif
+    _DS8x[COORD_TEXTURE2D_X(st)] = m1;
+    _DS8xAtlas[uint3(stAtlas, stSlice)] = m1;
+
+    if ((GI & 011) == 0)
+    {
+        uint2 st = DTid.xy >> 1;
+        uint2 stAtlas = st >> 2;
+        uint stSlice = ((st.x & 3) | (st.y << 2)) & 15;
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+        stSlice += DTid.z << 4; // stereo eye indexing (16 slices per eye)
+#endif
+        _DS16x[COORD_TEXTURE2D_X(st)] = m1;
+        _DS16xAtlas[uint3(stAtlas, stSlice)] = m1;
+    }
+}

@@ -34,28 +34,26 @@ float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout Directio
         // We support some kind of transmission.
         if (NdotL <= 0)
         {
-            // And since the light is back-facing, it's active.
-            if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-            {
-                // Care must be taken to bias in the direction of the light.
-                // TODO: change the sign of the bias: faster & uses fewer VGPRs.
-                N = -N;
+            // Care must be taken to bias in the direction of the light.
+            // TODO: change the sign of the bias: faster & uses fewer VGPRs.
+            N = -N;
 
-                // We want to evaluate cookies and light attenuation, so we flip NdotL.
-                NdotL = -NdotL;
+            // We want to evaluate cookies and light attenuation, so we flip NdotL.
+            NdotL = -NdotL;
 
-                // However, we don't want baked or contact shadows.
-                light.contactShadowIndex   = -1;
-                light.shadowMaskSelector.x = -1;
+            // However, we don't want baked or contact shadows.
+            light.contactShadowIndex   = -1;
+            light.shadowMaskSelector.x = -1;
 
-                // We use the precomputed value (based on "baked" thickness).
-                transmittance = bsdfData.transmittance;
-            }
-            else
+            // We use the precomputed value (based on "baked" thickness).
+            transmittance = bsdfData.transmittance;
+
+            if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
             {
                 // The mixed thickness mode is not supported by directional lights
                 // due to poor quality and high performance impact.
                 // Keeping NdotL negative will ensure that nothing is evaluated.
+                light.shadowIndex = -1;
             }
         }
     }
@@ -181,13 +179,13 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
                 // Therefore, we need to find the thickness along the normal.
                 // Warning: based on the artist's input, dependence on the NdotL has been disabled.
                 float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) /* * -NdotL */;
-                float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
+                float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfileIndex].x;
                 float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
 
                 // We need to make sure it's not less than the baked thickness to minimize light leaking.
                 float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
 
-                float3 S = _ShapeParams[bsdfData.diffusionProfile].rgb;
+                float3 S = _ShapeParams[bsdfData.diffusionProfileIndex].rgb;
 
             #if 0
                 float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);

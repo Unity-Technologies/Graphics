@@ -3,14 +3,27 @@ MultiFloatSlotControlView {
     align-items: center;
 }
 
-MultiFloatSlotControlView > #dummy > Label {
+#dummy > Label {
     margin-left: 0;
     margin-right: 0;
+    margin-bottom: 0;
     cursor: slide-arrow;
+    -unity-text-align: middle-left;
 }
 
-MultiFloatSlotControlView > FloatField {
-    width: 30;
+.unity-base-field {
+    width: 30px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    -unity-text-align: middle-left;
+}
+
+.unity-base-field__input{
     margin-left: 0;
     margin-right: 0;
+}
+
+FloatField.unity-double-field {
+    padding-left: 0;
+    padding-right: 0;
 }

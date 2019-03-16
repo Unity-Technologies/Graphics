@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
@@ -18,6 +17,7 @@ namespace UnityEditor.VFX.UI
     {
         bool expanded { get; }
         bool expandable { get; }
+        bool expandableIfShowsEverything { get; }
         object value { get; set; }
         bool spaceableAndMasterOfSpace { get; }
         VFXCoordinateSpace space { get; set; }
@@ -54,6 +54,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expanded { get { return false; } }
         bool IPropertyRMProvider.expandable { get { return false; } }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
         object IPropertyRMProvider.value
         {
             get
@@ -142,14 +143,14 @@ namespace UnityEditor.VFX.UI
             if (m_Label.panel == null) return 40;
 
             VisualElement element = this;
-            while (element != null && element.style.font.value == null)
+            while (element != null && element.resolvedStyle.unityFont == null)
             {
                 element = element.parent;
             }
             if (element != null)
             {
-                m_Label.style.font = element.style.font;
-                return m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
+                m_Label.style.unityFont = element.resolvedStyle.unityFont;
+                return m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.resolvedStyle.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
             }
             return 40 + m_Provider.depth * depthOffset;
         }
@@ -171,6 +172,11 @@ namespace UnityEditor.VFX.UI
         {
             SetValue(m_Provider.value);
             UpdateGUI(true);
+        }
+
+        public IPropertyRMProvider provider
+        {
+            get { return m_Provider; }
         }
 
         public abstract void UpdateGUI(bool force);
@@ -230,23 +236,22 @@ namespace UnityEditor.VFX.UI
 
         void UpdateExpandable()
         {
-            if (m_Provider.expandable)
+            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || ! showsEverything))
             {
-                if (m_IconStates == null)
-                {
-                    m_IconStates = new Texture2D[]
-                    {
-                        Resources.Load<Texture2D>("VFX/plus"),
-                        Resources.Load<Texture2D>("VFX/minus")
-                    };
-                }
                 if (!m_IconClickableAdded)
                 {
                     m_Icon.AddManipulator(m_IconClickable);
                     m_IconClickableAdded = false;
                 }
-
-                m_Icon.style.backgroundImage = m_IconStates[m_Provider.expanded ? 1 : 0];
+                if (m_Provider.expanded)
+                {
+                    AddToClassList("icon-expanded");
+                }
+                else
+                {
+                    RemoveFromClassList("icon-expanded");
+                }
+                    AddToClassList("icon-expandable");
             }
             else
             {
@@ -268,9 +273,6 @@ namespace UnityEditor.VFX.UI
             m_Provider = provider;
             m_labelWidth = labelWidth;
 
-            m_Icon = new VisualElement() { name = "icon" };
-            Add(m_Icon);
-
             m_IconClickable = new Clickable(OnExpand);
 
             isDelayed = VFXPropertyAttribute.IsDelayed(m_Provider.attributes);
@@ -291,12 +293,15 @@ namespace UnityEditor.VFX.UI
                     VisualElement line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft =  0.5f * depthOffset + (i == 0 ? -2 : 0);
-                    line.style.marginRight = depthOffset * 0.5f + ((i == provider.depth - 1) ? 2 : 0);
+                    line.style.marginLeft =  depthOffset + (i == 0 ? -2 : 0);
+                    line.style.marginRight = ((i == provider.depth - 1) ? 2 : 0);
 
                     Add(line);
                 }
             }
+            m_Icon = new VisualElement() { name = "icon" };
+            Add(m_Icon);
+
             m_Label.style.width = effectiveLabelWidth - provider.depth * depthOffset;
             Add(m_Label);
 
@@ -439,11 +444,6 @@ namespace UnityEditor.VFX.UI
         public abstract bool showsEverything { get; }
     }
 
-    interface IFloatNAffector<T>
-    {
-        T GetValue(object floatN);
-    }
-
     abstract class PropertyRM<T> : PropertyRM
     {
         public PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
@@ -452,11 +452,7 @@ namespace UnityEditor.VFX.UI
         {
             if (obj != null)
             {
-                if (obj is FloatN)
-                {
-                    m_Value = ((IFloatNAffector<T>)FloatNAffector.Default).GetValue(obj);
-                }
-                else if (m_Provider.portType == typeof(Transform) && obj is Matrix4x4)
+                if (m_Provider.portType == typeof(Transform) && obj is Matrix4x4)
                 {
                     // do nothing
                 }
@@ -695,6 +691,6 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override bool showsEverything { get { return true; } }
+        public override bool showsEverything { get { return false; } }
     }
 }

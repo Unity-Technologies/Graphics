@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Trigonometry", "Tangent")]
-    public class TangentNode : CodeFunctionNode
+    class TangentNode : CodeFunctionNode
     {
         public TangentNode()
         {
             name = "Tangent";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Tangent-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

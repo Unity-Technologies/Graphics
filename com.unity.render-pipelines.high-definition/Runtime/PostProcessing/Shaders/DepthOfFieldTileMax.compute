@@ -1,0 +1,89 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "DepthOfFieldCommon.hlsl"
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel KClear
+#pragma kernel KMainNearFar     MAIN=KMainNearFar       NEAR FAR
+#pragma kernel KMainNear        MAIN=KMainNear          NEAR
+#pragma kernel KMainFar         MAIN=KMainFar           FAR
+
+// Indirect arguments have to be in a RWBuffer
+// The first three uints are near threadgroups, the last three are far threadgroups
+RWBuffer<uint> _IndirectBuffer;
+
+CBUFFER_START(cb0)
+    float4 _Params;
+CBUFFER_END
+
+#define Size uint2(_Params.xy)
+
+#define TILE_SIZE                   8u
+#define INDIRECT_NEAR_OFFSET        0u
+#define INDIRECT_FAR_OFFSET         3u
+
+TEXTURE2D_X(_InputNearCoCTexture);
+TEXTURE2D_X(_InputFarCoCTexture);
+
+AppendStructuredBuffer<TileData> _NearTileList;
+AppendStructuredBuffer<TileData> _FarTileList;
+
+groupshared float gs_cacheNear[TILE_SIZE * TILE_SIZE];
+groupshared float gs_cacheFar[TILE_SIZE * TILE_SIZE];
+
+[numthreads(2, 1, 1)]
+void KClear(uint dispatchThreadId : SV_DispatchThreadID)
+{
+    _IndirectBuffer[dispatchThreadId * 3    ] = 0; // ThreadGroupCountX
+    _IndirectBuffer[dispatchThreadId * 3 + 1] = 1; // ThreadGroupCountY
+    _IndirectBuffer[dispatchThreadId * 3 + 2] = 1; // ThreadGroupCountZ
+}
+
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+void MAIN(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID)
+{
+    uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
+
+    gs_cacheNear[threadIdx] = _InputNearCoCTexture[COORD_TEXTURE2D_X(min(dispatchThreadId, Size))].x;
+    gs_cacheFar[threadIdx] = _InputFarCoCTexture[COORD_TEXTURE2D_X(min(dispatchThreadId, Size))].x;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Parallel reduction - find the max value for this tile
+    UNITY_UNROLL
+    for(uint s = (TILE_SIZE * TILE_SIZE) / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_cacheNear[threadIdx] = max(gs_cacheNear[threadIdx], gs_cacheNear[threadIdx + s]);
+            gs_cacheFar[threadIdx] = max(gs_cacheFar[threadIdx], gs_cacheFar[threadIdx + s]);
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // Evaluate on group thread 0
+    if (threadIdx == 0u)
+    {
+        #if NEAR
+        if (gs_cacheNear[threadIdx] > 0.0)
+        {
+            // Near tile detected
+            TileData tileData = { PackTileCoord(dispatchThreadId) };
+            _NearTileList.Append(tileData);
+            InterlockedAdd(_IndirectBuffer[INDIRECT_NEAR_OFFSET], 1);
+        }
+        #endif
+
+        #if FAR
+        if (gs_cacheFar[threadIdx] > 0.0)
+        {
+            // Far tile detected
+            TileData tileData = { PackTileCoord(dispatchThreadId) };
+            _FarTileList.Append(tileData);
+            InterlockedAdd(_IndirectBuffer[INDIRECT_FAR_OFFSET], 1);
+        }
+        #endif
+    }
+}

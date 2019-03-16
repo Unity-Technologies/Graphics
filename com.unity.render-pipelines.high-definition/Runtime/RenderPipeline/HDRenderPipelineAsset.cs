@@ -1,19 +1,20 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
-    public class HDRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
+    public enum ShaderVariantLogLevel
     {
-        [HideInInspector]
-        const int currentVersion = 1;
-        // Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
-#pragma warning disable 414
-        [SerializeField]
-        int m_Version = currentVersion;
-#pragma warning restore 414
+        Disabled,
+        OnlyHDRPShaders,
+        AllShaders,
+    }
+
+    // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset
+    {
 
         HDRenderPipelineAsset()
         {
@@ -26,77 +27,61 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [SerializeField]
         RenderPipelineResources m_RenderPipelineResources;
+
         public RenderPipelineResources renderPipelineResources
         {
             get { return m_RenderPipelineResources; }
             set { m_RenderPipelineResources = value; }
         }
 
+#if UNITY_EDITOR
+        HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
+
+
+        public HDRenderPipelineEditorResources renderPipelineEditorResources
+        {
+            get
+            {
+                //there is no clean way to load editor resources without having it serialized
+                // - impossible to load them at deserialization
+                // - constructor only called at asset creation
+                // - cannot rely on OnEnable
+                //thus fallback with lazy init for them
+                if (m_RenderPipelineEditorResources == null || m_RenderPipelineEditorResources.Equals(null))
+                    m_RenderPipelineEditorResources = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+                return m_RenderPipelineEditorResources;
+            }
+            set { m_RenderPipelineEditorResources = value; }
+        }
+#endif
+
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
         [SerializeField]
-        [FormerlySerializedAs("serializedFrameSettings")]
-        FrameSettings m_FrameSettings = new FrameSettings(); // This are the defaultFrameSettings for all the camera and apply to sceneView, public to be visible in the inspector
-        // Not serialized, not visible, the settings effectively used
-        FrameSettings m_FrameSettingsRuntime = new FrameSettings();
+        FrameSettings m_RenderingPathDefaultCameraFrameSettings = FrameSettings.defaultCamera;
 
         [SerializeField]
-        FrameSettings m_BakedOrCustomReflectionFrameSettings = new FrameSettings();
+        FrameSettings m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = FrameSettings.defaultCustomOrBakeReflectionProbe;
 
         [SerializeField]
-        FrameSettings m_RealtimeReflectionFrameSettings = new FrameSettings();
-        
-        bool m_frameSettingsIsDirty = true;
-        public bool frameSettingsIsDirty
-        {
-            get { return m_frameSettingsIsDirty; }
-        }
+        FrameSettings m_RenderingPathDefaultRealtimeReflectionFrameSettings = FrameSettings.defaultRealtimeReflectionProbe;
 
-        public FrameSettings GetFrameSettings()
+        public ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
         {
-            return m_FrameSettingsRuntime;
-        }
-        
-        public FrameSettings GetBakedOrCustomReflectionFrameSettings()
-        {
-            return m_BakedOrCustomReflectionFrameSettings;
-        }
-
-        public FrameSettings GetRealtimeReflectionFrameSettings()
-        {
-            return m_RealtimeReflectionFrameSettings;
-        }
-
-        // See comment in FrameSettings.UpdateDirtyFrameSettings()
-        // for detail about this function
-        public void UpdateDirtyFrameSettings()
-        {
-            if (m_frameSettingsIsDirty)
+            switch(type)
             {
-                m_FrameSettings.CopyTo(m_FrameSettingsRuntime);
-
-                m_frameSettingsIsDirty = false;
-
-                // In Editor we can have plenty of camera that are not render at the same time as SceneView.
-                // It is really tricky to keep in sync with them. To have a coherent state. When a change is done
-                // on HDRenderPipelineAsset, we tag all camera as dirty so we are sure that they will get the
-                // correct default FrameSettings when the camera will be in the HDRenderPipeline.Render() call
-                // otherwise, as SceneView and Game camera are not in the same call Render(), Game camera that use default
-                // will not be update correctly.
-                #if UNITY_EDITOR
-                Camera[] cameras = Camera.allCameras;
-                foreach (Camera camera in cameras)
-                {
-                    var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-                    if (additionalCameraData)
-                    {
-                        // Call OnAfterDeserialize that set dirty on FrameSettings
-                        additionalCameraData.OnAfterDeserialize();
-                    }
-                }
-                #endif
+                case FrameSettingsRenderType.Camera:
+                    return ref m_RenderingPathDefaultCameraFrameSettings;
+                case FrameSettingsRenderType.CustomOrBakedReflection:
+                    return ref m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
+                case FrameSettingsRenderType.RealtimeReflection:
+                    return ref m_RenderingPathDefaultRealtimeReflectionFrameSettings;
+                default:
+                    throw new ArgumentException("Unknown FrameSettingsRenderType");
             }
         }
+
+        public bool frameSettingsHistory { get; set; } = false;
 
         public ReflectionSystemParameters reflectionSystemParameters
         {
@@ -104,29 +89,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return new ReflectionSystemParameters
                 {
-                    maxPlanarReflectionProbePerCamera = renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize,
+                    maxPlanarReflectionProbePerCamera = currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize,
                     maxActivePlanarReflectionProbe = 512,
-                    planarReflectionProbeSize = (int)renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize,
+                    planarReflectionProbeSize = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.planarReflectionTextureSize,
                     maxActiveReflectionProbe = 512,
-                    reflectionProbeSize = (int)renderPipelineSettings.lightLoopSettings.reflectionCubemapSize
+                    reflectionProbeSize = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize
                 };
             }
         }
 
+        // Note: having m_RenderPipelineSettings serializable allows it to be modified in editor.
+        // And having it private with a getter property force a copy.
+        // As there is no setter, it thus cannot be modified by code.
+        // This ensure immutability at runtime.
+
         // Store the various RenderPipelineSettings for each platform (for now only one)
-        public RenderPipelineSettings renderPipelineSettings = new RenderPipelineSettings();
+        [SerializeField, FormerlySerializedAs("renderPipelineSettings")]
+        RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.@default;
 
         // Return the current use RenderPipelineSettings (i.e for the current platform)
-        public RenderPipelineSettings GetRenderPipelineSettings()
-        {
-            return renderPipelineSettings;
-        }
+        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
         public bool allowShaderVariantStripping = true;
-        public bool enableSRPBatcher = false;
+        public bool enableSRPBatcher = true;
+        public ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
         [SerializeField]
+        [Obsolete("Use diffusionProfileSettingsList instead")]
         public DiffusionProfileSettings diffusionProfileSettings;
+
+        [SerializeField]
+        public DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
+
+        [NonSerialized]
+        DiffusionProfileSettings m_DefaultDiffusionProfileSettings;
+        public DiffusionProfileSettings defaultDiffusionProfileSettings
+        {
+            get
+            {
+                if (m_DefaultDiffusionProfileSettings == null)
+                {
+                    m_DefaultDiffusionProfileSettings = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
+                    m_DefaultDiffusionProfileSettings.SetDefaultParams();
+                }
+                return m_DefaultDiffusionProfileSettings;
+            }
+        }
 
         // HDRP use GetRenderingLayerMaskNames to create its light linking system
         // Mean here we define our name for light linking.
@@ -163,16 +171,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override string[] renderingLayerMaskNames
         {
             get
-        {
-            return renderingLayerNames;
-        }
-        }
-
-        public override Material defaultMaterial
-        {
-            get
-        {
-                return m_RenderPipelineResources.materials.defaultDiffuseMat;
+            {
+                return renderingLayerNames;
             }
         }
 
@@ -180,68 +180,88 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-
                 return m_RenderPipelineResources.shaders.defaultPS;
             }
         }
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
+        public override Material defaultMaterial
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultDiffuseMat;
+            }
+        }
+
         // call to GetAutodeskInteractiveShaderXXX are only from within editor
         public override Shader autodeskInteractiveShader
         {
-            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph"); }
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaderGraphs.autodeskInteractive;
+            }
         }
 
         public override Shader autodeskInteractiveTransparentShader
         {
-            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph"); }
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaderGraphs.autodeskInteractiveTransparent;
+            }
         }
 
         public override Shader autodeskInteractiveMaskedShader
         {
-            get { return UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph"); }
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaderGraphs.autodeskInteractiveMasked;
+            }
         }
-        #endif
+
+        public override Shader terrainDetailLitShader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailLitShader;
+            }
+        }
+
+        public override Shader terrainDetailGrassShader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailGrassShader;
+            }
+        }
+
+        public override Shader terrainDetailGrassBillboardShader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailGrassBillboardShader;
+            }
+        }
 
         // Note: This function is HD specific
         public Material GetDefaultDecalMaterial()
         {
-            return m_RenderPipelineResources.materials.defaultDecalMat;
+            return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultDecalMat;
         }
 
         // Note: This function is HD specific
         public Material GetDefaultMirrorMaterial()
         {
-            return m_RenderPipelineResources.materials.defaultMirrorMat;
+            return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultMirrorMat;
         }
 
         public override Material defaultTerrainMaterial
         {
             get
-        {
-            return m_RenderPipelineResources.materials.defaultTerrainMat;
-        }
-        }
-
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-        }
-
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
-        {
-            // This is call on load or when this settings are change.
-            // When FrameSettings are manipulated we reset them to reflect the change, discarding all the Debug Windows change.
-            // Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
-            m_frameSettingsIsDirty = true;
-
-            if (m_Version != currentVersion)
             {
-                // Add here data migration code
-                m_Version = currentVersion;
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultTerrainMat;
             }
         }
 
-#if UNITY_EDITOR
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();
 
@@ -278,10 +298,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Update all the individual defines
             bool needUpdate = false;
-            needUpdate |= UpdateDefineList(renderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
+            needUpdate |= UpdateDefineList(currentPlatformRenderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
 
             // Only set if it changed
-            if(needUpdate)
+            if (needUpdate)
             {
                 UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
             }

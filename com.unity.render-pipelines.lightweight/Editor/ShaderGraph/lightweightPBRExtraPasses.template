@@ -37,8 +37,6 @@ ${VertexOutputStruct}
         UNITY_VERTEX_INPUT_INSTANCE_ID
 	};
 
-    // x: global clip space bias, y: normal world space bias
-    float4 _ShadowBias;
     float3 _LightDirection;
 
     VertexOutput ShadowPassVertex(GraphVertexInput v)
@@ -60,17 +58,9 @@ ${VertexShaderDescriptionInputs}
 ${VertexShaderOutputs}
 	    
 	    float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
-        float3 normalWS = TransformObjectToWorldDir(v.normal);
+        float3 normalWS = TransformObjectToWorldNormal(v.normal);
 
-        float invNdotL = 1.0 - saturate(dot(_LightDirection, normalWS));
-        float scale = invNdotL * _ShadowBias.y;
-
-        // normal bias is negative since we want to apply an inset normal offset
-        positionWS = normalWS * scale.xxx + positionWS;
-        float4 clipPos = TransformWorldToHClip(positionWS);
-
-        // _ShadowBias.x sign depens on if platform has reversed z buffer
-        clipPos.z += _ShadowBias.x;
+        float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
 
 	#if UNITY_REVERSED_Z
 	    clipPos.z = min(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
@@ -82,7 +72,7 @@ ${VertexShaderOutputs}
 	    return o;
 	}
 
-    half4 ShadowPassFragment(VertexOutput IN) : SV_TARGET
+    half4 ShadowPassFragment(VertexOutput IN ${FaceSign}) : SV_TARGET
     {
         UNITY_SETUP_INSTANCE_ID(IN);
 
@@ -173,9 +163,10 @@ ${VertexShaderOutputs}
 	    return o;
     }
 
-    half4 frag(VertexOutput IN) : SV_TARGET
+    half4 frag(VertexOutput IN ${FaceSign}) : SV_TARGET
     {
         UNITY_SETUP_INSTANCE_ID(IN);
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
 
         // Pixel transformations performed by graph
 ${PixelShader}
@@ -227,7 +218,6 @@ ${Defines}
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
     #pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    #pragma shader_feature EDITOR_VISUALIZATION
 
     ${Graph}
 	struct VertexOutput
@@ -256,9 +246,10 @@ ${VertexShaderOutputs}
 	    return o;
     }
 
-    half4 frag(VertexOutput IN) : SV_TARGET
+    half4 frag(VertexOutput IN ${FaceSign}) : SV_TARGET
     {
         UNITY_SETUP_INSTANCE_ID(IN);
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
 
         // Pixel transformations performed by graph
 ${PixelShader}

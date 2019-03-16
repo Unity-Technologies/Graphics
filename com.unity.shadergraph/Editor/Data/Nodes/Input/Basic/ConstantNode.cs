@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum ConstantType
+    enum ConstantType
     {
         PI,
         TAU,
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Input", "Basic", "Constant")]
-    public class ConstantNode : AbstractMaterialNode, IGeneratesBodyCode
+    class ConstantNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         static Dictionary<ConstantType, float> m_constantList = new Dictionary<ConstantType, float>
         {
@@ -51,11 +51,6 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Constant";
             UpdateNodeAfterDeserialization();
-        }
-
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Constant-Node"; }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

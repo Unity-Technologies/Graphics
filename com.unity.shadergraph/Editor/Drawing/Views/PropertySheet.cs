@@ -1,10 +1,11 @@
 using System.Linq;
 using UnityEditorInternal;
-using UnityEngine.Experimental.UIElements;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public class PropertySheet : VisualElement
+    class PropertySheet : VisualElement
     {
         VisualElement m_ContentContainer;
         VisualElement m_HeaderContainer;
@@ -16,10 +17,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public VisualElement headerContainer
         {
-            get { return m_HeaderContainer.FirstOrDefault(); }
+            get { return m_HeaderContainer.Children().FirstOrDefault(); }
             set
             {
-                var first = m_HeaderContainer.FirstOrDefault();
+                var first = m_HeaderContainer.Children().FirstOrDefault();
                 if (first != null)
                     first.RemoveFromHierarchy();
 
@@ -29,14 +30,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public PropertySheet(Label header = null)
         {
-            AddStyleSheetPath("Styles/PropertySheet");
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertySheet"));
             m_ContentContainer = new VisualElement { name = "content" };
             m_HeaderContainer = new VisualElement { name = "header" };
             if (header != null)
                 m_HeaderContainer.Add(header);
 
             m_ContentContainer.Add(m_HeaderContainer);
-            shadow.Add(m_ContentContainer);
+            hierarchy.Add(m_ContentContainer);
         }
     }
 }

@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum LogBase
+    enum LogBase
     {
         BaseE,
         Base2,
@@ -13,17 +13,13 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Math", "Advanced", "Log")]
-    public class LogNode : CodeFunctionNode
+    class LogNode : CodeFunctionNode
     {
         public LogNode()
         {
             name = "Log";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Log-Node"; }
-        }
 
         [SerializeField]
         private LogBase m_LogBase = LogBase.BaseE;

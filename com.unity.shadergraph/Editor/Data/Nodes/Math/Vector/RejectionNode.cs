@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Vector", "Rejection")]
-    public class RejectionNode : CodeFunctionNode
+    class RejectionNode : CodeFunctionNode
     {
         public RejectionNode()
         {
             name = "Rejection";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rejection-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

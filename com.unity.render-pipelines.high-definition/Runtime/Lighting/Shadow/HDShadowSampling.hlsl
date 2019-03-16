@@ -211,24 +211,31 @@ float SampleShadow_EVSM_1tap(float3 tcs, float lightLeakBias, float varianceBias
     float  depth      = tcs.z;
 #endif
 
-    float2 warpedDepth = ShadowMoments_WarpDepth(depth, evsmExponents);
 
     float4 moments = SAMPLE_TEXTURE2D_LOD(tex, samp, tcs.xy, 0.0);
-
-    // Derivate of warping at depth
-    float2 depthScale  = evsmExponents * warpedDepth;
-    float2 minVariance = depthScale * depthScale * varianceBias;
 
     UNITY_BRANCH
     if (fourMoments)
     {
+        float2 warpedDepth = ShadowMoments_WarpDepth(depth, evsmExponents);
+
+        // Derivate of warping at depth
+        float2 depthScale = evsmExponents * warpedDepth;
+        float2 minVariance = depthScale * depthScale * varianceBias;
+
         float posContrib = ShadowMoments_ChebyshevsInequality(moments.xz, warpedDepth.x, minVariance.x, lightLeakBias);
         float negContrib = ShadowMoments_ChebyshevsInequality(moments.yw, warpedDepth.y, minVariance.y, lightLeakBias);
         return min(posContrib, negContrib);
     }
     else
     {
-        return ShadowMoments_ChebyshevsInequality(moments.xy, warpedDepth.x, minVariance.x, lightLeakBias);
+        float warpedDepth = ShadowMoments_WarpDepth_PosOnlyBaseTwo(depth, evsmExponents.x);
+
+        // Derivate of warping at depth
+        float depthScale = evsmExponents.x * warpedDepth;
+        float minVariance = depthScale * depthScale * varianceBias;
+
+        return ShadowMoments_ChebyshevsInequality(moments.xy, warpedDepth, minVariance, lightLeakBias);
     }
 }
 
@@ -263,10 +270,11 @@ float SampleShadow_MSM_1tap(float3 tcs, float lightLeakBias, float momentBias, f
 //
 //                  PCSS sampling
 //
-float SampleShadow_PCSS(float3 tcs, float2 scale, float2 offset, float2 sampleBias, float shadowSoftness, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp)
+float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float2 sampleBias, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp)
 {
-    float2 sampleJitter = float2(sin(GenerateHashedRandomFloat(tcs.x)),
-                               cos(GenerateHashedRandomFloat(tcs.y)));
+    uint taaFrameIndex = _TaaFrameInfo.z;
+    float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
+    float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
 
     //1) Blocker Search
     float averageBlockerDepth = 0.0;
@@ -276,8 +284,12 @@ float SampleShadow_PCSS(float3 tcs, float2 scale, float2 offset, float2 sampleBi
 
     //2) Penumbra Estimation
     float filterSize = shadowSoftness * PenumbraSize(tcs.z, averageBlockerDepth);
-    filterSize = max(filterSize, 0.000001);
+    filterSize = max(filterSize, minFilterRadius);
 
     //3) Filter
     return PCSS(tcs, filterSize, scale, offset, sampleBias, sampleJitter, tex, compSamp, filterSampleCount);
 }
+
+#ifdef SHADOW_VERY_HIGH
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDIMS.hlsl"
+#endif

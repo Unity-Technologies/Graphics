@@ -8,11 +8,38 @@
 #error SHADERPASS must be defined (at) this point
 #endif
 
-#if (SHADERPASS != SHADERPASS_FORWARD)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-#else
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-#endif
+
+#if (SHADERPASS == SHADERPASS_FORWARD)
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+
+    // The light loop (or lighting architecture) is in charge to:
+    // - Define light list
+    // - Define the light loop
+    // - Setup the constant/data
+    // - Do the reflection hierarchy
+    // - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
+
+    #define HAS_LIGHTLOOP
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+
+    #ifdef HDRP_MATERIAL_TYPE_SIMPLE
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
+        #define _DISABLE_SSR
+    #else
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+    #endif
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
+
+#else // (SHADERPASS == SHADERPASS_FORWARD)
+
+    #ifdef HDRP_MATERIAL_TYPE_SIMPLE
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
+    #else
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+    #endif
+#endif // (SHADERPASS == SHADERPASS_FORWARD)
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 
@@ -32,7 +59,7 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
 {
     BuiltinData builtinData = (BuiltinData)0;
 
-    InitBuiltinData(opacity, surfaceData.normalWS, -surfaceData.normalWS, posInputs.positionWS, (float4)0, (float4)0, builtinData); // We dont care about uvs are we dont sample lightmaps
+    InitBuiltinData(posInputs, opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData); // We dont care about uvs are we dont sample lightmaps
 
     #if HDRP_USE_EMISSIVE
     builtinData.emissiveColor = float3(1,1,1);
@@ -54,7 +81,7 @@ BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs
     return builtinData;
 }
 
-SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfile, out float opacity)
+SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfileHash, out float opacity)
 {
     SurfaceData surfaceData = (SurfaceData)0;
 
@@ -85,7 +112,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #if IS_OPAQUE_PARTICLE
     opacity = 1.0f;
     #else
-    opacity = color.a;
+    opacity = saturate(color.a);
     #endif
 
     #if HDRP_MATERIAL_TYPE_STANDARD
@@ -103,7 +130,7 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #ifdef VFX_VARYING_THICKNESS
     surfaceData.thickness = i.VFX_VARYING_THICKNESS * opacity;
     #endif
-    surfaceData.diffusionProfile = diffusionProfile;
+    surfaceData.diffusionProfileHash = diffusionProfileHash;
     surfaceData.subsurfaceMask = 1.0f;
     #endif
 

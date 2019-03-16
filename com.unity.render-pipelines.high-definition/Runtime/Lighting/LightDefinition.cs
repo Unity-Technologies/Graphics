@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ProjectorBox,
 
         // AreaLight
-        Line, // Keep Line lights before Rectangle. This is needed because of a compiler bug (see LightLoop.hlsl)
+        Tube, // Keep Line lights before Rectangle. This is needed because of a compiler bug (see LightLoop.hlsl)
         Rectangle,
         // Currently not supported in real time (just use for reference)
         // Sphere,
@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public static bool IsAreaLight(this GPULightType lightType)
         {
-            return lightType == GPULightType.Rectangle || lightType == GPULightType.Line;
+            return lightType == GPULightType.Rectangle || lightType == GPULightType.Tube;
         }
 
         public static bool IsSpot(this GPULightType lightType)
@@ -110,7 +110,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int     cookieIndex;             // -1 if unused
         public int     tileCookie;              // (TODO: use a bitfield)
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
-        public int     contactShadowIndex;      // -1 if unused (TODO: 16 bit)
+#if ENABLE_RAYTRACING
+        // We store the ray traced area shadow index as a negative value inside the contactShadowIndex.
+        // Contact shadows are disabled for area lights and setting the index as negative allows for still
+        // disabling contact shadows in the shader code (checks for => 0)
+        public int     rayTracedAreaShadowIndex { get => -contactShadowIndex; set => contactShadowIndex = -value; }
+#endif
+        public int contactShadowIndex;      // negative if unused (TODO: 16 bit)
 
         public float   shadowDimmer;
         public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'

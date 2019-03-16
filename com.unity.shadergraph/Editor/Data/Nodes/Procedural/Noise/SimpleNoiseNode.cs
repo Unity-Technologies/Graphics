@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Procedural", "Noise", "Simple Noise")]
-    public class NoiseNode : CodeFunctionNode
+    class NoiseNode : CodeFunctionNode
     {
         public NoiseNode()
         {
             name = "Simple Noise";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Simple-Noise-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

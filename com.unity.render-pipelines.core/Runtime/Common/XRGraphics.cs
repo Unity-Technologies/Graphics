@@ -8,7 +8,7 @@ using UnityEngine.VR;
 using XRSettings = UnityEngine.VR.VRSettings;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [Serializable]
     public class XRGraphics
@@ -43,10 +43,10 @@ namespace UnityEngine.Experimental.Rendering
                     return XRSettings.renderViewportScale;
             }
         }
-                
+
 #if UNITY_EDITOR
         public static bool tryEnable
-        { // TryEnable gets updated before "play" is pressed- we use this for updating GUI only. 
+        { // TryEnable gets updated before "play" is pressed- we use this for updating GUI only.
             get { return PlayerSettings.virtualRealitySupported; }
         }
 #endif
@@ -115,11 +115,33 @@ namespace UnityEngine.Experimental.Rendering
 #endif
             }
         }
+
+        // XRTODO: remove once SinglePassInstanced is working
         public static uint GetPixelOffset(uint eye)
         {
             if (!enabled || stereoRenderingMode != StereoRenderingMode.SinglePass)
                 return 0;
             return (uint)(Mathf.CeilToInt((eye * XRSettings.eyeTextureWidth) / 2));
+        }
+
+        public static int eyeCount
+        {
+            get
+            {
+                return enabled ? 2 : 1;
+            }
+        }
+
+        public static int computePassCount
+        {
+            get
+            {
+                // XRTODO: need to also check if stereo is enabled in camera!
+                if (stereoRenderingMode == StereoRenderingMode.SinglePassInstanced)
+                    return eyeCount;
+
+                return 1;
+            }
         }
 
         public static RenderTextureDescriptor eyeTextureDesc

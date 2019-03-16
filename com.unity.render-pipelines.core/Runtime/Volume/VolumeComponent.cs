@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Linq;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class VolumeComponentMenu : Attribute
@@ -25,7 +25,14 @@ namespace UnityEngine.Experimental.Rendering
         // on & off in the editor
         public bool active = true;
 
+        public string displayName { get; protected set; } = "";
+
         internal ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
+
+#pragma warning disable 414
+        [SerializeField]
+        bool m_AdvancedMode = false; // Editor-only
+#pragma warning restore 414
 
         protected virtual void OnEnable()
         {

@@ -2,7 +2,7 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#include "VertMesh.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
@@ -20,12 +20,13 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
     return PackVaryingsToPS(output);
 }
 
-#include "TessellationShare.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 
 #endif // TESSELLATION_ON
 
 float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.positionSS is SV_Position
@@ -45,9 +46,9 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     // Not lit here (but emissive is allowed)
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
-    // TODO: we must not access bsdfData here, it break the genericity of the code!
-    float4 outColor = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);
-    outColor = EvaluateAtmosphericScattering(posInput, outColor);
+    // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
+    float4 outColor = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
+    outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
 
 #ifdef DEBUG_DISPLAY
     // Same code in ShaderPassForward.shader

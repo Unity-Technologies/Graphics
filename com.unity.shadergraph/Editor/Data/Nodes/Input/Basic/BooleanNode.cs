@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Basic", "Boolean")]
-    public class BooleanNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class BooleanNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private bool m_Value;
@@ -20,10 +20,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Boolean-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -79,7 +75,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             return new BooleanShaderProperty { value = m_Value };
         }

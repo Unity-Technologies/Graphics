@@ -4,17 +4,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Range", "Random Range")]
-    public class RandomRangeNode : CodeFunctionNode
+    class RandomRangeNode : CodeFunctionNode
     {
         public RandomRangeNode()
         {
             name = "Random Range";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Random-Range-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

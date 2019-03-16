@@ -140,30 +140,30 @@
 
 // Include language header
 #if defined(SHADER_API_XBOXONE)
-#include "API/XBoxOne.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/XBoxOne.hlsl"
 #elif defined(SHADER_API_PSSL)
-#include "API/PSSL.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/PSSL.hlsl"
 #elif defined(SHADER_API_D3D11)
-#include "API/D3D11.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl"
 #elif defined(SHADER_API_METAL)
-#include "API/Metal.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
-#include "API/Vulkan.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Vulkan.hlsl"
 #elif defined(SHADER_API_SWITCH)
-#include "API/Switch.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Switch.hlsl"
 #elif defined(SHADER_API_GLCORE)
-#include "API/GLCore.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLCore.hlsl"
 #elif defined(SHADER_API_GLES3)
-#include "API/GLES3.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES3.hlsl"
 #elif defined(SHADER_API_GLES)
-#include "API/GLES2.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES2.hlsl"
 #else
 #error unsupported shader api
 #endif
-#include "API/Validate.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Validate.hlsl"
 
-#include "Macros.hlsl"
-#include "Random.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
@@ -171,27 +171,29 @@
 
 // Error on GLES2 undefined functions
 #ifdef SHADER_API_GLES
-#define BitFieldExtract ERROR_ON_UNSUPPORTED_FUNC(BitFieldExtract)
-#define IsBitSet ERROR_ON_UNSUPPORTED_FUNC(IsBitSet)
-#define SetBit ERROR_ON_UNSUPPORTED_FUNC(SetBit)
-#define ClearBit ERROR_ON_UNSUPPORTED_FUNC(ClearBit)
-#define ToggleBit ERROR_ON_UNSUPPORTED_FUNC(ToggleBit)
-#define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNC(FastMulBySignOfNegZero)
-#define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNC(LODDitheringTransition)
+#define BitFieldExtract ERROR_ON_UNSUPPORTED_FUNCTION(BitFieldExtract)
+#define IsBitSet ERROR_ON_UNSUPPORTED_FUNCTION(IsBitSet)
+#define SetBit ERROR_ON_UNSUPPORTED_FUNCTION(SetBit)
+#define ClearBit ERROR_ON_UNSUPPORTED_FUNCTION(ClearBit)
+#define ToggleBit ERROR_ON_UNSUPPORTED_FUNCTION(ToggleBit)
+#define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNCTION(FastMulBySignOfNegZero)
+#define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNCTION(LODDitheringTransition)
 #endif
 
 // On everything but GCN consoles we error on cross-lane operations
 #ifndef SUPPORTS_WAVE_INTRINSICS
-#define WaveMinInt ERROR_ON_UNSUPPORTED_FUNC(WaveMinInt)
-#define WaveMinUint ERROR_ON_UNSUPPORTED_FUNC(WaveMinUint)
-#define WaveMinFloat ERROR_ON_UNSUPPORTED_FUNC(WaveMinFloat)
-#define WaveMaxInt ERROR_ON_UNSUPPORTED_FUNC(WaveMaxInt)
-#define WaveMaxUint ERROR_ON_UNSUPPORTED_FUNC(WaveMaxUint)
-#define WaveMaxFloat ERROR_ON_UNSUPPORTED_FUNC(WaveMaxFloat)
-#define Ballot ERROR_ON_UNSUPPORTED_FUNC(Ballot)
-#define WaveAdd ERROR_ON_UNSUPPORTED_FUNC(WaveAdd)
-#define WaveAnd ERROR_ON_UNSUPPORTED_FUNC(WaveAnd)
-#define WaveOr ERROR_ON_UNSUPPORTED_FUNC(WaveOr)
+#define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAllTrue)
+#define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAnyTrue)
+#define WaveGetLaneIndex ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneIndex)
+#define WaveIsFirstLane ERROR_ON_UNSUPPORTED_FUNCTION(WaveIsFirstLane)
+#define GetWaveID ERROR_ON_UNSUPPORTED_FUNCTION(GetWaveID)
+#define WaveActiveMin ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMin)
+#define WaveActiveMax ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMax)
+#define WaveActiveBallot ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBallot)
+#define WaveActiveSum ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveSum)
+#define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitAnd)
+#define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitOr)
+#define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
 #endif
 
 #if !defined(SHADER_API_GLES)
@@ -199,7 +201,7 @@
 #ifndef INTRINSIC_BITFIELD_EXTRACT
 // Unsigned integer bit field extraction.
 // Note that the intrinsic itself generates a vector instruction.
-// Wrap this function with WaveReadFirstLane() to get scalar output.
+// Wrap this function with WaveReadLaneFirst() to get scalar output.
 uint BitFieldExtract(uint data, uint offset, uint numBits)
 {
     uint mask = (1u << numBits) - 1u;
@@ -210,7 +212,7 @@ uint BitFieldExtract(uint data, uint offset, uint numBits)
 #ifndef INTRINSIC_BITFIELD_EXTRACT_SIGN_EXTEND
 // Integer bit field extraction with sign extension.
 // Note that the intrinsic itself generates a vector instruction.
-// Wrap this function with WaveReadFirstLane() to get scalar output.
+// Wrap this function with WaveReadLaneFirst() to get scalar output.
 int BitFieldExtractSignExtend(int data, uint offset, uint numBits)
 {
     int  shifted = data >> offset;      // Sign-extending (arithmetic) shift
@@ -252,8 +254,8 @@ void ToggleBit(inout uint data, uint offset)
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument's value must be the same across all lanes of the wave.
-    TEMPLATE_1_REAL(WaveReadFirstLane, scalarValue, return scalarValue)
-    TEMPLATE_1_INT(WaveReadFirstLane, scalarValue, return scalarValue)
+    TEMPLATE_1_REAL(WaveReadLaneFirst, scalarValue, return scalarValue)
+    TEMPLATE_1_INT(WaveReadLaneFirst, scalarValue, return scalarValue)
 #endif
 
 #ifndef INTRINSIC_MUL24
@@ -261,8 +263,7 @@ void ToggleBit(inout uint data, uint offset)
 #endif // INTRINSIC_MUL24
 
 #ifndef INTRINSIC_MAD24
-    TEMPLATE_3_INT(Mad24Int, a, b, c, return a * b + c)
-    TEMPLATE_3_INT(Mad24Uint, a, b, c, return a * b + c)
+    TEMPLATE_3_INT(Mad24, a, b, c, return a * b + c)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3
@@ -303,26 +304,69 @@ float CubeMapFaceID(float3 dir)
 }
 #endif // INTRINSIC_CUBEMAP_FACE_ID
 
+#if !defined(SHADER_API_GLES)
 // Intrinsic isnan can't be used because it require /Gic to be enabled on fxc that we can't do. So use AnyIsNan instead
-bool IsNan(float n)
+bool IsNaN(float x)
 {
-    return (n < 0.0 || n > 0.0 || n == 0.0) ? false : true;
+    return (asuint(x) & 0x7FFFFFFF) > 0x7F800000;
 }
 
-bool AnyIsNan(float2 v)
+bool AnyIsNaN(float2 v)
 {
-    return (IsNan(v.x) || IsNan(v.y));
+    return (IsNaN(v.x) || IsNaN(v.y));
 }
 
-bool AnyIsNan(float3 v)
+bool AnyIsNaN(float3 v)
 {
-    return (IsNan(v.x) || IsNan(v.y) || IsNan(v.z));
+    return (IsNaN(v.x) || IsNaN(v.y) || IsNaN(v.z));
 }
 
-bool AnyIsNan(float4 v)
+bool AnyIsNaN(float4 v)
 {
-    return (IsNan(v.x) || IsNan(v.y) || IsNan(v.z) || IsNan(v.w));
+    return (IsNaN(v.x) || IsNaN(v.y) || IsNaN(v.z) || IsNaN(v.w));
 }
+
+bool IsInf(float x)
+{
+    return (asuint(x) & 0x7FFFFFFF) == 0x7F800000;
+}
+
+bool AnyIsInf(float2 v)
+{
+    return (IsInf(v.x) || IsInf(v.y));
+}
+
+bool AnyIsInf(float3 v)
+{
+    return (IsInf(v.x) || IsInf(v.y) || IsInf(v.z));
+}
+
+bool AnyIsInf(float4 v)
+{
+    return (IsInf(v.x) || IsInf(v.y) || IsInf(v.z) || IsInf(v.w));
+}
+
+bool IsFinite(float x)
+{
+    return (asuint(x) & 0x7F800000) != 0x7F800000;
+}
+
+float SanitizeFinite(float x)
+{
+    return IsFinite(x) ? x : 0;
+}
+
+bool IsPositiveFinite(float x)
+{
+    return asuint(x) < 0x7F800000;
+}
+
+float SanitizePositiveFinite(float x)
+{
+    return IsPositiveFinite(x) ? x : 0;
+}
+
+#endif
 
 // ----------------------------------------------------------------------------
 // Common math functions
@@ -445,7 +489,8 @@ float FastSign(float s, bool ignoreNegZero = true)
 }
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
-// We assume that both the tangent and the normal are normalized.
+// We assume that the normal is normalized and that the two vectors
+// aren't colinear.
 // Returns the new tangent (the normal is unaffected).
 real3 Orthonormalize(real3 tangent, real3 normal)
 {
@@ -805,14 +850,14 @@ PositionInputs GetPositionInput_Stereo(float2 positionSS, float2 invScreenSize, 
     ZERO_INITIALIZE(PositionInputs, posInput);
 
     posInput.positionNDC = positionSS;
-#if SHADER_STAGE_COMPUTE
+#if SHADER_STAGE_COMPUTE || SHADER_STAGE_RAYTRACING
     // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
     posInput.positionNDC.xy += float2(0.5, 0.5);
 #endif
     posInput.positionNDC *= invScreenSize;
 
 #if defined(UNITY_SINGLE_PASS_STEREO)
-    posInput.positionNDC.x = posInput.positionNDC.x - eye;
+    posInput.positionNDC.x = posInput.positionNDC.x * 2 - eye;
 #endif
 
     posInput.positionSS = uint2(positionSS);

@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleSheets;
-using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.UIElements;
 using System.Reflection;
 using System.Linq;
 
@@ -33,7 +31,6 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXGroupNodeController m_Controller;
-
 
         VisualElement m_GroupDropArea;
 
@@ -154,72 +151,6 @@ namespace UnityEditor.VFX.UI
         bool m_ModificationFromController;
 
         public static bool inRemoveElement {get; set; }
-
-
-        public void UpdateControllerFromContent()
-        {
-            /*bool changed = false;
-            Controller[] content = this.containedElements.Where(t => t is VFXStickyNote || t is VFXNodeUI).Cast<IControlledElement>().Select(t => t.controller).ToArray();
-            Controller[] controllerContent = controller.nodes.ToArray();
-
-
-            var stickyNoteControllers = new List<VFXStickyNoteController>();
-            var nodeControllers = new List<VFXNodeController>();
-
-
-            foreach (var remove in controllerContent.Except(content))
-            {
-                if (remove is VFXStickyNoteController)
-                {
-                    stickyNoteControllers.Add(remove as VFXStickyNoteController);
-                }
-                else
-                {
-                    nodeControllers.Add(remove as VFXNodeController);
-                }
-            }
-
-            if (nodeControllers.Count > 0)
-            {
-                controller.RemoveNodes(nodeControllers);
-                changed = true;
-            }
-            if (stickyNoteControllers.Count > 0)
-            {
-                controller.RemoveStickyNotes(stickyNoteControllers);
-                changed = true;
-            }
-
-            stickyNoteControllers.Clear();
-            nodeControllers.Clear();
-
-            foreach (var add in content.Except(controllerContent))
-            {
-                if (add is VFXStickyNoteController)
-                {
-                    stickyNoteControllers.Add(add as VFXStickyNoteController);
-                }
-                else
-                {
-                    nodeControllers.Add(add as VFXNodeController);
-                }
-            }
-            if (nodeControllers.Count > 0)
-            {
-                controller.AddNodes(nodeControllers);
-                changed = true;
-            }
-
-            if (stickyNoteControllers.Count > 0)
-            {
-                controller.AddStickyNotes(stickyNoteControllers);
-                changed = true;
-            }
-            if (changed)
-            {
-                OnMoved();
-            }*/
-        }
 
         public void ElementsAddedToGroupNode(IEnumerable<GraphElement> elements)
         {

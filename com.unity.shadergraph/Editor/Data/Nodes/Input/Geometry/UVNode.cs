@@ -5,7 +5,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Geometry", "UV")]
-    public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
@@ -35,10 +35,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/UV-Node"; }
-        }
 
         public override void UpdateNodeAfterDeserialization()
         {

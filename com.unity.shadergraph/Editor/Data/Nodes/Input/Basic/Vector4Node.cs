@@ -6,7 +6,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Basic", "Vector 4")]
-    public class Vector4Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class Vector4Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
         private Vector4 m_Value = Vector4.zero;
@@ -30,10 +30,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Vector-4-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -63,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(s, true);
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             var slotX = FindInputSlot<Vector1MaterialSlot>(InputSlotXId);
             var slotY = FindInputSlot<Vector1MaterialSlot>(InputSlotYId);

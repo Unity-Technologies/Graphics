@@ -4,17 +4,13 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Derivative", "DDX")]
-    public class DDXNode : CodeFunctionNode
+    class DDXNode : CodeFunctionNode
     {
         public DDXNode()
         {
             name = "DDX";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/DDX-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

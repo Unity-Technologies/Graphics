@@ -3,17 +3,13 @@ using System.Reflection;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Math", "Basic", "Square Root")]
-    public class SquareRootNode : CodeFunctionNode
+    class SquareRootNode : CodeFunctionNode
     {
         public SquareRootNode()
         {
             name = "Square Root";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Square-Root-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

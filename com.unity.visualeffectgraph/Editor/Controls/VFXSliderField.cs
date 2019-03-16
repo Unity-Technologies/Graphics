@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEditor.Experimental.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UIElements
@@ -66,7 +65,6 @@ namespace UnityEditor.VFX.UIElements
                 {
                     m_Slider.lowValue = m_Range.x;
                     m_Slider.highValue = m_Range.y;
-                    m_Slider.pageSize = (m_Slider.highValue - m_Slider.lowValue) * 0.1f;
 
                     //TODO ask fix in Slider
 
@@ -80,7 +78,7 @@ namespace UnityEditor.VFX.UIElements
 
         protected bool m_IgnoreNotification;
 
-        public abstract bool HasFocus();
+        public abstract bool hasFocus { get; }
         public void OnValueChanged(EventCallback<ChangeEvent<T>> callback)
         {
             RegisterCallback(callback);
@@ -108,7 +106,7 @@ namespace UnityEditor.VFX.UIElements
         {
             m_IgnoreNotification = true;
             m_Value = newValue;
-            if (!(m_Field as VisualElement).HasFocus())
+            if (!hasFocus)
                 m_Field.value = newValue;
             m_Slider.value = ValueToFloat(value);
             m_IgnoreNotification = false;
@@ -125,12 +123,12 @@ namespace UnityEditor.VFX.UIElements
     {
         public VFXFloatSliderField()
         {
-            m_Slider = new Slider(0, 1, ValueChanged, SliderDirection.Horizontal, (range.y - range.x) * 0.1f);
+            m_Slider = new Slider(0, 1, SliderDirection.Horizontal);
             m_Slider.AddToClassList("textfield");
-            m_Slider.valueChanged += ValueChanged;
+            m_Slider.RegisterValueChangedCallback(evt => ValueChanged(evt.newValue));
 
             m_FloatField = new FloatField();
-            m_FloatField.RegisterCallback<ChangeEvent<float>>(ValueChanged);
+            m_FloatField.RegisterValueChangedCallback(ValueChanged);
             m_FloatField.name = "Field";
             m_Field = m_FloatField;
 
@@ -149,9 +147,9 @@ namespace UnityEditor.VFX.UIElements
         VisualElement m_IndeterminateLabel;
         FloatField m_FloatField;
 
-        public override bool HasFocus()
+        public override bool hasFocus
         {
-            return (m_Field as FloatField).HasFocus();
+            get { return ((FloatField)m_Field).HasFocus() || (panel != null && panel.focusController.focusedElement == m_Field as VisualElement); }
         }
 
         protected override float ValueToFloat(float value)
@@ -192,12 +190,12 @@ namespace UnityEditor.VFX.UIElements
     {
         public VFXIntSliderField()
         {
-            m_Slider = new Slider(0, 1, ValueChanged, SliderDirection.Horizontal, 0.1f);
+            m_Slider = new Slider(0, 1, SliderDirection.Horizontal);
             m_Slider.AddToClassList("textfield");
-            m_Slider.valueChanged += ValueChanged;
+            m_Slider.RegisterValueChangedCallback(evt => ValueChanged(evt.newValue));
 
             var integerField = new IntegerField();
-            integerField.RegisterCallback<ChangeEvent<int>>(ValueChanged);
+            integerField.RegisterValueChangedCallback(ValueChanged);
             integerField.name = "Field";
             m_Field = integerField;
 
@@ -206,9 +204,9 @@ namespace UnityEditor.VFX.UIElements
             RegisterCallBack();
         }
 
-        public override bool HasFocus()
+        public override bool hasFocus
         {
-            return (m_Field as IntegerField).HasFocus();
+            get { return ((IntegerField)m_Field).HasFocus() || (panel != null && panel.focusController.focusedElement == m_Field as VisualElement); }
         }
 
         protected override float ValueToFloat(int value)
@@ -225,12 +223,12 @@ namespace UnityEditor.VFX.UIElements
     {
         public VFXLongSliderField()
         {
-            m_Slider = new Slider(0, 1, ValueChanged, SliderDirection.Horizontal, 0.1f);
+            m_Slider = new Slider(0, 1, SliderDirection.Horizontal);
             m_Slider.AddToClassList("textfield");
-            m_Slider.valueChanged += ValueChanged;
+            m_Slider.RegisterValueChangedCallback(evt => ValueChanged(evt.newValue));
 
             var integerField = new LongField();
-            integerField.RegisterCallback<ChangeEvent<long>>(ValueChanged);
+            integerField.RegisterValueChangedCallback(ValueChanged);
             integerField.name = "Field";
             m_Field = integerField;
 
@@ -239,9 +237,9 @@ namespace UnityEditor.VFX.UIElements
             RegisterCallBack();
         }
 
-        public override bool HasFocus()
+        public override bool hasFocus
         {
-            return (m_Field as LongField).HasFocus();
+            get { return ((LongField)m_Field).HasFocus() || (panel != null && panel.focusController.focusedElement == m_Field as VisualElement); }
         }
 
         protected override float ValueToFloat(long value)

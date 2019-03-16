@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Preview")]
-    public class PreviewNode : CodeFunctionNode
+    class PreviewNode : CodeFunctionNode
     {
         public override bool hasPreview { get { return true; } }
 
@@ -40,10 +40,6 @@ namespace UnityEditor.ShaderGraph
             m_Height = 208f;
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Preview-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

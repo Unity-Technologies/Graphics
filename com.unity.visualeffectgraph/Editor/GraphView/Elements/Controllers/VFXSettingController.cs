@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
@@ -70,6 +70,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return false; }
         }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
         public virtual string iconName
         {

@@ -1,11 +1,9 @@
 using System;
-using UnityEditor.Experimental.UIElements;
-using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.UIElements;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.Experimental.UIElements;
-
-using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
@@ -30,7 +28,7 @@ namespace  UnityEditor.VFX.UI
                 button.clickable.clicked += OnExpand;
             }
 
-            clippingOptions = ClippingOptions.ClipAndCacheContents;
+            cacheAsBitmap = true;
         }
 
         void OnExpand()

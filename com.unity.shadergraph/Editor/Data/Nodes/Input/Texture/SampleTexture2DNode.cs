@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
 {
-    public enum TextureType
+    enum TextureType
     {
         Default,
         Normal
@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
 
     [FormerName("UnityEditor.ShaderGraph.Texture2DNode")]
     [Title("Input", "Texture", "Sample Texture 2D")]
-    public class SampleTexture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class SampleTexture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotRGBAId = 0;
         public const int OutputSlotRId = 4;
@@ -41,10 +41,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sample-Texture-2D-Node"; }
-        }
 
         [SerializeField]
         private TextureType m_TextureType = TextureType.Default;

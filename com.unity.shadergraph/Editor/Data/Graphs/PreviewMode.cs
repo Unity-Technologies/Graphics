@@ -1,6 +1,6 @@
 namespace UnityEditor.ShaderGraph
 {
-    public enum PreviewMode
+    enum PreviewMode
     {
         Preview2D,
         Preview3D,

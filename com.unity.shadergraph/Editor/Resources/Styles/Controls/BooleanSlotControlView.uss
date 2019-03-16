@@ -3,6 +3,8 @@ BooleanSlotControlView {
     align-items: center;
 }
 
-BooleanSlotControlView > Toggle {
-    width: 20;
+.unity-base-field {
+    width: 20px;
+    margin-top: 1px;
+    margin-bottom: 3px;
 }

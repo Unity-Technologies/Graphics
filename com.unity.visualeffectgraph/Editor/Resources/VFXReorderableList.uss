@@ -1,17 +1,17 @@
 .ReorderableList
 {
-    position-type:Absolute;
-    position-left:0;
-    position-right:0;
-    position-top:0;
+    position:Absolute;
+    left:0;
+    right:0;
+    top:0;
     background-color:#282828;
 }
 
 .ReorderableList > #ListContainer
 {
     background-color:#383838;
-    padding-top:2;
-    padding-bottom:4;
+    padding-top: 2px;
+    padding-bottom: 4px;
 }
 
 .ReorderableList > * > *
@@ -27,7 +27,7 @@
 
 .ReorderableList > * > * > #DraggingHandle
 {
-    width: 16;
+    width: 16px;
     align-items:center;
     justify-content:center;
 }
@@ -41,28 +41,28 @@
 
 .ReorderableList > #Toolbar > *
 {
-    height:16;
-    width:32;
+    height: 16px;
+    width: 32px;
     justify-content:center;
 }
 
 .ReorderableList > #Toolbar > #Add
 {
-    border-bottom-left-radius:4;
+    border-bottom-left-radius: 4px;
 }
 .ReorderableList > #Toolbar > #Remove
 {
-    border-bottom-right-radius:4;
+    border-bottom-right-radius: 4px;
 }
 
 .ReorderableList > #Toolbar > * > #icon
 {
-    width:16;
-    height:16;
+    width: 16px;
+    height: 16px;
 }
 
 #DraggingHandle #icon
 {
-    width: 10;
-    height: 6
+    width: 10px;
+    height: 6px;
 }

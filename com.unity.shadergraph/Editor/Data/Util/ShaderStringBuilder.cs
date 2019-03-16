@@ -8,12 +8,12 @@ namespace UnityEditor.ShaderGraph
 {
     struct ShaderStringMapping
     {
-        public INode node { get; set; }
+        public AbstractMaterialNode node { get; set; }
         public int startIndex { get; set; }
         public int count { get; set; }
     }
 
-    public class ShaderStringBuilder : IDisposable
+    class ShaderStringBuilder : IDisposable
     {
         enum ScopeType
         {
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
 
         const string k_IndentationString = "    ";
 
-        internal INode currentNode
+        internal AbstractMaterialNode currentNode
         {
             get { return m_CurrentMapping.node; }
             set
