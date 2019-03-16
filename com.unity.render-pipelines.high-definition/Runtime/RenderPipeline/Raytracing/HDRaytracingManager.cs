@@ -286,17 +286,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UpdateEffectSubScene(rtEnv.raytracedLayerMask.value, 3);
             UpdateEffectSubScene(rtEnv.indirectDiffuseLayerMask.value, 4);
 
-            // Let's now go through all the sub-scenes and delete the ones that are not referenced by anyone
-            var nonReferencedSubScenes = m_SubScenes.Where(x => x.Value.references == 0).ToArray();
-            foreach(var subScene in nonReferencedSubScenes)
-            {
-                // Destroy the sub-scene to remove
-                HDRayTracingSubScene currentSubscene = subScene.Value;
-                DestroySubSceneStructure(ref currentSubscene);
+            //// Let's now go through all the sub-scenes and delete the ones that are not referenced by anyone
+            //var nonReferencedSubScenes = m_SubScenes.Where(x => x.Value.references == 0).ToArray();
+            //foreach(var subScene in nonReferencedSubScenes)
+            //{
+            //    // Destroy the sub-scene to remove
+            //    HDRayTracingSubScene currentSubscene = subScene.Value;
+            //    DestroySubSceneStructure(ref currentSubscene);
 
-                // Remove it from the array
-                m_SubScenes.Remove(subScene.Key);
-            }
+            //    // Remove it from the array
+            //    m_SubScenes.Remove(subScene.Key);
+            //}
         }
 
         // This function defines which acceleration structures are going to be used during the following frame
