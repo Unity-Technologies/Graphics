@@ -6,11 +6,13 @@ using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
+
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     [Serializable]
-    public class LightWeightSpriteUnlitSubShader : ISpriteUnlitSubShader
+    class LightWeightSpriteUnlitSubShader : ISpriteUnlitSubShader
     {
         struct Pass
         {
@@ -62,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 var materialTags = ShaderGenerator.BuildMaterialTags(SurfaceType.Transparent);
                 var tagsBuilder = new ShaderStringBuilder(0);
-                materialTags.GetTags(tagsBuilder);
+                materialTags.GetTags(tagsBuilder, LightweightRenderPipeline.k_ShaderTagName);
                 subShader.AppendLines(tagsBuilder.ToString());
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(SurfaceType.Transparent, AlphaMode.Alpha, true);
@@ -116,11 +118,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Get Slot and Node lists per stage
 
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<INode>.Get();
+            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             var pixelSlots = pass.PixelShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var pixelNodes = ListPool<INode>.Get();
+            var pixelNodes = ListPool<AbstractMaterialNode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // -------------------------------------
@@ -208,7 +210,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Generate Vertex Description function
 
             GraphUtil.GenerateVertexDescriptionFunction(
-                masterNode.owner as AbstractMaterialGraph,
+                masterNode.owner as GraphData,
                 vertexDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
@@ -257,7 +259,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             GraphUtil.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 masterNode,
-                masterNode.owner as AbstractMaterialGraph,
+                masterNode.owner as GraphData,
                 surfaceDescriptionFunction,
                 functionRegistry,
                 shaderProperties,

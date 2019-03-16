@@ -2,6 +2,6 @@ using System;
 
 namespace UnityEditor.ShaderGraph
 {
-    public interface ISpriteUnlitSubShader : ISubShader
+    interface ISpriteUnlitSubShader : ISubShader
     {}
 }
