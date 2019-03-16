@@ -24,7 +24,7 @@ Shader "Hidden/Light2D-Shape"
 			#pragma multi_compile_local USE_NORMAL_MAP __
 
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-			#include "Include/Lighting2D.hlsl"
+			#include "Include/LightingUtility.hlsl"
 
             struct Attributes
             {
