@@ -142,8 +142,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     lightEnd = _PunctualLightCountRT + _AreaLightCountRT;
     #endif
 
-    diffuseLighting = i;
-
     if (lightEnd != lightStart)
     {
         i = lightStart;

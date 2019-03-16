@@ -188,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchRays(reflectionShader, targetRayGen, widthResolution, heightResolution, 1);
 
             // Restore the previous state of specular lighting
-            cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting) ? 0 : 1);
+            cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting) ? 1 : 0);
 
             using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingFilterReflection.GetSampler()))
             {
