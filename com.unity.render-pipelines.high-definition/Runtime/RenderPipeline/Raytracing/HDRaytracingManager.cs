@@ -641,6 +641,64 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        //Used for the live demo. Should not have any effect otherwise (not called from anywhere else)
+        public void ReevaluateLightLists()
+        {
+            foreach (var subSceneP in m_SubScenes)
+            {
+                var subScene = subSceneP.Value;
+
+                // Allocate the array for the lights
+                subScene.hdLightArray = new List<HDAdditionalLightData>();
+                subScene.hdDirectionalLightArray = new List<HDAdditionalLightData>();
+
+                // fetch all the hdrp lights
+                HDAdditionalLightData[] hdLightArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalLightData>();
+
+                // Here an important thing is to make sure that the point lights are first in the list then line then area
+                List<HDAdditionalLightData> pointLights = new List<HDAdditionalLightData>();
+                List<HDAdditionalLightData> lineLights = new List<HDAdditionalLightData>();
+                List<HDAdditionalLightData> rectLights = new List<HDAdditionalLightData>();
+
+                for (int lightIdx = 0; lightIdx < hdLightArray.Length; ++lightIdx)
+                {
+                    HDAdditionalLightData hdLight = hdLightArray[lightIdx];
+                    if (hdLight.enabled)
+                    {
+                        // Convert the object's layer to an int
+                        int lightayerValue = 1 << hdLight.gameObject.layer;
+                        if ((lightayerValue & subScene.mask.value) != 0)
+                        {
+                            if (hdLight.GetComponent<Light>().type == LightType.Directional)
+                            {
+                                subScene.hdDirectionalLightArray.Add(hdLight);
+                            }
+                            else
+                            {
+                                if (hdLight.lightTypeExtent == LightTypeExtent.Punctual)
+                                {
+                                    pointLights.Add(hdLight);
+                                }
+                                else if (hdLight.lightTypeExtent == LightTypeExtent.Tube)
+                                {
+                                    lineLights.Add(hdLight);
+                                }
+                                else
+                                {
+                                    rectLights.Add(hdLight);
+
+                                }
+                            }
+                        }
+                    }
+                }
+
+                subScene.hdLightArray.AddRange(pointLights);
+                subScene.hdLightArray.AddRange(lineLights);
+                subScene.hdLightArray.AddRange(rectLights);
+            }
+        }
+
         public RaytracingAccelerationStructure RequestAccelerationStructure(LayerMask layerMask)
         {
             HDRayTracingSubScene currentSubScene = null;
