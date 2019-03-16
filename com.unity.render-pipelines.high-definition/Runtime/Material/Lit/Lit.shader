@@ -793,7 +793,7 @@ Shader "HDRP/Lit"
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
             // multi compile that allows us to 
-            #pragma multi_compile _ DIFFUSE_LIGHTNG_ONLY
+            #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
 
             // We use the low shadow maps for raytracing
             #define SHADOW_LOW
