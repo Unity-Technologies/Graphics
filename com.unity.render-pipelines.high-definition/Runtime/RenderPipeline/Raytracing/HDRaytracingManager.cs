@@ -641,6 +641,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+
+        //Used for the live demo. Should not have any effect otherwise (not called from anywhere else)
         public void ReevaluateLightLists()
         {
             foreach (var subSceneP in m_SubScenes)
