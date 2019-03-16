@@ -545,6 +545,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Primary Visibility
         public static readonly int _RaytracingFlagMask              = Shader.PropertyToID("_RaytracingFlagMask");
         public static readonly int _RaytracingMaxRecursion          = Shader.PropertyToID("_RaytracingMaxRecursion");
+        public static readonly int _RaytracingPrimaryDebug          = Shader.PropertyToID("_RaytracingPrimaryDebug");
 
         // Indirect diffuse
         public static readonly int _RaytracedIndirectDiffuse        = Shader.PropertyToID("_RaytracedIndirectDiffuse");

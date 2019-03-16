@@ -157,9 +157,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int heightResolution = hdCamera.actualHeight;
 
             // Run the calculus
-            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTNG_ONLY", true);
+            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", true);
             cmd.DispatchRays(indirectDiffuseShader, targetRayGen, (uint)widthResolution, (uint)heightResolution, 1);
-            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTNG_ONLY", false);
+            CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
 
             switch (rtEnvironement.indirectDiffuseFilterMode)
             {

@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Intermediate buffer that stores the reflection pre-denoising
         RTHandleSystem.RTHandle m_RaytracingFlagTarget = null;
+        RTHandleSystem.RTHandle m_DebugRaytracingTexture = null;
 
         // The kernel that allows us to override the color buffer
         Material m_RaytracingFlagMaterial = null;
@@ -50,6 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SharedRTManager = sharedRTManager;
 
             m_RaytracingFlagTarget = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8_SNorm, enableRandomWrite: true, useMipMap: false, name: "RaytracingFlagTexture");
+            m_DebugRaytracingTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DebugRaytracingBuffer");
 
             m_RaytracingFlagStateBlock = new RenderStateBlock
             {
@@ -60,6 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Release()
         {
+            RTHandles.Release(m_DebugRaytracingTexture);
             RTHandles.Release(m_RaytracingFlagTarget);
 
             if (m_RaytracingFlagMaterial != null)
@@ -180,6 +183,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Set the data for the ray miss
             cmd.SetRaytracingTextureParam(forwardShader, m_MissShaderName, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
+
+            // If this is the right debug mode and we have at least one light, write the first shadow to the denoise texture
+            HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._RaytracingPrimaryDebug, m_DebugRaytracingTexture);
+            hdrp.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugRaytracingTexture, FullScreenDebugMode.PrimaryVisibility);
 
             // Run the calculus
             cmd.DispatchRays(forwardShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
