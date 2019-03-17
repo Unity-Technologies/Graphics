@@ -61,7 +61,7 @@ LightData FetchClusterLightIndex(int cellIndex, uint lightIndex)
     return _LightDatasRT[absoluteLightIndex];
 }
 
-void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, float3 reflection, float3 transmission,
+void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, float reflectionWeight, float3 reflection, float3 transmission,
 			out float3 diffuseLighting,
             out float3 specularLighting)
 {
@@ -206,13 +206,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         AccumulateIndirectLighting(lighting, aggregateLighting);
     }
 #endif
-    // TODO: Support properly the sky env lights
-   	EnvLightData envLightSky = InitSkyEnvLightData(0);
-    // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
-    context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
-    float val = 0.0f;
-    IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, envLightSky.influenceShapeType, 0, val);
-    AccumulateIndirectLighting(lighting, aggregateLighting);
-    
+
+    if(reflectionWeight == 0.0)
+    {
+        // TODO: Support properly the sky env lights
+        EnvLightData envLightSky = InitSkyEnvLightData(0);
+        // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
+        context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
+        float val = 0.0f;
+        IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, envLightSky.influenceShapeType, 0, val);
+        AccumulateIndirectLighting(lighting, aggregateLighting);
+    }
+
     PostEvaluateBSDF(context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting, diffuseLighting, specularLighting);
 }

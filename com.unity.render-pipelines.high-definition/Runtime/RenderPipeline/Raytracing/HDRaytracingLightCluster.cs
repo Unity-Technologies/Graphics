@@ -534,8 +534,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.specularDimmer = lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
                 lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.volumetricDimmer);
 
+                lightData.contactShadowIndex = -1;
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
+                lightData.rayTracedAreaShadowIndex = -1;
 
                 if (light != null && light.cookie != null)
                 {
@@ -581,9 +583,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightData.shadowMaskSelector.x = -1.0f;
                     lightData.nonLightMappedOnly = 0;
                 }
-
-                // No contact shadows for us
-                lightData.contactShadowIndex = -1;
 
                 // Set the data for this light
                 m_LightDataCPUArray[lightIdx]= lightData;

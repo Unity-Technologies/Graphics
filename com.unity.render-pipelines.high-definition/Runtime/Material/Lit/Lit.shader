@@ -833,6 +833,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
+            #define SKIP_RASTERIZED_SHADOWS
 
             // We use the low shadow maps for raytracing
             #define SHADOW_LOW
