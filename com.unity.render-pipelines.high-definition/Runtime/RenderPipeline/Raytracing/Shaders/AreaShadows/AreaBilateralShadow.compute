@@ -106,11 +106,11 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
 
     // Compute the previous pixel coordinate
     uint2 historyPixelCoord =  centerCoord - velocity * _ScreenSize.xy;
-
     // Ok so here, if we do not match cloesly the previous analytic value, it means either TAA has invalidated the sample or the pixel just appeared
-    float currentAnalyticValue = _AnalyticProbBuffer[centerCoord];
+    float currentAnalyticValue = _AnalyticProbBuffer[centerCoord].x;
     float historyAnalyticValue = _AnalyticHistoryBuffer[uint3(historyPixelCoord,_RaytracingShadowSlot)];
-    if (abs(historyAnalyticValue - currentAnalyticValue) <= 1e-5 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)))
+
+    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f)
     {
         // Fetch the current value
         float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).xy;
@@ -274,6 +274,12 @@ void AreaShadowEstimateNoise(uint2 groupThreadId : SV_GroupThreadID, uint2 group
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
+    if(_DenoiseInputTexture[centerCoord].z < 0.0)
+    {
+        _DenoiseOutputTextureRW[centerCoord] = float4(0.0, 0.0, -1.0, 1.0);
+        return;
+    }
+
     // Quasi-random angular offset, to break pattern
     float angle = ScramblingValue(centerCoord.x, centerCoord.y).x * (PI / 256);
 
@@ -374,7 +380,7 @@ float ComputeBilateralWeight(BilateralData center, BilateralData tap)
     if (ANALYTIC_WEIGHT > 0.0)
     {
         const float aDiff = abs(tap.analytic - center.analytic);
-        analyticWeight = max(0.0, 1.0 - (aDiff * ANALYTIC_WEIGHT));
+        analyticWeight = tap.analytic < 0.0 ? 0.0 : max(0.0, 1.0 - (aDiff * ANALYTIC_WEIGHT));
     }
 
     return depthWeight * normalWeight * planeWeight * analyticWeight;
@@ -420,6 +426,16 @@ void AREA_SHADOW_DENOISE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     const int effectiveRadius = min(sigma * 2.0, _RaytracingDenoiseRadius);
 
     const BilateralData center = TapBilateralData(centerCoord);
+    if(center.analytic < 0.0)
+    {
+        #if FINAL_PASS
+        // Return the final ratio
+        _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)] = 0.0;
+        #else
+        // Store the intermediate result
+        _DenoiseOutputTextureRW[centerCoord] = float4(0.0, 0.0, -1.0, noiseEstimate);
+        #endif
+    }
 
     uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
     for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
