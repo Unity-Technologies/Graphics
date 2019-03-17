@@ -143,11 +143,12 @@ real3 PolygonFormFactor(real4x3 L)
 real PolygonIrradiance(real4x3 L)
 {
 #ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-    UNITY_UNROLL
-    for (uint i = 0; i < 4; i++)
-    {
-        L[i] = normalize(L[i]);
-    }
+    
+    L[0] = normalize(L[0]);
+	L[1] = normalize(L[1]);
+	L[2] = normalize(L[2]);
+	L[3] = normalize(L[3]);
+    
 
     real3 F = real3(0, 0, 0);
 
