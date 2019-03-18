@@ -134,29 +134,6 @@ namespace UnityEditor.ShaderGraph
             var isInError = false;
             var errorMessage = k_validationErrorMessage;
 
-            // all children nodes needs to be updated first
-            // so do that here
-            var slots = ListPool<MaterialSlot>.Get();
-            GetInputSlots(slots);
-            foreach (var inputSlot in slots)
-            {
-                inputSlot.hasError = false;
-
-                var edges = owner.GetEdges(inputSlot.slotReference);
-                foreach (var edge in edges)
-                {
-                    var fromSocketRef = edge.outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(fromSocketRef.nodeGuid);
-                    if (outputNode == null)
-                        continue;
-
-                    outputNode.ValidateNode();
-                    if (outputNode.hasError)
-                        isInError = true;
-                }
-            }
-            ListPool<MaterialSlot>.Release(slots);
-
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
 
@@ -168,6 +145,8 @@ namespace UnityEditor.ShaderGraph
             GetInputSlots(s_TempSlots);
             foreach (var inputSlot in s_TempSlots)
             {
+                inputSlot.hasError = false;
+                
                 // if there is a connection
                 var edges = owner.GetEdges(inputSlot.slotReference).ToList();
                 if (!edges.Any())

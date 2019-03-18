@@ -16,34 +16,24 @@ namespace UnityEditor.ShaderGraph
             name = "Output";
         }
 
-        public ShaderStageCapability effectiveShaderStage
-        {
-            get
+        void ValidateShaderStage()
             {
                 List<MaterialSlot> slots = new List<MaterialSlot>();
                 GetInputSlots(slots);
 
                 foreach(MaterialSlot slot in slots)
-                {
-                    ShaderStageCapability stage = NodeUtils.GetEffectiveShaderStageCapability(slot, true);
-
-                    if(stage != ShaderStageCapability.All)
-                        return stage;
-                }
-
-                return ShaderStageCapability.All;
-            }
-        }
-
-        private void ValidateShaderStage()
-        {
-            List<MaterialSlot> slots = new List<MaterialSlot>();
-            GetInputSlots(slots);
-
-            foreach(MaterialSlot slot in slots)
                 slot.stageCapability = ShaderStageCapability.All;
 
-            var effectiveStage = effectiveShaderStage;
+            var effectiveStage = ShaderStageCapability.All;
+            foreach (var slot in slots)
+                {
+                var stage = NodeUtils.GetEffectiveShaderStageCapability(slot, true);
+                if (stage != ShaderStageCapability.All)
+                {
+                    effectiveStage = stage;
+                    break;
+            }
+        }
 
             foreach(MaterialSlot slot in slots)
                 slot.stageCapability = effectiveStage;
@@ -64,24 +54,23 @@ namespace UnityEditor.ShaderGraph
             return index;
         }
 
-        public void RemapOutputs(ShaderGenerator visitor, GenerationMode generationMode)
+        static ConcreteSlotValueType[] s_AllowedValueTypes =
         {
-            foreach (var slot in graphOutputs)
-                visitor.AddShaderChunk(string.Format("{0} = {1};", slot.shaderOutputName, GetSlotValue(slot.id, generationMode)), true);
-        }
-
-        public IEnumerable<MaterialSlot> graphOutputs
-        {
-            get
-            {
-                return NodeExtensions.GetInputSlots<MaterialSlot>(this).OrderBy(x => x.id);
-            }
-        }
+            ConcreteSlotValueType.Matrix4,
+            ConcreteSlotValueType.Matrix3,
+            ConcreteSlotValueType.Matrix2,
+            ConcreteSlotValueType.Gradient,
+            ConcreteSlotValueType.Vector4,
+            ConcreteSlotValueType.Vector3,
+            ConcreteSlotValueType.Vector2,
+            ConcreteSlotValueType.Vector1,
+            ConcreteSlotValueType.Boolean
+        };
 
         public VisualElement CreateSettingsElement()
         {
             PropertySheet ps = new PropertySheet();
-            ps.Add(new ReorderableSlotListView(this, SlotType.Input));
+            ps.Add(new ReorderableSlotListView(this, SlotType.Input, s_AllowedValueTypes));
             return ps;
         }
     }
