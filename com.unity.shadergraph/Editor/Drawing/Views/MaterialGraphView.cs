@@ -297,7 +297,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
         {
             if (onConvertToSubgraphClick == null) return DropdownMenuAction.Status.Hidden;
-            if (graph.isSubGraph) return DropdownMenuAction.Status.Hidden;
             return selection.OfType<MaterialNodeView>().Any(v => v.node != null) ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden;
         }
 
@@ -317,7 +316,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
             var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.guid, groups, nodes, edges, properties, metaProperties);
+            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, properties, metaProperties);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -371,7 +370,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         static bool ValidateObjectForDrop(Object obj)
         {
-            return EditorUtility.IsPersistent(obj) && (obj is Texture2D || obj is Cubemap || obj is MaterialSubGraphAsset || obj is Texture2DArray || obj is Texture3D);
+            return EditorUtility.IsPersistent(obj) && (obj is Texture2D || obj is Cubemap || obj is SubGraphAsset || obj is Texture2DArray || obj is Texture3D);
         }
 
         static void OnDragUpdatedEvent(DragUpdatedEvent e)
@@ -515,7 +514,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     inputslot.cubemap = cubemap;
             }
 
-            var subGraphAsset = obj as MaterialSubGraphAsset;
+            var subGraphAsset = obj as SubGraphAsset;
             if (subGraphAsset != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Sub-Graph");
@@ -583,7 +582,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var remappedEdges = remappedEdgesDisposable.value;
                     graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
 
-                    if (graphView.graph.guid != copyGraph.sourceGraphGuid)
+                    if (graphView.graph.assetGuid != copyGraph.sourceGraphGuid)
                     {
                         // Compute the mean of the copied nodes.
                         Vector2 centroid = Vector2.zero;

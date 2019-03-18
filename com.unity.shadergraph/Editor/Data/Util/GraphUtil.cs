@@ -962,7 +962,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             var slots = new List<MaterialSlot>();
-            foreach (var activeNode in isUber ? activeNodeList.Where(n => ((AbstractMaterialNode)n).hasPreview) : ((AbstractMaterialNode)node).ToEnumerable())
+            foreach (var activeNode in isUber ? activeNodeList.Where(n => n.hasPreview) : node.ToEnumerable())
             {
                 if (activeNode is IMasterNode || activeNode is SubGraphOutputNode)
                     slots.AddRange(activeNode.GetInputSlots<MaterialSlot>());
@@ -1008,39 +1008,19 @@ namespace UnityEditor.ShaderGraph
             // Generate Input structure for Surface Description function
             // Surface Description Input requirements are needed to exclude intermediate translation spaces
 
-            surfaceDescriptionInputStruct.AppendLine("struct SurfaceDescriptionInputs");
-            using (surfaceDescriptionInputStruct.BlockSemicolonScope())
+            GenerateSurfaceInputStruct(surfaceDescriptionInputStruct, requirements, "SurfaceDescriptionInputs");
+
+            results.previewMode = PreviewMode.Preview3D;
+            if (!isUber)
             {
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, surfaceDescriptionInputStruct);
-
-                if (requirements.requiresVertexColor)
-                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
-
-                if (requirements.requiresScreenPosition)
-                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
-
-                if (requirements.requiresFaceSign)
-                    surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
-
-                results.previewMode = PreviewMode.Preview3D;
-                if (!isUber)
+                foreach (var pNode in activeNodeList)
                 {
-                    foreach (var pNode in activeNodeList.OfType<AbstractMaterialNode>())
+                    if (pNode.previewMode == PreviewMode.Preview3D)
                     {
-                        if (pNode.previewMode == PreviewMode.Preview3D)
-                        {
-                            results.previewMode = PreviewMode.Preview3D;
-                            break;
-                        }
+                        results.previewMode = PreviewMode.Preview3D;
+                        break;
                     }
                 }
-
-                foreach (var channel in requirements.requiresMeshUVs.Distinct())
-                    surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
             }
 
             // -------------------------------------
@@ -1133,6 +1113,54 @@ namespace UnityEditor.ShaderGraph
             results.shader = finalShader.ToString(out sourceMap);
             results.sourceMap = sourceMap;
             return results;
+        }
+
+        public static void GenerateSurfaceInputStruct(ShaderStringBuilder sb, ShaderGraphRequirements requirements, string structName)
+        {
+            sb.AppendLine($"struct {structName}");
+            using (sb.BlockSemicolonScope())
+            {
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, sb);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, sb);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb);
+
+                if (requirements.requiresVertexColor)
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
+
+                if (requirements.requiresScreenPosition)
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
+
+                if (requirements.requiresFaceSign)
+                    sb.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
+
+                foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                    sb.AppendLine("half4 {0};", channel.GetUVName());
+            }
+        }
+
+        public static void GenerateSurfaceInputTransferCode(ShaderStringBuilder sb, ShaderGraphRequirements requirements, string structName, string variableName)
+        {
+            sb.AppendLine($"{structName} {variableName};");
+            
+            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            
+            if (requirements.requiresVertexColor)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexColor} = IN.{ShaderGeneratorNames.VertexColor};");
+
+            if (requirements.requiresScreenPosition)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.ScreenPosition} = IN.{ShaderGeneratorNames.ScreenPosition};");
+
+            if (requirements.requiresFaceSign)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.FaceSign} = IN.{ShaderGeneratorNames.FaceSign};");
+
+            foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                sb.AppendLine($"{variableName}.{channel.GetUVName()} = IN.{channel.GetUVName()};");
         }
 
         public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster, string structName = "SurfaceDescription", HashSet<string> activeFields = null)
