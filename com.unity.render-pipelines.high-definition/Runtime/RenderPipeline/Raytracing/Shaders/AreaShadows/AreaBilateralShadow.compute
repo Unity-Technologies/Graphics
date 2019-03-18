@@ -110,7 +110,8 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     float currentAnalyticValue = _AnalyticProbBuffer[centerCoord].x;
     float historyAnalyticValue = _AnalyticHistoryBuffer[uint3(historyPixelCoord,_RaytracingShadowSlot)];
 
-    if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f)
+    // if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f)
+    if (historyAnalyticValue < 0.0f)
     {
         // Fetch the current value
         float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).xy;

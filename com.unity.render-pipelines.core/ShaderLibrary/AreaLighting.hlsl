@@ -125,11 +125,10 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 
 real3 PolygonFormFactor(real4x3 L)
 {
-    UNITY_UNROLL
-    for (uint i = 0; i < 4; i++)
-    {
-        L[i] = normalize(L[i]);
-    }
+    L[0] = normalize(L[0]);
+    L[1] = normalize(L[1]);
+    L[2] = normalize(L[2]);
+    L[3] = normalize(L[3]);
 
     real3 F  = ComputeEdgeFactor( L[0], L[1] );
           F += ComputeEdgeFactor( L[1], L[2] );
@@ -152,7 +151,7 @@ real PolygonIrradiance(real4x3 L)
 
     real3 F = real3(0, 0, 0);
 
-    UNITY_UNROLL
+    // UNITY_UNROLL
     for (uint edge = 0; edge < 4; edge++)
     {
         real3 V1 = L[edge];
