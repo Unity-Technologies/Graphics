@@ -218,6 +218,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public override Shader defaultSpeedTree7Shader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.defaultSpeedTree7Shader;
+            }
+        }
+
+        public override Shader defaultSpeedTree8Shader
+        {
+            get
+            {
+                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.defaultSpeedTree8Shader;
+            }
+        }
+
         public override Shader terrainDetailLitShader
         {
             get

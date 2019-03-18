@@ -22,6 +22,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
+            public Shader defaultSpeedTree7Shader;
+            public Shader defaultSpeedTree8Shader;
             public Shader terrainDetailLitShader;
             public Shader terrainDetailGrassShader;
             public Shader terrainDetailGrassBillboardShader;

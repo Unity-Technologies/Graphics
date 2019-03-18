@@ -1,3 +1,6 @@
+#ifndef __VARYING_MESH_INCLUDED__
+#define __VARYING_MESH_INCLUDED__
+
 struct AttributesMesh
 {
     float3 positionOS   : POSITION;
@@ -130,6 +133,8 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
     return output;
 }
 
+#ifndef CUSTOM_UNPACK
+
 FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 {
     FragInputs output;
@@ -175,6 +180,8 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
     return output;
 }
+
+#endif
 
 #ifdef TESSELLATION_ON
 
@@ -351,3 +358,5 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
 }
 
 #endif // TESSELLATION_ON
+
+#endif // __VARYING_MESH_INCLUDED__

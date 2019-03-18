@@ -1,3 +1,6 @@
+#ifndef __VERT_MESH_INCLUDED__
+#define __VERT_MESH_INCLUDED__
+
 struct VaryingsToPS
 {
     VaryingsMeshToPS vmesh;
@@ -204,3 +207,5 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 }
 
 #endif // TESSELLATION_ON
+
+#endif // __VERT_MESH_INCLUDED__
