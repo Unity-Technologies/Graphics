@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where shadow would not be rendered properly when light layer are not enabled
 - Fixed exposure weight on unlit materials
 - Fixed Light intensity not played in the player when recorded with animation/timeline
+- Fixed some issues when multi editing HDRenderPipelineAsset
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
