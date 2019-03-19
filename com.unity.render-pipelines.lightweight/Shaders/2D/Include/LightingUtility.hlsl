@@ -47,3 +47,11 @@
 	#define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)
 	#define APPLY_NORMALS_LIGHTING(input, lightColor)
 #endif
+
+
+#define SHAPE_LIGHT(index)\
+	TEXTURE2D(_ShapeLightTexture##index);\
+	SAMPLER(sampler_ShapeLightTexture##index);\
+	float2 _ShapeLightBlendFactors##index;\
+	float4 _ShapeLightMaskFilter##index;\
+	float4 _ShapeLightInvertedFilter##index;
