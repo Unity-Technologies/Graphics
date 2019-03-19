@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.11.0-preview] - 2019-XX-XX
 
+### Changed
+- Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
+
 ## [5.10.0-preview] - 2019-03-19
 
 ## [5.9.0-preview] - 2019-03-15
