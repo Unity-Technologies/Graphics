@@ -32,7 +32,7 @@
     TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
     TEXTURE2D_ARRAY(_Env2DTextures);
 
-    // XRTODO: Need to stereo-ize access
+    // Contact shadows
     TEXTURE2D_X(_DeferredShadowTexture);
 
 #if SHADEROPTIONS_RAYTRACING
