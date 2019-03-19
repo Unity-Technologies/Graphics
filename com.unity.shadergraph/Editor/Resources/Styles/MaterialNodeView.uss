@@ -121,7 +121,7 @@ MaterialNodeView > #portInputContainer {
     position: absolute;
     width: 232;
     left: -220;
-    top: 46;
+    top: 42;
 }
 
 MaterialNodeView > #settings-container {

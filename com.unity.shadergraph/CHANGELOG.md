@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - You can now use Sub Graphs in other Sub Graphs.
 
+### Fixed
+- Default input fields now correctly hide and show when connections change.
+
 ## [5.9.0] - 2019-03-15
 
 ## [5.8.0] - 2019-03-13
