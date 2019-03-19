@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         Pass m_LitPass = new Pass
         {
-            Name = "Pass",
+            Name = "Lit Pass",
             PixelShaderSlots = new List<int>
             {
                 SpriteLitMasterNode.ColorSlotId,
@@ -37,14 +37,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         Pass m_NormalPass = new Pass
         {
-            Name = "Pass",
+            Name = "Normal Pass",
             PixelShaderSlots = new List<int>
             {
                 SpriteLitMasterNode.NormalSlotId
             },
             VertexShaderSlots = new List<int>()
             {
-                SpriteLitMasterNode.PositionSlotId,
+                SpriteLitMasterNode.PositionSlotId
             }
         };
 
@@ -73,11 +73,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("62511ee827d14492a8c78ba0ef167e7f"));
             }
 
-            string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
+            //string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
+            string litPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
             string normalPassTemplate = litPassTemplate;
             var unlitMasterNode = masterNode as SpriteLitMasterNode;
 
-            var pass = m_LitPass;
+            //var pass = m_LitPass;
+            var pass = m_NormalPass;
             var subShader = new ShaderStringBuilder();
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
@@ -96,12 +98,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         pass,
                         mode,
                         materialOptions));
-                subShader.AppendLines(GetShaderPassFromTemplate(
-                        normalPassTemplate,
-                        unlitMasterNode,
-                        pass,
-                        mode,
-                        materialOptions));
+                //subShader.AppendLines(GetShaderPassFromTemplate(
+                //        unlitMasterNode,
+                //        normalPassTemplate,
+                //        pass,
+                //        mode,
+                //        materialOptions));
             }
 
             return subShader.ToString();
@@ -163,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var modelRequiements = ShaderGraphRequirements.none;
             //modelRequiements.requiresNormal = NeededCoordinateSpace.Tangent;
-            // modelRequiements.requiresTangent |= k_PixelCoordinateSpace;
+            //modelRequiements.requiresTangent = NeededCoordinateSpace.World;
             // modelRequiements.requiresBitangent |= k_PixelCoordinateSpace;
             // modelRequiements.requiresPosition |= k_PixelCoordinateSpace;
             // modelRequiements.requiresViewDir |= k_PixelCoordinateSpace;
@@ -258,11 +260,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             surfaceDescriptionInputStruct.AppendLine("struct SurfaceDescriptionInputs");
             using (surfaceDescriptionInputStruct.BlockSemicolonScope())
             {
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresNormal, InterpolatorType.Normal, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(NeededCoordinateSpace.Tangent, InterpolatorType.Normal, surfaceDescriptionInputStruct);
+                //ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresNormal, InterpolatorType.Normal, surfaceDescriptionInputStruct);
                 // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresTangent, InterpolatorType.Tangent, surfaceDescriptionInputStruct);
                 // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresBitangent, InterpolatorType.BiTangent, surfaceDescriptionInputStruct);
                 // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceDescriptionInputStruct);
                 // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresPosition, InterpolatorType.Position, surfaceDescriptionInputStruct);
+
 
                 if (surfaceRequirements.requiresVertexColor)
                      surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
@@ -371,7 +375,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var resultPass = template.Replace("${Tags}", string.Empty);
             resultPass = resultPass.Replace("${Blending}", blendingBuilder.ToString());
             resultPass = resultPass.Replace("${Culling}", cullingBuilder.ToString());
-            resultPass = resultPass.Replace("${ZTest}", zTestBuilder.ToString());
+            //resultPass = resultPass.Replace("${ZTest}", zTestBuilder.ToString());
             resultPass = resultPass.Replace("${ZWrite}", zWriteBuilder.ToString());
             resultPass = resultPass.Replace("${Defines}", defines.ToString());
 

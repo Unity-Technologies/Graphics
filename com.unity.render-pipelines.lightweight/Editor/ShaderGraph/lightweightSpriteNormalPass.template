@@ -1,12 +1,12 @@
 Pass
 {
-    Name "Sprite Lit"
+    Name "Sprite Normal"
     Tags { "LightMode" = "CombinedShapeLight" }
 
 ${Tags}
 ${Blending}
 ${Culling}
-ZWrite Off
+${ZWrite}
 
     HLSLPROGRAM
     // Required to compile gles 2.0 with standard srp library
@@ -58,19 +58,14 @@ ${VertexShaderOutputs}
     {
 ${PixelShader}
         SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;
+		surfaceInput.TangentSpaceNormal = float3(0,0,1);
 ${PixelShaderSurfaceInputs}
         SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
 
-        return surf.Color;
-
-#if ETC1_EXTERNAL_ALPHA
-        float4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, IN.uv0.xy);
-        surf.Color.a = lerp (surf.Color.a, alpha.r, _EnableAlphaTexture);
-#endif
-        
-        surf.Color *= IN.VertexColor;
-        return half4(surf.Color.xyz, surf.Color.a);
+        half4 color = half4(surf.Normal.x, surf.Normal.y, surf.Normal.z, 1);
+		return color;
     }
 
     ENDHLSL
 }
+	
