@@ -80,7 +80,10 @@ namespace UnityEditor.Rendering.LWRP
 
                 if (element.objectReferenceValue != null)
                 {
-                    GUIContent header = new GUIContent(element.objectReferenceValue.name,
+                    var name = element.objectReferenceValue.name;
+                    if (element.objectReferenceValue.GetType().Namespace.Contains("Experimental"))
+                        name += " (Experimental)";
+                    GUIContent header = new GUIContent(name,
                         element.objectReferenceValue.GetType().Name);
                     m_Foldouts[index].value =
                         EditorGUI.Foldout(headerRect,
@@ -195,11 +198,8 @@ namespace UnityEditor.Rendering.LWRP
                 var path = type.Name;
                 if (type.Namespace != null)
                 {
-                    var nameSpace = type.Namespace;
-                    if (nameSpace == typeof(ScriptableRendererFeature).Namespace)
-                        nameSpace = nameSpace.Split('.').Last();
-                    nameSpace = nameSpace.Replace('.', '/');
-                    path = string.Format($"{nameSpace}/{path}");
+                    if (type.Namespace.Contains("Experimental"))
+                        path += " (Experimental)";
                 }
 
                 path = Regex.Replace(Regex.Replace(path, "([a-z])([A-Z])", "$1 $2"),
@@ -262,6 +262,7 @@ namespace UnityEditor.Rendering.LWRP
                 m_PassesList.serializedProperty.serializedObject.ApplyModifiedProperties();
                 AssetDatabase.SaveAssets();
             }
+            m_ElementSOs.Clear();
             GetElementSO(m_PassesList.index);
             CreateFoldoutBools();
             EditorUtility.SetDirty(m_RenderPasses.serializedObject.targetObject);
