@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
 
+### Fixed
+- Fixed Light intensity not played in the player when recorded with animation/timeline
+
 ## [5.10.0-preview] - 2019-03-19
 
 ## [5.9.0-preview] - 2019-03-15
