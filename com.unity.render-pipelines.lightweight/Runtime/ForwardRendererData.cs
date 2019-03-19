@@ -1,6 +1,10 @@
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.ProjectWindowCallback;
+#endif
+
 namespace UnityEngine.Rendering.LWRP
-{
-    [CreateAssetMenu(fileName = "Custom Forward Renderer", menuName = "Rendering/Lightweight Render Pipeline/Forward Renderer", order = CoreUtils.assetCreateMenuPriority1)]
+{    
     public class ForwardRendererData : ScriptableRendererData
     {
         [SerializeField] Shader m_BlitShader = null;
@@ -13,6 +17,25 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField] StencilStateData m_DefaultStencilState = null;
 
+#if UNITY_EDITOR
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
+        internal class CreateForwardRendererAsset : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var instance = CreateInstance<ForwardRendererData>();
+                AssetDatabase.CreateAsset(instance, pathName);
+                Selection.activeObject = instance;
+            }
+        }
+        
+        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority1)]
+        static void CreateForwardRendererData()
+        {
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
+        }
+#endif
+        
         protected override ScriptableRenderer Create()
         {
             return new ForwardRenderer(this);

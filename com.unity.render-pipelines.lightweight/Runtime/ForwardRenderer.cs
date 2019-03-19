@@ -110,6 +110,12 @@ namespace UnityEngine.Rendering.LWRP
             bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
                 (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
             requiresDepthPrepass |= resolveShadowsInScreenSpace;
+
+            // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
+            // we have a proper fix.
+            if (renderingData.cameraData.isStereoEnabled && renderingData.cameraData.requiresDepthTexture)
+                requiresDepthPrepass = true;
+
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
                                       || rendererFeatures.Count != 0;
 
