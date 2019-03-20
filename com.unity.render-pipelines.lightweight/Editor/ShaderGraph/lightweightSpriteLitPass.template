@@ -18,12 +18,18 @@ ZWrite Off
     #pragma fragment frag
 
     #pragma multi_compile _ ETC1_EXTERNAL_ALPHA
+	#pragma multi_compile USE_SHAPE_LIGHT_TYPE_0 __
+    #pragma multi_compile USE_SHAPE_LIGHT_TYPE_1 __
+    #pragma multi_compile USE_SHAPE_LIGHT_TYPE_2 __
+    #pragma multi_compile USE_SHAPE_LIGHT_TYPE_3 __
+
 
     ${Defines}
     #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
     #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/ShaderGraphFunctions.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+	#include "Packages/com.unity.render-pipelines.lightweight/Shaders/2D/Include/LightingUtility.hlsl"
 
 #if ETC1_EXTERNAL_ALPHA
     TEXTURE2D(_AlphaTex); SAMPLER(sampler_AlphaTex);
@@ -31,10 +37,29 @@ ZWrite Off
 #endif
     float4 _RendererColor;
 
+	#if USE_SHAPE_LIGHT_TYPE_0
+	SHAPE_LIGHT(0)
+	#endif
+
+	#if USE_SHAPE_LIGHT_TYPE_1
+	SHAPE_LIGHT(1)
+	#endif
+
+	#if USE_SHAPE_LIGHT_TYPE_2
+	SHAPE_LIGHT(2)
+	#endif
+
+	#if USE_SHAPE_LIGHT_TYPE_3
+	SHAPE_LIGHT(3)
+	#endif
+
+	#include "Packages/com.unity.render-pipelines.lightweight/Shaders/2D/Include/CombinedShapeLightShared.hlsl"
+
 ${Graph}
     struct GraphVertexOutput
     {
-        float4 position : POSITION;
+        float4 positionCS : POSITION;
+		half2  lightingUV : TEXCOORD0;
 ${VertexOutputStruct}
     };
 
@@ -48,7 +73,14 @@ ${VertexShaderDescriptionInputs}
 
         v.vertex.xyz = vd.Position;
         VertexColor *= _RendererColor;
-        o.position = TransformObjectToHClip(v.vertex.xyz);
+
+        o.positionCS = TransformObjectToHClip(v.vertex);
+		float4 clipVertex = o.positionCS / o.positionCS.w;
+		o.lightingUV = ComputeScreenPos(clipVertex).xy;
+
+		#if UNITY_UV_STARTS_AT_TOP
+		o.lightingUV.y = 1.0 - o.lightingUV.y;
+		#endif
 
 ${VertexShaderOutputs}
         return o;
@@ -61,7 +93,6 @@ ${PixelShader}
 ${PixelShaderSurfaceInputs}
         SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
 
-        return surf.Color;
 
 #if ETC1_EXTERNAL_ALPHA
         float4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, IN.uv0.xy);
@@ -69,7 +100,8 @@ ${PixelShaderSurfaceInputs}
 #endif
         
         surf.Color *= IN.VertexColor;
-        return half4(surf.Color.xyz, surf.Color.a);
+	
+		return CombinedShapeLightShared(surf.Color, surf.Mask, IN.lightingUV);
     }
 
     ENDHLSL

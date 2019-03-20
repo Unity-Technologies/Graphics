@@ -74,13 +74,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("62511ee827d14492a8c78ba0ef167e7f"));
             }
 
-            //string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
-            string litPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
-            string normalPassTemplate = litPassTemplate;
-            var unlitMasterNode = masterNode as SpriteLitMasterNode;
+            string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
+            string normalPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
+            var litMasterNode = masterNode as SpriteLitMasterNode;
 
-            //var pass = m_LitPass;
-            var pass = m_NormalPass;
+            var litPass = m_LitPass;
+            var normalPass = m_NormalPass;
             var subShader = new ShaderStringBuilder();
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
@@ -95,16 +94,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 var materialOptions = ShaderGenerator.GetMaterialOptions(SurfaceType.Transparent, AlphaMode.Alpha, true);
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         litPassTemplate,
-                        unlitMasterNode,
-                        pass,
+                        litMasterNode,
+                        litPass,
                         mode,
                         materialOptions));
-                //subShader.AppendLines(GetShaderPassFromTemplate(
-                //        unlitMasterNode,
-                //        normalPassTemplate,
-                //        pass,
-                //        mode,
-                //        materialOptions));
+                subShader.AppendLines(GetShaderPassFromTemplate(
+                        normalPassTemplate,
+                        litMasterNode,
+                        normalPass,
+                        mode,
+                        materialOptions));
             }
 
             return subShader.ToString();
@@ -193,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // -------------------------------------
             // Generate defines
 
-            // if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
+            // if (masterNode.IsSlotConnected(litMasterNode.AlphaThresholdSlotId))
             //     defines.AppendLine("#define _AlphaClip 1");
 
             // if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
