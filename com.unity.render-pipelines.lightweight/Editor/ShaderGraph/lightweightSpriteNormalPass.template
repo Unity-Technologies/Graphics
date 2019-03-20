@@ -24,6 +24,7 @@ ${ZWrite}
     #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Lighting.hlsl"
     #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/ShaderGraphFunctions.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+	#include "Packages/com.unity.render-pipelines.lightweight/Shaders/2D/Include/NormalsRenderingShared.hlsl"
 
 #if ETC1_EXTERNAL_ALPHA
     TEXTURE2D(_AlphaTex); SAMPLER(sampler_AlphaTex);
@@ -35,6 +36,9 @@ ${Graph}
     struct GraphVertexOutput
     {
         float4 position : POSITION;
+		float3  normalWS		: TEXCOORD0;
+		float3  tangentWS		: TEXCOORD1;
+		float3  bitangentWS		: TEXCOORD2;
 ${VertexOutputStruct}
     };
 
@@ -49,7 +53,9 @@ ${VertexShaderDescriptionInputs}
         v.vertex.xyz = vd.Position;
         VertexColor *= _RendererColor;
         o.position = TransformObjectToHClip(v.vertex.xyz);
-
+		o.normalWS = TransformObjectToWorldDir(float3(0, 0, 1));
+		o.tangentWS = TransformObjectToWorldDir(float3(1, 0, 0));
+		o.bitangentWS = TransformObjectToWorldDir(float3(0, 1, 0));
 ${VertexShaderOutputs}
         return o;
     }
@@ -62,8 +68,7 @@ ${PixelShader}
 ${PixelShaderSurfaceInputs}
         SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
 
-        half4 color = half4(surf.Normal.x, surf.Normal.y, surf.Normal.z, 1);
-		return color;
+		return NormalsRenderingShared(surf.Color, surf.Normal, IN.tangentWS.xyz, IN.bitangentWS.xyz, -IN.normalWS.xyz);;
     }
 
     ENDHLSL

@@ -37,9 +37,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         Pass m_NormalPass = new Pass
         {
-            Name = "Normal Pass",
+            Name = "Sprite Normal",
             PixelShaderSlots = new List<int>
             {
+                SpriteLitMasterNode.ColorSlotId,
                 SpriteLitMasterNode.NormalSlotId
             },
             VertexShaderSlots = new List<int>()
@@ -217,9 +218,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 //ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresNormal, InterpolatorType.Normal, vertexDescriptionInputStruct);
                 ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(NeededCoordinateSpace.Tangent, InterpolatorType.Normal, vertexDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresTangent, InterpolatorType.Tangent, vertexDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresBitangent, InterpolatorType.BiTangent, vertexDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresViewDir, InterpolatorType.ViewDirection, vertexDescriptionInputStruct);
+                //ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(NeededCoordinateSpace., InterpolatorType.Tangent, vertexDescriptionInputStruct);
+                //ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresBitangent, InterpolatorType.BiTangent, vertexDescriptionInputStruct);
+                //ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresViewDir, InterpolatorType.ViewDirection, vertexDescriptionInputStruct);
                 ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresPosition, InterpolatorType.Position, vertexDescriptionInputStruct);
 
                 if (vertexRequirements.requiresVertexColor)
