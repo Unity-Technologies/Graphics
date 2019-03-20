@@ -327,7 +327,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     pass.ZTestOverride = null;
                 }
-            }
+            },
+            UseInPreview = true
         };
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)

@@ -18,7 +18,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static readonly MigrationDescription<Version, RenderPipelineResources> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.RemovedEditorOnlyResources, (RenderPipelineResources i) =>
             {
-                i.Init();
+                //force full reimport to remove moved resources
+                i.materials = null;
+                i.shaderGraphs = null;
+                i.textures = null;
+                i.shaders = null;
+                ResourceReloader.ReloadAllNullIn(i);
             })
         );
 
@@ -26,10 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Version m_Version = Version.First;  //keep former creation affectation
         Version IVersionable<Version>.version { get { return (Version)m_Version; } set { m_Version = value; } }
 
-        public void UpgradeIfNeeded()
-        {
-            k_Migration.Migrate(this);
-        }
+        public void UpgradeIfNeeded() => k_Migration.Migrate(this);
     }
 }
 #endif

@@ -187,8 +187,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // -----------------------------------------------------------------------------------
                 //titleButtonContainer.Add(m_SettingsButton);
                 //titleButtonContainer.Add(m_CollapseButton);
-
-                RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             }
         }
 
@@ -228,7 +226,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 SubGraphNode subgraphNode = node as SubGraphNode;
 
-                var path = AssetDatabase.GetAssetPath(subgraphNode.subGraphAsset);
+                var path = AssetDatabase.GUIDToAssetPath(subgraphNode.subGraphGuid);
                 ShaderGraphImporterEditor.ShowGraphEditWindow(path);
             }
         }
@@ -319,6 +317,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_NodeSettingsView.visible = true;
 
                 m_SettingsButton.AddToClassList("clicked");
+                RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+                OnGeometryChanged(null);
             }
             else
             {
@@ -326,6 +326,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_NodeSettingsView.visible = false;
                 m_SettingsButton.RemoveFromClassList("clicked");
+                UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             }
         }
 
@@ -357,9 +358,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateTitle()
         {
-            var subGraphNode = node as SubGraphNode;
-            if (subGraphNode != null && subGraphNode.subGraphAsset != null)
-                title = subGraphNode.subGraphAsset.name + " (sub)";
+            if (node is SubGraphNode subGraphNode && subGraphNode.subGraphData != null)
+                title = subGraphNode.subGraphAsset.name;
             else
                 title = node.name;
         }
@@ -429,11 +429,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     inputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
                 if (outputContainer.childCount > 0)
                     outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
+
+                UpdatePortInputs();
+                UpdatePortInputVisibilities();
             }
 
             RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
-            UpdatePortInputs();
-            UpdatePortInputVisibilities();
 
             foreach (var listener in m_ControlItems.Children().OfType<AbstractMaterialNodeModificationListener>())
             {
@@ -465,39 +466,38 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
                     m_PortInputContainer.Add(portInputView);
-                    port.RegisterCallback<GeometryChangedEvent>(evt => UpdatePortInput((ShaderPort)evt.target));
+                    if (float.IsNaN(port.layout.width))
+                    {
+                        port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
+                    }
+                    else
+                    {
+                        SetPortInputPosition(port, portInputView);
+                    }
                 }
             }
         }
 
-        void UpdatePortInput(ShaderPort port)
+        void UpdatePortInput(GeometryChangedEvent evt)
         {
+            var port = (ShaderPort)evt.target;
             var inputView = m_PortInputContainer.Children().OfType<PortInputView>().First(x => Equals(x.slot, port.slot));
+            SetPortInputPosition(port, inputView);
+            port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
+        }
 
-            var currentRect = new Rect(inputView.resolvedStyle.left, inputView.resolvedStyle.top, inputView.resolvedStyle.width, inputView.resolvedStyle.height);
-            var targetRect = new Rect(0.0f, 0.0f, port.layout.width, port.layout.height);
-            targetRect = port.ChangeCoordinatesTo(inputView.hierarchy.parent, targetRect);
-            var centerY = targetRect.center.y;
-            var centerX = targetRect.xMax - currentRect.width;
-            currentRect.center = new Vector2(centerX, centerY);
-
-            inputView.style.top = currentRect.yMin;
-            var newHeight = inputView.parent.layout.height;
-            foreach (var element in inputView.parent.Children())
-                newHeight = Mathf.Max(newHeight, element.style.top.value.value + element.layout.height);
-            if (Math.Abs(inputView.parent.style.height.value.value - newHeight) > 1e-3)
-                inputView.parent.style.height = newHeight;
+        void SetPortInputPosition(ShaderPort port, PortInputView inputView)
+        {
+            inputView.style.top = port.layout.y;
+            inputView.parent.style.height = inputContainer.layout.height;
         }
 
         public void UpdatePortInputVisibilities()
         {
-            foreach (var portInputView in m_PortInputContainer.Children().OfType<PortInputView>())
+            foreach (var portInputView in m_PortInputContainer.Children().OfType<PortInputView>().ToList())
             {
                 var slot = portInputView.slot;
-                var oldVisibility = portInputView.visible;
-                portInputView.visible = expanded && !node.owner.GetEdges(node.GetSlotReference(slot.id)).Any();
-                if (portInputView.visible != oldVisibility)
-                    m_PortInputContainer.MarkDirtyRepaint();
+                portInputView.style.display = expanded && !node.owner.GetEdges(node.GetSlotReference(slot.id)).Any() ? DisplayStyle.Flex : DisplayStyle.None;
             }
         }
 

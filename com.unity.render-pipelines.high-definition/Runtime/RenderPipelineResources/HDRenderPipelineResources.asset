@@ -109,7 +109,7 @@ MonoBehaviour:
     aoResolvePS: {fileID: 4800000, guid: 0fcef9ef067b4cd44a62bd6ac0166384, type: 3}
     depthValuesPS: {fileID: 4800000, guid: 6e6a4a3dbb788234594aa74f2d6aeb6f, type: 3}
     colorResolvePS: {fileID: 4800000, guid: dd7047092f3c82b40b3a07868f9c4de2, type: 3}
-    nanKillerCS: {fileID: 0}
+    nanKillerCS: {fileID: 7200000, guid: 83982f199acf927499576a99abc9bea9, type: 3}
     exposureCS: {fileID: 7200000, guid: 976d7bce54fae534fb9ec67e9c18570c, type: 3}
     uberPostCS: {fileID: 7200000, guid: f1bf52f7c71bffd4f91e6cd90d12a4f7, type: 3}
     lutBuilder3DCS: {fileID: 7200000, guid: 37f2b1b0ecd6f1c439e4c1b4f2fdb524, type: 3}
@@ -221,8 +221,8 @@ MonoBehaviour:
     - {fileID: 2800000, guid: 7641a2b116fafd64d9c3d6459fdfe801, type: 3}
     - {fileID: 2800000, guid: c6a5e40e6746fef4fa486e8f620ee8d4, type: 3}
     - {fileID: 2800000, guid: fd4189357c6dfb94fa2d36afbce72086, type: 3}
-    owenScrambledTex: {fileID: 0}
-    scramblingTex: {fileID: 0}
+    owenScrambledTex: {fileID: 2800000, guid: 6e514bb686606e44789fe2c54a8e94f5, type: 3}
+    scramblingTex: {fileID: 2800000, guid: bf25cd6288e2c8d43854a61a8496a830, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}

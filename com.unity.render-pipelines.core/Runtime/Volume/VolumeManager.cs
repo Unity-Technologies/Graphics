@@ -66,8 +66,8 @@ namespace UnityEngine.Rendering
             m_ComponentsDefaultState.Clear();
 
             // Grab all the component types we can find
-            baseComponentTypes = CoreUtils.GetAllAssemblyTypes()
-                .Where(t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract);
+            baseComponentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
+                .Where(t => !t.IsAbstract);
 
             // Keep an instance of each type to be used in a virtual lowest priority global volume
             // so that we have a default state to fallback to when exiting volumes
