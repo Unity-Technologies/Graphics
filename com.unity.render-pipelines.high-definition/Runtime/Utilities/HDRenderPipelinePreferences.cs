@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering
     {
         static bool m_Loaded = false;
 
-        static AntialiasingMode s_SceneViewAntialiasing = AntialiasingMode.None;
+        static AntialiasingMode s_SceneViewAntialiasing;
         public static AntialiasingMode sceneViewAntialiasing
         {
             get => s_SceneViewAntialiasing;
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static bool s_SceneViewStopNaNs = false;
+        static bool s_SceneViewStopNaNs;
         public static bool sceneViewStopNaNs
         {
             get => s_SceneViewStopNaNs;
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering
                         EditorGUILayout.HelpBox("Temporal Anti-aliasing in the Scene View is only supported when Animated Materials are enabled.", MessageType.Info);
 
                     sceneViewStopNaNs = EditorGUILayout.Toggle("Scene View Stop NaNs", sceneViewStopNaNs);
-
+                    
                     // Disable this until we have a good solution to handle the normalized color picking
                     // EditorGUILayout.LabelField("Color Normalization");
                     // using (new EditorGUI.IndentLevelScope())

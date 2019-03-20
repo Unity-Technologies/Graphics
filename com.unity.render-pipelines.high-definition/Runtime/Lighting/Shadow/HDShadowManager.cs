@@ -150,8 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas    = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas        = HDShadowAtlasInitParams.GetDefault(),
-			shadowQuality = HDShadowQuality.Low
-
+			shadowQuality               = HDShadowQuality.Low
         };
 
         public const int k_DefaultShadowAtlasResolution = 4096;
@@ -474,6 +473,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // TODO remove DrawShadowSettings, lightIndex and splitData when scriptable culling is available
             ShadowDrawingSettings dss = new ShadowDrawingSettings(cullResults, 0);
+            dss.useRenderingLayerMaskTest = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers);
 
             // Clear atlas render targets and draw shadows
             using (new ProfilingSample(cmd, "Punctual Lights Shadows rendering", CustomSamplerId.RenderShadows.GetSampler()))

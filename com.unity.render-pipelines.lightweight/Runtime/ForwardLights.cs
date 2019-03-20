@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.LWRP
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
-
+        
         void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel)
         {
             lightPos = k_DefaultLightPosition;
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             Light light = lightData.light;
-
+            
             // Set the occlusion probe channel.
             int occlusionProbeChannel = light != null ? light.bakingOutput.occlusionMaskChannel : -1;
 
@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.LWRP
             // input to one. We then, in the shader max with the second value for non-occluded lights.
             lightOcclusionProbeChannel.x = occlusionProbeChannel == -1 ? 0f : occlusionProbeChannel;
             lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
-
+            
             // TODO: Add support to shadow mask
             if (light != null && light.bakingOutput.mixedLightingMode == MixedLightingMode.Subtractive && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
             {
