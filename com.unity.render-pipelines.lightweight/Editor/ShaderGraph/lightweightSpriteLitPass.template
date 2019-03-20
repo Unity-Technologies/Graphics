@@ -35,7 +35,6 @@ ZWrite Off
     TEXTURE2D(_AlphaTex); SAMPLER(sampler_AlphaTex);
     float _EnableAlphaTexture;
 #endif
-    float4 _RendererColor;
 
 	#if USE_SHAPE_LIGHT_TYPE_0
 	SHAPE_LIGHT(0)
@@ -72,7 +71,7 @@ ${VertexShaderDescriptionInputs}
         VertexDescription vd = PopulateVertexData(vdi);
 
         v.vertex.xyz = vd.Position;
-        VertexColor *= _RendererColor;
+        VertexColor = v.color;
 
         o.positionCS = TransformObjectToHClip(v.vertex);
 		float4 clipVertex = o.positionCS / o.positionCS.w;
@@ -98,7 +97,6 @@ ${PixelShaderSurfaceInputs}
         float4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, IN.uv0.xy);
         surf.Color.a = lerp (surf.Color.a, alpha.r, _EnableAlphaTexture);
 #endif
-        
         surf.Color *= IN.VertexColor;
 	
 		return CombinedShapeLightShared(surf.Color, surf.Mask, IN.lightingUV);
