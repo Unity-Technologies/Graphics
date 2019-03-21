@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEditor;
 
-[ScriptedImporter(4, Extension, 1)]
+[ScriptedImporter(5, Extension, 1)]
 class ShaderSubGraphImporter : ScriptedImporter
 {
     public const string Extension = "shadersubgraph";
@@ -13,8 +13,9 @@ class ShaderSubGraphImporter : ScriptedImporter
     {
         var graphAsset = ScriptableObject.CreateInstance<SubGraphAsset>();
         graphAsset.importedAt = DateTime.Now.Ticks;
-        
-        ctx.AddObjectToAsset("MainAsset", graphAsset);
+
+        Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon@64");
+        ctx.AddObjectToAsset("MainAsset", graphAsset, texture);
         ctx.SetMainObject(graphAsset);
         
         AssetDatabase.ImportAsset(SubGraphDatabaseImporter.path);
