@@ -50,7 +50,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.diffusionProfileHash = 0;
 
 #ifdef EFFECT_BUMP
-    float3 tanNorm = 2.0 * ( SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, input.texCoord0.xy).rgb - float3(0.5, 0.5, 0.5) );
+#ifdef SPEEDTREE_BILLBOARD
+    float3 tanNorm = 2.0 * (SAMPLE_TEXTURE2D_LOD(_BumpMap, sampler_BumpMap, input.texCoord0.xy, 0).rgb - float3(0.5, 0.5, 0.5));
+    surfaceData.baseColor *= SAMPLE_TEXTURE2D_LOD(_BumpMap, sampler_BumpMap, input.texCoord0.xy, 0).a;  // acts as additional detail.
+#else
+    float3 tanNorm = 2.0 * (SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, input.texCoord0.xy).rgb - float3(0.5, 0.5, 0.5));
+#endif
     surfaceData.normalWS = normalize(mul(tanNorm.zyx, input.worldToTangent));
 #endif
 

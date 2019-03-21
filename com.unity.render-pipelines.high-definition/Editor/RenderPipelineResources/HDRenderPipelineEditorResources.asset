@@ -9,7 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 2458424b5c344b2409e3b844f89e459f, type: 3}
   m_Name: HDRenderPipelineEditorResources
   m_EditorClassIdentifier: 
@@ -19,18 +18,20 @@ MonoBehaviour:
     type: 2}
   defaultPostProcessingProfile: {fileID: 11400000, guid: 0904b06389a0ca142ae72fe1effad808,
     type: 2}
-  defaultDiffusionProfileSettings: {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0,
-    type: 2}
+  defaultDiffusionProfileSettingsList:
+  - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
+  - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
   shaders:
+    defaultSpeedTree7Shader: {fileID: 4800000, guid: 8367002ccd55f7d4ca996eeed154af1b,
+      type: 3}
+    defaultSpeedTree8Shader: {fileID: 4800000, guid: 8367002ccd55f7d4ca996eeed154af1b,
+      type: 3}
     terrainDetailLitShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
       type: 0}
     terrainDetailGrassShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
       type: 0}
     terrainDetailGrassBillboardShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
       type: 0}
-  defaultDiffusionProfileSettingsList:
-  - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
-  - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
   materials:
     defaultDiffuseMat: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
     defaultMirrorMat: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
