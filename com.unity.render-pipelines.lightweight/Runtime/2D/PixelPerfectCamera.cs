@@ -1,3 +1,5 @@
+using UnityEngine.Rendering;
+
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     /// <summary>
@@ -129,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Debug.LogWarning("Render to texture is not supported by Pixel Perfect Camera.", m_Camera);
         }
 
-        private void LateUpdate()
+        void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             m_Internal.CalculateCameraProperties(Screen.width, Screen.height);
 
@@ -137,16 +139,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // An exception of this is when the editor is paused, where we call LateUpdate() manually in OnPreCall().
             // In this special case, you'll see one frame of glitch when toggling renderUpscaling on and off.
             m_Camera.forceIntoRenderTexture = m_Internal.hasPostProcessLayer || m_Internal.useOffscreenRT;
-        }
 
-        private void OnPreCull()
-        {
-#if UNITY_EDITOR
-            // LateUpdate() is not called while the editor is paused, but OnPreCull() is.
-            // So call LateUpdate() manually here.
-            if (UnityEditor.EditorApplication.isPaused)
-                LateUpdate();
-#endif
+            // -----------Above was LateUpdate---------------------
 
             PixelSnap();
 
@@ -156,21 +150,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
 
             m_Camera.orthographicSize = m_Internal.orthoSize;
-        }
 
-        private void OnPreRender()
-        {
+            // -----------Above was OnPreCull---------------------
+
             // Clear the screen to black so that we can see black bars.
             // Need to do it before anything is drawn if we're rendering directly to the screen.
             if (m_Internal.cropFrameXOrY && !m_Camera.forceIntoRenderTexture && !m_Camera.allowMSAA)
                 GL.Clear(false, true, Color.black);
 
-            Experimental.U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
+            U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
+
+            // -----------Above was OnPreRender---------------------
         }
 
-        private void OnPostRender()
+        void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
         {
-            Experimental.U2D.PixelPerfectRendering.pixelSnapSpacing = 0.0f;
+            // This whole function was OnPostRender.
+
+            U2D.PixelPerfectRendering.pixelSnapSpacing = 0.0f;
 
             // Clear the screen to black so that we can see black bars.
             // If a temporary offscreen RT is used, we do the clear after we're done with that RT to avoid an unnecessary RT switch. 
@@ -191,16 +188,22 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_Camera.pixelRect = m_Internal.CalculatePostRenderPixelRect(m_Camera.aspect, Screen.width, Screen.height);
         }
 
-#if UNITY_EDITOR
-        private void OnEnable()
+        void OnEnable()
         {
+            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+
+#if UNITY_EDITOR
             if (!UnityEditor.EditorApplication.isPlaying)
                 UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChanged;
-        }
 #endif
+        }
 
         public void OnDisable()
         {
+            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+
             m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
             m_Camera.orthographicSize = m_Internal.originalOrthoSize;
             m_Camera.forceIntoRenderTexture = m_Internal.hasPostProcessLayer;
