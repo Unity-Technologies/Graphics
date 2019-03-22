@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added RenderObjects. You can add RenderObjects to a Renderer to perform custom rendering.
 
 ### Fixed
-- Fixed an XR rendering issue where Unity required a depth texture.
-
-### Fixed
 - Fixed a project import issue in the LWRP template.
 - Fixed the warnings that appear when you create new Unlit Shader Graphs using the Lightweight Render Pipeline.
 - Fixed light attenuation precision on mobile platforms.
@@ -22,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed stencil render state in the renderer.
 - The default layer mask is now applied to a depth pre-pass.
 - Several improvements and fixes to the render pass UI.
+- Fixed an XR rendering issue where Unity required a depth texture.
+- Fixed an issue that caused transparent objects to sort incorrectly.
 
 ## [6.5.0] - 2019-03-07
 ### Added
