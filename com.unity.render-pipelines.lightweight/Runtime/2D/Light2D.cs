@@ -407,12 +407,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 #endif
 
             if (rebuildMesh)
-            {
-                if (m_LightType != LightType.Global)
-                    UpdateMesh();
-                else
-                    Light2D.AddGlobalLight(this, true);
-            }
+                UpdateMesh();
         }
 
         private void OnDrawGizmos()
