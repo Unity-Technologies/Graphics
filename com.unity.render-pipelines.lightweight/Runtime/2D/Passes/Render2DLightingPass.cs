@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 var clearFlag = cleared ? ClearFlag.None : ClearFlag.All;
                 var clearColor = renderingData.cameraData.camera.backgroundColor;
                 cleared = true;
-                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, clearFlag, clearColor, TextureDimension.Tex2D);
+                SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, clearFlag, clearColor, TextureDimension.Tex2D);
                 
                 context.ExecuteCommandBuffer(cmd);
 
