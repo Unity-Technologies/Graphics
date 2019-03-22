@@ -6,7 +6,7 @@ Pass
 ${Tags}
 ${Blending}
 ${Culling}
-ZWrite Off
+	ZWrite Off
 
     HLSLPROGRAM
     // Required to compile gles 2.0 with standard srp library
@@ -73,7 +73,7 @@ ${VertexShaderDescriptionInputs}
         v.vertex.xyz = vd.Position;
         VertexColor = v.color;
 
-        o.positionCS = TransformObjectToHClip(v.vertex);
+        o.positionCS = TransformObjectToHClip(v.vertex.xyz);
 		float4 clipVertex = o.positionCS / o.positionCS.w;
 		o.lightingUV = ComputeScreenPos(clipVertex).xy;
 
@@ -91,7 +91,6 @@ ${PixelShader}
         SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;
 ${PixelShaderSurfaceInputs}
         SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-
 
 #if ETC1_EXTERNAL_ALPHA
         float4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, IN.uv0.xy);

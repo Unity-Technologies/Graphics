@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     public class CreateSpriteUnlitShaderGraph : EndNameEditAction
     {
-        [MenuItem("Assets/Create/Shader/Unlit Sprite Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/2D Renderer/Unlit Sprite Graph", false, 208)]
         public static void CreateMaterialGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateSpriteUnlitShaderGraph>(),

@@ -6,7 +6,7 @@ Pass
 ${Tags}
 ${Blending}
 ${Culling}
-${ZWrite}
+	ZWrite Off
 
     HLSLPROGRAM
     // Required to compile gles 2.0 with standard srp library
@@ -30,7 +30,6 @@ ${ZWrite}
     TEXTURE2D(_AlphaTex); SAMPLER(sampler_AlphaTex);
     float _EnableAlphaTexture;
 #endif
-    float4 _RendererColor;
 
 ${Graph}
     struct GraphVertexOutput
@@ -51,7 +50,6 @@ ${VertexShaderDescriptionInputs}
         VertexDescription vd = PopulateVertexData(vdi);
 
         v.vertex.xyz = vd.Position;
-        VertexColor *= _RendererColor;
         o.position = TransformObjectToHClip(v.vertex.xyz);
 		#if UNITY_UV_STARTS_AT_TOP
 			o.position.y = -o.position.y;

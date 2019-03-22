@@ -1,7 +1,7 @@
 #if !defined(COMBINED_SHAPE_LIGHT_PASS)
 #define COMBINED_SHAPE_LIGHT_PASS
 
-half4 CombinedShapeLightShared(half4 color, half mask, half2 lightingUV)
+half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 {
 
 #if USE_SHAPE_LIGHT_TYPE_0

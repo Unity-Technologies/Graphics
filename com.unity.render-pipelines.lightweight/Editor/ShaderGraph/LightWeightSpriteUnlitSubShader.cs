@@ -134,13 +134,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             var surfaceRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);
 
             var modelRequiements = ShaderGraphRequirements.none;
-            // modelRequiements.requiresNormal |= k_PixelCoordinateSpace;
-            // modelRequiements.requiresTangent |= k_PixelCoordinateSpace;
-            // modelRequiements.requiresBitangent |= k_PixelCoordinateSpace;
-            // modelRequiements.requiresPosition |= k_PixelCoordinateSpace;
-            // modelRequiements.requiresViewDir |= k_PixelCoordinateSpace;
-            // modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
             modelRequiements.requiresVertexColor = true;
+            modelRequiements.requiresMeshUVs = new List<UVChannel>() { UVChannel.UV0 };
+            
 
             // ----------------------------------------------------- //
             //                START SHADER GENERATION                //
@@ -159,21 +155,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             materialOptions.GetDepthTest(zTestBuilder);
             materialOptions.GetDepthWrite(zWriteBuilder);
 
-            // -------------------------------------
-            // Generate defines
-
-            // if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
-            //     defines.AppendLine("#define _AlphaClip 1");
-
-            // if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
-            //     defines.AppendLine("#define _ALPHAPREMULTIPLY_ON 1");
-
-            // if (graphRequirements.requiresDepthTexture)
-            //     defines.AppendLine("#define REQUIRE_DEPTH_TEXTURE");
-
-            // if (graphRequirements.requiresCameraOpaqueTexture)
-            //     defines.AppendLine("#define REQUIRE_OPAQUE_TEXTURE");
-
             // ----------------------------------------------------- //
             //                START VERTEX DESCRIPTION               //
             // ----------------------------------------------------- //
@@ -185,17 +166,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             vertexDescriptionInputStruct.AppendLine("struct VertexDescriptionInputs");
             using (vertexDescriptionInputStruct.BlockSemicolonScope())
             {
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresNormal, InterpolatorType.Normal, vertexDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresTangent, InterpolatorType.Tangent, vertexDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresBitangent, InterpolatorType.BiTangent, vertexDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresViewDir, InterpolatorType.ViewDirection, vertexDescriptionInputStruct);
                 ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresPosition, InterpolatorType.Position, vertexDescriptionInputStruct);
 
                 if (vertexRequirements.requiresVertexColor)
                     vertexDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
-
-                // if (vertexRequirements.requiresScreenPosition)
-                //     vertexDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
 
                 foreach (var channel in vertexRequirements.requiresMeshUVs.Distinct())
                     vertexDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
@@ -229,20 +203,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             surfaceDescriptionInputStruct.AppendLine("struct SurfaceDescriptionInputs");
             using (surfaceDescriptionInputStruct.BlockSemicolonScope())
             {
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresNormal, InterpolatorType.Normal, surfaceDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresTangent, InterpolatorType.Tangent, surfaceDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresBitangent, InterpolatorType.BiTangent, surfaceDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceDescriptionInputStruct);
-                // ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresPosition, InterpolatorType.Position, surfaceDescriptionInputStruct);
-
                 if (surfaceRequirements.requiresVertexColor)
                      surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
-
-                // if (surfaceRequirements.requiresScreenPosition)
-                //     surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
-
-                // if (surfaceRequirements.requiresFaceSign)
-                //     surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
 
                 foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
@@ -298,22 +260,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 vertexRequirements,
                 CoordinateSpace.World);
 
-            // -------------------------------------
-            // Generate pixel shader surface remap
-
-            // foreach (var slot in pixelSlots)
-            // {
-            //     pixelShaderSurfaceRemap.AppendLine("{0} = surf.{0};", slot.shaderOutputName);
-            // }
-
-            // -------------------------------------
-            // Extra pixel shader work
-
-            // var faceSign = new ShaderStringBuilder();
-
-            // if (pixelRequirements.requiresFaceSign)
-            //     faceSign.AppendLine(", half FaceSign : VFACE");
-
             // ----------------------------------------------------- //
             //                      FINALIZE                         //
             // ----------------------------------------------------- //
@@ -353,10 +299,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             resultPass = resultPass.Replace("${VertexShaderDescriptionInputs}", vertexShaderDescriptionInputs.ToString());
             resultPass = resultPass.Replace("${VertexShaderOutputs}", vertexShaderOutputs.ToString());
 
-            // resultPass = resultPass.Replace("${FaceSign}", faceSign.ToString());
             resultPass = resultPass.Replace("${PixelShader}", pixelShader.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceInputs}", pixelShaderSurfaceInputs.ToString());
-            // resultPass = resultPass.Replace("${PixelShaderSurfaceRemap}", pixelShaderSurfaceRemap.ToString());
 
             return resultPass;
         }

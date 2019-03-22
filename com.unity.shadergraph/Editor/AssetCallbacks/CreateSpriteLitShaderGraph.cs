@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     public class CreateSpriteLitShaderGraph : EndNameEditAction
     {
-        [MenuItem("Assets/Create/Shader/Lit Sprite Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader/2D Renderer/Lit Sprite Graph", false, 208)]
         public static void CreateMaterialGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateSpriteLitShaderGraph>(),
