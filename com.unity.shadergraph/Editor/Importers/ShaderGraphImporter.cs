@@ -5,10 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor.Experimental.AssetImporters;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(23, Extension, 1)]
+    [ScriptedImporter(25, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -64,8 +65,18 @@ Shader ""Hidden/GraphErrorShader2""
             List<PropertyCollector.TextureInfo> configuredTextures;
             string path = ctx.assetPath;
             var sourceAssetDependencyPaths = new List<string>();
-            var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths);
+            var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths, out var graph);
             var shader = ShaderUtil.CreateShaderAsset(text);
+            
+            if (graph.messageManager.nodeMessagesChanged)
+            {
+                foreach (var pair in graph.messageManager.GetNodeMessages())
+                {
+                    var node = graph.GetNodeFromTempId(pair.Key);
+                    var errorString = $"Error in Shader Graph at {path} in node {node.name}: {pair.Value.First().message}";
+                    Debug.LogError(errorString, shader);
+                }
+            }
 
             EditorMaterialUtility.SetShaderDefaults(
                 shader,
@@ -76,7 +87,8 @@ Shader ""Hidden/GraphErrorShader2""
                 configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
                 configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
 
-            ctx.AddObjectToAsset("MainAsset", shader);
+            Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon@64");
+            ctx.AddObjectToAsset("MainAsset", shader, texture);
             ctx.SetMainObject(shader);
 
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
@@ -84,21 +96,24 @@ Shader ""Hidden/GraphErrorShader2""
                 // Ensure that dependency path is relative to project
                 if (!sourceAssetDependencyPath.StartsWith("Packages/") && !sourceAssetDependencyPath.StartsWith("Assets/"))
                 {
-                    Debug.LogWarning($"Invalid dependency path: {sourceAssetDependencyPath}");
+                    Debug.LogWarning($"Invalid dependency path: {sourceAssetDependencyPath}", shader);
                     continue;
                 }
                 ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
             }
         }
 
-        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths)
+        static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
         {
+            graph = null;
             string shaderString = null;
             var shaderName = Path.GetFileNameWithoutExtension(path);
             try
             {
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                var graph = JsonUtility.FromJson<GraphData>(textGraph);
+                graph = JsonUtility.FromJson<GraphData>(textGraph);
+                graph.messageManager = new MessageManager();
+                graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
                 graph.OnEnable();
                 graph.ValidateGraph();
 
@@ -110,6 +125,11 @@ Shader ""Hidden/GraphErrorShader2""
                 {
                     foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                         node.GetSourceAssetDependencies(sourceAssetDependencyPaths);
+                }
+
+                if (graph.messageManager.nodeMessagesChanged)
+                {
+                    shaderString = null;
                 }
             }
             catch (Exception)
@@ -124,7 +144,7 @@ Shader ""Hidden/GraphErrorShader2""
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
-            return GetShaderText(path, out configuredTextures, null);
+            return GetShaderText(path, out configuredTextures, null, out _);
         }
     }
 }

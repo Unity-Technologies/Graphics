@@ -505,11 +505,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             shadowRequest.evsmParams.w = evsmBlurPasses;
         }
 
-#if UNITY_EDITOR
-        // We need these old states to make timeline and the animator record the intensity value and the emissive mesh changes (editor-only)
+        // We need these old states to make timeline and the animator record the intensity value and the emissive mesh changes
         [System.NonSerialized]
         TimelineWorkaround timelineWorkaround = new TimelineWorkaround();
-#endif
 
         // For light that used the old intensity system we update them
         [System.NonSerialized]
@@ -636,10 +634,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return useColorTemperatureProperty.boolValue;
             }
         }
+        
+        public static bool IsAreaLight(SerializedProperty lightType)
+        {
+            return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
+        }
+
+#endif
+
+        [System.NonSerialized]
+        bool m_Animated;
+
+        private void Start()
+        {
+            // If there is an animator attached ot the light, we assume that some of the light properties
+            // might be driven by this animator (using timeline or animations) so we force the LateUpdate
+            // to sync the animated HDAdditionalLightData properties with the light component.
+            m_Animated = GetComponent<Animator>() != null;
+        }
 
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
+// We force the animation in the editor and in play mode when there is an animator component attached to the light
+#if !UNITY_EDITOR
+            if (!m_Animated)
+                return;
+#endif
+
             Vector3 shape = new Vector3(shapeWidth, shapeHeight, shapeRadius);
 
             // Check if the intensity have been changed by the inspector or an animator
@@ -691,11 +713,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             intensity = displayLightIntensity;
         }
 
-        public static bool IsAreaLight(SerializedProperty lightType)
-        {
-            return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
-        }
-
         public void UpdateAreaLightEmissiveMesh()
         {
             MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
@@ -737,7 +754,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
             legacyLight.transform.localScale = lightSize;
+#if UNITY_EDITOR
             legacyLight.areaSize = lightSize;
+#endif
 
             switch (lightTypeExtent)
             {
@@ -767,8 +786,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = legacyLight.color.linear * legacyLight.intensity;
+
+// We don't have access to the color temperature in the player because it's a private member of the Light component
+#if UNITY_EDITOR
             if (useColorTemperature)
                 value *= Mathf.CorrelatedColorTemperatureToRGB(legacyLight.colorTemperature);
+#endif
 
             value *= lightDimmer;
 
@@ -778,8 +801,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
             CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
         }
-
-#endif
 
         public void CopyTo(HDAdditionalLightData data)
         {

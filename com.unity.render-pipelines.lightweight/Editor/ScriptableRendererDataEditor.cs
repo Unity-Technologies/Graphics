@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditorInternal;
@@ -14,9 +14,9 @@ namespace UnityEditor.Rendering.LWRP
         class Styles
         {
             public static readonly GUIContent RenderFeatures =
-                new GUIContent("Renderer Features", 
+                new GUIContent("Renderer Features",
                 "Features to include in this renderer.\nTo add or remove features, use the plus and minus at the bottom of this box.");
-            
+
             public static readonly GUIContent PassNameField =
                 new GUIContent("Name", "This is the name for the current pass.");
 
@@ -30,10 +30,10 @@ namespace UnityEditor.Rendering.LWRP
 
         SavedBool[] m_Foldouts;
         SerializedProperty m_RenderPasses;
-        
+
         ReorderableList m_PassesList;
         List<SerializedObject> m_ElementSOs = new List<SerializedObject>();
-        
+
         SerializedObject GetElementSO(int index)
         {
             if (m_ElementSOs.Count != m_RenderPasses.arraySize || m_ElementSOs[index] == null)
@@ -45,11 +45,11 @@ namespace UnityEditor.Rendering.LWRP
                     m_ElementSOs.Add(obj != null ? new SerializedObject(obj) : null);
                 }
             }
-       
+
             m_ElementSOs[index].Update();
             return m_ElementSOs[index];
         }
-        
+
         private void OnValidate()
         {
             m_RenderPasses = serializedObject.FindProperty("m_RendererFeatures");
@@ -69,24 +69,27 @@ namespace UnityEditor.Rendering.LWRP
                     EditorGUI.DrawRect(new Rect(rect.x - 19f, rect.y, rect.width + 23f, rect.height), new Color(0, 0, 0, 0.1f));
                 EditorGUI.BeginChangeCheck();
                 var element = m_PassesList.serializedProperty.GetArrayElementAtIndex(index);
-                var propRect = new Rect(rect.x, 
+                var propRect = new Rect(rect.x,
                                         rect.y + EditorGUIUtility.standardVerticalSpacing,
                                         rect.width,
                                         EditorGUIUtility.singleLineHeight);
                 var headerRect = new Rect(rect.x + EditorUtils.Styles.defaultIndentWidth,
                                             rect.y + EditorGUIUtility.standardVerticalSpacing,
-                                            rect.width - EditorUtils.Styles.defaultIndentWidth, 
+                                            rect.width - EditorUtils.Styles.defaultIndentWidth,
                                             EditorGUIUtility.singleLineHeight);
 
                 if (element.objectReferenceValue != null)
                 {
-                    GUIContent header = new GUIContent(element.objectReferenceValue.name,
+                    var name = element.objectReferenceValue.name;
+                    if (element.objectReferenceValue.GetType().Namespace.Contains("Experimental"))
+                        name += " (Experimental)";
+                    GUIContent header = new GUIContent(name,
                         element.objectReferenceValue.GetType().Name);
                     m_Foldouts[index].value =
                         EditorGUI.Foldout(headerRect,
                             m_Foldouts[index].value,
                             header,
-                            true, 
+                            true,
                             Styles.BoldLabelSimple);
                     if (m_Foldouts[index].value)
                     {
@@ -121,7 +124,7 @@ namespace UnityEditor.Rendering.LWRP
                 {
                     EditorGUI.ObjectField(propRect, element, GUIContent.none);
                 }
-                
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     element.serializedObject.ApplyModifiedProperties();
@@ -131,7 +134,7 @@ namespace UnityEditor.Rendering.LWRP
             m_PassesList.elementHeightCallback = (index) =>
             {
                 var height = EditorUtils.Styles.defaultLineSpace + (EditorGUIUtility.standardVerticalSpacing * 2);
-                
+
                 var element = m_PassesList.serializedProperty.GetArrayElementAtIndex(index);
                 if (element.objectReferenceValue == null)
                     return height;
@@ -153,7 +156,7 @@ namespace UnityEditor.Rendering.LWRP
             m_PassesList.onAddCallback += AddPass;
             m_PassesList.onRemoveCallback = RemovePass;
             m_PassesList.onReorderCallbackWithDetails += ReorderPass;
-		    
+
             m_PassesList.drawHeaderCallback = (Rect testHeaderRect) => {
                 EditorGUI.LabelField(testHeaderRect, Styles.RenderFeatures);
             };
@@ -162,15 +165,15 @@ namespace UnityEditor.Rendering.LWRP
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            
+
             if(m_PassesList == null)
                 OnValidate();
-            
+
             m_PassesList.DoLayoutList();
-            
+
             serializedObject.ApplyModifiedProperties();
         }
-        
+
         private void CreateFoldoutBools()
         {
             m_Foldouts = new SavedBool[m_RenderPasses.arraySize];
@@ -181,12 +184,12 @@ namespace UnityEditor.Rendering.LWRP
                     new SavedBool($"{name}.ELEMENT{i.ToString()}.PassFoldout", false);
             }
         }
-        
+
         private void AddPass(ReorderableList list)
         {
             var menu = new GenericMenu();
 
-            foreach (Type type in 
+            foreach (Type type in
                 AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())
                     .Where(myType => myType.IsClass &&
                                      !myType.IsAbstract &&
@@ -195,11 +198,8 @@ namespace UnityEditor.Rendering.LWRP
                 var path = type.Name;
                 if (type.Namespace != null)
                 {
-                    var nameSpace = type.Namespace;
-                    if (nameSpace == typeof(ScriptableRendererFeature).Namespace)
-                        nameSpace = nameSpace.Split('.').Last();
-                    nameSpace = nameSpace.Replace('.', '/');
-                    path = string.Format($"{nameSpace}/{path}");
+                    if (type.Namespace.Contains("Experimental"))
+                        path += " (Experimental)";
                 }
 
                 path = Regex.Replace(Regex.Replace(path, "([a-z])([A-Z])", "$1 $2"),
@@ -225,7 +225,7 @@ namespace UnityEditor.Rendering.LWRP
                 m_ElementSOs.Clear();
             }
         }
-        
+
         private void ReorderPass(ReorderableList list, int oldIndex, int newIndex)
         {
             var item = m_ElementSOs[oldIndex];
@@ -243,18 +243,18 @@ namespace UnityEditor.Rendering.LWRP
             name = Regex.Replace(name, @"[^a-zA-Z0-9 ]", "");
             return name;
         }
-        
+
         private void AddPassHandler(object pass)
         {
             m_RenderPasses.serializedObject.ApplyModifiedProperties();
-            
+
             if (m_PassesList.serializedProperty != null)
             {
                 var asset = AssetDatabase.GetAssetOrScenePath(m_RenderPasses.serializedObject.targetObject);
                 var obj = CreateInstance((string)pass);
                 obj.name = $"New{obj.GetType().Name}";
                 AssetDatabase.AddObjectToAsset(obj, asset);
-                
+
                 ++m_PassesList.serializedProperty.arraySize;
                 m_PassesList.index = m_PassesList.serializedProperty.arraySize - 1;
                 m_PassesList.serializedProperty.serializedObject.ApplyModifiedProperties();
@@ -262,6 +262,7 @@ namespace UnityEditor.Rendering.LWRP
                 m_PassesList.serializedProperty.serializedObject.ApplyModifiedProperties();
                 AssetDatabase.SaveAssets();
             }
+            m_ElementSOs.Clear();
             GetElementSO(m_PassesList.index);
             CreateFoldoutBools();
             EditorUtility.SetDirty(m_RenderPasses.serializedObject.targetObject);

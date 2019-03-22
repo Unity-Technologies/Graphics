@@ -45,6 +45,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when switching mode in ReflectionProbe and PlanarReflectionProbe
 - Fixed issue where migratable component version where not always serialized when part of prefab's instance
 - Fixed an issue where shadow would not be rendered properly when light layer are not enabled
+- Fixed exposure weight on unlit materials
+- Fixed Light intensity not played in the player when recorded with animation/timeline
+- Fixed some issues when multi editing HDRenderPipelineAsset
+- Fixed emission node breaking the main shader graph preview in certain conditions.
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
@@ -58,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimize rendering with static only lighting and when no cullable lights/decals/density volumes are present. 
 - Updated handles for DecalProjectorComponent for enhanced spacial position readability and have edition mode for better SceneView management
 - DecalProjectorComponent are now scale independent in order to have reliable metric unit (see new Size field for changing the size of the volume)
+- Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
 
 ## [6.5.0-preview] - 2019-03-07
 

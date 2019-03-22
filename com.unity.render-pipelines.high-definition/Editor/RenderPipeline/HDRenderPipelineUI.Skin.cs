@@ -55,6 +55,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         const string k_CacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
         const string k_CacheInfoFormat = "Reserving {0} in memory at runtime.";
+        const string k_MultipleDifferenteValueMessage = "Multiple different values";
 
         static readonly GUIContent k_CoockieSizeContent = EditorGUIUtility.TrTextContent("Cookie Size", "Specifies the maximum size for the individual 2D cookies that HDRP uses for Directional and Spot Lights.");
         static readonly GUIContent k_CookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Texture Array Size", "Sets the maximum Texture Array size for the 2D cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
@@ -92,7 +93,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_AtlasWidthContent = EditorGUIUtility.TrTextContent("Atlas Width", "Sets the width of the Decal Atlas.");
         static readonly GUIContent k_AtlasHeightContent = EditorGUIUtility.TrTextContent("Atlas Height", "Sets the height of the Decal Atlas.");
         static readonly GUIContent k_MetalAndAOContent = EditorGUIUtility.TrTextContent("Metal and Ambient Occlusion Properties", "When enabled, Decals affect metal and ambient occlusion properties.");
-        static readonly GUIContent k_FilteringQuality = EditorGUIUtility.TrTextContent("Filtering Qualities", "Specifies the quality of shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
+        static readonly GUIContent k_FilteringQuality = EditorGUIUtility.TrTextContent("Filtering Qualities", "Specifies the quality of shadows. See the documentation for details on the algorithm HDRP uses for each preset. (Unsupported in Deferred Only)");
 
         static readonly GUIContent k_Enabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP dynamically lowers the resolution of render targets to reduce the workload on the GPU.");
         static readonly GUIContent k_MaxPercentage = EditorGUIUtility.TrTextContent("Maximum Screen Percentage", "Sets the maximum screen percentage that dynamic resolution can reach.");
