@@ -9,7 +9,7 @@ public class CustomLWPipe : ScriptableRenderer
 
     public CustomLWPipe(CustomRenderGraphData data) : base(data)
     {
-        m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, -1, StencilState.defaultValue, 0);
+        m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, -1, StencilState.defaultValue, 0);
         m_ForwardLights = new ForwardLights();
     }
 
