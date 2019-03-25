@@ -48,7 +48,7 @@ These settings control lighting features for your rendering components. Here you
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
 | **Shadow**                       | Enable this checkbox to make HDRP process Shadows. This makes this Camera/Reflection Probe capture shadows. |
-| **Contact Shadows**              | Enable this checkbox to make HDRP process [Contact Shadows](Contact-Shadows.html). Enabling this feature causes HDRP to calculate Contact Shadows for this Camera/Reflection Probe. |
+| **Contact Shadows**              | Enable this checkbox to make HDRP process [Contact Shadows](Override-Contact-Shadows.html). Enabling this feature causes HDRP to calculate Contact Shadows for this Camera/Reflection Probe. |
 | **Shadow Masks**                 | Enable this checkbox to make HDRP support Shadow Masks.      |
 | **SSR**                          | Enable this checkbox to make HDRP process Screen Space Reflections (SSR). This allows HDRP to calculate SSR for this Camera/Reflection Probe. |
 | **SSAO**                         | Enable this checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |

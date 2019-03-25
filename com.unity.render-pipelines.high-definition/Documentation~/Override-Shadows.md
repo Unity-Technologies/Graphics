@@ -8,7 +8,7 @@ The **Shadows** override comes as default when you create a **Scene Settings** G
 
 ## Properties
 
-![](Images/SceneSettingsHDShadowSettings1.png)
+![](Images/Override-Shadows1.png)
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
@@ -25,11 +25,11 @@ The Shadows override also allows you to visualize the cascade sizes in the Inspe
 
 In the Inspector, the **Cascade Splits** bar allows you to see the size of each cascade relative to one another. You can also move the position of each cascade split. To do so, click on the tab above a split and drag it to adjust the position of that cascade split.
 
-![](Images/SceneSettingsHDShadowSettings2.png)
+![](Images/Override-Shadows2.png)
 
 In the Scene view and the Game view, the cascade visualization feature allows you to see the boundaries of each cascade in your Scene. Each color represents a separate cascade, and the colors match those in the **Cascade Splits** bar. This allows you to see which colored area matches which cascade.
 
-![](Images/SceneSettingsHDShadowSettings3.png)
+![](Images/Override-Shadows3.png)
 
 To activate cascade visualization, click the **Visualize Cascades** button. You can now see the shadow maps in the Scene view and the Game view. 
 
