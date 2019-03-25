@@ -84,7 +84,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **Property**                       | **Description**                                              |
 | ---------------------------------- | ------------------------------------------------------------ |
 | **Screen Space Ambient Occlusion** | Enable this checkbox to make HDRP support screen space ambient occlusion (SSAO). SSAO is a technique for approximating ambient occlusion efficiently in real time. |
-| **Volumetrics**                    | Enable this checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Visual-Environment.html). |
+| **Volumetrics**                    | Enable this checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.html). |
 | **- high quality**                 | Enable this checkbox to increase the resolution of volumetrics. This increases the quality of fog effects, but increases the resource intensity greatly. |
 | **Light Layers**                   | Enable this checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers with a matching rendering Layer. |
 
@@ -134,7 +134,7 @@ These settings adjust the size of the shadow mask. Smaller values causes Unity t
 | **Resolution**                   | Use the drop-down to select the resolution of shadow atlas.  |
 | **16-bit**                       | Enable this checkbox to force HDRP to use 16-bit shadow maps. |
 | **Dynamic Rescale**              | Enable this checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don’t currently fit onto it. |
-| **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](HD-Shadow-Settings.html) override. |
+| **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](Override-Shadows.html) override. |
 | **Filtering Quality**            | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. Shadow quality only works for Cameras that use [forward rendering](Forward-And-Deferred-Rendering.html). **Deferred** mode uses Low. For information on each filtering quality preset, see the [Shadows in HDRP](Shadows-in-HDRP.html#FilteringQualities) documentation. |
 
 ### Light Loop

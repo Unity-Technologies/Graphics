@@ -1,6 +1,6 @@
 # Exponential Fog
 
-The High Definition Render Pipeline (HDRP) provides a type of [fog](Fog-Overview.html) called Exponential Fog. Exponential Fog enables you to increase the density of the fog exponentially from the Camera position until it reaches a maximum density at a distance which you can customize. This produces more realistic fog effects than [Linear Fog](Linear-Fog.html).
+The High Definition Render Pipeline (HDRP) provides a type of [fog](Fog-Overview.html) called Exponential Fog. Exponential Fog enables you to increase the density of the fog exponentially from the Camera position until it reaches a maximum density at a distance which you can customize. This produces more realistic fog effects than [Linear Fog](Override-Linear-Fog.html).
 
 ## Using Exponential Fog
 
@@ -8,11 +8,11 @@ Exponential Fog uses the [Volume](Volumes.html) framework, which means that to e
 
 To add **Exponential Fog** to a Volume, select the Volume component in the Scene or Hierarchy to view it in the Inspector, then navigate to **Add Override > Fog** and click on **Exponential Fog**.
 
-After you add an **Exponential Fog** override, you must set the Volume to use Exponential Fog. The [Visual Environment](Visual-Environment.html) override controls which type of fog the Volume uses. In the Visual Environment override, navigate to the **Fog** section and set the **Type** to **Exponential Fog**. HDRP now applies **Exponential Fog** to any Camera this Volume affects.
+After you add an **Exponential Fog** override, you must set the Volume to use Exponential Fog. The [Visual Environment](Override-Visual-Environment.html) override controls which type of fog the Volume uses. In the Visual Environment override, navigate to the **Fog** section and set the **Type** to **Exponential Fog**. HDRP now applies **Exponential Fog** to any Camera this Volume affects.
 
 ## Properties
 
-![](Images/ExponentialFog1.png)
+![](Images/Override-ExponentialFog1.png)
 
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
