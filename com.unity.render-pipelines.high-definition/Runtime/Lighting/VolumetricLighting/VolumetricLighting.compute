@@ -165,6 +165,8 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
     float t = t0 + tOffset;
     posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
 
+    context.shadowValue = 1;
+
     // Evaluate sun shadows.
     if (_DirectionalShadowIndex >= 0)
     {
@@ -172,53 +174,70 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
 
         // Prep the light so that it works with non-volumetrics-specific code.
         light.contactShadowIndex = -1;
-        light.lightDimmer        = light.volumetricLightDimmer;
         light.shadowDimmer       = light.volumetricShadowDimmer;
 
-        // Pass the light direction as the normal to avoid issues with shadow biasing code.
-        context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, -light.forward);
-    }
-    else
-    {
-        context.shadowValue = 1;
+        float3 L = -light.forward;
+
+        // Is it worth sampling the shadow map?
+        if ((light.volumetricLightDimmer > 0) && (light.shadowDimmer > 0))
+        {
+            // Pass the light direction as the normal to avoid issues with shadow biasing code.
+            // TODO: does it make sense?
+            float3 sN = L;
+
+            context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
+                                                                  posInput.positionWS, sN,
+                                                                  light.shadowIndex, L,
+                                                                  posInput.positionSS);
+        }
     }
 
     for (uint i = 0; i < _DirectionalLightCount; ++i)
     {
         DirectionalLightData light = _DirectionalLightDatas[i];
 
-        // Prep the light so that it works with non-volumetrics-specific code.
+        // Prep the light so that it works with non-volumetrics-aware code.
         light.contactShadowIndex = -1;
-        light.lightDimmer        = light.volumetricLightDimmer;
         light.shadowDimmer       = light.volumetricShadowDimmer;
 
         float3 L = -light.forward;
 
-        // Pass the light direction as the normal to avoid issues with shadow biasing code.
-        float3 color; float attenuation;
-        EvaluateLight_Directional(context, posInput, light, unused, L, L, NdotL,
-                                  color, attenuation);
+        // Is it worth evaluating the light?
+        if ((light.volumetricLightDimmer > 0))
+        {
+            float4 lightColor = EvaluateLight_Directional(context, posInput, light);
 
-        // Important:
-        // Ideally, all scattering calculations should use the jittered versions
-        // of the sample position and the ray direction. However, correct reprojection
-        // of asymmetrically scattered lighting (affected by an anisotropic phase
-        // function) is not possible. We work around this issue by reprojecting
-        // lighting not affected by the phase function. This basically removes
-        // the phase function from the temporal integration process. It is a hack.
-        // The downside is that anisotropy no longer benefits from temporal averaging,
-        // and any temporal instability of anisotropy causes causes visible jitter.
-        // In order to stabilize the image, we use the voxel center for all
-        // anisotropy-related calculations.
-        float cosTheta = dot(L, ray.centerDirWS);
-        float phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
+            // Pass the light direction as the normal to avoid issues with shadow biasing code.
+            // TODO: does it make sense?
+            float3 sN = L;
 
-        // Note: the 'weight' accounts for transmittance from 't0' to 't'.
-        float intensity = light.volumetricLightDimmer * attenuation * weight;
+            // This code works for both surface reflection and thin object transmission.
+            lightColor.a *= EvaluateShadow_Directional(context, posInput, light, unused, sN);
 
-        // Compute the amount of in-scattered radiance.
-        lighting.radianceNoPhase  += intensity * color;
-        lighting.radianceComplete += phase * intensity * color;
+            // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
+            lightColor.a *= light.volumetricLightDimmer;
+
+            lightColor.rgb *= lightColor.a; // Composite
+
+            // Important:
+            // Ideally, all scattering calculations should use the jittered versions
+            // of the sample position and the ray direction. However, correct reprojection
+            // of asymmetrically scattered lighting (affected by an anisotropic phase
+            // function) is not possible. We work around this issue by reprojecting
+            // lighting not affected by the phase function. This basically removes
+            // the phase function from the temporal integration process. It is a hack.
+            // The downside is that anisotropy no longer benefits from temporal averaging,
+            // and any temporal instability of anisotropy causes causes visible jitter.
+            // In order to stabilize the image, we use the voxel center for all
+            // anisotropy-related calculations.
+            float cosTheta = dot(L, ray.centerDirWS);
+            float phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
+
+            // Compute the amount of in-scattered radiance.
+            // Note: the 'weight' accounts for transmittance from 't0' to 't'.
+            lighting.radianceNoPhase  += (weight * lightColor.rgb);
+            lighting.radianceComplete += (weight * lightColor.rgb) * phase;
+        }
     }
 
     return lighting;
@@ -253,12 +272,11 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
             // Prep the light so that it works with non-volumetrics-aware code.
             light.contactShadowIndex = -1;
             light.shadowDimmer       = light.volumetricShadowDimmer;
-            light.lightDimmer        = light.volumetricLightDimmer;
+
+            bool sampleLight = (light.volumetricLightDimmer > 0);
 
             float tEntr = t0;
             float tExit = t1;
-
-            bool sampleLight = true;
 
             // Perform ray-cone intersection for pyramid and spot lights.
             if (light.lightType != GPULIGHTTYPE_POINT)
@@ -281,12 +299,13 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float3 coneAxisX = lenMul * light.right;
                 float3 coneAxisY = lenMul * light.up;
 
-                sampleLight = IntersectRayCone(ray.originWS, ray.jitterDirWS,
-                                               light.positionRWS, light.forward,
-                                               coneAxisX, coneAxisY,
-                                               t0, t1, tEntr, tExit);
+                sampleLight = sampleLight && IntersectRayCone(ray.originWS, ray.jitterDirWS,
+                                                              light.positionRWS, light.forward,
+                                                              coneAxisX, coneAxisY,
+                                                              t0, t1, tEntr, tExit);
             }
 
+            // Is it worth evaluating the light?
             if (sampleLight)
             {
                 float lightSqRadius = light.size.x;
@@ -298,21 +317,23 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                                               t, distSq, rcpPdf);
 
                 posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
-                float3 lightToSample = posInput.positionWS - light.positionRWS;
 
-                float  distRcp   = rsqrt(distSq);
-                float  dist      = distSq * distRcp;
-                float  distProj  = dot(lightToSample, light.forward);
-                float4 distances = float4(dist, distSq, distRcp, distProj);
-                float3 L         = -lightToSample * distRcp;
+                float3 L;
+                float4 distances; // {d, d^2, 1/d, d_proj}
+                GetPunctualLightVectors(posInput.positionWS, light, L, distances);
 
-                ModifyDistancesForFillLighting(distances, light.size.x);
+                float4 lightColor = EvaluateLight_Punctual(context, posInput, light, L, distances);
 
                 // Pass the light direction as the normal to avoid issues with shadow biasing code.
-                float3 color; float attenuation;
-                EvaluateLight_Punctual(context, posInput, light, unused,
-                                       L, L, NdotL, lightToSample, distances,
-                                       color, attenuation);
+                // TODO: does it make sense?
+                float3 sN = L;
+
+                lightColor.a *= EvaluateShadow_Punctual(context, posInput, light, unused, sN, L, distances);
+
+                // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
+                lightColor.a *= light.volumetricLightDimmer;
+
+                lightColor.rgb *= lightColor.a; // Composite
 
                 // Important:
                 // Ideally, all scattering calculations should use the jittered versions
@@ -329,14 +350,12 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
                 float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
-                float intensity = light.volumetricLightDimmer * attenuation * rcpPdf;
-
                 // Compute transmittance from 't0' to 't'.
-                intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
+                float weight = TransmittanceHomogeneousMedium(extinction, t - t0) * rcpPdf;
 
                 // Compute the amount of in-scattered radiance.
-                lighting.radianceNoPhase  += intensity * color;
-                lighting.radianceComplete += phase * intensity * color;
+                lighting.radianceNoPhase  += (weight * lightColor.rgb);
+                lighting.radianceComplete += (weight * lightColor.rgb) * phase;
             }
         }
 
@@ -351,7 +370,8 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
             // Prep the light so that it works with non-volumetrics-aware code.
             light.contactShadowIndex = -1;
             light.shadowDimmer       = light.volumetricShadowDimmer;
-            light.lightDimmer        = light.volumetricLightDimmer;
+
+            bool sampleLight = (light.volumetricLightDimmer > 0);
 
             // Convert the box light from OBB to AABB.
             // 'light.right' and 'light.up' vectors are pre-scaled on the CPU by (2/w) and (2/h).
@@ -364,11 +384,16 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
             float3 boxPt1 = float3( 1,  1, light.range);
 
             float tEntr, tExit;
+            sampleLight = sampleLight && IntersectRayAABB(o, d, boxPt0, boxPt1, t0, t1, tEntr, tExit);
 
-            if (IntersectRayAABB(o, d, boxPt0, boxPt1, t0, t1, tEntr, tExit))
+            // Is it worth evaluating the light?
+            if (sampleLight)
             {
                 float tOffset, weight;
                 ImportanceSampleHomogeneousMedium(rndVal, extinction, tExit - tEntr, tOffset, weight);
+
+                // Compute transmittance from 't0' to 'tEntr'.
+                weight *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);
 
                 float t = tEntr + tOffset;
                 posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
@@ -378,11 +403,18 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float  distProj      = dot(lightToSample, light.forward);
                 float4 distances     = float4(1, 1, 1, distProj);
 
+                float4 lightColor = EvaluateLight_Punctual(context, posInput, light, L, distances);
+
                 // Pass the light direction as the normal to avoid issues with shadow biasing code.
-                float3 color; float attenuation;
-                EvaluateLight_Punctual(context, posInput, light, unused,
-                                       L, L, NdotL, lightToSample, distances,
-                                       color, attenuation);
+                // TODO: does it make sense?
+                float3 sN = L;
+
+                lightColor.a *= EvaluateShadow_Punctual(context, posInput, light, unused, sN, L, distances);
+
+                // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
+                lightColor.a *= light.volumetricLightDimmer;
+
+                lightColor.rgb *= lightColor.a; // Composite
 
                 // Important:
                 // Ideally, all scattering calculations should use the jittered versions
@@ -399,15 +431,10 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
                 float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
-                // Note: the 'weight' accounts for transmittance from 'tEntr' to 't'.
-                float intensity = light.volumetricLightDimmer * attenuation * weight;
-
-                // Compute transmittance from 't0' to 'tEntr'.
-                intensity *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);
-
                 // Compute the amount of in-scattered radiance.
-                lighting.radianceNoPhase  += intensity * color;
-                lighting.radianceComplete += phase * intensity * color;
+                // Note: the 'weight' accounts for transmittance from 't0' to 't'.
+                lighting.radianceNoPhase  += (weight * lightColor.rgb);
+                lighting.radianceComplete += (weight * lightColor.rgb) * phase;
             }
         }
     }
