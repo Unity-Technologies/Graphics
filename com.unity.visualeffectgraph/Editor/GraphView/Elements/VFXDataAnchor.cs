@@ -210,11 +210,6 @@ namespace UnityEditor.VFX.UI
             VFXDataEdge dataEdge = edge as VFXDataEdge;
             VFXDataEdgeController edgeController = new VFXDataEdgeController(dataEdge.input.controller, dataEdge.output.controller);
 
-            if (dataEdge.controller != null)
-            {
-                view.controller.RemoveElement(dataEdge.controller);
-            }
-
             view.controller.AddElement(edgeController);
         }
 
