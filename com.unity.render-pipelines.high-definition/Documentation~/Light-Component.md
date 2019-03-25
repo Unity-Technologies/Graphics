@@ -225,7 +225,7 @@ Select **Very High** from the **Filtering Quality** drop-down to expose the foll
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Enable**   | Enable this checkbox to add [Contact Shadows](Contact-Shadows.html) to this Light. |
+| **Enable**   | Enable this checkbox to add [Contact Shadows](Override-Contact-Shadows.html) to this Light. |
 
 ##### Baked Shadows
 

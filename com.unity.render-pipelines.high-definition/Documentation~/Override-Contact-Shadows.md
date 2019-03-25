@@ -13,7 +13,7 @@ Only one Light can cast Contact Shadows at a time. This means that, if you have 
 
 ## Properties
 
-![](Images/ContactShadows1.png)
+![](Images/Override-ContactShadows1.png)
 
 | Property                  | Description                                                    |
 | :------------------------ | :----------------------------------------------------------- |
