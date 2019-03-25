@@ -224,6 +224,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/GraphicTests/Scenes/3x_DebugView/3009_CameraMotionVector_FOV.unity
     guid: a5fb429214e9b2a4f8b3d258c0585630
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4000_Exposure.unity
+    guid: f32cdac65dd17f847b4cdaaa85bb990a
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8101_Opaque.unity
     guid: 3f9e911b4dbc9464e85add595c37cb89
