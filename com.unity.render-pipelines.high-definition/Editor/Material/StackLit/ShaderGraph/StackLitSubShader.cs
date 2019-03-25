@@ -406,6 +406,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         };
 
+        public int GetPreviewPassIndex() { return 0; }
+
         private static void AddPixelShaderSlotsForWriteNormalBufferPasses(StackLitMasterNode masterNode, ref Pass pass)
         {
             // See StackLit.hlsl:ConvertSurfaceDataToNormalData()

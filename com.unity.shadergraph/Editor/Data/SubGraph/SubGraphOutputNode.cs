@@ -5,12 +5,15 @@ using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Rendering;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     class SubGraphOutputNode : AbstractMaterialNode, IHasSettings
     {
+        static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
+
         public SubGraphOutputNode()
         {
             name = "Output";
@@ -43,7 +46,18 @@ namespace UnityEditor.ShaderGraph
         {
             ValidateShaderStage();
 
+            if (!this.GetInputSlots<MaterialSlot>().Any())
+            {
+                owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+            }
+            
             base.ValidateNode();
+        }
+
+        protected override void OnSlotsChanged()
+        {
+            base.OnSlotsChanged();
+            ValidateNode();
         }
 
         public int AddSlot(ConcreteSlotValueType concreteValueType)

@@ -4,9 +4,10 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_Name: 04_Bounds
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 004_Bounds
   m_Shader: {fileID: 4800000, guid: e1a8902ce8b7fdd49b307e129a1dc341, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
