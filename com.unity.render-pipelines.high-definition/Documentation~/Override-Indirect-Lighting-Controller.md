@@ -2,6 +2,8 @@
 
 The **Indirect Lighting Controller** is a Volume component that allows you to globally control the intensity of baked or precomputed indirect lighting.
 
+![](Images/Override-IndirectLightingController1.png)
+
 The Indirect Lighting Controller has two properties:
 
 | Property                        | Description                                                  |

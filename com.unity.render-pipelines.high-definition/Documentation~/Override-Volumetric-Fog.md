@@ -4,11 +4,11 @@ Volumetric fog is the most advanced implementation of fog available in the High 
 
 ## Adding Fog to your Scene
 
-To use volumetric fog in your Scene, create a Scene Settings GameObect (menu: __GameObject > Rendering > Scene Settings__). This contains a Volume component that has a [Visual Environment](Visual-Environment.html) override that you can use to override HDRP’s default environment settings.
+To use volumetric fog in your Scene, create a Scene Settings GameObect (menu: __GameObject > Rendering > Scene Settings__). This contains a Volume component that has a [Visual Environment](Override-Visual-Environment.html) override that you can use to override HDRP’s default environment settings.
 
 Configure the Visual Environment override so that it uses __Volumetric Fog__ as its __Fog Type__.
 
-![](Images/VolumetricFog1.png)
+![](Images/Override-VolumetricFog1.png)
 
 Now add a __Volumetric Fog__ override to the Volume. Click __Add Override__ and then click __Volumetric Fog__.
 
@@ -24,7 +24,7 @@ Global fog is a height fog. It has two logical components: the region at a dista
 
 The __Volumetric Fog__ component of the active Volume controls the appearance of the global fog.
 
-![](Images/VolumetricFog2.png)
+![](Images/Override-VolumetricFog2.png)
 
 __Volumetric Fog__ properties:
 
@@ -59,7 +59,7 @@ HDRP voxelizes Density Volumes to enhance performance. This results in two limit
 
 To create a Density Volume, right click in the Hierarchy and select __Rendering > Density Volume__. Alternatively, you can use the menu bar at the top of the screen and navigate to __GameObject > Rendering > Density Volume__.
 
-![](Images/VolumetricFog2.png)
+![](Images/Override-VolumetricFog3.png)
 
 ### Properties
 
