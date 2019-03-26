@@ -544,16 +544,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         if (sides == 4)
                             angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
 
-                        Vector3 startPoint = new Vector3(radius * Mathf.Cos(angleOffset), radius * Mathf.Sin(angleOffset), 0);
-                        Vector3 featherStartPoint = startPoint + light.shapeLightFalloffSize * Vector3.Normalize(startPoint);
+                        Vector3 direction = new Vector3(Mathf.Cos(angleOffset), Mathf.Sin(angleOffset), 0);
+                        Vector3 startPoint = radius * direction;
+                        Vector3 featherStartPoint = startPoint + light.shapeLightFalloffSize * direction;
                         float radiansPerSide = 2 * Mathf.PI / sides;
                         Vector3 falloffOffset = light.shapeLightFalloffOffset;
 
                         for (int i = 0; i < sides; ++i)
                         {
                             float endAngle = (i + 1) * radiansPerSide;
-                            Vector3 endPoint = new Vector3(radius * Mathf.Cos(endAngle + angleOffset), radius * Mathf.Sin(endAngle + angleOffset), 0);
-                            Vector3 featherEndPoint = endPoint + light.shapeLightFalloffSize * Vector3.Normalize(endPoint);
+
+                            direction = new Vector3(Mathf.Cos(endAngle + angleOffset), Mathf.Sin(endAngle + angleOffset), 0);
+                            Vector3 endPoint = radius * direction;
+                            Vector3 featherEndPoint = endPoint + light.shapeLightFalloffSize * direction;
 
                             Handles.DrawLine(t.TransformPoint(startPoint), t.TransformPoint(endPoint));
                             Handles.DrawLine(t.TransformPoint(featherStartPoint + falloffOffset), t.TransformPoint(featherEndPoint + falloffOffset));
