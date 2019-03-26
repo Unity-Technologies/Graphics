@@ -284,7 +284,7 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     // Projector lights always have cookies, so we can perform clipping inside the if().
     if (light.cookieIndex >= 0)
     {
-        float3 lightToSample = -distances.x * L;
+        float3 lightToSample = posInput.positionWS - light.positionRWS;
         float4 cookie = EvaluateCookie_Punctual(lightLoopContext, light, lightToSample);
 
         color *= cookie;
