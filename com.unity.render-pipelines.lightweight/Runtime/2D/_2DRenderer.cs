@@ -16,11 +16,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            ref CameraData cameraData = ref renderingData.cameraData;
             RenderTargetHandle colorTargetHandle = RenderTargetHandle.CameraTarget;
-            bool useOffscreenColorTexture = true;
+            PixelPerfectCamera ppc = cameraData.camera.GetComponent<PixelPerfectCamera>();
+            bool useOffscreenColorTexture = ppc != null ? ppc.useOffscreenRT : false;
 
             if (useOffscreenColorTexture)
-                colorTargetHandle = CreateOffscreenColorTexture(context, ref renderingData.cameraData);
+            {
+                var filterMode = ppc != null ? ppc.finalBlitFilterMode : FilterMode.Bilinear;
+                colorTargetHandle = CreateOffscreenColorTexture(context, ref cameraData.cameraTargetDescriptor, filterMode);
+            }
 
             ConfigureCameraTarget(colorTargetHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
 
@@ -29,11 +34,15 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (useOffscreenColorTexture)
             {
-                m_FinalBlitPass.Setup(renderingData.cameraData.cameraTargetDescriptor, colorTargetHandle);
+                if (ppc != null)
+                    m_FinalBlitPass.Setup(cameraData.cameraTargetDescriptor, colorTargetHandle, ppc.useOffscreenRT, ppc.finalBlitPixelRect);
+                else
+                    m_FinalBlitPass.Setup(cameraData.cameraTargetDescriptor, colorTargetHandle);
+
                 EnqueuePass(m_FinalBlitPass);
             }
         }
-
+        
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
         {
             cullingParameters.cullingOptions = CullingOptions.None;
@@ -41,16 +50,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cullingParameters.shadowDistance = 0.0f;
         }
 
-        RenderTargetHandle CreateOffscreenColorTexture(ScriptableRenderContext context, ref CameraData cameraData)
+        RenderTargetHandle CreateOffscreenColorTexture(ScriptableRenderContext context, ref RenderTextureDescriptor cameraTargetDescriptor, FilterMode filterMode)
         {
             RenderTargetHandle colorTextureHandle = new RenderTargetHandle();
             colorTextureHandle.Init("_CameraColorTexture");
 
-            var colorDescriptor = cameraData.cameraTargetDescriptor;
+            var colorDescriptor = cameraTargetDescriptor;
             colorDescriptor.depthBufferBits = 32;
 
             CommandBuffer cmd = CommandBufferPool.Get("Create Camera Textures");
-            cmd.GetTemporaryRT(colorTextureHandle.id, colorDescriptor, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(colorTextureHandle.id, colorDescriptor, filterMode);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

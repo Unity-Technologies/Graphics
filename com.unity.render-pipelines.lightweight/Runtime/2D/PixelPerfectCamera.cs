@@ -80,35 +80,55 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return result;
         }
 
-        [SerializeField]
-        private int m_AssetsPPU = 100;
+        [SerializeField] int    m_AssetsPPU         = 100;
+        [SerializeField] int    m_RefResolutionX    = 320;
+        [SerializeField] int    m_RefResolutionY    = 180;
+        [SerializeField] bool   m_UpscaleRT;
+        [SerializeField] bool   m_PixelSnapping;
+        [SerializeField] bool   m_CropFrameX;
+        [SerializeField] bool   m_CropFrameY;
+        [SerializeField] bool   m_StretchFill;
 
-        [SerializeField]
-        private int m_RefResolutionX = 320;
+        Camera m_Camera;
+        PixelPerfectCameraInternal m_Internal;
 
-        [SerializeField]
-        private int m_RefResolutionY = 180;
+        bool isRunning => (Application.isPlaying || runInEditMode) && enabled;
 
-        [SerializeField]
-        private bool m_UpscaleRT = false;
+        internal FilterMode finalBlitFilterMode
+        {
+            get
+            {
+                if (!isRunning)
+                    return FilterMode.Bilinear;
+                else
+                    return m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
+            }
+        }
 
-        [SerializeField]
-        private bool m_PixelSnapping = false;
+        internal Rect finalBlitPixelRect
+        {
+            get
+            {
+                if (!isRunning || !m_Internal.useOffscreenRT)
+                    return Rect.zero;
+                else
+                    return m_Internal.CalculateFinalBlitPixelRect(m_Camera.aspect, Screen.width, Screen.height);
+            }
+        }
 
-        [SerializeField]
-        private bool m_CropFrameX = false;
-
-        [SerializeField]
-        private bool m_CropFrameY = false;
-
-        [SerializeField]
-        private bool m_StretchFill = false;
-
-        private Camera m_Camera;
-        private PixelPerfectCameraInternal m_Internal;
+        internal bool useOffscreenRT
+        {
+            get
+            {
+                if (!isRunning)
+                    return false;
+                else
+                    return m_Internal.useOffscreenRT;
+            }
+        }
 
         // Snap camera position to pixels using Camera.worldToCameraMatrix.
-        private void PixelSnap()
+        void PixelSnap()
         {
             Vector3 cameraPosition = m_Camera.transform.position;
             Vector3 roundedCameraPosition = RoundToPixel(cameraPosition);
@@ -119,13 +139,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_Camera.worldToCameraMatrix = offsetMatrix * m_Camera.transform.worldToLocalMatrix;
         }
 
-        private void Awake()
+        void Awake()
         {
             m_Camera = GetComponent<Camera>();
             m_Internal = new PixelPerfectCameraInternal(this);
 
             m_Internal.originalOrthoSize = m_Camera.orthographicSize;
-            m_Internal.hasPostProcessLayer = GetComponent("PostProcessLayer") != null;   // query the component by name to avoid hard dependency
 
             if (m_Camera.targetTexture != null)
                 Debug.LogWarning("Render to texture is not supported by Pixel Perfect Camera.", m_Camera);
@@ -134,13 +153,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             m_Internal.CalculateCameraProperties(Screen.width, Screen.height);
-
-            // To be effective immediately this frame, forceIntoRenderTexture should be set before any camera rendering callback.
-            // An exception of this is when the editor is paused, where we call LateUpdate() manually in OnPreCall().
-            // In this special case, you'll see one frame of glitch when toggling renderUpscaling on and off.
-            m_Camera.forceIntoRenderTexture = m_Internal.hasPostProcessLayer || m_Internal.useOffscreenRT;
-
-            // -----------Above was LateUpdate---------------------
 
             PixelSnap();
 
@@ -151,41 +163,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             m_Camera.orthographicSize = m_Internal.orthoSize;
 
-            // -----------Above was OnPreCull---------------------
-
-            // Clear the screen to black so that we can see black bars.
-            // Need to do it before anything is drawn if we're rendering directly to the screen.
-            if (m_Internal.cropFrameXOrY && !m_Camera.forceIntoRenderTexture && !m_Camera.allowMSAA)
-                GL.Clear(false, true, Color.black);
-
             U2D.PixelPerfectRendering.pixelSnapSpacing = m_Internal.unitsPerPixel;
-
-            // -----------Above was OnPreRender---------------------
         }
 
         void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
         {
-            // This whole function was OnPostRender.
-
             U2D.PixelPerfectRendering.pixelSnapSpacing = 0.0f;
-
-            // Clear the screen to black so that we can see black bars.
-            // If a temporary offscreen RT is used, we do the clear after we're done with that RT to avoid an unnecessary RT switch. 
-            if (m_Camera.activeTexture != null)
-            {
-                Graphics.SetRenderTarget(null as RenderTexture);
-                GL.Viewport(new Rect(0.0f, 0.0f, Screen.width, Screen.height));
-                GL.Clear(false, true, Color.black);
-            }
-
-            if (!m_Internal.useOffscreenRT)
-                return;
-
-            RenderTexture activeRT = m_Camera.activeTexture;
-            if (activeRT != null)
-                activeRT.filterMode = m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
-
-            m_Camera.pixelRect = m_Internal.CalculatePostRenderPixelRect(m_Camera.aspect, Screen.width, Screen.height);
         }
 
         void OnEnable()
@@ -199,14 +182,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 #endif
         }
 
-        public void OnDisable()
+        internal void OnDisable()
         {
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
             m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
             m_Camera.orthographicSize = m_Internal.originalOrthoSize;
-            m_Camera.forceIntoRenderTexture = m_Internal.hasPostProcessLayer;
             m_Camera.ResetAspect();
             m_Camera.ResetWorldToCameraMatrix();
 
@@ -217,7 +199,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         // Show on-screen warning about invalid render resolutions.
-        private void OnGUI()
+        void OnGUI()
         {
             if (!Debug.isDebugBuild && !Application.isEditor)
                 return;
@@ -249,7 +231,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
 #if UNITY_EDITOR
-        private void OnPlayModeChanged(UnityEditor.PlayModeStateChange state)
+        void OnPlayModeChanged(UnityEditor.PlayModeStateChange state)
         {
             // Stop running in edit mode when entering play mode.
             if (state == UnityEditor.PlayModeStateChange.ExitingEditMode)

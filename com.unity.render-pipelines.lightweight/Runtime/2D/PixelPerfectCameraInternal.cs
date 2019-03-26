@@ -23,21 +23,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         // So we cast the reference to PixelPerfectCamera (which inherits UnityEngine.Object) 
         // before serialization happens, and restore the interface reference after deserialization.
         [NonSerialized]
-        private IPixelPerfectCamera m_Component;
-        private PixelPerfectCamera m_SerializableComponent;
+        IPixelPerfectCamera m_Component;
+        PixelPerfectCamera m_SerializableComponent;
 
-        internal float originalOrthoSize;
-        internal bool hasPostProcessLayer;
-        internal bool cropFrameXAndY = false;
-        internal bool cropFrameXOrY = false;
-        internal bool useStretchFill = false;
-        internal int zoom = 1;
-        internal bool useOffscreenRT = false;
-        internal int offscreenRTWidth = 0;
-        internal int offscreenRTHeight = 0;
-        internal Rect pixelRect = Rect.zero;
-        internal float orthoSize = 1.0f;
-        internal float unitsPerPixel = 0.0f;
+        internal float  originalOrthoSize;
+        internal bool   hasPostProcessLayer;
+        internal bool   cropFrameXAndY      = false;
+        internal bool   cropFrameXOrY       = false;
+        internal bool   useStretchFill      = false;
+        internal int    zoom                = 1;
+        internal bool   useOffscreenRT      = false;
+        internal int    offscreenRTWidth    = 0;
+        internal int    offscreenRTHeight   = 0;
+        internal Rect   pixelRect           = Rect.zero;
+        internal float  orthoSize           = 1.0f;
+        internal float  unitsPerPixel       = 0.0f;
 
         internal PixelPerfectCameraInternal(IPixelPerfectCamera component)
         {
@@ -82,18 +82,28 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             if (cropFrameXOrY)
             {
+                useOffscreenRT = true;
+
                 if (!upscaleRT)
                 {
-                    if (useStretchFill)
+                    if (cropFrameXAndY)
                     {
-                        useOffscreenRT = true;
                         offscreenRTWidth = zoom * refResolutionX;
                         offscreenRTHeight = zoom * refResolutionY;
+                    }
+                    else if (cropFrameY)
+                    {
+                        offscreenRTWidth = screenWidth;
+                        offscreenRTHeight = zoom * refResolutionY;
+                    }
+                    else // crop frame X
+                    {
+                        offscreenRTWidth = zoom * refResolutionX;
+                        offscreenRTHeight = screenHeight;
                     }
                 }
                 else
                 {
-                    useOffscreenRT = true;
                     if (cropFrameXAndY)
                     {
                         offscreenRTWidth = refResolutionX;
@@ -119,35 +129,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             // viewport
-            pixelRect = Rect.zero;
-
-            if (cropFrameXOrY && !upscaleRT && !useStretchFill)
+            if (useOffscreenRT)
             {
-                if (cropFrameXAndY)
-                {
-                    pixelRect.width = zoom * refResolutionX;
-                    pixelRect.height = zoom * refResolutionY;
-                }
-                else if (cropFrameY)
-                {
-                    pixelRect.width = screenWidth;
-                    pixelRect.height = zoom * refResolutionY;
-                }
-                else // crop frame X
-                {
-                    pixelRect.width = zoom * refResolutionX;
-                    pixelRect.height = screenHeight;
-                }
-
-                pixelRect.x = (screenWidth - (int)pixelRect.width) / 2;
-                pixelRect.y = (screenHeight - (int)pixelRect.height) / 2;
-            }
-            else if (useOffscreenRT)
-            {
-                // When Camera.forceIntoRenderTexture is true, the size of the internal RT is determined by VP size.
+                // When we ask the render pipeline to create the offscreen RT for us, the size of the RT is determined by VP size.
                 // That's why we set the VP size to be (m_OffscreenRTWidth, m_OffscreenRTHeight) here.
                 pixelRect = new Rect(0.0f, 0.0f, offscreenRTWidth, offscreenRTHeight);
             }
+            else
+                pixelRect = Rect.zero;
 
             // orthographic size
             if (cropFrameY)
@@ -172,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 unitsPerPixel = 1.0f / (zoom * assetsPPU);
         }
 
-        internal Rect CalculatePostRenderPixelRect(float cameraAspect, int screenWidth, int screenHeight)
+        internal Rect CalculateFinalBlitPixelRect(float cameraAspect, int screenWidth, int screenHeight)
         {
             // This VP is used when the internal temp RT is blitted back to screen.
             Rect pixelRect = new Rect();
@@ -199,8 +188,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             else
             {
                 // center
-                pixelRect.height = zoom * offscreenRTHeight;
-                pixelRect.width = zoom * offscreenRTWidth;
+                if (m_Component.upscaleRT)
+                {
+                    pixelRect.height = zoom * offscreenRTHeight;
+                    pixelRect.width = zoom * offscreenRTWidth;
+                }
+                else
+                {
+                    pixelRect.height = offscreenRTHeight;
+                    pixelRect.width = offscreenRTWidth;
+                }
+
                 pixelRect.x = (screenWidth - (int)pixelRect.width) / 2;
                 pixelRect.y = (screenHeight - (int)pixelRect.height) / 2;
             }
