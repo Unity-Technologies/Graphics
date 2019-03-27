@@ -22,6 +22,10 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     surfaceData.baseColor = _BaseColor;
     surfaceData.emissive = _EmissiveColor * albedoMapBlend;
 
+#if (!DECALS_HTILE_SUPPORT )
+    surfaceData.HTileMask = DBUFFERHTILEBIT_DIFFUSE | DBUFFERHTILEBIT_NORMAL | DBUFFERHTILEBIT_MASK;
+#endif
+
 #ifdef _EMISSIVEMAP
     surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords);
 #endif
@@ -33,7 +37,9 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 	albedoMapBlend = surfaceData.baseColor.w;   
 // outside _COLORMAP because we still have base color
 #ifdef _ALBEDOCONTRIBUTION
+#if (DECALS_HTILE_SUPPORT )    
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
+#endif
 #else
 	surfaceData.baseColor.w = 0;	// dont blend any albedo
 #endif
@@ -48,7 +54,9 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     surfaceData.mask.x = _MetallicScale * surfaceData.mask.x;
     surfaceData.mask.y = lerp(_AORemapMin, _AORemapMax, surfaceData.mask.y);
     surfaceData.mask.z = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, surfaceData.mask.w);
+#if (DECALS_HTILE_SUPPORT )
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
+#endif
 	surfaceData.mask.w = _MaskBlendSrc ? maskMapBlend : albedoMapBlend;
 #endif
 
@@ -63,7 +71,9 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
 #endif
 	surfaceData.normalWS.xyz = normalWS;
+#if (DECALS_HTILE_SUPPORT )
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
+#endif
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
 #endif
 	surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);

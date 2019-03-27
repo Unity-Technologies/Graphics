@@ -62,6 +62,7 @@ Shader "HDRP/Decal"
 	#pragma shader_feature_local _ALBEDOCONTRIBUTION
 
     #pragma multi_compile_instancing
+    #pragma multi_compile _ DECALS_HTILE_SUPPORT
 
     //-------------------------------------------------------------------------------------
     // Include
