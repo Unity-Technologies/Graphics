@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed checkout of baked probe asset when baking probes.
 - Fixed invalid gizmo position for rotated ReflectionProbe
 - Fixed multi-edition of material's SurfaceType and RenderingPath
+- Fixed whole pipeline reconstruction on selecting for the first time or modifying other than the currently used HDRenderPipelineAsset
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
