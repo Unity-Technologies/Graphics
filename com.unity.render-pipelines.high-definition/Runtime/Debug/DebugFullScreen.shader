@@ -116,10 +116,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
             // return motion vector in NDC space [0..1]
             float2 SampleMotionVectors(float2 coords)
             {
-                float2 velocityNDC;
-                DecodeVelocity(SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, coords), velocityNDC);
+                float2 motionVectorNDC;
+                DecodeMotionVector(SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, coords), motionVectorNDC);
 
-                return velocityNDC;
+                return motionVectorNDC;
             }
             // end motion vector utilties
 

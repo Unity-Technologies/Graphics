@@ -170,11 +170,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     stencilRef |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
                 }
 
-                // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
+                // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
                 mat.SetInt("_StencilRef", stencilRef);
                 mat.SetInt("_StencilWriteMask", stencilWriteMask);
-                mat.SetInt("_StencilRefMV", (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
-                mat.SetInt("_StencilWriteMaskMV", (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
+                mat.SetInt("_StencilRefMV", (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors);
+                mat.SetInt("_StencilWriteMaskMV", (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors);
             }
         }
 

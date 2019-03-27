@@ -50,17 +50,17 @@ Shader "Hidden/HDRP/CameraMotionVectors"
             float2 positionCS = curClipPos.xy / curClipPos.w;
 
             // Convert from Clip space (-1..1) to NDC 0..1 space
-            float2 velocity = (positionCS - previousPositionCS);
+            float2 motionVector = (positionCS - previousPositionCS);
 #if UNITY_UV_STARTS_AT_TOP
-            velocity.y = -velocity.y;
+            motionVector.y = -motionVector.y;
 #endif
 
-            velocity.x = velocity.x * _TextureWidthScaling.y; // _TextureWidthScaling = (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
+            motionVector.x = motionVector.x * _TextureWidthScaling.y; // _TextureWidthScaling = (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
 
-            // Convert velocity from Clip space (-1..1) to NDC 0..1 space
+            // Convert motionVector from Clip space (-1..1) to NDC 0..1 space
             // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
-            // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
-            EncodeVelocity(velocity * 0.5, outColor);
+            // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (motionVector * 0.5)
+            EncodeMotionVector(motionVector * 0.5, outColor);
         }
 
     ENDHLSL
@@ -71,12 +71,12 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
         Pass
         {
-            // We will perform camera motion velocity only where there is no object velocity
+            // We will perform camera motion vector only where there is no object motion vectors
             Stencil
             {
                 WriteMask 128
                 ReadMask 128
-                Ref  128 // StencilBitMask.ObjectVelocity
+                Ref  128 // StencilBitMask.ObjectMotionVectors
                 Comp NotEqual
                 Fail Zero   // We won't need the bit anymore.
             }
