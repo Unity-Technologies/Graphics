@@ -168,8 +168,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class HDShadowResolutionRequest
     {
-        public Rect        atlasViewport;
-        public Vector2     resolution;
+        public Rect             atlasViewport;
+        public Vector2          resolution;
+        public ShadowMapType    shadowMapType;
     }
 
     public class HDShadowManager : IDisposable
@@ -266,6 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             HDShadowResolutionRequest   resolutionRequest = new HDShadowResolutionRequest{
                 resolution = resolution,
+                shadowMapType = shadowMapType,
             };
 
             switch (shadowMapType)
@@ -412,7 +414,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (lightingDebugSettings.shadowResolutionScaleFactor != 1.0f)
             {
                 foreach (var shadowResolutionRequest in m_ShadowResolutionRequests)
-                    shadowResolutionRequest.resolution *= lightingDebugSettings.shadowResolutionScaleFactor;
+                {
+                    // We don't rescale the directional shadows with the global shadow scale factor
+                    // because there is no dynamic atlas rescale when it overflow.
+                    if (shadowResolutionRequest.shadowMapType != ShadowMapType.CascadedDirectional)
+                        shadowResolutionRequest.resolution *= lightingDebugSettings.shadowResolutionScaleFactor;
+                }
             }
 
             // Assign a position to all the shadows in the atlas, and scale shadows if needed

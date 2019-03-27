@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed invalid gizmo position for rotated ReflectionProbe
 - Fixed multi-edition of material's SurfaceType and RenderingPath
 - Fixed whole pipeline reconstruction on selecting for the first time or modifying other than the currently used HDRenderPipelineAsset
+- Fixed single shadow debug mode
+- Fixed global scale factor debug mode when scale > 1
 
 ## [5.10.0-preview] - 2019-03-19
 
