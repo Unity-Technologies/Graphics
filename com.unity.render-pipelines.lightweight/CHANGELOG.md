@@ -5,9 +5,24 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [6.6.0] - 2019-XX-XX
+### Added
+- Added support for Baked Indirect mixed lighting.
+- You can now use Light Probes for occlusion. This means that baked lights can now occlude dynamic objects.
+- Added RenderObjects. You can add RenderObjects to a Renderer to perform custom rendering.
+- (WIP) Added an experimental 2D renderer that implements a 2D lighting system.
+- (WIP) Added a Light2D component that works with the 2D renderer to add lighting effects to 2D sprites.
+
 ### Fixed
 - Fixed a project import issue in the LWRP template.
 - Fixed the warnings that appear when you create new Unlit Shader Graphs using the Lightweight Render Pipeline.
+- Fixed light attenuation precision on mobile platforms.
+- Fixed split-screen rendering on mobile platforms.
+- Fixed rendering when using an off-screen camera that renders to a depth texture.
+- Exposed stencil render state in the renderer.
+- The default layer mask is now applied to a depth pre-pass.
+- Several improvements and fixes to the render pass UI.
+- Fixed an XR rendering issue where Unity required a depth texture.
+- Fixed an issue that caused transparent objects to sort incorrectly.
 
 ## [6.5.0] - 2019-03-07
 ### Added

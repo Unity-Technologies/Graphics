@@ -1,6 +1,10 @@
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.ProjectWindowCallback;
+#endif
+
 namespace UnityEngine.Rendering.LWRP
-{
-    [CreateAssetMenu(fileName = "Custom Forward Renderer", menuName = "Rendering/Lightweight Render Pipeline/Forward Renderer", order = CoreUtils.assetCreateMenuPriority1)]
+{    
     public class ForwardRendererData : ScriptableRendererData
     {
         [SerializeField] Shader m_BlitShader = null;
@@ -18,7 +22,7 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
-        protected override ScriptableRenderer Create() => new ForwardRenderer(this);
+        [SerializeField] StencilStateData m_DefaultStencilState = null;
 
         internal Shader blitShader => m_BlitShader;
         internal Shader copyDepthShader => m_CopyDepthShader;
@@ -34,5 +38,7 @@ namespace UnityEngine.Rendering.LWRP
 
         internal LayerMask opaqueLayerMask => m_OpaqueLayerMask;
         public LayerMask transparentLayerMask => m_TransparentLayerMask;
+
+		public StencilStateData defaultStencilState => m_DefaultStencilState;
     }
 }

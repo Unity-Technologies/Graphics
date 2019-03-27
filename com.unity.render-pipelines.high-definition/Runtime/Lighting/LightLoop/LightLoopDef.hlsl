@@ -144,7 +144,12 @@ int GetTileOffset(PositionInputs posInput, uint lightCategory)
 
 void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
-    const int tileOffset = GetTileOffset(posInput, lightCategory);
+    int tileOffset = GetTileOffset(posInput, lightCategory);
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    // Eye base offset must match code in lightlistbuild.compute
+    tileOffset += unity_StereoEyeIndex * _NumTileFtplX * _NumTileFtplY * LIGHTCATEGORY_COUNT;
+#endif
 
     // The first entry inside a tile is the number of light for lightCategory (thus the +0)
     lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
@@ -177,18 +182,6 @@ uint FetchIndex(uint tileOffset, uint lightOffset)
 uint GetTileSize()
 {
     return TILE_SIZE_CLUSTERED;
-}
-
-float GetLightClusterMinLinearDepth(uint2 tileIndex, uint clusterIndex)
-{
-    float logBase = g_fClustBase;
-    if (g_isLogBaseBufferEnabled)
-    {
-        // XRTODO: Stereo-ize access to g_logBaseBuffer
-        logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
-    }
-
-    return ClusterIdxToZFlex(clusterIndex, logBase, g_isLogBaseBufferEnabled != 0);
 }
 
 uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)

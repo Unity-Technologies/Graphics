@@ -5,9 +5,8 @@
 // XRTODO: update supported platforms based on Unity version (for required C++ fixes)
 
 // Must be in sync with C# with property useTexArray in TextureXR.cs
-#if defined(SHADER_API_D3D11)
-    // XRTODO: disabled until all SPI code is merged
-    //#define UNITY_TEXTURE2D_X_ARRAY_SUPPORTED
+#if defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE)
+    #define UNITY_TEXTURE2D_X_ARRAY_SUPPORTED
 #endif
 
 // Validate supported platforms
@@ -88,9 +87,9 @@
 #endif
 
 // Notes on current stereo support status
-// single-pass doule-wide is the only working at the moment
-// single-pass instancing is in progress
-// multi-view and multi-pass are not supported
+// single-pass doule-wide is working but will be deprecated soon
+// single-pass instancing is the default method
+// multi-view and multi-pass are not yet supported
 // see Unity\Shaders\Includes\UnityShaderVariables.cginc for impl used by the C++ renderer
 #if defined(USING_STEREO_MATRICES)
 

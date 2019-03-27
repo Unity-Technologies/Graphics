@@ -101,12 +101,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                     });
                 });
 
-                ps.Add(new PropertyRow(CreateLabel("Transparent Writes Velocity", indentLevel)), (row) =>
+                ps.Add(new PropertyRow(CreateLabel("Transparent Writes Motion Vector", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = m_Node.transparentWritesVelocity.isOn;
-                        toggle.OnToggleChanged(ChangeTransparentWritesVelocity);
+                        toggle.value = m_Node.transparentWritesMotionVec.isOn;
+                        toggle.OnToggleChanged(ChangeTransparentWritesMotionVec);
                     });
                 });
 
@@ -208,6 +208,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 {
                     toggle.value = m_Node.overrideBakedGI.isOn;
                     toggle.OnToggleChanged(ChangeoverrideBakedGI);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Depth Offset", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.depthOffset.isOn;
+                    toggle.OnToggleChanged(ChangeDepthOffset);
                 });
             });
 
@@ -319,12 +328,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.alphaTestDepthPostpass = td;
         }
 
-        void ChangeTransparentWritesVelocity(ChangeEvent<bool> evt)
+        void ChangeTransparentWritesMotionVec(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Writes Velocity Change");
-            ToggleData td = m_Node.transparentWritesVelocity;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Writes Motion Vector Change");
+            ToggleData td = m_Node.transparentWritesMotionVec;
             td.isOn = evt.newValue;
-            m_Node.transparentWritesVelocity = td;
+            m_Node.transparentWritesMotionVec = td;
         }
 
         void ChangeAlphaTestShadow(ChangeEvent<bool> evt)
@@ -374,6 +383,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.overrideBakedGI;
             td.isOn = evt.newValue;
             m_Node.overrideBakedGI = td;
+        }
+        
+        void ChangeDepthOffset(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DepthOffset Change");
+            ToggleData td = m_Node.depthOffset;
+            td.isOn = evt.newValue;
+            m_Node.depthOffset = td;
         }
 
         public AlphaMode GetAlphaMode(HairMasterNode.AlphaModeLit alphaModeLit)

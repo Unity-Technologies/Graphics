@@ -51,6 +51,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -58,13 +59,15 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 float4  positionCS  : SV_POSITION;
                 int     variant     : TEXCOORD0;
                 float2  texcoord    : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
 #if SHOW_FEATURE_VARIANTS
-            Varyings Vert(uint vertexID : SV_VertexID)
+            Varyings Vert(Attributes input)
             {
-                uint quadIndex = vertexID / 6;
-                uint quadVertex = vertexID - quadIndex * 6;
+                UNITY_SETUP_INSTANCE_ID(input);
+                uint quadIndex = input.vertexID / 6;
+                uint quadVertex = input.vertexID - quadIndex * 6;
                 quadVertex = (0x312210 >> (quadVertex<<2)) & 3; //remap [0,5]->[0,3]
 
                 uint2 tileSize = GetTileSize();
@@ -77,13 +80,21 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 }
 
                 uint tileIndex = g_TileList[variant * _NumTiles + quadIndex];
-                uint2 tileCoord = uint2(tileIndex & 0xFFFF, tileIndex >> 16);
+                uint2 tileCoord = uint2((tileIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tileIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK); // see builddispatchindirect.compute
                 uint2 pixelCoord = (tileCoord + uint2((quadVertex+1) & 1, (quadVertex >> 1) & 1)) * tileSize;
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+                // With instancing, all tiles from the indirect buffer are processed so we need to discard them if they don't match the current eye index
+                uint tile_StereoEyeIndex = tileIndex >> TILE_INDEX_SHIFT_EYE;
+                if (unity_StereoEyeIndex != tile_StereoEyeIndex)
+                    variant = -1;
+#endif
 
                 float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
                 clipCoord.y *= -1;
 
                 Varyings output;
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = float4(clipCoord, 0, 1.0);
                 output.variant = variant;
 
@@ -95,6 +106,8 @@ Shader "Hidden/HDRP/DebugViewTiles"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
                 output.variant = 0; // unused
@@ -146,13 +159,15 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
                 // For debug shaders, Viewport can be at a non zero (x,y) but the pipeline render targets all starts at (0,0)
                 // input.positionCS in in pixel coordinate relative to the render target origin so they will be offsted compared to internal render textures
                 // To solve that, we compute pixel coordinates from full screen quad texture coordinates which start correctly at (0,0)
                 uint2 pixelCoord = uint2(input.texcoord.xy * _ScreenSize.xy);
 
                 float depth = LoadCameraDepth(pixelCoord);
-                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
+                PositionInputs posInput = GetPositionInput_Stereo(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize(), unity_StereoEyeIndex);
 
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
                 int2 mouseTileCoord = _MousePixelCoord.xy / GetTileSize();
@@ -199,7 +214,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
                     float depthMouse = LoadCameraDepth(_MousePixelCoord.xy);
-                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
+                    PositionInputs mousePosInput = GetPositionInput_Stereo(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord, unity_StereoEyeIndex);
 
                     uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
                     uint start;

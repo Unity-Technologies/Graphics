@@ -2,7 +2,7 @@
 
 [High Definition Render Pipeline (HDRP)](index.html) uses [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and lighting units that are different with the built-in Unity rendering pipeline. As such, it’s best to create a new Project for HDRP rendering. This page shows you how to create a Scene that uses HDRP, and introduces you to key features to help you produce high fidelity visuals.
 
-To upgrade a Project that doesn’t use HDRP, you need to convert the Materials to make them compatible with HDRP. For more information, see [Upgrading to HDRP](Upgrading-to-HDRP). 
+To upgrade a Project that doesn’t use HDRP, you need to convert the Materials to make them compatible with HDRP. For more information, see [Upgrading to HDRP](Upgrading-To-HDRP.html). 
 
 ## Creating an HDRP Project
 
@@ -11,9 +11,7 @@ To set up and manage your Unity Projects, install the [Unity Hub](https://docs.u
 To create an HDRP Project:
 
 1. Open the Unity Hub and click the __New__ button in the top-right corner.
-
 2. Enter a __Project Name__ and, in the __Template__ drop-down list, select __High Definition RP (Preview)__.
-
 3. Click __Create Project__.
 
 ![](Images/GettingStarted1.png)
@@ -45,7 +43,7 @@ The HDRP Visual Environment component enables you to change the type of sky and 
 
 ![](Images/GettingStarted3.png)
 
-For more information, see [Visual Environment](Visual-Environment.html), [Sky overview](Sky-Overview.html) and [Fog overview](Fog-Overview.html).
+For more information, see [Visual Environment](Override-Visual-Environment.html), [Sky overview](Sky-Overview.html) and [Fog overview](Fog-Overview.html).
 
 ## Materials and Shaders
 
@@ -69,7 +67,7 @@ The HD shadow settings allow you to determine the overall quality of the Shadows
 
 ![](Images/GettingStarted5.gif)
 
-For more information, see [HD Shadow Settings](HD-Shadow-Settings.html).
+For more information, see [HD Shadow Settings](Override-Shadows.html).
 
 ## Related information
 

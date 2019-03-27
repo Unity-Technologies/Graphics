@@ -7,6 +7,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Exposure,
         TemporalAntialiasing,
         DepthOfFieldCoC,
+        Normal,
+        Depth,
 #if ENABLE_RAYTRACING
         RaytracedReflection,
 #endif

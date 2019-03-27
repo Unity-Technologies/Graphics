@@ -374,6 +374,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = true,
         };
 
+        public int GetPreviewPassIndex() { return 0; }
 
         private static string[] m_ColorMasks = new string[8]
         {

@@ -35,8 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ForwardTransparentDepthPrepass,
         RenderForwardError,
         TransparentDepthPostpass,
-        ObjectsVelocity,
-        CameraVelocity,
+        ObjectsMotionVector,
+        CameraMotionVectors,
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
         MotionBlur,
-        MotionBlurVelocityPrep,
+        MotionBlurMotionVecPrep,
         MotionBlurTileMinMax,
         MotionBlurTileNeighbourhood,
         MotionBlurKernel,
@@ -107,6 +107,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ColorGradingLUTBuilder,
         UberPost,
         FXAA,
+        SMAA,
         FinalPost,
 
         Max

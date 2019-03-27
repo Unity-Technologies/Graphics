@@ -214,8 +214,10 @@ namespace UnityEditor.ShaderGraph
                     return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
                 case ConcreteSlotValueType.Vector4:
                     return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
+                case ConcreteSlotValueType.Boolean:
+                    return string.Format("half4({0}, {0}, {0}, 1.0)", variableName);
                 default:
-                    return kErrorString;
+                    return "half4(0, 0, 0, 0)";
             }
         }
 
@@ -788,6 +790,9 @@ namespace UnityEditor.ShaderGraph
 
         public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
         {
+            // Should never be called without a node
+            Debug.Assert(node != null);
+            
             var vertexOutputStruct = new ShaderStringBuilder(2);
 
             var vertexShader = new ShaderStringBuilder(2);
@@ -816,20 +821,24 @@ namespace UnityEditor.ShaderGraph
             vertexShader.AppendLines(vertexShaderDescriptionInputs.ToString());
             vertexShader.AppendLines(vertexShaderOutputs.ToString());
 
-            if (node != null)
+            var outputSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+            // Sub Graph Output uses first input slot
+            if (node is SubGraphOutputNode)
             {
-                var outputSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault();
-                if (outputSlot != null)
-                {
-                    var result = string.Format("surf.{0}", node.GetVariableNameForSlot(outputSlot.id));
-                    pixelShaderSurfaceRemap.AppendLine("return {0};", AdaptNodeOutputForPreview(node, outputSlot.id, result));
-                }
-                else
-                    pixelShaderSurfaceRemap.AppendLine("return 0;");
+                outputSlot = node.GetInputSlots<MaterialSlot>().FirstOrDefault();
+            }
+
+            if (outputSlot != null)
+            {
+                var result = string.Format("surf.{0}", NodeUtils.GetHLSLSafeName(outputSlot.shaderOutputName));
+                pixelShaderSurfaceRemap.AppendLine("return all(isfinite({0})) ? {1} : {2};",
+                    result, AdaptNodeOutputForPreview(node, outputSlot.id, result), nanOutput);
             }
             else
             {
-                pixelShaderSurfaceRemap.AppendLine("return all(isfinite(surf.PreviewOutput)) ? surf.PreviewOutput : float4(1.0f, 0.0f, 1.0f, 1.0f);");
+                // No valid slots to display, so just show black.
+                // It's up to each node to error or warn as appropriate.
+                pixelShaderSurfaceRemap.AppendLine("return 0;");
             }
 
             // -------------------------------------
@@ -917,7 +926,8 @@ namespace UnityEditor.ShaderGraph
             return materialOptions;
         }
 
-        private const string subShaderTemplate = @"
+        const string nanOutput = "float4(1.0f, 0.0f, 1.0f, 1.0f)";
+        const string subShaderTemplate = @"
 SubShader
 {
     Tags { ""RenderType""=""Opaque"" }

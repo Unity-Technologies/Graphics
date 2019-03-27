@@ -6,9 +6,11 @@ using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
+using UnityEditor.VersionControl;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using static UnityEditor.VersionControl.Provider;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -47,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Hash128[] m_StateHashes;
         HDProbeBakedState[] m_HDProbeBakedStates = new HDProbeBakedState[0];
         float m_DateSinceLastLegacyWarning = float.MinValue;
-        Dictionary<UnityEngine.Rendering.RenderPipeline, float> m_DateSinceLastInvalidSRPWarning 
+        Dictionary<UnityEngine.Rendering.RenderPipeline, float> m_DateSinceLastInvalidSRPWarning
             = new Dictionary<UnityEngine.Rendering.RenderPipeline, float>();
 
         HDBakedReflectionSystem() : base(1)
@@ -88,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // On the C# side, we don't have non blocking asset import APIs, and we don't want to block the
             //   UI when the user is editing the world.
             //   So, we skip the baking when the user is editing any UI control.
-            if (GUIUtility.hotControl != 0) 
+            if (GUIUtility.hotControl != 0)
                 return;
 
             if (!IsCurrentSRPValid(out HDRenderPipeline hdPipeline))
@@ -511,6 +513,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             (uint)StaticEditorFlags.ReflectionProbeStatic
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
+                        if (Provider.isActive)
+                            Checkout(targetFile, CheckoutMode.Both);
                         HDTextureUtilities.WriteTextureFileToDisk(cubeRT, targetFile);
                         break;
                     }
@@ -529,9 +533,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
+                        if (Provider.isActive)
+                            Checkout(targetFile, CheckoutMode.Both);
                         HDTextureUtilities.WriteTextureFileToDisk(planarRT, targetFile);
                         var renderData = new HDProbe.RenderData(cameraSettings, cameraPositionSettings);
-                        HDBakingUtilities.TrySerializeToDisk(renderData, targetFile + ".renderData");
+                        var targetRenderDataFile = targetFile + ".renderData";
+                        if (Provider.isActive)
+                            Checkout(targetRenderDataFile, CheckoutMode.Both);
+                        HDBakingUtilities.TrySerializeToDisk(renderData, targetRenderDataFile);
                         break;
                     }
             }
@@ -547,9 +556,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var importer = AssetImporter.GetAtPath(file) as TextureImporter;
                         if (importer == null)
                             return;
-                        importer.sRGBTexture = false;
-                        importer.filterMode = FilterMode.Bilinear;
-                        importer.generateCubemap = TextureImporterGenerateCubemap.AutoCubemap;
+                        var settings = new TextureImporterSettings();
+                        importer.ReadTextureSettings(settings);
+                        settings.sRGBTexture = false;
+                        settings.filterMode = FilterMode.Bilinear;
+                        settings.generateCubemap = TextureImporterGenerateCubemap.AutoCubemap;
+                        settings.cubemapConvolution = TextureImporterCubemapConvolution.None;
+                        settings.seamlessCubemap = false;
+                        settings.wrapMode = TextureWrapMode.Repeat;
+                        settings.aniso = 1;
+                        importer.SetTextureSettings(settings);
                         importer.mipmapEnabled = false;
                         importer.textureCompression = hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCacheCompressed
                             ? TextureImporterCompression.Compressed

@@ -32,13 +32,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [SerializeField]
         EmissiveIntensityUnit _intensityUnit;
 
-        [EnumControl()]
+        [EnumControl]
         EmissiveIntensityUnit intensityUnit
         {
             get { return _intensityUnit; }
             set
             {
                 _intensityUnit = value;
+                Dirty(ModificationScope.Node);
+            }
+        }
+
+        [SerializeField]
+        bool        m_NormalizeColor;
+
+        [ToggleControl("Normalize Color")]
+        ToggleData  normalizeColor
+        {
+            get { return new ToggleData(m_NormalizeColor); }
+            set
+            {
+                m_NormalizeColor = value.isOn;
                 Dirty(ModificationScope.Node);
             }
         }
@@ -77,26 +91,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
-            if (generationMode.IsPreview())
-                return;
-
             var sb = new ShaderStringBuilder();
 
             var colorValue = GetSlotValue(kEmissionColorInputSlotId, generationMode);
             var intensityValue = GetSlotValue(kEmissionIntensityInputSlotId, generationMode);
             var exposureWeightValue = GetSlotValue(kEmissionExposureWeightInputSlotId, generationMode);
+            var outputValue = GetSlotValue(kEmissionOutputSlotId, generationMode);
             
             if (intensityUnit == EmissiveIntensityUnit.EV100)
                 intensityValue = "ConvertEvToLuminance(" + intensityValue + ")";
             
-            sb.AppendLine(@"{0}3 {1} = {2}({3}, {4}, {5}, {6});",
+            string inverseExposureMultiplier = (generationMode.IsPreview()) ? "1.0" : "GetInverseCurrentExposureMultiplier()";
+            
+            sb.AppendLine(@"{0}3 {1} = {2}({3}.xyz, {4}, {5}, {6});",
                 precision,
-                GetVariableNameForNode(),
+                outputValue,
                 GetFunctionName(),
                 colorValue,
                 intensityValue,
                 exposureWeightValue,
-                "GetInverseCurrentExposureMultiplier()"
+                inverseExposureMultiplier
             );
 
             visitor.AddShaderChunk(sb.ToString(), true);
@@ -117,6 +131,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         intensitySlot.concreteValueType.ToString(precision));
                     using (s.BlockScope())
                     {
+                        if (normalizeColor.isOn)
+                        {
+                            s.AppendLine("ldrColor = ldrColor * rcp(max(Luminance(ldrColor), 1e-6));");
+                        }
                         s.AppendLine("{0}3 hdrColor = ldrColor * luminanceIntensity;", precision);
                         s.AppendNewLine();
                         s.AppendLine("// Inverse pre-expose using _EmissiveExposureWeight weight");
@@ -142,14 +160,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             properties.Add(new PreviewProperty(PropertyType.Vector3)
             {
-                name = GetVariableNameForNode(),
+                name = GetVariableNameForSlot(kEmissionColorInputSlotId),
                 vector4Value = outputColor
             });
-        }
-
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            return GetVariableNameForNode();
         }
     }
 }
