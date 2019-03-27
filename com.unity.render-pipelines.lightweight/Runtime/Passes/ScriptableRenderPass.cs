@@ -126,22 +126,6 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         /// <summary>
-        /// Adds a Render Post-processing command for execution. This changes the active render target in the ScriptableRenderer to destination.
-        /// </summary>
-        /// <param name="cmd">Command buffer to record command for execution.</param>
-        /// <param name="cameraData">Camera rendering data.</param>
-        /// <param name="sourceDescriptor">Render texture descriptor for source.</param>
-        /// <param name="source">Source texture or render target identifier.</param>
-        /// <param name="destination">Destination texture or render target identifier.</param>
-        /// <param name="opaqueOnly">If true, only renders opaque post-processing effects. Otherwise, renders before and after stack post-processing effects.</param>
-        /// <param name="flip">If true, flips image vertically.</param>
-        public void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
-        {
-            ScriptableRenderer.ConfigureActiveTarget(destination, BuiltinRenderTextureType.CameraTarget);
-            RenderingUtils.RenderPostProcessing(cmd, ref cameraData, sourceDescriptor, source, destination, opaqueOnly, flip);
-        }
-
-        /// <summary>
         /// Creates <c>DrawingSettings</c> based on current the rendering state.
         /// </summary>
         /// <param name="shaderTagId">Shader pass tag to render.</param>

@@ -9,6 +9,9 @@ MonoImporter:
   - m_ScreenSpaceShadowShader: {fileID: 4800000, guid: 0f854b35a0cf61a429bd5dcfea30eddd,
       type: 3}
   - m_SamplingShader: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
+  - m_LutBuilderLdr: {fileID: 4800000, guid: 65df88701913c224d95fc554db28381a, type: 3}
+  - m_LutBuilderHdr: {fileID: 4800000, guid: ec9fec698a3456d4fb18cf8bacb7a2bc, type: 3}
+  - m_UberPostShader: {fileID: 4800000, guid: e7857e9d0c934dc4f83f270f8447b006, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

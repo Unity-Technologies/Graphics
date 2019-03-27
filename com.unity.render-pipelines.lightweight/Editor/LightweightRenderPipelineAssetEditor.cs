@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using UnityEngine;
 using UnityEngine.Rendering.LWRP;
 using UnityEngine.Rendering;
@@ -14,6 +15,7 @@ namespace UnityEditor.Rendering.LWRP
             public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality");
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting");
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
+            public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post-processing");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
 
             // General
@@ -46,6 +48,13 @@ namespace UnityEditor.Rendering.LWRP
             public static GUIContent shadowNormalBias = EditorGUIUtility.TrTextContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
 
+            // Post-processing
+            public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
+            public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
+            public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
+            public static string colorGradingModeSpecInfo = "The high dynamic range color grading mode works best on platforms that support floating point textures.";
+            public static string colorGradingLutSizeWarning = "The minimal recommended LUT size for the high dynamic range color grading mode is 32. Using lower values will potentially result in color banding and posterization effects.";
+
             // Advanced settings
             public static GUIContent srpBatcher = EditorGUIUtility.TrTextContent("SRP Batcher (Experimental)", "If enabled, the render pipeline uses the SRP batcher.");
             public static GUIContent dynamicBatching = EditorGUIUtility.TrTextContent("Dynamic Batching", "If enabled, the render pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
@@ -63,6 +72,7 @@ namespace UnityEditor.Rendering.LWRP
         SavedBool m_QualitySettingsFoldout;
         SavedBool m_LightingSettingsFoldout;
         SavedBool m_ShadowSettingsFoldout;
+        SavedBool m_PostProcessingSettingsFoldout;
         SavedBool m_AdvancedSettingsFoldout;
 
         SerializedProperty m_RendererTypeProp;
@@ -100,6 +110,9 @@ namespace UnityEditor.Rendering.LWRP
 
         SerializedProperty m_ShaderVariantLogLevel;
 
+        SerializedProperty m_ColorGradingMode;
+        SerializedProperty m_ColorGradingLutSize;
+
         internal static LightRenderingMode selectedLightRenderingMode;
 
         public override void OnInspectorGUI()
@@ -110,6 +123,7 @@ namespace UnityEditor.Rendering.LWRP
             DrawQualitySettings();
             DrawLightingSettings();
             DrawShadowSettings();
+            DrawPostProcessingSettings();
             DrawAdvancedSettings();
 
             serializedObject.ApplyModifiedProperties();
@@ -121,6 +135,7 @@ namespace UnityEditor.Rendering.LWRP
             m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
             m_ShadowSettingsFoldout = new SavedBool($"{target.GetType()}.ShadowSettingsFoldout", false);
+            m_PostProcessingSettingsFoldout = new SavedBool($"{target.GetType()}.PostProcessingSettingsFoldout", false);
             m_AdvancedSettingsFoldout = new SavedBool($"{target.GetType()}.AdvancedSettingsFoldout", false);
 
             m_RendererTypeProp = serializedObject.FindProperty("m_RendererType");
@@ -156,6 +171,10 @@ namespace UnityEditor.Rendering.LWRP
             m_MixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
 
             m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
+
+            m_ColorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
+            m_ColorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
+
             selectedLightRenderingMode = (LightRenderingMode)m_AdditionalLightsRenderingModeProp.intValue;
         }
 
@@ -285,6 +304,33 @@ namespace UnityEditor.Rendering.LWRP
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, LightweightRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        void DrawPostProcessingSettings()
+        {
+            m_PostProcessingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_PostProcessingSettingsFoldout.value, Styles.postProcessingSettingsText);
+            if (m_PostProcessingSettingsFoldout.value)
+            {
+                bool isHdrOn = m_HDR.boolValue;
+
+                EditorGUI.indentLevel++;
+
+                EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
+                if (!isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
+                    EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
+                else if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
+                    EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
+
+                EditorGUILayout.DelayedIntField(m_ColorGradingLutSize, Styles.colorGradingLutSize);
+                m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, LightweightRenderPipelineAsset.k_MinLutSize, LightweightRenderPipelineAsset.k_MaxLutSize);
+                if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
+                    EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();

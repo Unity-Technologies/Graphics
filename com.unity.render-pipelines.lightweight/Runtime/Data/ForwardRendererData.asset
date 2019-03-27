@@ -9,20 +9,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
   m_Name: ForwardRendererData
   m_EditorClassIdentifier: 
-  m_RenderPassFeatures: []
-  m_DrawGroups:
-  - m_Mask: 1
-    m_OverrideCamera: 0
-    m_FOV: 90
-    m_LayerMask:
-      serializedVersion: 2
-      m_Bits: 4294967295
+  m_RendererFeatures: []
   m_BlitShader: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
   m_CopyDepthShader: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
   m_ScreenSpaceShadowShader: {fileID: 4800000, guid: 0f854b35a0cf61a429bd5dcfea30eddd,
     type: 3}
   m_SamplingShader: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
+  m_StopNaNShader: {fileID: 4800000, guid: 1121bb4e615ca3c48b214e79e841e823, type: 3}
+  m_PaniniProjectionShader: {fileID: 4800000, guid: a15b78cf8ca26ca4fb2090293153c62c,
+    type: 3}
+  m_LutBuilderLdrShader: {fileID: 4800000, guid: 65df88701913c224d95fc554db28381a,
+    type: 3}
+  m_LutBuilderHdrShader: {fileID: 4800000, guid: ec9fec698a3456d4fb18cf8bacb7a2bc,
+    type: 3}
+  m_BloomShader: {fileID: 4800000, guid: 5f1864addb451f54bae8c86d230f736e, type: 3}
+  m_UberPostShader: {fileID: 4800000, guid: e7857e9d0c934dc4f83f270f8447b006, type: 3}
+  m_OpaqueLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_TransparentLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295

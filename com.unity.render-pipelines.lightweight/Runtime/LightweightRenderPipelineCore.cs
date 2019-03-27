@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -18,6 +17,7 @@ namespace UnityEngine.Rendering.LWRP
         public CameraData cameraData;
         public LightData lightData;
         public ShadowData shadowData;
+        public PostProcessingData postProcessingData;
         public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
         public bool killAlphaInFinalBlit;
@@ -49,9 +49,14 @@ namespace UnityEngine.Rendering.LWRP
         public bool isStereoEnabled;
 
         public float maxShadowDistance;
-        public bool postProcessEnabled;
-        public PostProcessLayer postProcessLayer;
+        public bool isPostProcessEnabled;
         public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer> > captureActions;
+
+        public LayerMask volumeLayerMask;
+        public Transform volumeTrigger;
+
+        public bool isStopNaNEnabled;
+        public bool isDitheringEnabled;
     }
 
     public struct ShadowData
@@ -68,6 +73,12 @@ namespace UnityEngine.Rendering.LWRP
         public bool supportsSoftShadows;
         public int shadowmapDepthBufferBits;
         public List<Vector4> bias;
+    }
+
+    public struct PostProcessingData
+    {
+        public ColorGradingMode gradingMode;
+        public int lutSize;
     }
 
     public static class ShaderKeywordStrings

@@ -8,42 +8,31 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] Shader m_ScreenSpaceShadowShader = null;
         [SerializeField] Shader m_SamplingShader = null;
 
+        [SerializeField] Shader m_StopNaNShader = null;
+        [SerializeField] Shader m_PaniniProjectionShader = null;
+        [SerializeField] Shader m_LutBuilderLdrShader = null;
+        [SerializeField] Shader m_LutBuilderHdrShader = null;
+        [SerializeField] Shader m_BloomShader = null;
+        [SerializeField] Shader m_UberPostShader = null;
+
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
-        protected override ScriptableRenderer Create()
-        {
-            return new ForwardRenderer(this);
-        }
+        protected override ScriptableRenderer Create() => new ForwardRenderer(this);
 
-        internal Shader blitShader
-        {
-            get => m_BlitShader;
-        }
+        internal Shader blitShader => m_BlitShader;
+        internal Shader copyDepthShader => m_CopyDepthShader;
+        internal Shader screenSpaceShadowShader => m_ScreenSpaceShadowShader;
+        internal Shader samplingShader => m_SamplingShader;
 
-        internal Shader copyDepthShader
-        {
-            get => m_CopyDepthShader;
-        }
+        internal Shader stopNaNShader => m_StopNaNShader;
+        internal Shader paniniProjectionShader => m_PaniniProjectionShader;
+        internal Shader lutBuilderLdrShader => m_LutBuilderLdrShader;
+        internal Shader lutBuilderHdrShader => m_LutBuilderHdrShader;
+        internal Shader bloomShader => m_BloomShader;
+        internal Shader uberPostShader => m_UberPostShader;
 
-        internal Shader screenSpaceShadowShader
-        {
-            get => m_ScreenSpaceShadowShader;
-        }
-
-        internal Shader samplingShader
-        {
-            get => m_SamplingShader;
-        }
-
-        internal LayerMask opaqueLayerMask
-        {
-            get => m_OpaqueLayerMask;
-        }
-
-        public LayerMask transparentLayerMask
-        {
-            get => m_TransparentLayerMask;
-        }
+        internal LayerMask opaqueLayerMask => m_OpaqueLayerMask;
+        public LayerMask transparentLayerMask => m_TransparentLayerMask;
     }
 }

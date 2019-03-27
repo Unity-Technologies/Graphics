@@ -4,7 +4,6 @@ using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Rendering.LWRP;
 #endif
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
@@ -210,12 +209,11 @@ namespace UnityEngine.Rendering.LWRP
 
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
 
-            cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
-            cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
+            cameraData.isPostProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
 
-            // Disables postprocessing in mobile VR. It's stable on mobile yet.
+            // Disables postprocessing in mobile VR. It's not stable on mobile yet.
             if (cameraData.isStereoEnabled && Application.isMobilePlatform)
-                cameraData.postProcessEnabled = false;
+                cameraData.isPostProcessEnabled = false;
 
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
@@ -236,14 +234,23 @@ namespace UnityEngine.Rendering.LWRP
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
+                cameraData.volumeLayerMask = additionalCameraData.volumeLayerMask;
+                cameraData.volumeTrigger = additionalCameraData.volumeTrigger;
+                cameraData.isStopNaNEnabled = additionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
+                cameraData.isDitheringEnabled = additionalCameraData.dithering;
+                cameraData.isPostProcessEnabled &= additionalCameraData.renderPostProcessing;
             }
             else
             {
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
+                cameraData.volumeLayerMask = -1; // Everything by default
+                cameraData.volumeTrigger = null;
+                cameraData.isStopNaNEnabled = false;
+                cameraData.isDitheringEnabled = false;
             }
 
-            cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.postProcessEnabled;
+            cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.isPostProcessEnabled;
 
             var commonOpaqueFlags = SortingCriteria.CommonOpaque;
             var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
@@ -295,6 +302,7 @@ namespace UnityEngine.Rendering.LWRP
             renderingData.cameraData = cameraData;
             InitializeLightData(settings, visibleLights, mainLightIndex, out renderingData.lightData);
             InitializeShadowData(settings, visibleLights, mainLightCastShadows, additionalLightsCastShadows && !renderingData.lightData.shadeAdditionalLightsPerVertex, out renderingData.shadowData);
+            InitializePostProcessingData(settings, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
 
@@ -369,6 +377,15 @@ namespace UnityEngine.Rendering.LWRP
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;
+        }
+
+        static void InitializePostProcessingData(LightweightRenderPipelineAsset settings, out PostProcessingData postProcessingData)
+        {
+            postProcessingData.gradingMode = settings.supportsHDR
+                ? settings.colorGradingMode
+                : ColorGradingMode.LowDynamicRange;
+
+            postProcessingData.lutSize = settings.colorGradingLutSize;
         }
 
         static void InitializeLightData(LightweightRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
