@@ -266,6 +266,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DecalDatas = Shader.PropertyToID("_DecalDatas");
         public static readonly int _DecalNormalBufferStencilReadMask = Shader.PropertyToID("_DecalNormalBufferStencilReadMask");
         public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
+        public static readonly int _DecalsHtileSupport = Shader.PropertyToID(" _DecalsHtileSupport");
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");
