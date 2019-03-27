@@ -158,6 +158,7 @@ MonoBehaviour:
   m_LightVolumeOpacity: 0
   m_ApplyToSortingLayers: 00000000eb0feddf
   m_LightCookieSprite: {fileID: 0}
+  m_UseNormalMap: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -422,6 +423,7 @@ MonoBehaviour:
   m_LightVolumeOpacity: 0.077
   m_ApplyToSortingLayers: eb0feddf
   m_LightCookieSprite: {fileID: 0}
+  m_UseNormalMap: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -495,6 +497,7 @@ MonoBehaviour:
   m_LightVolumeOpacity: 0.5
   m_ApplyToSortingLayers: e980ef06eb0feddf
   m_LightCookieSprite: {fileID: 0}
+  m_UseNormalMap: 1
   m_PointLightInnerAngle: 48.799995
   m_PointLightOuterAngle: 88.27
   m_PointLightInnerRadius: 1.2891586
@@ -646,6 +649,7 @@ MonoBehaviour:
   m_ApplyToSortingLayers: e980ef06
   m_LightCookieSprite: {fileID: 21300000, guid: 86ce912717672b8429c58e6960c12e25,
     type: 3}
+  m_UseNormalMap: 1
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0.65392894
@@ -715,6 +719,7 @@ MonoBehaviour:
   m_LightVolumeOpacity: 0
   m_ApplyToSortingLayers: eb0feddf
   m_LightCookieSprite: {fileID: 0}
+  m_UseNormalMap: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -784,6 +789,7 @@ MonoBehaviour:
   m_LightVolumeOpacity: 0
   m_ApplyToSortingLayers: 00000000eb0feddf
   m_LightCookieSprite: {fileID: 0}
+  m_UseNormalMap: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -1096,6 +1102,7 @@ MonoBehaviour:
   m_ApplyToSortingLayers: eb0feddfe980ef0600000000
   m_LightCookieSprite: {fileID: 7195817935496006023, guid: 418ab5c27d3054eb89959d9c715e00c9,
     type: 3}
+  m_UseNormalMap: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
