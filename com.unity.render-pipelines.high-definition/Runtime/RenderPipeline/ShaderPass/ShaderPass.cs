@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ForwardUnlit,
         DeferredLighting,
         DepthOnly,
-        Velocity,
+        MotionVectors,
         Distortion,
         LightTransport,
         Shadows,

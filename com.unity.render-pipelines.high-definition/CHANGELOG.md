@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated handles for DecalProjectorComponent for enhanced spacial position readability and have edition mode for better SceneView management
 - DecalProjectorComponent are now scale independent in order to have reliable metric unit (see new Size field for changing the size of the volume)
 - Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
+- Renamed velocity to motion vectors
 
 ## [6.5.0-preview] - 2019-03-07
 

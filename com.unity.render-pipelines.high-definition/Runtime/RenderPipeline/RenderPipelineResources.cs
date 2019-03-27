@@ -195,8 +195,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader depthOfFieldCombineCS;
             [Reload("PostProcessing/Shaders/PaniniProjection.compute")]
             public ComputeShader paniniProjectionCS;
-            [Reload("PostProcessing/Shaders/MotionBlurVelocityPrep.compute")]
-            public ComputeShader motionBlurVelocityPrepCS;
+            [Reload("PostProcessing/Shaders/MotionBlurMotionVecPrep.compute")]
+            public ComputeShader motionBlurMotionVecPrepCS;
             [Reload("PostProcessing/Shaders/MotionBlurTilePass.compute")]
             public ComputeShader motionBlurTileGenCS;
             [Reload("PostProcessing/Shaders/MotionBlur.compute")]

@@ -670,8 +670,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DitherParams                   = Shader.PropertyToID("_DitherParams");
         public static readonly int _UVTransform                    = Shader.PropertyToID("_UVTransform");
 
-        public static readonly int _VelocityAndDepth               = Shader.PropertyToID("_VelocityAndDepth");
-        public static readonly int _TileVelMinMax                  = Shader.PropertyToID("_TileMinMaxVel");
+        public static readonly int _MotionVecAndDepth              = Shader.PropertyToID("_MotionVecAndDepth");
+        public static readonly int _TileMinMaxMotionVec            = Shader.PropertyToID("_TileMinMaxMotionVec");
         public static readonly int _TileMaxNeighbourhood           = Shader.PropertyToID("_TileMaxNeighbourhood");
         public static readonly int _TileToScatterMax               = Shader.PropertyToID("_TileToScatterMax");
         public static readonly int _TileToScatterMin               = Shader.PropertyToID("_TileToScatterMin");

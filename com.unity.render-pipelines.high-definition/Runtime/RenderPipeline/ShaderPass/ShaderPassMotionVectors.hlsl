@@ -1,8 +1,8 @@
-#if SHADERPASS != SHADERPASS_VELOCITY
+#if SHADERPASS != SHADERPASS_MOTION_VECTORS
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VelocityVertexShaderCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/MotionVectorVertexShaderCommon.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh,
                         AttributesPass inputPass)
@@ -10,7 +10,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
 
-    return VelocityVS(varyingsType, inputMesh, inputPass);
+    return MotionVectorVS(varyingsType, inputMesh, inputPass);
 }
 
 #ifdef TESSELLATION_ON
@@ -21,7 +21,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
     output.vmesh = VertMeshTesselation(input.vmesh);
 
-    VelocityPositionZBias(output);
+    MotionVectorPositionZBias(output);
 
     output.vpass.positionCS = input.vpass.positionCS;
     output.vpass.previousPositionCS = input.vpass.previousPositionCS;
@@ -34,8 +34,8 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif // TESSELLATION_ON
 
 void Frag(  PackedVaryingsToPS packedInput
-            // The velocity if always the first buffer
-            , out float4 outVelocity : SV_Target0
+            // The motion vector is always the first buffer
+            , out float4 outMotionVector : SV_Target0
 
             // Write the normal buffer
             #ifdef WRITE_NORMAL_BUFFER
@@ -76,21 +76,21 @@ void Frag(  PackedVaryingsToPS packedInput
     inputPass.previousPositionCS.w += builtinData.depthOffset;
 #endif
 
-    // TODO: How to allow overriden velocity vector from GetSurfaceAndBuiltinData ?
-    float2 velocity = CalculateVelocity(inputPass.positionCS, inputPass.previousPositionCS);
+    // TODO: How to allow overriden motion vector from GetSurfaceAndBuiltinData ?
+    float2 motionVector = CalculateMotionVector(inputPass.positionCS, inputPass.previousPositionCS);
 
     // Convert from Clip space (-1..1) to NDC 0..1 space.
     // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
-    // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
-    EncodeVelocity(velocity * 0.5, outVelocity);
+    // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (motionVector * 0.5)
+    EncodeMotionVector(motionVector * 0.5, outMotionVector);
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
 
-    // Setting the velocity to a value more than 2 set as a flag for "force no motion". This is valid because, given that the velocities are in NDC,
+    // Setting the motionVector to a value more than 2 set as a flag for "force no motion". This is valid because, given that the velocities are in NDC,
     // a value of >1 can never happen naturally, unless explicitely set. 
     if (forceNoMotion)
-        outVelocity = float4(2.0, 0.0, 0.0, 0.0);
+        outMotionVector = float4(2.0, 0.0, 0.0, 0.0);
 
 // Normal Buffer Processing
 #ifdef WRITE_NORMAL_BUFFER
