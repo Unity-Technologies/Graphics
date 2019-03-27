@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Custom Function node. Use this node to define a custom HLSL function either via string directly in the graph, or via a path to an HLSL file.
 - You can now group nodes by pressing Ctrl + G.
 - Added "Delete Group and Contents" and removed "Ungroup All Nodes" from the context menu for groups.
+- You can now use Sub Graphs in other Sub Graphs.
+- Preview shaders now compile in the background, and only redraw when necessary.
 
 ### Changed
 - Removed Blackboard fields, which had no effect on Sub Graph input ports, from the Sub Graph Blackboard.
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added padding on input values for Blend node to prevent NaN outputs.
 - Fixed an issue where `IsFaceSign` would not compile within Sub Graph Nodes.
 - Null reference errors no longer occur when you remove ports with connected edges.
+- Default input fields now correctly hide and show when connections change.
 
 ## [6.5.0] - 2019-03-07
 

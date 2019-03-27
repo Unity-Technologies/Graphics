@@ -13,19 +13,6 @@ namespace UnityEditor.Rendering
 
     public static class CoreEditorUtils
     {
-        [Obsolete("Use EditorGUIUtility.TrTextContent(<title>, <tooltip>) instead.")]
-        public static GUIContent GetContent(string textAndTooltip)
-        {
-            if (textAndTooltip == null)
-                return GUIContent.none; //done in TrTextContent but here we need to split...
-
-            var s = textAndTooltip.Split('|');
-            if (s.Length > 1)
-                return EditorGUIUtility.TrTextContent(s[0], s[1]);
-            else
-                return EditorGUIUtility.TrTextContent(s[0]);
-        }
-
         // Serialization helpers
         /// <summary>
         /// To use with extreme caution. It not really get the property but try to find a field with similar name
@@ -86,9 +73,7 @@ namespace UnityEditor.Rendering
         }
 
         public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
-        {
-            DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, lbls);
-        }
+            => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, lbls);
 
         public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] lbls)
         {
@@ -134,9 +119,7 @@ namespace UnityEditor.Rendering
         }
 
         public static void DrawHeader(string title)
-        {
-            DrawHeader(EditorGUIUtility.TrTextContent(title));
-        }
+            => DrawHeader(EditorGUIUtility.TrTextContent(title));
 
         public static void DrawHeader(GUIContent title)
         {
@@ -170,9 +153,7 @@ namespace UnityEditor.Rendering
         /// <param name="isAdvanced"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="switchAdvanced"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         public static bool DrawHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> isAdvanced = null, Action switchAdvanced = null)
-        {
-            return DrawHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
-        }
+            => DrawHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
 
         /// <summary> Draw a foldout header </summary>
         /// <param name="title"> The title of the header </param>
@@ -261,9 +242,7 @@ namespace UnityEditor.Rendering
         /// <param name="isAdvanced"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="switchAdvanced"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         public static bool DrawSubHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> isAdvanced = null, Action switchAdvanced = null)
-        {
-            return DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
-        }
+            => DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
 
         /// <summary> Draw a foldout header </summary>
         /// <param name="title"> The title of the header </param>
@@ -343,9 +322,7 @@ namespace UnityEditor.Rendering
         }
 
         public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null)
-        {
-            return DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction);
-        }
+            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction);
 
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null)
         {
@@ -533,10 +510,28 @@ namespace UnityEditor.Rendering
                 property.intValue = mode;
         }
 
-        public static void RemoveMaterialKeywords(Material material)
+        /// <summary>
+        /// Draw an EnumPopup handling multiEdition
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="type"></param>
+        /// <param name="label"></param>
+        public static void DrawEnumPopup(SerializedProperty property, System.Type type, GUIContent label = null)
         {
-            material.shaderKeywords = null;
+            EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
+            EditorGUI.BeginChangeCheck();
+            var name = System.Enum.GetName(type, property.intValue);
+            var index = System.Array.FindIndex(System.Enum.GetNames(type), n => n == name);
+            var input = (System.Enum)System.Enum.GetValues(type).GetValue(index);
+            var rawResult = EditorGUILayout.EnumPopup(label ?? EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(property.name)), input);
+            var result = ((System.IConvertible)rawResult).ToInt32(System.Globalization.CultureInfo.CurrentCulture);
+            if (EditorGUI.EndChangeCheck())
+                property.intValue = result;
+            EditorGUI.showMixedValue = false;
         }
+
+        public static void RemoveMaterialKeywords(Material material)
+            => material.shaderKeywords = null;
 
         public static T[] GetAdditionalData<T>(UnityEngine.Object[] targets, Action<T> initDefault = null)
             where T : Component
@@ -562,9 +557,7 @@ namespace UnityEditor.Rendering
         }
 
         static public GameObject CreateGameObject(GameObject parent, string name, params Type[] types)
-        {
-            return ObjectFactory.CreateGameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, name), types);
-        }
+            => ObjectFactory.CreateGameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, name), types);
 
         static public string GetCurrentProjectVersion()
         {

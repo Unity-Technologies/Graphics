@@ -283,10 +283,10 @@ namespace UnityEditor.VFX.Test
                 editor.serializedObject.ApplyModifiedPropertiesWithoutUndo();
                 GameObject.DestroyImmediate(editor);
                 EditorUtility.SetDirty(prefabInstanceObject);
-                PrefabUtility.SavePrefabAsset(prefabInstanceObject);
             }
             //AssetDatabase.SaveAssets(); //Helps debug but not necessary
 
+            PrefabUtility.SavePrefabAsset(prefabInstanceObject);
             yield return null;
 
             var currentVFXInstanciedFromPrefab = currentPrefabInstanceObject.GetComponent<VisualEffect>();
