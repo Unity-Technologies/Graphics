@@ -19,18 +19,18 @@
 #define TILE_SIZE                   32u
 #endif
 
-uint PackVel(float2 packedVel)
+uint PackMotionVec(float2 packedMotionVec)
 {
-    // Most relevant bits contain the length of the velocity, so that we can sort directly on uint value.
-    return f32tof16(packedVel.y) | f32tof16(packedVel.x) << 16;
+    // Most relevant bits contain the length of the motion vector, so that we can sort directly on uint value.
+    return f32tof16(packedMotionVec.y) | f32tof16(packedMotionVec.x) << 16;
 }
 
-float2 UnpackVel(uint packedVel)
+float2 UnpackMotionVec(uint packedMotionVec)
 {
-    float2 outVel;
-    outVel.x = f16tof32(packedVel >> 16);
-    outVel.y = f16tof32(packedVel);
-    return outVel;
+    float2 outMotionVec;
+    outMotionVec.x = f16tof32(packedMotionVec >> 16);
+    outMotionVec.y = f16tof32(packedMotionVec);
+    return outMotionVec;
 }
 
 #if USE_WAVE_INTRINSICS
@@ -43,30 +43,30 @@ float2 UnpackVel(uint packedVel)
 
 #endif
 
-groupshared float gs_minVel[LDS_SIZE];
-groupshared uint gs_maxVel[LDS_SIZE];
+groupshared float gs_minMotionVec[LDS_SIZE];
+groupshared uint gs_maxMotionVec[LDS_SIZE];
 
-// Returns min vel length in x, max vel in zw
-float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
+// Returns min motionVec length in x, max motionVec in zw
+float3 ParallelReduction(uint gid, uint threadIdx, float2 motionVec)
 {
-    uint packedVel = PackVel(velocity);
-    float velLength = VelocityLengthFromEncoded(velocity);
-    float minVelLen = 0.0f;
-    uint  maxVelPacked = 0.0f;
+    uint packedMotionVec = PackMotionVec(motionVec);
+    float motionVecLength = MotionVecLengthFromEncoded(motionVec);
+    float minMotionVecLen = 0.0f;
+    uint  maxMotionVecPacked = 0.0f;
 
 #if USE_WAVE_INTRINSICS // This works only with multiple of 8 for TILE_SIZE.
 
     uint waveCount = ((TILE_SIZE * TILE_SIZE) / WAVE_SIZE);
 
     // Find min/max for this wave and store it in LDS. 
-    float waveMin = WaveActiveMin(velLength);
-    uint waveMax = WaveActiveMax(packedVel);
+    float waveMin = WaveActiveMin(motionVecLength);
+    uint waveMax = WaveActiveMax(packedMotionVec);
 
     uint waveIDInGroup = gid / WAVE_SIZE;
     if (WaveIsFirstLane())
     {
-        gs_minVel[waveIDInGroup] = waveMin;
-        gs_maxVel[waveIDInGroup] = waveMax;
+        gs_minMotionVec[waveIDInGroup] = waveMin;
+        gs_maxMotionVec[waveIDInGroup] = waveMax;
     }
 
     // We have values for all the waves, let's sync. 
@@ -75,17 +75,17 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
     if (threadIdx == 0)
     {
         // Find min and max across waves.
-        minVelLen = gs_minVel[0];
-        maxVelPacked = gs_maxVel[0];
+        minMotionVecLen = gs_minMotionVec[0];
+        maxMotionVecPacked = gs_maxMotionVec[0];
         for (uint i = 1u; i < waveCount; ++i)
         {
-            minVelLen = min(minVelLen, gs_minVel[i]);
-            maxVelPacked = max(maxVelPacked, gs_maxVel[i]);
+            minMotionVecLen = min(minMotionVecLen, gs_minMotionVec[i]);
+            maxMotionVecPacked = max(maxMotionVecPacked, gs_maxMotionVec[i]);
         }
     }
 #else
-    gs_minVel[threadIdx] = velLength;
-    gs_maxVel[threadIdx] = packedVel;
+    gs_minMotionVec[threadIdx] = motionVecLength;
+    gs_maxMotionVec[threadIdx] = packedMotionVec;
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -95,19 +95,19 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 velocity)
     {
         if (threadIdx < s)
         {
-            gs_minVel[threadIdx] = min(gs_minVel[threadIdx], gs_minVel[threadIdx + s]);
-            gs_maxVel[threadIdx] = max(gs_maxVel[threadIdx], gs_maxVel[threadIdx + s]);
+            gs_minMotionVec[threadIdx] = min(gs_minMotionVec[threadIdx], gs_minMotionVec[threadIdx + s]);
+            gs_maxMotionVec[threadIdx] = max(gs_maxMotionVec[threadIdx], gs_maxMotionVec[threadIdx + s]);
         }
 
         GroupMemoryBarrierWithGroupSync();
     }
 
-    maxVelPacked = gs_maxVel[0];
-    minVelLen = gs_minVel[0];
+    maxMotionVecPacked = gs_maxMotionVec[0];
+    minMotionVecLen = gs_minMotionVec[0];
 
 #endif
-    float2 unpackedMaxVel = UnpackVel(maxVelPacked);
-    return float3(minVelLen, unpackedMaxVel);
+    float2 unpackedMaxMotionVec = UnpackMotionVec(maxMotionVecPacked);
+    return float3(minMotionVecLen, unpackedMaxMotionVec);
 }
 
 
@@ -119,19 +119,19 @@ void TILE_GEN_KERNEL_NAME(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupInd
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(id.z);
     uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
 
-    float2 velocity = LOAD_TEXTURE2D_X(_VelocityAndDepth, id.xy).xy;
+    float2 motionVec = LOAD_TEXTURE2D_X(_MotionVecAndDepth, id.xy).xy;
 
-    float3 minMaxVel = ParallelReduction(gid, threadIdx, velocity);
-    float minVelLength = minMaxVel.x;
-    float2 maxVel = minMaxVel.yz;
+    float3 minMaxMotionVec = ParallelReduction(gid, threadIdx, motionVec);
+    float minMotionVecLength = minMaxMotionVec.x;
+    float2 maxMotionVec = minMaxMotionVec.yz;
 
     if (threadIdx == 0)
     {
 #ifdef SCATTERING
-        _TileToScatterMax[COORD_TEXTURE2D_X(groupID.xy)] = PackVel(maxVel);
-        _TileToScatterMin[COORD_TEXTURE2D_X(groupID.xy)] = f32tof16(minVelLength);
+        _TileToScatterMax[COORD_TEXTURE2D_X(groupID.xy)] = PackMotionVec(maxMotionVec);
+        _TileToScatterMin[COORD_TEXTURE2D_X(groupID.xy)] = f32tof16(minMotionVecLength);
 #else
-        _TileMinMaxVel[COORD_TEXTURE2D_X(groupID.xy)] = float3(maxVel.x, maxVel.y, minVelLength);
+        _TileMinMaxMotionVec[COORD_TEXTURE2D_X(groupID.xy)] = float3(maxMotionVec.x, maxMotionVec.y, minMotionVecLength);
 #endif
     }
 
@@ -227,25 +227,25 @@ void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint
 
     if (any(id > maxCoords)) return;
 
-    // Sample the velocity at this tile.
+    // Sample the motionVec at this tile.
     uint packedTileInfo = _TileToScatterMax[COORD_TEXTURE2D_X(id)];
-    uint minVel = _TileToScatterMin[COORD_TEXTURE2D_X(id)];
+    uint minMotionVec = _TileToScatterMin[COORD_TEXTURE2D_X(id)];
 
-    float2 VelData = UnpackVel(packedTileInfo);
+    float2 MotionVecData = UnpackMotionVec(packedTileInfo);
 
-    // Covert to a per pixel velocity.
-    float2 maxVelVectorInTiles = DecodeVelocityFromPacked(VelData.xy) *  _TileTargetSize.xy * 0.5f;
+    // Covert to a per pixel motionVec.
+    float2 maxMotionVectorInTiles = DecodeMotionVectorFromPacked(MotionVecData.xy) *  _TileTargetSize.xy * 0.5f;
 
-    // If the central velocity is small, no need to spread it.
-    if (VelocityLengthInPixelsFromEncoded(VelData) > 0.5f)
+    // If the central motionVec is small, no need to spread it.
+    if (MotionVecLengthInPixelsFromEncoded(MotionVecData) > 0.5f)
     {
         // Spread Forward
-        DDA(id, maxVelVectorInTiles, packedTileInfo);
+        DDA(id, maxMotionVectorInTiles, packedTileInfo);
         // Spread Backward
-        DDA(id, -maxVelVectorInTiles, packedTileInfo);
+        DDA(id, -maxMotionVectorInTiles, packedTileInfo);
     }
 
-    // TODO: We need to find a better min velocity determination.
+    // TODO: We need to find a better min motionVec determination.
     #if USE_NEIGHBOURHOOD_MIN
     // Find min of the tile in the 1-ring neighbourhood? This is incorrect, but might be worth perf wise. 
     uint v0 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 1), int2(0, 0), maxCoords))];
@@ -253,19 +253,19 @@ void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint
     uint v2 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 1), int2(0, 0), maxCoords))];
 
     uint v3 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, 0), int2(0, 0), maxCoords))];
-    uint v4 = minVel;
+    uint v4 = minMotionVec;
     uint v5 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, 0), int2(0, 0), maxCoords))];
 
     uint v6 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1, -1), int2(0, 0), maxCoords))];
     uint v7 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(0, -1), int2(0, 0), maxCoords))];
     uint v8 = _TileToScatterMin[COORD_TEXTURE2D_X(clamp(id.xy + int2(1, -1), int2(0, 0), maxCoords))];
 
-    uint minVel0 = Min3(v0, v1, v2);
-    uint minVel1 = Min3(v3, v4, v5);
-    uint minVel2 = Min3(v6, v7, v8);
-    minVel = Min3(minVel0, minVel1, minVel2);
+    uint minMotionVec0 = Min3(v0, v1, v2);
+    uint minMotionVec1 = Min3(v3, v4, v5);
+    uint minMotionVec2 = Min3(v6, v7, v8);
+    minMotionVec = Min3(minMotionVec0, minMotionVec1, minMotionVec2);
     #endif
-    _TileToScatterMin[COORD_TEXTURE2D_X(id)] = minVel;
+    _TileToScatterMin[COORD_TEXTURE2D_X(id)] = minMotionVec;
 #endif
 }
 
@@ -280,31 +280,31 @@ void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint
     int2 id = dispatchID.xy;
     int2 maxCoords = int2(_TileTargetSize.xy - 1);
 
-    float3 centralSample = _TileMinMaxVel[COORD_TEXTURE2D_X(id.xy + uint2(0, 0))].xyz;
+    float3 centralSample = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(id.xy + uint2(0, 0))].xyz;
     
-    float3 v0 = _TileMinMaxVel[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1,  1), int2(0, 0), maxCoords))].xyz;
-    float3 v1 = _TileMinMaxVel[COORD_TEXTURE2D_X(clamp(id.xy + int2( 0,  1), int2(0, 0), maxCoords))].xyz;
-    float3 v2 = _TileMinMaxVel[COORD_TEXTURE2D_X(clamp(id.xy + int2( 1,  1), int2(0, 0), maxCoords))].xyz;
+    float3 v0 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1,  1), int2(0, 0), maxCoords))].xyz;
+    float3 v1 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2( 0,  1), int2(0, 0), maxCoords))].xyz;
+    float3 v2 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2( 1,  1), int2(0, 0), maxCoords))].xyz;
 
-    float3 v3 = _TileMinMaxVel[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1,  0), int2(0, 0), maxCoords))].xyz;
+    float3 v3 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1,  0), int2(0, 0), maxCoords))].xyz;
     float3 v4 = centralSample.xyz;
-    float3 v5 = _TileMinMaxVel[COORD_TEXTURE2D_X(clamp(id.xy + int2( 1,  0), int2(0, 0), maxCoords))].xyz;
+    float3 v5 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2( 1,  0), int2(0, 0), maxCoords))].xyz;
 
-    float3 v6 = _TileMinMaxVel[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1,  -1), int2(0, 0), maxCoords))].xyz;
-    float3 v7 = _TileMinMaxVel[COORD_TEXTURE2D_X(clamp(id.xy + int2( 0,  -1), int2(0, 0), maxCoords))].xyz;
-    float3 v8 = _TileMinMaxVel[COORD_TEXTURE2D_X(clamp(id.xy + int2( 1,  -1), int2(0, 0), maxCoords))].xyz;
-
-
-    float2 maxVel0 = MaxVel(v0.xy, MaxVel(v1.xy, v2.xy));
-    float2 maxVel1 = MaxVel(v3.xy, MaxVel(v4.xy, v5.xy));
-    float2 maxVel2 = MaxVel(v6.xy, MaxVel(v7.xy, v8.xy));
-
-    float minVel0 = Min3(v0.z, v1.z, v2.z);
-    float minVel1 = Min3(v3.z, v4.z, v5.z);
-    float minVel2 = Min3(v6.z, v7.z, v8.z);
+    float3 v6 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2(-1,  -1), int2(0, 0), maxCoords))].xyz;
+    float3 v7 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2( 0,  -1), int2(0, 0), maxCoords))].xyz;
+    float3 v8 = _TileMinMaxMotionVec[COORD_TEXTURE2D_X(clamp(id.xy + int2( 1,  -1), int2(0, 0), maxCoords))].xyz;
 
 
-    _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id.xy)] = float3(MaxVel(maxVel0, MaxVel(maxVel1, maxVel2)), Min3(minVel0, minVel1, minVel2)) ;
+    float2 maxMotionVec0 = MaxMotionVec(v0.xy, MaxMotionVec(v1.xy, v2.xy));
+    float2 maxMotionVec1 = MaxMotionVec(v3.xy, MaxMotionVec(v4.xy, v5.xy));
+    float2 maxMotionVec2 = MaxMotionVec(v6.xy, MaxMotionVec(v7.xy, v8.xy));
+
+    float minMotionVec0 = Min3(v0.z, v1.z, v2.z);
+    float minMotionVec1 = Min3(v3.z, v4.z, v5.z);
+    float minMotionVec2 = Min3(v6.z, v7.z, v8.z);
+
+
+    _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id.xy)] = float3(MaxMotionVec(maxMotionVec0, MaxMotionVec(maxMotionVec1, maxMotionVec2)), Min3(minMotionVec1, minMotionVec1, minMotionVec2)) ;
 }
 
 #endif
@@ -323,7 +323,7 @@ void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
 
 #ifdef SCATTERING
     int2 id = dispatchID.xy;
-    _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id)] = float3(UnpackVel(_TileToScatterMax[COORD_TEXTURE2D_X(id)]), f16tof32(_TileToScatterMin[COORD_TEXTURE2D_X(id)]));
+    _TileMaxNeighbourhood[COORD_TEXTURE2D_X(id)] = float3(UnpackMotionVec(_TileToScatterMax[COORD_TEXTURE2D_X(id)]), f16tof32(_TileToScatterMin[COORD_TEXTURE2D_X(id)]));
 #endif
 }
 #endif
