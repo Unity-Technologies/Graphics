@@ -219,6 +219,7 @@ void DDA(int2 center, float2 lineToDraw, uint centerInfo)
 [numthreads(8, 8, 1)]
 void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
+#ifndef SHADER_API_METAL
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchID.z);
     int2 id = dispatchID.xy;
     int2 maxCoords = int2(_TileTargetSize.xy - 1);
@@ -264,6 +265,7 @@ void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint
     minVel = Min3(minVel0, minVel1, minVel2);
     #endif
     _TileToScatterMin[COORD_TEXTURE2D_X(id)] = minVel;
+#endif
 }
 
 #else

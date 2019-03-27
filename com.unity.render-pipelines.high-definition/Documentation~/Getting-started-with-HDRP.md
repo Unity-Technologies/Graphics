@@ -43,7 +43,7 @@ The HDRP Visual Environment component enables you to change the type of sky and 
 
 ![](Images/GettingStarted3.png)
 
-For more information, see [Visual Environment](Visual-Environment.html), [Sky overview](Sky-Overview.html) and [Fog overview](Fog-Overview.html).
+For more information, see [Visual Environment](Override-Visual-Environment.html), [Sky overview](Sky-Overview.html) and [Fog overview](Fog-Overview.html).
 
 ## Materials and Shaders
 
@@ -67,7 +67,7 @@ The HD shadow settings allow you to determine the overall quality of the Shadows
 
 ![](Images/GettingStarted5.gif)
 
-For more information, see [HD Shadow Settings](HD-Shadow-Settings.html).
+For more information, see [HD Shadow Settings](Override-Shadows.html).
 
 ## Related information
 

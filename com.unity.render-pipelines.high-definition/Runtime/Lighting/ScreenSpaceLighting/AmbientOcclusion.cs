@@ -8,13 +8,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
     public sealed class AmbientOcclusion : VolumeComponent
     {
-        [Tooltip("Degree of darkness added by ambient occlusion.")]
+        [Tooltip("Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);
 
-        [Tooltip("Modifies thickness of occluders. This increases dark areas but also introduces dark halo around objects.")]
+        [Tooltip("Controls the thickness of occluders. Increase this value to increase the size of dark areas.")]
         public ClampedFloatParameter thicknessModifier = new ClampedFloatParameter(1f, 1f, 10f);
 
-        [Tooltip("Defines how much of the occlusion should be affected by ambient lighting.")]
+        [Tooltip("Controls how much the ambient light affects occlusion.")]
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
 
         // Hidden parameters
