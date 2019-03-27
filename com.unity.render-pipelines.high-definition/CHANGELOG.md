@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed emission node breaking the main shader graph preview in certain conditions
 - Fixed checkout of baked probe asset when baking probes
 - Fixed invalid gizmo position for rotated ReflectionProbe
+- Fixed multi-edition of material's SurfaceType and RenderingPath
 
 ## [5.10.0-preview] - 2019-03-19
 
