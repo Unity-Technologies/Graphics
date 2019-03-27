@@ -30,11 +30,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static class StylesBaseUnlit
         {
-            public static string TransparencyInputsText = "Transparency Inputs";
-            public static string optionText = "Surface Options";
-            public static string surfaceTypeText = "Surface Type";
-            public static string renderingPassText = "Rendering Pass";
-            public static string blendModeText = "Blending Mode";
+            public const string TransparencyInputsText = "Transparency Inputs";
+            public const string optionText = "Surface Options";
+            public const string surfaceTypeText = "Surface Type";
+            public const string renderingPassText = "Rendering Pass";
+            public const string blendModeText = "Blending Mode";
+            public const string notSupportedInMultiEdition = "Multiple Different Values";
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
@@ -184,6 +185,37 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // This function will say if emissive is used or not regarding enlighten/PVR
         protected virtual bool ShouldEmissionBeEnabled(Material material) { return false; }
 
+        // start faking MaterialProperty for renderQueue
+        protected bool renderQueueHasMultipleDifferentValue
+        {
+            get
+            {
+                if (m_MaterialEditor.targets.Length < 2)
+                    return false;
+
+                int firstRenderQueue = renderQueue;
+                for (int index = 1; index < m_MaterialEditor.targets.Length; ++index)
+                {
+                    if ((m_MaterialEditor.targets[index] as Material).renderQueue != firstRenderQueue)
+                        return true;
+                }
+                return false;
+            }
+        }
+
+        protected int renderQueue
+        {
+            get => (m_MaterialEditor.targets[0] as Material).renderQueue;
+            set
+            {
+                foreach (var target in m_MaterialEditor.targets)
+                {
+                    (target as Material).renderQueue = value;
+                }
+            }
+        }
+        // end faking MaterialProperty for renderQueue
+
         protected virtual void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             // Everything is optional (except surface type) so users that derive from this class can decide what they expose or not
@@ -316,11 +348,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     default:
                         throw new ArgumentException("Unknown SurfaceType");
                 }
-                material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest);
+                renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)transparentSortPriority.floatValue, alphaTest);
             }
             EditorGUI.showMixedValue = false;
 
-            bool isMixedRenderQueue = surfaceType.hasMixedValue || m_MaterialEditor.targets.Select(m => HDRenderQueue.GetTypeByRenderQueueValue(((Material)m).renderQueue)).Distinct().Count() > 1;
+            bool isMixedRenderQueue = surfaceType.hasMixedValue || renderQueueHasMultipleDifferentValue;
             EditorGUI.showMixedValue = isMixedRenderQueue;
             ++EditorGUI.indentLevel;
             switch (mode)
@@ -333,7 +365,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         m_MaterialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(newRenderQueueOpaqueType);
-                        material.renderQueue = HDRenderQueue.ChangeType(renderQueueType, alphaTest: alphaTest);
+                        renderQueue = HDRenderQueue.ChangeType(renderQueueType, alphaTest: alphaTest);
                     }
                     break;
                 case SurfaceType.Transparent:
@@ -344,7 +376,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         m_MaterialEditor.RegisterPropertyChangeUndo("Rendering Pass");
                         renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(newRenderQueueTransparentType);
-                        material.renderQueue = HDRenderQueue.ChangeType(renderQueueType, offset: (int)transparentSortPriority.floatValue);
+                        renderQueue = HDRenderQueue.ChangeType(renderQueueType, offset: (int)transparentSortPriority.floatValue);
                     }
                     break;
                 default:
@@ -377,11 +409,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 EditorGUI.indentLevel++;
 
-                if (blendMode != null && showBlendModePopup)
+                if (renderQueueHasMultipleDifferentValue)
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.LabelField(StylesBaseUnlit.blendModeText, StylesBaseUnlit.notSupportedInMultiEdition);
+                }
+                else if (blendMode != null && showBlendModePopup)
                     BlendModePopup();
 
-                EditorGUI.indentLevel++;
-                if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
+                EditorGUI.indentLevel++; if (renderQueueHasMultipleDifferentValue)
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.LabelField(StylesBaseUnlit.enableBlendModePreserveSpecularLightingText, StylesBaseUnlit.notSupportedInMultiEdition);
+                }
+                else if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
                     m_MaterialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, StylesBaseUnlit.enableBlendModePreserveSpecularLightingText);
                 EditorGUI.indentLevel--;
 
