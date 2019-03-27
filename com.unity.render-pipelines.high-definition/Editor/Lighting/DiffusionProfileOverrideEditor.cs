@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // So we can't access the bounds of the volume to fill diffusion profiles used in the volume
             if (m_Volume != null && !m_Volume.isGlobal)
             {
-                if (GUILayout.Button("Fill profiles with scene materials"))
+                if (GUILayout.Button("Fill Profile List With Scene Materials"))
                     FillProfileListWithScene();
             }
         }

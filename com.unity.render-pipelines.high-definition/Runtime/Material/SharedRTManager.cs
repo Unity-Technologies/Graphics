@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // The render target used when we do not support MSAA
         RTHandleSystem.RTHandle m_NormalRT = null;
-        RTHandleSystem.RTHandle m_VelocityRT = null;
+        RTHandleSystem.RTHandle m_MotionVectorsRT = null;
         RTHandleSystem.RTHandle m_CameraDepthStencilBuffer = null;
         RTHandleSystem.RTHandle m_CameraDepthBufferMipChain;
         RTHandleSystem.RTHandle m_CameraStencilBufferCopy;
@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The two render targets that should be used when we render in MSAA
         RTHandleSystem.RTHandle m_NormalMSAART = null;
-        RTHandleSystem.RTHandle m_VelocityMSAART = null;
+        RTHandleSystem.RTHandle m_MotionVectorsMSAART = null;
         // This texture must be used because reading directly from an MSAA Depth buffer is way to expensive. The solution that we went for is writing the depth in an additional color buffer (10x cheaper to solve on ps4)
         RTHandleSystem.RTHandle m_DepthAsColorMSAART = null;
         RTHandleSystem.RTHandle m_CameraDepthStencilMSAABuffer;
@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Flags that defines if we are using a local texture or external
         bool m_ReuseGBufferMemory = false;
-        bool m_VelocitySupport = false;
+        bool m_MotionVectorsSupport = false;
         bool m_MSAASupported = false;
         MSAASamples m_MSAASamples = MSAASamples.None;
 
@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Set the flags
             m_MSAASupported = settings.supportMSAA;
             m_MSAASamples = m_MSAASupported ? settings.msaaSampleCount : MSAASamples.None;
-            m_VelocitySupport = settings.supportMotionVectors;
+            m_MotionVectorsSupport = settings.supportMotionVectors;
             m_ReuseGBufferMemory = settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
 
             // Create the depth/stencil buffer
@@ -63,12 +63,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Technically we won't need this buffer in some cases, but nothing that we can determine at init time.
             m_CameraStencilBufferCopy = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.None, colorFormat: GraphicsFormat.R8_UNorm, filterMode: FilterMode.Point, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "CameraStencilCopy"); // DXGI_FORMAT_R8_UINT is not supported by Unity
 
-            if (m_VelocitySupport)
+            if (m_MotionVectorsSupport)
             {
-                m_VelocityRT = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), xrInstancing: true, useDynamicScale: true, name: "Velocity");
+                m_MotionVectorsRT = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetMotionVectorFormat(), xrInstancing: true, useDynamicScale: true, name: "MotionVectors");
                 if (m_MSAASupported)
                 {
-                    m_VelocityMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), enableMSAA: true, bindTextureMS: true, xrInstancing: true, useDynamicScale: true, name: "VelocityMSAA");
+                    m_MotionVectorsMSAART = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetMotionVectorFormat(), enableMSAA: true, bindTextureMS: true, xrInstancing: true, useDynamicScale: true, name: "MotionVectorsMSAA");
                 }
             }
 
@@ -128,21 +128,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Function that will return the set of buffers required for the motion vector pass
-        public RenderTargetIdentifier[] GetVelocityPassBuffersRTI(FrameSettings frameSettings)
+        public RenderTargetIdentifier[] GetMotionVectorsPassBuffersRTI(FrameSettings frameSettings)
         {
-            Debug.Assert(m_VelocitySupport);
+            Debug.Assert(m_MotionVectorsSupport);
             if (frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 Debug.Assert(m_MSAASupported);
-                m_RTIDs3[0] = m_VelocityMSAART.nameID;
+                m_RTIDs3[0] = m_MotionVectorsMSAART.nameID;
                 m_RTIDs3[1] = m_NormalMSAART.nameID;
                 m_RTIDs3[2] = m_DepthAsColorMSAART.nameID;
                 return m_RTIDs3;
             }
             else
             {
-                Debug.Assert(m_VelocitySupport);
-                m_RTIDs2[0] = m_VelocityRT.nameID;
+                Debug.Assert(m_MotionVectorsSupport);
+                m_RTIDs2[0] = m_MotionVectorsRT.nameID;
                 m_RTIDs2[1] = m_NormalRT.nameID;
                 return m_RTIDs2;
             }
@@ -162,18 +162,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // Request the velocity buffer (MSAA or not)
-        public RTHandleSystem.RTHandle GetVelocityBuffer(bool isMSAA = false)
+        // Request the motion vectors buffer (MSAA or not)
+        public RTHandleSystem.RTHandle GetMotionVectorsBuffer(bool isMSAA = false)
         {
-            Debug.Assert(m_VelocitySupport);
+            Debug.Assert(m_MotionVectorsSupport);
             if (isMSAA)
             {
                 Debug.Assert(m_MSAASupported);
-                return m_VelocityMSAART;
+                return m_MotionVectorsMSAART;
             }
             else
             {
-                return m_VelocityRT;
+                return m_MotionVectorsRT;
             }
         }
 
@@ -243,12 +243,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RTHandles.Release(m_NormalRT);
             }
 
-            if (m_VelocitySupport)
+            if (m_MotionVectorsSupport)
             {
-                RTHandles.Release(m_VelocityRT);
+                RTHandles.Release(m_MotionVectorsRT);
                 if (m_MSAASupported)
                 {
-                    RTHandles.Release(m_VelocityMSAART);
+                    RTHandles.Release(m_MotionVectorsMSAART);
                 }
             }
 

@@ -102,7 +102,7 @@ void AreaShadowEstimateNoise(uint2 groupThreadId : SV_GroupThreadID, uint2 group
     float maxNoise = 0.0;
     float2 axis;
 
-    static const int N = 4;
+    const int N = 4;
     for (float t = 0; t < N; ++t, angle += PI/N)
     {
         sincos(angle, axis.y, axis.x);
@@ -205,7 +205,7 @@ float FilterNoiseEstimate(uint2 coordSS)
 {
     float result = 0.0;
 
-    static const int R = 1; // Box radius (add 0.5 for center pixel)
+    const int R = 1; // Box radius (add 0.5 for center pixel)
     for (int j = -R; j <= R; ++j)
     {
         for (int i = -R; i <= R; ++i)

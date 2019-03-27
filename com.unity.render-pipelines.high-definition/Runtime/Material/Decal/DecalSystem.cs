@@ -862,14 +862,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void UpdateCachedData(Vector3 position, Quaternion rotation, Vector3 scale, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle, int layerMask, float fadeFactor)
+        public void UpdateCachedData(Vector3 position, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle, int layerMask, float fadeFactor)
         {
-             UpdateCachedData(Matrix4x4.TRS(position,  rotation, scale), rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle, layerMask, fadeFactor);
+             UpdateCachedData(Matrix4x4.TRS(position,  rotation, Vector3.one), rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle, layerMask, fadeFactor);
         }
 
         public void UpdateCachedData(Transform transform, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle, int layerMask, float fadeFactor)
         {
-            UpdateCachedData(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle, layerMask, fadeFactor);
+            UpdateCachedData(Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one)/*transform.localToWorldMatrix*/, transform.rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle, layerMask, fadeFactor);
         }
         public void BeginCull(CullRequest request)
         {

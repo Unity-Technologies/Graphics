@@ -28,7 +28,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class BuiltinSkyParameters
     {
         public Matrix4x4                pixelCoordToViewDirMatrix;
-        public Matrix4x4                invViewProjMatrix;
         public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
         public CommandBuffer            commandBuffer;
@@ -131,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_SkyTypesDict = new Dictionary<int, Type>();
 
-                var skyTypes = CoreUtils.GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(SkySettings)) && !t.IsAbstract);
+                var skyTypes = CoreUtils.GetAllTypesDerivedFrom<SkySettings>().Where(t => !t.IsAbstract);
                 foreach (Type skyType in skyTypes)
                 {
                     var uniqueIDs = skyType.GetCustomAttributes(typeof(SkyUniqueID), false);

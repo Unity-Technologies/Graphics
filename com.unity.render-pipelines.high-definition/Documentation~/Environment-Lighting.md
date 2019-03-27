@@ -8,12 +8,12 @@ With the [built-in render pipeline](https://docs.unity3d.com/Manual/SL-RenderPip
 
 The two key components for environment lighting are the:
 
-- Visual Environment, controlled by the [Visual Environment](Visual-Environment.html) Volume override.
+- Visual Environment, controlled by the [Visual Environment](Override-Visual-Environment.html) Volume override.
 - Baking environment, controlled by the [Static Lighting Sky](Static-Lighting-Sky.html) component.
 
 ## Visual Environment
 
-The Visual Environment is a Volume component that tells HDRP what type of [sky](Sky-Overview.html) and [fog](Fog-Overview.html) you want to render for Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Visual-Environment.html) documentation .
+The Visual Environment is a Volume component that tells HDRP what type of [sky](Sky-Overview.html) and [fog](Fog-Overview.html) you want to render for Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Override-Visual-Environment.html) documentation .
 
 Your Unity Project’s [HDRP Asset](HDRP-Asset.html#SkyLighting) has the following global sky properties that affect all Visual Environments:
 
@@ -37,15 +37,15 @@ You can assign the same Volume Profile to both a Static Lighting Sky and a Volum
 
 You can use the sky **Lighting Override Mask**, in your Unity Project’s HDRP Asset, to separate the Visual Environment from the environment lighting. If you set the **Lighting Override Mask** to **Nothing**, or to a group of Layers that have no Volumes on them, then no Layer acts as an override. This means that environment lighting comes from all Volumes that affect a Camera. If you set the **Lighting Override Mask** to include Layers that have Volumes on them, HDRP only uses Volumes on these Layers to calculate environment lighting.
 
-An example of where you would want to decouple the sky lighting from the visual sky, and use a different Volume Profile for each, is when you have an [HDRI Sky](HDRI-Sky.html) that includes sunlight.: To make the sun visible at run time in your application, your sky background must show an HDRI sky that features the sun. To achieve real-time lighting from the sun, you must use a Directional [Light](Light-Component.html) in your Scene and, for the baking process, use an HDRI sky that is identical to the first one but does not include the sun. If you were to use an HDRI sky that includes the sun to bake the lighting, the sun would contribute to the lighting twice, from the Directional Light and from the baking process, and make the lighting look unrealistic.
+An example of where you would want to decouple the sky lighting from the visual sky, and use a different Volume Profile for each, is when you have an [HDRI Sky](Override-HDRI-Sky.html) that includes sunlight.: To make the sun visible at run time in your application, your sky background must show an HDRI sky that features the sun. To achieve real-time lighting from the sun, you must use a Directional [Light](Light-Component.html) in your Scene and, for the baking process, use an HDRI sky that is identical to the first one but does not include the sun. If you were to use an HDRI sky that includes the sun to bake the lighting, the sun would contribute to the lighting twice, from the Directional Light and from the baking process, and make the lighting look unrealistic.
 
 ## HDRP built-in sky types
 
 HDRP comes with three built-in [sky types](Sky-Overview.html):
 
-- [HDRI Sky](HDRI-Sky.html)
-- [Gradient Sky](Gradient-Sky.html)
-- [Procedural Sky](Procedural-Sky.html)
+- [HDRI Sky](Override-HDRI-Sky.html)
+- [Gradient Sky](Override-Gradient-Sky.html)
+- [Procedural Sky](Override-Procedural-Sky.html)
 
 HDRP allows you to implement your own sky types that display a background and handle environment lighting. See the [Customizing HDRP](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki/Writing-A-Custom-Sky-Renderer) documentation for instructions on how to implement your own sky.
 

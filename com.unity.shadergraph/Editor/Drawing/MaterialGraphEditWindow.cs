@@ -133,15 +133,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (graphEditorView == null)
                 {
                     messageManager.ClearAll();
+                    materialGraph.messageManager = messageManager;
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
                     graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
                     {
                         viewDataKey = selectedGuid,
                         assetName = asset.name.Split('/').Last()
                     };
-                    materialGraph.messageManager = messageManager;
                     m_ColorSpace = PlayerSettings.colorSpace;
                     m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+                    graphObject.Validate();
                 }
 
                 if (updatePreviewShaders)
@@ -205,9 +206,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 bool VCSEnabled = (VersionControl.Provider.enabled && VersionControl.Provider.isActive);
                 CheckoutIfValid(path, VCSEnabled);
 
-                if (m_GraphObject.graph.isSubGraph)
-                    UpdateAbstractSubgraphOnDisk(path);
-                else
                     UpdateShaderGraphOnDisk(path);
 
                 graphObject.isDirty = false;
@@ -248,7 +246,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
             var copyPasteGraph = new CopyPasteGraph(
-                    graphView.graph.guid,
+                    graphView.graph.assetGuid,
                     graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                     graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as AbstractMaterialNode),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
@@ -402,7 +400,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             var uniqueOutgoingEdges = externalInputSlots.GroupBy(
-                    edge => edge.inputSlot,
+                    edge => edge.outputSlot,
                     edge => edge,
                     (key, edges) => new { slot = key, edges = edges.ToList() });
 
@@ -427,7 +425,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             File.WriteAllText(path, EditorJsonUtility.ToJson(subGraph));
             AssetDatabase.ImportAsset(path);
 
-            var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(MaterialSubGraphAsset)) as MaterialSubGraphAsset;
+            var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
             if (loadedSubGraph == null)
                 return;
 
@@ -455,20 +453,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphObject.graph.ValidateGraph();
         }
 
-        void UpdateAbstractSubgraphOnDisk(string path)
-        {
-            File.WriteAllText(path, EditorJsonUtility.ToJson(graphObject.graph, true));
-            AssetDatabase.ImportAsset(path);
-        }
-
         void UpdateShaderGraphOnDisk(string path)
         {
-            UpdateShaderGraphOnDisk(path, graphObject.graph);
-        }
-
-        static void UpdateShaderGraphOnDisk(string path, GraphData graph)
-        {
-            File.WriteAllText(path, EditorJsonUtility.ToJson(graph, true));
+            File.WriteAllText(path, EditorJsonUtility.ToJson(graphObject.graph, true));
             AssetDatabase.ImportAsset(path);
         }
 
@@ -525,6 +512,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject = CreateInstance<GraphObject>();
                 graphObject.hideFlags = HideFlags.HideAndDontSave;
                 graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
+                graphObject.graph.assetGuid = assetGuid;
                 graphObject.graph.isSubGraph = isSubGraph;
                 graphObject.graph.messageManager = messageManager;
                 graphObject.graph.OnEnable();

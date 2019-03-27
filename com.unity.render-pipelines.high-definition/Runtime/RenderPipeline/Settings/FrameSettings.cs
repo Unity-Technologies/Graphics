@@ -38,8 +38,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TransparentPrepass = 8,
         [FrameSettingsField(0, autoName: TransparentPostpass)]
         TransparentPostpass = 9,
-        [FrameSettingsField(0, autoName: TransparentsWriteVelocity, customOrderInGroup: 7)]
-        TransparentsWriteVelocity = 16,
+        [FrameSettingsField(0, autoName: TransparentsWriteMotionVector, customOrderInGroup: 7)]
+        TransparentsWriteMotionVector = 16,
         [FrameSettingsField(0, autoName: MotionVectors)]
         MotionVectors = 10,
         [FrameSettingsField(0, autoName: ObjectMotionVectors, positiveDependencies: new[] { MotionVectors })]
@@ -171,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.ComputeMaterialVariants,
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
-                (uint)FrameSettingsField.TransparentsWriteVelocity,
+                (uint)FrameSettingsField.TransparentsWriteMotionVector,
                 (uint)FrameSettingsField.SpecularLighting,
             })
         };
@@ -321,11 +321,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
-            if (GL.wireframe || stereo) //force forward mode for wireframe
+            if (GL.wireframe || stereoDoubleWide)
             {
-                // Stereo deferred rendering still has the following problems:
-                // XRTODO: Dispatch tile light-list compute per-eye
-                // XRTODO: Update compute lighting shaders for stereo
                 sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
             }
             else
@@ -361,8 +358,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool atmosphericScattering = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
 
             // Volumetric are disabled if there is no atmospheric scattering
-            // XRTODO: implement Volumetrics support
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering && !stereo; //&& !preview induced by atmospheric scattering
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering && !stereoDoubleWide; //&& !preview induced by atmospheric scattering
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview;
 
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
@@ -395,8 +391,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-            // XRTODO: fix FPTL for stereo (disabled for now)
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa && !stereo;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa && !stereoDoubleWide;
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset.</summary>

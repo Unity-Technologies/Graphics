@@ -57,9 +57,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     closest = coc4 < closest.z ? float3( 1.0,  0.0, coc4) : closest;
 
     // Sample the history buffer with the motion vector at the closest point
-    float2 velocity;
-    DecodeVelocity(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, max(int2(posInputs.positionSS) + int2(closest.xy), 0)), velocity);
-    float cocHis = SAMPLE_TEXTURE2D_X_LOD(_InputHistoryCoCTexture, sampler_LinearClamp, (uv - velocity) * ScreenToTargetScaleHistory.xy, 0.0).x;
+    float2 motionVector;
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, max(int2(posInputs.positionSS) + int2(closest.xy), 0)), motionVector);
+    float cocHis = SAMPLE_TEXTURE2D_X_LOD(_InputHistoryCoCTexture, sampler_LinearClamp, (uv - motionVector) * ScreenToTargetScaleHistory.xy, 0.0).x;
 
     // Neighborhood clamping
     float cocMin = closest.z;

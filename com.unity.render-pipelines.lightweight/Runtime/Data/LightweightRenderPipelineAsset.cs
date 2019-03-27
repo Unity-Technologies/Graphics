@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.LWRP
         Standard,
         Particle,
         Terrain,
+        Sprite,
         UnityBuiltinDefault
     }
 
@@ -234,6 +235,10 @@ namespace UnityEngine.Rendering.LWRP
         Material GetMaterial(DefaultMaterialType materialType)
         {
 #if UNITY_EDITOR
+            var material = scriptableRendererData.GetDefaultMaterial(materialType);
+            if (material != null)
+                return material;
+
             if (editorResources == null)
                 return null;
 
@@ -261,13 +266,21 @@ namespace UnityEngine.Rendering.LWRP
         {
             get
             {
+                if (scriptableRendererData.isInvalidated || m_Renderer == null)
+                    m_Renderer = scriptableRendererData.InternalCreateRenderer();
+
+                return m_Renderer;
+            }
+        }
+
+        internal ScriptableRendererData scriptableRendererData
+        {
+            get
+            {
                 if (m_RendererData == null)
                     CreatePipeline();
 
-                if (m_RendererData.isInvalidated || m_Renderer == null)
-                    m_Renderer = m_RendererData.InternalCreateRenderer();
-
-                return m_Renderer;
+                return m_RendererData;
             }
         }
 
@@ -441,7 +454,7 @@ namespace UnityEngine.Rendering.LWRP
 
         public override Material default2DMaterial
         {
-            get { return GetMaterial(DefaultMaterialType.UnityBuiltinDefault); }
+            get { return GetMaterial(DefaultMaterialType.Sprite); }
         }
 
         public override Shader defaultShader

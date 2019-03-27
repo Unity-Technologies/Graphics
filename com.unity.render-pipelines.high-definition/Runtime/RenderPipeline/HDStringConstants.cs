@@ -107,8 +107,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int g_isOrthographic = Shader.PropertyToID("g_isOrthographic");
         public static readonly int g_iNrVisibLights = Shader.PropertyToID("g_iNrVisibLights");
 
-        public static readonly int g_mScrProjection = Shader.PropertyToID("g_mScrProjection");
-        public static readonly int g_mInvScrProjection = Shader.PropertyToID("g_mInvScrProjection");
         public static readonly int g_mScrProjectionArr = Shader.PropertyToID("g_mScrProjectionArr");
         public static readonly int g_mInvScrProjectionArr = Shader.PropertyToID("g_mInvScrProjectionArr");
 
@@ -672,8 +670,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DitherParams                   = Shader.PropertyToID("_DitherParams");
         public static readonly int _UVTransform                    = Shader.PropertyToID("_UVTransform");
 
-        public static readonly int _VelocityAndDepth               = Shader.PropertyToID("_VelocityAndDepth");
-        public static readonly int _TileVelMinMax                  = Shader.PropertyToID("_TileMinMaxVel");
+        public static readonly int _MotionVecAndDepth              = Shader.PropertyToID("_MotionVecAndDepth");
+        public static readonly int _TileMinMaxMotionVec            = Shader.PropertyToID("_TileMinMaxMotionVec");
         public static readonly int _TileMaxNeighbourhood           = Shader.PropertyToID("_TileMaxNeighbourhood");
         public static readonly int _TileToScatterMax               = Shader.PropertyToID("_TileToScatterMax");
         public static readonly int _TileToScatterMin               = Shader.PropertyToID("_TileToScatterMin");

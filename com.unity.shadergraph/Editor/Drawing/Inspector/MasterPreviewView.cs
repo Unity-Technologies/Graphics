@@ -80,6 +80,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MasterPreviewView"));
 
             m_PreviewRenderHandle = previewManager.masterRenderData;
+            if (m_PreviewRenderHandle != null)
+            {
+                m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
+            }
 
             var topContainer = new VisualElement() { name = "top" };
             {
@@ -101,7 +105,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 preview.Add(m_PreviewTextureView);
                 preview.AddManipulator(new Scrollable(OnScroll));
             }
-            m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
             Add(preview);
 
             m_PreviewResizeBorderFrame = new ResizeBorderFrame(previewTextureView, this) { name = "resizeBorderFrame" };
@@ -115,7 +118,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         Image CreatePreview(Texture texture)
         {
-            var image = new Image { name = "preview", image = m_PreviewRenderHandle.texture ?? texture };
+            if (m_PreviewRenderHandle?.texture != null)
+            {
+                texture = m_PreviewRenderHandle.texture;
+            }
+
+            var image = new Image { name = "preview", image = texture };
             image.AddManipulator(new Draggable(OnMouseDragPreviewMesh, true));
             image.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
             return image;
@@ -140,7 +148,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnPreviewChanged()
         {
-            m_PreviewTextureView.image = m_PreviewRenderHandle.texture ?? Texture2D.blackTexture;
+            m_PreviewTextureView.image = m_PreviewRenderHandle?.texture ?? Texture2D.blackTexture;
+            if (m_PreviewRenderHandle != null && m_PreviewRenderHandle.shaderData.isCompiling)
+                m_PreviewTextureView.tintColor = new Color(1.0f, 1.0f, 1.0f, 0.3f);
+            else
+                m_PreviewTextureView.tintColor = Color.white;
             m_PreviewTextureView.MarkDirtyRepaint();
         }
 
@@ -200,8 +212,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (!expanded)
                 return;
 
-            var currentWidth = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.width : -1;
-            var currentHeight = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.height : -1;
+            var currentWidth = m_PreviewRenderHandle?.texture != null ? m_PreviewRenderHandle.texture.width : -1;
+            var currentHeight = m_PreviewRenderHandle?.texture != null ? m_PreviewRenderHandle.texture.height : -1;
 
             var targetWidth = Mathf.Max(1f, m_PreviewTextureView.contentRect.width);
             var targetHeight = Mathf.Max(1f, m_PreviewTextureView.contentRect.height);

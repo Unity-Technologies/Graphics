@@ -55,10 +55,9 @@ namespace UnityEditor.Rendering
             s_ParameterDrawers.Clear();
 
             // Look for all the valid parameter drawers
-            var types = CoreUtils.GetAllAssemblyTypes()
+            var types = CoreUtils.GetAllTypesDerivedFrom<VolumeParameterDrawer>()
                 .Where(
-                    t => t.IsSubclassOf(typeof(VolumeParameterDrawer))
-                    && t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
+                    t => t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
                     && !t.IsAbstract
                     );
 
