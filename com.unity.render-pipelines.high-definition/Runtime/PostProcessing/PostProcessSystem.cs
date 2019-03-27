@@ -2108,6 +2108,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
             }
 
+            // -----------------------------------------------------------------------------
+            // Clear
+            HDUtils.SetRenderTarget(cmd, camera, SMAAEdgeTex, ClearFlag.Color);
+            HDUtils.SetRenderTarget(cmd, camera, SMAABlendTex, ClearFlag.Color);
 
             // -----------------------------------------------------------------------------
             // EdgeDetection stage
