@@ -155,6 +155,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.y = surfaceDescription.MAOSOpacity;
 #endif
 
+#if (DECALS_HTILE_SUPPORT )
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
         if(surfaceData.baseColor.w > 0)
         {
@@ -170,6 +171,7 @@ $include("SharedCode.template.hlsl")
         {
             surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
         }
+#endif
 #endif
     }
 

@@ -2580,6 +2580,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     drawSettings.SetShaderPassName(1, HDShaderPassNames.s_ShaderGraphMeshDecalsName3RT);
                 }
 
+                CoreUtils.SetKeyword(cmd, "DECALS_HTILE_SUPPORT", SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore));
+                cmd.SetGlobalInt(HDShaderIDs._DecalsHtileSupport, SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) ? 1 : 0);
                 FilteringSettings filterRenderersSettings = new FilteringSettings(HDRenderQueue.k_RenderQueue_AllOpaque);
                 renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterRenderersSettings);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
