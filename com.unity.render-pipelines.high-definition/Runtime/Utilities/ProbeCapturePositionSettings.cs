@@ -81,12 +81,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var result = ComputeFrom(probe, referencePosition, referenceRotation);
 
-            // In case of probe baking, 99% of the time, orientation of the cubemap doesn't matters
-            //   so, we build one without any rotation, thus we don't have to change the basis
-            //   during sampling the cubemap.
-            if (probe.type == ProbeSettings.ProbeType.ReflectionProbe)
-                result.proxyRotation = Quaternion.identity;
-
             return result;
         }
 
