@@ -1,5 +1,5 @@
-﻿#ifndef VELOCITY_COMMON_INCLUDED
-#define VELOCITY_COMMON_INCLUDED
+#ifndef MOTION_VEC_VERTEX_COMMON_INCLUDED
+#define MOTION_VEC_VERTEX_COMMON_INCLUDED
 
 // Available semantic start from TEXCOORD4
 struct AttributesPass
@@ -91,7 +91,7 @@ float3 TransformPreviousObjectToWorld(float3 positionOS)
     return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
 }
 
-void VelocityPositionZBias(VaryingsToPS input)
+void MotionVectorPositionZBias(VaryingsToPS input)
 {
 #if defined(UNITY_REVERSED_Z)
     input.vmesh.positionCS.z -= unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
@@ -100,11 +100,11 @@ void VelocityPositionZBias(VaryingsToPS input)
 #endif
 }
 
-PackedVaryingsType VelocityVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass)
+PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass)
 {
 
 #if !defined(TESSELLATION_ON)
-    VelocityPositionZBias(varyingsType);
+    MotionVectorPositionZBias(varyingsType);
 #endif
 
     // It is not possible to correctly generate the motion vector for tesselated geometry as tessellation parameters can change
@@ -122,7 +122,7 @@ PackedVaryingsType VelocityVS(inout VaryingsType varyingsType, AttributesMesh in
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
-                                                                 // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the velocity buffer
+    // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
 #if defined(HAVE_MESH_MODIFICATION)
         AttributesMesh previousMesh = inputMesh;
         if (hasDeformation)

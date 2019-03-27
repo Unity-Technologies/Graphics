@@ -339,10 +339,10 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 {
     NormalData normalData;
 
-    // Note: When we are in the prepass (depth only or velocity) and we need to export the normal/roughness - Mean we are lit forward. In deferred the normal buffer will not be exported
+    // Note: When we are in the prepass (depth only or motion vector) and we need to export the normal/roughness - Mean we are lit forward. In deferred the normal buffer will not be exported
     // If the fragment that we are processing has clear cloat, we want to export the clear coat's perceptual roughness and geometric normal
     // instead of the base layer's roughness and the shader normal to be use by SSR
-    #if SHADERPASS == SHADERPASS_DEPTH_ONLY || SHADERPASS == SHADERPASS_VELOCITY
+    #if SHADERPASS == SHADERPASS_DEPTH_ONLY || SHADERPASS == SHADERPASS_MOTION_VECTORS
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         normalData.normalWS = surfaceData.geomNormalWS;

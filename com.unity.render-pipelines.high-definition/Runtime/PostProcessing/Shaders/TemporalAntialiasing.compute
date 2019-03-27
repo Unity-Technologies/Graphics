@@ -113,14 +113,14 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     float2 closest = GetClosestFragment(posInputs);
     #endif
 
-    float2 velocity;
-    DecodeVelocity(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), velocity);
-    float velocityLength = length(velocity);
+    float2 motionVector;
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
+    float motionVecLength = length(motionVector);
 
     float2 uv = posInputs.positionNDC - jitter;
 
     float3 color = Fetch(_InputTexture, uv, 0.0, _ScreenToTargetScale.xy);
-    float3 history = Fetch(_InputHistoryTexture, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy);
+    float3 history = Fetch(_InputHistoryTexture, posInputs.positionNDC - motionVector, 0.0, _ScreenToTargetScaleHistory.xy);
 
     float3 topLeft = Fetch(_InputTexture, uv, -RADIUS, _ScreenToTargetScale.xy);
     float3 bottomRight = Fetch(_InputTexture, uv, RADIUS, _ScreenToTargetScale.xy);
@@ -145,7 +145,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float colorLuma = Luminance(color);
     float averageLuma = Luminance(average);
-    float nudge = lerp(4.0, 0.25, saturate(velocityLength * 100.0)) * abs(averageLuma - colorLuma);
+    float nudge = lerp(4.0, 0.25, saturate(motionVecLength * 100.0)) * abs(averageLuma - colorLuma);
 
     float3 minimum = min(bottomRight, topLeft) - nudge;
     float3 maximum = max(topLeft, bottomRight) + nudge;
