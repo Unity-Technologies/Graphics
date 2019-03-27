@@ -16,8 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option in preferences to toggle the light emission normalization
 - Added Homothety and Symetry quick edition modifier on volume used in ReflectionProbe, PlanarReflectionProbe and DensityVolume
 - Added multi-edition support for DecalProjectorComponent
-- Added an exposure node to retrieve the current, inverse and previous frame exposure value.
-- Added an HD scene color node which allow to sample the scene color with mips and a toggle to remove the exposure.
 
 ### Fixed
 - Fixed HDRI sky intensity lux mode
