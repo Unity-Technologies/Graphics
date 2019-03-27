@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] ScriptableRendererData m_RendererData = null;
         ScriptableRenderer m_Renderer = null;
 
-        [SerializeField] LayerMask m_VolumeLayerMask = -1;
+        [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
 
         [SerializeField] bool m_RenderPostProcessing = true;

@@ -321,7 +321,7 @@ namespace UnityEditor.Rendering.LWRP
                 selectedDepthOption = CameraOverrideOption.UsePipelineSettings;
                 selectedOpaqueOption = CameraOverrideOption.UsePipelineSettings;
                 selectedRendererOption = RendererOverrideOption.UsePipelineSettings;
-                selectedVolumeLayerMask = -1;
+                selectedVolumeLayerMask = 1; // "Default"
                 selectedVolumeTrigger = null;
                 selectedRenderPostProcessing = true;
                 selectedAntialiasing = AntialiasingMode.None;
@@ -341,7 +341,6 @@ namespace UnityEditor.Rendering.LWRP
                 selectedAntialiasing = (AntialiasingMode)m_AdditionalCameraDataAntialiasing.intValue;
                 selectedStopNaN = m_AdditionalCameraDataStopNaN.boolValue;
                 selectedDithering = m_AdditionalCameraDataDithering.boolValue;
-
             }
 
             hasChanged |= DrawLayerMask(m_AdditionalCameraDataVolumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
