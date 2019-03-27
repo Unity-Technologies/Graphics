@@ -1,41 +1,13 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.LWRP;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
     internal static class Light2DEditorUtility
     {
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
-        static Mesh s_TexCapMesh = CreateMesh();
-
-        static Mesh CreateMesh()
-        {
-            var mesh = new Mesh();
-            mesh.hideFlags = HideFlags.DontSave;
-
-            mesh.vertices = new Vector3[] {
-                new Vector2(-0.5f, -0.5f),
-                new Vector2(-0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f),
-                new Vector2(-0.5f, -0.5f),
-                new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, -0.5f)
-            };
-
-            mesh.uv = new Vector2[] {
-                Vector3.zero,
-                Vector3.up,
-                Vector3.up + Vector3.right,
-                Vector3.zero,
-                Vector3.up + Vector3.right,
-                Vector3.right
-            };
-
-            mesh.SetTriangles(new int[] { 0, 1, 2, 3, 4, 5 }, 0);
-
-            return mesh;
-        }
-
+        
         static internal void GUITextureCap(int controlID, Texture texture, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             switch (eventType)
@@ -52,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         float w = texture.width;
                         float h = texture.height;
                         float max = Mathf.Max(w, h);
-                        Vector3 scale = new Vector2(w / max, h / max) * size;
+                        Vector3 scale = new Vector2(w / max, h / max) * size * 0.5f;
 
                         if (Camera.current == null)
                             scale.y *= -1f;
@@ -60,7 +32,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         Matrix4x4 matrix = new Matrix4x4();
                         matrix.SetTRS(position, rotation, scale);
 
-                        Graphics.DrawMeshNow(s_TexCapMesh, matrix);
+                        Graphics.DrawMeshNow(RenderingUtils.fullscreenMesh, matrix);
                     }
                     break;
             }

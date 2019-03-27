@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return hdPipelineAsset.currentPlatformRenderPipelineSettings;
             }
         }
-        public static int debugStep { get { return MousePositionDebug.instance.debugStep; } }
+        public static int debugStep => MousePositionDebug.instance.debugStep;
 
         static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
 
@@ -92,11 +92,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Helper to help to display debug info on screen
         static float s_OverlayLineHeight = -1.0f;
-        public static void ResetOverlay()
-        {
-            s_OverlayLineHeight = -1.0f;
-        }
-
+        public static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
+        
         public static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
         {
             x += overlayWidth;
@@ -182,10 +179,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
-        {
-            SetRenderTarget(cmd, camera, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
-        }
-
+            => SetRenderTarget(cmd, camera, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
+        
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
             int cw = colorBuffer.rt.width;
@@ -369,15 +364,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // We need these at runtime for RenderPipelineResources upgrade
         public static string GetHDRenderPipelinePath()
-        {
-            return "Packages/com.unity.render-pipelines.high-definition/";
-        }
+            => "Packages/com.unity.render-pipelines.high-definition/";
 
         public static string GetCorePath()
-        {
-            return "Packages/com.unity.render-pipelines.core/";
-        }
-
+            => "Packages/com.unity.render-pipelines.core/";
+        
         public struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
@@ -456,10 +447,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static int DivRoundUp(int x, int y)
-        {
-            return (x + y - 1) / y;
-        }
+        public static int DivRoundUp(int x, int y) => (x + y - 1) / y;
 
         public static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;

@@ -19,8 +19,8 @@ namespace UnityEngine.Experimental.Rendering.UI
 
         static DebugUIHandlerCanvasEditor()
         {
-            s_Types = CoreUtils.GetAllAssemblyTypes()
-                .Where(t => t.IsSubclassOf(typeof(DebugUI.Widget)) && !t.IsAbstract)
+            s_Types = CoreUtils.GetAllTypesDerivedFrom<DebugUI.Widget>()
+                .Where(t => !t.IsAbstract)
                 .Select(t => t.AssemblyQualifiedName)
                 .ToArray();
 

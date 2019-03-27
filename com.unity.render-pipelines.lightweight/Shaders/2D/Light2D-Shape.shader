@@ -38,9 +38,9 @@ Shader "Hidden/Light2D-Shape"
 
             struct Varyings
             {
-                float4  positionCS	: SV_POSITION;
-                float4  color		: COLOR;
-                float2  uv			: TEXCOORD0;
+                float4  positionCS  : SV_POSITION;
+                float4  color       : COLOR;
+                float2  uv          : TEXCOORD0;
 				NORMALS_LIGHTING_COORDS(TEXCOORD1, TEXCOORD2)
             };
 

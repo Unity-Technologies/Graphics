@@ -12,7 +12,7 @@ The number of shadow maps HDRP renders per Light depends on the **Type** of the 
 
 - A Spot Light renders one shadow map.
 - A Point Light renders six shadow maps (the number of faces in a cubemap).
-- A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [HD Shadow Settings](HD-Shadow-Settings.html) of your Scene’s [Volumes](Volumes.html). The default value is four cascades.
+- A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [HD Shadow Settings](Override-Shadows.html) of your Scene’s [Volumes](Volumes.html). The default value is four cascades.
 
 ## Shadow atlases
 
@@ -96,7 +96,7 @@ For flexible lighting setups, HDRP allows you to choose how you want the shadowm
 
 <a name=”DirectionalLightEquivalentProperty”></a>
 
-Directional Lights do not use **Fade Distance**. Instead they use the **Max Distance** property located in the [HD Shadow Settings](HD-Shadow-Settings.html) of your Scene’s Volumes.
+Directional Lights do not use **Fade Distance**. Instead they use the **Max Distance** property located in the [HD Shadow Settings](Override-Shadows.html) of your Scene’s Volumes.
 
 **Distance Shadowmask** is more GPU intensive, but looks more realistic because real-time lighting that is closer to the Light is more accurate than shadowmask textures with a low resolution chosen to represent areas further away.
 
@@ -106,6 +106,6 @@ Directional Lights do not use **Fade Distance**. Instead they use the **Max Dist
 
 Contact Shadows are shadows that HDRP [ray marches](Glossary.html#RayMarching) in screen space, inside the depth buffer, at a close range. They provide small, detailed, shadows for details in geometry that shadow maps cannot usually capture.
 
-For details on how to enable and customize Contact Shadows, see the [Contact Shadows documentation](Contact-Shadows.html).
+For details on how to enable and customize Contact Shadows, see the [Contact Shadows documentation](Override-Contact-Shadows.html).
 
 Only one Light can cast Contact Shadows at a time. This means that, if you have more than one Light that casts Contact Shadows visible on the screen, only the dominant Light renders Contact Shadows. HDRP chooses the dominant Light using the screen space size of the Light’s bounding box. A Direction Light that casts Contact Shadows is always the dominant Light.

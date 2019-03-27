@@ -569,6 +569,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FixHdrpAssetUsed();
             (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources
                 = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
+            ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources);
         }
 
         bool IsHdrpAssetEditorResourcesCorrect() =>
@@ -580,11 +581,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FixHdrpAssetUsed();
             (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+            ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources);
         }
 
         bool IsHdrpAssetDiffusionProfileCorrect()
         {
-            var profileList = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).diffusionProfileSettingsList;
+            var profileList = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)?.diffusionProfileSettingsList;
             return IsHdrpAssetUsedCorrect() && profileList.Length != 0 && profileList.Any(p => p != null);
         }
 

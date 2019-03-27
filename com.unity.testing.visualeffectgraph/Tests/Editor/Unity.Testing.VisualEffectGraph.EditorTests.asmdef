@@ -1,0 +1,14 @@
+{
+    "name": "Unity.Testing.VisualEffectGraph.EditorTests",
+    "references": [
+        "Unity.Testing.VisualEffectGraph.Editor",
+        "Unity.Testing.VisualEffectGraph"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

@@ -138,7 +138,7 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
     ZERO_INITIALIZE_ARRAY(float, weights, _LAYER_COUNT);
 
     #ifdef _MASKMAP
-        #ifdef _TERRAIN_BLEND_HEIGHT
+        #if defined(_TERRAIN_BLEND_HEIGHT)
             // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
             float maxHeight = masks[0].z;
             maxHeight = max(maxHeight, masks[1].z);
@@ -176,7 +176,7 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
             #ifdef _TERRAIN_8_LAYERS
                 blendMasks1 = weightedHeights1 / sumHeight.xxxx;
             #endif
-        #else
+        #elif defined(_TERRAIN_BLEND_DENSITY)
             // Denser layers are more visible.
             float4 opacityAsDensity0 = saturate((float4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks0)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
             opacityAsDensity0 += 0.001f * blendMasks0;		// if all weights are zero, default to what the blend mask says

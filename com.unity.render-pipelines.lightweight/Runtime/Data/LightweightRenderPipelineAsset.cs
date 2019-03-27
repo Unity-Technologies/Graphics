@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.LWRP
         Material GetMaterial(DefaultMaterialType materialType)
         {
 #if UNITY_EDITOR
-            var material = m_RendererData.GetDefaultMaterial(materialType);
+            var material = scriptableRendererData.GetDefaultMaterial(materialType);
             if (material != null)
                 return material;
 
@@ -266,17 +266,23 @@ namespace UnityEngine.Rendering.LWRP
         {
             get
             {
-                if (m_RendererData == null)
-                    CreatePipeline();
-
-                if (m_RendererData.isInvalidated || m_Renderer == null)
-                    m_Renderer = m_RendererData.InternalCreateRenderer();
+                if (scriptableRendererData.isInvalidated || m_Renderer == null)
+                    m_Renderer = scriptableRendererData.InternalCreateRenderer();
 
                 return m_Renderer;
             }
         }
 
-        internal ScriptableRendererData scriptableRendererData => m_RendererData;
+        internal ScriptableRendererData scriptableRendererData
+        {
+            get
+            {
+                if (m_RendererData == null)
+                    CreatePipeline();
+
+                return m_RendererData;
+            }
+        }
 
         public bool supportsCameraDepthTexture
         {
