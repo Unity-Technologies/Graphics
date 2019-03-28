@@ -42,7 +42,8 @@ namespace UnityEngine.Experimental.Rendering
             m_DebugActionStates = new DebugActionState[(int)DebugAction.DebugActionCount];
 
             var enableDebugMenu = new DebugActionDesc();
-            enableDebugMenu.buttonTriggerList.Add(new[] { kEnableDebugBtn1, kEnableDebugBtn2 });
+            // Disabling HDRP Debug Menu Hotkey as it conflicts with game-specific control layout.
+            // enableDebugMenu.buttonTriggerList.Add(new[] { kEnableDebugBtn1, kEnableDebugBtn2 });
             enableDebugMenu.keyTriggerList.Add(new[] { KeyCode.LeftControl, KeyCode.Backspace });
             enableDebugMenu.repeatMode = DebugActionRepeatMode.Never;
             AddAction(DebugAction.EnableDebugMenu, enableDebugMenu);
