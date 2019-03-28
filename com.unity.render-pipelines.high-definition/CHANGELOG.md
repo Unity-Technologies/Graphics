@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed whole pipeline reconstruction on selecting for the first time or modifying other than the currently used HDRenderPipelineAsset
 - Fixed single shadow debug mode
 - Fixed global scale factor debug mode when scale > 1
+- Fixed debug menu material overrides not getting applied to the Terrain Lit shader
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
