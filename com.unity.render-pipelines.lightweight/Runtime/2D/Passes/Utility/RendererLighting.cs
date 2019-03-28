@@ -321,10 +321,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (!Light2D.globalClearColors[i].TryGetValue(layerToRender, out clearColor))
                     clearColor = s_LightOperations[i].globalColor;
 
-                //if (s_RenderTargetsDirty[i])
-                //    cmdBuffer.ClearRenderTarget(false, true, clearColor);
-                cmdBuffer.ClearRenderTarget(false, true, clearColor);
-
+                if (s_RenderTargetsDirty[i])
+                    cmdBuffer.ClearRenderTarget(false, true, clearColor);
 
                 bool rtDirty = RenderLightSet(
                     camera,

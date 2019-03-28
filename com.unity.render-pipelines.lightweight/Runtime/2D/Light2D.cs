@@ -76,6 +76,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
 
+        internal struct LightStats
+        {
+            public int totalLights;
+            public int totalNormalMapUsage;
+            public int totalVolumetricUsage;
+        }
+
+
         public LightType lightType
         {
             get => m_LightType;
@@ -362,6 +370,30 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             List<Vector2> shape = LightUtility.GetFeatheredShape(m_ShapePath, m_ShapeLightFalloffSize);
             return shape;
+        }
+
+        static internal LightStats GetLightStatsByLayer(int layer)
+        {
+            LightStats returnStats = new LightStats();
+            for(int lightOpIndex=0; lightOpIndex < s_Lights.Length; lightOpIndex++)
+            {
+                List<Light2D> lights = s_Lights[lightOpIndex];
+                for (int lightIndex = 0; lightIndex < lights.Count; lightIndex++)
+                {
+                    Light2D light = lights[lightIndex];
+
+                    if (light.IsLitLayer(layer))
+                    {
+                        returnStats.totalLights++;
+                        if (light.useNormalMap)
+                            returnStats.totalNormalMapUsage++;
+                        if (light.volumeOpacity > 0)
+                            returnStats.totalVolumetricUsage++;
+                    }
+                }
+
+            }
+            return returnStats;
         }
 
         private void LateUpdate()
