@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     {
         Render2DLightingPass m_Render2DLightingPass;
         FinalBlitPass m_FinalBlitPass;
+        RenderTargetHandle m_ColorTargetHandle;
 
         public _2DRenderer(_2DRendererData data) : base(data)
         {
@@ -17,27 +18,27 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTargetHandle colorTargetHandle = RenderTargetHandle.CameraTarget;
+            m_ColorTargetHandle = RenderTargetHandle.CameraTarget;
             PixelPerfectCamera ppc = cameraData.camera.GetComponent<PixelPerfectCamera>();
             bool useOffscreenColorTexture = ppc != null ? ppc.useOffscreenRT : false;
 
             if (useOffscreenColorTexture)
             {
                 var filterMode = ppc != null ? ppc.finalBlitFilterMode : FilterMode.Bilinear;
-                colorTargetHandle = CreateOffscreenColorTexture(context, ref cameraData.cameraTargetDescriptor, filterMode);
+                m_ColorTargetHandle = CreateOffscreenColorTexture(context, ref cameraData.cameraTargetDescriptor, filterMode);
             }
 
-            ConfigureCameraTarget(colorTargetHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
+            ConfigureCameraTarget(m_ColorTargetHandle.Identifier(), BuiltinRenderTextureType.CameraTarget);
 
-            m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier());
+            m_Render2DLightingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 
             if (useOffscreenColorTexture)
             {
                 if (ppc != null)
-                    m_FinalBlitPass.Setup(cameraData.cameraTargetDescriptor, colorTargetHandle, ppc.useOffscreenRT, ppc.finalBlitPixelRect);
+                    m_FinalBlitPass.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, ppc.useOffscreenRT, ppc.finalBlitPixelRect);
                 else
-                    m_FinalBlitPass.Setup(cameraData.cameraTargetDescriptor, colorTargetHandle);
+                    m_FinalBlitPass.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle);
 
                 EnqueuePass(m_FinalBlitPass);
             }
@@ -65,6 +66,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             CommandBufferPool.Release(cmd);
 
             return colorTextureHandle;
+        }
+
+        public override void FinishRendering(CommandBuffer cmd)
+        {
+            if (m_ColorTargetHandle != RenderTargetHandle.CameraTarget)
+                cmd.ReleaseTemporaryRT(m_ColorTargetHandle.id);
         }
     }
 }
