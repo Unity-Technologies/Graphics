@@ -36,9 +36,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SpecularOcclusionSlotId,
                 HairMasterNode.BentNormalSlotId,
                 HairMasterNode.HairStrandDirectionSlotId,
-                HairMasterNode.SubsurfaceMaskSlotId,
-                HairMasterNode.ThicknessSlotId,
-                HairMasterNode.DiffusionProfileHashSlotId,
+                HairMasterNode.TransmittanceSlotId,
+                HairMasterNode.RimTransmissionIntensitySlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AmbientOcclusionSlotId,
                 HairMasterNode.EmissionSlotId,
@@ -182,11 +181,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LightMode = "MotionVectors",
             TemplateName = "HairPass.template",
             MaterialName = "Hair",
-            ShaderPassName = "SHADERPASS_VELOCITY",
+            ShaderPassName = "SHADERPASS_MOTION_VECTORS",
             ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -286,9 +285,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SpecularOcclusionSlotId,
                 HairMasterNode.BentNormalSlotId,
                 HairMasterNode.HairStrandDirectionSlotId,
-                HairMasterNode.SubsurfaceMaskSlotId,
-                HairMasterNode.ThicknessSlotId,
-                HairMasterNode.DiffusionProfileHashSlotId,
+                HairMasterNode.TransmittanceSlotId,
+                HairMasterNode.RimTransmissionIntensitySlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AmbientOcclusionSlotId,
                 HairMasterNode.EmissionSlotId,
@@ -347,9 +345,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HairMasterNode.SpecularOcclusionSlotId,
                 HairMasterNode.BentNormalSlotId,
                 HairMasterNode.HairStrandDirectionSlotId,
-                HairMasterNode.SubsurfaceMaskSlotId,
-                HairMasterNode.ThicknessSlotId,
-                HairMasterNode.DiffusionProfileHashSlotId,
+                HairMasterNode.TransmittanceSlotId,
+                HairMasterNode.RimTransmissionIntensitySlotId,
                 HairMasterNode.SmoothnessSlotId,
                 HairMasterNode.AmbientOcclusionSlotId,
                 HairMasterNode.EmissionSlotId,
@@ -375,7 +372,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as HairMasterNode;
-                HDSubShaderUtilities.GetStencilStateForForward(masterNode.RequiresSplitLighting(), ref pass);
+                HDSubShaderUtilities.GetStencilStateForForward(useSplitLighting: false, ref pass);
 
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
                 pass.ColorMaskOverride = "ColorMask [_ColorMaskTransparentVel] 1";
@@ -448,7 +445,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
             {
                 activeFields.Add("DoubleSided");
-                if (pass.ShaderPassName != "SHADERPASS_VELOCITY")   // HACK to get around lack of a good interpolator dependency system
+                if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
                 {                                                   // we need to be able to build interpolators using multiple input structs
                                                                     // also: should only require isFrontFace if Normals are required...
                     if (masterNode.doubleSidedMode == DoubleSidedMode.FlippedNormals)
@@ -531,9 +528,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     activeFields.Add("AlphaFog");
                 }
 
-                if (masterNode.transparentWritesVelocity.isOn)
+                if (masterNode.transparentWritesMotionVec.isOn)
                 {
-                    activeFields.Add("TransparentWritesVelocity");
+                    activeFields.Add("TransparentWritesMotionVec");
                 }
             }
 
@@ -562,14 +559,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 activeFields.Add("HairStrandDirection");
             }
 
-            if (masterNode.transmission.isOn)
+            if (masterNode.IsSlotConnected(HairMasterNode.TransmittanceSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.TransmittanceSlotId))
             {
-                activeFields.Add("Material.Transmission");
+                activeFields.Add(HairMasterNode.TransmittanceSlotName);
             }
 
-            if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
+            if (masterNode.IsSlotConnected(HairMasterNode.RimTransmissionIntensitySlotId) && pass.PixelShaderUsesSlot(HairMasterNode.RimTransmissionIntensitySlotId))
             {
-                activeFields.Add("Material.SubsurfaceScattering");
+                activeFields.Add(HairMasterNode.RimTransmissionIntensitySlotName);
+            }
+
+            if (masterNode.useLightFacingNormal.isOn)
+            {
+                activeFields.Add("UseLightFacingNormal");
             }
 
             switch (masterNode.specularOcclusionMode)
@@ -600,7 +602,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     activeFields.Add("AmbientOcclusion");
                 }
             }
-            
+
             if (masterNode.IsSlotConnected(HairMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(HairMasterNode.LightingSlotId))
             {
                 activeFields.Add("LightingGI");

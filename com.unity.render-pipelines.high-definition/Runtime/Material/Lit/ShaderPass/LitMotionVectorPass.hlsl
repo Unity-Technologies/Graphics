@@ -2,7 +2,7 @@
 #error Undefine_SHADERPASS
 #endif
 
-// TODO: Caution - For now the tesselation doesn't displace along the normal with Velocity shader as the previous previous position
+// TODO: Caution - For now the tesselation doesn't displace along the normal with motion vector shader as the previous previous position
 // conflict with the normal in the semantic. This need to be fix! Also no per pixel displacement is possible either.
 
 // Attributes

@@ -2996,38 +2996,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new ProfilingSample(cmd, "Display Shadows", CustomSamplerId.TPDisplayShadows.GetSampler()))
                 {
-                    if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap)
+                    switch (lightingDebug.shadowDebugMode)
                     {
-                        int startShadowIndex = (int)lightingDebug.shadowMapIndex;
-                        int shadowRequestCount = 1;
+                        case ShadowMapDebugMode.VisualizeShadowMap:
+                            int startShadowIndex = (int)lightingDebug.shadowMapIndex;
+                            int shadowRequestCount = 1;
 
 #if UNITY_EDITOR
-                        if (lightingDebug.shadowDebugUseSelection && m_DebugSelectedLightShadowIndex != -1)
-                        {
-                            startShadowIndex = m_DebugSelectedLightShadowIndex;
-                            shadowRequestCount = m_DebugSelectedLightShadowCount;
-                        }
+                            if (lightingDebug.shadowDebugUseSelection && m_DebugSelectedLightShadowIndex != -1)
+                            {
+                                startShadowIndex = m_DebugSelectedLightShadowIndex;
+                                shadowRequestCount = m_DebugSelectedLightShadowCount;
+                            }
 #endif
 
-                        for (int shadowIndex = startShadowIndex; shadowIndex < startShadowIndex + shadowRequestCount; shadowIndex++)
-                        {
-                            m_ShadowManager.DisplayShadowMap(shadowIndex, cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                            for (int shadowIndex = startShadowIndex; shadowIndex < startShadowIndex + shadowRequestCount; shadowIndex++)
+                            {
+                                m_ShadowManager.DisplayShadowMap(shadowIndex, cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                                HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            }
+                            break;
+                        case ShadowMapDebugMode.VisualizePunctualLightAtlas:
+                            m_ShadowManager.DisplayShadowAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
-                        }
-                    }
-                    else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizePunctualLightAtlas)
-                    {
-                        m_ShadowManager.DisplayShadowAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
-                        m_ShadowManager.DisplayShadowCascadeAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
-                    }
-                    else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAreaLightAtlas)
-                    {
-                        m_ShadowManager.DisplayAreaLightShadowAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
-                        m_ShadowManager.DisplayShadowCascadeAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
-                        HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            break;
+                        case ShadowMapDebugMode.VisualizeDirectionalLightAtlas:
+                            m_ShadowManager.DisplayShadowCascadeAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            break;
+                        case ShadowMapDebugMode.VisualizeAreaLightAtlas:
+                            m_ShadowManager.DisplayAreaLightShadowAtlas(cmd, m_DebugHDShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue);
+                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            break;
+                        default:
+                            break;
                     }
                 }
             }

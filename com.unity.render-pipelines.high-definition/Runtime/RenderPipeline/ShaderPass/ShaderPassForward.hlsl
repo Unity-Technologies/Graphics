@@ -2,14 +2,14 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#ifdef _WRITE_TRANSPARENT_VELOCITY
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VelocityVertexShaderCommon.hlsl"
+#ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/MotionVectorVertexShaderCommon.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh, AttributesPass inputPass)
 {
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
-    return VelocityVS(varyingsType, inputMesh, inputPass);
+    return MotionVectorVS(varyingsType, inputMesh, inputPass);
 }
 
 #ifdef TESSELLATION_ON
@@ -18,7 +18,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
-    VelocityPositionZBias(output);
+    MotionVectorPositionZBias(output);
 
     output.vpass.positionCS = input.vpass.positionCS;
     output.vpass.previousPositionCS = input.vpass.previousPositionCS;
@@ -28,7 +28,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-#else // _WRITE_TRANSPARENT_VELOCITY
+#else // _WRITE_TRANSPARENT_MOTION_VECTOR
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
@@ -53,7 +53,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-#endif // _WRITE_TRANSPARENT_VELOCITY
+#endif // _WRITE_TRANSPARENT_MOTION_VECTOR
 
 
 #ifdef TESSELLATION_ON
@@ -67,9 +67,9 @@ void Frag(PackedVaryingsToPS packedInput,
             OUTPUT_SSSBUFFER(outSSSBuffer)
         #else
             out float4 outColor : SV_Target0
-        #ifdef _WRITE_TRANSPARENT_VELOCITY
-          , out float4 outVelocity : SV_Target1
-        #endif // _WRITE_TRANSPARENT_VELOCITY
+        #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+          , out float4 outMotionVec : SV_Target1
+        #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
         #endif // OUTPUT_SPLIT_LIGHTING
         #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
@@ -173,18 +173,18 @@ void Frag(PackedVaryingsToPS packedInput,
         outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
         outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
 #endif
-#ifdef _WRITE_TRANSPARENT_VELOCITY
+#ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
         VaryingsPassToPS inputPass = UnpackVaryingsPassToPS(packedInput.vpass);
         bool forceNoMotion = any(unity_MotionVectorsParams.yw == 0.0);
         if (forceNoMotion)
         {
-            outVelocity = float4(2.0, 0.0, 0.0, 0.0);
+            outMotionVec = float4(2.0, 0.0, 0.0, 0.0);
         }
         else
         {
-            float2 velocity = CalculateVelocity(inputPass.positionCS, inputPass.previousPositionCS);
-            EncodeVelocity(velocity * 0.5, outVelocity);
-            outVelocity.zw = 1.0;
+            float2 motionVec = CalculateMotionVector(inputPass.positionCS, inputPass.previousPositionCS);
+            EncodeMotionVector(motionVec * 0.5, outMotionVec);
+            outMotionVec.zw = 1.0;
         }
 #endif
     }
