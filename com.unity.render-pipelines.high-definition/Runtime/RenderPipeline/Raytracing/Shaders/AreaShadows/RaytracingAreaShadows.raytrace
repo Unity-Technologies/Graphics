@@ -64,7 +64,7 @@ void RayGenShadows()
 
     // Initialize the output textures
     _RaytracedAreaShadowIntegration[currentPixelCoord] = float2(0.0, 0.0);
-    _AnalyticProbBuffer[currentPixelCoord] = float2(1.0, 0.0);
+    _AnalyticProbBuffer[currentPixelCoord] = float2(-1.0, +1.0);
 
     // Read the depth value
     float depthValue  = _DepthTexture[currentPixelCoord].x;
@@ -140,8 +140,8 @@ void RayGenShadows()
     if(!EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
     {
         // We want this to be flagged as a proper shadow, and not a 0/0 case
-        _RaytracedAreaShadowIntegration[currentPixelCoord] = float2(0.0, U);
-        _AnalyticProbBuffer[currentPixelCoord] = float2(U, -1.0);
+        _RaytracedAreaShadowIntegration[currentPixelCoord] = float2(0.0, 0.0);
+        _AnalyticProbBuffer[currentPixelCoord] = float2(-1.0, -1.0);
         return;
     }
 
