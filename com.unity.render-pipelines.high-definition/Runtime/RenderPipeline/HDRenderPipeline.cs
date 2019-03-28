@@ -152,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Flags]
         public enum StencilBitMask
         {
-            Clear                           = 0,    // 0x0 
+            Clear                           = 0,    // 0x0
             LightingMask                    = 3,    // 0x7  - 2 bit - Lifetime: GBuffer/Forward - SSSSS
             // Free slot 4
             // Note: If required, the usage Decals / DecalsForwardOutputNormalBuffer could be fit at same location as LightingMask as they have a non overlapped lifetime
@@ -1106,7 +1106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (!visibleInIndices.Contains(visibleInIndex))
                             visibleInIndices.Add(visibleInIndex);
                     }
-                    
+
                     UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
                 }
 
@@ -1524,7 +1524,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderDBuffer(hdCamera, cmd, renderContext, cullingResults);
             // We can call DBufferNormalPatch after RenderDBuffer as it only affect forward material and isn't affected by RenderGBuffer
             // This reduce lifteime of stencil bit
-            DBufferNormalPatch(hdCamera, cmd, renderContext, cullingResults);       
+            DBufferNormalPatch(hdCamera, cmd, renderContext, cullingResults);
 
 #if ENABLE_RAYTRACING
             bool raytracedIndirectDiffuse = m_RaytracingIndirectDiffuse.RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
@@ -1806,7 +1806,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if (ENABLE_RAYTRACING)
                 {
-                    {   
+                    {
                         HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
 
                         if(rtEnvironement != null)
@@ -2820,7 +2820,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_MRTTransparentMotionVec[0] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
                         m_MRTTransparentMotionVec[1] = renderMotionVecForTransparent ? m_SharedRTManager.GetMotionVectorsBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                             // It doesn't really matter what gets bound here since the color mask state set will prevent this from ever being written to. However, we still need to bind something
-                            // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent, here the normal buffer 
+                            // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent, here the normal buffer
                             // as it is guaranteed to exist and to have the same size.
                             // to avoid warnings about unbound render targets. 
                             : m_SharedRTManager.GetNormalBuffer();
@@ -3008,7 +3008,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrLightingTextureRW, m_SsrLightingTexture);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ColorPyramidTexture,  previousColorPyramid);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMask);
-                    
+
                     cmd.SetComputeIntParam(cs, HDShaderIDs._SsrColorPyramidMaxMip, hdCamera.colorPyramidHistoryMipCount - 1);
 
                     cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(w, 8), HDUtils.DivRoundUp(h, 8), XRGraphics.computePassCount);
@@ -3406,8 +3406,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "After Post-process", CustomSamplerId.AfterPostProcessing.GetSampler()))
             {
+                // Note about AfterPostProcess and TAA:
+                // When TAA is enabled rendering is jittered and then resolved during the post processing pass.
+                // It means that any rendering done after post processing need to disable jittering. This is what we do with hdCamera.UpdateViewConstants(false);
+                // The issue is that the only available depth buffer is jittered so pixels would wobble around depth tested edges.
+                // In order to avoid that we decide that objects rendered after Post processes while TAA is active will not benefit from the depth buffer so we disable it.
+                bool taaEnabled = hdCamera.IsTAAEnabled();
+                hdCamera.UpdateViewConstants(false);
+                hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
+
                 // Here we share GBuffer albedo buffer since it's not needed anymore
-                HDUtils.SetRenderTarget(cmd, hdCamera, GetAfterPostProcessOffScreenBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+                if (taaEnabled)
+                    HDUtils.SetRenderTarget(cmd, hdCamera, GetAfterPostProcessOffScreenBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+                else
+                    HDUtils.SetRenderTarget(cmd, hdCamera, GetAfterPostProcessOffScreenBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
 
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 1);
                 RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_ForwardOnlyName, 0, HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque);
