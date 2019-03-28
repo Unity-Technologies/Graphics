@@ -73,8 +73,7 @@ Shader ""Hidden/GraphErrorShader2""
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
                     var node = graph.GetNodeFromTempId(pair.Key);
-                    var errorString = $"Error in Shader Graph at {path} in node {node.name}: {pair.Value.First().message}";
-                    Debug.LogError(errorString, shader);
+                    MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }
 

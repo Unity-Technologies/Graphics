@@ -5,12 +5,15 @@ using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Rendering;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     class SubGraphOutputNode : AbstractMaterialNode, IHasSettings
     {
+        static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
+
         public SubGraphOutputNode()
         {
             name = "Output";
@@ -43,6 +46,11 @@ namespace UnityEditor.ShaderGraph
         {
             ValidateShaderStage();
 
+            if (!this.GetInputSlots<MaterialSlot>().Any())
+            {
+                owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+            }
+            
             base.ValidateNode();
         }
 
@@ -52,6 +60,12 @@ namespace UnityEditor.ShaderGraph
             string name = string.Format("Out_{0}", NodeUtils.GetDuplicateSafeNameForSlot(this, index, concreteValueType.ToString()));
             AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name, NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
             return index;
+        }
+
+        protected override void OnSlotsChanged()
+        {
+            base.OnSlotsChanged();
+            ValidateNode();
         }
 
         static ConcreteSlotValueType[] s_AllowedValueTypes =

@@ -102,13 +102,13 @@ namespace UnityEditor.ShaderGraph
         }
 
         public SubGraphData subGraphData
-                {
+        {
             get
-                    {
+            {
                 LoadSubGraph();
                 return m_SubGraphData;
-                    }
-                }
+            }
+        }
 
         public SubGraphAsset subGraphAsset
         {
