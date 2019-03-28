@@ -8,7 +8,7 @@ DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
 // Caution: We can't compute LOD inside a dynamic loop. The gradient are not accessible.
 // we need to find a way to calculate mips. For now just fetch first mip of the decals
-void ApplyBlendNormal(inout float4 dst, inout uint matMask, float2 texCoords, uint mapMask, float3x3 decalToWorld, float blend, float lod)
+void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int mapMask, float3x3 decalToWorld, float blend, float lod)
 {
     float4 src;
     src.xyz = mul(decalToWorld, UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod))) * 0.5f + 0.5f;
@@ -18,7 +18,7 @@ void ApplyBlendNormal(inout float4 dst, inout uint matMask, float2 texCoords, ui
     matMask |= mapMask;
 }
 
-void ApplyBlendDiffuse(inout float4 dst, inout uint matMask, float2 texCoords, float4 src, uint mapMask, inout float blend, float lod, int diffuseTextureBound)
+void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, float4 src, int mapMask, inout float blend, float lod, int diffuseTextureBound)
 {
     if (diffuseTextureBound)
     {
@@ -37,7 +37,7 @@ void ApplyBlendDiffuse(inout float4 dst, inout uint matMask, float2 texCoords, f
 // decalBlend is decal blend with distance fade to be able to construct normal and mask blend if they come from mask map blue channel
 // normalBlend is calculated in this function and used later to blend the normal
 // blendParams are material settings to determing blend source and mode for normal and mask map
-void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout uint matMask, float2 texCoords, uint mapMask, float albedoBlend, float lod, float decalBlend, inout float normalBlend, float3 blendParams, float4 scalingMAB, float4 remappingAOS) // too many blends!!!
+void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout int matMask, float2 texCoords, int mapMask, float albedoBlend, float lod, float decalBlend, inout float normalBlend, float3 blendParams, float4 scalingMAB, float4 remappingAOS) // too many blends!!!
 {
     float4 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
     src.x = scalingMAB.x * src.x;
@@ -112,7 +112,7 @@ void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout uint mat
 
 
 void EvalDecalMask(PositionInputs posInput, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
-    inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout uint mask, inout float alpha)
+    inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout int mask, inout float alpha)
 {
     // Get the relative world camera to decal matrix
     float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
@@ -202,7 +202,7 @@ DecalData FetchDecal(uint index)
 
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
-    uint mask = 0;
+    int mask = 0;
     // the code in the macros, gets moved inside the conditionals by the compiler
     FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
 
@@ -286,16 +286,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 
     }
 #else // _SURFACE_TYPE_TRANSPARENT
-    if (_DecalsHtileSupport)
-    {
-        mask = (uint)LOAD_TEXTURE2D_X(_DecalHTileTexture, posInput.positionSS / 8).r; // this results in a warning, no idea why....
-    }
-    else
-    {
-        mask = DBUFFERHTILEBIT_DIFFUSE | DBUFFERHTILEBIT_NORMAL | DBUFFERHTILEBIT_MASK;
-    }
-
-    
+    mask = UnpackByte(LOAD_TEXTURE2D_X(_DecalHTileTexture, posInput.positionSS / 8).r);
 #endif
     DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
