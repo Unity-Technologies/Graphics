@@ -60,6 +60,16 @@ namespace UnityEditor.ShaderGraph
             Dirty(ModificationScope.Graph);
         }
 
+        public ISubShader GetActiveSubShader()
+        {
+            foreach (var subShader in m_SubShaders)
+            {
+                if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                    return subShader;
+            }
+            return null;
+        }
+
         public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
         {
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();

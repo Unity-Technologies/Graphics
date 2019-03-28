@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] Shader m_ShapeLightVolumeShader = null;
         [SerializeField] Shader m_PointLightShader = null;
         [SerializeField] Shader m_PointLightVolumeShader = null;
+        [SerializeField] Shader m_BlitShader = null;
 
         public float lightIntensityScale => m_LightIntensityScale;
         public _2DLightOperationDescription[] lightOperations => m_LightOperations;
@@ -27,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
         internal Shader pointLightShader => m_PointLightShader;
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
+        internal Shader blitShader => m_BlitShader;
 
         public _2DRendererData()
         {
@@ -57,6 +59,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_ShapeLightVolumeShader = m_ShapeLightVolumeShader ?? Shader.Find("Hidden/Light2D-Shape-Volumetric");
             m_PointLightShader = m_PointLightShader ?? Shader.Find("Hidden/Light2D-Point");
             m_PointLightVolumeShader = m_PointLightVolumeShader ?? Shader.Find("Hidden/Light2d-Point-Volumetric");
+            m_BlitShader = m_BlitShader ?? Shader.Find("Hidden/Lightweight Render Pipeline/Blit");
         }
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)

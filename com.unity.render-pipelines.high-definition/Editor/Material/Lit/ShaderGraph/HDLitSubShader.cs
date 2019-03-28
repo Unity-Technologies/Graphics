@@ -737,6 +737,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = false
         };
 
+        public int GetPreviewPassIndex() { return 0; }
+
         private static List<string> GetInstancingOptionsFromMasterNode(AbstractMaterialNode iMasterNode)
         {
             List<string> instancingOption = new List<string>();

@@ -76,6 +76,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
 
+        internal struct LightStats
+        {
+            public int totalLights;
+            public int totalNormalMapUsage;
+            public int totalVolumetricUsage;
+        }
+
+
         public LightType lightType
         {
             get => m_LightType;
@@ -364,6 +372,30 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return shape;
         }
 
+        static internal LightStats GetLightStatsByLayer(int layer)
+        {
+            LightStats returnStats = new LightStats();
+            for(int lightOpIndex=0; lightOpIndex < s_Lights.Length; lightOpIndex++)
+            {
+                List<Light2D> lights = s_Lights[lightOpIndex];
+                for (int lightIndex = 0; lightIndex < lights.Count; lightIndex++)
+                {
+                    Light2D light = lights[lightIndex];
+
+                    if (light.IsLitLayer(layer))
+                    {
+                        returnStats.totalLights++;
+                        if (light.useNormalMap)
+                            returnStats.totalNormalMapUsage++;
+                        if (light.volumeOpacity > 0)
+                            returnStats.totalVolumetricUsage++;
+                    }
+                }
+
+            }
+            return returnStats;
+        }
+
         private void LateUpdate()
         {
             UpdateLightOperation();
@@ -399,15 +431,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
             rebuildMesh |= LightUtility.CheckForChange(m_LightCookieSprite, ref m_PreviousLightCookieSprite);
-
-            
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffOffset, ref m_PreviousShapeLightFalloffOffset);
 
 #if UNITY_EDITOR
             rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PreviousShapePathHash);
 #endif
 
             if (rebuildMesh)
-                UpdateMesh();
+            {
+                if (m_LightType != LightType.Global)
+                    UpdateMesh();
+                else
+                    Light2D.AddGlobalLight(this, true);
+            }
         }
 
         private void OnDrawGizmos()

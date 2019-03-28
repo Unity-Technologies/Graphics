@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         float   m_PreviousShapeLightParametricAngleOffset   = -1;
         float   m_PreviousShapeLightFalloffSize             = -1;
         float   m_PreviousShapeLightRadius                  = -1;
-        Vector2 m_PreviousShapeLightOffset                  = Vector2.negativeInfinity;
+        Vector2 m_PreviousShapeLightFalloffOffset           = Vector2.negativeInfinity;
         int     m_PreviousShapeLightOrder                   = -1;
 
 #if UNITY_EDITOR

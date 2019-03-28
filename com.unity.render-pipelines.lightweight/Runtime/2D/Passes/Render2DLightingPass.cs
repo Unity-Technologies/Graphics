@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.LWRP;
@@ -9,6 +10,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static SortingLayer[] s_SortingLayers;
         _2DRendererData m_RendererData;
         static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("CombinedShapeLight");
+        static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
+        static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
+        static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName };
+        //static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_CombinedRenderingPassName };
 
         public Render2DLightingPass(_2DRendererData rendererData)
         {
@@ -17,6 +22,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             m_RendererData = rendererData;
         }
+      
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -28,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RendererLighting.Setup(m_RendererData);
 
             CommandBuffer cmd = CommandBufferPool.Get("Render 2D Lighting");
+            cmd.Clear();
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
             RendererLighting.CreateRenderTextures(cmd, camera);
@@ -40,7 +47,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             context.ExecuteCommandBuffer(cmd);
 
             Profiler.BeginSample("RenderSpritesWithLighting - Prepare");
-            DrawingSettings drawSettings = CreateDrawingSettings(k_CombinedRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
+            DrawingSettings combinedDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
+            DrawingSettings normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
 
             FilteringSettings filterSettings = new FilteringSettings();
             filterSettings.renderQueueRange = RenderQueueRange.all;
@@ -49,35 +57,43 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             filterSettings.sortingLayerRange = SortingLayerRange.all;
             Profiler.EndSample();
 
-            bool cleared = false;
             for (int i = 0; i < s_SortingLayers.Length; i++)
             {
                 short layerValue = (short)s_SortingLayers[i].value;
                 filterSettings.sortingLayerRange = new SortingLayerRange(layerValue, layerValue);
 
-                RendererLighting.RenderNormals(context, renderingData.cullResults, drawSettings, filterSettings);
-
-                cmd.Clear();
                 int layerToRender = s_SortingLayers[i].id;
-                RendererLighting.RenderLights(camera, cmd, layerToRender);
 
-                // This should have an optimization where I can determine if this needs to be called.
-                // And the clear is only needed if no previous pass has cleared the camera RT yet.
-                var clearFlag = cleared ? ClearFlag.None : ClearFlag.All;
-                var clearColor = renderingData.cameraData.camera.backgroundColor;
-                cleared = true;
-                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, clearFlag, clearColor, TextureDimension.Tex2D);
-                
-                context.ExecuteCommandBuffer(cmd);
+                Light2D.LightStats lightStats;
+                lightStats = Light2D.GetLightStatsByLayer(layerToRender);
 
-                Profiler.BeginSample("RenderSpritesWithLighting - Draw Renderers");
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                if (lightStats.totalNormalMapUsage > 0)
+                    RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings);
+
+                if (lightStats.totalLights > 0)
+                {
+                    cmd.Clear();
+                    RendererLighting.RenderLights(camera, cmd, layerToRender);
+
+                    // This should have an optimization where I can determine if this needs to be called.
+                    // And the clear is only needed if no previous pass has cleared the camera RT yet.
+                    //var clearFlag = cleared ? ClearFlag.None : ClearFlag.All;
+
+                    SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white, TextureDimension.Tex2D);
+                    context.ExecuteCommandBuffer(cmd);
+                }
+
+                Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
+                context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
                 Profiler.EndSample();
 
-                cmd.Clear();
-                RendererLighting.RenderLightVolumes(camera, cmd, layerToRender);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+                if (lightStats.totalLights > 0)
+                {
+                    cmd.Clear();
+                    RendererLighting.RenderLightVolumes(camera, cmd, layerToRender);
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                }
             }
 
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");

@@ -9,10 +9,13 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     internal class FinalBlitPass : ScriptableRenderPass
     {
+        const string m_ProfilerTag = "Final Blit Pass";
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
-        const string m_ProfilerTag = "Final Blit Pass";
+        bool m_ClearBlitTarget;
+        Rect m_PixelRect;
+        
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
@@ -24,10 +27,14 @@ namespace UnityEngine.Rendering.LWRP
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
+        /// <param name="clearBlitTarget"></param>
+        /// <param name="pixelRect"></param>
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, bool clearBlitTarget = false, Rect pixelRect = new Rect())
         {
             m_Source = colorHandle;
             m_TargetDimension = baseDescriptor.dimension;
+            m_ClearBlitTarget = clearBlitTarget;
+            m_PixelRect = pixelRect;
         }
 
         /// <inheritdoc/>
@@ -62,17 +69,20 @@ namespace UnityEngine.Rendering.LWRP
             {
                 cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
+                // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
+                // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
+                // meanwhile we set to load so split screen case works.
                 SetRenderTarget(
                     cmd,
                     BuiltinRenderTextureType.CameraTarget,
-                    RenderBufferLoadAction.DontCare,
+                    RenderBufferLoadAction.Load,
                     RenderBufferStoreAction.Store,
-                    ClearFlag.None,
+                    m_ClearBlitTarget ? ClearFlag.Color : ClearFlag.None,
                     Color.black,
                     m_TargetDimension);
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
+                cmd.SetViewport(m_PixelRect != Rect.zero ? m_PixelRect : renderingData.cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
             }
 

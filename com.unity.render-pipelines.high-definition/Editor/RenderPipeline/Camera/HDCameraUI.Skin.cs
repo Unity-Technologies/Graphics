@@ -76,8 +76,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             new GUIContent("No Anti-aliasing"),
             new GUIContent("Fast Approximate Anti-aliasing (FXAA)"),
-            new GUIContent("Subpixel Morphological Anti-aliasing (SMAA)"),
-            new GUIContent("Temporal Anti-aliasing (TAA)")
+            new GUIContent("Temporal Anti-aliasing (TAA)"),
+            new GUIContent("Subpixel Morphological Anti-aliasing (SMAA)")
         };
     }
 }
