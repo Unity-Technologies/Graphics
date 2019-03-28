@@ -64,7 +64,7 @@ void RayGenRenderer()
 	RayDesc rayDescriptor;
 	rayDescriptor.Origin = _WorldSpaceCameraPos;
 	rayDescriptor.Direction = incidentWS;
-	rayDescriptor.TMin = 0;
+	rayDescriptor.TMin = _RaytracingCameraNearPlane;
 	rayDescriptor.TMax = _RaytracingRayMaxLength;
 
 	// Create and init the RayIntersection structure for this

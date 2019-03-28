@@ -16,4 +16,5 @@ float                                   _RaytracingReflectionMinSmoothness;
 int                                     _RaytracingFrameIndex;
 float                                   _RaytracingPixelSpreadAngle;
 int                                     _RayCountEnabled;
+float                                   _RaytracingCameraNearPlane;
 RWTexture2D<uint4>                      _RayCountTexture;

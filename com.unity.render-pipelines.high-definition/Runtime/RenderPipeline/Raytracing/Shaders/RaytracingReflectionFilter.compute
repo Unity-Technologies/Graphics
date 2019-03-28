@@ -217,7 +217,7 @@ void TemporalAccumulationFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
                         && colorMinBound.z < previousColor.z && colorMaxBound.z > previousColor.z;
 
     // Validity flag of the current sample
-    float validityFlag = all(colorMinBound > colorMaxBound);
+    float validityFlag = all(colorMinBound < colorMaxBound);
     
     float3 combinedColor = float3(0.0f, 0.0f, 0.0f);
     if(previousValidityFlag && colorInBound)
@@ -235,7 +235,7 @@ void TemporalAccumulationFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     }
     
     _AccumulatedFrameTexture[currentCoord] = float4(combinedColor, validityFlag);
-    _CurrentFrameTexture[currentCoord] = float4(combinedColor, validityFlag);
+    _CurrentFrameTexture[currentCoord] = float4(combinedColor, 1.0);
 }
 
 [numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]

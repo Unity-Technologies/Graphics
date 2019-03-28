@@ -158,6 +158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, rtEnvironement.raytracingRayLength);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, rtEnvironement.rayMaxDepth);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
 
             // Set the data for the ray generation
             cmd.SetRaytracingTextureParam(forwardShader, m_RayGenShaderName, HDShaderIDs._RaytracingFlagMask, m_RaytracingFlagTarget);
