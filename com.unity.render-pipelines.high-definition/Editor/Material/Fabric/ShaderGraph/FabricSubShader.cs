@@ -63,10 +63,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BlendOverride = "Blend One Zero",
             ZWriteOverride = "ZWrite On",
             ColorMaskOverride = "ColorMask 0",
-            ExtraDefines = new List<string>()
-            {
-                "#define USE_LEGACY_UNITY_MATRIX_VARIABLES",
-            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",

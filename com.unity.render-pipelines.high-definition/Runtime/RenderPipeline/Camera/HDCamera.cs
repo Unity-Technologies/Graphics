@@ -902,6 +902,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix,         viewProjMatrix.inverse);
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._CameraViewProjMatrix,      viewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
             cmd.SetGlobalVector(HDShaderIDs._PrevCamPosRWS,             prevWorldSpaceCameraPos);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);

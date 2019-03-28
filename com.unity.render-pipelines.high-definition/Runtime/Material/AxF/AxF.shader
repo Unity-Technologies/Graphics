@@ -150,6 +150,7 @@ Shader "HDRP/AxF"
     //-------------------------------------------------------------------------------------
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
@@ -180,7 +181,6 @@ Shader "HDRP/AxF"
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFDepthPass.hlsl"
@@ -216,7 +216,6 @@ Shader "HDRP/AxF"
             #pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFSharePass.hlsl"
@@ -253,7 +252,6 @@ Shader "HDRP/AxF"
             #pragma multi_compile _ WRITE_MSAA_DEPTH
             
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFSharePass.hlsl"
@@ -282,7 +280,6 @@ Shader "HDRP/AxF"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFSharePass.hlsl"
@@ -311,8 +308,6 @@ Shader "HDRP/AxF"
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_SHADOWS
-            #define USE_LEGACY_UNITY_MATRIX_VARIABLES
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFDepthPass.hlsl"
@@ -366,7 +361,6 @@ Shader "HDRP/AxF"
             #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
                 #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
             #endif
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 

@@ -257,8 +257,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 cmd.SetViewport(shadowRequest.atlasViewport);
 
-                cmd.SetViewProjectionMatrices(shadowRequest.view, shadowRequest.projection);
-
                 cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
                 if (!m_LightingDebugSettings.clearShadowAtlas)
                 {
@@ -267,6 +265,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 dss.lightIndex = shadowRequest.lightIndex;
                 dss.splitData = shadowRequest.splitData;
+
+                // Setup matrices for shadow rendering:
+                Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
+                cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix, shadowRequest.view);
+                cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix, shadowRequest.view.inverse);
+                cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix, shadowRequest.deviceProjectionYFlip);
+                cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix, shadowRequest.deviceProjectionYFlip.inverse);
+                cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjection);
+                cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjection.inverse);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowClipPlanes, shadowRequest.frustumPlanes);
 
                 // TODO: remove this execute when DrawShadows will use a CommandBuffer
                 renderContext.ExecuteCommandBuffer(cmd);

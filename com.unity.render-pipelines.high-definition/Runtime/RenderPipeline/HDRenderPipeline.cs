@@ -1732,8 +1732,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // This call overwrites camera properties passed to the shader system.
                     m_LightLoop.RenderShadows(renderContext, cmd, cullingResults, hdCamera);
 
-                    // Overwrite camera properties set during the shadow pass with the original camera properties.
-                    SetupCameraProperties(camera, renderContext, cmd);
                     hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
                 }
 

@@ -14,7 +14,6 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-        #define USE_LEGACY_UNITY_MATRIX_VARIABLES
         #define SURFACE_GRADIENT // Must use Surface Gradient as the normal map texture format is now RG floating point
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
