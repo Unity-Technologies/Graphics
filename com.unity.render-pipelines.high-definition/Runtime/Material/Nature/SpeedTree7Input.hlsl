@@ -7,12 +7,6 @@
     #define _NORMALMAP
 #endif
 
-/*
-#ifdef VERTEX_COLOR
-    #define ATTRIBUTES_NEED_COLOR
-#endif
-*/
-
 // Enabling both TEXCOORD0 and TEXCOORD1 means you get 4 components instead of 2, and we pretty much always need that
 #define ATTRIBUTES_NEED_TEXCOORD0
 #define ATTRIBUTES_NEED_TEXCOORD1
