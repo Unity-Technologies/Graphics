@@ -36,7 +36,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
     DecalSurfaceData surfaceData;
-    bool isClipped = false;
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
 	float depth = LoadCameraDepth(input.positionSS.xy);
@@ -44,83 +43,45 @@ void Frag(  PackedVaryingsToPS packedInput,
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
     positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);
-    ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
+    clip(positionDS);       // clip negative value
+    clip(1.0 - positionDS); // Clip value above one
 
-    if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
+    input.texCoord0.xy = positionDS.xz;
+    input.texCoord1.xy = positionDS.xz;
+    input.texCoord2.xy = positionDS.xz;
+    input.texCoord3.xy = positionDS.xz;
+
+    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+    GetSurfaceData(input, V, posInput, surfaceData);
+
+	// have to do explicit test since compiler behavior is not defined for RW resources and discard instructions
+	if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
     {
-
-        input.texCoord0.xy = positionDS.xz;
-        input.texCoord1.xy = positionDS.xz;
-        input.texCoord2.xy = positionDS.xz;
-        input.texCoord3.xy = positionDS.xz;
-
-        float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
-        GetSurfaceData(input, V, posInput, surfaceData);
 #else // Decal mesh
 
     // input.positionSS is SV_Position
-        PositionInputs posInput = GetPositionInput_Stereo(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0), unity_StereoEyeIndex);
+    PositionInputs posInput = GetPositionInput_Stereo(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0), unity_StereoEyeIndex);
 
-#ifdef VARYINGS_NEED_POSITION_WS
-        float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
-#else
+    #ifdef VARYINGS_NEED_POSITION_WS
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
+    #else
     // Unused
-        float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
-#endif
-        GetSurfaceData(input, V, posInput, surfaceData);
+    float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
+    #endif
+    GetSurfaceData(input, V, posInput, surfaceData);
+
 #endif        
+
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+        uint2 htileCoord = input.positionSS.xy / 8;
+        uint oldVal = UnpackByte(_DecalHTile[COORD_TEXTURE2D_X(htileCoord)]);
+        oldVal |= surfaceData.HTileMask;
+        _DecalHTile[COORD_TEXTURE2D_X(htileCoord)] = PackByte(oldVal);
+#endif
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
     }
-    else
-    {
-        isClipped = true;
-        clip(-1);
-    }
 #endif
-
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
-    uint2 htileCoord = input.positionSS.xy / 8;
-    uint mask = surfaceData.HTileMask;
-#if (DECALS_HTILE_SUPPORT)
-#ifdef SUPPORTS_WAVE_INTRINSICS
-    uint tileCoord1d = (htileCoord.y << 16) | (htileCoord.x);
-    // Loop over up to 4 tiles.
-    for (int i = 0; ; i++)
-    {
-        // Select the 1st tile with active lanes.
-        uint minTileCoord1d = WaveActiveMin(tileCoord1d);
-
-        // Make sure we still have tiles to process.
-        if (minTileCoord1d == -1)
-            break;
-
-        // Mask lanes corresponding to the min tile.
-        // Mask clipped lanes.
-        if ((tileCoord1d == minTileCoord1d) && (!isClipped))
-        {
-            // Process one tile.
-            mask = WaveActiveBitOr(surfaceData.HTileMask);
-
-            uint laneID = WaveGetLaneIndex();
-
-            // Is it the first active lane?
-            if (laneID == WaveReadLaneFirst(laneID))
-            {
-                htileCoord.x = minTileCoord1d & 0xffff;
-                htileCoord.y = (minTileCoord1d >> 16) & 0xffff;
-                InterlockedOr(_DecalHTile[COORD_TEXTURE2D_X(htileCoord)], mask);
-            }
-
-            // Mark tile as processed.
-            tileCoord1d = -1;
-        }
-    }
-#else // SUPPORTS_WAVE_INTRINSICS
-    InterlockedOr(_DecalHTile[COORD_TEXTURE2D_X(htileCoord)], mask);
-#endif // SUPPORTS_WAVE_INTRINSICS
-#endif // DECALS_HTILE_SUPPORT
-#endif // (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
