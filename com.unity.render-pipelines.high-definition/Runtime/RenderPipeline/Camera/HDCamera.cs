@@ -304,7 +304,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            UpdateViewConstants();
+            UpdateViewConstants(IsTAAEnabled());
 
             // Update viewport sizes.
             m_ViewportSizePrevFrame = new Vector2Int(m_ActualWidth, m_ActualHeight);
@@ -322,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
-            
+
             // XRTODO: double-wide cleanup
             textureWidthScaling = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
             if (camera.stereoEnabled && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
@@ -472,12 +472,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void UpdateViewConstants()
+        internal void UpdateViewConstants(bool jitterProjectionMatrix)
         {
              // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
             var nonJitteredCameraProj = camera.projectionMatrix;
-            var cameraProj = IsTAAEnabled()
+            var cameraProj = jitterProjectionMatrix
                 ? GetJitteredProjectionMatrix(nonJitteredCameraProj)
                 : nonJitteredCameraProj;
 
@@ -837,7 +837,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             frameIndex &= 1;
             var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
-            
+
             return rtHandleSystem.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat,
                                         enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, xrInstancing: true,
                                         name: string.Format("CameraColorBufferMipChain{0}", frameIndex));
