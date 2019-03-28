@@ -92,7 +92,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         Camera m_Camera;
         PixelPerfectCameraInternal m_Internal;
 
-        bool isRunning => (Application.isPlaying || runInEditMode) && enabled;
+        bool isRunning
+        {
+            get
+            {
+#if UNITY_EDITOR
+                return (Application.isPlaying || runInEditMode) && enabled;
+#else
+                return enabled;
+#endif
+            }
+        }
 
         internal FilterMode finalBlitFilterMode
         {
