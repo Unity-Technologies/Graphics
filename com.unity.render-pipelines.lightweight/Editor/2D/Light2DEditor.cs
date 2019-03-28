@@ -1,50 +1,42 @@
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.EditorTools;
+using UnityEditor.Experimental.Rendering.LWRP.Path2D;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering.LWRP;
-using System.Linq;
-using System.Collections.Generic;
-using UnityEditor.Experimental.Rendering.LWRP;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]
-    internal class Light2DEditor : Editor
+    internal class Light2DEditor : ShapeComponentEditor<ScriptableShapeEditor>
     {
-        private class ShapeEditor : PolygonEditor
+        [EditorTool("Edit Freeform Shape", typeof(Light2D))]
+        class FreeformShapeTool : ShapeEditorTool<ScriptableShapeEditor>
         {
             const string k_ShapePath = "m_ShapePath";
 
-            protected override int GetPointCount(SerializedObject serializedObject)
+            public override bool IsAvailable()
             {
-                return (serializedObject.targetObject as Light2D).shapePath.Length;
+                return base.IsAvailable() && (target as Light2D).lightType == Light2D.LightType.Freeform;
             }
 
-            protected override Vector3 GetPoint(SerializedObject serializedObject, int index)
+            protected override IShape GetShape(Object target)
             {
-                return (serializedObject.targetObject as Light2D).shapePath[index];
+                return (target as Light2D).shapePath.ToPolygon(false);
             }
 
-            protected override void SetPoint(SerializedObject serializedObject, int index, Vector3 position)
+            protected override void SetShape(ScriptableShapeEditor shapeEditor, SerializedObject serializedObject)
             {
                 serializedObject.Update();
-                serializedObject.FindProperty(k_ShapePath).GetArrayElementAtIndex(index).vector3Value = position;
-                serializedObject.ApplyModifiedProperties();
-            }
 
-            protected override void InsertPoint(SerializedObject serializedObject, int index, Vector3 position)
-            {
-                serializedObject.Update();
-                var shapePath = serializedObject.FindProperty(k_ShapePath);
-                shapePath.InsertArrayElementAtIndex(index);
-                shapePath.GetArrayElementAtIndex(index).vector3Value = position;
-                serializedObject.ApplyModifiedProperties();
-            }
+                var pointsProperty = serializedObject.FindProperty(k_ShapePath);
+                pointsProperty.arraySize = shapeEditor.pointCount;
 
-            protected override void RemovePoint(SerializedObject serializedObject, int index)
-            {
-                serializedObject.Update();
-                serializedObject.FindProperty(k_ShapePath).DeleteArrayElementAtIndex(index);
+                for (var i = 0; i < shapeEditor.pointCount; ++i)
+                    pointsProperty.GetArrayElementAtIndex(i).vector3Value = shapeEditor.GetPoint(i).position;
+
                 serializedObject.ApplyModifiedProperties();
             }
         }
@@ -568,8 +560,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     break;
                 case Light2D.LightType.Freeform:
                     {
-                        m_ShapeEditor.OnGUI(target);
-
                         // Draw the falloff shape's outline
                         List<Vector2> falloffShape = light.GetFalloffShape();
                         Handles.color = Color.white;
@@ -643,6 +633,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             OnTargetSortingLayers();
+
+            if (m_LightType.intValue == (int)Light2D.LightType.Freeform)
+            {
+                DoEditButton<FreeformShapeTool>(ShapeEditorToolContents.icon, "Edit Shape");
+                DoShapeEditorInspector<FreeformShapeTool>();
+                DoSnappingInspector<FreeformShapeTool>();
+            }
 
             if (updateGlobalLights)
                 RemoveSelectedGlobalLights(targets);
