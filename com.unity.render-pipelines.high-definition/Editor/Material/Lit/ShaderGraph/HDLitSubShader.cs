@@ -756,6 +756,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return instancingOption;
         }
         
+        public int GetPreviewPassIndex() { return 0; }
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {

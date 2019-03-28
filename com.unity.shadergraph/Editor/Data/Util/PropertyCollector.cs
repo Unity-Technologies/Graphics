@@ -37,23 +37,27 @@ namespace UnityEditor.ShaderGraph
             return sb.ToString();
         }
 
-        public string GetPropertiesDeclaration(int baseIndentLevel)
+        public string GetPropertiesDeclaration(int baseIndentLevel, GenerationMode mode)
         {
             var builder = new ShaderStringBuilder(baseIndentLevel);
-            GetPropertiesDeclaration(builder);
+            GetPropertiesDeclaration(builder, mode);
             return builder.ToString();
         }
 
-        public void GetPropertiesDeclaration(ShaderStringBuilder builder)
+        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode)
         {
+            var batchAll = mode == GenerationMode.Preview;
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-            foreach (var prop in properties.Where(n => n.isBatchable && n.generatePropertyBlock))
+            foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }
             builder.AppendLine("CBUFFER_END");
             builder.AppendNewLine();
 
+            if (batchAll)
+                return;
+            
             foreach (var prop in properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());

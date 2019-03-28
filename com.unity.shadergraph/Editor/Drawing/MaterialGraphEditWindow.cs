@@ -133,13 +133,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (graphEditorView == null)
                 {
                     messageManager.ClearAll();
+                    materialGraph.messageManager = messageManager;
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
                     graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
                     {
                         viewDataKey = selectedGuid,
                         assetName = asset.name.Split('/').Last()
                     };
-                    materialGraph.messageManager = messageManager;
                     m_ColorSpace = PlayerSettings.colorSpace;
                     m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
                     graphObject.Validate();

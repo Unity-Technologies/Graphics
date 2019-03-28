@@ -88,6 +88,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             previewManager = new PreviewManager(graph, messageManager);
+            previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
 
             string serializedToggle = EditorUserSettings.GetConfigValue(k_ToggleSettings);
             if (!string.IsNullOrEmpty(serializedToggle))
@@ -179,17 +180,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 m_BlackboardProvider.blackboard.visible = m_ToggleSettings.isBlackboardVisible;
 
-                m_MasterPreviewView = new MasterPreviewView(previewManager, graph) { name = "masterPreview" };
-
-                WindowDraggable masterPreviewViewDraggable = new WindowDraggable(null, this);
-                m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
-                m_GraphView.Add(m_MasterPreviewView);
-
-                //m_BlackboardProvider.onDragFinished += UpdateSerializedWindowLayout;
-                //m_BlackboardProvider.onResizeFinished += UpdateSerializedWindowLayout;
-                masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
-                m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
-                m_MasterPreviewView.visible = m_ToggleSettings.isPreviewVisible;
+                CreateMasterPreview();
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
@@ -218,6 +209,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+        }
+
+        void CreateMasterPreview()
+        {
+            m_MasterPreviewView = new MasterPreviewView(previewManager, m_Graph) {name = "masterPreview"};
+
+            var masterPreviewViewDraggable = new WindowDraggable(null, this);
+            m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
+            m_GraphView.Add(m_MasterPreviewView);
+
+            masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
+            m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+            m_MasterPreviewView.visible = m_ToggleSettings.isPreviewVisible;
         }
 
         void OnSpaceDown(KeyDownEvent evt)
@@ -479,8 +483,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge) p.userData, edge));
                 if (edgeView != null)
                 {
-                    var nodeView = edgeView.input.node as MaterialNodeView;
-                    if (nodeView != null && nodeView.node != null)
+                    var nodeView = (MaterialNodeView)edgeView.input.node;
+                    if (nodeView?.node != null)
                     {
                         nodesToUpdate.Add(nodeView);
                     }
@@ -530,7 +534,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 else
                 {
-                    nodeView.AttachError(messageData.Value.First().message);
+                    var foundMessage = messageData.Value.First();
+                    nodeView.AttachMessage(foundMessage.message, foundMessage.severity);
                 }
             }
         }
@@ -701,6 +706,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        void OnPrimaryMasterChanged()
+        {
+            m_MasterPreviewView?.RemoveFromHierarchy();
+            CreateMasterPreview();
+            ApplyMasterPreviewLayout();
+        }
+
         void HandleEditorViewChanged(GeometryChangedEvent evt)
         {
             m_BlackboardProvider.blackboard.SetPosition(m_FloatingWindowsLayout.blackboardLayout.GetLayout(m_GraphView.layout));
@@ -715,32 +727,43 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             UnregisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
 
-            // Restore master preview layout
-            m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
-            m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
-            m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
+            if (m_FloatingWindowsLayout != null)
+            {
+                ApplyMasterPreviewLayout();
 
-            // Restore blackboard layout, and make sure that it remains in the view.
-            Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
+                // Restore blackboard layout, and make sure that it remains in the view.
+                Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
 
-            // Make sure the dimensions are sufficiently large.
-            blackboardRect.width = Mathf.Clamp(blackboardRect.width, 160f, m_GraphView.contentContainer.layout.width);
-            blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
+                // Make sure the dimensions are sufficiently large.
+                blackboardRect.width = Mathf.Clamp(blackboardRect.width, 160f, m_GraphView.contentContainer.layout.width);
+                blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
 
-            // Make sure that the positionining is on screen.
-            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.width - blackboardRect.width - blackboardRect.width));
-            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.height - blackboardRect.height - blackboardRect.height));
+                // Make sure that the positionining is on screen.
+                blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.width - blackboardRect.width - blackboardRect.width));
+                blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.height - blackboardRect.height - blackboardRect.height));
 
-            // Set the processed blackboard layout.
-            m_BlackboardProvider.blackboard.SetPosition(blackboardRect);
+                // Set the processed blackboard layout.
+                m_BlackboardProvider.blackboard.SetPosition(blackboardRect);
 
-            previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
+                previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
+            }
+            else
+            {
+                m_FloatingWindowsLayout = new FloatingWindowsLayout();
+            }
 
             // After the layout is restored from the previous session, start tracking layout changes in the blackboard.
             m_BlackboardProvider.blackboard.RegisterCallback<GeometryChangedEvent>(StoreBlackboardLayoutOnGeometryChanged);
 
             // After the layout is restored, track changes in layout and make the blackboard have the same behavior as the preview w.r.t. docking.
             RegisterCallback<GeometryChangedEvent>(HandleEditorViewChanged);
+        }
+
+        void ApplyMasterPreviewLayout()
+        {
+            m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
+            m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
+            m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
         }
 
         void UpdateSerializedWindowLayout()

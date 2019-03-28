@@ -6,6 +6,7 @@ using System.Text;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -168,7 +169,7 @@ namespace UnityEditor.ShaderGraph
                             var node = graphData.GetNodeFromTempId(pair.Key);
                             foreach (var message in pair.Value)
                             {
-                                Debug.LogError($"Error in {subGraphPath} at node {node.name}: {message.message}", subGraphAsset);                                
+                                MessageManager.Log(node, subGraphPath, message, subGraphAsset);
                             }
                         }
                     }

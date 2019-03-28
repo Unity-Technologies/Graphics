@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Rendering;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing;
 
@@ -11,6 +12,8 @@ namespace UnityEditor.ShaderGraph
     [Title("Utility", "Custom Function")]
     class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IHasSettings
     {
+        static string s_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
+
         public CustomFunctionNode()
         {
             name = "Custom Function";
@@ -185,6 +188,22 @@ namespace UnityEditor.ShaderGraph
             }
 
             return port.GetDefaultValue(generationMode);
+        }
+
+        protected override void OnSlotsChanged()
+        {
+            base.OnSlotsChanged();
+            ValidateNode();
+        }
+
+        public override void ValidateNode()
+        {
+            if (!this.GetOutputSlots<MaterialSlot>().Any())
+            {
+                owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+            }
+            
+            base.ValidateNode();
         }
 
         private bool IsValidFunction()

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.10.0] - 2019-03-19
 ### Added
 - You can now use Sub Graphs in other Sub Graphs.
+- Preview shaders now compile in the background, and only redraw when necessary.
 
 ### Fixed
 - Default input fields now correctly hide and show when connections change.
