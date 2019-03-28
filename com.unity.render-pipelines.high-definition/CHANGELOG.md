@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed single shadow debug mode
 - Fixed global scale factor debug mode when scale > 1
 - Fixed debug menu material overrides not getting applied to the Terrain Lit shader
+- Fixed typo in computeLightVariants
+- Fixed deferred pass with XR instancing by disabling ComputeLightEvaluation
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode
