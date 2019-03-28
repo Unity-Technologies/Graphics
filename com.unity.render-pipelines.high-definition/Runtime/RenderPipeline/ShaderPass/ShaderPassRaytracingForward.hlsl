@@ -43,6 +43,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // Compute the prelight data
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
     float3 reflected = float3(0.0, 0.0, 0.0);
+    float reflectedWeight = 0.0;
     float3 transmitted = float3(0.0, 0.0, 0.0);
 
     // The intersection will launch a refraction ray only if the object is transparent and is has the refraction flag
@@ -121,12 +122,13 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
         // Override the transmitted color
         reflected = reflectedIntersection.color;
+        reflectedWeight = 1.0;
     }
 
     // Run the lightloop
     float3 diffuseLighting;
     float3 specularLighting;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflected, transmitted, diffuseLighting, specularLighting);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, reflected, transmitted, diffuseLighting, specularLighting);
 
     // Color display for the moment
     rayIntersection.color = diffuseLighting + specularLighting;

@@ -589,6 +589,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#pragma multi_compile _ DIFFUSE_LIGHTING_ONLY",
                 "#define SHADOW_LOW",
+                "#define SKIP_RASTERIZED_SHADOWS",
             },
             Includes = new List<string>()
             {
@@ -686,6 +687,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#define SHADOW_LOW",
+                "#define SKIP_RASTERIZED_SHADOWS",
             },
             Includes = new List<string>()
             {
