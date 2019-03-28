@@ -101,21 +101,21 @@ float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS
     return rawOcclusionMask;
 }
 
-// Calculate velocity in Clip space [-1..1]
-float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
+// Calculate motion vector in Clip space [-1..1]
+float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 {
     // This test on define is required to remove warning of divide by 0 when initializing empty struct
     // TODO: Add forward opaque MRT case...
-#if (SHADERPASS == SHADERPASS_VELOCITY) || defined(_WRITE_TRANSPARENT_VELOCITY)
-    // Encode velocity
+#if (SHADERPASS == SHADERPASS_MOTION_VECTORS) || defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
+    // Encode motion vector
     positionCS.xy = positionCS.xy / positionCS.w;
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
 
-    float2 velocity = (positionCS.xy - previousPositionCS.xy);
+    float2 motionVec = (positionCS.xy - previousPositionCS.xy);
 #if UNITY_UV_STARTS_AT_TOP
-    velocity.y = -velocity.y;
+    motionVec.y = -motionVec.y;
 #endif
-    return velocity;
+    return motionVec;
 
 #else
     return float2(0.0, 0.0);

@@ -161,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DoesntReceiveSSR                = 32,   // 0x20 - 1 bit - Lifetime: DethPrepass - SSR
             DistortionVectors               = 64,   // 0x40 - 1 bit - Lifetime: Accumulate distortion - Apply distortion (This bit is cleared to 0 after Apply distortion pass)
             SMAA                            = 64,   // 0x40 - 1 bit - Lifetime: SMAA EdgeDetection - SMAA BlendWeight.
-            ObjectVelocity                  = 128,  // 0x80 - 1 bit - Lifetime: OBjec velocity pass - Camera velocity (This bit is cleared to 0 after Camera motion vector pass)
+            ObjectMotionVectors             = 128,  // 0x80 - 1 bit - Lifetime: Object motion vector pass - Camera motion vector (This bit is cleared to 0 after Camera motion vector pass)
             All                             = 255   // 0xFF - 8 bit
         }
 
@@ -207,7 +207,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture                   m_TemporaryTargetForCubemaps;
         Stack<Camera>                   m_ProbeCameraPool = new Stack<Camera>();
 
-        RenderTargetIdentifier[] m_MRTTransparentVelocity;
+        RenderTargetIdentifier[] m_MRTTransparentMotionVec;
         RenderTargetIdentifier[] m_MRTWithSSS;
         string m_ForwardPassProfileName;
 
@@ -373,7 +373,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DebugDisplaySettings.data.msaaSamples = m_MSAASamples;
 
             m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
-            m_MRTTransparentVelocity = new RenderTargetIdentifier[2];
+            m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
 #if ENABLE_RAYTRACING
             m_RayTracingManager.Init(m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources, m_BlueNoise, m_LightLoop, m_SharedRTManager, m_DebugDisplaySettings);
             m_RaytracingReflections.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager, m_GbufferManager);
@@ -801,7 +801,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 {
-                    var buf = m_SharedRTManager.GetVelocityBuffer();
+                    var buf = m_SharedRTManager.GetMotionVectorsBuffer();
 
                     cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, buf);
                     cmd.SetGlobalVector( HDShaderIDs._CameraMotionVectorsSize, new Vector4(buf.referenceSize.x,
@@ -1512,9 +1512,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
             if (!shouldRenderMotionVectorAfterGBuffer)
             {
-                // If objects velocity if enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
+                // If objects motion vectors if enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
                 // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
-                RenderObjectsVelocity(cullingResults, hdCamera, renderContext, cmd);
+                RenderObjectsMotionVectors(cullingResults, hdCamera, renderContext, cmd);
             }
 
             // Now that all depths have been rendered, resolve the depth buffer
@@ -1543,11 +1543,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (shouldRenderMotionVectorAfterGBuffer)
             {
-                // See the call RenderObjectsVelocity() above and comment
-                RenderObjectsVelocity(cullingResults, hdCamera, renderContext, cmd);
+                // See the call RenderObjectsMotionVectors() above and comment
+                RenderObjectsMotionVectors(cullingResults, hdCamera, renderContext, cmd);
             }
 
-            RenderCameraVelocity(cullingResults, hdCamera, renderContext, cmd);
+            RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
 
             StopStereoRendering(cmd, renderContext, camera);
             // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
@@ -2458,7 +2458,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         //XRUtils.DrawOcclusionMesh(cmd, hdCamera.camera, hdCamera.camera.stereoEnabled);
 
                         // Full forward: Output normal buffer for both forward and forwardOnly
-                        // Exclude object that render velocity (if motion vector are enabled)
+                        // Exclude object that render motion vectors (if motion vector are enabled)
                         RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque, excludeMotionVector: excludeMotion);
                     }
                     break;
@@ -2580,6 +2580,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     drawSettings.SetShaderPassName(1, HDShaderPassNames.s_ShaderGraphMeshDecalsName3RT);
                 }
 
+                CoreUtils.SetKeyword(cmd, "DECALS_HTILE_SUPPORT", SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore));
+                cmd.SetGlobalInt(HDShaderIDs._DecalsHtileSupport, SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) ? 1 : 0);
                 FilteringSettings filterRenderersSettings = new FilteringSettings(HDRenderQueue.k_RenderQueue_AllOpaque);
                 renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterRenderersSettings);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
@@ -2814,17 +2816,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        bool renderVelocitiesForTransparent = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteVelocity);
-                        cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, renderVelocitiesForTransparent ? (int)UnityEngine.Rendering.ColorWriteMask.All : 0);
+                        bool renderMotionVecForTransparent = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
+                        cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, renderMotionVecForTransparent ? (int)UnityEngine.Rendering.ColorWriteMask.All : 0);
 
-                        m_MRTTransparentVelocity[0] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-                        m_MRTTransparentVelocity[1] = renderVelocitiesForTransparent ? m_SharedRTManager.GetVelocityBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                        m_MRTTransparentMotionVec[0] = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+                        m_MRTTransparentMotionVec[1] = renderMotionVecForTransparent ? m_SharedRTManager.GetMotionVectorsBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                             // It doesn't really matter what gets bound here since the color mask state set will prevent this from ever being written to. However, we still need to bind something
                             // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent, here the normal buffer 
                             // as it is guaranteed to exist and to have the same size.
+                            // to avoid warnings about unbound render targets. 
                             : m_SharedRTManager.GetNormalBuffer();
+                                                    
 
-                        HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTTransparentVelocity, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTTransparentMotionVec, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
                         if ((hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                                                                                                                                   // decal datas count is 0 if no decals affect transparency
                         {
@@ -2837,7 +2841,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         	transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
                     	}
 
-                        if (renderVelocitiesForTransparent)
+                        if (renderMotionVecForTransparent)
                         {
                             m_currentRendererConfigurationBakedLighting |= PerObjectData.MotionVectors;
                         }
@@ -2884,42 +2888,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderObjectsVelocity(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderObjectsMotionVectors(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors))
                 return;
 
-            using (new ProfilingSample(cmd, "Objects Velocity", CustomSamplerId.ObjectsVelocity.GetSampler()))
+            using (new ProfilingSample(cmd, "Objects Motion Vectors Rendering", CustomSamplerId.ObjectsMotionVector.GetSampler()))
             {
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetVelocityPassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetMotionVectorsPassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
                 RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors);
             }
         }
 
-        void RenderCameraVelocity(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void RenderCameraMotionVectors(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 return;
 
-            using (new ProfilingSample(cmd, "Camera Velocity", CustomSamplerId.CameraVelocity.GetSampler()))
+            using (new ProfilingSample(cmd, "Camera Motion Vectors Rendering", CustomSamplerId.CameraMotionVectors.GetSampler()))
             {
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                HDUtils.DrawFullScreen(cmd, hdCamera, m_CameraMotionVectorsMaterial, m_SharedRTManager.GetVelocityBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), null, 0);
-                PushFullScreenDebugTexture(hdCamera, cmd, m_SharedRTManager.GetVelocityBuffer(), FullScreenDebugMode.MotionVectors);
+                HDUtils.DrawFullScreen(cmd, hdCamera, m_CameraMotionVectorsMaterial, m_SharedRTManager.GetMotionVectorsBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), null, 0);
+                PushFullScreenDebugTexture(hdCamera, cmd, m_SharedRTManager.GetMotionVectorsBuffer(), FullScreenDebugMode.MotionVectors);
 
 #if UNITY_EDITOR
 
                 // In scene view there is no motion vector, so we clear the RT to black
                 if (hdCamera.camera.cameraType == CameraType.SceneView && !CoreUtils.AreAnimatedMaterialsEnabled(hdCamera.camera))
                 {
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetVelocityBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetMotionVectorsBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
                 }
 #endif
             }
