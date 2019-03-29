@@ -84,6 +84,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Reload("ShaderLibrary/Blit.shader")]
             public Shader blitPS;
 
+            [Reload("ShaderLibrary/DownsampleDepth.shader")]
+            public Shader downsampleDepthPS;
+            [Reload("ShaderLibrary/UpsampleTransparent.shader")]
+            public Shader upsampleTransparentPS;
+
             // Sky
             [Reload("Sky/BlitCubemap.shader")]
             public Shader blitCubemapPS;

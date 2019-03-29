@@ -103,6 +103,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Postprocess = 15,
         [FrameSettingsField(0, autoName: AfterPostprocess, customOrderInGroup: 15)]
         AfterPostprocess = 17,
+        [FrameSettingsField(0, autoName: LowResTransparent)]
+        LowResTransparent = 18,
 
         //lighting settings from 20 to 39
         [FrameSettingsField(1, autoName: Shadow)]
@@ -218,6 +220,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.Distortion,
                 (uint)FrameSettingsField.Postprocess,
                 (uint)FrameSettingsField.AfterPostprocess,
+                (uint)FrameSettingsField.LowResTransparent,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
                 (uint)FrameSettingsField.RealtimePlanarReflection,
@@ -476,6 +479,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= !reflection && renderPipelineSettings.supportDistortion && !msaa && !preview;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled; 
 
             bool async = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;
