@@ -124,6 +124,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                 cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
                             cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+                            cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
+                            cmdBuffer.SetGlobalColor("_Color", light.intensity * light.color);
+                            cmdBuffer.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
 
                             if(light.useNormalMap || light.lightType == Light2D.LightType.Point)
                                 RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);

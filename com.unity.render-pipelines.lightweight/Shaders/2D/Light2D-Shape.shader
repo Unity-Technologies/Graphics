@@ -44,7 +44,9 @@ Shader "Hidden/Light2D-Shape"
 				NORMALS_LIGHTING_COORDS(TEXCOORD1, TEXCOORD2)
             };
 
-            float _InverseLightIntensityScale;
+			float  _InverseLightIntensityScale;
+			float4 _Color;
+			float  _FalloffDistance;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
@@ -60,8 +62,13 @@ Shader "Hidden/Light2D-Shape"
             {
                 Varyings o = (Varyings)0;
 
-                o.positionCS = TransformObjectToHClip(attributes.positionOS);
-                o.color = attributes.color * _InverseLightIntensityScale;
+				float3 positionOS = attributes.positionOS;
+				positionOS.x = positionOS.x + _FalloffDistance * attributes.color.r;
+				positionOS.y = positionOS.y + _FalloffDistance * attributes.color.g;
+
+                o.positionCS = TransformObjectToHClip(positionOS);
+                o.color = _Color * _InverseLightIntensityScale;
+				o.color.a = attributes.color.a;
 
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;
@@ -70,7 +77,7 @@ Shader "Hidden/Light2D-Shape"
 #endif
 
 				float4 worldSpacePos;
-				worldSpacePos.xyz = TransformObjectToWorld(attributes.positionOS);
+				worldSpacePos.xyz = TransformObjectToWorld(positionOS);
 				worldSpacePos.w = 1;
 				TRANSFER_NORMALS_LIGHTING(o, worldSpacePos)
 

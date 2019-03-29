@@ -256,16 +256,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             switch (m_LightType)
             {
                 case LightType.Freeform:
-                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, combinedColor, m_ShapePath, m_ShapeLightFalloffOffset, m_LightVolumeOpacity, m_ShapeLightFalloffSize);
+                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_ShapePath);
                     break;
                 case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightRadius, m_ShapeLightFalloffOffset, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, m_ShapeLightFalloffSize, combinedColor, m_LightVolumeOpacity);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightRadius, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:
-                    m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, combinedColor, m_LightVolumeOpacity, 1);
+                    m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, 1);
                     break;
                 case LightType.Point:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 0, 4, 0, combinedColor, m_LightVolumeOpacity);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, 0, 4);
                     break;
             }
 
@@ -368,7 +368,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal List<Vector2> GetFalloffShape()
         {
-            List<Vector2> shape = LightUtility.GetFeatheredShape(m_ShapePath, m_ShapeLightFalloffSize);
+            List<Vector2> shape = new List<Vector2>();
+            List<Vector2> extrusionDir = new List<Vector2>();
+            LightUtility.GetFeatheredShape(m_ShapePath, m_ShapeLightFalloffSize, ref shape, ref extrusionDir);
             return shape;
         }
 
