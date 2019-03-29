@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option in preferences to toggle the light emission normalization
 - Added Homothety and Symetry quick edition modifier on volume used in ReflectionProbe, PlanarReflectionProbe and DensityVolume
 - Added multi-edition support for DecalProjectorComponent
+- Added the _ScreenToTargetScaleHistory uniform variable to be used when sampling HDRP RTHandle history buffers.
 
 ### Fixed
 - Fixed HDRI sky intensity lux mode

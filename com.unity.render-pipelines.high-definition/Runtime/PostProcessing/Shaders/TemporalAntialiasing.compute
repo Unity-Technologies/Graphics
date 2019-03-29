@@ -31,10 +31,6 @@ RW_TEXTURE2D_X(float4, _OutputTexture);
 
 SAMPLER(sampler_LinearClamp);
 
-CBUFFER_START(cb0)
-    float4 _ScreenToTargetScaleHistory;
-CBUFFER_END
-
 float3 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
     float2 uv = (coords + offset * _ScreenSize.zw) * scale;
