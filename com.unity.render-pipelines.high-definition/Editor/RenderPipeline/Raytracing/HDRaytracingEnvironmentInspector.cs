@@ -26,8 +26,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent aoFilterModeText = EditorGUIUtility.TrTextContent("AO Filter Mode");
 
             // AO Bilateral Filter Data
-            public static GUIContent aoBilateralRadius = new GUIContent("AO Bilateral Radius");
-            public static GUIContent aoBilateralSigma = new GUIContent("AO Bilateral Sigma");
+            public static GUIContent aoBilateralRadius = new GUIContent("Fitler Radius");
 
             // Nvidia Filter Data
             public static GUIContent aoNvidiaMaxFilterWidth = new GUIContent("AO Nvidia Max Filter Width");
@@ -44,13 +43,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent reflMinSmoothnessText = new GUIContent("Reflections Min Smoothness");
             public static GUIContent reflClampValueText = new GUIContent("Reflections Clamp Value");
             public static GUIContent reflQualityText = new GUIContent("Reflections Quality");
+            public static GUIContent reflFilerModeText = new GUIContent("Reflections Filter Mode");
 
             // Reflections Quarter Res
             public static GUIContent reflTemporalAccumulationWeight = new GUIContent("Reflections Temporal Accumulation Weight");
-            public static GUIContent reflSpatialFilterRadius = new GUIContent("Spatial Filter Radius");
 
             // Relections Integration
             public static GUIContent reflNumMaxSamplesText = new GUIContent("Reflections Num Samples");
+
+            // Filter data
+            public static GUIContent reflFilterRadius = new GUIContent("Filter Radius");
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Area Light Shadow
             public static GUIContent shadowEnableText = new GUIContent("Enable");
@@ -58,6 +60,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent shadowSectionText = new GUIContent("Ray-traced Shadows");
             public static GUIContent shadowBilateralRadius = new GUIContent("Shadows Bilateral Radius");
             public static GUIContent shadowNumSamplesText = new GUIContent("Shadows Num Samples");
+            public static GUIContent splitIntegrationText = new GUIContent("Split Integration");
 
             // Shadow Bilateral Filter Data
             public static GUIContent numAreaLightShadows = new GUIContent("Max Num Shadows");
@@ -84,6 +87,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent indirectDiffuseNumSamplesText = new GUIContent("Indirect Diffuse Num Samples");
             public static readonly GUIContent indirectDiffuseRayLengthText = new GUIContent("Indirect Diffuse Ray Length");
             public static readonly GUIContent indirectDiffuseClampText = new GUIContent("Indirect Diffuse Clamp Value");
+            public static readonly GUIContent indirectDiffuseFilterModeText = new GUIContent("Indirect Diffuse Filter Mode");
+            public static readonly GUIContent indirectDiffuseFilterRadiusText = new GUIContent("Filter Radius");
         }
 
         SerializedHDRaytracingEnvironment m_SerializedHDRaytracingEnvironment;
@@ -153,10 +158,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 switch ((HDRaytracingEnvironment.AOFilterMode)rtEnv.aoFilterMode.enumValueIndex)
                 {
-                    case HDRaytracingEnvironment.AOFilterMode.Bilateral:
+                    case HDRaytracingEnvironment.AOFilterMode.SpatioTemporal:
                         {
                             EditorGUILayout.PropertyField(rtEnv.aoBilateralRadius, Styles.aoBilateralRadius);
-                            EditorGUILayout.PropertyField(rtEnv.aoBilateralSigma, Styles.aoBilateralSigma);
                         }
                         break;
                     case HDRaytracingEnvironment.AOFilterMode.Nvidia:
@@ -203,13 +207,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     case HDRaytracingEnvironment.ReflectionsQuality.QuarterRes:
                         {
                             EditorGUILayout.PropertyField(rtEnv.reflTemporalAccumulationWeight, Styles.reflTemporalAccumulationWeight);
-                            EditorGUILayout.PropertyField(rtEnv.reflSpatialFilterRadius, Styles.reflSpatialFilterRadius);
+                            EditorGUILayout.PropertyField(rtEnv.reflSpatialFilterRadius, Styles.reflFilterRadius);
                         }
                     break;
                     case HDRaytracingEnvironment.ReflectionsQuality.Integration:
                         {
                             EditorGUILayout.PropertyField(rtEnv.reflNumMaxSamples, Styles.reflNumMaxSamplesText);
-                            
+                            EditorGUILayout.PropertyField(rtEnv.reflFilterMode, Styles.reflFilerModeText);
+
+                            switch ((HDRaytracingEnvironment.ReflectionsFilterMode)rtEnv.reflFilterMode.enumValueIndex)
+                            {
+                                case HDRaytracingEnvironment.ReflectionsFilterMode.SpatioTemporal:
+                                {
+                                    EditorGUILayout.PropertyField(rtEnv.reflFilterRadius, Styles.reflFilterRadius);
+                                }
+                                break;
+                            }
                         }
                     break;
                 }
@@ -265,6 +278,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(rtEnv.shadowNumSamples, Styles.shadowNumSamplesText);
                 EditorGUILayout.PropertyField(rtEnv.numAreaLightShadows, Styles.numAreaLightShadows);
                 EditorGUILayout.PropertyField(rtEnv.shadowFilterRadius, Styles.shadowBilateralRadius);
+                EditorGUILayout.PropertyField(rtEnv.splitIntegration, Styles.splitIntegrationText);
             }
         }
 
@@ -285,6 +299,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(rtEnv.indirectDiffuseNumSamples, Styles.indirectDiffuseNumSamplesText);
                 EditorGUILayout.PropertyField(rtEnv.indirectDiffuseRayLength, Styles.indirectDiffuseRayLengthText);
                 EditorGUILayout.PropertyField(rtEnv.indirectDiffuseClampValue, Styles.indirectDiffuseClampText);
+
+                EditorGUILayout.PropertyField(rtEnv.indirectDiffuseFilterMode, Styles.indirectDiffuseFilterModeText);
+                switch ((HDRaytracingEnvironment.IndirectDiffuseFilterMode)rtEnv.indirectDiffuseFilterMode.enumValueIndex)
+                {
+                    case HDRaytracingEnvironment.IndirectDiffuseFilterMode.SpatioTemporal:
+                    {
+                        EditorGUILayout.PropertyField(rtEnv.indirectDiffuseFilterRadius, Styles.indirectDiffuseFilterRadiusText);
+                    }
+                    break;
+                }
             }
         }
 

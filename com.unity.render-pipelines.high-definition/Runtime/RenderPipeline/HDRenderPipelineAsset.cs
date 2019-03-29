@@ -25,6 +25,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return new HDRenderPipeline(this);
         }
 
+        protected override void OnValidate()
+        {
+            //Do not reconstruct the pipeline if we modify other assets.
+            //OnValidate is called once at first selection of the asset.
+            if (GraphicsSettings.renderPipelineAsset == this)
+                base.OnValidate();
+        }
+
         [SerializeField]
         RenderPipelineResources m_RenderPipelineResources;
 

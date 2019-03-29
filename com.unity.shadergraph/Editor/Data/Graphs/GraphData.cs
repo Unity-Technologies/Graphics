@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 using Edge = UnityEditor.Graphing.Edge;
 
@@ -556,7 +557,6 @@ namespace UnityEditor.ShaderGraph
             var node = GetNodeFromGuid(s.nodeGuid);
             if (node == null)
             {
-                Debug.LogWarning("Node does not exist");
                 return;
             }
             ISlot slot = node.FindSlot<ISlot>(s.slotId);
@@ -812,9 +812,15 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void AddValidationError(Identifier id, string errorMessage)
+        public void AddValidationError(Identifier id, string errorMessage,
+            ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
-            messageManager?.AddOrAppendError(this, id, new ShaderMessage(errorMessage));;
+            messageManager?.AddOrAppendError(this, id, new ShaderMessage(errorMessage, severity));
+        }
+
+        public void ClearErrorsForNode(AbstractMaterialNode node)
+        {
+            messageManager?.ClearNodesFromProvider(this, node.ToEnumerable());
         }
 
         public void ReplaceWith(GraphData other)

@@ -35,7 +35,6 @@ ${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 
 // Needed for HDRP
 #define SHADERPASS SHADERPASS_SHADOWS
-#define USE_LEGACY_UNITY_MATRIX_VARIABLES
 		
 	${VFXInclude("Shaders/ParticleQuads/Pass.template")}	
 		

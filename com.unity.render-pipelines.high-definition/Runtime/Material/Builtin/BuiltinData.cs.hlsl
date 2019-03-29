@@ -15,7 +15,7 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_2 (105)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_3 (106)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR (107)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY (108)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_MOTION_VECTOR (108)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION (109)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (110)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS (111)
@@ -33,7 +33,7 @@ struct BuiltinData
     float shadowMask2;
     float shadowMask3;
     float3 emissiveColor;
-    float2 velocity;
+    float2 motionVector;
     float2 distortion;
     float distortionBlur;
     uint renderingLayers;
@@ -81,8 +81,8 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
         case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR:
             result = builtindata.emissiveColor;
             break;
-        case DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY:
-            result = float3(builtindata.velocity, 0.0);
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_MOTION_VECTOR:
+            result = float3(builtindata.motionVector, 0.0);
             break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
             result = float3(builtindata.distortion, 0.0);
