@@ -190,7 +190,7 @@ PackedVaryingsType SpeedTree8Vert(SpeedTreeVertexInput input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output.vmesh);
 
     // handle speedtree wind and lod
-    InitializeCommonData(input, unity_LODFade.x);
+    InitializeData(input, unity_LODFade.x);
 
     float3 positionWS = TransformObjectToWorld(input.vertex.xyz);
     float3 normalWS = TransformObjectToWorldNormal(input.normal);
