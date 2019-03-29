@@ -125,7 +125,6 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 
 real3 PolygonFormFactor(real4x3 L)
 {
-    UNITY_UNROLL
     for (uint i = 0; i < 4; i++)
     {
         L[i] = normalize(L[i]);
@@ -143,7 +142,6 @@ real3 PolygonFormFactor(real4x3 L)
 real PolygonIrradiance(real4x3 L)
 {
 #ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-    UNITY_UNROLL
     for (uint i = 0; i < 4; i++)
     {
         L[i] = normalize(L[i]);
@@ -151,7 +149,6 @@ real PolygonIrradiance(real4x3 L)
 
     real3 F = real3(0, 0, 0);
 
-    UNITY_UNROLL
     for (uint edge = 0; edge < 4; edge++)
     {
         real3 V1 = L[edge];
