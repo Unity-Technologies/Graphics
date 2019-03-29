@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsActive()
         {
-            return intensity > 0f;
+            return intensity.value > 0f;
         }
     }
 }
