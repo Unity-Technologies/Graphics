@@ -169,7 +169,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected virtual bool showBlendModePopup { get { return true; } }
         protected virtual bool showPreRefractionPass { get { return true; } }
-        protected virtual bool showLowResolutionPass { get { return false; } } // Not implemented yet
+        protected virtual bool showLowResolutionPass { get { return true; } }
         protected virtual bool showAfterPostProcessPass { get { return true; } }
 
         List<string> m_RenderingPassNames = new List<string>();
