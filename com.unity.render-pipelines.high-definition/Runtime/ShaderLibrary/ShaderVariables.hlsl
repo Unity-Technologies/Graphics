@@ -269,14 +269,24 @@ float SampleCameraDepth(float2 uv)
     return LoadCameraDepth(uint2(uv * _ScreenSize.xy));
 }
 
+float3 LoadCameraColor(uint2 pixelCoords, uint lod)
+{
+    return LOAD_TEXTURE2D_X_LOD(_ColorPyramidTexture, pixelCoords, lod).rgb;
+}
+
+float3 SampleCameraColor(float2 uv, float lod)
+{
+    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _ScreenToTargetScaleHistory.xy, lod).rgb;
+}
+
 float3 LoadCameraColor(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_X_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
+    return LoadCameraColor(pixelCoords, 0);
 }
 
 float3 SampleCameraColor(float2 uv)
 {
-    return LoadCameraColor(uint2(uv * _ScreenSize.xy));
+    return SampleCameraColor(uv, 0);
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
