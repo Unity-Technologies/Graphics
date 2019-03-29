@@ -45,9 +45,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ComputeBuffer m_FarBokehTileList;
 
         // Bloom data
-        const int k_BloomMipCount = 6;
-        readonly RTHandle[] m_BloomMipsDown = new RTHandle[k_BloomMipCount + 1];
-        readonly RTHandle[] m_BloomMipsUp = new RTHandle[k_BloomMipCount + 1];
+        const int k_MaxBloomMipCount = 16;
+        readonly RTHandle[] m_BloomMipsDown = new RTHandle[k_MaxBloomMipCount + 1];
+        readonly RTHandle[] m_BloomMipsUp = new RTHandle[k_MaxBloomMipCount + 1];
         RTHandle m_BloomTexture;
 
         // Chromatic aberration data
@@ -534,7 +534,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int kernel = cs.FindKernel("KMain");
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, 1);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, XRGraphics.computePassCount);
         }
 
         #endregion
@@ -572,12 +572,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Exposure.mode == ExposureMode.Fixed)
             {
                 kernel = cs.FindKernel("KFixedExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.fixedExposure, 0f, 0f, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.fixedExposure.value, 0f, 0f, 0f));
             }
             else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
             {
                 kernel = cs.FindKernel("KManualCameraExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso));
             }
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
@@ -687,20 +687,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DispatchCompute(cs, kernel, 32, 32, 1);
 
             // Reduction: 2nd pass (32 -> 1) + evaluate exposure
-            if (m_Exposure.mode == ExposureMode.Automatic)
+            if (m_Exposure.mode.value == ExposureMode.Automatic)
             {
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation, m_Exposure.limitMin, m_Exposure.limitMax, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
                 m_ExposureVariants[3] = 1;
             }
-            else if (m_Exposure.mode == ExposureMode.CurveMapping)
+            else if (m_Exposure.mode.value == ExposureMode.CurveMapping)
             {
                 PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureCurveTexture, m_ExposureCurveTexture);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation, min, max, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, min, max, 0f));
                 m_ExposureVariants[3] = 2;
             }
 
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._AdaptationParams, new Vector4(m_Exposure.adaptationSpeedLightToDark, m_Exposure.adaptationSpeedDarkToLight, 0f, 0f));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._AdaptationParams, new Vector4(m_Exposure.adaptationSpeedLightToDark.value, m_Exposure.adaptationSpeedDarkToLight.value, 0f, 0f));
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_TempTexture32);
@@ -920,10 +920,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else // DepthOfFieldMode.Manual
                 {
-                    float nearEnd = m_DepthOfField.nearFocusEnd;
-                    float nearStart = Mathf.Min(m_DepthOfField.nearFocusStart, nearEnd - 1e-5f);
-                    float farStart = Mathf.Max(m_DepthOfField.farFocusStart, nearEnd);
-                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd, farStart);
+                    float nearEnd = m_DepthOfField.nearFocusEnd.value;
+                    float nearStart = Mathf.Min(m_DepthOfField.nearFocusStart.value, nearEnd - 1e-5f);
+                    float farStart = Mathf.Max(m_DepthOfField.farFocusStart.value, nearEnd);
+                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart);
 
                     kernel = cs.FindKernel("KMainManual");
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearStart, nearEnd, farStart, farEnd));
@@ -1340,16 +1340,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 motionBlurParams0 = new Vector4(
                 screenMagnitude,
                 screenMagnitude * screenMagnitude,
-                m_MotionBlur.minVel,
-                m_MotionBlur.minVel * m_MotionBlur.minVel
+                m_MotionBlur.minVel.value,
+                m_MotionBlur.minVel.value * m_MotionBlur.minVel.value
             );
 
 
             Vector4 motionBlurParams1 = new Vector4(
-                m_MotionBlur.intensity,
-                m_MotionBlur.maxVelocity / screenMagnitude,
-                m_MotionBlur.tileMinMaxVelRatioForHighQuality,
-                m_MotionBlur.cameraRotationVelocityClamp
+                m_MotionBlur.intensity.value,
+                m_MotionBlur.maxVelocity.value / screenMagnitude,
+                m_MotionBlur.tileMinMaxVelRatioForHighQuality.value,
+                m_MotionBlur.cameraRotationVelocityClamp.value
             );
 
             // -----------------------------------------------------------------------------
@@ -1590,7 +1590,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 scaleH *= anamorphism > 0 ? 1f - anamorphism : 1f;
             }
 
-            int mipCount = k_BloomMipCount + (resolution == BloomResolution.Half ? 1 : 0);
+            // Determine the iteration count
+            int maxSize = Mathf.Max(camera.actualWidth, camera.actualHeight);
+            int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 2 - (resolution == BloomResolution.Half ? 0 : 1));
+            int mipCount = Mathf.Clamp(iterations, 1, k_MaxBloomMipCount);
             var mipSizes = stackalloc Vector2Int[mipCount];
 
             // Prepare targets
@@ -1632,7 +1635,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ComputeShader cs;
             int kernel;
 
-            if (m_Bloom.prefilter)
+            if (m_Bloom.prefilter.value)
             {
                 var size = mipSizes[0];
                 cs = m_Resources.shaders.bloomPrefilterCS;
@@ -1726,7 +1729,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float dirtRatio = (float)dirtTexture.width / (float)dirtTexture.height;
             float screenRatio = (float)camera.actualWidth / (float)camera.actualHeight;
             var dirtTileOffset = new Vector4(1f, 1f, 0f, 0f);
-            float dirtIntensity = intensity * (Mathf.Pow(2f, m_Bloom.dirtIntensity.value) - 1f);
+            float dirtIntensity = m_Bloom.dirtIntensity.value * intensity;
 
             if (dirtRatio > screenRatio)
             {
@@ -1815,7 +1818,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 spectralLut = m_InternalSpectralLut;
             }
 
-            var settings = new Vector4(m_ChromaticAberration.intensity * 0.05f, m_ChromaticAberration.maxSamples, 0f, 0f);
+            var settings = new Vector4(m_ChromaticAberration.intensity.value * 0.05f, m_ChromaticAberration.maxSamples.value, 0f, 0f);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ChromaSpectralLut, spectralLut);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ChromaParams, settings);
         }
@@ -1857,10 +1860,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Prepare data
             var lmsColorBalance = GetColorBalanceCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
-            var hueSatCon = new Vector4(m_ColorAdjustments.hueShift / 360f, m_ColorAdjustments.saturation / 100f + 1f, m_ColorAdjustments.contrast / 100f + 1f, 0f);
-            var channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn   / 100f, m_ChannelMixer.redOutGreenIn   / 100f, m_ChannelMixer.redOutBlueIn   / 100f, 0f);
-            var channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn / 100f, m_ChannelMixer.greenOutGreenIn / 100f, m_ChannelMixer.greenOutBlueIn / 100f, 0f);
-            var channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn  / 100f, m_ChannelMixer.blueOutGreenIn  / 100f, m_ChannelMixer.blueOutBlueIn  / 100f, 0f);
+            var hueSatCon = new Vector4(m_ColorAdjustments.hueShift.value / 360f, m_ColorAdjustments.saturation.value / 100f + 1f, m_ColorAdjustments.contrast.value / 100f + 1f, 0f);
+            var channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn.value   / 100f, m_ChannelMixer.redOutGreenIn.value   / 100f, m_ChannelMixer.redOutBlueIn.value   / 100f, 0f);
+            var channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn.value / 100f, m_ChannelMixer.greenOutGreenIn.value / 100f, m_ChannelMixer.greenOutBlueIn.value / 100f, 0f);
+            var channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn.value  / 100f, m_ChannelMixer.blueOutGreenIn.value  / 100f, m_ChannelMixer.blueOutBlueIn.value  / 100f, 0f);
 
             ComputeShadowsMidtonesHighlights(out var shadows, out var midtones, out var highlights, out var shadowsHighlightsLimits);
             ComputeLiftGammaGain(out var lift, out var gamma, out var gain);
@@ -1943,7 +1946,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // This should be EV100 instead of EV but given that EV100(0) isn't equal to 1, it means
             // we can't use 0 as the default neutral value which would be confusing to users
-            float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure);
+            float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
 
             // Setup the uber shader
             var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);

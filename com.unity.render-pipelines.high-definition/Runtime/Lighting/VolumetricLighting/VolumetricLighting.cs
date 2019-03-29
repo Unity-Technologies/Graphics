@@ -468,7 +468,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Get the interpolated anisotropy value.
             var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
 
-            SetPreconvolvedAmbientLightProbe(cmd, fog.globalLightProbeDimmer, fog.anisotropy);
+            SetPreconvolvedAmbientLightProbe(cmd, fog.globalLightProbeDimmer.value, fog.anisotropy.value);
 
             var currFrameParams = hdCamera.vBufferParams[0];
             var prevFrameParams = hdCamera.vBufferParams[1];
@@ -689,7 +689,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bool tiledLighting      = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
                 bool enableReprojection = Application.isPlaying && hdCamera.camera.cameraType == CameraType.Game &&
                                           hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
-                bool enableAnisotropy   = fog.anisotropy != 0;
+                bool enableAnisotropy   = fog.anisotropy.value != 0;
                 bool highQuality        = preset == VolumetricLightingPreset.High;
 
                 int kernel = (tiledLighting ? 1 : 0) | (enableReprojection ? 2 : 0) | (enableAnisotropy ? 4 : 0) | (highQuality ? 8 : 0);
@@ -724,7 +724,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: set the constant buffer data only once.
                 cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS,      transform);
                 cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._VBufferUnitDepthTexelSpacing, unitDepthTexelSpacing);
-                cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,       CornetteShanksPhasePartConstant(fog.anisotropy));
+                cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,       CornetteShanksPhasePartConstant(fog.anisotropy.value));
                 cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,          m_xySeqOffset);
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,               m_DensityBufferHandle);  // Read
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral,      m_LightingBufferHandle); // Write
