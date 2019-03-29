@@ -21,7 +21,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // Make sure to add the additional travel distance
     float travelDistance = length(pointWSPos - rayIntersection.origin);
     rayIntersection.t = travelDistance;
-    rayIntersection.cone.width += travelDistance * rayIntersection.cone.spreadAngle;
+    rayIntersection.cone.width += travelDistance * abs(rayIntersection.cone.spreadAngle);
     
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
@@ -110,7 +110,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-        reflectedIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+        reflectedIntersection.cone.spreadAngle = -_RaytracingPixelSpreadAngle;
         reflectedIntersection.cone.width = rayIntersection.cone.width;
         
         // Evaluate the ray intersection
