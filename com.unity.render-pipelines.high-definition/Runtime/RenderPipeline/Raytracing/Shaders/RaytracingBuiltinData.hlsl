@@ -12,7 +12,7 @@ float computeTextureLOD(Texture2D targetTexture, float4 uvMask, float3 viewWS, f
                         + uvMask.w * intersectionVertice.texCoord3Area;
 
     // Compute dot product between view and surface normal
-    float lambda = 0.0; //0.5f * log2(targetTexcoordArea / intersectionVertice.triangleArea);
+    float lambda = 0.5f * log2(targetTexcoordArea / intersectionVertice.triangleArea);
     lambda += log2(abs(rayCone.width));
     lambda += 0.5 * log2(texWidth * texHeight);
     lambda -= log2(abs(dot(viewWS, normalWS)));
