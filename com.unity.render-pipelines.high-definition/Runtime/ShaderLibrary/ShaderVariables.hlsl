@@ -143,7 +143,10 @@ CBUFFER_START(UnityGlobal)
     float  _Pad1;
 #endif
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
+
+    // Those two uniforms are specific to the RTHandle system
     float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+    float4 _ScreenToTargetScaleHistory; // Same as above but the RTHandle handle size is that of the history buffer
 
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
     // x = 1 - f/n
