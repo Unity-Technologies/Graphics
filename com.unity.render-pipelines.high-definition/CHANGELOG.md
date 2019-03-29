@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve hair shader
 - Added the _ScreenToTargetScaleHistory uniform variable to be used when sampling HDRP RTHandle history buffers.
 - Added settings in `FrameSettings` to change `QualitySettings.lodBias` and `QualitySettings.maximumLODLevel` during a rendering
+- Added an exposure node to retrieve the current, inverse and previous frame exposure value.
+- Added an HD scene color node which allow to sample the scene color with mips and a toggle to remove the exposure.
+- Added shader parameter mapping in DebugMenu
+- Added scripting API to configure DebugData for DebugMenu
 
 ### Fixed
 - Fixed Light intensity not played in the player when recorded with animation/timeline
@@ -64,8 +68,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added depth offset input in shader graph master nodes
 - Added a Parallax Occlusion Mapping node
 - Added SMAA support
-- Added an exposure node to retrieve the current, inverse and previous frame exposure value.
-- Added an HD scene color node which allow to sample the scene color with mips and a toggle to remove the exposure.
 
 ### Fixed
 - Fixed instance identifier semantic string used by Shader Graph
@@ -162,8 +164,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a diffusion profile override volume so the list of diffusion profile assets to use can be chanaged without affecting the HDRP asset
 - Added a "Stop NaNs" option on cameras and in the Scene View preferences.
 - Added metric display option in HDShadowSettings and improve clamping
-- Added shader parameter mapping in DebugMenu
-- Added scripting API to configure DebugData for DebugMenu
 
 ### Fixed
 - Fixed a few UI bugs with the color grading curves.
