@@ -81,6 +81,9 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/22_Prewarm.unity
     guid: fce7db23c3ae2184aaff7992d0bcdbee
   - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/23_ParameterBinders.unity
+    guid: e0138a5b43c27d648a6245b159cdb358
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/23_InvertTRSMatrix.unity
     guid: 097d99c9737f88f4882c658cbe58367b
   - enabled: 1
