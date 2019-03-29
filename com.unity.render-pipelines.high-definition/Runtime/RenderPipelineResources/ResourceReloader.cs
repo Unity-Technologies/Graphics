@@ -126,7 +126,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
                 result = AssetDatabase.LoadAssetAtPath(path, type);
             if (IsNull(result))
-                UnityEngine.Debug.LogWarning(
+                throw new Exception(
                     String.Format("Cannot load. Incorrect path: {0} Null returned.", path));
             return result;
         }
