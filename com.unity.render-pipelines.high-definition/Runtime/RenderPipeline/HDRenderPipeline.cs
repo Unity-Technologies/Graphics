@@ -1447,6 +1447,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Must update after getting DebugDisplaySettings
             m_RayTracingManager.rayCountManager.ClearRayCount(cmd, hdCamera);
 #endif
+#if FRAMESETTINGS_LOD_BIAS
+            // Set the LOD bias and store current value to be able to restore it.
+            var initialLODBias = QualitySettings.lodBias;
+            QualitySettings.lodBias = hdCamera.frameSettings.lodBiasMode.ComputeValue(
+                QualitySettings.lodBias,
+                hdCamera.frameSettings.lodBias
+            );
+            cmd.SetLODBias(QualitySettings.lodBias);
+            var initialMaximumLODLevel = QualitySettings.maximumLODLevel;
+            QualitySettings.maximumLODLevel = hdCamera.frameSettings.maximumLODLevelMode.ComputeValue(
+                QualitySettings.maximumLODLevel,
+                hdCamera.frameSettings.maximumLODLevel
+            );
+            cmd.SetMaximumLODLevel(QualitySettings.maximumLODLevel);
+#endif
 
             m_DbufferManager.enableDecals = false;
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
@@ -1957,6 +1972,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (showGizmos)
                 RenderGizmos(cmd, camera, renderContext, GizmoSubset.PostImageEffects);
 #endif
+
+#if FRAMESETTINGS_LOD_BIAS
+            QualitySettings.lodBias = initialLODBias;
+            cmd.SetLODBias(initialLODBias);
+            QualitySettings.maximumLODLevel = initialMaximumLODLevel;
+            cmd.SetMaximumLODLevel(initialMaximumLODLevel);
+#endif
         }
 
         void BlitFinalCameraTexture(CommandBuffer cmd, HDCamera hdCamera, RenderTargetIdentifier destination)
@@ -2180,43 +2202,70 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
-            var includeEnvLights = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting);
-
-            DecalSystem.CullRequest decalCullRequest = null;
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+#if FRAMESETTINGS_LOD_BIAS
+            // Set the LOD bias and store current value to be able to restore it.
+            // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias
+            var initialLODBias = QualitySettings.lodBias;
+            var initialMaximumLODLevel = QualitySettings.maximumLODLevel;
+            try
             {
-                // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
-                decalCullRequest = GenericPool<DecalSystem.CullRequest>.Get();
-                DecalSystem.instance.CurrentCamera = camera;
-                DecalSystem.instance.BeginCull(decalCullRequest);
+                QualitySettings.lodBias = hdCamera.frameSettings.lodBiasMode.ComputeValue(
+                    QualitySettings.lodBias,
+                    hdCamera.frameSettings.lodBias
+                );
+                QualitySettings.maximumLODLevel = hdCamera.frameSettings.maximumLODLevelMode.ComputeValue(
+                    QualitySettings.maximumLODLevel,
+                    hdCamera.frameSettings.maximumLODLevel
+                );
+#endif
+
+                var includeEnvLights = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting);
+
+                DecalSystem.CullRequest decalCullRequest = null;
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                {
+                    // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
+                    decalCullRequest = GenericPool<DecalSystem.CullRequest>.Get();
+                    DecalSystem.instance.CurrentCamera = camera;
+                    DecalSystem.instance.BeginCull(decalCullRequest);
+                }
+
+                // TODO: use a parameter to select probe types to cull depending on what is enabled in framesettings
+                var hdProbeCullState = new HDProbeCullState();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
+                    hdProbeCullState = HDProbeSystem.PrepareCull(camera);
+
+                using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
+                    cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
+
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
+                    HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
+                else
+                    cullingResults.hdProbeCullingResults = default;
+
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                {
+                    using (new ProfilingSample(null, "DBufferPrepareDrawData",
+                        CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
+                        DecalSystem.instance.EndCull(decalCullRequest, cullingResults.decalCullResults);
+                }
+
+                if (decalCullRequest != null)
+                {
+                    decalCullRequest.Clear();
+                    GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
+                }
+
+                return true;
+
+#if FRAMESETTINGS_LOD_BIAS
             }
-
-            // TODO: use a parameter to select probe types to cull depending on what is enabled in framesettings
-            var hdProbeCullState = new HDProbeCullState();
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
-                hdProbeCullState = HDProbeSystem.PrepareCull(camera);
-
-            using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
-                cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
-
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
-                HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
-            else
-                cullingResults.hdProbeCullingResults = default;
-
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            finally
             {
-                using (new ProfilingSample(null, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
-                    DecalSystem.instance.EndCull(decalCullRequest, cullingResults.decalCullResults);
+                QualitySettings.lodBias = initialLODBias;
+                QualitySettings.maximumLODLevel = initialMaximumLODLevel;
             }
-
-            if (decalCullRequest != null)
-            {
-                decalCullRequest.Clear();
-                GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
-            }
-
-            return true;
+#endif
         }
 
         void RenderGizmos(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext, GizmoSubset gizmoSubset)

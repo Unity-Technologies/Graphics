@@ -13,6 +13,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Deferred
     }
 
+#if FRAMESETTINGS_LOD_BIAS
+    public enum LODBiasMode
+    {
+        /// <summary>Use the current quality settings value.</summary>
+        FromQualitySettings,
+        /// <summary>Scale the current quality settings value.</summary>
+        ScaleQualitySettings,
+        /// <summary>Set the current quality settings value.</summary>
+        Fixed,
+    }
+    public enum MaximumLODLevelMode
+    {
+        /// <summary>Use the current quality settings value.</summary>
+        FromQualitySettings,
+        /// <summary>Offset the current quality settings value.</summary>
+        OffsetQualitySettings,
+        /// <summary>Set the current quality settings value.</summary>
+        Fixed,
+    }
+
+    public static class LODBiasModeExtensions
+    {
+        public static float ComputeValue(this LODBiasMode mode, float qualitySettingValue, float inputValue)
+        {
+            switch (mode)
+            {
+                case LODBiasMode.FromQualitySettings: return qualitySettingValue;
+                case LODBiasMode.Fixed: return inputValue;
+                case LODBiasMode.ScaleQualitySettings: return inputValue * qualitySettingValue;
+                default: throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+        }
+    }
+
+    public static class MaximumLODLevelModeExtensions
+    {
+        public static int ComputeValue(this MaximumLODLevelMode mode, int qualitySettingsValue, int inputValue)
+        {
+            switch (mode)
+            {
+                case MaximumLODLevelMode.FromQualitySettings: return qualitySettingsValue;
+                case MaximumLODLevelMode.OffsetQualitySettings: return qualitySettingsValue + inputValue;
+                case MaximumLODLevelMode.Fixed: return inputValue;
+                default: throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+        }
+    }
+#endif
+
     // To add a new element to FrameSettings, add en entry in this enum using the FrameSettingsFieldAttribute.
     // Inspector UI and DebugMenu are generated from this.
     // If you have very specific display requirement, you could add them in FrameSettingsUI.Drawer.cs with a AmmendInfo command.
@@ -97,6 +146,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VolumeVoxelizationsAsync = 45,
 
         //from 60 to 119 : space for new scopes
+#if FRAMESETTINGS_LOD_BIAS
+        // true <=> Fixed, false <=> FromQualitySettings (default)
+        [FrameSettingsField(4, autoName: LODBiasMode, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(LODBiasMode))]
+        LODBiasMode = 60,
+        /// <summary>Set the LOD Bias with the value in <see cref="FrameSettings.lodBias"/>.</summary>
+        [FrameSettingsField(4, autoName: LODBias, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[]{ LODBiasMode })]
+        LODBias = 61,
+        // true <=> Fixed, false <=> FromQualitySettings (default)
+        [FrameSettingsField(4, autoName: MaximumLODLevelMode, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MaximumLODLevelMode))]
+        MaximumLODLevelMode = 62,
+        /// <summary>Set the LOD Bias with the value in <see cref="FrameSettings.maximumLODLevel"/>.</summary>
+        [FrameSettingsField(4, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[]{ MaximumLODLevelMode })]
+        MaximumLODLevel = 63,
+#endif
 
         //lightLoop settings from 120 to 127
         [FrameSettingsField(3, autoName: FPTLForForwardOpaque)]
@@ -173,7 +236,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.TransparentsWriteMotionVector,
                 (uint)FrameSettingsField.SpecularLighting,
-            })
+            }),
+#if FRAMESETTINGS_LOD_BIAS
+            lodBias = 1,
+#endif
         };
         /// <summary>Default FrameSettings for realtime ReflectionProbe/PlanarReflectionProbe renderer.</summary>
         public static readonly FrameSettings defaultRealtimeReflectionProbe = new FrameSettings()
@@ -217,7 +283,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.SpecularLighting,
-            })
+            }),
+#if FRAMESETTINGS_LOD_BIAS
+            lodBias = 1,
+#endif
         };
         /// <summary>Default FrameSettings for baked or custom ReflectionProbe/PlanarReflectionProbe renderer.</summary>
         public static readonly FrameSettings defaultCustomOrBakeReflectionProbe = new FrameSettings()
@@ -260,7 +329,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.SpecularLighting,
-            })
+            }),
+#if FRAMESETTINGS_LOD_BIAS
+            lodBias = 1,
+#endif
         };
 
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
@@ -269,6 +341,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // For more, you should write one using previous as exemple.
         [SerializeField]
         BitArray128 bitDatas;
+
+#if FRAMESETTINGS_LOD_BIAS
+        /// <summary>
+        /// if <c>lodBiasMode == LODBiasMode.Fixed</c>, then this value will overwrite <c>QualitySettings.lodBias</c>
+        /// if <c>lodBiasMode == LODBiasMode.ScaleQualitySettings</c>, then this value will scale <c>QualitySettings.lodBias</c>
+        /// </summary>
+        public float lodBias;
+        /// <summary>Define how the <c>QualitySettings.lodBias</c> value is set.</summary>
+        public LODBiasMode lodBiasMode;
+        /// <summary>
+        /// if <c>maximumLODLevelMode == MaximumLODLevelMode.FromQualitySettings</c>, then this value will overwrite <c>QualitySettings.maximumLODLevel</c>
+        /// if <c>maximumLODLevelMode == MaximumLODLevelMode.OffsetQualitySettings</c>, then this value will offset <c>QualitySettings.maximumLODLevel</c>
+        /// </summary>
+        public int maximumLODLevel;
+        /// <summary>Define how the <c>QualitySettings.maximumLODLevel</c> value is set.</summary>
+        public MaximumLODLevelMode maximumLODLevelMode;
+#endif
 
         /// <summary>Helper to see binary saved data on LitShaderMode as a LitShaderMode enum.</summary>
         public LitShaderMode litShaderMode
@@ -300,6 +389,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             //quick override of all booleans
             overriddenFrameSettings.bitDatas = (overridingFrameSettings.bitDatas & frameSettingsOverideMask.mask) | (~frameSettingsOverideMask.mask & overriddenFrameSettings.bitDatas);
+#if FRAMESETTINGS_LOD_BIAS
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBias])
+                overriddenFrameSettings.lodBias = overridingFrameSettings.lodBias;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBiasMode])
+                overriddenFrameSettings.lodBiasMode = overridingFrameSettings.lodBiasMode;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevel])
+                overriddenFrameSettings.maximumLODLevel = overridingFrameSettings.maximumLODLevel;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevelMode])
+                overriddenFrameSettings.maximumLODLevelMode = overridingFrameSettings.maximumLODLevelMode;
+#endif
 
             //override remaining values here if needed
         }
