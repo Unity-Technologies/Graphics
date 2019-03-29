@@ -31,6 +31,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetNormalWS(input, float3(0.0, 0.0, 1.0), surfaceData.normalWS, doubleSidedConstants);
 
     surfaceData.geomNormalWS = input.worldToTangent[2];
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
 
 #ifdef EFFECT_BUMP
     float3 tanNorm = 2.0 * (SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, input.texCoord0.xy).rgb - float3(0.5, 0.5, 0.5));
@@ -87,13 +88,19 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.transmittanceColor = SAMPLE_TEXTURE2D(_SubsurfaceTex, sampler_SubsurfaceTex, input.texCoord0.xy).rgb * _SubsurfaceColor.rgb;
 #if defined(GEOM_TYPE_LEAF) || defined(GEOM_TYPE_FACINGLEAF)
     surfaceData.transmittanceMask = 1.0;
+    surfaceData.subsurfaceMask = 1.0;
 #else
     surfaceData.transmittanceMask = 0.0;
+    surfaceData.subsurfaceMask = 0;
 #endif
 #else
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.transmittanceMask = 0.0;
+    surfaceData.subsurfaceMask = 0;
 #endif
+
+    surfaceData.thickness = 1;
+    surfaceData.diffusionProfileHash = 0;
 
     InitBuiltinData(posInput, alpha, surfaceData.normalWS, -surfaceData.geomNormalWS, input.texCoord1, input.texCoord2, builtinData);
 

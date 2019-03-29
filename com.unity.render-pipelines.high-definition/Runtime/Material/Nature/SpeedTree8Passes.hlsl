@@ -60,7 +60,8 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
     if (_WindEnabled > 0)
     {
-        float3 rotatedWindVector = mul(_ST_WindVector.xyz, (float3x3)unity_ObjectToWorld);
+		float3 rotatedWindVector = normalize(mul(_ST_WindVector.xyz, (float3x3)UNITY_MATRIX_M));
+        //float3 rotatedWindVector = mul(_ST_WindVector.xyz, (float3x3)unity_ObjectToWorld);
         float windLength = length(rotatedWindVector);
         if (windLength < 1e-5)
         {
@@ -69,7 +70,8 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
         }
         rotatedWindVector /= windLength;
 
-        float3 treePos = float3(unity_ObjectToWorld[0].w, unity_ObjectToWorld[1].w, unity_ObjectToWorld[2].w);
+        //float3 treePos = float3(unity_ObjectToWorld[0].w, unity_ObjectToWorld[1].w, unity_ObjectToWorld[2].w);
+		float3 treePos = float3(UNITY_MATRIX_M[0].w, UNITY_MATRIX_M[1].w, UNITY_MATRIX_M[2].w);
         float3 windyPosition = input.vertex.xyz;
 
 #ifndef EFFECT_BILLBOARD
@@ -97,7 +99,9 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             {
                 // face camera-facing leaf to camera
                 float offsetLen = length(windyPosition);
-                windyPosition = mul(windyPosition.xyz, (float3x3)UNITY_MATRIX_IT_MV); // inv(MV) * windyPosition
+				float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, unity_MatrixInvV));
+                //windyPosition = mul(windyPosition.xyz, (float3x3)UNITY_MATRIX_IT_MV); // inv(MV) * windyPosition
+				windyPosition = mul(mtx_ITMV, float4(windyPosition.xyz, 0)).xyz;
                 windyPosition = normalize(windyPosition) * offsetLen; // make sure the offset vector is still scaled
             }
 #endif

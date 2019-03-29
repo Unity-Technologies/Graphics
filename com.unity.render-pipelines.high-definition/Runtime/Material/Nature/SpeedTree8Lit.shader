@@ -280,7 +280,6 @@ Shader "HDRP/Nature/SpeedTree8"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree8Input.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree8CommonPasses.hlsl"            
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree8Passes.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTree8LitData.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"

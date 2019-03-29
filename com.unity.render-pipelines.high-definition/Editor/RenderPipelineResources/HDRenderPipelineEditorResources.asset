@@ -24,7 +24,7 @@ MonoBehaviour:
   shaders:
     defaultSpeedTree7Shader: {fileID: 4800000, guid: 8367002ccd55f7d4ca996eeed154af1b,
       type: 3}
-    defaultSpeedTree8Shader: {fileID: 4800000, guid: 8367002ccd55f7d4ca996eeed154af1b,
+    defaultSpeedTree8Shader: {fileID: 4800000, guid: fab2af2463693304d879239c6837958b,
       type: 3}
     terrainDetailLitShader: {fileID: 10505, guid: 0000000000000000f000000000000000,
       type: 0}

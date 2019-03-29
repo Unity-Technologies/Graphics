@@ -29,16 +29,17 @@
 // 1    lod xyz, 0                      lod xyz, 0                  anchor xyz, lod scalar
 // 2    detail/seam uv, seam amount, 0  frond wind xyz, 0           leaf wind xyz, leaf group
 
+
 struct SpeedTreeVertexInput
 {
     float4 vertex       : POSITION;
-    float4 tangent      : TANGENT;
     float3 normal       : NORMAL;
+    float4 tangent      : TANGENT;
     float4 texcoord     : TEXCOORD0;
     float4 texcoord1    : TEXCOORD1;
     float4 texcoord2    : TEXCOORD2;
-    float2 texcoord3    : TEXCOORD3;
-    float4 color         : COLOR;
+    float4 texcoord3    : TEXCOORD3;
+    float4 color        : COLOR;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
