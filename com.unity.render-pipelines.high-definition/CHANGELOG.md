@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an HD scene color node which allow to sample the scene color with mips and a toggle to remove the exposure.
 - Added shader parameter mapping in DebugMenu
 - Added scripting API to configure DebugData for DebugMenu
+- Added safeguard on HD scene creation if default scene not set in the wizard
 
 ### Fixed
 - Fixed Light intensity not played in the player when recorded with animation/timeline
