@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed bloom resolution independence
 - Fixed lens dirt intensity not behaving properly
 - Fixed the Stop NaN feature
+- Fixed some resources to handle more than 2 instanced views for XR
 
 ### Changed
 - Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
