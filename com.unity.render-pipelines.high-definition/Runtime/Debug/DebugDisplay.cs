@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LightCluster,
         RaytracedAreaShadow,
         IndirectDiffuse,
+        PrimaryVisibility,
         MaxLightingFullScreenDebug,
 
         // Rendering
