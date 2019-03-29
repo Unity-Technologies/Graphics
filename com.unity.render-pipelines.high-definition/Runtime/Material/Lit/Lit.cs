@@ -208,7 +208,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             enableWrite[2] = false;
             RTFormat[3] = Builtin.GetLightingBufferFormat();
             gBufferUsage[3] = GBufferUsage.None;
+
+            // If we are in raytracing mode and we want to have indirect diffuse active, we need to make sure that the gbuffer3 is writable
+            #if ENABLE_RAYTRACING
+            enableWrite[3] = true;
+            #else
             enableWrite[3] = false;
+            #endif
 
             int index = 4;
 
