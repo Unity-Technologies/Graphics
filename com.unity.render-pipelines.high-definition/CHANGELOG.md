@@ -64,6 +64,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added depth offset input in shader graph master nodes
 - Added a Parallax Occlusion Mapping node
 - Added SMAA support
+- Added an exposure node to retrieve the current, inverse and previous frame exposure value.
+- Added an HD scene color node which allow to sample the scene color with mips and a toggle to remove the exposure.
 
 ### Fixed
 - Fixed instance identifier semantic string used by Shader Graph
