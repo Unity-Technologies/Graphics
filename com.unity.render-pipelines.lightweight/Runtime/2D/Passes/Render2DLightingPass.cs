@@ -87,7 +87,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
                 Profiler.EndSample();
 
-                if (lightStats.totalLights > 0)
+                if (lightStats.totalVolumetricUsage > 0)
                 {
                     cmd.Clear();
                     RendererLighting.RenderLightVolumes(camera, cmd, layerToRender);
