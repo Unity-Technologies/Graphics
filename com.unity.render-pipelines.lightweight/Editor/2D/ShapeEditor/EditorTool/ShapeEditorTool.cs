@@ -137,6 +137,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         private PointRectSelector m_RectSelector = new PointRectSelector();
         private bool m_IsActive = false;
 
+        private UnityObject currentTarget { get; set; }
+        private IShapeEditor currentShapeEditor { get { return GetShapeEditor(currentTarget); } }
+
         public override GUIContent toolbarIcon
         {
             get { return ShapeEditorToolContents.icon; }
@@ -292,21 +295,18 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 if (target == null)
                     continue;
 
+                currentTarget = target;
+
                 var shapeEditor = GetShapeEditor(target);
                 shapeEditor.localToWorldMatrix = GetLocalToWorldMatrix(target);
                 shapeEditor.forward = GetForward(target);
                 shapeEditor.up = GetUp(target);
                 shapeEditor.right = GetRight(target);
-                
-                SetCurrentShapeEditor(shapeEditor);
 
-                EditorGUI.BeginChangeCheck();
-                
                 GetGUISystem(target).OnGUI();
-
-                if (EditorGUI.EndChangeCheck())
-                    SetShape(shapeEditor, target);
             }
+
+            currentTarget = null;
         }
 
         private void SetShape(IShapeEditor shapeEditor, UnityObject target)
@@ -392,7 +392,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         protected virtual void Initialize(T shapeEditor, SerializedObject serializedObject) { }
         protected abstract void SetShape(T shapeEditor, SerializedObject serializedObject);
 
-        IShapeEditor IShapeEditorController.shapeEditor { get; set; }
+        IShapeEditor IShapeEditorController.shapeEditor
+        {
+            get { return currentShapeEditor; }
+            set {}
+        }
         ISnapping<Vector3> IShapeEditorController.snapping
         {
             get { return m_ShapeEditorController.snapping; }
@@ -403,16 +407,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         {
             get { return m_ShapeEditorController.enableSnapping; }
             set { m_ShapeEditorController.enableSnapping = value; }
-        }
-
-        private IShapeEditor GetCurrentShapeEditor()
-        {
-            return (this as IShapeEditorController).shapeEditor;
-        }
-
-        private void SetCurrentShapeEditor(IShapeEditor shapeEditor)
-        {
-            (this as IShapeEditorController).shapeEditor = shapeEditor;
         }
 
         void IShapeEditorController.RegisterUndo(string name)
@@ -434,14 +428,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         void IShapeEditorController.SelectPoint(int index, bool select)
         {
-            m_ShapeEditorController.shapeEditor = GetCurrentShapeEditor();
+            m_ShapeEditorController.shapeEditor = currentShapeEditor;
             m_ShapeEditorController.SelectPoint(index, select);
         }
 
         void IShapeEditorController.CreatePoint(int index, Vector3 position)
         {
-            m_ShapeEditorController.shapeEditor = GetCurrentShapeEditor();
+            m_ShapeEditorController.shapeEditor = currentShapeEditor;
             m_ShapeEditorController.CreatePoint(index, position);
+
+            SetShape(currentShapeEditor, currentTarget);
         }
 
         void IShapeEditorController.RemoveSelectedPoints()
@@ -453,7 +449,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     
                 m_ShapeEditorController.shapeEditor = GetShapeEditor(target);
                 m_ShapeEditorController.RemoveSelectedPoints();
-            } 
+            }
+
+            SetShapes();
         }
 
         void IShapeEditorController.MoveSelectedPoints(Vector3 delta)
@@ -468,25 +466,33 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 
                 m_ShapeEditorController.shapeEditor = shapeEditor;
                 m_ShapeEditorController.MoveSelectedPoints(localDelta);
-            } 
+            }
+
+            SetShapes();
         }
 
         void IShapeEditorController.MoveEdge(int index, Vector3 delta)
         {
-            m_ShapeEditorController.shapeEditor = GetCurrentShapeEditor();
+            m_ShapeEditorController.shapeEditor = currentShapeEditor;
             m_ShapeEditorController.MoveEdge(index, delta);
+
+            SetShape(currentShapeEditor, currentTarget);
         }
 
         void IShapeEditorController.SetLeftTangent(int index, Vector3 position, bool setToLinear, Vector3 cachedRightTangent)
         {
-            m_ShapeEditorController.shapeEditor = GetCurrentShapeEditor();
+            m_ShapeEditorController.shapeEditor = currentShapeEditor;
             m_ShapeEditorController.SetLeftTangent(index, position, setToLinear, cachedRightTangent);
+
+            SetShape(currentShapeEditor, currentTarget);
         }
 
         void IShapeEditorController.SetRightTangent(int index, Vector3 position, bool setToLinear, Vector3 cachedLeftTangent)
         {
-            m_ShapeEditorController.shapeEditor = GetCurrentShapeEditor();
+            m_ShapeEditorController.shapeEditor = currentShapeEditor;
             m_ShapeEditorController.SetRightTangent(index, position, setToLinear, cachedLeftTangent);
+
+            SetShape(currentShapeEditor, currentTarget);
         }
     }
 }
