@@ -23,8 +23,8 @@ Shader "Hidden/HDRP/DrawDiffusionProfile"
             //-------------------------------------------------------------------------------------
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #define USE_LEGACY_UNITY_MATRIX_VARIABLES
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/EditorShaderVariables.hlsl"
 
             //-------------------------------------------------------------------------------------
             // Inputs & outputs
@@ -51,7 +51,8 @@ Shader "Hidden/HDRP/DrawDiffusionProfile"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                output.vertex   = TransformWorldToHClip(input.vertex);
+                // We still use the legacy matrices in the editor GUI
+                output.vertex   = mul(unity_MatrixVP, float4(input.vertex, 1));
                 output.texcoord = input.texcoord.xy;
                 return output;
             }

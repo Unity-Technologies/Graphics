@@ -6,20 +6,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.11.0-preview] - 2019-XX-XX
 
-### Changed
-- Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
-- Renamed velocity to motion vectors
+### Added
+- Improve hair shader
+- Added the _ScreenToTargetScaleHistory uniform variable to be used when sampling HDRP RTHandle history buffers.
+- Added settings in `FrameSettings` to change `QualitySettings.lodBias` and `QualitySettings.maximumLODLevel` during a rendering
 
 ### Fixed
-- Fixed exposure weight on unlit materials
 - Fixed Light intensity not played in the player when recorded with animation/timeline
+- Fixed some issues when multi editing HDRenderPipelineAsset
 - Fixed emission node breaking the main shader graph preview in certain conditions
 - Fixed checkout of baked probe asset when baking probes
+- Fixed exposure weight on unlit materials
 - Fixed invalid gizmo position for rotated ReflectionProbe
 - Fixed multi-edition of material's SurfaceType and RenderingPath
 - Fixed whole pipeline reconstruction on selecting for the first time or modifying other than the currently used HDRenderPipelineAsset
 - Fixed single shadow debug mode
 - Fixed global scale factor debug mode when scale > 1
+- Fixed debug menu material overrides not getting applied to the Terrain Lit shader
+- Fixed typo in computeLightVariants
+- Fixed deferred pass with XR instancing by disabling ComputeLightEvaluation
+
+### Changed
+- Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
+- Renamed velocity to motion vectors
+- Objects rendered during the After Post Process pass while TAA is enabled will not benefit from existing depth buffer anymore. This is done to fix an issue where those object would wobble otherwise
+- Removed usage of builtin unity matrix for shadow, shadow now use same constant than other view
 
 ## [5.10.0-preview] - 2019-03-19
 
@@ -53,7 +64,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added depth offset input in shader graph master nodes
 - Added a Parallax Occlusion Mapping node
 - Added SMAA support
-
 
 ### Fixed
 - Fixed instance identifier semantic string used by Shader Graph
