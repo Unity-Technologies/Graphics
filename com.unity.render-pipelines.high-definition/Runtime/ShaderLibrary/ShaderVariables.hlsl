@@ -236,6 +236,7 @@ CBUFFER_START(UnityGlobal)
     uint _EnableSSRefraction;
 
     uint _OffScreenRendering;
+    uint _OffScreenDownsampleFactor;
 
 CBUFFER_END
 
