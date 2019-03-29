@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve hair shader
 - Added the _ScreenToTargetScaleHistory uniform variable to be used when sampling HDRP RTHandle history buffers.
 - Added settings in `FrameSettings` to change `QualitySettings.lodBias` and `QualitySettings.maximumLODLevel` during a rendering
+- Added an exposure node to retrieve the current, inverse and previous frame exposure value.
+- Added an HD scene color node which allow to sample the scene color with mips and a toggle to remove the exposure.
 
 ### Fixed
 - Fixed HDRI sky intensity lux mode
