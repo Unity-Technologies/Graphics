@@ -38,12 +38,14 @@ RWTexture2D<float4>         _GBufferTexture3;
 [numthreads(KERNEL_TILE_SIZE, KERNEL_TILE_SIZE, 1)]
 void IndirectDiffuseAccumulation(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+#if SHADEROPTIONS_RAYTRACING
     // Fetch the current pixel coordinate
     uint2 currentPixelCoordinate = groupId * KERNEL_TILE_SIZE + groupThreadId;
     currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Add the indirect diffuse to the buffer (while pre-multiplying by the base color)
     _GBufferTexture3[currentPixelCoordinate] += _IndirectDiffuseTexture[currentPixelCoordinate] * _GBufferTexture0[currentPixelCoordinate];
+#endif
 }
 
 [numthreads(KERNEL_TILE_SIZE, KERNEL_TILE_SIZE, 1)]
