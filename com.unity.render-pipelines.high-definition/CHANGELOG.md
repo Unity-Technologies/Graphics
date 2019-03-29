@@ -30,12 +30,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed debug menu material overrides not getting applied to the Terrain Lit shader
 - Fixed typo in computeLightVariants
 - Fixed deferred pass with XR instancing by disabling ComputeLightEvaluation
+- Fixed bloom resolution independence
+- Fixed lens dirt intensity not behaving properly
+- Fixed the Stop NaN feature
 
 ### Changed
 - Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
 - Renamed velocity to motion vectors
 - Objects rendered during the After Post Process pass while TAA is enabled will not benefit from existing depth buffer anymore. This is done to fix an issue where those object would wobble otherwise
 - Removed usage of builtin unity matrix for shadow, shadow now use same constant than other view
+- The default volume layer mask for cameras & probes is now `Default` instead of `Everything`
 
 ## [5.10.0-preview] - 2019-03-19
 
@@ -91,7 +95,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed baked cubemap import settings for convolution
 - Fixed regression causing crash when attempting to open HDRenderPipelineWizard without an HDRenderPipelineAsset setted
 - Fixed FullScreenDebug modes: SSAO, SSR, Contact shadow, Prerefraction Color Pyramid, Final Color Pyramid
-- Fixed volumetric rendering with stereo instancing
 
 ### Changed
 - DensityVolume scripting API will no longuer allow to change between advance and normal edition mode

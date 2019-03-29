@@ -44,10 +44,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
-            m_GradientSkyMaterial.SetColor(_GradientBottom, m_GradientSkyParams.bottom);
-            m_GradientSkyMaterial.SetColor(_GradientMiddle, m_GradientSkyParams.middle);
-            m_GradientSkyMaterial.SetColor(_GradientTop, m_GradientSkyParams.top);
-            m_GradientSkyMaterial.SetFloat(_GradientDiffusion, m_GradientSkyParams.gradientDiffusion);
+            m_GradientSkyMaterial.SetColor(_GradientBottom, m_GradientSkyParams.bottom.value);
+            m_GradientSkyMaterial.SetColor(_GradientMiddle, m_GradientSkyParams.middle.value);
+            m_GradientSkyMaterial.SetColor(_GradientTop, m_GradientSkyParams.top.value);
+            m_GradientSkyMaterial.SetFloat(_GradientDiffusion, m_GradientSkyParams.gradientDiffusion.value);
             m_GradientSkyMaterial.SetVector(HDShaderIDs._SkyParam, new Vector2(GetExposure(m_GradientSkyParams, builtinParams.debugSettings), m_GradientSkyParams.multiplier.value));
 
             // This matrix needs to be updated at the draw call frequency.
