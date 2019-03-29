@@ -134,6 +134,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a diffusion profile override volume so the list of diffusion profile assets to use can be chanaged without affecting the HDRP asset
 - Added a "Stop NaNs" option on cameras and in the Scene View preferences.
 - Added metric display option in HDShadowSettings and improve clamping
+- Added shader parameter mapping in DebugMenu
+- Added scripting API to configure DebugData for DebugMenu
 
 ### Fixed
 - Fixed decals in forward
