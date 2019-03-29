@@ -415,6 +415,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool reflection = camera.cameraType == CameraType.Reflection;
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
+
+            // XRTODO: double-wide cleanup
             bool stereo = camera.stereoEnabled;
             bool stereoDoubleWide = stereo && (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass);
             bool stereoInstancing = stereo && (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced);
