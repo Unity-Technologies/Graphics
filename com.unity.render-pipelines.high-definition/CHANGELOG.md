@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added settings in `FrameSettings` to change `QualitySettings.lodBias` and `QualitySettings.maximumLODLevel` during a rendering
 - Added an exposure node to retrieve the current, inverse and previous frame exposure value.
 - Added an HD scene color node which allow to sample the scene color with mips and a toggle to remove the exposure.
+- Added safeguard on HD scene creation if default scene not set in the wizard
 
 ### Fixed
 - Fixed HDRI sky intensity lux mode
