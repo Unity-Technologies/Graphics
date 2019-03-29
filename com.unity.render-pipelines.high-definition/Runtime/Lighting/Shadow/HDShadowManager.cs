@@ -64,15 +64,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDShadowRequest
     {
         public Matrix4x4            view;
-        // Use device projection matrix for shader and projection for CommandBuffer.SetViewProjectionMatrices
+        // Use the y flipped device projection matrix as light projection matrix
+        public Matrix4x4            deviceProjectionYFlip;
         public Matrix4x4            deviceProjection;
-        public Matrix4x4            projection;
         public Matrix4x4            shadowToWorld;
         public Vector3              position;
         public Vector4              zBufferParam;
         // Warning: this field is updated by ProcessShadowRequests and is invalid before
         public Rect                 atlasViewport;
         public bool                 zClip;
+        public Vector4[]            frustumPlanes;
 
         // Store the final shadow indice in the shadow data array
         // Warning: the index is computed during ProcessShadowRequest and so is invalid before calling this function

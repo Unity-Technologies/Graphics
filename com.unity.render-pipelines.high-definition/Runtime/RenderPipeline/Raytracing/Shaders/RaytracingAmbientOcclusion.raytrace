@@ -126,7 +126,7 @@ void RayGenAmbientOcclusion()
 	// Alright we are done
     _AmbientOcclusionTextureRW[currentPixelCoord] = float4(1.0 - finalColor, 1.0f);
     _RaytracingHitDistanceTexture[currentPixelCoord] = minDistance;
-    float3 normalWS = mul(unity_MatrixInvV, float4(normalData.normalWS, 0.0f)).xyz;
+    float3 normalWS = mul(_InvViewMatrix, float4(normalData.normalWS, 0.0f)).xyz;
     _RaytracingVSNormalTexture[currentPixelCoord] = float4(normalWS, 1.0f);
 }
 
