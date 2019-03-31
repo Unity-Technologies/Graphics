@@ -8,7 +8,6 @@
 #pragma kernel TileGenPass                        TILE_GEN_KERNEL_NAME=TileGenPass GEN_PASS
 #pragma kernel TileNeighbourhood                  TILE_NEIGHBOURHOOD_KERNEL_NAME=TileNeighbourhood NEIGHBOURHOOD_PASS
 
-
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #define USE_WAVE_INTRINSICS         defined(SUPPORTS_WAVE_INTRINSICS)
@@ -312,9 +311,12 @@ void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint
 #endif
 
 #if MERGE_PASS
+
+#if SCATTERING
 TEXTURE2D_X_UINT(_TileToScatterMax);
 TEXTURE2D_X_UINT(_TileToScatterMin);
 RW_TEXTURE2D_X(float3, _TileMaxNeighbourhood);
+#endif
 
 [numthreads(8, 8, 1)]
 void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
