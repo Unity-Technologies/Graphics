@@ -2916,23 +2916,23 @@ VisualEffectResource:
       = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex
       ^ systemSeed);\n#endif\n        \n        {\n            SetAttribute_2466D9DF(
       /*inout */lifetime, (float)1);\n        }\n        {\n            float tmp_x
-      = RAND;\n            float tmp_y = FixedRand(particleId ^ asuint(uniform_b));\n
-      \           float tmp_z = FixedRand(particleId ^ asuint(uniform_c));\n            float3
-      tmp_ba = float3(tmp_x, tmp_y, tmp_z);\n            SetAttribute_A064353F( /*inout
-      */position, tmp_ba);\n        }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if
-      (alive)\n        {\n\t\t\tuint deadIndex = deadListIn.DecrementCounter();\n
-      \           uint index = deadListIn[deadIndex];\n            attributeBuffer.Store((index
-      * 0x1 + 0x0) << 2,asuint(lifetime));\n            attributeBuffer.Store3((index
-      * 0x4 + 0x4E40) << 2,asuint(position));\n            attributeBuffer.Store((index
-      * 0x4 + 0x4E43) << 2,asuint(particleId));\n            attributeBuffer.Store((index
-      * 0x1 + 0x18740) << 2,uint(alive));\n            attributeBuffer.Store((index
-      * 0x1 + 0x1D580) << 2,asuint(age));\n            \n\n        }\n#else\n        uint
-      index = particleIndex;\n        attributeBuffer.Store((index * 0x1 + 0x0) <<
-      2,asuint(lifetime));\n        attributeBuffer.Store3((index * 0x4 + 0x4E40)
-      << 2,asuint(position));\n        attributeBuffer.Store((index * 0x4 + 0x4E43)
-      << 2,asuint(particleId));\n        attributeBuffer.Store((index * 0x1 + 0x18740)
-      << 2,uint(alive));\n        attributeBuffer.Store((index * 0x1 + 0x1D580) <<
-      2,asuint(age));\n        \n\n#endif\n    }\n}\n"
+      = RAND;\n            uint tmp_y = particleId ^ asuint(uniform_b);\n            float
+      tmp_z = FixedRand(tmp_y);\n            uint tmp_ba = particleId ^ asuint(uniform_c);\n
+      \           float tmp_bb = FixedRand(tmp_ba);\n            float3 tmp_bc = float3(tmp_x,
+      tmp_z, tmp_bb);\n            SetAttribute_A064353F( /*inout */position, tmp_bc);\n
+      \       }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if (alive)\n        {\n\t\t\tuint
+      deadIndex = deadListIn.DecrementCounter();\n            uint index = deadListIn[deadIndex];\n
+      \           attributeBuffer.Store((index * 0x1 + 0x0) << 2,asuint(lifetime));\n
+      \           attributeBuffer.Store3((index * 0x4 + 0x4E40) << 2,asuint(position));\n
+      \           attributeBuffer.Store((index * 0x4 + 0x4E43) << 2,asuint(particleId));\n
+      \           attributeBuffer.Store((index * 0x1 + 0x18740) << 2,uint(alive));\n
+      \           attributeBuffer.Store((index * 0x1 + 0x1D580) << 2,asuint(age));\n
+      \           \n\n        }\n#else\n        uint index = particleIndex;\n        attributeBuffer.Store((index
+      * 0x1 + 0x0) << 2,asuint(lifetime));\n        attributeBuffer.Store3((index
+      * 0x4 + 0x4E40) << 2,asuint(position));\n        attributeBuffer.Store((index
+      * 0x4 + 0x4E43) << 2,asuint(particleId));\n        attributeBuffer.Store((index
+      * 0x1 + 0x18740) << 2,uint(alive));\n        attributeBuffer.Store((index *
+      0x1 + 0x1D580) << 2,asuint(age));\n        \n\n#endif\n    }\n}\n"
   - compute: 1
     name: '[System 1]Update'
     source: "#pragma kernel CSMain\n#include \"HLSLSupport.cginc\"\n#define NB_THREADS_PER_GROUP
@@ -3045,13 +3045,14 @@ VisualEffectResource:
       pivotZ = (float)0;\n\t\t\t\t\t\tfloat size = (float)0.1;\n\t\t\t\t\t\tfloat
       scaleX = (float)1;\n\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\tfloat
       scaleZ = (float)1;\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_x = FixedRand(particleId ^ asuint(uniform_b));\n\t\t\t\t    float3
-      tmp_z = float3(tmp_x, (float)1, (float)1);\n\t\t\t\t    float3 tmp_ba = HSVtoRGB(tmp_z);\n\t\t\t\t
-      \   float tmp_bb = tmp_ba[0];\n\t\t\t\t    float tmp_bc = tmp_ba[1];\n\t\t\t\t
-      \   float tmp_bd = tmp_ba[2];\n\t\t\t\t    float3 tmp_be = float3(tmp_bb, tmp_bc,
-      tmp_bd);\n\t\t\t\t    SetAttribute_CA95FE15( /*inout */color, tmp_be);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */size, (float)0.01);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   Orient_4( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, float3(0.7071068,0,0.7071068),
+      \   uint tmp_x = particleId ^ asuint(uniform_b);\n\t\t\t\t    float tmp_y =
+      FixedRand(tmp_x);\n\t\t\t\t    float3 tmp_ba = float3(tmp_y, (float)1, (float)1);\n\t\t\t\t
+      \   float3 tmp_bb = HSVtoRGB(tmp_ba);\n\t\t\t\t    float tmp_bc = tmp_bb[0];\n\t\t\t\t
+      \   float tmp_bd = tmp_bb[1];\n\t\t\t\t    float tmp_be = tmp_bb[2];\n\t\t\t\t
+      \   float3 tmp_bf = float3(tmp_bc, tmp_bd, tmp_be);\n\t\t\t\t    SetAttribute_CA95FE15(
+      /*inout */color, tmp_bf);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_37814D91(
+      /*inout */size, (float)0.01);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    Orient_4( /*inout
+      */axisX,  /*inout */axisY,  /*inout */axisZ, float3(0.7071068,0,0.7071068),
       float3(0,1,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
       o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id & 1);\n\t\t\t\to.VFX_VARYING_UV.y
       = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size3 = float3(size,size,size);\n\t\t\t\t\t\t#if
@@ -3141,13 +3142,14 @@ VisualEffectResource:
       pivotZ = (float)0;\n\t\t\t\t\t\tfloat size = (float)0.1;\n\t\t\t\t\t\tfloat
       scaleX = (float)1;\n\t\t\t\t\t\tfloat scaleY = (float)1;\n\t\t\t\t\t\tfloat
       scaleZ = (float)1;\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_x = FixedRand(particleId ^ asuint(uniform_b));\n\t\t\t\t    float3
-      tmp_z = float3(tmp_x, (float)1, (float)1);\n\t\t\t\t    float3 tmp_ba = HSVtoRGB(tmp_z);\n\t\t\t\t
-      \   float tmp_bb = tmp_ba[0];\n\t\t\t\t    float tmp_bc = tmp_ba[1];\n\t\t\t\t
-      \   float tmp_bd = tmp_ba[2];\n\t\t\t\t    float3 tmp_be = float3(tmp_bb, tmp_bc,
-      tmp_bd);\n\t\t\t\t    SetAttribute_CA95FE15( /*inout */color, tmp_be);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   SetAttribute_37814D91( /*inout */size, (float)0.01);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   Orient_4( /*inout */axisX,  /*inout */axisY,  /*inout */axisZ, float3(0.7071068,0,0.7071068),
+      \   uint tmp_x = particleId ^ asuint(uniform_b);\n\t\t\t\t    float tmp_y =
+      FixedRand(tmp_x);\n\t\t\t\t    float3 tmp_ba = float3(tmp_y, (float)1, (float)1);\n\t\t\t\t
+      \   float3 tmp_bb = HSVtoRGB(tmp_ba);\n\t\t\t\t    float tmp_bc = tmp_bb[0];\n\t\t\t\t
+      \   float tmp_bd = tmp_bb[1];\n\t\t\t\t    float tmp_be = tmp_bb[2];\n\t\t\t\t
+      \   float3 tmp_bf = float3(tmp_bc, tmp_bd, tmp_be);\n\t\t\t\t    SetAttribute_CA95FE15(
+      /*inout */color, tmp_bf);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    SetAttribute_37814D91(
+      /*inout */size, (float)0.01);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    Orient_4( /*inout
+      */axisX,  /*inout */axisY,  /*inout */axisZ, float3(0.7071068,0,0.7071068),
       float3(0,1,0));\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\n\t\t\t\tif (!alive)\n\t\t\t\t\treturn
       o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.x = float(id & 1);\n\t\t\t\to.VFX_VARYING_UV.y
       = float((id & 2) >> 1);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size3 = float3(size,size,size);\n\t\t\t\t\t\t#if
@@ -3215,39 +3217,39 @@ VisualEffectResource:
         data[1]: -1
         data[2]: -1
         data[3]: 6
-      - op: 50
+      - op: 1
         valueIndex: 5
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 6
+      - op: 50
+        valueIndex: 6
+        data[0]: 5
+        data[1]: 0
+        data[2]: -1
+        data[3]: 6
+      - op: 50
+        valueIndex: 7
         data[0]: 4
         data[1]: 0
         data[2]: -1
         data[3]: 6
-      - op: 1
-        valueIndex: 6
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 6
-      - op: 62
-        valueIndex: 7
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: -1
       - op: 1
         valueIndex: 8
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 1
-      - op: 50
+      - op: 62
         valueIndex: 9
-        data[0]: 6
-        data[1]: 0
+        data[0]: -1
+        data[1]: -1
         data[2]: -1
-        data[3]: 6
+        data[3]: -1
       - op: 63
         valueIndex: 10
-        data[0]: 5
+        data[0]: 6
         data[1]: -1
         data[2]: -1
         data[3]: -1
@@ -3255,7 +3257,7 @@ VisualEffectResource:
         valueIndex: 11
         data[0]: 3
         data[1]: 10
-        data[2]: 7
+        data[2]: 9
         data[3]: -1
       - op: 1
         valueIndex: 14
@@ -3265,7 +3267,7 @@ VisualEffectResource:
         data[3]: 1
       - op: 27
         valueIndex: 15
-        data[0]: 7
+        data[0]: 9
         data[1]: 8
         data[2]: -1
         data[3]: 1
@@ -3397,9 +3399,9 @@ VisualEffectResource:
         - m_ExpressionIndex: 1
           m_Value: 0
         - m_ExpressionIndex: 4
-          m_Value: 2
-        - m_ExpressionIndex: 6
           m_Value: 1
+        - m_ExpressionIndex: 5
+          m_Value: 2
         - m_ExpressionIndex: 28
           m_Value: 4294967295
       m_Int:
@@ -3601,7 +3603,7 @@ VisualEffectResource:
         index: 2
       values:
       - nameId: uniform_b
-        index: 9
+        index: 7
       - nameId: uniform_c
         index: 2
       params:

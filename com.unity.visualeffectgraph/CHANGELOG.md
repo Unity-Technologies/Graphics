@@ -5,8 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [4.11.0-preview] - 2019-XX-XX
+### Fixed
+- Better Handling of Null or Missing Parameter Binders (Editor + Runtime)
+- Fix unexpected issue when plugging per particle data into hash of per component fixed random
+- Missing asset reimport when exception has been thrown during graph compilation
+- Fix exception when using a Oriented Box Volume node [Case 1110419](https://issuetracker.unity3d.com/issues/operator-indexoutofrangeexception-when-using-a-volume-oriented-box-node)
+- Add missing blend value slot in Inherit Source Attribute blocks [Case 1120568](https://issuetracker.unity3d.com/issues/source-attribute-blend-source-attribute-blocks-are-not-useful-without-the-blend-value)
 
 ## [4.10.0-preview] - 2019-02-16
+### Fixed
 - Fixed error spam when opening a vfx with the visual effect tab hidden
 - Shader compilation with SimpleLit and debug display
 

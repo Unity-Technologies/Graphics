@@ -349,13 +349,14 @@ VisualEffectResource:
       scaleZ = (float)1;\n\t\t\t\t\t\tfloat age = asfloat(attributeBuffer.Load((index
       * 0x4 + 0x703) << 2));\n\t\t\t\t\t\tuint particleId = (attributeBuffer.Load((index
       * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bd = age * (float)0.5;\n\t\t\t\t    float tmp_be = FixedRand(particleId
-      ^ asuint(uniform_c));\n\t\t\t\t    float tmp_bf = tmp_bd + tmp_be;\n\t\t\t\t
-      \   AttributeFromCurve_36C62463( /*inout */size, Size_a, tmp_bf);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bd = age * (float)0.5;\n\t\t\t\t    float tmp_be = FixedRand(particleId
-      ^ asuint(uniform_c));\n\t\t\t\t    float tmp_bf = tmp_bd + tmp_be;\n\t\t\t\t
-      \   float tmp_bg = floor(tmp_bf);\n\t\t\t\t    float tmp_bh = tmp_bf - tmp_bg;\n\t\t\t\t
-      \   AttributeFromCurve_376F51D( /*inout */color, Color_b, tmp_bh);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
+      \   float tmp_bd = age * (float)0.5;\n\t\t\t\t    uint tmp_be = particleId ^
+      asuint(uniform_c);\n\t\t\t\t    float tmp_bf = FixedRand(tmp_be);\n\t\t\t\t
+      \   float tmp_bg = tmp_bd + tmp_bf;\n\t\t\t\t    AttributeFromCurve_36C62463(
+      /*inout */size, Size_a, tmp_bg);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    float tmp_bd
+      = age * (float)0.5;\n\t\t\t\t    uint tmp_be = particleId ^ asuint(uniform_c);\n\t\t\t\t
+      \   float tmp_bf = FixedRand(tmp_be);\n\t\t\t\t    float tmp_bg = tmp_bd + tmp_bf;\n\t\t\t\t
+      \   float tmp_bh = floor(tmp_bg);\n\t\t\t\t    float tmp_bi = tmp_bg - tmp_bh;\n\t\t\t\t
+      \   AttributeFromCurve_376F51D( /*inout */color, Color_b, tmp_bi);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
@@ -450,13 +451,14 @@ VisualEffectResource:
       scaleZ = (float)1;\n\t\t\t\t\t\tfloat age = asfloat(attributeBuffer.Load((index
       * 0x4 + 0x703) << 2));\n\t\t\t\t\t\tuint particleId = (attributeBuffer.Load((index
       * 0x4 + 0x303) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bd = age * (float)0.5;\n\t\t\t\t    float tmp_be = FixedRand(particleId
-      ^ asuint(uniform_c));\n\t\t\t\t    float tmp_bf = tmp_bd + tmp_be;\n\t\t\t\t
-      \   AttributeFromCurve_36C62463( /*inout */size, Size_a, tmp_bf);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t
-      \   float tmp_bd = age * (float)0.5;\n\t\t\t\t    float tmp_be = FixedRand(particleId
-      ^ asuint(uniform_c));\n\t\t\t\t    float tmp_bf = tmp_bd + tmp_be;\n\t\t\t\t
-      \   float tmp_bg = floor(tmp_bf);\n\t\t\t\t    float tmp_bh = tmp_bf - tmp_bg;\n\t\t\t\t
-      \   AttributeFromCurve_376F51D( /*inout */color, Color_b, tmp_bh);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
+      \   float tmp_bd = age * (float)0.5;\n\t\t\t\t    uint tmp_be = particleId ^
+      asuint(uniform_c);\n\t\t\t\t    float tmp_bf = FixedRand(tmp_be);\n\t\t\t\t
+      \   float tmp_bg = tmp_bd + tmp_bf;\n\t\t\t\t    AttributeFromCurve_36C62463(
+      /*inout */size, Size_a, tmp_bg);\n\t\t\t\t}\n\t\t\t\t{\n\t\t\t\t    float tmp_bd
+      = age * (float)0.5;\n\t\t\t\t    uint tmp_be = particleId ^ asuint(uniform_c);\n\t\t\t\t
+      \   float tmp_bf = FixedRand(tmp_be);\n\t\t\t\t    float tmp_bg = tmp_bd + tmp_bf;\n\t\t\t\t
+      \   float tmp_bh = floor(tmp_bg);\n\t\t\t\t    float tmp_bi = tmp_bg - tmp_bh;\n\t\t\t\t
+      \   AttributeFromCurve_376F51D( /*inout */color, Color_b, tmp_bi);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\t\t\t\n\t\t\t\tif
       (!alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_UV.xy = i.uv;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
@@ -519,37 +521,37 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 13
+        data[3]: 14
       - op: 1
         valueIndex: 5
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 14
-      - op: 6
+        data[3]: 13
+      - op: 44
         valueIndex: 6
+        data[0]: 5
+        data[1]: -1
+        data[2]: -1
+        data[3]: 0
+      - op: 6
+        valueIndex: 10
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: -1
-      - op: 44
-        valueIndex: 7
+      - op: 45
+        valueIndex: 11
         data[0]: 4
         data[1]: -1
         data[2]: -1
         data[3]: 0
       - op: 1
-        valueIndex: 11
+        valueIndex: 12
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 7
-      - op: 45
-        valueIndex: 13
-        data[0]: 5
-        data[1]: -1
-        data[2]: -1
-        data[3]: 0
       - op: 1
         valueIndex: 14
         data[0]: -1
@@ -659,7 +661,7 @@ VisualEffectResource:
         m_Array: []
       m_AnimationCurve:
         m_Array:
-        - m_ExpressionIndex: 4
+        - m_ExpressionIndex: 5
           m_Value:
             serializedVersion: 2
             m_Curve:
@@ -695,7 +697,7 @@ VisualEffectResource:
             m_RotationOrder: 4
       m_Gradient:
         m_Array:
-        - m_ExpressionIndex: 5
+        - m_ExpressionIndex: 4
           m_Value:
             serializedVersion: 2
             key0: {r: 1, g: 0, b: 0, a: 1}
@@ -727,7 +729,7 @@ VisualEffectResource:
             m_NumAlphaKeys: 2
       m_NamedObject:
         m_Array:
-        - m_ExpressionIndex: 8
+        - m_ExpressionIndex: 9
           m_Value: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
         - m_ExpressionIndex: 12
           m_Value: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
@@ -960,7 +962,7 @@ VisualEffectResource:
         index: 0
       values:
       - nameId: deltaTime_a
-        index: 6
+        index: 7
       params: []
       processor: {fileID: 0}
       shaderSourceIndex: 1
@@ -970,13 +972,13 @@ VisualEffectResource:
         index: 0
       values:
       - nameId: Size_a
-        index: 7
+        index: 6
       - nameId: uniform_c
         index: 2
       - nameId: Color_b
-        index: 9
-      - nameId: mainTexture
         index: 8
+      - nameId: mainTexture
+        index: 9
       params:
       - nameId: mesh
         index: 12

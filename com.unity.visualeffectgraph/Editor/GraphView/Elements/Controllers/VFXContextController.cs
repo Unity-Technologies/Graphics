@@ -153,7 +153,7 @@ namespace UnityEditor.VFX.UI
         public void RemoveBlock(VFXBlock block)
         {
             model.RemoveChild(block);
-            VFXModel.UnlinkModel(model);
+            VFXModel.UnlinkModel(block);
         }
 
         public int FindBlockIndexOf(VFXBlockController controller)

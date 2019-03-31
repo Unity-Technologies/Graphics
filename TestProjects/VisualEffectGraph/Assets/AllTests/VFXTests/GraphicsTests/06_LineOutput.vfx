@@ -2652,19 +2652,20 @@ VisualEffectResource:
       = (uint)0;\n        float3 direction = float3(0,0,1);\n        uint particleId
       = (uint)0;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId
       = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex
-      ^ systemSeed);\n#endif\n        \n        {\n            float tmp_y = FixedRand(particleId
-      ^ asuint(uniform_c));\n            float tmp_ba = max(tmp_y, (float)0);\n            float
-      tmp_bc = min(tmp_ba, (float)1);\n            float4 tmp_bd = SampleGradient(uniform_b,tmp_bc);\n
-      \           float tmp_be = (float)particleId;\n            float tmp_bg = tmp_be
-      / (float)24;\n            float tmp_bh = floor(tmp_bg);\n            float tmp_bi
-      = tmp_bg - tmp_bh;\n            float tmp_bj = tmp_bi * (float)24;\n            float
-      tmp_bk = tmp_bj / (float)24;\n            float tmp_bl = max(tmp_bk, (float)0);\n
-      \           float tmp_bm = min(tmp_bl, (float)1);\n            float4 tmp_bn
-      = SampleGradient(uniform_d,tmp_bm);\n            float4 tmp_bo = tmp_bd + tmp_bn;\n
-      \           float4 tmp_bq = tmp_bo / float4(2,2,2,2);\n            float tmp_br
-      = tmp_bq[0];\n            float tmp_bs = tmp_bq[1];\n            float tmp_bt
-      = tmp_bq[2];\n            float3 tmp_bu = float3(tmp_br, tmp_bs, tmp_bt);\n
-      \           SetAttribute_CA95FE15( /*inout */color, tmp_bu);\n        }\n        {\n
+      ^ systemSeed);\n#endif\n        \n        {\n            uint tmp_y = particleId
+      ^ asuint(uniform_c);\n            float tmp_z = FixedRand(tmp_y);\n            float
+      tmp_bb = max(tmp_z, (float)0);\n            float tmp_bd = min(tmp_bb, (float)1);\n
+      \           float4 tmp_be = SampleGradient(uniform_b,tmp_bd);\n            float
+      tmp_bf = (float)particleId;\n            float tmp_bh = tmp_bf / (float)24;\n
+      \           float tmp_bi = floor(tmp_bh);\n            float tmp_bj = tmp_bh
+      - tmp_bi;\n            float tmp_bk = tmp_bj * (float)24;\n            float
+      tmp_bl = tmp_bk / (float)24;\n            float tmp_bm = max(tmp_bl, (float)0);\n
+      \           float tmp_bn = min(tmp_bm, (float)1);\n            float4 tmp_bo
+      = SampleGradient(uniform_d,tmp_bn);\n            float4 tmp_bp = tmp_be + tmp_bo;\n
+      \           float4 tmp_br = tmp_bp / float4(2,2,2,2);\n            float tmp_bs
+      = tmp_br[0];\n            float tmp_bt = tmp_br[1];\n            float tmp_bu
+      = tmp_br[2];\n            float3 tmp_bv = float3(tmp_bs, tmp_bt, tmp_bu);\n
+      \           SetAttribute_CA95FE15( /*inout */color, tmp_bv);\n        }\n        {\n
       \           float tmp_bb = (float)particleId;\n            float tmp_bd = tmp_bb
       / (float)24;\n            float tmp_be = floor(tmp_bd);\n            float tmp_bf
       = tmp_bd - tmp_be;\n            float tmp_bg = tmp_bf * (float)24;\n            float

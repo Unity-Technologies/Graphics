@@ -508,7 +508,9 @@ namespace UnityEditor.VFX
         static public VFXExpression FixedRandom(VFXExpression hash, bool perElement)
         {
             VFXExpression seed = new VFXExpressionBitwiseXor(hash, VFXBuiltInExpression.SystemSeed);
-            return new VFXExpressionFixedRandom(seed, perElement);
+            if (perElement)
+                seed = new VFXExpressionBitwiseXor(new VFXAttributeExpression(VFXAttribute.ParticleId), seed);
+            return new VFXExpressionFixedRandom(seed);
         }
 
         static public VFXExpression SequentialLine(VFXExpression start, VFXExpression end, VFXExpression index, VFXExpression count)
