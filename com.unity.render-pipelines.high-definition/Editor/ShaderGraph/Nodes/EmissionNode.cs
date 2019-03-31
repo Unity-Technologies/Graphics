@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         EV100,
     }
 
-    [Title("Input", "High Definition Render Pipeline", "Emission Node")]
+    [Title("Utility", "High Definition Render Pipeline", "Emission Node")]
     class EmissionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public EmissionNode()
