@@ -12,6 +12,7 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 
 #### Unity Pipelines Supported
 - Lightweight Render Pipeline
+- High Definition Render Pipeline
 
 ## Ports
 

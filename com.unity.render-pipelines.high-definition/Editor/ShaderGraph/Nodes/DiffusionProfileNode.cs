@@ -21,7 +21,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override string documentationURL
         {
-            // This still needs to be added.
             get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Diffusion-Profile-Node"; }
         }
 
