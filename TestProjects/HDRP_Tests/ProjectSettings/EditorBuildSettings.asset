@@ -98,7 +98,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2003_Light_Parameters.unity
     guid: ac9787fadf0b4ed4391bee6ba1d8e213
-  - enabled: 1
+  - enabled: 0
     path: Assets/GraphicTests/Scenes/2x_Lighting/2004_AnimatedCookie.unity
     guid: 9f03abfd8e9cc614c89458cbdb208e7c
   - enabled: 1
