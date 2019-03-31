@@ -71,7 +71,23 @@ VFXSystemBorder.graphElement TextField#title-field
     margin-right:0;
     margin-top:0;
     margin-bottom:0;
-    border-top-width: 1px;
-    background-color:#000;
+    
     position: absolute;
 }
+
+VFXSystemBorder.graphElement TextField#title-field #unity-text-input
+{
+    padding-left:0;
+    padding-right:0;
+    padding-top:0;
+    padding-bottom:0;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+    background-color:rgba(0,0,0,0);
+    background-image:none;
+    font-size: 48px;
+    white-space: normal;
+}
+
