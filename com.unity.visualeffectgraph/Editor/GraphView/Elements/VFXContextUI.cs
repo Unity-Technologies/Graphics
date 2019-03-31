@@ -245,11 +245,11 @@ namespace UnityEditor.VFX.UI
 
             m_Label = this.Q<Label>("user-label");
             m_TextField = this.Q<TextField>("user-title-textfield");
-            m_TextField.visible = false;
+            m_TextField.style.display = DisplayStyle.None;
 
             m_Label.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
-            m_TextField.RegisterCallback<BlurEvent>(OnTitleBlur);
+            m_TextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(OnTitleBlur);
             m_Label.RegisterCallback<GeometryChangedEvent>(OnTitleRelayout);
         }
 
@@ -780,8 +780,8 @@ namespace UnityEditor.VFX.UI
             m_Label.parent.ChangeCoordinatesTo(m_TextField.parent, rect);
 
 
-            m_TextField.style.top = rect.yMin;
-            m_TextField.style.left = rect.xMin;
+            m_TextField.style.top = rect.yMin - 3;
+            m_TextField.style.left = rect.xMin - 1;
             m_TextField.style.right = m_Label.resolvedStyle.marginRight + m_Label.resolvedStyle.borderRightWidth;
             m_TextField.style.height = rect.height - m_Label.resolvedStyle.marginTop - m_Label.resolvedStyle.marginBottom;
         }
@@ -800,19 +800,13 @@ namespace UnityEditor.VFX.UI
         {
             m_Label.RemoveFromClassList("empty");
             m_TextField.value = m_Label.text;
-            m_TextField.visible = true;
+            m_TextField.style.display = DisplayStyle.Flex;
             UpdateTitleFieldRect();
-
-
-            m_TextField.Q(TextField.textInputUssName).visible = false;
-            m_TextField.Q(TextField.textInputUssName).visible = true;
             m_TextField.Q(TextField.textInputUssName).Focus();
-
             m_TextField.SelectAll();
-
         }
 
-        void OnTitleBlur(BlurEvent e)
+        void OnTitleBlur(FocusOutEvent e)
         {
             controller.model.label = m_TextField.value
                 .Trim()
@@ -826,11 +820,11 @@ namespace UnityEditor.VFX.UI
                 .Replace("\"", "")
                 .Replace("|", "")
                 ;
-            m_TextField.visible = false;
+            m_TextField.style.display = DisplayStyle.None;
         }
         void OnTitleRelayout(GeometryChangedEvent e)
         {
-            if( m_TextField.visible)
+            if(m_TextField.style.display != DisplayStyle.None)
                 UpdateTitleFieldRect();
         }
 
