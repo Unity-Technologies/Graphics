@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.Searcher;
 using UnityEngine;
 using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
@@ -17,6 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         GraphData m_Graph;
         GraphView m_GraphView;
         Texture2D m_Icon;
+        public List<SearcherItem> searcherEntries;
         public ShaderPort connectedPort { get; set; }
         public bool nodeNeedsRepositioning { get; set; }
         public SlotReference targetSlotReference { get; private set; }
@@ -27,6 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_EditorWindow = editorWindow;
             m_Graph = graph;
             m_GraphView = graphView;
+            searcherEntries = CreateSearcherDatabase();
 
             // Transparent icon to trick search window into indenting items
             m_Icon = new Texture2D(1, 1);
@@ -53,6 +56,132 @@ namespace UnityEditor.ShaderGraph.Drawing
         List<int> m_Ids;
         List<ISlot> m_Slots = new List<ISlot>();
 
+        public List<SearcherItem> CreateSearcherDatabase()
+        {
+            //create empty root for searcher tree 
+            var root = new List<SearcherItem>();
+
+            // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
+            var nodeEntries = new List<NodeEntry>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode)))
+                        && type != typeof(PropertyNode)
+                        && type != typeof(SubGraphNode))
+                    {
+                        var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
+                        if (attrs != null && attrs.Length > 0)
+                        {
+                            var node = (AbstractMaterialNode)Activator.CreateInstance(type);
+                            AddEntries(node, attrs[0].title, nodeEntries);
+                        }
+                    }
+                }
+            }
+
+            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                var node = new SubGraphNode { subGraphAsset = asset };
+                if (node.subGraphData.descendents.Contains(m_Graph.assetGuid) || node.subGraphData.assetGuid == m_Graph.assetGuid)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(node.subGraphData.path))
+                {
+                    AddEntries(node, new string[1] { asset.name }, nodeEntries);
+                }
+                else
+                {
+                    var title = node.subGraphData.path.Split('/').ToList();
+                    title.Add(asset.name);
+                    AddEntries(node, title.ToArray(), nodeEntries);
+                }
+            }
+
+            foreach (var property in m_Graph.properties)
+            {
+                var node = new PropertyNode();
+                var property1 = property;
+                node.owner = m_Graph;
+                node.propertyGuid = property1.guid;
+                node.owner = null;
+                AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
+            }
+
+            // Sort the entries lexicographically by group then title with the requirement that items always comes before sub-groups in the same group.
+            // Example result:
+            // - Art/BlendMode
+            // - Art/Adjustments/ColorBalance
+            // - Art/Adjustments/Contrast
+            nodeEntries.Sort((entry1, entry2) =>
+                {
+                    for (var i = 0; i < entry1.title.Length; i++)
+                    {
+                        if (i >= entry2.title.Length)
+                            return 1;
+                        var value = entry1.title[i].CompareTo(entry2.title[i]);
+                        if (value != 0)
+                        {
+                            // Make sure that leaves go before nodes
+                            if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
+                                return entry1.title.Length < entry2.title.Length ? -1 : 1;
+                            return value;
+                        }
+                    }
+                    return 0;
+                });
+
+            // `groups` contains the current group path we're in.
+            var groups = new List<string>();
+            var searcherNodes = new List<SearcherItem>();
+
+            foreach (var nodeEntry in nodeEntries)
+            {
+                // `createIndex` represents from where we should add new group entries from the current entry's group path.
+                var createIndex = int.MaxValue;
+
+                // Compare the group path of the current entry to the current group path.
+                for (var i = 0; i < nodeEntry.title.Length - 1; i++)
+                {
+                    var group = nodeEntry.title[i];
+                    if (i >= groups.Count)
+                    {
+                        // The current group path matches a prefix of the current entry's group path, so we add the
+                        // rest of the group path from the currrent entry.
+                        createIndex = i;
+                        break;
+                    }
+                    if (groups[i] != group)
+                    {
+                        // A prefix of the current group path matches a prefix of the current entry's group path,
+                        // so we remove everyfrom from the point where it doesn't match anymore, and then add the rest
+                        // of the group path from the current entry.
+                        groups.RemoveRange(i, groups.Count - i);
+                        createIndex = i;
+                        break;
+                    }
+                }
+                
+                searcherNodes.Add(new SearcherItem(nodeEntry.title.Last()));
+                // Create new group entries as needed.
+                // If we don't need to modify the group path, `createIndex` will be `int.MaxValue` and thus the loop won't run.
+                for (var i = createIndex; i < nodeEntry.title.Length - 1; i++)
+                {
+                    var group = nodeEntry.title[i];
+                    groups.Add(group);
+
+                    var newGroup = new SearcherItem(group, "", searcherNodes);
+                    root.Add(newGroup);                
+                }
+                
+            }
+
+            return root;
+        }
         public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
         {
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.

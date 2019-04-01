@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
+using UnityEditor.Searcher;
 using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
@@ -192,7 +193,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.nodeCreationRequest = (c) =>
                 {
                     m_SearchWindowProvider.connectedPort = null;
-                    SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
+                    //SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
+                    SearcherWindow.Show(editorWindow, m_SearchWindowProvider.searcherEntries, "Create Node", item => {
+                            Debug.Log("Searcher item selected: " + (item?.name ?? "<none>"));
+                            return true;
+                            }, c.screenMousePosition);
                 };
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider);
