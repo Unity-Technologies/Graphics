@@ -176,10 +176,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Vector2 va = vl.normalized + vr.normalized;
                 Vector2 vn = -va.normalized;
 
+
                 if (va.magnitude > 0 && vn.magnitude > 0)
                 {
-                    featheredShape.Add(new Vector2(cp.x, cp.y));
-                    extrusionDir.Add(new Vector2(vn.x, vn.y));
+                    Vector2 dir = new Vector2(vn.x, vn.y);
+                    featheredShape.Add(new Vector2(cp.x, cp.y) + dir);
+                    extrusionDir.Add(5*dir);
                 }
             }
         }
@@ -198,6 +200,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = null };
 
             UpdateFeatheredShapeLightMesh(inputs, pointCount, ref featheredShape, ref extrusionDir);
+        }
+
+
+        public static void GenerateFeatheredGeometry(Vector3[] shapePath, float falloff, out Vector3[] featheredVertices )
+        {
+
         }
         
 
@@ -225,24 +233,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 var inputsF = new ContourVertex[4];
                 inputsF[0] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
                 inputsF[1] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = new Color(extrusionDir[i].x, extrusionDir[i].y, 0, 0) };
-                inputsF[2] = new ContourVertex() { Position = new Vec3() { X = feathered[i + 1].x, Y = feathered[i + 1].y }, Data = new Color(extrusionDir[i+1].x, extrusionDir[i+1].y, 0, 0) };
+                inputsF[2] = new ContourVertex() { Position = new Vec3() { X = feathered[i + 1].x, Y = feathered[i + 1].y }, Data = new Color(extrusionDir[i + 1].x, extrusionDir[i + 1].y, 0, 0) };
                 inputsF[3] = new ContourVertex() { Position = new Vec3() { X = shapePath[i + 1].x, Y = shapePath[i + 1].y }, Data = meshInteriorColor };
                 tessF.AddContour(inputsF, ContourOrientation.Original);
 
                 inputsI[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
             }
-
             var inputsL = new ContourVertex[4];
             inputsL[0] = new ContourVertex() { Position = new Vec3() { X = shapePath[pointCount - 1].x, Y = shapePath[pointCount - 1].y }, Data = meshInteriorColor };
-            inputsL[1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = new Color(extrusionDir[pointCount-1].x, extrusionDir[pointCount - 1].y, 0, 0)};
+            inputsL[1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = new Color(extrusionDir[pointCount - 1].x, extrusionDir[pointCount - 1].y, 0, 0) };
             inputsL[2] = new ContourVertex() { Position = new Vec3() { X = feathered[0].x, Y = feathered[0].y }, Data = new Color(extrusionDir[0].x, extrusionDir[0].y, 0, 0) };
             inputsL[3] = new ContourVertex() { Position = new Vec3() { X = shapePath[0].x, Y = shapePath[0].y }, Data = meshInteriorColor };
-            tessF.AddContour(inputsL, ContourOrientation.Original);
 
             inputsI[pointCount - 1] = new ContourVertex() { Position = new Vec3() { X = shapePath[pointCount - 1].x, Y = shapePath[pointCount - 1].y }, Data = meshInteriorColor };
             tessI.AddContour(inputsI, ContourOrientation.Original);
-
             tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
+
+
+            tessF.AddContour(inputsL, ContourOrientation.Original);
             tessF.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
 
             var indicesI = tessI.Elements.Select(i => i).ToArray();

@@ -371,6 +371,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             List<Vector2> shape = new List<Vector2>();
             List<Vector2> extrusionDir = new List<Vector2>();
             LightUtility.GetFeatheredShape(m_ShapePath, m_ShapeLightFalloffSize, ref shape, ref extrusionDir);
+            for (int i = 0; i < shape.Count; i++)
+            {
+                Vector2 position = new Vector2();
+                position.x = shape[i].x + this.shapeLightFalloffSize * extrusionDir[i].x;
+                position.y = shape[i].y + this.shapeLightFalloffSize * extrusionDir[i].y;
+                shape[i] = position;
+            }
             return shape;
         }
 

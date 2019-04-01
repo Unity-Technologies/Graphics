@@ -47,6 +47,7 @@ Shader "Hidden/Light2D-Shape"
 			float  _InverseLightIntensityScale;
 			float4 _Color;
 			float  _FalloffDistance;
+			float4 _FalloffOffset;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
@@ -63,8 +64,8 @@ Shader "Hidden/Light2D-Shape"
                 Varyings o = (Varyings)0;
 
 				float3 positionOS = attributes.positionOS;
-				positionOS.x = positionOS.x + _FalloffDistance * attributes.color.r;
-				positionOS.y = positionOS.y + _FalloffDistance * attributes.color.g;
+				positionOS.x = positionOS.x + _FalloffDistance * attributes.color.r + (1-attributes.color.a) * _FalloffOffset.x;
+				positionOS.y = positionOS.y + _FalloffDistance * attributes.color.g + (1-attributes.color.a) * _FalloffOffset.y;
 
                 o.positionCS = TransformObjectToHClip(positionOS);
                 o.color = _Color * _InverseLightIntensityScale;

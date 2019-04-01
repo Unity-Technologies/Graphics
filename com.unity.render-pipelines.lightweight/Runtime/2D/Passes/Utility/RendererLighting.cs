@@ -125,6 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                             cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
                             cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
+                            cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
                             cmdBuffer.SetGlobalColor("_Color", light.intensity * light.color);
                             cmdBuffer.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
 
@@ -173,6 +174,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                         cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
                                     cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+                                    cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
+                                    cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
+                                    cmdBuffer.SetGlobalColor("_Color", light.intensity * light.color);
+                                    cmdBuffer.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
 
                                     // Is this needed
                                     if (light.useNormalMap)
