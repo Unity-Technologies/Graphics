@@ -42,7 +42,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4[]  projMatrixStereo;
         // XRTODO: remove once SinglePassInstanced is working
         public Vector4      textureWidthScaling; // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
-        public uint         numEyes; // 2+ when rendering stereo, 1 otherwise
 
         Matrix4x4[] viewProjStereo;
         Matrix4x4[] invViewStereo;
@@ -156,6 +155,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // View-projection matrix from the previous frame (non-jittered).
         public Matrix4x4 prevViewProjMatrix;
         public Matrix4x4 prevViewProjMatrixNoCameraTrans;
+
+        // Helper property to inform how many views are rendered simultaneously
+        public int viewCount
+        {
+            get
+            {
+                if (camera.stereoEnabled && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
+                    return 2;
+
+                return 1;
+            }
+        }
+
+        public int computePassCount
+        {
+            get
+            {
+                // XRTODO: double-wide cleanup
+                if (camera.stereoEnabled && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
+                    return 1;
+
+                return viewCount;
+            }
+        }
 
         // The only way to reliably keep track of a frame change right now is to compare the frame
         // count Unity gives us. We need this as a single camera could be rendered several times per
@@ -501,8 +524,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var gpuProj = GL.GetGPUProjectionMatrix(cameraProj, true); // Had to change this from 'false'
             var gpuView = camera.worldToCameraMatrix;
             var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
-
-            numEyes = camera.stereoEnabled ? (uint)2 : (uint)1; // TODO VR: Generalize this when support for >2 eyes comes out with XR SDK
 
             if (camera.stereoEnabled)
             {

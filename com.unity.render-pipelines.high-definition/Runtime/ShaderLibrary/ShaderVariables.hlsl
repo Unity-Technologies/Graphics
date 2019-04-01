@@ -209,9 +209,9 @@ CBUFFER_START(UnityGlobal)
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
     uint   _VBufferSliceCount;
     float  _VBufferRcpSliceCount;
-    float  _Pad2;
+    float  _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
     float  _Pad3;
-    float4 _VBufferUvScaleAndLimit;     // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+    float4 _VBufferUvScaleAndLimit;        // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
     float4 _VBufferDistanceEncodingParams; // See the call site for description
     float4 _VBufferDistanceDecodingParams; // See the call site for description
 
@@ -236,6 +236,7 @@ CBUFFER_START(UnityGlobal)
     uint _EnableSSRefraction;
 
     uint _OffScreenRendering;
+    uint _OffScreenDownsampleFactor;
 
 CBUFFER_END
 

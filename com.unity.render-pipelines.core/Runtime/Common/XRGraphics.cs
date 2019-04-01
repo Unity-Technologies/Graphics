@@ -116,34 +116,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        // XRTODO: remove once SinglePassInstanced is working
-        public static uint GetPixelOffset(uint eye)
-        {
-            if (!enabled || stereoRenderingMode != StereoRenderingMode.SinglePass)
-                return 0;
-            return (uint)(Mathf.CeilToInt((eye * XRSettings.eyeTextureWidth) / 2));
-        }
-
-        public static int eyeCount
-        {
-            get
-            {
-                return enabled ? 2 : 1;
-            }
-        }
-
-        public static int computePassCount
-        {
-            get
-            {
-                // XRTODO: need to also check if stereo is enabled in camera!
-                if (stereoRenderingMode == StereoRenderingMode.SinglePassInstanced)
-                    return eyeCount;
-
-                return 1;
-            }
-        }
-
         public static RenderTextureDescriptor eyeTextureDesc
         {
             get

@@ -11,6 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_CameraDepthStencilBuffer = null;
         RTHandleSystem.RTHandle m_CameraDepthBufferMipChain;
         RTHandleSystem.RTHandle m_CameraStencilBufferCopy;
+        RTHandleSystem.RTHandle m_CameraHalfResDepthBuffer = null;
         HDUtils.PackedMipChainInfo m_CameraDepthBufferMipChainInfo; // This is metadata
 
         // The two render targets that should be used when we render in MSAA
@@ -59,6 +60,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraDepthBufferMipChainInfo = new HDUtils.PackedMipChainInfo();
             m_CameraDepthBufferMipChainInfo.Allocate();
             m_CameraDepthBufferMipChain = RTHandles.Alloc(ComputeDepthBufferMipChainSize, colorFormat: GraphicsFormat.R32_SFloat, filterMode: FilterMode.Point, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "CameraDepthBufferMipChain");
+
+            if(settings.lowresTransparentSettings.enabled)
+            {
+                // Create the half res depth buffer used for low resolution transparency
+                m_CameraHalfResDepthBuffer = RTHandles.Alloc(Vector2.one * 0.5f, depthBufferBits: DepthBits.Depth32, filterMode: FilterMode.Point, xrInstancing: true, useDynamicScale: true, name: "LowResDepthBuffer");
+            }
 
             // Technically we won't need this buffer in some cases, but nothing that we can determine at init time.
             m_CameraStencilBufferCopy = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.None, colorFormat: GraphicsFormat.R8_UNorm, filterMode: FilterMode.Point, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "CameraStencilCopy"); // DXGI_FORMAT_R8_UINT is not supported by Unity
@@ -191,6 +198,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public RTHandleSystem.RTHandle GetLowResDepthBuffer()
+        {
+            return m_CameraHalfResDepthBuffer;
+        }
+
         // Request the depth texture (MSAA or not)
         public RTHandleSystem.RTHandle GetDepthTexture(bool isMSAA = false)
         {
@@ -255,6 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_CameraDepthStencilBuffer);
             RTHandles.Release(m_CameraDepthBufferMipChain);
             RTHandles.Release(m_CameraStencilBufferCopy);
+            RTHandles.Release(m_CameraHalfResDepthBuffer);
 
             if (m_MSAASupported)
             {

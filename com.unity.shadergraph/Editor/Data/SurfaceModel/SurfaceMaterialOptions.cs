@@ -51,6 +51,12 @@ namespace UnityEditor.ShaderGraph
         private BlendMode m_DstBlend = BlendMode.Zero;
 
         [SerializeField]
+        private BlendMode m_AlphaSrcBlend = BlendMode.One;
+
+        [SerializeField]
+        private BlendMode m_AlphaDstBlend = BlendMode.Zero;
+
+        [SerializeField]
         private CullMode m_CullMode = CullMode.Back;
 
         [SerializeField]
@@ -66,6 +72,8 @@ namespace UnityEditor.ShaderGraph
         {
             srcBlend = BlendMode.One;
             dstBlend = BlendMode.Zero;
+            alphaSrcBlend = BlendMode.One;
+            alphaDstBlend = BlendMode.Zero;
             cullMode = CullMode.Back;
             zTest = ZTest.LEqual;
             zWrite = ZWrite.On;
@@ -74,7 +82,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GetBlend(ShaderStringBuilder builder)
         {
-            builder.AppendLine("Blend {0} {1}", srcBlend, dstBlend);
+            builder.AppendLine("Blend {0} {1}, {2} {3}", srcBlend, dstBlend, alphaSrcBlend, alphaDstBlend);
         }
 
         public void GetCull(ShaderStringBuilder builder)
@@ -99,6 +107,8 @@ namespace UnityEditor.ShaderGraph
 
         public BlendMode srcBlend { get { return m_SrcBlend; } set { m_SrcBlend = value; } }
         public BlendMode dstBlend { get { return m_DstBlend; } set { m_DstBlend = value; } }
+        public BlendMode alphaSrcBlend { get { return m_AlphaSrcBlend; } set { m_AlphaSrcBlend = value; } }
+        public BlendMode alphaDstBlend { get { return m_AlphaDstBlend; } set { m_AlphaDstBlend = value; } }
         public CullMode cullMode { get { return m_CullMode; } set { m_CullMode = value; } }
         public ZTest zTest { get { return m_ZTest; } set { m_ZTest = value; } }
         public ZWrite zWrite { get { return m_ZWrite; } set { m_ZWrite = value; } }

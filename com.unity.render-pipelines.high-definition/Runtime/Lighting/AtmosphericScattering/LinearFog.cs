@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             PushShaderParametersCommon(hdCamera, cmd, FogType.Linear);
-            cmd.SetGlobalVector(m_LinearFogParam, new Vector4(fogStart, 1.0f / (fogEnd - fogStart), fogHeightEnd, 1.0f / (fogHeightEnd - fogHeightStart)));
+            cmd.SetGlobalVector(m_LinearFogParam, new Vector4(fogStart.value, 1.0f / (fogEnd.value - fogStart.value), fogHeightEnd.value, 1.0f / (fogHeightEnd.value - fogHeightStart.value)));
         }
     }
 }

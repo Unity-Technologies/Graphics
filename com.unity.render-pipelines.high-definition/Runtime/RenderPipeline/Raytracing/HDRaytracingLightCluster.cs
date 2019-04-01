@@ -453,12 +453,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                Color finalColor = Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
-                GlobalIllumination.LinearColor converted = GlobalIllumination.LinearColor.Convert(light.color, light.intensity);
-                finalColor.r *= converted.red;
-                finalColor.g *= converted.green;
-                finalColor.b *= converted.blue;
-                lightData.color = new Vector3(finalColor.r, finalColor.g, finalColor.b) * light.intensity;
+                Color value = light.color.linear * light.intensity;
+                if (additionalLightData.useColorTemperature)
+                    value *= Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+                lightData.color = new Vector3(value.r, value.g, value.b);
 
                 lightData.forward = light.transform.forward;
                 lightData.up = light.transform.up;
