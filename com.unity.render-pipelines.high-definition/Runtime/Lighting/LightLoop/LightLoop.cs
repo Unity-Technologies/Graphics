@@ -282,6 +282,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_lightCount = 0;
         int m_densityVolumeCount = 0;
         bool m_enableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
+        bool m_hasRunLightListPrevFrame = false;
 
         // This value is used to compute the area shadow when using raytracing by the HDRaytracingShadowManager
         public int areaLightCount { get { return m_areaLightCount; } }
@@ -2371,8 +2372,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             var isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
+            // If we don't need to run the light list, we still run it for the first frame that is not needed in order to keep the lists in a clean state. 
+            if (!runLightList && m_hasRunLightListPrevFrame)
+            {
+                m_hasRunLightListPrevFrame = false;
+                runLightList = true;
+            }
+            else
+            {
+                m_hasRunLightListPrevFrame = runLightList;
+            }
+
             // generate screen-space AABBs (used for both fptl and clustered).
-            if (runLightList)
+            if (m_lightCount != 0)
             {
                 temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
                 temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
