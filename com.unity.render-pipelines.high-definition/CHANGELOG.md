@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the Stop NaN feature
 - Fixed some resources to handle more than 2 instanced views for XR
 - Fixed issue with black screen (NaN) produced on old GPU hardware or intel GPU hardware with gaussian pyramid
+- Fixed issue with disabled punctual light would still render when only directional light is present
 
 ### Changed
 - Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
