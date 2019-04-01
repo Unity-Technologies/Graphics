@@ -194,13 +194,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     m_SearchWindowProvider.connectedPort = null;
                     //SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
-                    SearcherWindow.Show(editorWindow, m_SearchWindowProvider.searcherEntries, "Create Node", item => {
+                    SearcherWindow.Show(editorWindow, m_SearchWindowProvider.CreateSearcherDatabase(), "Create Node", item => {
                             m_SearchWindowProvider.OnSearcherSelectEntry(item, new SearchWindowContext(c.screenMousePosition));
                             return true;
                             }, c.screenMousePosition);
                 };
 
-            m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider);
+            m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
             foreach (var graphGroup in graph.groups)
             {
