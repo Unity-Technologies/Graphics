@@ -56,13 +56,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         List<int> m_Ids;
         List<ISlot> m_Slots = new List<ISlot>();
 
+        List<NodeEntry> nodeEntries = new List<NodeEntry>();
+
         public List<SearcherItem> CreateSearcherDatabase()
         {
-            //create empty root for searcher tree 
-            var root = new List<SearcherItem>();
 
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
-            var nodeEntries = new List<NodeEntry>();
+            
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypesOrNothing())
@@ -105,9 +105,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in m_Graph.properties)
             {
                 var node = new PropertyNode();
-                var property1 = property;
+                //var property1 = property;
                 node.owner = m_Graph;
-                node.propertyGuid = property1.guid;
+                node.propertyGuid = property.guid;
                 node.owner = null;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
             }
@@ -135,49 +135,34 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return 0;
                 });
 
-            // `groups` contains the current group path we're in.
-            var groups = new List<string>();
-            var searcherNodes = new List<SearcherItem>();
-
+            //create empty root for searcher tree 
+            var root = new List<SearcherItem>();
+            
             foreach (var nodeEntry in nodeEntries)
             {
-                // `createIndex` represents from where we should add new group entries from the current entry's group path.
-                var createIndex = int.MaxValue;
-
-                // Compare the group path of the current entry to the current group path.
-                for (var i = 0; i < nodeEntry.title.Length - 1; i++)
+                SearcherItem item = null;
+                SearcherItem parent = null;
+                foreach(var pathEntry in nodeEntry.title)
                 {
-                    var group = nodeEntry.title[i];
-                    if (i >= groups.Count)
-                    {
-                        // The current group path matches a prefix of the current entry's group path, so we add the
-                        // rest of the group path from the currrent entry.
-                        createIndex = i;
-                        break;
-                    }
-                    if (groups[i] != group)
-                    {
-                        // A prefix of the current group path matches a prefix of the current entry's group path,
-                        // so we remove everyfrom from the point where it doesn't match anymore, and then add the rest
-                        // of the group path from the current entry.
-                        groups.RemoveRange(i, groups.Count - i);
-                        createIndex = i;
-                        break;
-                    }
-                }
-                
-                searcherNodes.Add(new SearcherItem(nodeEntry.title.Last()));
-                // Create new group entries as needed.
-                // If we don't need to modify the group path, `createIndex` will be `int.MaxValue` and thus the loop won't run.
-                for (var i = createIndex; i < nodeEntry.title.Length - 1; i++)
-                {
-                    var group = nodeEntry.title[i];
-                    groups.Add(group);
+                    List<SearcherItem> children = parent != null ? parent.children : root;
+                    item = children.Find(x => x.name == pathEntry);
 
-                    var newGroup = new SearcherItem(group, "", searcherNodes);
-                    root.Add(newGroup);                
+                    if (item == null)
+                    {
+                        item = new SearcherItem(pathEntry);
+
+                        if (parent != null)
+                        {
+                            parent.AddChild(item);
+                        }
+                        else
+                        {
+                            children.Add(item);
+                        }
+                    }
+                    parent = item;
                 }
-                
+                root.Add(parent);
             }
 
             return root;
@@ -312,7 +297,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return tree;
         }
 
-        void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> nodeEntries)
+        void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> addNodeEntries)
         {
             if (m_Graph.isSubGraph && !node.allowedInSubGraph)
                 return;
@@ -320,7 +305,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             if (connectedPort == null)
             {
-                nodeEntries.Add(new NodeEntry
+                addNodeEntries.Add(new NodeEntry
                 {
                     node = node,
                     title = title,
@@ -347,7 +332,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (hasSingleSlot && m_Slots.Count == 1)
             {
-                nodeEntries.Add(new NodeEntry
+                addNodeEntries.Add(new NodeEntry
                 {
                     node = node,
                     title = title,
@@ -361,7 +346,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var entryTitle = new string[title.Length];
                 title.CopyTo(entryTitle, 0);
                 entryTitle[entryTitle.Length - 1] += ": " + slot.displayName;
-                nodeEntries.Add(new NodeEntry
+                addNodeEntries.Add(new NodeEntry
                 {
                     title = entryTitle,
                     node = node,
@@ -373,6 +358,46 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool OnSelectEntry(SearchTreeEntry entry, SearchWindowContext context)
         {
             var nodeEntry = (NodeEntry)entry.userData;
+            var node = nodeEntry.node;
+
+            var drawState = node.drawState;
+
+
+            var windowRoot = m_EditorWindow.rootVisualElement;
+            var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, context.screenMousePosition - m_EditorWindow.position.position);
+            var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
+            drawState.position = new Rect(graphMousePosition, Vector2.zero);
+            node.drawState = drawState;
+
+            m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
+            m_Graph.AddNode(node);
+
+            if (connectedPort != null)
+            {
+                var connectedSlot = connectedPort.slot;
+                var connectedSlotReference = connectedSlot.owner.GetSlotReference(connectedSlot.id);
+                var compatibleSlotReference = node.GetSlotReference(nodeEntry.compatibleSlotId);
+
+                var fromReference = connectedSlot.isOutputSlot ? connectedSlotReference : compatibleSlotReference;
+                var toReference = connectedSlot.isOutputSlot ? compatibleSlotReference : connectedSlotReference;
+                m_Graph.Connect(fromReference, toReference);
+
+                nodeNeedsRepositioning = true;
+                targetSlotReference = compatibleSlotReference;
+                targetPosition = graphMousePosition;
+            }
+
+            return true;
+        }
+
+        public bool OnSearcherSelectEntry(SearcherItem entry, SearchWindowContext context)
+        {
+            if(entry == null)
+                return false;
+            var parent1 = entry.parent;
+            Debug.Log("Found Item in " + parent1.name + " under " + parent1.parent.name);
+            var nodeEntry = nodeEntries.Find(currentNode => currentNode.title.Contains(entry.name));
+
             var node = nodeEntry.node;
 
             var drawState = node.drawState;

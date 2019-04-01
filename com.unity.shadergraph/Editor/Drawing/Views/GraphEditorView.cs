@@ -195,7 +195,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_SearchWindowProvider.connectedPort = null;
                     //SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
                     SearcherWindow.Show(editorWindow, m_SearchWindowProvider.searcherEntries, "Create Node", item => {
-                            Debug.Log("Searcher item selected: " + (item?.name ?? "<none>"));
+                            m_SearchWindowProvider.OnSearcherSelectEntry(item, new SearchWindowContext(c.screenMousePosition));
                             return true;
                             }, c.screenMousePosition);
                 };
