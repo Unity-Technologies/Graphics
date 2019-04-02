@@ -15,6 +15,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             internal SerializedProperty scatteringDistance;
             internal SerializedProperty transmissionTint;
+//forest-begin: Tweakable transmission
+            internal SerializedProperty transmissionDirectScale;
+			internal SerializedProperty transmissionIndirectScale;
+//forest-end:
             internal SerializedProperty texturingMode;
             internal SerializedProperty transmissionMode;
             internal SerializedProperty thicknessRemap;
@@ -62,6 +66,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 scatteringDistance = rp.Find(x => x.scatteringDistance),
                 transmissionTint = rp.Find(x => x.transmissionTint),
+//forest-begin: Tweakable transmission
+                transmissionDirectScale = rp.Find(x => x.transmissionDirectScale),
+				transmissionIndirectScale = rp.Find(x => x.transmissionIndirectScale),
+//forest-end:
                 texturingMode = rp.Find(x => x.texturingMode),
                 transmissionMode = rp.Find(x => x.transmissionMode),
                 thicknessRemap = rp.Find(x => x.thicknessRemap),
@@ -121,6 +129,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 var thicknessRemap = profile.thicknessRemap.vector2Value;
                 EditorGUILayout.MinMaxSlider(s_Styles.profileThicknessRemap, ref thicknessRemap.x, ref thicknessRemap.y, 0f, 50f);
                 profile.thicknessRemap.vector2Value = thicknessRemap;
+
+//forest-begin: Tweakable transmission
+                EditorGUILayout.Slider(profile.transmissionDirectScale, 0f, 8f, s_Styles.profileTransmissionDirectScale);
+				EditorGUILayout.Slider(profile.transmissionIndirectScale, 0f, 8f, s_Styles.profileTransmissionIndirectScale);
+//forest-end:
 
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField(s_Styles.profilePreview0, s_Styles.centeredMiniBoldLabel);

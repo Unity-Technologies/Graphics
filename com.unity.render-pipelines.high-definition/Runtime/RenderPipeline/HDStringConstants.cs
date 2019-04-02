@@ -221,6 +221,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ThicknessRemaps = Shader.PropertyToID("_ThicknessRemaps");
         public static readonly int _ShapeParams = Shader.PropertyToID("_ShapeParams");
         public static readonly int _TransmissionTintsAndFresnel0 = Shader.PropertyToID("_TransmissionTintsAndFresnel0");
+//forest-begin: Tweakable transmission
+        public static readonly int _TransmissionDirectAndIndirectScales = Shader.PropertyToID("_TransmissionDirectAndIndirectScales");
+//forest-end:
         public static readonly int specularLightingUAV = Shader.PropertyToID("specularLightingUAV");
         public static readonly int diffuseLightingUAV = Shader.PropertyToID("diffuseLightingUAV");
         public static readonly int _DiffusionProfileHashTable = Shader.PropertyToID("_DiffusionProfileHashTable");

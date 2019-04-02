@@ -27,6 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector4[]                   m_SSSThicknessRemaps;
         Vector4[]                   m_SSSShapeParams;
         Vector4[]                   m_SSSTransmissionTintsAndFresnel0;
+//forest-begin: Tweakable transmission
+        Vector4[]                   transmissionDirectAndIndirectScales; //MERGE_TODO: naming scheme changed
+//forest-end:
         Vector4[]                   m_SSSDisabledTransmissionTintsAndFresnel0;
         Vector4[]                   m_SSSWorldScales;
         Vector4[]                   m_SSSFilterKernels;
@@ -77,6 +80,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSThicknessRemaps = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSShapeParams = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+//forest-begin: Tweakable transmission
+            transmissionDirectAndIndirectScales = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
+//forest-end:
             m_SSSDisabledTransmissionTintsAndFresnel0 = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSWorldScales = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
             m_SSSFilterKernels = new Vector4[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD];
@@ -166,6 +172,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSThicknessRemaps[index] = settings.thicknessRemaps;
             m_SSSShapeParams[index] = settings.shapeParams;
             m_SSSTransmissionTintsAndFresnel0[index] = settings.transmissionTintsAndFresnel0;
+//forest-begin: Tweakable transmission
+            transmissionDirectAndIndirectScales[index] = settings.transmissionDirectAndIndirectScales;
+//forest-end:
             m_SSSDisabledTransmissionTintsAndFresnel0[index] = settings.disabledTransmissionTintsAndFresnel0;
             m_SSSWorldScales[index] = settings.worldScales;
             for (int j = 0, n = DiffusionProfileConstants.SSS_N_SAMPLES_NEAR_FIELD; j < n; j++)
@@ -217,6 +226,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVectorArray(HDShaderIDs._ShapeParams, m_SSSShapeParams);
             // To disable transmission, we simply nullify the transmissionTint
             cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionTintsAndFresnel0, hdCamera.frameSettings.IsEnabled(FrameSettingsField.Transmission) ? m_SSSTransmissionTintsAndFresnel0 : m_SSSDisabledTransmissionTintsAndFresnel0);
+//forest-begin: Tweakable transmission
+            cmd.SetGlobalVectorArray(HDShaderIDs._TransmissionDirectAndIndirectScales, transmissionDirectAndIndirectScales);
+//forest-end:
             cmd.SetGlobalVectorArray(HDShaderIDs._WorldScales, m_SSSWorldScales);
             cmd.SetGlobalFloatArray(HDShaderIDs._DiffusionProfileHashTable, m_SSSDiffusionProfileHashes);
         }

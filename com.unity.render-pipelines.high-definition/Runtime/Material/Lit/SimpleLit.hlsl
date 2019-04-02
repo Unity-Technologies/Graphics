@@ -339,6 +339,14 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
 // EvaluateBSDF_Directional
 //-----------------------------------------------------------------------------
 
+/* MERGE_TODO: code apparently has moved elsewhere
+//forest-begin: Tweakable transmission
+//forest-begin: Specular occlusion on transmission (custom shader parity)
+#if !defined(UNITY_MATERIAL_STACKLIT)
+    intensity *= _TransmissionDirectAndIndirectScales[bsdfData.diffusionProfile].r * bsdfData.specularOcclusion;
+//forest-end:
+//forest-end:
+*/
 DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput, PreLightData preLightData,
                                         DirectionalLightData lightData, BSDFData bsdfData,
