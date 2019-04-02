@@ -179,11 +179,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Vector2 va = vl.normalized + vr.normalized;
                 Vector2 vn = -va.normalized;
 
-
                 if (va.magnitude > 0 && vn.magnitude > 0)
                 {
                     Vector2 dir = new Vector2(vn.x, vn.y);
-                    extrusionDir.Add(5*dir);
+                    extrusionDir.Add(dir);
                 }
             }
         }
