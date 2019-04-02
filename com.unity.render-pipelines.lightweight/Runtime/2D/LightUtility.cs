@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return changed;
         }
 
-        public static Bounds CalculateBoundingSphere(ref Vector3[] vertices)
+        public static Bounds CalculateBoundingSphere(ref Vector3[] vertices, ref Color[] colors, float falloffDistance)
         {
             Bounds localBounds = new Bounds();
 
@@ -22,6 +22,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             for (int i = 0; i < vertices.Length; i++)
             {
                 Vector3 vertex = vertices[i];
+                vertex.x += falloffDistance * colors[i].r;
+                vertex.y += falloffDistance * colors[i].g;
+
                 minimum.x = vertex.x < minimum.x ? vertex.x : minimum.x;
                 minimum.y = vertex.y < minimum.y ? vertex.y : minimum.y;
                 maximum.x = vertex.x > maximum.x ? vertex.x : maximum.x;
@@ -35,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
         // Takes in a mesh that
-        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, float angle, int sides)
+        public static Bounds GenerateParametricMesh(ref Mesh mesh, float radius, float falloffDistance, float angle, int sides)
         {
             if (mesh == null)
                 mesh = new Mesh();
@@ -107,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             mesh.colors = colors;
             mesh.triangles = triangles;
 
-            return CalculateBoundingSphere(ref vertices);
+            return CalculateBoundingSphere(ref vertices, ref colors, falloffDistance);
         }
 
         public static Bounds GenerateSpriteMesh(ref Mesh mesh, Sprite sprite, float scale)
@@ -145,7 +148,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 mesh.triangles = triangles3d;
                 mesh.colors = colors;
 
-                return CalculateBoundingSphere(ref vertices3d);
+                return CalculateBoundingSphere(ref vertices3d, ref colors, 0);
             }
 
             return new Bounds(Vector3.zero, Vector3.zero);
@@ -201,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             GetFalloffExtrusion(inputs, pointCount, ref extrusionDir);
         }
 
-        public static Bounds GenerateShapeMesh(ref Mesh mesh, Vector3[] shapePath)
+        public static Bounds GenerateShapeMesh(ref Mesh mesh, Vector3[] shapePath, float falloffDistance)
         {
             Bounds localBounds;
             Color meshInteriorColor = new Color(0,0,0,1);
@@ -263,13 +266,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 finalColors.Add(bColor);
             }
 
+            Color[] colors = finalColors.ToArray();
             Vector3[] vertices = finalVertices.ToArray();
             mesh.Clear();
             mesh.vertices = vertices;
-            mesh.colors = finalColors.ToArray();
+            mesh.colors = colors;
             mesh.SetIndices(finalIndices.ToArray(), MeshTopology.Triangles, 0);
 
-            localBounds = CalculateBoundingSphere(ref vertices);
+            localBounds = CalculateBoundingSphere(ref vertices, ref colors, falloffDistance);
 
             return localBounds;
         }

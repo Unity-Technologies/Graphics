@@ -256,16 +256,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             switch (m_LightType)
             {
                 case LightType.Freeform:
-                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_ShapePath);
+                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
                     break;
                 case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightRadius, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:
                     m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, 1);
                     break;
                 case LightType.Point:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, 0, 4);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 0,  1.412135f, 0, 4);
                     break;
             }
 
@@ -279,7 +279,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 #if UNITY_EDITOR
             isVisible &= UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(gameObject, camera);
 #endif
-
             return isVisible;
         }
 
