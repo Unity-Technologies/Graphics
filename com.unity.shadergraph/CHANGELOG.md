@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [6.7.0] - 2019-XX-XX
+### Fixed
+- When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
+- When you rapidly perform an undo or redo, Shader Graph windows no longer break.
+- Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
+- You can now reference sub-assets such as Textures.
 
 ## [6.6.0] - 2019-04-01
 ### Added
@@ -36,10 +41,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where `IsFaceSign` would not compile within Sub Graph Nodes.
 - Null reference errors no longer occur when you remove ports with connected edges.
 - Default input fields now correctly hide and show when connections change.
-- When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
-- When you rapidly perform an undo or redo, Shader Graph windows no longer break.
-- Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
-- You can now reference sub-assets such as Textures.
 
 ## [6.5.0] - 2019-03-07
 
