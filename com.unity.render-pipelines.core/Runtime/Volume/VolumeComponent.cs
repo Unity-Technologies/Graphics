@@ -72,7 +72,13 @@ namespace UnityEngine.Rendering
                 var toParam = parameters[i];
 
                 // Keep track of the override state for debugging purpose
-                stateParam.overrideState = toParam.overrideState;
+//custom-begin: malte: allow partial overrides from many volumes in priority order
+                if (toParam.overrideState)
+                {
+                    stateParam.overrideState = toParam.overrideState;
+                    stateParam.Interp(stateParam, toParam, interpFactor);
+                }
+//custom-end
 
                 if (toParam.overrideState)
                     stateParam.Interp(stateParam, toParam, interpFactor);

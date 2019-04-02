@@ -87,7 +87,9 @@ namespace UnityEditor.Rendering
                 editorType = typeof(VolumeComponentEditor);
 
             var editor = (VolumeComponentEditor)Activator.CreateInstance(editorType);
-            editor.Init(component, m_BaseEditor);
+//custom-begin: malte: context reference for exposed property resolver
+            editor.Init(component, m_SerializedObject.context, m_BaseEditor);
+//custom-end
             editor.baseProperty = property.Copy();
 
             if (forceOpen)

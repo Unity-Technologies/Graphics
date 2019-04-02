@@ -6,6 +6,9 @@ namespace UnityEditor.Rendering
     [CustomEditor(typeof(Volume))]
     sealed class VolumeEditor : Editor
     {
+//custom-begin: malte: context reference for exposed property resolver
+        SerializedProperty m_Context;
+//custom-end
         SerializedProperty m_IsGlobal;
         SerializedProperty m_BlendRadius;
         SerializedProperty m_Weight;
@@ -21,6 +24,9 @@ namespace UnityEditor.Rendering
         void OnEnable()
         {
             var o = new PropertyFetcher<Volume>(serializedObject);
+//custom-begin: malte: context reference for exposed property resolver
+            m_Context = o.Find(x => x.context);
+//custom-end
             m_IsGlobal = o.Find(x => x.isGlobal);
             m_BlendRadius = o.Find(x => x.blendDistance);
             m_Weight = o.Find(x => x.weight);
@@ -41,13 +47,17 @@ namespace UnityEditor.Rendering
             m_ComponentList.Clear();
 
             if (asset != null)
-                m_ComponentList.Init(asset, new SerializedObject(asset));
+//custom-begin: malte: context reference for exposed property resolver
+                m_ComponentList.Init(asset, new SerializedObject(asset, actualTarget.context));
+//custom-end
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
+//custom-begin: malte: context reference for exposed property resolver
+            EditorGUILayout.ObjectField(m_Context, typeof(IExposedPropertyTable));
+//custom-end
             EditorGUILayout.PropertyField(m_IsGlobal);
 
             if (!m_IsGlobal.boolValue) // Blend radius is not needed for global volumes
