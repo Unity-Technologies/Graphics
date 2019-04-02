@@ -151,7 +151,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return new Bounds(Vector3.zero, Vector3.zero);
         }
 
-        static void UpdateFeatheredShapeLightMesh(ContourVertex[] contourPoints, int contourPointCount, ref List<Vector2> featheredShape, ref List<Vector2> extrusionDir)
+        static void GetFalloffExtrusion(ContourVertex[] contourPoints, int contourPointCount, ref List<Vector2> extrusionDir)
         {
             for (int i = 0; i < contourPointCount; ++i)
             {
@@ -180,7 +180,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (va.magnitude > 0 && vn.magnitude > 0)
                 {
                     Vector2 dir = new Vector2(vn.x, vn.y);
-                    featheredShape.Add(new Vector2(cp.x, cp.y) + dir);
                     extrusionDir.Add(5*dir);
                 }
             }
@@ -192,85 +191,77 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
 
-        public static void GetFeatheredShape(Vector3[] shapePath, float feathering, ref List<Vector2> featheredShape, ref List<Vector2> extrusionDir)
+        public static void GetFalloffShape(Vector3[] shapePath, ref List<Vector2> extrusionDir)
         {
             int pointCount = shapePath.Length;
             var inputs = new ContourVertex[pointCount];
             for (int i = 0; i < pointCount; ++i)
                 inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = null };
 
-            UpdateFeatheredShapeLightMesh(inputs, pointCount, ref featheredShape, ref extrusionDir);
+            GetFalloffExtrusion(inputs, pointCount, ref extrusionDir);
         }
-
-
-        public static void GenerateFeatheredGeometry(Vector3[] shapePath, float falloff, out Vector3[] featheredVertices )
-        {
-
-        }
-        
 
         public static Bounds GenerateShapeMesh(ref Mesh mesh, Vector3[] shapePath)
         {
             Bounds localBounds;
             Color meshInteriorColor = new Color(0,0,0,1);
+            List<Vector3> finalVertices = new List<Vector3>();
+            List<int> finalIndices = new List<int>();
+            List<Color> finalColors = new List<Color>();
 
+            // Create interior geometry
             int pointCount = shapePath.Length;
             var inputs = new ContourVertex[pointCount];
             for (int i = 0; i < pointCount; ++i)
                 inputs[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
 
-            List<Vector2> feathered = new List<Vector2>();
-            List<Vector2> extrusionDir = new List<Vector2>();
-            UpdateFeatheredShapeLightMesh(inputs, pointCount, ref feathered, ref extrusionDir);
-            int featheredPointCount = feathered.Count + pointCount;
-
-            Tess tessI = new Tess();  // Interior
-            Tess tessF = new Tess();  // Feathered Edge
-
-            var inputsI = new ContourVertex[pointCount];
-            for (int i = 0; i < pointCount - 1; ++i)
-            {
-                var inputsF = new ContourVertex[4];
-                inputsF[0] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
-                inputsF[1] = new ContourVertex() { Position = new Vec3() { X = feathered[i].x, Y = feathered[i].y }, Data = new Color(extrusionDir[i].x, extrusionDir[i].y, 0, 0) };
-                inputsF[2] = new ContourVertex() { Position = new Vec3() { X = feathered[i + 1].x, Y = feathered[i + 1].y }, Data = new Color(extrusionDir[i + 1].x, extrusionDir[i + 1].y, 0, 0) };
-                inputsF[3] = new ContourVertex() { Position = new Vec3() { X = shapePath[i + 1].x, Y = shapePath[i + 1].y }, Data = meshInteriorColor };
-                tessF.AddContour(inputsF, ContourOrientation.Original);
-
-                inputsI[i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y }, Data = meshInteriorColor };
-            }
-            var inputsL = new ContourVertex[4];
-            inputsL[0] = new ContourVertex() { Position = new Vec3() { X = shapePath[pointCount - 1].x, Y = shapePath[pointCount - 1].y }, Data = meshInteriorColor };
-            inputsL[1] = new ContourVertex() { Position = new Vec3() { X = feathered[pointCount - 1].x, Y = feathered[pointCount - 1].y }, Data = new Color(extrusionDir[pointCount - 1].x, extrusionDir[pointCount - 1].y, 0, 0) };
-            inputsL[2] = new ContourVertex() { Position = new Vec3() { X = feathered[0].x, Y = feathered[0].y }, Data = new Color(extrusionDir[0].x, extrusionDir[0].y, 0, 0) };
-            inputsL[3] = new ContourVertex() { Position = new Vec3() { X = shapePath[0].x, Y = shapePath[0].y }, Data = meshInteriorColor };
-
-            inputsI[pointCount - 1] = new ContourVertex() { Position = new Vec3() { X = shapePath[pointCount - 1].x, Y = shapePath[pointCount - 1].y }, Data = meshInteriorColor };
-            tessI.AddContour(inputsI, ContourOrientation.Original);
+            Tess tessI = new Tess();
+            tessI.AddContour(inputs, ContourOrientation.Original);
             tessI.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
-
-
-            tessF.AddContour(inputsL, ContourOrientation.Original);
-            tessF.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3, InterpCustomVertexData);
 
             var indicesI = tessI.Elements.Select(i => i).ToArray();
             var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
             var colorsI = tessI.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
 
-            var indicesF = tessF.Elements.Select(i => i + verticesI.Length).ToArray();
-            var verticesF = tessF.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
-            var colorsF = tessF.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
-
-
-            List<Vector3> finalVertices = new List<Vector3>();
-            List<int> finalIndices = new List<int>();
-            List<Color> finalColors = new List<Color>();
             finalVertices.AddRange(verticesI);
-            finalVertices.AddRange(verticesF);
             finalIndices.AddRange(indicesI);
-            finalIndices.AddRange(indicesF);
             finalColors.AddRange(colorsI);
-            finalColors.AddRange(colorsF);
+
+            // Create falloff geometry
+            List<Vector2> extrusionDirs = new List<Vector2>();
+            GetFalloffShape(shapePath, ref extrusionDirs);
+
+            pointCount = finalVertices.Count;
+            int falloffPointCount = 2 * shapePath.Length;
+            for (int i = 0; i < shapePath.Length; i++)
+            {
+                // Making triangles ABD and DCA
+                int triangleIndex = 2 * i;
+                int aIndex = pointCount + triangleIndex;
+                int bIndex = pointCount + triangleIndex + 1;
+                int cIndex = pointCount + (triangleIndex + 2) % falloffPointCount;
+                int dIndex = pointCount + (triangleIndex + 3) % falloffPointCount;
+
+                Vector3 point = shapePath[i];
+
+                // We are making degenerate triangles which will be extruded by the shader
+                finalVertices.Add(point);        
+                finalVertices.Add(point);        
+
+                finalIndices.Add(aIndex);  
+                finalIndices.Add(bIndex);  
+                finalIndices.Add(dIndex);  
+
+                finalIndices.Add(dIndex);
+                finalIndices.Add(cIndex);
+                finalIndices.Add(aIndex);
+                
+                Color aColor = new Color(0, 0, 0, 1);
+                Color bColor = new Color(extrusionDirs[i].x, extrusionDirs[i].y, 0, 0);
+
+                finalColors.Add(aColor);
+                finalColors.Add(bColor);
+            }
 
             Vector3[] vertices = finalVertices.ToArray();
             mesh.Clear();
@@ -284,3 +275,4 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
     }
 }
+
