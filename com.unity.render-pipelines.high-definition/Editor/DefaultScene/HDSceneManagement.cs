@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (HDProjectSettings.defaultScenePrefab == null)
             {
-                Debug.LogError("Default Scene not set! Please run Wizard...");
+                Debug.LogWarning("Default Scene not set! Please run Wizard...");
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (HDProjectSettings.defaultScenePrefab == null)
                 {
-                    Debug.LogError("Default Scene not set! Please run Wizard...");
+                    Debug.LogWarning("Default Scene not set! Please run Wizard...");
                     return;
                 }
 
