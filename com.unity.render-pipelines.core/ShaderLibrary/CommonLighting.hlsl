@@ -232,6 +232,26 @@ real GetSpecularOcclusionFromAmbientOcclusion(real NdotV, real ambientOcclusion,
     return saturate(PositivePow(NdotV + ambientOcclusion, exp2(-16.0 * roughness - 1.0)) - 1.0 + ambientOcclusion);
 }
 
+//forest-begin: lightmap occlusion
+float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, float skyOcclusion, float grassOcclusion, float treeOcclusion);
+
+float4 _LightmapOcclusionLuminanceMode;
+float4 _LightmapOcclusionScalePowerReflStrengthSpecStrength;
+
+float GetSpecularOcclusionFromLightmapLuminance(float3 V, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
+{
+#if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
+    return 1.0;
+#endif
+
+	float3 lookupVector = _LightmapOcclusionLuminanceMode.w == 0 ? normalWS : reflect(-V, normalWS);;
+	float3 bakedGI = SampleBakedGI(float3(0, 0, 0), lookupVector, uvStaticLightmap, uvDynamicLightmap, 1.f, 1.f, 1.f);
+	float lightmapOcclusion = dot(bakedGI, _LightmapOcclusionLuminanceMode.rgb);
+	lightmapOcclusion = pow(saturate(lightmapOcclusion * _LightmapOcclusionScalePowerReflStrengthSpecStrength.x), _LightmapOcclusionScalePowerReflStrengthSpecStrength.y);
+	return lerp(1.f, lightmapOcclusion, _LightmapOcclusionScalePowerReflStrengthSpecStrength.z);
+}
+//forest-end
+
 // ref: Practical Realtime Strategies for Accurate Indirect Occlusion
 // Update ambient occlusion to colored ambient occlusion based on statitics of how light is bouncing in an object and with the albedo of the object
 real3 GTAOMultiBounce(real visibility, real3 albedo)
