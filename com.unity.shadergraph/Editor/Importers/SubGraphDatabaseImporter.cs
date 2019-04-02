@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             rootSubGraphData.isRecursive = true;
                         }
-                        else
+                        else if (subGraphMap.ContainsKey(childSubGraphGuid))
                         {
                             stack.Push(childSubGraphGuid);
                         }
