@@ -10,6 +10,9 @@ namespace UnityEngine.Rendering
     [AddComponentMenu("Miscellaneous/Volume")]
     public class Volume : MonoBehaviour
     {
+//custom-begin: malte: context reference for exposed property resolver
+        public Object context;
+//custom-end:
         /// <summary>
         /// Specifies whether to apply the Volume to the entire Scene or not.
         /// </summary>
@@ -136,6 +139,10 @@ namespace UnityEngine.Rendering
         // TODO: Look into a better volume previsualization system
         List<Collider> m_TempColliders;
 
+//custom-begin: malte: hide collider gizmos
+        public bool hideColliderGizmos { get; set; }
+//custom-end:
+
         void OnDrawGizmos()
         {
             if (m_TempColliders == null)
@@ -143,6 +150,11 @@ namespace UnityEngine.Rendering
 
             var colliders = m_TempColliders;
             GetComponents(colliders);
+
+//custom-begin: malte: hide collider gizmos
+            if (hideColliderGizmos)
+                return;
+//custom-end
 
             if (isGlobal || colliders == null)
                 return;

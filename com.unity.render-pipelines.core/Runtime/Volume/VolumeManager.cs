@@ -358,14 +358,18 @@ namespace UnityEngine.Rendering
                 float interpFactor = 1f;
 
                 if (blendDistSqr > 0f)
-                    interpFactor = 1f - (closestDistanceSqr / blendDistSqr);
+//custom-begin: malte: smoothstep blend
+                    interpFactor = Mathf.SmoothStep(1f, 0f, closestDistanceSqr / blendDistSqr);
+//custom-end:
 
                 // No need to clamp01 the interpolation factor as it'll always be in [0;1[ range
                 OverrideData(stack, volume.profileRef.components, interpFactor * Mathf.Clamp01(volume.weight));
             }
         }
 
-        List<Volume> GrabVolumes(LayerMask mask)
+//custom-begin: malte: debugging/visualizing volumes
+        public List<Volume> GrabVolumes(LayerMask mask)
+//custom-end:
         {
             List<Volume> list;
 
