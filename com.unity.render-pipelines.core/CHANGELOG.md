@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.11.1] - 2019-04-02
 
+### Fixed
+- Fixed compile errors in XRGraphics.cs when ENABLE_VR is not defined
+
 ## [5.11.0] - 2019-04-01
 
 ## [5.10.0] - 2019-03-19
