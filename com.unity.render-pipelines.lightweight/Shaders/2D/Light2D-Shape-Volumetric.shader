@@ -37,7 +37,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
                 float2  uv          : TEXCOORD0;
             };
 
-			float4 _Color;
+			float4 _LightColor;
 			float  _FalloffDistance;
 			float4 _FalloffOffset;
 			float  _VolumeOpacity;
@@ -61,8 +61,8 @@ Shader "Hidden/Light2D-Shape-Volumetric"
 
 
                 o.positionCS = TransformObjectToHClip(positionOS);
-				o.color = _Color;
-				o.color.a = _VolumeOpacity;// attributes.color.a * _VolumeOpacity;
+				o.color = _LightColor;
+				o.color.a = _VolumeOpacity;
 
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;

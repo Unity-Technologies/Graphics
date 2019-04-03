@@ -45,7 +45,7 @@ Shader "Hidden/Light2D-Shape"
             };
 
 			float  _InverseLightIntensityScale;
-			float4 _Color;
+			float4 _LightColor;
 			float  _FalloffDistance;
 			float4 _FalloffOffset;
 
@@ -68,7 +68,7 @@ Shader "Hidden/Light2D-Shape"
 				positionOS.y = positionOS.y + _FalloffDistance * attributes.color.g + (1-attributes.color.a) * _FalloffOffset.y;
 
                 o.positionCS = TransformObjectToHClip(positionOS);
-                o.color = _Color * _InverseLightIntensityScale;
+                o.color = _LightColor * _InverseLightIntensityScale;
 				o.color.a = attributes.color.a;
 
 #ifdef SPRITE_LIGHT
