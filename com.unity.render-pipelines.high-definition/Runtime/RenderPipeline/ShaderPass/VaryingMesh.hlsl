@@ -1,3 +1,8 @@
+//forest-begin: Added vertex animation
+#if defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT)
+	#define ATTRIBUTES_NEED_COLOR
+#endif
+//forest-end:
 struct AttributesMesh
 {
     float3 positionOS   : POSITION;
@@ -16,9 +21,14 @@ struct AttributesMesh
 #ifdef ATTRIBUTES_NEED_TEXCOORD2
     float2 uv2          : TEXCOORD2;
 #endif
-#ifdef ATTRIBUTES_NEED_TEXCOORD3
+//forest-begin: Added vertex animation
+//#ifdef ATTRIBUTES_NEED_TEXCOORD3
+#if defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT)
+	float3 uv3			: TEXCOORD3;
+#elif defined(ATTRIBUTES_NEED_TEXCOORD3)
     float2 uv3          : TEXCOORD3;
 #endif
+//forest-end:
 #ifdef ATTRIBUTES_NEED_COLOR
     float4 color        : COLOR;
 #endif

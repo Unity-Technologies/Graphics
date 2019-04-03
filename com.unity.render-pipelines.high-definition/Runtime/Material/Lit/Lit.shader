@@ -206,6 +206,32 @@ Shader "HDRP/Lit"
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVEmissive("UV Set for emissive", Float) = 0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
+//forest-begin: Added vertex animation MERGE_TODO: Wind seems to have been removed
+		[Enum(None, 0, Single Pivot Color, 3, Hierarchy Pivot, 4, Procedural Animation, 6)]
+        [ToggleUI]  _EnableWind("Enable Wind", Float) = 0.0
+
+		_WindHeightScale("Wind Height Scale", Range(0.1, 100.0)) = 2.0
+		_WindHeightIntensity("Wind Height Intensity", Range(0.0, 1.0)) = 0.1
+		_WindHeightSpeed("Wind Height Speed Scale", Range(0.0001, 0.1)) = 0.001
+		_WindInnerRadius("Wind Inner Radius", Range(0.05, 2)) = 0.5
+		_WindRangeRadius("Wind Range Radius", Range(0.1, 10)) = 2.5
+		_WindRadiusIntensity("Wind Radius Intensity", Range(0.0, 1.0)) = 0.1
+		_WindRadiusSpeed("Wind Radius Speed Scale", Range(0.0001, 0.1)) = 0.001
+
+		[UIToggle] _WindFakeSingleObjectPivot("Use Object Pivot", Float) = 0.0
+
+		_WindElasticityLvlB("Wind Elasticity Lvl B", Range(0.0, 1.0)) = 0.2
+		_WindElasticityLvl0("Wind Elasticity Lvl 0", Range(0.0, 5.0)) = 1.0
+		_WindElasticityLvl1("Wind Elasticity Lvl 1", Range(0.0, 5.0)) = 1.0
+		_WindRangeLvlB("Wind Range Lvl B", Range(0.1, 100.0)) = 5.0
+		_WindRangeLvl0("Wind Range Lvl 0", Range(0.1, 20.0)) = 2.0
+		_WindRangeLvl1("Wind Range Lvl 1", Range(0.1, 5.0)) = 0.5
+		_WindFlutterElasticity("Wind Flutter Elasticity", Range(0.0, 1.0)) = 0.1
+		_WindFlutterScale("Wind Flutter Scale", Range(0.0, 0.5)) = 0.1
+		_WindFlutterPeriodScale("Wind Flutter Period Scale", Range(0.0, 3.0)) = 1.0
+		_WindFlutterPhase("Wind Flutter Phase", Range(1.0, 150.0)) = 50.0
+//forest-end: 'builtin' wind properties below 
+
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
@@ -246,6 +272,10 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+//forest-begin: Added vertex animation
+    #pragma shader_feature _ _ANIM_SINGLE_PIVOT_COLOR _ANIM_HIERARCHY_PIVOT _ANIM_PROCEDURAL_BRANCH
+    #pragma shader_feature_local _VERTEX_WIND
+//forest-end:
     #pragma shader_feature_local _ _REFRACTION_PLANE _REFRACTION_SPHERE
 
     #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
@@ -356,6 +386,9 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -408,6 +441,9 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl"
@@ -437,6 +473,9 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
 
@@ -465,6 +504,9 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -508,7 +550,9 @@ Shader "HDRP/Lit"
             #else
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #endif
-
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -548,6 +592,9 @@ Shader "HDRP/Lit"
             #else
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitMotionVectorPass.hlsl"
             #endif
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl"
 
@@ -582,6 +629,9 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDistortionPass.hlsl"
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl"
 
@@ -607,6 +657,9 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -665,6 +718,9 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
 
@@ -736,6 +792,9 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
 
@@ -760,6 +819,9 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
+//forest-begin: Added vertex animation
+            #include "./Forest_VtxAnim_Shared2.cginc"
+//forest-end:
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
