@@ -295,6 +295,20 @@ float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
 
+//forest-begin: Added vertex animation
+float _WindElasticityLvlB;
+float _WindElasticityLvl0;
+float _WindElasticityLvl1;
+float _WindRangeLvlB;
+float _WindRangeLvl0;
+float _WindRangeLvl1;
+float _WindFlutterElasticity;
+float _WindFlutterScale;
+float _WindFlutterPhase;
+float _WindFlutterPeriodScale;
+float _WindFakeSingleObjectPivot;
+//forest-end:
+
 // Following two variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;
