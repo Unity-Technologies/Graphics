@@ -1,6 +1,8 @@
 #if !defined(COMBINED_SHAPE_LIGHT_PASS)
 #define COMBINED_SHAPE_LIGHT_PASS
 
+half _LightIntensityScale;
+
 half4 CombinedShapeLightShared(half4 color, half mask, half2 lightingUV)
 {
 
@@ -71,11 +73,10 @@ half4 CombinedShapeLightShared(half4 color, half mask, half2 lightingUV)
 	half4 finalOutput;
 	half4 finalModulate = shapeLight0Modulate + shapeLight1Modulate + shapeLight2Modulate + shapeLight3Modulate;
 	half4 finalAdditve = shapeLight0Additive + shapeLight1Additive + shapeLight2Additive + shapeLight3Additive;
-	finalOutput = color * finalModulate + finalAdditve;
+	finalOutput = _LightIntensityScale * (color * finalModulate + finalAdditve);
 
 	finalOutput.a = color.a;
 	return finalOutput;
 }
-
 #endif
 

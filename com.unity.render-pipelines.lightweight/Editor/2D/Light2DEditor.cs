@@ -208,8 +208,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         void OnPointLight(SerializedObject serializedObject)
         {
-            EditorGUILayout.PropertyField(m_PointLightQuality, Styles.pointLightQuality);
-
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.Slider(m_PointInnerAngle, 0, 360, Styles.pointLightInnerAngle);
             if (EditorGUI.EndChangeCheck())
@@ -255,7 +253,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 EditorGUILayout.Slider(m_ShapeLightFalloffSize, 0, 5, Styles.generalFalloffSize);
                 EditorGUILayout.Slider(m_FalloffCurve, 0, 1, Styles.generalFalloffIntensity);
 
-                if (lightType == Light2D.LightType.Parametric)
+                if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
                     EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
             }
 
@@ -594,6 +592,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             serializedObject.Update();
 
+
+
             EditorGUILayout.PropertyField(m_LightType, Styles.generalLightType);
 
             switch (m_LightType.intValue)
@@ -612,7 +612,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     break;
             }
 
+
             EditorGUI.BeginChangeCheck();
+            
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
@@ -624,10 +626,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
                 updateGlobalLights |= EditorGUI.EndChangeCheck();
 
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_PointZDistance, Styles.pointLightZDistance);
-                if (EditorGUI.EndChangeCheck())
-                    m_PointZDistance.floatValue = Mathf.Max(0.0f, m_PointZDistance.floatValue);
+                if (m_UseNormalMap.boolValue)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(m_PointZDistance, Styles.pointLightZDistance);
+                    if (EditorGUI.EndChangeCheck())
+                        m_PointZDistance.floatValue = Mathf.Max(0.0f, m_PointZDistance.floatValue);
+                    EditorGUILayout.PropertyField(m_PointLightQuality, Styles.pointLightQuality);
+                }
 
                 EditorGUILayout.Slider(m_VolumetricAlpha, 0, 1, Styles.generalVolumeOpacity);
             }

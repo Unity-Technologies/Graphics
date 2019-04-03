@@ -124,6 +124,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                 cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
                             cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+                            cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
+                            cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
+                            cmdBuffer.SetGlobalColor("_LightColor", light.intensity * light.color);
+                            cmdBuffer.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
 
                             if(light.useNormalMap || light.lightType == Light2D.LightType.Point)
                                 RendererLighting.SetPointLightShaderGlobals(cmdBuffer, light);
@@ -170,6 +174,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                         cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
                                     cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+                                    cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
+                                    cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
+                                    cmdBuffer.SetGlobalColor("_LightColor", light.intensity * light.color);
+                                    cmdBuffer.SetGlobalFloat("_VolumeOpacity", light.volumeOpacity);
 
                                     // Is this needed
                                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
@@ -254,8 +262,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void SetPointLightShaderGlobals(CommandBuffer cmdBuffer, Light2D light)
         {
-            cmdBuffer.SetGlobalColor("_LightColor", light.color * light.intensity);
-
             // This is used for the lookup texture
             Matrix4x4 lightInverseMatrix;
             Matrix4x4 lightNoRotInverseMatrix;
