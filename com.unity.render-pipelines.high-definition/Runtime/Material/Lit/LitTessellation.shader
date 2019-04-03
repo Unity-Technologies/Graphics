@@ -231,8 +231,9 @@ Shader "HDRP/LitTessellation"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
-        [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
-
+//forest-begin: Wind flutter map (baking help only)
+		_WindFlutterMap("Wind Flutter Map", 2D) = "white" {}
+//forest-end:
     }
 
     HLSLINCLUDE
