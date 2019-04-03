@@ -119,4 +119,43 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Noise.unity
     guid: 2ede8f56c35c42741a3d56ef5355b552
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/01. Attributes/Attributes.unity
+    guid: e0d80ac1c9520ce4399d0d688ebec48d
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/01. Attributes/VariadicAttributes.unity
+    guid: 31151b2ed9e1b88459e90e960d11b05d
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/02. SpawnAndInitialize/Initialize.unity
+    guid: ca2333d0ec0c7dd4c95726244c64f3c0
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/02. SpawnAndInitialize/Spawning.unity
+    guid: f96d343a732933243af8a7a35b578bf1
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/03. Outputs/Outputs.unity
+    guid: 3beba1ddd4bd1e84b9ea2c49faf04c96
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/04. Outputs - continued/Outputs
+      2.unity
+    guid: da400ef71c862d14383ba915ca4f5b09
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/05. Lit Outputs/LitOutputs.unity
+    guid: e2453d52c9a7e4d4f83c907a9bde86a1
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/05. Lit Outputs/SimpleLitOutputs.unity
+    guid: 52e8f338134e3eb44a88e93f6f4e3abb
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/06. OrientShadows/OrientShadows.unity
+    guid: c7560353091ebd1499882d564f6756d7
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/07. Operators - Math/Operators
+      - Math.unity
+    guid: 720658c67c4bdce40a896fa6fb0e7563
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/08. Operators - Other/Operators
+      - Other.unity
+    guid: 2075f7345284111468a89d28adbf277b
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/09. Update/Update.unity
+    guid: b90d05f0426391b40a91843f560e1b71
   m_configObjects: {}
