@@ -365,7 +365,10 @@ Shader "HDRP/LayeredLit"
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
-
+	
+//forest-begin:
+        [Toggle(_ENABLE_TERRAIN_MODE)] _EnableTerrainMode("Enable Terrain Mode", Float) = 0.0
+//forest-end:
     }
 
     HLSLINCLUDE
@@ -449,6 +452,10 @@ Shader "HDRP/LayeredLit"
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
     #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
+
+//forest-begin:
+    #pragma shader_feature _ENABLE_TERRAIN_MODE
+//forest-end:
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE

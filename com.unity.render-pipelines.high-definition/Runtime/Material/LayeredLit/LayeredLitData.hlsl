@@ -488,6 +488,12 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Value for main layer is not use for blending itself but for alternate weighting like density.
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
     float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
+//forest-begin:
+    #ifdef _ENABLE_TERRAIN_MODE
+        // Terrain channels are R,G,B,A vs Layered channels A,R,G,B
+        blendMasks.argb = blendMasks;
+    #endif
+//forest-end:
 
     // Wind uses vertex alpha as an intensity parameter.
     // So in case Layered shader uses wind, we need to hardcode the alpha here so that the main layer can be visible without affecting wind intensity.
