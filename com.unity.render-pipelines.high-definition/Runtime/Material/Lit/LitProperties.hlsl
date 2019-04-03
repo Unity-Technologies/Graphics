@@ -4,6 +4,18 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
+//forest-begin:
+#ifdef _ENABLE_TERRAIN_MODE
+	#define _LayerMaskMap			_Control
+	#define _LayerMaskMap_ST		_Control_ST 
+	#define sampler_LayerMaskMap	sampler_Control
+	#define _BaseColorMap0_ST		_Splat0_ST
+	#define _BaseColorMap1_ST		_Splat1_ST
+	#define _BaseColorMap2_ST		_Splat2_ST
+	#define _BaseColorMap3_ST		_Splat3_ST
+#endif
+//forest-end:
+
 TEXTURE2D(_DistortionVectorMap);
 SAMPLER(sampler_DistortionVectorMap);
 
