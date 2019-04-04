@@ -99,7 +99,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricAlpha;
         SerializedProperty m_LightOperation;
-        SerializedProperty m_FalloffCurve;
+        SerializedProperty m_FalloffIntensity;
         SerializedProperty m_PointZDistance;
 
         // Point Light Properties
@@ -140,7 +140,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
             m_LightOperation = serializedObject.FindProperty("m_LightOperationIndex");
-            m_FalloffCurve = serializedObject.FindProperty("m_FalloffCurve");
+            m_FalloffIntensity = serializedObject.FindProperty("m_FalloffIntensity");
             m_PointZDistance = serializedObject.FindProperty("m_PointLightDistance");
 
             // Point Light
@@ -228,7 +228,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (EditorGUI.EndChangeCheck())
                 m_PointOuterRadius.floatValue = Mathf.Max(m_PointInnerRadius.floatValue, m_PointOuterRadius.floatValue);
 
-            EditorGUILayout.Slider(m_FalloffCurve, 0, 1, Styles.generalFalloffIntensity);
+            EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
             EditorGUILayout.PropertyField(m_PointLightCookie, Styles.pointLightCookie);
         }
 
@@ -251,7 +251,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 }
 
                 EditorGUILayout.Slider(m_ShapeLightFalloffSize, 0, 5, Styles.generalFalloffSize);
-                EditorGUILayout.Slider(m_FalloffCurve, 0, 1, Styles.generalFalloffIntensity);
+                EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
                 if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
                     EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);

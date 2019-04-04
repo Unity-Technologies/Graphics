@@ -46,7 +46,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
 #else
-            uniform float  _FalloffCurve;
+            uniform float  _FalloffIntensity;
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif
@@ -67,7 +67,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;
 #else
-                o.uv = float2(attributes.color.a, _FalloffCurve);
+                o.uv = float2(attributes.color.a, _FalloffIntensity);
 #endif
 
                 return o;

@@ -123,7 +123,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                             if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                 cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
-                            cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+                            cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
                             cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
                             cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
                             cmdBuffer.SetGlobalColor("_LightColor", light.intensity * light.color);
@@ -173,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                         cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
 
-                                    cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+                                    cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
                                     cmdBuffer.SetGlobalFloat("_FalloffDistance", light.shapeLightFalloffSize);
                                     cmdBuffer.SetGlobalVector("_FalloffOffset", light.shapeLightFalloffOffset);
                                     cmdBuffer.SetGlobalColor("_LightColor", light.intensity * light.color);
@@ -282,7 +282,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmdBuffer.SetGlobalFloat("_InnerAngleMult", 1 / (outerAngle - innerAngle));
             cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
             cmdBuffer.SetGlobalTexture("_FalloffLookup", GetFalloffLookupTexture());
-            cmdBuffer.SetGlobalFloat("_FalloffCurve", light.falloffCurve);
+            cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
 
             cmdBuffer.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
 

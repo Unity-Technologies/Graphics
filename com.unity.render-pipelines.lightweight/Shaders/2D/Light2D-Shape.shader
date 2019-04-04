@@ -53,7 +53,7 @@ Shader "Hidden/Light2D-Shape"
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
 #else
-            float _FalloffCurve;
+            float _FalloffIntensity;
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif
@@ -74,7 +74,7 @@ Shader "Hidden/Light2D-Shape"
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;
 #else
-                o.uv = float2(o.color.a, _FalloffCurve);
+                o.uv = float2(o.color.a, _FalloffIntensity);
 #endif
 
 				float4 worldSpacePos;

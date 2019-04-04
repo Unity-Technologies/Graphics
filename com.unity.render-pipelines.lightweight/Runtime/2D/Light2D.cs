@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         int m_LightOperationIndex = 0;
 
         [SerializeField]
-        float m_FalloffCurve = 0.5f;
+        float m_FalloffIntensity = 0.5f;
             
         [ColorUsage(false, false)]
         [SerializeField]
@@ -115,7 +115,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public float volumeOpacity => m_LightVolumeOpacity;
         public Sprite lightCookieSprite => m_LightCookieSprite;
-        public float falloffCurve => m_FalloffCurve;
+        public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
 
 

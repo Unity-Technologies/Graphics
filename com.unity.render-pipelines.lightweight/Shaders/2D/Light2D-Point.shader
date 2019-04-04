@@ -44,7 +44,7 @@ Shader "Hidden/Light2D-Point"
 
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
-            float _FalloffCurve;
+            float _FalloffIntensity;
 
             TEXTURE2D(_LightLookup);
             SAMPLER(sampler_LightLookup);
@@ -94,7 +94,7 @@ Shader "Hidden/Light2D-Point"
 
                 half2 mappedUV;
                 mappedUV.x = attenuation;
-                mappedUV.y = _FalloffCurve;
+                mappedUV.y = _FalloffIntensity;
                 attenuation = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
 
 #if USE_POINT_LIGHT_COOKIES
