@@ -6,12 +6,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     internal class _2DRenderer : ScriptableRenderer
     {
         Render2DLightingPass m_Render2DLightingPass;
+        PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         RenderTargetHandle m_ColorTargetHandle;
 
         public _2DRenderer(_2DRendererData data) : base(data)
         {
             m_Render2DLightingPass = new Render2DLightingPass(data);
+            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, CoreUtils.CreateEngineMaterial(data.blitShader));
         }
 
@@ -20,7 +22,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             ref CameraData cameraData = ref renderingData.cameraData;
             m_ColorTargetHandle = RenderTargetHandle.CameraTarget;
             PixelPerfectCamera ppc = cameraData.camera.GetComponent<PixelPerfectCamera>();
-            bool useOffscreenColorTexture = ppc != null ? ppc.useOffscreenRT : false;
+            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
+            bool useOffscreenColorTexture = (ppc != null && ppc.useOffscreenRT) || postProcessEnabled;
 
             if (useOffscreenColorTexture)
             {
@@ -32,6 +35,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             m_Render2DLightingPass.ConfigureTarget(m_ColorTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
+
+            if (postProcessEnabled)
+            {
+                m_PostProcessPass.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, m_ColorTargetHandle);
+                EnqueuePass(m_PostProcessPass);
+            }
 
             if (useOffscreenColorTexture)
             {
