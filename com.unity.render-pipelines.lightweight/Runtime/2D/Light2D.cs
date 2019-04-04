@@ -431,9 +431,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             // Mesh Rebuilding
-            rebuildMesh |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
             rebuildMesh |= LightUtility.CheckForChange(m_Intensity, ref m_PreviousIntensity);
-            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightRadius, ref m_PreviousShapeLightRadius);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
