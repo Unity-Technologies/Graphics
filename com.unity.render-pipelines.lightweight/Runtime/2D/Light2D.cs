@@ -42,6 +42,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //                                Variables/Properties
         //------------------------------------------------------------------------------------------
 
+        
+        [UnityEngine.Animations.NotKeyable]
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_LightProjectionType")]
         LightType m_LightType = LightType.Parametric;
@@ -54,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         [SerializeField]
         float m_FalloffCurve = 0.5f;
-
+            
         [ColorUsage(false, false)]
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_LightColor")]
@@ -259,7 +261,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
                     break;
                 case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:
                     m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, 1);
@@ -432,7 +434,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             // Mesh Rebuilding
             rebuildMesh |= LightUtility.CheckForChange(m_Intensity, ref m_PreviousIntensity);
-            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightRadius, ref m_PreviousShapeLightRadius);
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);

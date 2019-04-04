@@ -111,7 +111,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_PointLightQuality;
 
         // Shape Light Properties
-        SerializedProperty m_ShapeLightRadius;
+        SerializedProperty m_ShapeLightParametricRadius;
         SerializedProperty m_ShapeLightFalloffSize;
         SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightParametricAngleOffset;
@@ -152,7 +152,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_PointLightQuality = serializedObject.FindProperty("m_PointLightQuality");
 
             // Shape Light
-            m_ShapeLightRadius = serializedObject.FindProperty("m_ShapeLightRadius");
+            m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
@@ -245,7 +245,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             {
                 if (lightType == Light2D.LightType.Parametric)
                 {
-                    EditorGUILayout.Slider(m_ShapeLightRadius, 0, 20, Styles.shapeLightParametricRadius);
+                    EditorGUILayout.Slider(m_ShapeLightParametricRadius, 0, 20, Styles.shapeLightParametricRadius);
                     EditorGUILayout.IntSlider(m_ShapeLightParametricSides, 3, 24, Styles.shapeLightParametricSides);
                     EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
                 }
@@ -524,7 +524,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     break;
                 case Light2D.LightType.Parametric:
                     {
-                        float radius = light.shapeLightRadius;
+                        float radius = light.shapeLightParametricRadius;
                         float sides = light.shapeLightParametricSides;
                         float angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * light.shapeLightParametricAngleOffset;
 
