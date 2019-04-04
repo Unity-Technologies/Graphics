@@ -24,6 +24,10 @@ namespace UnityEditor.VFX.UI
             m_Index = index;
         }
 
+        public VFXBoardAttribute():this(0)
+        {
+        }
+
         public VFXBoardAttribute(int index)
         {
             m_Index = index;
