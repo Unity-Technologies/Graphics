@@ -105,7 +105,7 @@ MonoBehaviour:
     collapsed: 0
   uiBounds:
     serializedVersion: 2
-    x: -369
+    x: -377
     y: -190
     width: 3821
     height: 2475
@@ -654,8 +654,8 @@ VisualEffectResource:
       \       uint indirectIndex = indirectBuffer.IncrementCounter();\r\n\t\tindirectBuffer[indirectIndex]
       = index;\r\n#endif\r\n#endif\r\n\t}\r\n}\r\n"
   - compute: 0
-    name: '[System 1]Cube Output'
-    source: "Shader \"Hidden/VFX/System 1/Cube Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
+    name: '[System 1]A Cube Output'
+    source: "Shader \"Hidden/VFX/System 1/(A) Cube Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
       Back\r\n\t\t\r\n\t\tTags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\"
       \"RenderType\"=\"Opaque\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Back\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
@@ -1027,8 +1027,8 @@ VisualEffectResource:
       alpha = VFXGetFragmentColor(i).a;\t\t\n\t\t\t\talpha *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i)).a;\t\t\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\t\treturn
       0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\r\n\t}\r\n}\r\n"
   - compute: 0
-    name: '[System 1]Lit Cube Output'
-    source: "Shader \"Hidden/VFX/System 1/Lit Cube Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
+    name: '[System 1]B Lit Cube Output'
+    source: "Shader \"Hidden/VFX/System 1/(B) Lit Cube Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
       Back\r\n\t\t\r\n\t\tTags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\"
       \"RenderType\"=\"Opaque\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
@@ -1454,8 +1454,8 @@ VisualEffectResource:
       *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(baseColorMap),i,VFXCubeGetUV(i)).a;\n\t\t#endif\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\t\treturn
       0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\r\n\t}\r\n}\r\n"
   - compute: 0
-    name: '[System 1]Lit Mesh Output'
-    source: "Shader \"Hidden/VFX/System 1/Lit Mesh Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
+    name: '[System 1]C Lit Mesh Output'
+    source: "Shader \"Hidden/VFX/System 1/(C) Lit Mesh Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
       Off\r\n\t\t\r\n\t\tTags { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\"
       \"RenderType\"=\"Opaque\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Back\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
@@ -2011,8 +2011,8 @@ VisualEffectResource:
       *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;\n\t\t#endif\t\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\t\treturn
       0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\r\n\t}\r\n}\r\n"
   - compute: 0
-    name: '[System 1]Lit Quad Output'
-    source: "Shader \"Hidden/VFX/System 1/Lit Quad Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
+    name: '[System 1]D Lit Quad Output'
+    source: "Shader \"Hidden/VFX/System 1/(D) Lit Quad Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
       Off\r\n\t\t\r\n\t\tTags { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\"
       \"RenderType\"=\"Opaque\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
@@ -2599,8 +2599,8 @@ VisualEffectResource:
       *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;\t\n\t\t#endif\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\n\t\t\t\treturn
       0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\r\n\t}\r\n}\r\n"
   - compute: 0
-    name: '[System 1]Lit Sphere Output'
-    source: "Shader \"Hidden/VFX/System 1/Lit Sphere Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
+    name: '[System 1]E Lit Sphere Output'
+    source: "Shader \"Hidden/VFX/System 1/(E) Lit Sphere Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
       Off\r\n\t\t\r\n\t\tTags { \"Queue\"=\"Geometry\" \"IgnoreProjector\"=\"False\"
       \"RenderType\"=\"Opaque\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
@@ -2971,8 +2971,8 @@ VisualEffectResource:
       o = (ps_output)0;\n\t\t\t\tfloat3 dummy;\n\t\t\t\tVFXClipSphereAndGetDepthOffsetAndNormal(o.depth,dummy,i);\n\t\t\t\treturn
       o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\r\n\t}\r\n}\r\n"
   - compute: 0
-    name: '[System 1]Mesh Output'
-    source: "Shader \"Hidden/VFX/System 1/Mesh Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
+    name: '[System 1]F Mesh Output'
+    source: "Shader \"Hidden/VFX/System 1/(F) Mesh Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
       Off\r\n\t\t\r\n\t\tTags { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\"
       \"RenderType\"=\"Opaque\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Back\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
@@ -3258,8 +3258,8 @@ VisualEffectResource:
       alpha = VFXGetFragmentColor(i).a;\n\t\t\t\talpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;\t\t\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\t\treturn
       0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\r\n\t}\r\n}\r\n"
   - compute: 0
-    name: '[System 1]Quad Output'
-    source: "Shader \"Hidden/VFX/System 1/Quad Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
+    name: '[System 1]G Quad Output'
+    source: "Shader \"Hidden/VFX/System 1/(G) Quad Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
       Off\r\n\t\t\r\n\t\tTags { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\"
       \"RenderType\"=\"Opaque\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if

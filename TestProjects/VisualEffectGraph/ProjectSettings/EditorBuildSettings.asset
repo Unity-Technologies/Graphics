@@ -135,6 +135,9 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/03. Outputs/Outputs.unity
     guid: 3beba1ddd4bd1e84b9ea2c49faf04c96
   - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/03. Outputs/Outputs_HDRP.unity
+    guid: ff36bab77d8d8524796d81014df2aeb4
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/04. Outputs - continued/Outputs
       2.unity
     guid: da400ef71c862d14383ba915ca4f5b09
@@ -158,4 +161,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/09. Update/Update.unity
     guid: b90d05f0426391b40a91843f560e1b71
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/10. HDRP - Miscellaneous/HDRP
+      - Miscellaneous.unity
+    guid: dc1a5cc054c94244292fe8e7e85cd87f
   m_configObjects: {}
