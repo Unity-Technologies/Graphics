@@ -38,6 +38,13 @@ EditorBuildSettings:
       - Other.unity
     guid: 2075f7345284111468a89d28adbf277b
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Coverage/03. Outputs/106_Outputs.unity
+    guid: 3beba1ddd4bd1e84b9ea2c49faf04c96
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Coverage/04. Outputs - continued/107_Outputs
+      2.unity
+    guid: da400ef71c862d14383ba915ca4f5b09
+  - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/09. Update/105_Update.unity
     guid: b90d05f0426391b40a91843f560e1b71
   - enabled: 1
@@ -143,15 +150,8 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/01. Attributes/VariadicAttributes.unity
     guid: 31151b2ed9e1b88459e90e960d11b05d
   - enabled: 1
-    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/03. Outputs/Outputs.unity
-    guid: 3beba1ddd4bd1e84b9ea2c49faf04c96
-  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/03. Outputs/Outputs_HDRP.unity
     guid: ff36bab77d8d8524796d81014df2aeb4
-  - enabled: 1
-    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/04. Outputs - continued/Outputs
-      2.unity
-    guid: da400ef71c862d14383ba915ca4f5b09
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/05. Lit Outputs/LitOutputs.unity
     guid: e2453d52c9a7e4d4f83c907a9bde86a1
@@ -162,18 +162,7 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/06. OrientShadows/OrientShadows.unity
     guid: c7560353091ebd1499882d564f6756d7
   - enabled: 1
-    path: Packages/com.unity.testing.visualeffectgraph/Coverage/08. Operators - Other/104_Operators
-      - Other.unity
-    guid: 2075f7345284111468a89d28adbf277b
-  - enabled: 1
-    path: Packages/com.unity.testing.visualeffectgraph/Coverage/09. Update/105_Update.unity
-    guid: b90d05f0426391b40a91843f560e1b71
-  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/10. HDRP - Miscellaneous/HDRP
       - Miscellaneous.unity
     guid: dc1a5cc054c94244292fe8e7e85cd87f
-  - enabled: 1
-    path: Packages/com.unity.testing.visualeffectgraph/Coverage/07. Operators - Math/103_Operators
-      - Math.unity
-    guid: 720658c67c4bdce40a896fa6fb0e7563
   m_configObjects: {}
