@@ -35,11 +35,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 #ifdef EFFECT_HUE_VARIATION
     output.texCoord0.z = input.interpolators3.z;
 #endif
-
-#ifdef GEOM_TYPE_BRANCH_DETAIL
-    output.texCoord2.xy = input.interpolators4.xy;
-    output.texCoord2.z = input.interpolators3.w;
-#endif
+	output.texCoord0.w = input.interpolators3.w;
 
 #endif
 
@@ -49,7 +45,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 #endif // CUSTOM_UNPACK
 
 
-void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
+void InitializeData(inout SpeedTreeVertexInput input, float lodValue, inout float geometryType)
 {
     // smooth LOD
 #if defined(LOD_FADE_PERCENTAGE) && !defined(EFFECT_BILLBOARD)
@@ -76,26 +72,22 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 
 #ifndef EFFECT_BILLBOARD
         // geometry type
-        float geometryType = (int)(input.texcoord3.w + 0.25);
+        geometryType = (int)(input.texcoord3.w + 0.25);
         bool leafTwo = false;
-        //if (geometryType > GEOM_TYPE_FACINGLEAF)
-#ifdef GEOM_TYPE_FACING_LEAF
+        if (geometryType > GEOM_TYPE_FACINGLEAF)
         {
             geometryType -= 2;
             leafTwo = true;
         }
-#endif
 
         // leaves
-#if defined(GEOM_TYPE_LEAF) || defined(GEOM_TYPE_FACINGLEAF)
-        //if (geometryType > GEOM_TYPE_FROND)
+        if (geometryType > GEOM_TYPE_FROND)
         {
             // remove anchor position
             float3 anchor = float3(input.texcoord1.zw, input.texcoord2.w);
             windyPosition -= anchor;
 
-#ifdef GEOM_TYPE_FACINGLEAF
-            //if (geometryType == GEOM_TYPE_FACINGLEAF)
+			if (geometryType == GEOM_TYPE_FACINGLEAF)
             {
                 // face camera-facing leaf to camera
                 float offsetLen = length(windyPosition);
@@ -104,7 +96,6 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 				windyPosition = mul(mtx_ITMV, float4(windyPosition.xyz, 0)).xyz;
                 windyPosition = normalize(windyPosition) * offsetLen; // make sure the offset vector is still scaled
             }
-#endif
 
             // leaf wind
 #if defined(_WINDQUALITY_FAST) || defined(_WINDQUALITY_BETTER) || defined(_WINDQUALITY_BEST)
@@ -120,7 +111,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             // move back out to anchor
             windyPosition += anchor;
         }
-#endif
+
 
         // frond wind
         bool bPalmWind = false;
@@ -134,7 +125,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 
         // branch wind (applies to all 3D geometry)
 #if defined(_WINDQUALITY_BETTER) || defined(_WINDQUALITY_BEST) || defined(_WINDQUALITY_PALM)
-        float3 rotatedBranchAnchor = normalize(mul(_ST_WindBranchAnchor.xyz, (float3x3)unity_ObjectToWorld)) * _ST_WindBranchAnchor.w;
+        float3 rotatedBranchAnchor = normalize(mul(_ST_WindBranchAnchor.xyz, (float3x3)UNITY_MATRIX_M)) * _ST_WindBranchAnchor.w;
         windyPosition = BranchWind(bPalmWind, windyPosition, treePos, float4(input.texcoord.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor);
 #endif
 
@@ -148,13 +139,14 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
         windyPosition = GlobalWind(windyPosition, treePos, true, rotatedWindVector, globalWindTime);
         input.vertex.xyz = windyPosition;
     }
-#endif
+#endif	// defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
 
 #if defined(EFFECT_BILLBOARD)
     float3 treePos = float3(UNITY_MATRIX_M[0].w, UNITY_MATRIX_M[1].w, UNITY_MATRIX_M[2].w);
     // crossfade faces
     bool topDown = (input.texcoord.z > 0.5);
-    float3 viewDir = UNITY_MATRIX_IT_MV[2].xyz;
+	float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, unity_MatrixInvV));
+    float3 viewDir = mtx_ITMV[2].xyz;
     float3 cameraDir = normalize(mul((float3x3)UNITY_MATRIX_M, _WorldSpaceCameraPos - treePos));
     float viewDot = max(dot(viewDir, input.normal), dot(cameraDir, input.normal));
     viewDot *= viewDot;
@@ -180,6 +172,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
         float3 right = cross(cameraDir, binormal);
         input.normal = cross(binormal, right);
     }
+
     input.normal = normalize(input.normal);
 #endif
 }
@@ -189,12 +182,13 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 PackedVaryingsType SpeedTree8Vert(SpeedTreeVertexInput input)
 {
     PackedVaryingsType output = (PackedVaryingsType)0;
+	float geomType = 0;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output.vmesh);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output.vmesh);
 
     // handle speedtree wind and lod
-    InitializeData(input, unity_LODFade.x);
+    InitializeData(input, unity_LODFade.x, geomType);
 
     float3 positionWS = TransformObjectToWorld(input.vertex.xyz);
     float3 normalWS = TransformObjectToWorldNormal(input.normal);
@@ -226,8 +220,10 @@ PackedVaryingsType SpeedTree8Vert(SpeedTreeVertexInput input)
     float4x4 objToWorld = GetRawUnityObjectToWorld();
     float hueVariationAmount = frac(objToWorld[0].w + objToWorld[1].w + objToWorld[2].w);
     hueVariationAmount += frac(input.vertex.x + input.normal.y + input.normal.x) * 0.5 - 0.3;
-    output.vmesh.interpolators3.z = saturate(hueVariationAmount * _HueVariation.a);
+    output.vmesh.interpolators3.z = saturate(hueVariationAmount * _HueVariationColor.a);
 #endif
+	// Pass down the geometry type so we can use it in the fragment data prep
+	output.vmesh.interpolators3.w = geomType;
 
 #endif
 

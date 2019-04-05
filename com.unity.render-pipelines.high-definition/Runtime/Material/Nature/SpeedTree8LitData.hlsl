@@ -9,17 +9,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
         #ifdef EFFECT_BILLBOARD
-            LODDitheringTransition(input.interpolated.clipPos.xyz, unity_LODFade.x);
+            LODDitheringTransition(input.positionSS.xyz, unity_LODFade.x);
         #endif
     #endif
 #endif
 
     surfaceData.baseColor = input.color.rgb * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0.xy).rgb;
-    float alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0.xy).a * _Color.a;
+    float alpha = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0.xy).a * _Color.a * input.color.a;
 
-#ifdef SPEEDTREE_ALPHATEST
     clip(alpha - _Cutoff);
-#endif
 
 #ifdef EFFECT_BACKSIDE_NORMALS
     float3 doubleSidedConstants = float3(1.0, 1.0, -1.0);
@@ -46,7 +44,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
 #ifdef EFFECT_HUE_VARIATION
-    float3 shiftedColor = lerp(surfaceData.baseColor, _HueVariation.rgb, input.texCoord0.z);
+    float3 shiftedColor = lerp(surfaceData.baseColor, _HueVariationColor.rgb, input.texCoord0.z);
     float maxBase = max(surfaceData.baseColor.r, max(surfaceData.baseColor.g, surfaceData.baseColor.b));
     float newMaxBase = max(shiftedColor.r, max(shiftedColor.g, shiftedColor.b));
     maxBase /= newMaxBase;
@@ -86,13 +84,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.atDistance = 1000000.0;
 #ifdef EFFECT_SUBSURFACE
     surfaceData.transmittanceColor = SAMPLE_TEXTURE2D(_SubsurfaceTex, sampler_SubsurfaceTex, input.texCoord0.xy).rgb * _SubsurfaceColor.rgb;
-#if defined(GEOM_TYPE_LEAF) || defined(GEOM_TYPE_FACINGLEAF)
-    surfaceData.transmittanceMask = 1.0;
-    surfaceData.subsurfaceMask = 1.0;
-#else
-    surfaceData.transmittanceMask = 0.0;
-    surfaceData.subsurfaceMask = 0;
-#endif
+
+    if (input.texcoord0.w > GEOM_TYPE_FROND)
+    {
+        surfaceData.transmittanceMask = 1.0;
+        surfaceData.subsurfaceMask = 1.0;
+    }
+    else
+    {
+        surfaceData.transmittanceMask = 0.0;
+        surfaceData.subsurfaceMask = 0;
+    }
 #else
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.transmittanceMask = 0.0;
@@ -103,11 +105,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.diffusionProfileHash = 0;
 
     InitBuiltinData(posInput, alpha, surfaceData.normalWS, -surfaceData.geomNormalWS, input.texCoord1, input.texCoord2, builtinData);
-
-    // subsurface (hijack emissive)
-//#ifdef EFFECT_SUBSURFACE
-//    builtinData.emissiveColor += SAMPLE_TEXTURE2D(_SubsurfaceTex, sampler_SubsurfaceTex, input.texCoord0.xy).rgb * _SubsurfaceColor.rgb;
-//#endif
 
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
 }

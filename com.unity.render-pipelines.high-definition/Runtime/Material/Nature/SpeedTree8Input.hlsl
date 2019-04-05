@@ -77,10 +77,7 @@ int _ObjectId;
 int _PassValue;
 #endif
 
-#if defined(GEOM_TYPE_FROND) || defined(GEOM_TYPE_LEAF) || defined(GEOM_TYPE_FACINGLEAF)
-#define SPEEDTREE_ALPHATEST
 float _Cutoff;
-#endif
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
@@ -94,7 +91,7 @@ float _Metallic;
 #endif
 
 #ifdef EFFECT_HUE_VARIATION
-half4 _HueVariationColor;
+float4 _HueVariationColor;
 #endif
 
 #if defined(EFFECT_BUMP) && !defined(LIGHTMAP_ON)
@@ -103,17 +100,22 @@ SAMPLER(sampler_BumpMap);
 #endif
 
 #ifdef EFFECT_BILLBOARD
-half _BillboardShadowFade;
+float _BillboardShadowFade;
 #endif
 
 #ifdef EFFECT_SUBSURFACE
 TEXTURE2D(_SubsurfaceTex);
 SAMPLER(sampler_SubsurfaceTex);
-half4 _SubsurfaceColor;
-half _SubsurfaceIndirect;
+float4 _SubsurfaceColor;
+float _SubsurfaceIndirect;
 #endif
 
 float3 _LightDirection;
+
+#define GEOM_TYPE_BRANCH 0
+#define GEOM_TYPE_FROND 1
+#define GEOM_TYPE_LEAF 2
+#define GEOM_TYPE_FACINGLEAF 3
 
 // ---------------------------------------------------------
 
@@ -123,24 +125,14 @@ float3 _LightDirection;
 #define VARYINGS_NEED_TANGENT_TO_WORLD      // Necessary to get interpolators for normal
 #define ATTRIBUTES_NEED_TEXCOORD0
 #define ATTRIBUTES_NEED_TEXCOORD1
+#define VARYINGS_NEED_TEXCOORD0
+#define VARYINGS_NEED_TEXCOORD1             // Need the extra channels to pass down geometry type
 #define VARYINGS_NEED_POSITION_WS
 #define ATTRIBUTES_NEED_COLOR
 #define VARYINGS_NEED_COLOR
 
 #ifdef EFFECT_BUMP
 #define ATTRIBUTES_NEED_TANGENT
-#endif
-
-// Branch detail UV needs 3 components, BUT using TEXCOORD1 and TEXCOORD0 gives us 4, and we
-// are only using 3 out of those 4, so we can make do with just 2 on TEXCOORD2
-#ifdef GEOM_TYPE_BRANCH_DETAIL
-#define VARYINGS_NEED_TEXCOORD2
-#define ATTRIBUTES_NEED_TEXCOORD2
-#endif
-
-#if defined(EFFECT_HUE_VARIATION) || defined(GEOM_TYPE_BRANCH_DETAIL)
-#define ATTRIBUTES_NEED_TEXCOORD1
-#define VARYINGS_NEED_TEXCOORD1
 #endif
 
 #if (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_DEPTH_ONLY)

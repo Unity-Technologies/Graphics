@@ -54,9 +54,8 @@ Shader "HDRP/Nature/SpeedTree8"
         
         #pragma multi_compile_instancing
         #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
-        #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_FACINGLEAF
         #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
-        //#pragma shader_feature_local EFFECT_BILLBOARD
+        #pragma shader_feature_local EFFECT_BILLBOARD
         #pragma shader_feature_local EFFECT_BUMP
         #pragma shader_feature_local EFFECT_HUE_VARIATION
         #pragma shader_feature_local EFFECT_EXTRA_TEX
@@ -232,7 +231,6 @@ Shader "HDRP/Nature/SpeedTree8"
         {
             Name "ForwardLit"
             Tags { "LightMode" = "ForwardOnly" }
-
             
             Cull Off
 
@@ -288,7 +286,6 @@ Shader "HDRP/Nature/SpeedTree8"
         }
     }
 
-    Dependency "BillboardShader" = "HDRP/Nature/SpeedTree8 Billboard"
     FallBack "HDRP/Lit"
-    CustomEditor "SpeedTreeMaterialInspector"
+    CustomEditor "SpeedTree8ShaderGUI"
 }
