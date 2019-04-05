@@ -247,7 +247,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
 #if ENABLE_RAYTRACING
             m_RenderingPassNames.Add("Raytracing");
-            m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
+            m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Raytracing);
 #endif
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
