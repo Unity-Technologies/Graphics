@@ -58,7 +58,7 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
 			half4 _NormalMap_ST;
 
 			#if USE_SHAPE_LIGHT_TYPE_0
-			SHAPE_LIGHT(0);
+			SHAPE_LIGHT(0)
 			#endif
 
 			#if USE_SHAPE_LIGHT_TYPE_1
@@ -86,9 +86,6 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
 				o.lightingUV.y = 1.0 - o.lightingUV.y;
 				#endif
 
-				float4 worldVertex;
-				worldVertex.xyz = TransformObjectToWorld(v.positionOS);
-				worldVertex.w = 1;
 				o.color = v.color;
 				return o;
 			}
@@ -141,7 +138,6 @@ Shader "Lightweight Render Pipeline/2D/Sprite-Lit-Default"
 				Varyings o = (Varyings)0;
 
 				o.positionCS = TransformObjectToHClip(attributes.positionOS);
-				o.positionCS.y = o.positionCS.y;
 				#if UNITY_UV_STARTS_AT_TOP
 					o.positionCS.y = -o.positionCS.y;
 				#endif
