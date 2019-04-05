@@ -235,7 +235,7 @@ namespace UnityEditor.VFX
             var data = new VFXCPUBufferData();
             foreach (var element in layout)
             {
-                var attribute = VFXAttribute.AllAttribute.Concat(m_Graph.customAttributes.Select(t=> VFXAttribute.Find(t,m_Graph))).FirstOrDefault(o => o.name == element.name);
+                var attribute = VFXAttribute.AllAttributes(m_Graph).FirstOrDefault(o => o.name == element.name);
                 bool useAttribute = attribute.name == element.name;
                 if (element.type == VFXValueType.Boolean)
                 {

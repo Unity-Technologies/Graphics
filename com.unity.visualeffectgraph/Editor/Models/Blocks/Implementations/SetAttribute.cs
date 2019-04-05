@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Block
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.AllIncludingVariadicReadWritable.Cast<object>().ToArray() },
+                    { "attribute", VFXAttribute.StaticIncludingVariadicReadWritable.Cast<object>().ToArray() },
                     { "Source", new object[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source } },
                     { "Composition", new object[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend } }
                 };
@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider))]
-        public string attribute = VFXAttribute.AllIncludingVariadic.First();
+        public string attribute = VFXAttribute.StaticIncludingVariadic.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;

@@ -54,12 +54,17 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute SpawnTime           = new VFXAttribute("spawnTime", VFXValueType.Float);
 
 
-        public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
+        public static readonly VFXAttribute[] StaticAttributes = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
+        public static IEnumerable<VFXAttribute> AllAttributes(VFXGraph graph)
+        {
+            return StaticAttributes.Concat(graph.customAttributes.Select(t => VFXAttribute.Find(t, graph)));
+        }
+
         public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, SpawnTime };
         public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
         public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount };
 
-        public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();
+        public static readonly string[] All = StaticAttributes.Select(e => e.name).ToArray();
         public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();
         public static readonly string[] AllLocalOnly = AllAttributeLocalOnly.Select(e => e.name).ToArray();
         public static readonly string[] AllWriteOnly = AllAttributeWriteOnly.Select(e => e.name).ToArray();
@@ -78,10 +83,10 @@ namespace UnityEditor.VFX
 
         public static readonly string[] AllVariadic = AllVariadicAttribute.Select(e => e.name).ToArray();
 
-        public static readonly string[] AllIncludingVariadic = AllAttribute.Where(e => e.variadic != VFXVariadic.BelongsToVariadic).Select(e => e.name).ToArray().Concat(AllVariadic).ToArray();
-        public static readonly string[] AllIncludingVariadicExceptLocalOnly = AllIncludingVariadic.Except(AllLocalOnly).ToArray();
-        public static readonly string[] AllIncludingVariadicWritable = AllIncludingVariadic.Except(AllReadOnly).ToArray();
-        public static readonly string[] AllIncludingVariadicReadWritable = AllIncludingVariadic.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
+        public static readonly string[] StaticIncludingVariadic = StaticAttributes.Where(e => e.variadic != VFXVariadic.BelongsToVariadic).Select(e => e.name).ToArray().Concat(AllVariadic).ToArray();
+        public static readonly string[] StaticIncludingVariadicExceptLocalOnly = StaticIncludingVariadic.Except(AllLocalOnly).ToArray();
+        public static readonly string[] StaticIncludingVariadicWritable = StaticIncludingVariadic.Except(AllReadOnly).ToArray();
+        public static readonly string[] StaticIncludingVariadicReadWritable = StaticIncludingVariadic.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
 
         static private VFXValue GetValueFromType(VFXValueType type)
         {
@@ -114,9 +119,9 @@ namespace UnityEditor.VFX
 
         public static VFXAttribute Find(string attributeName,VFXGraph graph)
         {
-            int index = Array.FindIndex(AllAttribute, e => e.name == attributeName);
+            int index = Array.FindIndex(StaticAttributes, e => e.name == attributeName);
             if (index != -1)
-                return AllAttribute[index];
+                return StaticAttributes[index];
 
             index = Array.FindIndex(AllVariadicAttribute, e => e.name == attributeName);
             if (index != -1)
@@ -163,7 +168,7 @@ namespace UnityEditor.VFX
 
         public static bool Exist(string attributeName)
         {
-            bool exist = Array.Exists(AllAttribute, e => e.name == attributeName);
+            bool exist = Array.Exists(StaticAttributes, e => e.name == attributeName);
 
             if (!exist)
                 exist = Array.Exists(AllVariadicAttribute, e => e.name == attributeName);

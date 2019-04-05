@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
         {
             var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite };
-            var attributes = VFXAttribute.AllIncludingVariadicReadWritable.Except(new[] { VFXAttribute.Alive.name }).ToArray();
+            var attributes = VFXAttribute.StaticIncludingVariadicReadWritable.Except(new[] { VFXAttribute.Alive.name }).ToArray();
             var sampleModes = new[] { AttributeFromCurve.CurveSampleMode.OverLife, AttributeFromCurve.CurveSampleMode.BySpeed, AttributeFromCurve.CurveSampleMode.Random }.ToArray();
 
             foreach (var attribute in attributes)
@@ -72,7 +72,7 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
-        public string attribute = VFXAttribute.AllIncludingVariadicWritable.First();
+        public string attribute = VFXAttribute.StaticIncludingVariadicWritable.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;

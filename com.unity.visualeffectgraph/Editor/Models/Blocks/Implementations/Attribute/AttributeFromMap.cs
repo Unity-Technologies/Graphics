@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
-        public string attribute = VFXAttribute.AllIncludingVariadicWritable.First();
+        public string attribute = VFXAttribute.StaticIncludingVariadicWritable.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How to compose the attribute with its previous value")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;

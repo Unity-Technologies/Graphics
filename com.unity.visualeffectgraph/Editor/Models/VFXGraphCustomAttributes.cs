@@ -137,7 +137,7 @@ namespace UnityEditor.VFX
             if( newName.Length < 1 )
                 return;
 
-            if (m_CustomAttributes.Any(t => t.name == newName) || VFXAttribute.AllIncludingVariadic.Any(t => t == newName))
+            if (m_CustomAttributes.Any(t => t.name == newName) || VFXAttribute.StaticIncludingVariadic.Any(t => t == newName))
             {
                 newName = "Attribute";
                 int cpt = 1;
@@ -224,7 +224,7 @@ namespace UnityEditor.VFX
             // Restore lost custom attributes that are used somewhere in the graph
             ForEachSettingUsingAttribute((m,f)=>{
                 string customAttribute = (string) f.GetValue(m);
-                if(!customAttributes.Any(t => t == customAttribute) && ! VFXAttribute.AllIncludingVariadic.Any(t => t == customAttribute))
+                if(!customAttributes.Any(t => t == customAttribute) && ! VFXAttribute.StaticIncludingVariadic.Any(t => t == customAttribute))
                 {
                     // trying to find the right type
                     var attributeType = VFXValueType.Float;

@@ -10,8 +10,8 @@ namespace UnityEditor.VFX
         public string[] GetAvailableString(VFXGraph graph)
         {
             if (graph == null)
-                return VFXAttribute.AllIncludingVariadicExceptLocalOnly;
-            return VFXAttribute.AllIncludingVariadicExceptLocalOnly.Concat(graph.customAttributes).ToArray();
+                return VFXAttribute.StaticIncludingVariadicExceptLocalOnly;
+            return VFXAttribute.StaticIncludingVariadicExceptLocalOnly.Concat(graph.customAttributes).ToArray();
         }
     }
 
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
     {
         public string[] GetAvailableString(VFXGraph graph)
         {
-            return VFXAttribute.AllIncludingVariadicReadWritable.Concat(graph.customAttributes).ToArray();
+            return VFXAttribute.StaticIncludingVariadicReadWritable.Concat(graph.customAttributes).ToArray();
         }
     }
 
@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.AllIncludingVariadicExceptLocalOnly.Cast<object>().ToArray() }
+                    { "attribute", VFXAttribute.StaticIncludingVariadicExceptLocalOnly.Cast<object>().ToArray() }
                 };
             }
         }
@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.AllIncludingVariadicReadWritable.Cast<object>().ToArray() }
+                    { "attribute", VFXAttribute.StaticIncludingVariadicReadWritable.Cast<object>().ToArray() }
                 };
             }
         }
@@ -77,7 +77,7 @@ namespace UnityEditor.VFX
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
-        public string attribute = VFXAttribute.AllIncludingVariadic.First();
+        public string attribute = VFXAttribute.StaticIncludingVariadic.First();
 
         [VFXSetting, Tooltip("Select the version of this parameter that is used.")]
         public VFXAttributeLocation location = VFXAttributeLocation.Current;
