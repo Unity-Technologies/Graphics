@@ -433,7 +433,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             // Mesh Rebuilding
-            rebuildMesh |= LightUtility.CheckForChange(m_Intensity, ref m_PreviousIntensity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
@@ -444,14 +443,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 #if UNITY_EDITOR
             rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PreviousShapePathHash);
 #endif
+            if(rebuildMesh && m_LightType != LightType.Global)
+                UpdateMesh();
 
-            if (rebuildMesh)
-            {
-                if (m_LightType != LightType.Global)
-                    UpdateMesh();
-                else
-                    Light2D.AddGlobalLight(this, true);
-            }
+            bool updateGlobalColor = LightUtility.CheckForChange(m_Color, ref m_PreviousColor) || LightUtility.CheckForChange(m_Intensity, ref m_PreviousIntensity);
+            if (updateGlobalColor && m_LightType == LightType.Global)
+                Light2D.AddGlobalLight(this, true);
         }
 
         private void OnDrawGizmos()
