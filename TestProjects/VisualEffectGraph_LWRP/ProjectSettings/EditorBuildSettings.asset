@@ -40,4 +40,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/09. Update/105_Update.unity
     guid: b90d05f0426391b40a91843f560e1b71
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Coverage/03. Outputs/106_Outputs.unity
+    guid: 3beba1ddd4bd1e84b9ea2c49faf04c96
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Coverage/04. Outputs - continued/107_Outputs
+      2.unity
+    guid: da400ef71c862d14383ba915ca4f5b09
   m_configObjects: {}
