@@ -119,4 +119,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Noise.unity
     guid: 2ede8f56c35c42741a3d56ef5355b552
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/DistortionTest.unity
+    guid: ba0c0a315741c3146b3685273bd5613a
   m_configObjects: {}
