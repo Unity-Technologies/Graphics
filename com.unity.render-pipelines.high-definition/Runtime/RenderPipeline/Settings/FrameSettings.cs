@@ -165,6 +165,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [FrameSettingsField(0, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[]{ MaximumLODLevelMode })]
         MaximumLODLevel = 63,
 
+//forest-begin: custom frame settings flags
+        //from 90 to 100 : custom
+//forest-begin: G-Buffer motion vectors
+        [FrameSettingsField(0, autoName: GBufferMotionVectors, positiveDependencies: new[] { MotionVectors }, customOrderInGroup: 8)]
+
+		GBufferMotionVectors = 90,
+//forest-end:
+//forest-end:
         //lightLoop settings from 120 to 127
         [FrameSettingsField(3, autoName: FPTLForForwardOpaque)]
         FPTLForForwardOpaque = 120,
@@ -243,6 +251,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.TransparentsWriteMotionVector,
                 (uint)FrameSettingsField.SpecularLighting,
+//forest-begin: G-Buffer motion vectors
+                (uint)FrameSettingsField.GBufferMotionVectors,
+//forest-end:
             }),
             lodBias = 1,
         };
