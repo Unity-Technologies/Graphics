@@ -40,7 +40,6 @@
 // As any other space transform, changing color space involves a change of basis and therefore a matrix multiplication.
 // Note that Rec2020 and Rec2100 share the same color space. 
 
-
 float3 RotateRec709ToRec2020(float3 Rec709Input)
 {
     static const float3x3 Rec709ToRec2020Mat =
@@ -63,19 +62,6 @@ float3 RotateRec709ToP3(float3 Rec709Input)
     };
 
     return mul(Rec709ToP3Mat, Rec709Input);
-}
-
-
-// TODO_FCC: The define should come from a multi compile
-float3 RotateRec709ToWCG(float3 Rec709Input)
-{
-#ifdef WCG_REC2020
-    return RotateRec709ToRec2020(Rec709Input);
-#elif defined(WCG_P3)
-    return RotateRec709ToP3(Rec709Input);
-#endif
-    // We should really reach this point.
-    return Rec709Input;
 }
 
 float3 RotateRec2020ToRec709(float3 Rec2020Input)
@@ -108,7 +94,7 @@ float3 RotateRec2020ToP3(float3 Rec2020Input)
 
     static const float3x3 Rec2020toP3Mat = mul(XYZToP3D65Mat, Rec2020ToXYZMat);
 
-    return mul(Rec2020toP3Mat, xyzCol);
+    return mul(Rec2020toP3Mat, Rec2020Input);
 }
 
 // Ref: ICtCp Dolby white paper (https://www.dolby.com/us/en/technologies/dolby-vision/ictcp-white-paper.pdf)
@@ -159,6 +145,12 @@ float3 AccuratePQInv(float3 inputCol)
     return LinearToPQ(inputCol);
 }
 
+float AccuratePQInv(float x)
+{
+    return LinearToPQ(x);
+}
+
+
 // Ref: [Patry 2017] HDR Display Support in Infamous Second Son and Infamous First Light
 // Fastest option, but also the least accurate. Behaves well for values up to 1400 nits but then starts diverging. 
 float3 PatryInvPQ(float3 x)
@@ -171,11 +163,10 @@ float3 PatryInvPQ(float3 x)
 // Slower than Infamous approx, but more precise ( https://www.desmos.com/calculator/0n402k2syc ) in the full [0... 10 000] range, but still faster than reference
 float3 GTSInvPQ(float3 inputCol)
 {
-    float3 k = pow((x * 0.01), 0.1593017578125);
+    float3 k = pow((inputCol * 0.01), 0.1593017578125);
     return (3.61972*(1e-8) + k * (0.00102859 + k * (-0.101284 + 2.05784 * k))) /
         (0.0495245 + k * (0.135214 + k * (0.772669 + k)));
 }
-
 
 // TODO: Fourth option would be implementing the curve as a LUT
 
@@ -222,7 +213,7 @@ float3 ICtCpToPQLMS(float3 ICtCpInput)
     float3x3 ICtCpToPQLMSMat = float3x3(
         1.0,  0.008609,  0.111029,
         1.0, -0.008609, -0.111029,
-        1.0,  0.560031, -0.320627,
+        1.0,  0.560031, -0.320627
         );
 
     return mul(ICtCpToPQLMSMat, ICtCpInput);
@@ -249,15 +240,13 @@ float BT2390EETFHermite(float x, float kneeStart, float maxLum)
     float T2 = T * T;
     float T3 = T2 * T;
 
-    return (2 * T3 - 3 * T2 + 1) * kneeStart + (T3 - 2 * T2 + t) * (1 - kneeStart) + (-2 * T3 + 3 * T2) * maxLum;
+    return (2 * T3 - 3 * T2 + 1) * kneeStart + (T3 - 2 * T2 + T) * (1 - kneeStart) + (-2 * T3 + 3 * T2) * maxLum;
 }
 
 // TODO: Can we squash this all thing into a LUT? Probably so.
 // Ref: BT2390 standard doc https://www.itu.int/dms_pub/itu-r/opb/rep/R-REP-BT.2390-3-2017-PDF-E.pdf
 float3 HDRRangeReduction(float3 Rec2020Input, float minNit, float maxNit)
 {
-    // 
-
     // 1) Rec 2020 to LMS -> LMS to PQ -> PQ to ICtCp
     float3 LMSVal = RotateRec2020ToLMS(Rec2020Input);
     // For now accurate, TODO: Check if we can use the approx version. 
@@ -270,7 +259,7 @@ float3 HDRRangeReduction(float3 Rec2020Input, float minNit, float maxNit)
     float maxLumPQ = AccuratePQInv(maxNit);
 
     float kneeStart = 1.5f * maxLumPQ - 0.5f;
-    float e2 = ICtCp.x < kneeStart ? ICtCp.x : BT2390EETFHermite(ICtCp.x);
+    float e2 = ICtCp.x < kneeStart ? ICtCp.x : BT2390EETFHermite(ICtCp.x, kneeStart, maxLumPQ);
 
     float intensityReduced = e2 + minLumPQ * PositivePow((1.0f - e2), 4);
     // As mentioned by BT2390, we need to adjust saturation
@@ -284,3 +273,52 @@ float3 HDRRangeReduction(float3 Rec2020Input, float minNit, float maxNit)
     return RotateLMSToRec2020(LMSVal);
 }
 
+// --------------------------------
+// Display mapping functions 
+// --------------------------------
+// These functions are aggregate of most of what we have above. You can this as the public API of the HDR Output library.
+// Note that throughout HDRP we are assuming that when it comes to the final pass adjustements, our tonemapper has *NOT*
+// performed range reduction and everything is assumed to be displayed on a reference 10k nits display and everything post-tonemapping
+// is in the Rec 2020 color space. However we still provide options in case we get a Rec709 input, this will just rotate to Rec2020 and
+// procede with the expected pipeline. 
+
+float3 SDRMapping_NoRotation(float3 input, float huePreservingFraction)
+{
+    // As in [Fry 2017], we mix hue-preservation reduction and hue shifted reduction. 
+    float maxChannel = Max3(input.x, input.y, input.z);
+    float reducedMax = SDRRangeReduction(maxChannel);
+    float3 reducedColHuePreserving = input * (reducedMax / maxChannel);
+
+    // This is not hue preserving. 
+    float3 rangePerChannelReduced = SDRRangeReduction(input);
+
+    // NOTE: No OETF here since Unity handles it separately later on. 
+    return lerp(rangePerChannelReduced, reducedColHuePreserving, huePreservingFraction);
+}
+
+float3 SDRMapping(float3 Rec2020Input, float huePreservingFraction)
+{
+    // Move to the correct color space
+    float3 Rec709Val = RotateRec2020ToRec709(SDRMapping_NoRotation(Rec2020Input, huePreservingFraction));
+    return Rec709Val;
+}
+
+float3 HDRMapping(float3 Rec2020Input, float minNits, float maxNits)
+{
+    // First up we do range reduction
+    float3 reducedHDR = HDRRangeReduction(Rec2020Input, minNits, maxNits);
+
+#ifdef WCG_P3
+    // The whole pipeline operates in Rec2020, if we need P3, we'll need to rotate now before going through the OETF
+    reducedHDR = RotateRec2020ToP3(reducedHDR);
+#endif
+
+    return ApplyOETF(reducedHDR);
+}
+
+// Warning! This is never a good idea vs. the above, ideally the pipeline should always be working in the wider gamut
+float3 HDRMappingFromRec709(float3 Rec709Input, float minNits, float maxNits)
+{
+    float3 rec2020Input = RotateRec709ToRec2020(Rec709Input);
+    return HDRMapping(Rec709Input, minNits, maxNits);
+}

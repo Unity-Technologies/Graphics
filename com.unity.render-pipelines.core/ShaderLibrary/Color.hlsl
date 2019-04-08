@@ -333,10 +333,23 @@ real3 LinearToPQ(real3 x, real maxPQValue)
     return PositivePow(nd, PQ.M);
 }
 
+real LinearToPQ(real x, real maxPQValue)
+{
+    x = PositivePow(x / maxPQValue, PQ.N);
+    real nd = (PQ.C1 + PQ.C2 * x) / (1.0 + PQ.C3 * x);
+    return PositivePow(nd, PQ.M);
+}
+
 real3 LinearToPQ(real3 x)
 {
     return LinearToPQ(x, DEFAULT_MAX_PQ);
 }
+
+real LinearToPQ(real x)
+{
+    return LinearToPQ(x, DEFAULT_MAX_PQ);
+}
+
 
 real3 PQToLinear(real3 x, real maxPQValue)
 {
