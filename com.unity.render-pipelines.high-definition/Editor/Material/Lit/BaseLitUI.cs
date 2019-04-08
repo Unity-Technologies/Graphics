@@ -693,6 +693,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 				CoreUtils.SetKeyword(material, "_ANIM_SINGLE_PIVOT_COLOR",   windMode > 2.5f && windMode < 3.5f);
 				CoreUtils.SetKeyword(material, "_ANIM_HIERARCHY_PIVOT",      windMode > 3.5f && windMode < 4.5f);
 	            CoreUtils.SetKeyword(material, "_ANIM_PROCEDURAL_BRANCH",    windMode > 5.5f && windMode < 6.5f);
+
+//forest-begin: G-Buffer motion vectors
+				if(windMode > 2.5f) {
+					var hdrpa = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+					if(hdrpa && hdrpa.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).IsEnabled(FrameSettingsField.GBufferMotionVectors)) {
+						material.SetInt(kStencilRef, stencilRef | (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors);
+						material.SetInt(kStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.LightingMask | (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors);
+					}
+				}
+//forest-end:
 			}
 //forest-end:
 

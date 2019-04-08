@@ -215,6 +215,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(2, displayedName: "Volume Voxelizations", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates volumetric voxelization asynchronously.")]
         VolumeVoxelizationsAsync = 45,
 
+//forest-begin: custom frame settings flags
+        //from 90 to 100 : custom
+//forest-begin: G-Buffer motion vectors
+        [FrameSettingsField(0, autoName: GBufferMotionVectors, positiveDependencies: new[] { MotionVectors }, customOrderInGroup: 8)]
+
+		GBufferMotionVectors = 90,
+//forest-end:
+//forest-end:
         //lightLoop settings from 120 to 127
         [FrameSettingsField(3, autoName: FPTLForForwardOpaque)]
         FPTLForForwardOpaque = 120,
@@ -310,7 +318,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.PlanarProbe,
                 (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
-                (uint)FrameSettingsField.RayTracing,
+				(uint)FrameSettingsField.RayTracing,
+//forest-begin: G-Buffer motion vectors
+                (uint)FrameSettingsField.GBufferMotionVectors,
+//forest-end:
             }),
             lodBias = 1,
         };

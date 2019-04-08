@@ -116,6 +116,23 @@ namespace UnityEditor.Rendering.HighDefinition
                     //    return true;
                 }
             }
+//forest-begin: G-Buffer motion vectors
+			if(inputData.shaderCompilerPlatform != ShaderCompilerPlatform.PS4 && inputData.shaderCompilerPlatform != ShaderCompilerPlatform.XboxOneD3D11 && inputData.shaderCompilerPlatform != ShaderCompilerPlatform.XboxOneD3D12)
+			{
+				if(shader.name == "HDRenderPipeline/Lit" || shader.name == "HDRenderPipeline/LitTessellation") {
+					var gBufferMotionVectors = new UnityEngine.Rendering.ShaderKeyword("GBUFFER_MOTION_VECTORS");
+					var isGBufferMotionVectors = inputData.shaderKeywordSet.IsEnabled(gBufferMotionVectors);
+
+					if(hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).IsEnabled(FrameSettingsField.GBufferMotionVectors)) { // Previously - hdrpAsset.GetFrameSettings().enableGBufferMotionVectors
+						if(isGBufferPass && !isGBufferMotionVectors)
+							return true;
+					} else {
+						if(isGBufferMotionVectors)
+							return true;
+					}
+				}
+			}
+//forest-end:
 
             // We strip passes for transparent passes outside of isBuiltInLit because we want Hair, Fabric
             // and StackLit shader graphs to be taken in account.

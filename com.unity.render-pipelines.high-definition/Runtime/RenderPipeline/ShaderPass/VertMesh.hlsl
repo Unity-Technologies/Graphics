@@ -125,7 +125,21 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 
      // Do vertex modification in camera relative space (if enable)
 #if defined(HAVE_VERTEX_MODIFICATION)
+//forest-begin: G-Buffer motion vectors
+    #if defined(HAS_VEGETATION_ANIM)
+        float3 prevPositionRWS = positionRWS;
+        float3 prevNormalWS = normalWS;
+        float prevTimeDelta = -unity_DeltaTime.x;
+        ApplyVertexModification(input, prevNormalWS, prevPositionRWS, prevTimeDelta.xxxx);
+    #endif
+
     ApplyVertexModification(input, normalWS, positionRWS, _TimeParameters.xyz);
+
+    #if defined(HAS_VEGETATION_ANIM)
+        output.mvPrevPositionCS = mul(_PrevViewProjMatrix, float4(prevPositionRWS, 1.0));
+        output.mvPositionCS = mul(_NonJitteredViewProjMatrix, float4(positionRWS, 1.0));
+    #endif
+//forest-end:
 #endif
 
 #ifdef TESSELLATION_ON
@@ -174,6 +188,12 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionCS = TransformWorldToHClip(input.positionRWS);
+//forest-begin: G-Buffer motion vectors
+#if defined(HAS_VEGETATION_ANIM)
+	output.mvPrevPositionCS = input.mvPrevPositionCS;
+	output.mvPositionCS = input.mvPositionCS;
+#endif
+//forest-end:
 
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS = input.positionRWS;

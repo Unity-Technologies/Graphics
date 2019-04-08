@@ -342,6 +342,13 @@ Shader "HDRP/Lit"
     #if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
     #define _WRITE_TRANSPARENT_MOTION_VECTOR
     #endif
+
+//forest-begin: G-Buffer motion vectors
+	#if defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT) || defined(_ANIM_PROCEDURAL_BRANCH)
+		#define HAS_VEGETATION_ANIM 1
+	#endif
+//forest-end:
+
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
@@ -423,6 +430,9 @@ Shader "HDRP/Lit"
             HLSLPROGRAM
 
             #pragma multi_compile _ DEBUG_DISPLAY
+//forest-begin: G-Buffer motion vectors
+            #pragma multi_compile _ GBUFFER_MOTION_VECTORS
+//forest-end:
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON

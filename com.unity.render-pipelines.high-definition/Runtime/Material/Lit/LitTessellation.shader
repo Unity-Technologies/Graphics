@@ -345,6 +345,12 @@ Shader "HDRP/LitTessellation"
     #define OUTPUT_SPLIT_LIGHTING
     #endif
 
+//forest-begin: G-Buffer motion vectors
+    #if defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT) || defined(_ANIM_PROCEDURAL_BRANCH)
+        #define HAS_VEGETATION_ANIM 1
+    #endif
+//forest-end:
+
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
@@ -426,6 +432,9 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
+//forest-begin: G-Buffer motion vectors
+            #pragma multi_compile _ GBUFFER_MOTION_VECTORS
+//forest-end:
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED

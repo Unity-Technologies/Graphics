@@ -89,5 +89,18 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
             ENDHLSL
         }
+//forest-begin: G-Buffer motion vectors
+        Pass
+        {
+            Cull Off ZWrite Off ZTest Always
+
+            HLSLPROGRAM
+
+                #pragma vertex Vert
+                #pragma fragment Frag
+
+            ENDHLSL
+        }
+//forest-end:
     }
 }
