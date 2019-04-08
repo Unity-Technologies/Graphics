@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed stencil render state in the renderer.
 - The default layer mask is now applied to a depth pre-pass.
 - Several improvements and fixes to the render pass UI.
+- Fixed artifacts that appeared due to precision errors in large scaled objects.
 - Fixed an XR rendering issue where Unity required a depth texture.
 - Fixed an issue that caused transparent objects to sort incorrectly.
 
