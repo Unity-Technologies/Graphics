@@ -73,6 +73,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (lightStats.totalLights > 0)
                 {
                     cmd.Clear();
+#if UNITY_EDITOR
+                    cmd.name = "Render Lights - " + SortingLayer.IDToName(layerToRender);
+#endif
                     RendererLighting.RenderLights(camera, cmd, layerToRender);
 
                     // This should have an optimization where I can determine if this needs to be called.
@@ -89,13 +92,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 if (lightStats.totalVolumetricUsage > 0)
                 {
+                    
                     cmd.Clear();
+#if UNITY_EDITOR
+                    cmd.name = "Render Light Volumes" + SortingLayer.IDToName(layerToRender);
+#endif
                     RendererLighting.RenderLightVolumes(camera, cmd, layerToRender);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                 }
             }
 
+            cmd.Clear();
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
             RendererLighting.ReleaseRenderTextures(cmd);
             Profiler.EndSample();
