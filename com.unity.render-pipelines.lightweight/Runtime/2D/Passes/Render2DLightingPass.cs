@@ -40,8 +40,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             RendererLighting.CreateRenderTextures(cmd, camera);
             Profiler.EndSample();
 
-            cmd.SetGlobalFloat("_LightIntensityScale", m_RendererData.lightIntensityScale);
-            cmd.SetGlobalFloat("_InverseLightIntensityScale", 1.0f / m_RendererData.lightIntensityScale);
+            cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
+            cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_RendererData.hdrEmulationScale);
             RendererLighting.SetShapeLightShaderGlobals(cmd);
 
             context.ExecuteCommandBuffer(cmd);

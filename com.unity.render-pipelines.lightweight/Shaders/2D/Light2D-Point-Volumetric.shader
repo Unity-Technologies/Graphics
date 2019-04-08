@@ -65,7 +65,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
             half	_OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half	_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half	_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
-            half	_InverseLightIntensityScale;
+            half	_InverseHDREmulationScale;
 
             Varyings vert(Attributes input)
             {
@@ -126,7 +126,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 half4 lightColor = _LightColor * attenuation;
 #endif
 
-                return input.volumeColor.a * lightColor * _InverseLightIntensityScale;
+                return input.volumeColor.a * lightColor * _InverseHDREmulationScale;
             }
             ENDHLSL
         }

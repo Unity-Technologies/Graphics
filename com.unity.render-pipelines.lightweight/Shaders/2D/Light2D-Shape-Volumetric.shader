@@ -41,6 +41,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
 			float  _FalloffDistance;
 			float4 _FalloffOffset;
 			float  _VolumeOpacity;
+			float  _InverseHDREmulationScale;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
@@ -61,7 +62,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
 
 
                 o.positionCS = TransformObjectToHClip(positionOS);
-				o.color = _LightColor;
+				o.color = _LightColor * _InverseHDREmulationScale;
 				o.color.a = _VolumeOpacity;
 
 #ifdef SPRITE_LIGHT

@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
     {
         class Styles
         {
-            public static readonly GUIContent lightIntensityScale = EditorGUIUtility.TrTextContent("Light Intensity Scale", "Ask Chris for explanation.");
+            public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("Light Intensity Scale", "Ask Chris for explanation.");
             public static readonly GUIContent lightOperations = EditorGUIUtility.TrTextContent("Light Operations", "A Light Operation is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent name = EditorGUIUtility.TrTextContent("Name");
             public static readonly GUIContent globalColor = EditorGUIUtility.TrTextContent("Global Color", "The default clear color of the lighting buffer.");
@@ -32,13 +32,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public SerializedProperty blendFactorAdditive;
         }
 
-        SerializedProperty m_LightIntensityScale;
+        SerializedProperty m_HDREmulationScale;
         SerializedProperty m_LightOperations;
         LightOperationProps[] m_LightOperationPropsArray;
 
         void OnEnable()
         {
-            m_LightIntensityScale = serializedObject.FindProperty("m_LightIntensityScale");
+            m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
             m_LightOperations = serializedObject.FindProperty("m_LightOperations");
 
             int numLightOps = m_LightOperations.arraySize;
@@ -70,9 +70,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_LightIntensityScale, Styles.lightIntensityScale);
-            if (EditorGUI.EndChangeCheck() && m_LightIntensityScale.floatValue < 1.0f)
-                m_LightIntensityScale.floatValue = 1.0f;
+            EditorGUILayout.PropertyField(m_HDREmulationScale, Styles.hdrEmulationScale);
+            if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
+                m_HDREmulationScale.floatValue = 1.0f;
 
             EditorGUILayout.LabelField(Styles.lightOperations);
             EditorGUI.indentLevel++;

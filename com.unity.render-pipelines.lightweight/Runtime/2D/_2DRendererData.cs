@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static Color defaultColor { get { return new Color(54.0f / 255.0f, 58.0f / 255.0f, 66.0f / 255.0f); } }  
 
         [SerializeField]
-        float m_LightIntensityScale = 1;
+        float m_HDREmulationScale = 1;
 
         [SerializeField]
         [Serialization.FormerlySerializedAs("m_ShapeLightTypes")]
@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] Shader m_PointLightVolumeShader = null;
         [SerializeField] Shader m_BlitShader = null;
 
-        public float lightIntensityScale => m_LightIntensityScale;
+        public float hdrEmulationScale => m_HDREmulationScale;
         public _2DLightOperationDescription[] lightOperations => m_LightOperations;
 
         internal Shader shapeLightShader => m_ShapeLightShader;

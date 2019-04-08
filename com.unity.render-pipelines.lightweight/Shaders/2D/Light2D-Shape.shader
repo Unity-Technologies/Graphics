@@ -44,7 +44,7 @@ Shader "Hidden/Light2D-Shape"
 				NORMALS_LIGHTING_COORDS(TEXCOORD1, TEXCOORD2)
             };
 
-			float  _InverseLightIntensityScale;
+			float  _InverseHDREmulationScale;
 			float4 _LightColor;
 			float  _FalloffDistance;
 			float4 _FalloffOffset;
@@ -68,7 +68,7 @@ Shader "Hidden/Light2D-Shape"
 				positionOS.y = positionOS.y + _FalloffDistance * attributes.color.g + (1-attributes.color.a) * _FalloffOffset.y;
 
                 o.positionCS = TransformObjectToHClip(positionOS);
-                o.color = _LightColor * _InverseLightIntensityScale;
+                o.color = _LightColor * _InverseHDREmulationScale;
 				o.color.a = attributes.color.a;
 
 #ifdef SPRITE_LIGHT
