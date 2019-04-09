@@ -30,38 +30,63 @@ namespace UnityEngine.Rendering.LWRP
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
-            [SerializeField, Reload("Shaders/Utils/Blit.shader")]
+            [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
-            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
+            [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
-            [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
         
-            [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
+            [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
-            [SerializeField, Reload("Shaders/PostProcessing/StopNaN.shader")]
+            [Reload("Shaders/PostProcessing/StopNaN.shader")]
             public Shader stopNanPS;
 
-            [SerializeField, Reload("Shaders/PostProcessing/PaniniProjection.shader")]
+            [Reload("Shaders/PostProcessing/PaniniProjection.shader")]
             public Shader paniniProjectionPS;
 
-            [SerializeField, Reload("Shaders/PostProcessing/LutBuilderLdr.shader")]
+            [Reload("Shaders/PostProcessing/LutBuilderLdr.shader")]
             public Shader lutBuilderLdrPS;
 
-            [SerializeField, Reload("Shaders/PostProcessing/LutBuilderHdr.shader")]
+            [Reload("Shaders/PostProcessing/LutBuilderHdr.shader")]
             public Shader lutBuilderHdrPS;
 
-            [SerializeField, Reload("Shaders/PostProcessing/Bloom.shader")]
+            [Reload("Shaders/PostProcessing/Bloom.shader")]
             public Shader bloomPS;
 
-            [SerializeField, Reload("Shaders/PostProcessing/UberPost.shader")]
+            [Reload("Shaders/PostProcessing/UberPost.shader")]
             public Shader uberPostPS;
         }
 
+        [Serializable, ReloadGroup]
+        public sealed class TextureResources
+        {
+            // Pre-baked noise
+            [Reload("Textures/BlueNoise16/L/LDR_LLL1_{0}.png", 0, 32)]
+            public Texture2D[] blueNoise16LTex;
+
+            // Post-processing
+            [Reload(new[]
+            {
+                "Textures/FilmGrain/Thin01.png",
+                "Textures/FilmGrain/Thin02.png",
+                "Textures/FilmGrain/Medium01.png",
+                "Textures/FilmGrain/Medium02.png",
+                "Textures/FilmGrain/Medium03.png",
+                "Textures/FilmGrain/Medium04.png",
+                "Textures/FilmGrain/Medium05.png",
+                "Textures/FilmGrain/Medium06.png",
+                "Textures/FilmGrain/Large01.png",
+                "Textures/FilmGrain/Large02.png"
+            })]
+            public Texture2D[] filmGrainTex;
+        }
+
         public ShaderResources shaders;
+        public TextureResources textures;
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
