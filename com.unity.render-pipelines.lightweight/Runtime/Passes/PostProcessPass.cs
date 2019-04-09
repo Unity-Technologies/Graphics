@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.LWRP
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
 
         MaterialLibrary m_Materials;
+        ForwardRendererData m_Data;
 
         // Builtin effects settings
         PaniniProjection m_PaniniProjection;
@@ -51,6 +52,7 @@ namespace UnityEngine.Rendering.LWRP
         public PostProcessPass(RenderPassEvent evt, ForwardRendererData data)
         {
             renderPassEvent = evt;
+            m_Data = data;
             m_Materials = new MaterialLibrary(data);
 
             m_InternalLut = new RenderTargetHandle();
@@ -630,6 +632,9 @@ namespace UnityEngine.Rendering.LWRP
         void SetupGrain(Camera camera, Material material, bool onTile)
         {
             var texture = m_FilmGrain.texture.value;
+
+            if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
+                texture = m_Data.textures.filmGrainTex[(int)m_FilmGrain.type.value];
 
             #if LWRP_DEBUG_STATIC_POSTFX
             float offsetX = 0f;
