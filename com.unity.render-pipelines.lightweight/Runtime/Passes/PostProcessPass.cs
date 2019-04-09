@@ -517,10 +517,10 @@ namespace UnityEngine.Rendering.LWRP
 
             // Prepare data
             var lmsColorBalance = ColorUtils.ColorBalanceToLMSCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
-            var hueSatCon = new Vector4(m_ColorAdjustments.hueShift / 360f, m_ColorAdjustments.saturation / 100f + 1f, m_ColorAdjustments.contrast / 100f + 1f, 0f);
-            var channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn / 100f, m_ChannelMixer.redOutGreenIn / 100f, m_ChannelMixer.redOutBlueIn / 100f, 0f);
-            var channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn / 100f, m_ChannelMixer.greenOutGreenIn / 100f, m_ChannelMixer.greenOutBlueIn / 100f, 0f);
-            var channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn / 100f, m_ChannelMixer.blueOutGreenIn / 100f, m_ChannelMixer.blueOutBlueIn / 100f, 0f);
+            var hueSatCon = new Vector4(m_ColorAdjustments.hueShift.value / 360f, m_ColorAdjustments.saturation.value / 100f + 1f, m_ColorAdjustments.contrast.value / 100f + 1f, 0f);
+            var channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn.value / 100f, m_ChannelMixer.redOutGreenIn.value / 100f, m_ChannelMixer.redOutBlueIn.value / 100f, 0f);
+            var channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn.value / 100f, m_ChannelMixer.greenOutGreenIn.value / 100f, m_ChannelMixer.greenOutBlueIn.value / 100f, 0f);
+            var channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn.value / 100f, m_ChannelMixer.blueOutGreenIn.value / 100f, m_ChannelMixer.blueOutBlueIn.value / 100f, 0f);
 
             var shadowsHighlightsLimits = new Vector4(
                 m_ShadowsMidtonesHighlights.shadowsStart.value,
@@ -599,7 +599,7 @@ namespace UnityEngine.Rendering.LWRP
             // Source material setup
             cmd.SetGlobalTexture(ShaderConstants._InternalLut, m_InternalLut.Identifier());
             srcMaterial.SetVector(ShaderConstants._Lut_Params, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear));
-            srcMaterial.SetTexture(ShaderConstants._UserLut, m_ColorLookup.texture);
+            srcMaterial.SetTexture(ShaderConstants._UserLut, m_ColorLookup.texture.value);
             srcMaterial.SetVector(ShaderConstants._UserLut_Params, !m_ColorLookup.IsActive()
                 ? Vector4.zero
                 : new Vector4(1f / m_ColorLookup.texture.value.width,
@@ -666,12 +666,12 @@ namespace UnityEngine.Rendering.LWRP
 
             public MaterialLibrary(ForwardRendererData data)
             {
-                stopNaN = Load(data.stopNaNShader);
-                paniniProjection = Load(data.paniniProjectionShader);
-                lutBuilderLdr = Load(data.lutBuilderLdrShader);
-                lutBuilderHdr = Load(data.lutBuilderHdrShader);
-                bloom = Load(data.bloomShader);
-                uber = Load(data.uberPostShader);
+                stopNaN = Load(data.shaders.stopNanPS);
+                paniniProjection = Load(data.shaders.paniniProjectionPS);
+                lutBuilderLdr = Load(data.shaders.lutBuilderLdrPS);
+                lutBuilderHdr = Load(data.shaders.lutBuilderHdrPS);
+                bloom = Load(data.shaders.bloomPS);
+                uber = Load(data.shaders.uberPostPS);
             }
 
             Material Load(Shader shader)

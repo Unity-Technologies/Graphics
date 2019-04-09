@@ -8,18 +8,6 @@ namespace UnityEngine.Rendering.LWRP
 {    
     public class ForwardRendererData : ScriptableRendererData
     {
-        [Serializable, ReloadGroup]
-        public sealed class ShaderResources
-        {
-            [SerializeField, Reload("Shaders/Utils/Blit.shader")]
-            public Shader blitPS;
-
-            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
-            public Shader copyDepthPS;
-
-            [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
-            public Shader screenSpaceShadowPS;
-
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
         internal class CreateForwardRendererAsset : EndNameEditAction
@@ -38,9 +26,39 @@ namespace UnityEngine.Rendering.LWRP
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
         }
 #endif
+
+        [Serializable, ReloadGroup]
+        public sealed class ShaderResources
+        {
+            [SerializeField, Reload("Shaders/Utils/Blit.shader")]
+            public Shader blitPS;
+
+            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
+            public Shader copyDepthPS;
+
+            [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            public Shader screenSpaceShadowPS;
         
             [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
+
+            [SerializeField, Reload("Shaders/PostProcessing/StopNaN.shader")]
+            public Shader stopNanPS;
+
+            [SerializeField, Reload("Shaders/PostProcessing/PaniniProjection.shader")]
+            public Shader paniniProjectionPS;
+
+            [SerializeField, Reload("Shaders/PostProcessing/LutBuilderLdr.shader")]
+            public Shader lutBuilderLdrPS;
+
+            [SerializeField, Reload("Shaders/PostProcessing/LutBuilderHdr.shader")]
+            public Shader lutBuilderHdrPS;
+
+            [SerializeField, Reload("Shaders/PostProcessing/Bloom.shader")]
+            public Shader bloomPS;
+
+            [SerializeField, Reload("Shaders/PostProcessing/UberPost.shader")]
+            public Shader uberPostPS;
         }
 
         public ShaderResources shaders;
