@@ -99,7 +99,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
 
         if (surfaceReflection)
         {
-            attenuation    *= ComputeMicroShadowing(bsdfData, NdotL);
+            attenuation *= ComputeMicroShadowing(bsdfData, NdotL);
             float intensity = attenuation * NdotL;
 
             lighting.diffuse  = diffuseBsdf  * (intensity * light.diffuseDimmer);
