@@ -96,35 +96,6 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
 
         Pass
         {
-            // _NormalMap pass will get ignored by terrain basemap generation code. Put here so that the VTC can use it to generate cache for normal maps.
-            Tags
-            {
-                "Name" = "_NormalMap"
-                "Format" = "R16G16_Float"
-                "Size" = "1"
-            }
-
-            ZTest Always Cull Off ZWrite Off
-            Blend One [_DstBlend]
-
-            HLSLPROGRAM
-
-            #define OVERRIDE_SPLAT_SAMPLER_NAME sampler_Normal0
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
-
-            float2 Frag(Varyings input) : SV_Target
-            {
-                TerrainLitSurfaceData surfaceData;
-                InitializeTerrainLitSurfaceData(surfaceData);
-                TerrainSplatBlend(input.texcoord.zw, input.texcoord.xy, surfaceData);
-                return surfaceData.normalData.xy; // RT format is supposed to be floating point
-            }
-
-            ENDHLSL
-        }
-
-        Pass
-        {
             Tags
             {
                 "Name" = "_MetallicTex"
