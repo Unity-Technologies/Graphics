@@ -17,8 +17,8 @@
 
 #define ERROR_ON_UNSUPPORTED_FUNCTION(funcName) #error #funcName is not supported on GLCORE
 
-#define CBUFFER_START(name)
-#define CBUFFER_END
+#define CBUFFER_START(name) cbuffer name {
+#define CBUFFER_END };
 
 #define PLATFORM_SUPPORTS_EXPLICIT_BINDING 1
 

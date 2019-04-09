@@ -17,8 +17,8 @@
 
 #define ERROR_ON_UNSUPPORTED_FUNCTION(funcName) #error #funcName is not supported on GLES 3.0
 
-#define CBUFFER_START(name)
-#define CBUFFER_END
+#define CBUFFER_START(name) cbuffer name {
+#define CBUFFER_END };
 
 
 // flow control attributes
