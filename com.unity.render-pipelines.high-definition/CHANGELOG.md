@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.12.0-preview] - 2019-XX-XX
 
+### Added
+
+### Fixed
+- Fixed deserialization crash at runtime
+
+### Changed
+
 ## [5.11.0-preview] - 2019-04-01
 
 ### Added
@@ -155,7 +162,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed nullref on layered material UI when the material is not an asset.
 - Fixed nullref exception when undo/redo a light property.
 - Fixed visual bug when area light handle size is 0.
- 
+
 ### Changed
 - When a lit material has a clear coat mask that is not null, we now use the clear coat roughness to compute the screen space reflection.
 - Update UI for 32bit/16bit shadow precision settings in HDRP asset
