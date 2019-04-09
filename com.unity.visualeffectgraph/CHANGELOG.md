@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Distortion Outputs (Quad / Mesh)
 
 ### Fixed
+- Fix shader compilation error with debug views
 - Improve AA line rendering
 - Fix screen space size block
 
