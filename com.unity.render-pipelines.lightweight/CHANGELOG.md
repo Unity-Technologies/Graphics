@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.11.0] - 2019-04-01
 ### Fixed
 - Fixed an issue that caused transparent objects to sort incorrectly.
+- Fixed artifacts that appeared due to precision errors in large scaled objects.
 
 ## [5.10.0] - 2019-03-19
 ### Added
