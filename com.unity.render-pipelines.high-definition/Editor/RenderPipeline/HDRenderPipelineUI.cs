@@ -473,6 +473,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.uiLayer, k_UILayerContent);
+
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportMotionVectors, k_SupportMotionVectorContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRuntimeDebugDisplay, k_SupportRuntimeDebugDisplayContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDitheringCrossFade, k_SupportDitheringCrossFadeContent);

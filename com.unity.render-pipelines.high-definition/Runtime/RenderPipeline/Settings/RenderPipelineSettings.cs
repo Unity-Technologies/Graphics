@@ -47,6 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             supportLowResTransparent = true,
             colorBufferFormat = ColorBufferFormat.R11G11B10,
             supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
+            uiLayer = 1 << 5, // 5 by default is the UI
             supportDecals = true,
             msaaSampleCount = MSAASamples.None,
             supportMotionVectors = true,
@@ -60,7 +61,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lowresTransparentSettings = GlobalLowResolutionTransparencySettings.@default
         };
 
-        // Lighting
         public bool supportShadowMask;
         public bool supportSSR;
         public bool supportSSAO;
@@ -76,6 +76,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportLowResTransparent;
         public ColorBufferFormat colorBufferFormat;
         public SupportedLitShaderMode supportedLitShaderMode;
+        public LayerMask uiLayer;
 
         // Engine
         public bool supportDecals;

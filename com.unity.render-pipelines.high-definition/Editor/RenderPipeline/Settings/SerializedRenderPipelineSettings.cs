@@ -19,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
+        public SerializedProperty uiLayer;
 
         public SerializedProperty supportDecals;
         public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
@@ -54,7 +55,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             colorBufferFormat               = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
-            
+            uiLayer                         = root.Find((RenderPipelineSettings s) => s.uiLayer);
+
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);                        
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);

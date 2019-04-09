@@ -106,6 +106,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass. It is stored within 'm_CameraSssDiffuseLightingBuffer'.
         RTHandleSystem.RTHandle m_CameraColorBuffer;
+        RTHandleSystem.RTHandle m_CameraUIBuffer;
         RTHandleSystem.RTHandle m_CameraSssDiffuseLightingBuffer;
 
         RTHandleSystem.RTHandle m_ScreenSpaceShadowsBuffer;
@@ -421,6 +422,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, xrInstancing: true, useDynamicScale: true, name: "CameraColor");
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "CameraSSSDiffuseLighting");
 
+            m_CameraUIBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, useMipMap: false, xrInstancing: true, useDynamicScale: true, name: "CameraUI");
+
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), xrInstancing: true, useDynamicScale: true, name: "Distortion");
 
             // TODO: For MSAA, we'll need to add a Draw path in order to support MSAA properly
@@ -463,6 +466,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_CameraColorBuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
+            RTHandles.Release(m_CameraUIBuffer);
 
             RTHandles.Release(m_DistortionBuffer);
             RTHandles.Release(m_ScreenSpaceShadowsBuffer);
@@ -929,6 +933,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         struct HDCullingResults
         {
             public CullingResults cullingResults;
+            public CullingResults uiCullingResults;
             public HDProbeCullingResults hdProbeCullingResults;
             public DecalSystem.CullResult decalCullResults;
             // TODO: DecalCullResults
@@ -1045,7 +1050,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         )
                         // Note: In case of a custom render, we have false here and 'TryCull' is not executed
                         && TryCull(
-                            camera, hdCamera, renderContext, cullingParameters,
+                            camera, hdCamera, renderContext, cullingParameters, m_Asset.currentPlatformRenderPipelineSettings.uiLayer,
                             ref cullingResults
                         ));
 
@@ -1227,7 +1232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 out var cullingParameters
                             )
                             && TryCull(
-                                camera, hdCamera, renderContext, cullingParameters,
+                                camera, hdCamera, renderContext, cullingParameters, m_Asset.currentPlatformRenderPipelineSettings.uiLayer,
                                 ref _cullingResults
                             )))
                         {
@@ -1439,6 +1444,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var cullingResults = renderRequest.cullingResults.cullingResults;
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
+            var uiCullingResults = renderRequest.cullingResults.uiCullingResults;
             var target = renderRequest.target;
 
             // If we render a reflection view or a preview we should not display any debug information
@@ -1878,6 +1884,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
+                // Render UI
+                RenderTransparentUI(uiCullingResults, hdCamera, renderContext, cmd);
+
                 // Second resolve the color buffer for finishing the frame
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
 
@@ -2201,6 +2210,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDCamera hdCamera,
             ScriptableRenderContext renderContext,
             ScriptableCullingParameters cullingParams,
+            LayerMask uiLayerMask,
             ref HDCullingResults cullingResults
         )
         {
@@ -2245,8 +2255,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
                     hdProbeCullState = HDProbeSystem.PrepareCull(camera);
 
+                // TODO_FCC: Don't do the separate UI culling if not HDR?
+
+                cullingParams.cullingMask &= ~(uint)(int)uiLayerMask;
                 using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
                     cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
+
+                cullingParams.cullingMask = (uint)(int)uiLayerMask;
+                using (new ProfilingSample(null, "UI Culling", CustomSamplerId.CullResultsCull.GetSampler()))
+                    cullingResults.uiCullingResults = renderContext.Cull(ref cullingParams);
+
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
                     HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
@@ -2926,6 +2944,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        void RenderTransparentUI(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            ForwardPass pass = ForwardPass.Transparent;
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
+            {
+                m_ForwardPassProfileName = k_ForwardPassDebugName[(int)pass];
+            }
+            else
+            {
+                m_ForwardPassProfileName = k_ForwardPassName[(int)pass];
+            }
+
+            using (new ProfilingSample(cmd, "RenderUI", CustomSamplerId.ForwardPassName.GetSampler()))
+            {
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraUIBuffer, m_SharedRTManager.GetDepthStencilBuffer());
+                bool renderMotionVecForTransparent = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
+                RenderQueueRange transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
+                RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames, m_currentRendererConfigurationBakedLighting, transparentRange);
+            }
+        }
+
         // This is use to Display legacy shader with an error shader
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void RenderForwardError(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -3431,6 +3470,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
                     m_IsDepthBufferCopyValid = false;
+                }
+
+                // Clear the UI buffer
+                using (new ProfilingSample(cmd, "ClearBuffers", CustomSamplerId.ClearUIBuffer.GetSampler()))
+                {
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraUIBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa), ClearFlag.Color, Color.black);
                 }
 
                 // Clear the HDR target

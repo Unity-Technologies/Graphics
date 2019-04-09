@@ -44,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderDebug,
         ClearBuffers,
         ClearDepthStencil,
+        ClearUIBuffer,
         ClearSssLightingBuffer,
         ClearSSSFilteringTarget,
         ClearAndCopyStencilTexture,
