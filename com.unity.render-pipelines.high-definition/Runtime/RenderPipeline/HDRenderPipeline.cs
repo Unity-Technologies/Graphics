@@ -1050,7 +1050,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         )
                         // Note: In case of a custom render, we have false here and 'TryCull' is not executed
                         && TryCull(
-                            camera, hdCamera, renderContext, cullingParameters, m_Asset.currentPlatformRenderPipelineSettings.uiLayer,
+                            camera, hdCamera, renderContext, cullingParameters, HDROutputSettings.active() ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0,
                             ref cullingResults
                         ));
 
@@ -1232,7 +1232,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 out var cullingParameters
                             )
                             && TryCull(
-                                camera, hdCamera, renderContext, cullingParameters, m_Asset.currentPlatformRenderPipelineSettings.uiLayer,
+                                camera, hdCamera, renderContext, cullingParameters, HDROutputSettings.active() ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0,
                                 ref _cullingResults
                             )))
                         {
@@ -1885,7 +1885,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
                 // Render UI
-                RenderTransparentUI(uiCullingResults, hdCamera, renderContext, cmd);
+                if(HDROutputSettings.active())
+                {
+                    RenderTransparentUI(uiCullingResults, hdCamera, renderContext, cmd);
+                }
 
                 // Second resolve the color buffer for finishing the frame
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
@@ -3473,9 +3476,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Clear the UI buffer
-                using (new ProfilingSample(cmd, "ClearBuffers", CustomSamplerId.ClearUIBuffer.GetSampler()))
+                if(HDROutputSettings.active())
                 {
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraUIBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa), ClearFlag.Color, Color.black);
+                    using (new ProfilingSample(cmd, "ClearBuffers", CustomSamplerId.ClearUIBuffer.GetSampler()))
+                    {
+                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraUIBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa), ClearFlag.Color, Color.black);
+                    }
                 }
 
                 // Clear the HDR target
