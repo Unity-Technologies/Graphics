@@ -1,11 +1,12 @@
 using System;
-
+using System.IO;
+using UnityEngine.Assertions;
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Reflection;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering
 {
 #if UNITY_EDITOR
     /// <summary>
@@ -13,51 +14,57 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     /// The reload call should only be done in Editor context though but it
     /// could be called from runtime entities.
     /// </summary>
-    internal static class ResourceReloader
+    public static class ResourceReloader
     {
-        public static void ReloadAllNullIn(System.Object container)
+        /// <summary>
+        /// Looks for resources in the given <paramref name="container"/> object and reload the ones
+        /// that are missing or broken.
+        /// </summary>
+        /// <param name="container">The object containing reload-able resources</param>
+        /// <param name="basePath">The base path for the package</param>
+        public static void ReloadAllNullIn(System.Object container, string basePath)
         {
             if (IsNull(container))
                 return;
 
             foreach (var fieldInfo in container.GetType().GetFields())
             {
-                //Recurse on subcontainers
+                //Recurse on sub-containers
                 if (IsReloadGroup(fieldInfo))
                 {
                     FixGroupIfNeeded(container, fieldInfo);
-                    ReloadAllNullIn(fieldInfo.GetValue(container));
+                    ReloadAllNullIn(fieldInfo.GetValue(container), basePath);
                 }
 
                 //Find null field and reload them
                 var attribute = GetReloadAttribute(fieldInfo);
                 if (attribute != null)
                 {
-                    if (attribute.pathes.Length == 1)
+                    if (attribute.paths.Length == 1)
                     {
-                        SetAndLoadIfNull(container, fieldInfo, GetFullPath(attribute),
+                        SetAndLoadIfNull(container, fieldInfo, GetFullPath(basePath, attribute),
                             attribute.package == ReloadAttribute.Package.Builtin);
                     }
-                    else if (attribute.pathes.Length > 1)
+                    else if (attribute.paths.Length > 1)
                     {
-                        FixArrayIfNeeded(container, fieldInfo, attribute.pathes.Length);
+                        FixArrayIfNeeded(container, fieldInfo, attribute.paths.Length);
 
                         var array = (Array)fieldInfo.GetValue(container);
                         if (IsReloadGroup(array))
                         {
-                            //Recurse on each subcontainers
-                            for (int index = 0; index < attribute.pathes.Length; ++index)
+                            //Recurse on each sub-containers
+                            for (int index = 0; index < attribute.paths.Length; ++index)
                             {
                                 FixGroupIfNeeded(array, index);
-                                ReloadAllNullIn(array.GetValue(index));
+                                ReloadAllNullIn(array.GetValue(index), basePath);
                             }
                         }
                         else
                         {
                             bool builtin = attribute.package == ReloadAttribute.Package.Builtin;
                             //Find each null element and reload them
-                            for (int index = 0; index < attribute.pathes.Length; ++index)
-                                SetAndLoadIfNull(array, index, GetFullPath(attribute, index), builtin);
+                            for (int index = 0; index < attribute.paths.Length; ++index)
+                                SetAndLoadIfNull(array, index, GetFullPath(basePath, attribute, index), builtin);
                         }
                     }
                 }
@@ -77,6 +84,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static void FixGroupIfNeeded(Array array, int index)
         {
+            Assert.IsNotNull(array);
+
             if (IsNull(array.GetValue(index)))
             {
                 array.SetValue(
@@ -91,7 +100,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (IsNull(container, info) || ((Array)info.GetValue(container)).Length < length)
                 info.SetValue(
                     container,
-                    Activator.CreateInstance(info.FieldType, new object[] { length })
+                    Activator.CreateInstance(info.FieldType, length)
                 );
         }
 
@@ -99,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var attributes = (ReloadAttribute[])fieldInfo
                 .GetCustomAttributes(typeof(ReloadAttribute), false);
-            if (attributes == null || attributes.Length == 0)
+            if (attributes.Length == 0)
                 return null;
             return attributes[0];
         }
@@ -126,8 +135,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
                 result = AssetDatabase.LoadAssetAtPath(path, type);
             if (IsNull(result))
-                throw new Exception(
-                    String.Format("Cannot load. Incorrect path: {0} Null returned.", path));
+                throw new Exception($"Cannot load. Incorrect path: {path} Null returned.");
             return result;
         }
 
@@ -146,73 +154,102 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 array.SetValue(Load(path, array.GetType().GetElementType(), builtin), index);
         }
 
-        static string GetFullPath(ReloadAttribute attribute, int index = 0)
+        static string GetFullPath(string basePath, ReloadAttribute attribute, int index = 0)
         {
-            string basePath;
+            string path;
             switch (attribute.package)
             {
                 case ReloadAttribute.Package.Builtin:
-                    basePath = "";
+                    path = attribute.paths[index];
                     break;
-                case ReloadAttribute.Package.CoreEditor:
-                    // All CoreRP have been move to HDRP currently for out of preview of SRP and LW
-                    // basePath = HDUtils.GetCorePath() + "Editor/"
-                    basePath = HDUtils.GetHDRenderPipelinePath() + "Editor/Core/";
-                    break;
-                case ReloadAttribute.Package.CoreRuntime:
-                    // All CoreRP have been move to HDRP currently for out of preview of SRP and LW
-                    // basePath = HDUtils.GetCorePath() + "Runtime/"
-                    basePath = HDUtils.GetHDRenderPipelinePath() + "Runtime/Core/";
-                    break;
-                case ReloadAttribute.Package.HDRPEditor:
-                    basePath = HDUtils.GetHDRenderPipelinePath() + "Editor/";
-                    break;
-                case ReloadAttribute.Package.HDRPRuntime:
-                    basePath = HDUtils.GetHDRenderPipelinePath() + "Runtime/";
+                case ReloadAttribute.Package.Root:
+                    path = Path.Combine(basePath, attribute.paths[index]);
                     break;
                 default:
                     throw new ArgumentException("Unknown Package Path!");
             }
-            return basePath + attribute.pathes[index];
+            return path;
         }
     }
 #endif
 
-
-
     /// <summary>
-    /// Attribute specifying information to reload with ResourceReloader.
-    /// Stock and do nothing at runtime.
+    /// Attribute specifying information to reload with <see cref="ResourceReloader"/>. This is only
+    /// used in the editor and doesn't have any effect at runtime.
     /// </summary>
+    /// <seealso cref="ResourceReloader"/>
+    /// <seealso cref="ReloadGroupAttribute"/>
     [AttributeUsage(AttributeTargets.Field)]
-    internal class ReloadAttribute : Attribute
+    public sealed class ReloadAttribute : Attribute
     {
-        public enum Package { Builtin, CoreRuntime, CoreEditor, HDRPRuntime, HDRPEditor };
+        /// <summary>
+        /// Lookup method for a resource.
+        /// </summary>
+        public enum Package
+        {
+            /// <summary>
+            /// Used for builtin resources when the resource isn't part of the package (i.e. builtin
+            /// shaders).
+            /// </summary>
+            Builtin,
+
+            /// <summary>
+            /// Used for resources inside the package.
+            /// </summary>
+            Root
+        };
+
 #if UNITY_EDITOR
+        /// <summary>
+        /// The lookup method.
+        /// </summary>
         public readonly Package package;
-        public readonly string[] pathes;
+
+        /// <summary>
+        /// Search paths.
+        /// </summary>
+        public readonly string[] paths;
 #endif
 
-        public ReloadAttribute(string[] pathes, Package package = Package.HDRPRuntime)
+        /// <summary>
+        /// Creates a new <see cref="ReloadAttribute"/> for an array by specifying each resource
+        /// path individually.
+        /// </summary>
+        /// <param name="paths">Search paths</param>
+        /// <param name="package">The lookup method</param>
+        public ReloadAttribute(string[] paths, Package package = Package.Root)
         {
 #if UNITY_EDITOR
-            this.pathes = pathes;
+            this.paths = paths;
             this.package = package;
 #endif
         }
 
-        public ReloadAttribute(string path, Package package = Package.HDRPRuntime)
-            : this(new string[] { path }, package)
+        /// <summary>
+        /// Creates a new <see cref="ReloadAttribute"/> for a single resource.
+        /// </summary>
+        /// <param name="path">Search path</param>
+        /// <param name="package">The lookup method</param>
+        public ReloadAttribute(string path, Package package = Package.Root)
+            : this(new[] { path }, package)
         { }
 
+        /// <summary>
+        /// Creates a new <see cref="ReloadAttribute"/> for an array using automatic path name
+        /// numbering.
+        /// </summary>
+        /// <param name="pathFormat">The format used for the path</param>
+        /// <param name="rangeMin">The array start index (inclusive)</param>
+        /// <param name="rangeMax">The array end index (exclusive)</param>
+        /// <param name="package">The lookup method</param>
         public ReloadAttribute(string pathFormat, int rangeMin, int rangeMax,
-            Package package = Package.HDRPRuntime)
+            Package package = Package.Root)
         {
 #if UNITY_EDITOR
             this.package = package;
-            pathes = new string[rangeMax - rangeMin];
+            paths = new string[rangeMax - rangeMin];
             for (int index = rangeMin, i = 0; index < rangeMax; ++index, ++i)
-                pathes[i] = string.Format(pathFormat, index);
+                paths[i] = string.Format(pathFormat, index);
 #endif
         }
     }
@@ -220,10 +257,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     /// <summary>
     /// Attribute specifying that it contains element that should be reloaded.
     /// If the instance of the class is null, the system will try to recreate
-    /// it with default constructor.
-    /// Be sure class using it have default constructor!
+    /// it with the default constructor.
+    /// Be sure classes using it have default constructor!
     /// </summary>
+    /// <seealso cref="ReloadAttribute"/>
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ReloadGroupAttribute : Attribute
+    public sealed class ReloadGroupAttribute : Attribute
     { }
 }
