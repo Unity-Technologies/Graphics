@@ -37,10 +37,10 @@ namespace UnityEngine.Rendering.LWRP
         {
             Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
 
-            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
-            Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.copyDepthShader);
-            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
-            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.screenSpaceShadowShader);
+            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
+            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
+            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -292,19 +292,23 @@ namespace UnityEngine.Rendering.LWRP
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
+            bool isStereoEnabled = renderingData.cameraData.isStereoEnabled;
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
-            bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
+            bool isCompatibleBackbufferTextureDimension = baseDescriptor.dimension == TextureDimension.Tex2D;
             bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
             bool isOffscreenRender = cameraData.camera.targetTexture != null && !cameraData.isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
+
+            if (isStereoEnabled)
+                isCompatibleBackbufferTextureDimension = UnityEngine.XR.XRSettings.deviceEyeTextureDimension == baseDescriptor.dimension;
 
             bool requiresBlitForOffscreenCamera = cameraData.isPostProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve;
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
             return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   isTargetTexture2DArray || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
-                   || renderingData.killAlphaInFinalBlit;
+                   !isCompatibleBackbufferTextureDimension || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
+                   || (renderingData.killAlphaInFinalBlit && !isStereoEnabled);
         }
 
         bool CanCopyDepth(ref CameraData cameraData)

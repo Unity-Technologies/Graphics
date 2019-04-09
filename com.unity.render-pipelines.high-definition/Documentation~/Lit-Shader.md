@@ -17,6 +17,7 @@ Surface options control the overall look of your Material's surface and how Unit
 | Property| Description |
 |:---|:---|
 | **Surface type** | Controls whether your Shader supports transparency or not. HDRP exposes more properties depending on the Surface Type you select. See the [Surface Type](Surface-Type.html) documentation for more information. |
+| **Render Pass** | Controls when objects using this shader will be rendered during the frame. See [Render Pass](Render-Pass.html) documentation for more information. Behavior and available option will depend on the shader type (Lit or Unlit). |
 | **Alpha Cutoff Enable** | Controls whether your Material acts like a Cutout Shader or not. Enabling this feature exposes more properties. See the [Alpha Clipping](Alpha-Clipping.html) documentation for more information. |
 | **Double Sided** | Controls whether HDRP renders both faces of the polygons in your geometry, or just the side defined by the normal. See the [Double Sided](Double-Sided.html) documentation for more information. |
 | **Material Type** | Allows you to give your Material a type, which allows you to customize it with different settings depending on the Material Type you select. See the [Material Type](Material-Type.html) documentation for more information. |

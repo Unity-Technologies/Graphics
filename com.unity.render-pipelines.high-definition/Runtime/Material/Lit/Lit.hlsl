@@ -1580,8 +1580,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // Evaluate the coat part
             if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
             {
-                ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
+                float4x3 LSCC = mul(lightVerts, preLightData.ltcTransformCoat);
+                ltcValue = PolygonIrradiance(LSCC);
                 ltcValue *= lightData.specularDimmer;
+                // Only apply cookie if there is one
+                if ( lightData.cookieIndex >= 0 )
+                {
+                    // Compute the cookie data for the specular term
+                    float3 formFactorS =  PolygonFormFactor(LSCC);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LSCC, formFactorS);
+                }
                 // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
                 lighting.diffuse *= (1.0 - preLightData.coatIblF);
                 lighting.specular *= (1.0 - preLightData.coatIblF);
