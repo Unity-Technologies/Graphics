@@ -134,8 +134,7 @@ namespace UnityEngine.Rendering.LWRP
         [NonSerialized]
         internal LightweightRenderPipelineEditorResources m_EditorResourcesAsset;
 
-        static readonly string s_SearchPathProject = "Assets";
-        static readonly string s_SearchPathPackage = "Packages/com.unity.render-pipelines.lightweight";
+        public static readonly string packagePath = "Packages/com.unity.render-pipelines.lightweight";
 
         public static LightweightRenderPipelineAsset Create()
         {
@@ -166,13 +165,14 @@ namespace UnityEngine.Rendering.LWRP
         static void CreateLightweightPipelineEditorResources()
         {
             var instance = CreateInstance<LightweightRenderPipelineEditorResources>();
+            ResourceReloader.ReloadAllNullIn(instance, packagePath);
             AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(LightweightRenderPipelineEditorResources).Name));
         }
 
         static T LoadResourceFile<T>() where T : ScriptableObject
         {
             T resourceAsset = null;
-            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new[] {s_SearchPathProject});
+            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new[] { "Assets" });
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -184,9 +184,13 @@ namespace UnityEngine.Rendering.LWRP
             // There's currently an issue that prevents FindAssets from find resources withing the package folder.
             if (resourceAsset == null)
             {
-                string path = s_SearchPathPackage + "/Runtime/Data/" + typeof(T).Name + ".asset";
+                string path = packagePath + "/Runtime/Data/" + typeof(T).Name + ".asset";
                 resourceAsset = AssetDatabase.LoadAssetAtPath<T>(path);
             }
+
+            // Validate the resource file
+            ResourceReloader.ReloadAllNullIn(resourceAsset, packagePath);
+
             return resourceAsset;
         }
 
@@ -245,13 +249,13 @@ namespace UnityEngine.Rendering.LWRP
             switch (materialType)
             {
                 case DefaultMaterialType.Standard:
-                    return editorResources.litMaterial;
+                    return editorResources.materials.lit;
 
                 case DefaultMaterialType.Particle:
-                    return editorResources.particleLitMaterial;
+                    return editorResources.materials.particleLit;
 
                 case DefaultMaterialType.Terrain:
-                    return editorResources.terrainLitMaterial;
+                    return editorResources.materials.terrainLit;
 
                 // Unity Builtin Default
                 default:
@@ -470,32 +474,32 @@ namespace UnityEngine.Rendering.LWRP
 #if UNITY_EDITOR
         public override Shader autodeskInteractiveShader
         {
-            get { return editorResources.autodeskInteractiveShader; }
+            get { return editorResources.shaders.autodeskInteractivePS; }
         }
 
         public override Shader autodeskInteractiveTransparentShader
         {
-            get { return editorResources.autodeskInteractiveTransparentShader; }
+            get { return editorResources.shaders.autodeskInteractiveTransparentPS; }
         }
 
         public override Shader autodeskInteractiveMaskedShader
         {
-            get { return editorResources.autodeskInteractiveMaskedShader; }
+            get { return editorResources.shaders.autodeskInteractiveMaskedPS; }
         }
 
         public override Shader terrainDetailLitShader
         {
-            get { return editorResources.terrainDetailLitShader; }
+            get { return editorResources.shaders.terrainDetailLitPS; }
         }
 
         public override Shader terrainDetailGrassShader
         {
-            get { return editorResources.terrainDetailGrassShader; }
+            get { return editorResources.shaders.terrainDetailGrassPS; }
         }
 
         public override Shader terrainDetailGrassBillboardShader
         {
-            get { return editorResources.terrainDetailGrassBillboardShader; }
+            get { return editorResources.shaders.terrainDetailGrassBillboardPS; }
         }
 #endif
 

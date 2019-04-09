@@ -37,10 +37,10 @@ namespace UnityEngine.Rendering.LWRP
         {
             Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
 
-            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
-            Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.copyDepthShader);
-            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
-            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.screenSpaceShadowShader);
+            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
+            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
+            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
