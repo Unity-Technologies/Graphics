@@ -1876,7 +1876,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (m_Tonemapping.mode.value)
             {
                 case TonemappingMode.Neutral: kernelName = "KBuild_NeutralTonemap"; break;
-                case TonemappingMode.ACES:    kernelName = "KBuild_AcesTonemap"; break;
+                case TonemappingMode.ACES:
+                {
+                    if(HDROutputSettings.active())
+                    {
+                        kernelName = "KBuild_AcesTonemap_HDR";
+                    }
+                    else
+                    {
+                        kernelName = "KBuild_AcesTonemap";
+                    }
+                    break;
+                }
                 case TonemappingMode.Custom:  kernelName = "KBuild_CustomTonemap"; break;
                 default:                      kernelName = "KBuild_NoTonemap"; break;
             }

@@ -618,8 +618,13 @@ float3 AcesTonemap(float3 aces)
 #if TONEMAPPING_USE_FULL_ACES
 
     float3 oces = RRT(aces);
+#ifndef HDR
     float3 odt = ODT_RGBmonitor_100nits_dim(oces);
     return odt;
+#else
+    // We operate in 2020 and we don't need to apply the ODT here since it is applied at final pass stage.
+    return oces;
+#endif
 
 #else
 

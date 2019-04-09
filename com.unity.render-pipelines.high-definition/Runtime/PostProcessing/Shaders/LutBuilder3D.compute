@@ -7,10 +7,12 @@
 #pragma kernel KBuild_NoTonemap                MAIN=KBuild_NoTonemap                 TONEMAPPING_NONE
 #pragma kernel KBuild_NeutralTonemap           MAIN=KBuild_NeutralTonemap            TONEMAPPING_NEUTRAL
 #pragma kernel KBuild_AcesTonemap              MAIN=KBuild_AcesTonemap               TONEMAPPING_ACES
+#pragma kernel KBuild_AcesTonemap_HDR          MAIN=KBuild_AcesTonemap_HDR           TONEMAPPING_ACES       HDR
 #pragma kernel KBuild_CustomTonemap            MAIN=KBuild_CustomTonemap             TONEMAPPING_CUSTOM
 #pragma kernel KBuild_NoTonemap_Source         MAIN=KBuild_NoTonemap_Source          TONEMAPPING_NONE       USE_SOURCE_LUT
 #pragma kernel KBuild_NeutralTonemap_Source    MAIN=KBuild_NeutralTonemap_Source     TONEMAPPING_NEUTRAL    USE_SOURCE_LUT
 #pragma kernel KBuild_AcesTonemap_Source       MAIN=KBuild_AcesTonemap_Source        TONEMAPPING_ACES       USE_SOURCE_LUT
+#pragma kernel KBuild_AcesTonemap_Source_HDR   MAIN=KBuild_AcesTonemap_Source_HDR    TONEMAPPING_ACES       USE_SOURCE_LUT       HDR
 #pragma kernel KBuild_CustomTonemap_Source     MAIN=KBuild_CustomTonemap_Source      TONEMAPPING_CUSTOM     USE_SOURCE_LUT
 
 TEXTURE3D(_LogLut3D);

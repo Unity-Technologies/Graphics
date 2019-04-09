@@ -586,10 +586,16 @@ half3 RRT(half3 aces)
     rgbPost.y = segmented_spline_c5_fwd(rgbPre.y);
     rgbPost.z = segmented_spline_c5_fwd(rgbPre.z);
 
+#ifndef HDR
     // --- RGB rendering space to OCES --- //
-    half3 rgbOces = mul(AP1_2_AP0_MAT, rgbPost);
-
-    return rgbOces;
+    half3 outputVal = mul(AP1_2_AP0_MAT, rgbPost);
+#else
+    // We output to Rec2020 here for practicality with the rest of the HDR pipeline. We do it here instead of later from ACEScg (AP0)
+    // since AP1 is a wider gamut than AP0 and it includes Rec2020 while AP0 doesn't.
+    const half3x3 AP1_2_REC2020_MAT = mul(XYZ_2_Rec2020_MAT, AP1_2_XYZ_MAT);
+    half3 outputVal = mul(AP1_2_REC2020_MAT, rgbPost);
+#endif
+    return outputVal;
 }
 
 //
