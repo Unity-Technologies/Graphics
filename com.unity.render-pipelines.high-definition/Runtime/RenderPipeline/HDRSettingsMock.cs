@@ -11,9 +11,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     // !!!!!!!!!!!IMPORTANT!!!!!!!!! All of this is a mock, nothing to be used in any way in a final build.
 
-    public static class HDROutputSettings
+    public class HDROutputSettings
     {
-        static private bool ACTIVE = true;
+        private static HDROutputSettings s_Instance = new HDROutputSettings();
+        public static HDROutputSettings instance { get { return s_Instance; } }
+
+        static private bool ACTIVE = false;
         private static RTHandleSystem.RTHandle m_UITarget = null;
 
 
@@ -45,6 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static ColorGamut gamut()
         {
+            // What gamut does Dolby uses? I must assume 2020? Or P3? 
             if (ACTIVE)
             {
                 return ColorGamut.HDR10;
