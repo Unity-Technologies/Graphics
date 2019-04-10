@@ -10,7 +10,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    [Title("Input", "High Definition Render Pipeline", "Parallax Occlusion Mapping")]
+    [Title("Utility", "High Definition Render Pipeline", "Parallax Occlusion Mapping")]
     class ParallaxOcclusionMappingNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireViewDirection
     {
         public ParallaxOcclusionMappingNode()

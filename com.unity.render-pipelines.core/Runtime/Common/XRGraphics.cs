@@ -1,5 +1,8 @@
 using System;
 using UnityEditor;
+
+#if ENABLE_VR
+
 #if UNITY_2017_2_OR_NEWER
 using UnityEngine.XR;
 using XRSettings = UnityEngine.XR.XRSettings;
@@ -7,6 +10,8 @@ using XRSettings = UnityEngine.XR.XRSettings;
 using UnityEngine.VR;
 using XRSettings = UnityEngine.VR.VRSettings;
 #endif
+
+#endif // ENABLE_VR
 
 namespace UnityEngine.Rendering
 {
@@ -26,10 +31,11 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!enabled)
-                    return 1.0f;
-                else
+#if ENABLE_VR
+                if (enabled)
                     return XRSettings.eyeTextureResolutionScale;
+#endif
+                return 1.0f;
             }
         }
 
@@ -37,10 +43,11 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!enabled)
-                    return 1.0f;
-                else
+#if ENABLE_VR
+                if (enabled)
                     return XRSettings.renderViewportScale;
+#endif
+                return 1.0f;    
             }
         }
 
@@ -67,9 +74,11 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!enabled)
-                    return false;
-                return XRSettings.isDeviceActive;
+#if ENABLE_VR
+                if (enabled)
+                    return XRSettings.isDeviceActive;
+#endif
+                return false;
             }
         }
 
@@ -77,9 +86,11 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!enabled)
-                    return "No XR device loaded";
-                return XRSettings.loadedDeviceName;
+#if ENABLE_VR
+                if (enabled)
+                    return XRSettings.loadedDeviceName;
+#endif
+                return "No XR device loaded";
             }
         }
 
@@ -87,9 +98,11 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!enabled)
-                    return new string[1];
-                return XRSettings.supportedDevices;
+#if ENABLE_VR
+                if (enabled)
+                    return XRSettings.supportedDevices;
+#endif
+                return new string[1];
             }
         }
 
@@ -97,50 +110,25 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!enabled)
-                    return StereoRenderingMode.SinglePass;
-#if UNITY_2018_3_OR_NEWER
-                return (StereoRenderingMode)XRSettings.stereoRenderingMode;
-#else // Reverse engineer it
-                if (!enabled)
-                    return StereoRenderingMode.SinglePassMultiView;
-                if (eyeTextureDesc.vrUsage == VRTextureUsage.TwoEyes)
+#if ENABLE_VR
+                if (enabled)
                 {
-                    if (eyeTextureDesc.dimension == UnityEngine.Rendering.TextureDimension.Tex2DArray)
-                        return StereoRenderingMode.SinglePassInstanced;
-                    return StereoRenderingMode.SinglePassDoubleWide;
+    #if UNITY_2018_3_OR_NEWER
+                    return (StereoRenderingMode)XRSettings.stereoRenderingMode;
+    #else // Reverse engineer it
+                    if (eyeTextureDesc.vrUsage == VRTextureUsage.TwoEyes)
+                    {
+                        if (eyeTextureDesc.dimension == UnityEngine.Rendering.TextureDimension.Tex2DArray)
+                            return StereoRenderingMode.SinglePassInstanced;
+                        return StereoRenderingMode.SinglePassDoubleWide;
+                    }
+                    else
+                        return StereoRenderingMode.MultiPass;
+    #endif // UNITY_2018_3_OR_NEWER
                 }
-                else
-                    return StereoRenderingMode.MultiPass;
-#endif
-            }
-        }
+#endif // ENABLE_VR
 
-        // XRTODO: remove once SinglePassInstanced is working
-        public static uint GetPixelOffset(uint eye)
-        {
-            if (!enabled || stereoRenderingMode != StereoRenderingMode.SinglePass)
-                return 0;
-            return (uint)(Mathf.CeilToInt((eye * XRSettings.eyeTextureWidth) / 2));
-        }
-
-        public static int eyeCount
-        {
-            get
-            {
-                return enabled ? 2 : 1;
-            }
-        }
-
-        public static int computePassCount
-        {
-            get
-            {
-                // XRTODO: need to also check if stereo is enabled in camera!
-                if (stereoRenderingMode == StereoRenderingMode.SinglePassInstanced)
-                    return eyeCount;
-
-                return 1;
+                return StereoRenderingMode.SinglePass;
             }
         }
 
@@ -148,12 +136,11 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!enabled)
-                {
-                    return new RenderTextureDescriptor(0, 0);
-                }
-
-                return XRSettings.eyeTextureDesc;
+#if ENABLE_VR
+                if (enabled)
+                    return XRSettings.eyeTextureDesc;
+#endif
+                return new RenderTextureDescriptor(0, 0);
             }
         }
 
@@ -161,26 +148,23 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!enabled)
-                {
-                    return 0;
-                }
-
-                return XRSettings.eyeTextureWidth;
+#if ENABLE_VR
+                if (enabled)
+                    return XRSettings.eyeTextureWidth;
+#endif
+                return 0;
             }
         }
         public static int eyeTextureHeight
         {
             get
             {
-                if (!enabled)
-                {
-                    return 0;
-                }
-
-                return XRSettings.eyeTextureHeight;
+#if ENABLE_VR
+                if (enabled)
+                    return XRSettings.eyeTextureHeight;
+#endif
+                return 0;          
             }
         }
-
     }
 }

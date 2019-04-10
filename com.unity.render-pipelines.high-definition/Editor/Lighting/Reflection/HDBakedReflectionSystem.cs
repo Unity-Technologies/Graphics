@@ -6,6 +6,7 @@ using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
+using UnityEditor.Experimental.Rendering.HDPipeline;
 using UnityEditor.VersionControl;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
@@ -217,7 +218,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     HDBakingUtilities.CreateParentDirectoryIfMissing(bakedTexturePath);
-                    File.Copy(cacheFile, bakedTexturePath, true);
+                    if (Provider.isActive && File.Exists(bakedTexturePath))
+                    {
+                        Checkout(bakedTexturePath, CheckoutMode.Both);
+                        // Checkout will make those file writeable, but this is not immediate,
+                        // so we retries when this fails.
+                        if (!HDEditorUtils.CopyFileWithRetryOnUnauthorizedAccess(cacheFile, bakedTexturePath))
+                            return;
+                    }
                 }
                 // AssetPipeline bug
                 // Sometimes, the baked texture reference is destroyed during 'AssetDatabase.StopAssetEditing()'
@@ -513,7 +521,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             (uint)StaticEditorFlags.ReflectionProbeStatic
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
-                        if (Provider.isActive)
+                        if (Provider.isActive && HDEditorUtils.IsAssetPath(targetFile))
                             Checkout(targetFile, CheckoutMode.Both);
                         HDTextureUtilities.WriteTextureFileToDisk(cubeRT, targetFile);
                         break;
@@ -533,12 +541,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
-                        if (Provider.isActive)
+                        if (Provider.isActive && HDEditorUtils.IsAssetPath(targetFile))
                             Checkout(targetFile, CheckoutMode.Both);
                         HDTextureUtilities.WriteTextureFileToDisk(planarRT, targetFile);
                         var renderData = new HDProbe.RenderData(cameraSettings, cameraPositionSettings);
                         var targetRenderDataFile = targetFile + ".renderData";
-                        if (Provider.isActive)
+                        if (Provider.isActive && HDEditorUtils.IsAssetPath(targetRenderDataFile))
                             Checkout(targetRenderDataFile, CheckoutMode.Both);
                         HDBakingUtilities.TrySerializeToDisk(renderData, targetRenderDataFile);
                         break;

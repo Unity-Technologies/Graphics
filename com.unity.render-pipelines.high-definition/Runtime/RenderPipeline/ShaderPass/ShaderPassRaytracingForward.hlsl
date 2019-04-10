@@ -21,7 +21,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // Make sure to add the additional travel distance
     float travelDistance = length(pointWSPos - rayIntersection.origin);
     rayIntersection.t = travelDistance;
-    rayIntersection.cone.width += travelDistance * rayIntersection.cone.spreadAngle;
+    rayIntersection.cone.width += travelDistance * abs(rayIntersection.cone.spreadAngle);
     
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
@@ -39,6 +39,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // Compute the prelight data
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
     float3 reflected = float3(0.0, 0.0, 0.0);
+    float reflectedWeight = 0.0;
     float3 transmitted = float3(0.0, 0.0, 0.0);
 
     // The intersection will launch a refraction ray only if the object is transparent and is has the refraction flag
@@ -109,7 +110,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-        reflectedIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+        reflectedIntersection.cone.spreadAngle = -_RaytracingPixelSpreadAngle;
         reflectedIntersection.cone.width = rayIntersection.cone.width;
         
         // Evaluate the ray intersection
@@ -117,12 +118,13 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
         // Override the transmitted color
         reflected = reflectedIntersection.color;
+        reflectedWeight = 1.0;
     }
 
     // Run the lightloop
     float3 diffuseLighting;
     float3 specularLighting;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflected, transmitted, diffuseLighting, specularLighting);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, reflected, transmitted, diffuseLighting, specularLighting);
 
     // Color display for the moment
     rayIntersection.color = diffuseLighting + specularLighting;

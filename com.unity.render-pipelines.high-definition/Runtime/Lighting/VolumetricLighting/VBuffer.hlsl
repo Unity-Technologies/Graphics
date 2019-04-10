@@ -41,7 +41,7 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
 
     #if defined(UNITY_STEREO_INSTANCING_ENABLED)
         // XRTODO: figure out a better way to avoid leaks between eyes (double-wide might be safer, or guard bands, or 2 separate textures)
-        w = (w + unity_StereoEyeIndex) * 0.5f;
+        w = (w + unity_StereoEyeIndex) * _VBufferRcpInstancedViewCount;
     #endif
 
     if (coordIsInsideFrustum)

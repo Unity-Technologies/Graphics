@@ -308,15 +308,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
 
         protected override bool showBlendModePopup
-        {
-            get { return refractionModel == null || refractionModel.floatValue == 0f || HDRenderQueue.k_RenderQueue_PreRefraction.Contains((m_MaterialEditor.target as Material).renderQueue); }
-        }
+            => refractionModel == null
+            || refractionModel.floatValue == 0f
+            || HDRenderQueue.k_RenderQueue_PreRefraction.Contains(renderQueue);
+
         protected override bool showPreRefractionPass
-        {
-            get { return refractionModel == null || refractionModel.floatValue == 0f; }
-        }
-        protected override bool showAfterPostProcessPass { get { return false; } }
-        protected override bool showLowResolutionPass { get { return false; } }
+            => refractionModel == null
+            || refractionModel.floatValue == 0f;
+
+        protected override bool showAfterPostProcessPass => false; 
+        protected override bool showLowResolutionPass => true; 
 
         protected void FindMaterialLayerProperties(MaterialProperty[] props)
         {

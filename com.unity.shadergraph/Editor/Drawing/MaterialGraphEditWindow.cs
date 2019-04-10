@@ -145,6 +145,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.Validate();
                 }
 
+                if (graphObject.wasUndoRedoPerformed)
+                {
+                    graphEditorView.HandleGraphChanges();
+                    graphObject.graph.ClearChanges();
+                    graphObject.HandleUndoRedo();
+                }
+
                 if (updatePreviewShaders)
                 {
                     m_GraphEditorView.UpdatePreviewShaders();

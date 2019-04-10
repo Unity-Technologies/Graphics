@@ -4,13 +4,13 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.VFX.Utils;
+using UnityEngine.Experimental.VFX.Utility;
 using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor;
 using UnityEditorInternal;
 
-namespace UnityEditor.VFX.Utils
+namespace UnityEditor.Experimental.VFX.Utility
 {
     [CustomEditor(typeof(VFXParameterBinder))]
     public class VFXParameterBinderEditor : Editor

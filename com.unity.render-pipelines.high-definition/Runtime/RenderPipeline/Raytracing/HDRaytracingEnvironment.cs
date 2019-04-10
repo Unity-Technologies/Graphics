@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum AOFilterMode
         {
             None,
-            Bilateral,
+            SpatioTemporal,
             Nvidia
         };
         public AOFilterMode aoFilterMode = AOFilterMode.None;
@@ -52,9 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // AO Bilateral Filter Data
         [Range(1, 27)]
-        public int aoBilateralRadius = 10;
-        [Range(0.001f, 9.0f)]
-        public float aoBilateralSigma = 5.0f;
+        public int aoBilateralRadius = 16;
 
         // Nvidia AO Filter Data
         [Range(1, 27)]
@@ -107,6 +105,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(1, 64)]
         public int reflNumMaxSamples = 8;
 
+        // The different reflection filtering modes
+        public enum ReflectionsFilterMode
+        {
+            SpatioTemporal,
+            None
+        };
+        public ReflectionsFilterMode reflFilterMode = ReflectionsFilterMode.None;
+
+        // The radius for the spatio temporal filter
+        [Range(1, 27)]
+        public int reflFilterRadius = 16;
+
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Light Cluster
         [Range(0, 24)]
@@ -145,6 +155,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int numAreaLightShadows = 1;
         [Range(0, 32)]
         public int shadowFilterRadius = 8;
+        public bool splitIntegration = true;
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Indirect diffuse
@@ -161,6 +172,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Value that is used to clamp the intensity to avoid fireflies
         [Range(0.01f, 10.0f)]
         public float indirectDiffuseClampValue = 1.0f;
+
+        // The different reflection filtering modes
+        public enum IndirectDiffuseFilterMode
+        {
+            SpatioTemporal,
+            None
+        };
+        public IndirectDiffuseFilterMode indirectDiffuseFilterMode = IndirectDiffuseFilterMode.None;
+
+        // The radius for the spatio temporal filter
+        [Range(1, 27)]
+        public int indirectDiffuseFilterRadius = 16;
 
         void Start()
         {

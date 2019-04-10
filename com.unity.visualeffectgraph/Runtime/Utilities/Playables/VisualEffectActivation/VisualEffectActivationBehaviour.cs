@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Timeline;
 using UnityEngine.Playables;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.VFX.Utils;
+using UnityEngine.Experimental.VFX.Utility;
 
 [Serializable]
 public class VisualEffectActivationBehaviour : PlayableBehaviour

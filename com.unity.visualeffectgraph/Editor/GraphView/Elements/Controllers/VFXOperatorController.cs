@@ -257,7 +257,9 @@ namespace UnityEditor.VFX.UI
 
         public void RemoveOperand(VFXDataAnchorController myInput)
         {
-            RemoveOperand(model.GetSlotIndex(myInput.model));
+            var slotIndex = model.GetSlotIndex(myInput.model);
+            if (slotIndex != -1)
+                RemoveOperand(slotIndex);
         }
 
         public void RemoveOperand(int index)

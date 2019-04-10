@@ -82,6 +82,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Misc
         VolumeUpdate,
 
+        // Low res transparency
+        DownsampleDepth,
+        LowResTransparent,
+        UpsampleLowResTransparent,
+
         // Post-processing
         StopNaNs,
         Exposure,
