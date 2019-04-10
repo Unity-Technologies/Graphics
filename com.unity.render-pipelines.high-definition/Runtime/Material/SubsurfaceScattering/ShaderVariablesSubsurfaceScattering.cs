@@ -11,6 +11,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public fixed float _ShapeParams[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];        // RGB = S = 1 / D, A = filter radius
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
         public fixed float _TransmissionTintsAndFresnel0[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];  // RGB = 1/4 * color, A = fresnel0
+//forest-begin: Tweakable transmission
+        [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
+        public fixed float _TransmissionDirectAndIndirectScales[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];  // R=transmissionDirectScale, G=transmissionIndirectScale, BA=0
+//forest-end:
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
         public fixed float _WorldScales[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];        // X = meters per world unit; Y = world units per meter
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(float))]
