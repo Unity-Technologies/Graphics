@@ -461,8 +461,13 @@ namespace UnityEngine.Rendering.LWRP
         {
             get
             {
+                Shader defaultShader = scriptableRendererData.GetDefaultShader();
+                if (defaultShader != null)
+                    return defaultShader;
+
                 if (m_DefaultShader == null)
                     m_DefaultShader = Shader.Find(ShaderUtils.GetShaderPath(ShaderPathID.Lit));
+
                 return m_DefaultShader;
             }
         }

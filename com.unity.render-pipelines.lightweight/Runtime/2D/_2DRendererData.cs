@@ -71,6 +71,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             return null;
         }
+
+        internal override Shader GetDefaultShader()
+        {
+            return Shader.Find("Lightweight Render Pipeline/2D/Sprite-Lit-Default");
+        }
 #endif
 
         protected override ScriptableRenderer Create()
