@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
             
             this.hdAsset = hdAsset;
-            defaultDiffusionProfile = hdAsset.defaultDiffusionProfileSettings;
+            defaultDiffusionProfile = hdAsset.renderPipelineResources.assets.defaultDiffusionProfile;
         }
 
         public void Cleanup()
