@@ -55,14 +55,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GbufferManager = gbufferManager;
 
             // Allocate the intermediate buffers
-            m_AnalyticProbBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "AnalyticProbBuffer");
-            m_DenoiseBuffer0 = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DenoiseBuffer0");
-            m_DenoiseBuffer1 = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DenoiseBuffer1");
-            m_RaytracingDirectionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDirectionBuffer");
-            m_RaytracingDistanceBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
+            m_AnalyticProbBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, useMipMap: false, name: "AnalyticProbBuffer");
+            m_DenoiseBuffer0 = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, xrInstancing: true,  useMipMap: false, name: "DenoiseBuffer0");
+            m_DenoiseBuffer1 = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, useMipMap: false, name: "DenoiseBuffer1");
+            m_RaytracingDirectionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, xrInstancing: true,useMipMap: false, name: "RaytracingDirectionBuffer");
+            m_RaytracingDistanceBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, useMipMap: false, name: "RaytracingDistanceBuffer");
             
             // Allocate the final result texture
-            m_AreaShadowTextureArray = RTHandles.Alloc(Vector2.one, slices:4, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "AreaShadowArrayBuffer");
+            m_AreaShadowTextureArray = RTHandles.Alloc(Vector2.one, slices:4, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, useMipMap: false, name: "AreaShadowArrayBuffer");
         }
 
         public RTHandleSystem.RTHandle GetIntegrationTexture()
@@ -88,13 +88,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static RTHandleSystem.RTHandle AreaShadowHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, slices:4, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16_SFloat,
-                enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("AreaShadowHistoryBuffer{0}", frameIndex));
+                enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, useMipMap: false, name: string.Format("AreaShadowHistoryBuffer{0}", frameIndex));
         }
 
         static RTHandleSystem.RTHandle AreaAnalyticHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, slices:4, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat, 
-                        enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "AnalyticHistoryBuffer");
+                        enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, useMipMap: false, name: "AnalyticHistoryBuffer");
         }
 
         public bool RenderAreaShadows(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, uint frameCount)

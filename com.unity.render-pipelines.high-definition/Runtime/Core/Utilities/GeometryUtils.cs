@@ -144,8 +144,6 @@ namespace UnityEngine.Experimental.Rendering
             return overlap;
         }
 
-        public static readonly Matrix4x4 FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
-
         public static Vector4 Plane(Vector3 position, Vector3 normal)
         {
             var n = normal;
@@ -225,16 +223,6 @@ namespace UnityEngine.Experimental.Rendering
             reflectionMat.m33 = 1F;
 
             return reflectionMat;
-        }
-
-        public static Matrix4x4 GetWorldToCameraMatrixLHS(this Camera camera)
-        {
-            return FlipMatrixLHSRHS * camera.worldToCameraMatrix;
-        }
-
-        public static Matrix4x4 GetProjectionMatrixLHS(this Camera camera)
-        {
-            return camera.projectionMatrix * FlipMatrixLHSRHS;
         }
 
         public static bool IsProjectionMatrixOblique(Matrix4x4 projectionMatrix)
