@@ -40,7 +40,7 @@
     TEXTURE2D_ARRAY(_AreaShadowTexture);
 
     // Indirect Diffuse Texture
-    TEXTURE2D(_IndirectDiffuseTexture);
+    TEXTURE2D_X(_IndirectDiffuseTexture);
 #endif
 
 #endif
