@@ -11,6 +11,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     [ExecuteAlways]
     sealed public partial class Light2D : MonoBehaviour
     {
+        /// <summary>
+        /// an enumeration of the types of light
+        /// </summary>
         public enum LightType
         {
             Parametric = 0,
@@ -20,6 +23,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Global = 4
         }
 
+        /// <summary>
+        ///  Light overlap modes. For typical lighting use additive. To override a lights color with the color of another light use AlphaBlend.
+        /// </summary>
         public enum LightOverlapMode
         {
             Additive,
@@ -85,14 +91,23 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             public int totalVolumetricUsage;
         }
 
-
+        /// <summary>
+        /// The lights current type
+        /// </summary>
         public LightType lightType
         {
             get => m_LightType;
             set => m_LightType = value;
         }
 
+        /// <summary>
+        /// The lights current operation index
+        /// </summary>
         public int lightOperationIndex => m_LightOperationIndex;
+
+        /// <summary>
+        /// The lights current color
+        /// </summary>
         public Color color
         {
             get { return m_Color; }
@@ -103,6 +118,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
+        /// <summary>
+        /// The lights current intensity
+        /// </summary>
         public float intensity
         {
             get { return m_Intensity; }
@@ -113,6 +131,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
         }
 
+        /// <summary>
+        /// The lights current intensity
+        /// </summary>
         public float volumeOpacity => m_LightVolumeOpacity;
         public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffIntensity => m_FalloffIntensity;

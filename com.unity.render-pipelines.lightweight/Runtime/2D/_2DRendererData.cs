@@ -64,8 +64,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
         {
-            if (materialType == DefaultMaterialType.Sprite)
+            if (materialType == DefaultMaterialType.Sprite || materialType == DefaultMaterialType.Particle)
                 return UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.lightweight/Runtime/Materials/Sprite-Lit-Default.mat");
+
+
 
             return null;
         }

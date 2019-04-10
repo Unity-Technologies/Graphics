@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
     {
         class Styles
         {
-            public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("Light Intensity Scale", "Ask Chris for explanation.");
+            public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
             public static readonly GUIContent lightOperations = EditorGUIUtility.TrTextContent("Light Operations", "A Light Operation is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent name = EditorGUIUtility.TrTextContent("Name");
             public static readonly GUIContent globalColor = EditorGUIUtility.TrTextContent("Global Color", "The default clear color of the lighting buffer.");
