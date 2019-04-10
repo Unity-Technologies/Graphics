@@ -27,18 +27,24 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
         SHCoefficients[5] = unity_SHBb;
         SHCoefficients[6] = unity_SHC;
 
-        return SampleSH9(SHCoefficients, normalWS);
+//forest-begin: Tree occlusion
+        return SampleSH9(SHCoefficients, normalWS) * treeOcclusion;
+//forest-end
     }
     else
     {
 #if RAYTRACING_ENABLED
         if (unity_ProbeVolumeParams.w == 1.0)
             return SampleProbeVolumeSH9(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
-                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
+//forest-begin: Tree occlusion
+                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz) * treeOcclusion;
+//forest-end
         else
 #endif
             return SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
-                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
+//forest-begin: Tree occlusion
+                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz) * treeOcclusion;
+//forest-end
     }
 
 #else

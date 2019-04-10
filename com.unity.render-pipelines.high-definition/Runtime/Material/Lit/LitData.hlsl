@@ -237,6 +237,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+//forest-begin: Tree Occlusion
+	surfaceData.specularOcclusion = min(surfaceData.specularOcclusion, surfaceData.treeOcclusion);
+//forest-end:
+
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
     // Specular AA

@@ -309,6 +309,19 @@ float _WindFlutterPeriodScale;
 float _WindFakeSingleObjectPivot;
 //forest-end:
 
+//forest-begin: Tree occlusion
+float _UseTreeOcclusion;
+float _TreeAO;
+float _TreeAOBias;
+float _TreeAO2;
+float _TreeAOBias2;
+float _TreeDO;
+float _TreeDOBias;
+float _TreeDO2;
+float _TreeDOBias2;
+float _Tree12Width;
+//forest-end:
+
 // Following two variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;

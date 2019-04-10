@@ -103,6 +103,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public float atDistance;
             [SurfaceDataAttributes("Transmittance mask", precision = FieldPrecision.Real)]
             public float transmittanceMask;
+
+//forest-begin: Tree occlusion
+            [SurfaceDataAttributes("Tree Occlusion")]
+            public float treeOcclusion;
+//forest-end:
         };
 
         //-----------------------------------------------------------------------------

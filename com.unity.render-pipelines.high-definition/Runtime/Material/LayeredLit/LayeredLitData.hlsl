@@ -792,6 +792,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #endif
 
+//forest-begin: Tree Occlusion
+	float4 treeOcclusionInput = float4(input.texCoord2.xy, input.texCoord3.xy);
+	surfaceData.treeOcclusion = GetTreeOcclusion(input.positionRWS, treeOcclusionInput);
+	surfaceData.specularOcclusion = min(surfaceData.specularOcclusion, surfaceData.treeOcclusion);
+//forest-end:
+
+
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
     // Specular AA
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);

@@ -166,14 +166,25 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     output.texCoord1 = input.uv1;
 #endif
 #if defined(VARYINGS_NEED_TEXCOORD2) || defined(VARYINGS_DS_NEED_TEXCOORD2)
-    output.texCoord2 = input.uv2;
-#endif
+//forest-begin: Tree occlusion
+    output.texCoord2 = input.uv2.xy;
+//forest-end:#endif
 #if defined(VARYINGS_NEED_TEXCOORD3) || defined(VARYINGS_DS_NEED_TEXCOORD3)
-    output.texCoord3 = input.uv3;
+//forest-begin: Tree occlusion
+	output.texCoord3 = input.uv3.xy;
+//forest-end:
 #endif
 #if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
     output.color = input.color;
 #endif
+//forest-begin: Tree occlusion
+#if defined(_ANIM_SINGLE_PIVOT) || defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT)
+	#if defined(VARYINGS_NEED_TEXCOORD2) && defined(VARYINGS_NEED_TEXCOORD3)
+		output.texCoord2 = input.uv2.xy;
+		output.texCoord3 = input.uv2.zw;
+	#endif
+#endif
+//forest-end:
 
     return output;
 }
