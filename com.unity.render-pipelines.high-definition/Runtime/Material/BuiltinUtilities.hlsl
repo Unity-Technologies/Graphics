@@ -30,11 +30,11 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     {
 #if SHADEROPTIONS_RAYTRACING
         if (unity_ProbeVolumeParams.w == 1.0)
-            return SampleProbeVolumeSH9(TEXTURE2D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
+            return SampleProbeVolumeSH9(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
         else
 #endif
-            return SampleProbeVolumeSH4(TEXTURE2D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
+            return SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
     }
 
@@ -145,7 +145,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
         #endif
 
         #if SHADERPASS == SHADERPASS_FORWARD
-        builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_IndirectDiffuseTexture, posInput.positionSS).xyz;
+        builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz;
         #endif
     }
     else

@@ -228,6 +228,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public static readonly Matrix4x4 s_FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
+
         // Keep track of the maximum number of XR instanced views
         int m_MaxViewCount = 1;
 
@@ -893,12 +895,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS
             // We need to flip it to work with transforms
-            return Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.worldToCameraMatrix;
+            return s_FlipMatrixLHSRHS * camera.worldToCameraMatrix;
         }
 
         static Matrix4x4 WorldToViewStereo(Camera camera, Camera.StereoscopicEye eyeIndex)
         {
-            return Matrix4x4.Scale(new Vector3(1, 1, -1)) * camera.GetStereoViewMatrix(eyeIndex);
+            return s_FlipMatrixLHSRHS * camera.GetStereoViewMatrix(eyeIndex);
         }
 
         // For light culling system, we need non oblique projection matrices
@@ -906,12 +908,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // camera.projectionMatrix expect RHS data and Unity's transforms are LHS
             // We need to flip it to work with transforms
-            return camera.nonObliqueProjMatrix * Matrix4x4.Scale(new Vector3(1, 1, -1));
+            return camera.nonObliqueProjMatrix * s_FlipMatrixLHSRHS;
         }
 
         static Matrix4x4 CameraProjectionStereoLHS(Camera camera, Camera.StereoscopicEye eyeIndex)
         {
-            return camera.GetStereoProjectionMatrix(eyeIndex) * Matrix4x4.Scale(new Vector3(1, 1, -1));
+            return camera.GetStereoProjectionMatrix(eyeIndex) * s_FlipMatrixLHSRHS;
         }
 
         public Vector3 GetLightColor(VisibleLight light)
@@ -1796,7 +1798,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 var hdShadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
 
-                Vector3 camPosWS = camera.transform.position;
+                Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
                 var worldToView = WorldToCamera(camera);
                 var rightEyeWorldToView = Matrix4x4.identity;
@@ -2344,11 +2346,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
             temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
             temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            bool isOrthographic = camera.orthographic;
 
             // camera to screen matrix (and it's inverse)
-            if (camera.stereoEnabled)
+            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
+                var proj = hdCamera.camera.projectionMatrix;
+
                 // XRTODO: If possible, we could generate a non-oblique stereo projection
                 // matrix.  It's ok if it's not the exact same matrix, as long as it encompasses
                 // the same FOV as the original projection matrix (which would mean padding each half
@@ -2356,21 +2359,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // real projection space.  We just use screen space to figure out what is proximal
                 // to a cluster or tile.
                 // Once we generate this non-oblique projection matrix, it can be shared across both eyes (un-array)
-                for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
-                {
-                    m_LightListProjMatrices[eyeIndex] = CameraProjectionStereoLHS(hdCamera.camera, (Camera.StereoscopicEye)eyeIndex);
-                    m_LightListProjscrMatrices[eyeIndex] = temp * m_LightListProjMatrices[eyeIndex];
-                    m_LightListInvProjscrMatrices[eyeIndex] = m_LightListProjscrMatrices[eyeIndex].inverse;
+                if (camera.stereoEnabled)
+                    proj = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)viewIndex);
 
-                }
+                m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
+                m_LightListProjscrMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
+                m_LightListInvProjscrMatrices[viewIndex] = m_LightListProjscrMatrices[viewIndex].inverse;
             }
-            else
-            {
-                m_LightListProjMatrices[0] = GeometryUtils.GetProjectionMatrixLHS(hdCamera.camera);
-                m_LightListProjscrMatrices[0] = temp * m_LightListProjMatrices[0];
-                m_LightListInvProjscrMatrices[0] = m_LightListProjscrMatrices[0].inverse;
-            }
-            var isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
+
+            bool isOrthographic = camera.orthographic;
+            bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
             // If we don't need to run the light list, we still run it for the first frame that is not needed in order to keep the lists in a clean state. 
             if (!runLightList && m_hasRunLightListPrevFrame)
@@ -2391,18 +2389,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
-                if (camera.stereoEnabled)
+                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; viewIndex++)
                 {
-                    for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
-                    {
-                        m_LightListProjHMatrices[eyeIndex] = temp * m_LightListProjMatrices[eyeIndex];
-                        m_LightListInvProjHMatrices[eyeIndex] = m_LightListProjHMatrices[eyeIndex].inverse;
-                    }
-                }
-                else
-                {
-                    m_LightListProjHMatrices[0] = temp * m_LightListProjMatrices[0];
-                    m_LightListInvProjHMatrices[0] = m_LightListProjHMatrices[0].inverse;
+                    m_LightListProjHMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
+                    m_LightListInvProjHMatrices[viewIndex] = m_LightListProjHMatrices[viewIndex].inverse;
                 }
 
                 var genAABBKernel = isProjectionOblique ? s_GenAABBKernel_Oblique : s_GenAABBKernel;

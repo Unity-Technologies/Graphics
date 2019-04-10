@@ -1370,7 +1370,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams1);
-                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
+                // XRTODO: handle XR instancing by looping over camera.xrViewConstants
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.mainViewConstants.prevViewProjMatrixNoCameraTrans);
 
                 threadGroupX = (camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
                 threadGroupY = (camera.actualHeight + (groupSizeY - 1)) / groupSizeY;

@@ -355,7 +355,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         float CalculateTanHalfFovHeight(HDCamera camera)
         {
-            return 1f / camera.projMatrix[0, 0];
+            // XRTODO: handle XR instancing by looping over camera.xrViewConstants
+            return 1f / camera.mainViewConstants.projMatrix[0, 0];
         }
 
         Vector2 GetSize(MipLevel mip)
