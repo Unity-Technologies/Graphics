@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         enum Advanceable
         {
             General = 1 << 0,
-            Shape = 1 << 1,
+            //Shape = 1 << 1, //not used anymore
             Emission = 1 << 2,
             Shadow = 1 << 3,
         }
@@ -116,12 +116,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     DrawGeneralContent,
                     DrawGeneralAdvancedContent
                     ),
-                CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
-                    (serialized, owner) => GetAdvanced(Advanceable.Shape, serialized, owner),
-                    (serialized, owner) => SwitchAdvanced(Advanceable.Shape, serialized, owner),
-                    DrawShapeContent,
-                    DrawShapeAdvancedContent
-                    ),
+                CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
                 CED.AdvancedFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState,
                     (serialized, owner) => GetAdvanced(Advanceable.Emission, serialized, owner),
                     (serialized, owner) => SwitchAdvanced(Advanceable.Emission, serialized, owner),
@@ -334,25 +329,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
                 ((Light)owner.target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
-        }
-
-        static void DrawShapeAdvancedContent(SerializedHDLight serialized, Editor owner)
-        {
-            switch (serialized.editorLightShape)
-            {
-                case LightShape.Spot:
-                case LightShape.Directional:
-                case LightShape.Point:
-                case LightShape.Rectangle:
-                case LightShape.Tube:
-                // no advanced parameters
-                case (LightShape)(-1):
-                    // don't do anything, this is just to handle multi selection
-                    break;
-                default:
-                    Debug.Assert(false, "Not implemented light type");
-                    break;
-            }              
         }
 
         static void UpdateLightIntensityUnit(SerializedHDLight serialized, Editor owner)

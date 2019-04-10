@@ -112,7 +112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SkySettings GetSkySetting(VolumeStack stack)
         {
             var visualEnv = stack.GetComponent<VisualEnvironment>();
-            int skyID = visualEnv.skyType;
+            int skyID = visualEnv.skyType.value;
             Type skyType;
             if (skyTypesDict.TryGetValue(skyID, out skyType))
             {
@@ -313,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             bool isRegularPreview = HDUtils.IsRegularPreviewCamera(hdCamera.camera);
 
-            SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode;
+            SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
             SkyUpdateContext currentSky = m_LightingOverrideSky.IsValid() ? m_LightingOverrideSky : m_VisualSky;
 
             // Preview should never use dynamic ambient or they will conflict with main view (async readback of sky texture will update ambient probe for main view one frame later)
@@ -389,6 +389,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
             {
+                // FIXME: 24B GC pressure
                 var propertyBlock = new MaterialPropertyBlock();
                 propertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDirWS);
                 HDUtils.DrawFullScreen(cmd, hdCamera, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);

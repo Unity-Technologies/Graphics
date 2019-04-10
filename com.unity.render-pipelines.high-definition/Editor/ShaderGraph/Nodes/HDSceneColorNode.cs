@@ -85,7 +85,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             {
                                 s.AppendLine("exposureMultiplier = 1.0;");
                             }
-                            s.AppendLine("#if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT)");
+                            s.AppendLine("#if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)");
                             s.AppendLine("return SampleCameraColor(uv, lod) * exposureMultiplier;", precision);
                             s.AppendLine("#endif");
                             s.AppendLine("return float3(0.0, 0.0, 0.0);");

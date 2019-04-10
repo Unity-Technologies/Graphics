@@ -872,7 +872,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static SurfaceMaterialOptions BuildMaterialOptions(SurfaceType surfaceType,
                                                                   AlphaMode alphaMode,
                                                                   bool twoSided,
-                                                                  bool refraction)
+                                                                  bool refraction,
+                                                                  bool offscreenTransparent)
         {
             SurfaceMaterialOptions materialOptions = new SurfaceMaterialOptions();
             if (surfaceType == SurfaceType.Opaque)
@@ -888,6 +889,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                    materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                 }
                 else
                 {
@@ -896,21 +899,34 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         case AlphaMode.Alpha:
                             materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                             materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                             break;
                         case AlphaMode.Additive:
                             materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                             materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.One;
                             break;
                         case AlphaMode.Premultiply:
                             materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                             materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                             break;
                         // This isn't supported in HDRP.
                         case AlphaMode.Multiply:
                             materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                             materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                             break;
                     }
+                }
+
+                if(offscreenTransparent)
+                {
+                    materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.Zero;
                 }
                 materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                 materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
@@ -1000,7 +1016,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 result.Add(HDRenderQueue.RenderQueueType.PreRefraction);
                 result.Add(HDRenderQueue.RenderQueueType.Transparent);
-                //result.AddHDRenderQueue.RenderQueueType.LowTransparent):
+                result.Add(HDRenderQueue.RenderQueueType.LowTransparent);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostprocessTransparent);
 #if ENABLE_RAYTRACING

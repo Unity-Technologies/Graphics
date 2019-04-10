@@ -1,3 +1,4 @@
+#define LWRP_6_7_OR_NEWER
 #define LWRP_6_6_OR_NEWER
 #define LWRP_6_5_OR_NEWER
 #define LWRP_6_4_OR_NEWER
