@@ -231,18 +231,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader reflectionBilateralFilterCS;
 
             // Shadows
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAreaShadows.raytrace")]
+            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingAreaShadows.raytrace")]
             public RaytracingShader areaShadowsRaytracingRT;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingAreaShadows.compute")]
+            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingAreaShadow.compute")]
             public ComputeShader areaShadowRaytracingCS;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaBilateralShadow.compute")]
+            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/AreaBilateralShadow.compute")]
             public ComputeShader areaShadowFilterCS;
 
             // Primary visibility
             [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace")]
             public RaytracingShader forwardRaytracing;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.raytrace")]
-            public Shader           raytracingFlagMask;
+            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.shader")]
+            public Shader raytracingFlagMask;
 
             // Light cluster
             [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute")]
@@ -253,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Indirect Diffuse
             [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIndirectDiffuse.raytrace")]
             public RaytracingShader indirectDiffuseRaytracing;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAccumulation.compute")]
+            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuseAccumulation.compute")]
             public ComputeShader indirectDiffuseAccumulation;            
 
             // Ambient Occlusion
