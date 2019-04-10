@@ -104,6 +104,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float atDistance;
             [SurfaceDataAttributes("Transmittance mask")]
             public float transmittanceMask;
+
+//forest-begin: Tree occlusion
+            [SurfaceDataAttributes("Tree Occlusion")]
+            public float treeOcclusion;
+//forest-end:
         };
 
         //-----------------------------------------------------------------------------

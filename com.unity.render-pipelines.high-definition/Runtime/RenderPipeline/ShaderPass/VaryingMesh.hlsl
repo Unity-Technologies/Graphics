@@ -1,3 +1,9 @@
+//forest-begin: Tree occlusion
+#if defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT)
+	#define VARYINGS_NEED_TEXCOORD2
+	#define VARYINGS_NEED_TEXCOORD3
+#endif
+//forest-end:
 //forest-begin: Added vertex animation
 #if defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT)
 	#define ATTRIBUTES_NEED_COLOR
@@ -18,9 +24,13 @@ struct AttributesMesh
 #ifdef ATTRIBUTES_NEED_TEXCOORD1
     float2 uv1          : TEXCOORD1;
 #endif
-#ifdef ATTRIBUTES_NEED_TEXCOORD2
+//forest-begin: Tree occlusion
+#if defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT)
+	float4 uv2          : TEXCOORD2;
+#elif defined(ATTRIBUTES_NEED_TEXCOORD2)
     float2 uv2          : TEXCOORD2;
 #endif
+//forest-end:
 //forest-begin: Added vertex animation
 //#ifdef ATTRIBUTES_NEED_TEXCOORD3
 #if defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT)

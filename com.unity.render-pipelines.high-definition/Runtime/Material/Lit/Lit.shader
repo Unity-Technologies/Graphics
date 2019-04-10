@@ -206,6 +206,19 @@ Shader "HDRP/Lit"
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVEmissive("UV Set for emissive", Float) = 0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
+//forest-begin: Tree occlusion
+		_UseTreeOcclusion("Use Tree Occlusion", Float) = 0.0
+		_TreeAO("Tree AO Scale", Range(0, 10)) = 1
+		_TreeAOBias("Tree AO Bias", Range(-1, 1)) = 0.1
+		_TreeAO2("Tree AO Scale 2", Range(0, 10)) = 2.4
+		_TreeAOBias2("Tree AO Bias 2", Range(-1, 1)) = 0.35
+		_TreeDO("Tree DO Scale", Range(0, 20)) = 7.5
+		_TreeDOBias("Tree DO Bias", Range(-1, 1)) = 0.0
+		_TreeDO2("Tree DO Scale 2", Range(0, 20)) = 5
+		_TreeDOBias2("Tree DO Bias 2", Range(-1, 1)) = 0.0
+		_Tree12Width("Tree 12 Width", Range(0, 100)) = 10
+//forest-end:
+
 //forest-begin: Added vertex animation MERGE_TODO: Wind seems to have been removed
 		[Enum(None, 0, Single Pivot Color, 3, Hierarchy Pivot, 4, Procedural Animation, 6)]
         [ToggleUI]  _EnableWind("Enable Wind", Float) = 0.0

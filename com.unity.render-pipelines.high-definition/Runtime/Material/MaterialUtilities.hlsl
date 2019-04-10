@@ -1,3 +1,40 @@
+//forest-begin: Tree occlusion
+
+//UnityPerMaterial
+//float _UseTreeOcclusion;
+//float _TreeAO;
+//float _TreeAOBias;
+//float _TreeAO2;
+//float _TreeAOBias2;
+//float _TreeDO;
+//float _TreeDOBias;
+//float _TreeDO2;
+//float _TreeDOBias2;
+//float _Tree12Width;
+
+// Freeload of an already passed global sun vector
+float3 _AtmosphericScatteringSunVector;
+
+float GetTreeOcclusion(float3 positionRWS, float4 treeOcclusionInput) {
+#if defined(_ANIM_SINGLE_PIVOT_COLOR) || defined(_ANIM_HIERARCHY_PIVOT)
+	if(_UseTreeOcclusion) {
+		float3 positionWS = GetAbsolutePositionWS(positionRWS);
+		float treeWidth = _Tree12Width == 0 ? 1.f : saturate((positionWS.y - UNITY_MATRIX_M._m13) / _Tree12Width);
+		float treeDO = lerp(_TreeDO, _TreeDO2, treeWidth);
+		float treeAO = lerp(_TreeAO, _TreeAO2, treeWidth);
+		float4 lightDir = float4(-_AtmosphericScatteringSunVector * treeDO, treeAO);
+		float treeDOBias = lerp(_TreeDOBias, _TreeDOBias2, treeWidth);
+		float treeAOBias = lerp(_TreeAOBias, _TreeAOBias2, treeWidth);
+		return saturate(dot(saturate(treeOcclusionInput + float4(treeDOBias.rrr, treeAOBias)), lightDir));
+	}
+	else
+#endif
+	{
+		return 1.f;
+	}
+}
+//forest-end:
+
 // Flipping or mirroring a normal can be done directly on the tangent space. This has the benefit to apply to the whole process either in surface gradient or not.
 // This function will modify FragInputs and this is not propagate outside of GetSurfaceAndBuiltinData(). This is ok as tangent space is not use outside of GetSurfaceAndBuiltinData().
 void ApplyDoubleSidedFlipOrMirror(inout FragInputs input, float3 doubleSidedConstants)

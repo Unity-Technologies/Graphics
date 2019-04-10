@@ -150,6 +150,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kPpdPrimitiveWidth = "_PPDPrimitiveWidth";
         protected MaterialProperty invPrimScale = null;
         protected const string kInvPrimScale = "_InvPrimScale";
+//forest-begin: Tree occlusion
+        protected MaterialProperty treeOcclusion;
+        protected MaterialProperty treeAO;
+        protected MaterialProperty treeAOBias;
+        protected MaterialProperty treeAO2;
+        protected MaterialProperty treeAOBias2;
+        protected MaterialProperty treeDO;
+        protected MaterialProperty treeDOBias;
+        protected MaterialProperty treeDO2;
+        protected MaterialProperty treeDOBias2;
+        protected MaterialProperty tree12Width;
+//forest-end:
 
         // Wind
         protected MaterialProperty windEnable = null;
@@ -269,6 +281,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tessellationFactorTriangleSize = FindProperty(kTessellationFactorTriangleSize, props, false);
             tessellationShapeFactor = FindProperty(kTessellationShapeFactor, props, false);
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon, props, false);
+
+//forest-begin: Tree occlusion
+		    treeOcclusion = FindProperty("_UseTreeOcclusion", props, false);
+		    treeAO = FindProperty("_TreeAO", props, false);
+		    treeAOBias = FindProperty("_TreeAOBias", props, false);
+		    treeAO2 = FindProperty("_TreeAO2", props, false);
+		    treeAOBias2 = FindProperty("_TreeAOBias2", props, false);
+		    treeDO = FindProperty("_TreeDO", props, false);
+		    treeDOBias = FindProperty("_TreeDOBias", props, false);
+		    treeDO2 = FindProperty("_TreeDO2", props, false);
+		    treeDOBias2 = FindProperty("_TreeDOBias2", props, false);
+		    tree12Width = FindProperty("_Tree12Width", props, false);
+//forest-end:
 
             // Wind
             windEnable = FindProperty(kWindEnabled, props, false);
@@ -572,6 +597,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                     m_MaterialEditor.ShaderProperty(windFlutterPeriodScale, windFlutterPeriodScale.displayName);
                                 }
                             }
+//forest-begin: Tree occlusion
+                            if(windEnable.floatValue > 1.5f && windEnable.floatValue < 4.5f) {
+                                if(treeOcclusion != null) {
+                                    EditorGUILayout.Space();
+                                    var useTreeOcclusion = treeOcclusion.floatValue > 0.5f;
+                                    var newUseTreeOcclusion = EditorGUILayout.Toggle("Tree Occlusion", useTreeOcclusion);
+                                    if(newUseTreeOcclusion != useTreeOcclusion)
+                                        treeOcclusion.floatValue = newUseTreeOcclusion ? 1f : 0f;
+
+                                    if(useTreeOcclusion) {
+                                        ++EditorGUI.indentLevel;
+                                        m_MaterialEditor.ShaderProperty(treeAO, treeAO.displayName);
+                                        m_MaterialEditor.ShaderProperty(treeAOBias, treeAOBias.displayName);
+                                        m_MaterialEditor.ShaderProperty(treeAO2, treeAO2.displayName);
+                                        m_MaterialEditor.ShaderProperty(treeAOBias2, treeAOBias2.displayName);
+                                        m_MaterialEditor.ShaderProperty(treeDO, treeDO.displayName);
+                                        m_MaterialEditor.ShaderProperty(treeDOBias, treeDOBias.displayName);
+                                        m_MaterialEditor.ShaderProperty(treeDO2, treeDO2.displayName);
+                                        m_MaterialEditor.ShaderProperty(treeDOBias2, treeDOBias2.displayName);
+                                        m_MaterialEditor.ShaderProperty(tree12Width, tree12Width.displayName);
+                                        --EditorGUI.indentLevel;
+                                    }
+                                }
+                            }
+//forest-end:
                         }
 //forest-end:
 //forest-begin: Wind flutter map

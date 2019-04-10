@@ -384,6 +384,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.iridescenceMask = 0.0;
 #endif
 
+//forest-begin: Tree Occlusion
+    float4 treeOcclusionInput = float4(input.texCoord2.xy, input.texCoord3.xy);
+    surfaceData.treeOcclusion = GetTreeOcclusion(input.positionRWS, treeOcclusionInput);
+//forest-end:
 #else // #if !defined(LAYERED_LIT_SHADER)
 
     // Mandatory to setup value to keep compiler quiet
@@ -406,6 +410,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
+//forest-begin: Tree Occlusion
+    surfaceData.treeOcclusion = 1;
+//forest-end:
 #endif // #if !defined(LAYERED_LIT_SHADER)
 
     return alpha;

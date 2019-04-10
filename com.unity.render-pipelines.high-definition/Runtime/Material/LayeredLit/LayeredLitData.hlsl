@@ -782,6 +782,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = 1.0;
 #endif
 
+//forest-begin: Tree Occlusion
+	float4 treeOcclusionInput = float4(input.texCoord2.xy, input.texCoord3.xy);
+	surfaceData.treeOcclusion = GetTreeOcclusion(input.positionRWS, treeOcclusionInput);
+	surfaceData.specularOcclusion = min(surfaceData.specularOcclusion, surfaceData.treeOcclusion);
+//forest-end:
+
 #if HAVE_DECALS
     if (_EnableDecals)
     {
