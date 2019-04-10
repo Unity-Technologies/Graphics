@@ -221,11 +221,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (Provider.isActive && File.Exists(bakedTexturePath))
                     {
                         Checkout(bakedTexturePath, CheckoutMode.Both);
-                        // Checkout will make those file writeable, but this is not immediate,
-                        // so we retries when this fails.
-                        if (!HDEditorUtils.CopyFileWithRetryOnUnauthorizedAccess(cacheFile, bakedTexturePath))
-                            return;
                     }
+                    // Checkout will make those file writeable, but this is not immediate,
+                    // so we retries when this fails.
+                    if (!HDEditorUtils.CopyFileWithRetryOnUnauthorizedAccess(cacheFile, bakedTexturePath))
+                        return;
                 }
                 // AssetPipeline bug
                 // Sometimes, the baked texture reference is destroyed during 'AssetDatabase.StopAssetEditing()'
@@ -252,8 +252,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var index = addIndices[i];
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
-                    var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
-
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     var bakedTexture = AssetDatabase.LoadAssetAtPath<Texture>(bakedTexturePath);
                     Assert.IsNotNull(bakedTexture, "The baked texture was imported before, " +
