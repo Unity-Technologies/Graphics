@@ -326,10 +326,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
         }
 
+        [Serializable, ReloadGroup]
+        public sealed class AssetResources
+        {
+            [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
+            public DiffusionProfileSettings defaultDiffusionProfile;
+        }
+
         public ShaderResources shaders;
         public MaterialResources materials;
         public TextureResources textures;
         public ShaderGraphResources shaderGraphs;
+        public AssetResources assets;
     }
 
 #if UNITY_EDITOR

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed deserialization crash at runtime
 - Fix for ShaderGraph Unlit masternode not writing velocity
+- Fixed a crash when assiging a new HDRP asset with the 'Verify Saving Assets' option enabled
 
 ### Changed
 
