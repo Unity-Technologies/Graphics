@@ -17,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     // XRTODO: disabled until all SPI code is merged
                     case GraphicsDeviceType.Direct3D11:
+					case GraphicsDeviceType.Direct3D12:
                         return false;
                 }
 
