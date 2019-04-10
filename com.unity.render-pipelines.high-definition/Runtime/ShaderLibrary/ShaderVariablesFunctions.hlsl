@@ -154,7 +154,7 @@ float2 TexCoordStereoOffset(float2 texCoord)
 float3 StereoCameraRelativeEyeToCenter(float3 pos)
 {
 #if defined(USING_STEREO_MATRICES) && (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    return pos + _WorldSpaceCameraPosEyeOffset;
+    return pos + _WorldSpaceCameraPosViewOffset;
 #else
     return pos;
 #endif
