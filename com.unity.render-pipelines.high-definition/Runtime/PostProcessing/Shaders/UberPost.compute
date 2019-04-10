@@ -160,8 +160,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
             // considering we use a cover-style scale on the dirt texture the difference isn't massive
             // so we chose to save a few ALUs here instead in case lens distortion is active
             float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, uvDistorted * DirtScale + DirtOffset, 0.0).xyz;
-            //color += bloom * dirt * DirtIntensity;
-            color = lerp(color, bloom * BloomTint, saturate(DirtIntensity * dirt));
+            color += bloom * dirt * DirtIntensity;
         }
     }
 
