@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
-                cameraData.volumeLayerMask = -1; // Everything by default
+                cameraData.volumeLayerMask = 1; // "Default"
                 cameraData.volumeTrigger = null;
                 cameraData.isStopNaNEnabled = false;
                 cameraData.isDitheringEnabled = false;
