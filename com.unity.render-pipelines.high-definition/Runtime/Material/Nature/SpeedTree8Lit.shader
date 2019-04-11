@@ -23,8 +23,8 @@ Shader "HDRP/Nature/SpeedTree8"
         [Toggle(EFFECT_BILLBOARD)] _BillboardKwToggle("Billboard", Float) = 0
         _BillboardShadowFade("Billboard Shadow Fade", Range(0.0, 1.0)) = 0.5
 
-        _Cutoff("Alpha Cutoff", Range(0,1)) = 0.333
-        _ZBias("Depth Bias", Range(0, 0.1)) = 0.0
+        _Cutoff("Alpha Cutoff", Range(0.0,1.0)) = 0.333
+        _ZBias("Depth Bias", Range(0.0, 0.1)) = 0.005
 
         [Enum(No,2,Yes,0)] _TwoSided("Two Sided", Int) = 2 // enum matches cull mode
         [KeywordEnum(None,Fastest,Fast,Better,Best,Palm)] _WindQuality("Wind Quality", Range(0,5)) = 0

@@ -196,7 +196,7 @@ PackedVaryingsType SpeedTree8Vert(SpeedTreeVertexInput input)
 
     float4 positionCS = TransformWorldToHClip(positionWS);
 
-#if (SHADERPASS == SHADERPASS_DEPTH_ONLY)
+#if (SHADERPASS == SHADERPASS_DEPTH_ONLY) || (SHADERPASS == SHADERPASS_SHADOWS)
     positionCS.z -= _ZBias;
 #endif
 

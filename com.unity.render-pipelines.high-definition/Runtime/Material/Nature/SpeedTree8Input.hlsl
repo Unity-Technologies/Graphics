@@ -9,6 +9,10 @@
 
 #define _ALPHATEST_ON
 
+#if (SHADERPASS == SHADERPASS_GBUFFER)
+#define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
+#endif
+
 // Enabling both TEXCOORD0 and TEXCOORD1 means you get 4 components instead of 2, and we pretty much always need that
 #define ATTRIBUTES_NEED_TEXCOORD0
 #define ATTRIBUTES_NEED_TEXCOORD1
@@ -67,7 +71,7 @@ UNITY_INSTANCING_BUFFER_END(STWind)
 
 #endif
 
-half4 _Color;
+float4 _Color;
 int _TwoSided;
 float3 _EmissiveColor;
 float _ZBias;
