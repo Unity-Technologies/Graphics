@@ -79,6 +79,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     RendererLighting.RenderLights(camera, cmd, layerToRender);
                 }
                 else
+                {
                     RendererLighting.ClearDirtyLighting(cmd);
                 }
 
