@@ -328,7 +328,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             {
                 Light2D light = lights[i] as Light2D;
                 if (light.lightType == Light2D.LightType.Global)
-                    Light2D.RemoveGlobalLight(light);
+                    Light2D.RemoveGlobalLight(light.lightOperationIndex, light);
             }
         }
 

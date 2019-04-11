@@ -257,6 +257,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (m_LightOperationIndex == m_PreviousLightOperationIndex)
                 return;
 
+            if(m_LightType == LightType.Global)
+            {
+                RemoveGlobalLight(m_PreviousLightOperationIndex, this);
+                AddGlobalLight(this);
+            }
+
             s_Lights[m_PreviousLightOperationIndex].Remove(this);
             m_PreviousLightOperationIndex = m_LightOperationIndex;
             InsertLight();
@@ -325,12 +331,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
 
-        static internal void RemoveGlobalLight(Light2D light2D)
+        static internal void RemoveGlobalLight(int lightOperationIndex, Light2D light2D)
         {
             for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
             {
                 int sortingLayer = light2D.m_ApplyToSortingLayers[i];
-                Dictionary<int, Color> globalColorOp = s_GlobalClearColors[light2D.m_LightOperationIndex];
+                Dictionary<int, Color> globalColorOp = s_GlobalClearColors[lightOperationIndex];
                 if (globalColorOp.ContainsKey(sortingLayer))
                     globalColorOp.Remove(sortingLayer);
             }
@@ -385,7 +391,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             if (m_LightType == LightType.Global)
-                RemoveGlobalLight(this);
+                RemoveGlobalLight(m_LightOperationIndex, this);
         }
 
         internal List<Vector2> GetFalloffShape()
@@ -443,7 +449,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (m_LightType != m_PreviousLightType)
             {
                 if(m_PreviousLightType == LightType.Global)
-                    RemoveGlobalLight(this);
+                    RemoveGlobalLight(m_LightOperationIndex, this);
 
                 if (m_LightType == LightType.Global)
                     AddGlobalLight(this);
