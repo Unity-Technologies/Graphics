@@ -248,8 +248,8 @@ namespace UnityEngine.Rendering.LWRP
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.volumeLayerMask = additionalCameraData.volumeLayerMask;
                 cameraData.volumeTrigger = additionalCameraData.volumeTrigger;
-                cameraData.isStopNaNEnabled = additionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
-                cameraData.isDitheringEnabled = additionalCameraData.dithering;
+                cameraData.isStopNaNEnabled = cameraData.isPostProcessEnabled && additionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
+                cameraData.isDitheringEnabled = cameraData.isPostProcessEnabled && additionalCameraData.dithering;
                 cameraData.isPostProcessEnabled &= additionalCameraData.renderPostProcessing;
             }
             else
