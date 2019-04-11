@@ -19,7 +19,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             public override bool IsAvailable()
             {
-                return base.IsAvailable() && (target as Light2D).lightType == Light2D.LightType.Freeform;
+                var light = target as Light2D;
+
+                if (light == null)
+                    return false;
+                else
+                    return base.IsAvailable() && light.lightType == Light2D.LightType.Freeform;
             }
 
             protected override IShape GetShape(Object target)
