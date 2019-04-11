@@ -70,21 +70,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (lightStats.totalNormalMapUsage > 0)
                     RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings);
 
+                cmd.Clear();
                 if (lightStats.totalLights > 0)
                 {
-                    cmd.Clear();
 #if UNITY_EDITOR
                     cmd.name = "Render Lights - " + SortingLayer.IDToName(layerToRender);
 #endif
                     RendererLighting.RenderLights(camera, cmd, layerToRender);
-
-                    // This should have an optimization where I can determine if this needs to be called.
-                    // And the clear is only needed if no previous pass has cleared the camera RT yet.
-                    //var clearFlag = cleared ? ClearFlag.None : ClearFlag.All;
-
-                    SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white, TextureDimension.Tex2D);
-                    context.ExecuteCommandBuffer(cmd);
                 }
+                else
+                    RendererLighting.ClearDirtyLighting(cmd);
+                }
+
+                SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white, TextureDimension.Tex2D);
+                context.ExecuteCommandBuffer(cmd);
+
 
                 Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
                 context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);

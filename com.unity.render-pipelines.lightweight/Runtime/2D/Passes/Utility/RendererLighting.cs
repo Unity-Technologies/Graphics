@@ -290,6 +290,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
         }
 
+        static public void ClearDirtyLighting(CommandBuffer cmdBuffer)
+        {
+            for (int i = 0; i < s_LightOperations.Length; ++i)
+            {
+                if (s_RenderTargetsDirty[i])
+                {
+                    cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());
+                    cmdBuffer.ClearRenderTarget(false, true, s_LightOperations[i].globalColor);
+                    s_RenderTargetsDirty[i] = false;
+                }
+            }
+        }
+
         static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings)
         {
             var cmd = CommandBufferPool.Get("Clear Normals");
@@ -323,14 +336,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
                 cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());
 
+                bool rtDirty = false;
                 Color clearColor;
                 if (!Light2D.globalClearColors[i].TryGetValue(layerToRender, out clearColor))
                     clearColor = s_LightOperations[i].globalColor;
+                else
+                    rtDirty = true;
 
-                if (s_RenderTargetsDirty[i])
+                if (s_RenderTargetsDirty[i] || rtDirty)
                     cmdBuffer.ClearRenderTarget(false, true, clearColor);
 
-                bool rtDirty = RenderLightSet(
+                rtDirty |= RenderLightSet(
                     camera,
                     i,
                     cmdBuffer,
