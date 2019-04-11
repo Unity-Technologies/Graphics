@@ -53,7 +53,7 @@ all_project_ci:
   triggers:
     branches:
       only:
-        - yamato-master
+        - master
   artifacts:
     logs.zip:
       paths:
