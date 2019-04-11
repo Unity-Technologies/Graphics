@@ -47,6 +47,16 @@ Shader "HDRP/LitTessellation"
         // These parameters are for pixel displacement
         _HeightPoMAmplitude("Height Amplitude", Float) = 2.0 // In centimeters
 
+//forest-begin: Procedural bark peel
+		[Enum(DetailMap ANySNx (Builtin), 0, Peeled DetailMap (Forest4), 4)]
+		_DetailMode("Detail Mode", Float) = 0.0
+		_DetailMask("Peel Detail Mask", 2D) = "white" {}
+
+		_PeeledBarkColor("Peeled Bark Color", Color) = (1,1,1,1)
+		_PeeledBarkColorAlt("Peeled Bark Color Alt", Color) = (0.9,0.9,1,1)
+		_PeeledBarkUVRangeScale("Peeled Bark Mask UV Offset Min Range", Vector) = (0, 1, 2, 0)
+//forest-end:
+
         _DetailMap("DetailMap", 2D) = "linearGrey" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(0.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
@@ -310,8 +320,9 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local _HEIGHTMAP
     #pragma shader_feature_local _TANGENTMAP
     #pragma shader_feature_local _ANISOTROPYMAP
-    #pragma shader_feature_local _DETAIL_MAP
-    #pragma shader_feature_local _SUBSURFACE_MASK_MAP
+//forest-begin: Procedural bark peel
+    #pragma shader_feature_local _ _DETAIL_MAP _DETAIL_MAP_PEEL
+//forest-end:    #pragma shader_feature_local _SUBSURFACE_MASK_MAP
     #pragma shader_feature_local _THICKNESSMAP
     #pragma shader_feature_local _IRIDESCENCE_THICKNESSMAP
     #pragma shader_feature_local _SPECULARCOLORMAP

@@ -23,6 +23,11 @@ struct LayerTexCoord
 #ifndef LAYERED_LIT_SHADER
     UVMapping base;
     UVMapping details;
+//forest-begin: Procedural bark peel
+#if defined(_DETAIL_MAP_PEEL)
+	UVMapping mask;
+#endif
+//forest-end:
 #else
     // Regular texcoord
     UVMapping base0;
@@ -114,7 +119,9 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #ifdef _NORMALMAP_TANGENT_SPACE
 #define _NORMALMAP_TANGENT_SPACE_IDX
 #endif
-#ifdef _DETAIL_MAP
+//forest-begin: Procedural bark peel
+#if defined(_DETAIL_MAP) || defined(_DETAIL_MAP_PEEL)
+//forest-end:
 #define _DETAIL_MAP_IDX
 #endif
 #ifdef _SUBSURFACE_MASK_MAP
@@ -152,6 +159,12 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                             _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, _DetailMap_ST.xy, _DetailMap_ST.zw, 1.0, _LinkDetailsWithBase,
                             positionRWS, _TexWorldScale,
                             mappingType, layerTexCoord);
+
+//forest-begin: Procedural bark peel
+#if defined(_DETAIL_MAP_PEEL)
+	layerTexCoord.mask.uv = texCoord0 * _DetailMask_ST.xy + _DetailMask_ST.zw;
+#endif
+//forest-end:
 }
 
 // This is call only in this file
