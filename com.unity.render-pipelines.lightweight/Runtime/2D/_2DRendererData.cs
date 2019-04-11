@@ -60,6 +60,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_PointLightShader = m_PointLightShader ?? Shader.Find("Hidden/Light2D-Point");
             m_PointLightVolumeShader = m_PointLightVolumeShader ?? Shader.Find("Hidden/Light2d-Point-Volumetric");
             m_BlitShader = m_BlitShader ?? Shader.Find("Hidden/Lightweight Render Pipeline/Blit");
+
+            // Provide a list of suggested texture property names to Sprite Editor via EditorPrefs.
+            const string suggestedNamesKey = "SecondarySpriteTexturePropertyNames";
+            const string maskTex = "_MaskTex";
+            const string normalMap = "_NormalMap";
+            string suggestedNamesPrefs = UnityEditor.EditorPrefs.GetString(suggestedNamesKey);
+
+            if (string.IsNullOrEmpty(suggestedNamesPrefs))
+                UnityEditor.EditorPrefs.SetString(suggestedNamesKey, maskTex + "," + normalMap);
+            else
+            {
+                if (!suggestedNamesPrefs.Contains(maskTex))
+                    suggestedNamesPrefs += ("," + maskTex);
+
+                if (!suggestedNamesPrefs.Contains(normalMap))
+                    suggestedNamesPrefs += ("," + normalMap);
+
+                UnityEditor.EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
+            }
         }
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
