@@ -40,6 +40,11 @@ SAMPLER(sampler_NormalMap);
 TEXTURE2D(_NormalMapOS);
 SAMPLER(sampler_NormalMapOS);
 
+//forest-begin: Procedural bark peel
+TEXTURE2D(_DetailMask);
+SAMPLER(sampler_DetailMask);
+//forest-end:
+
 TEXTURE2D(_DetailMap);
 SAMPLER(sampler_DetailMap);
 
@@ -186,6 +191,13 @@ float _DetailAlbedoScale;
 float _DetailNormalScale;
 float _DetailSmoothnessScale;
 
+//forest-begin: Procedural bark peel
+float _DetailMode;
+float4 _DetailMask_ST;
+float3 _PeeledBarkColor;
+float3 _PeeledBarkColorAlt;
+float4 _PeeledBarkUVRangeScale;
+//forest-end:
 float4 _HeightMap_TexelSize; // Unity facility. This will provide the size of the heightmap to the shader
 
 float _HeightAmplitude;

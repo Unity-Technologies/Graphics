@@ -9,6 +9,17 @@
 	#define ATTRIBUTES_NEED_COLOR
 #endif
 //forest-end:
+//forest-begin: Procedural bark peel
+#if defined(_DETAIL_MAP_PEEL)
+	#ifndef ATTRIBUTES_NEED_COLOR
+		#define ATTRIBUTES_NEED_COLOR
+	#endif
+	#ifndef VARYINGS_NEED_COLOR
+		#define VARYINGS_NEED_COLOR
+	#endif
+#endif
+//forest-end:
+
 struct AttributesMesh
 {
     float3 positionOS   : POSITION;
