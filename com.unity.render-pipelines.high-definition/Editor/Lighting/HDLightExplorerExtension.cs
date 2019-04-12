@@ -83,6 +83,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent ColorTemperatureMode = EditorGUIUtility.TrTextContent("Use Color Temperature");
             public static readonly GUIContent AffectDiffuse = EditorGUIUtility.TrTextContent("Affect Diffuse");
             public static readonly GUIContent AffectSpecular = EditorGUIUtility.TrTextContent("Affect Specular");
+            public static readonly GUIContent LightFade = EditorGUIUtility.TrTextContent("Light Fade Distance");
+            public static readonly GUIContent ShadowFade = EditorGUIUtility.TrTextContent("Shadow Fade Distance");
+            public static readonly GUIContent ShadowRes = EditorGUIUtility.TrTextContent("Shadow Resolution");
             public static readonly GUIContent IsPrefab = EditorGUIUtility.TrTextContent("Prefab");
 
             public static readonly GUIContent GlobalVolume = EditorGUIUtility.TrTextContent("Is Global");
@@ -257,6 +260,70 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (EditorGUI.EndChangeCheck())
                     {
                         lightDataPairing[light].hdAdditionalLightData.affectSpecular = affectSpecular;
+                    }
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.LightFade, "m_Intensity", 90, (r, prop, dep) =>                // Light Fade Distance
+                {
+                    Light light = prop.serializedObject.targetObject as Light; 
+                    float lightFadeDistance = lightDataPairing[light].hdAdditionalLightData.fadeDistance;
+                    EditorGUI.BeginChangeCheck();
+                    lightFadeDistance = EditorGUI.FloatField(r, lightFadeDistance);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightDataPairing[light].hdAdditionalLightData.fadeDistance = lightFadeDistance;
+                    }
+                },
+                (lhs, rhs) =>
+                {
+                    Light light1 = lhs.serializedObject.targetObject as Light;
+                    Light light2 = rhs.serializedObject.targetObject as Light;
+                    
+                    float fadeDistance1 = lightDataPairing[light1].hdAdditionalLightData.fadeDistance;
+                    float fadeDistance2 = lightDataPairing[light2].hdAdditionalLightData.fadeDistance;
+
+                    if (fadeDistance1 < fadeDistance2)
+                    {
+                        return -1;
+                    }
+                    else if (fadeDistance2 < fadeDistance1)
+                    {
+                        return 1;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.ShadowFade, "m_Intensity", 90, (r, prop, dep) =>                // Shadow Fade Distance
+                {
+                    Light light = prop.serializedObject.targetObject as Light; 
+                    float lightFadeDistance = lightDataPairing[light].additionalShadowData.shadowFadeDistance;
+                    EditorGUI.BeginChangeCheck();
+                    lightFadeDistance = EditorGUI.FloatField(r, lightFadeDistance);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightDataPairing[light].additionalShadowData.shadowFadeDistance = lightFadeDistance;
+                    }
+                },
+                (lhs, rhs) =>
+                {
+                    Light light1 = lhs.serializedObject.targetObject as Light;
+                    Light light2 = rhs.serializedObject.targetObject as Light;
+                    
+                    float fadeDistance1 = lightDataPairing[light1].additionalShadowData.shadowFadeDistance;
+                    float fadeDistance2 = lightDataPairing[light2].additionalShadowData.shadowFadeDistance;
+
+                    if (fadeDistance1 < fadeDistance2)
+                    {
+                        return -1;
+                    }
+                    else if (fadeDistance2 < fadeDistance1)
+                    {
+                        return 1;
+                    }
+                    else
+                    {
+                        return 0;
                     }
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.IsPrefab, "m_Intensity", 60, (r, prop, dep) =>                // 16: Prefab
