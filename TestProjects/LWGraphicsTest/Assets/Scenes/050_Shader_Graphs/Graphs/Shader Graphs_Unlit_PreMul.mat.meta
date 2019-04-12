@@ -1,9 +1,8 @@
 fileFormatVersion: 2
-guid: 245a2b08a4f72437193b06846a5c8e33
-labels:
-- TestRunnerBake
-DefaultImporter:
+guid: 78f95bc23c7204fd1a19a48d03d59bef
+NativeFormatImporter:
   externalObjects: {}
+  mainObjectFileID: 2100000
   userData: 
   assetBundleName: 
   assetBundleVariant: 
