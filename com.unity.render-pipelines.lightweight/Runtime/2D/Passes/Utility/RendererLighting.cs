@@ -12,7 +12,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
         static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
-        const int k_NumberOfLocalShaderKeywords = 4 + 3;  // 4 keywords +  volume bit, shape bit, additive
+        static readonly string k_UseAdditiveBlendingKeyword = "USE_ADDITIVE_BLENDING";
+        const int k_NumberOfLightMaterials = 1 << 5 + 3;  // 5 keywords +  volume bit, shape bit
 
         static readonly string[] k_UseLightOperationKeywords =
         {
@@ -53,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             // The array size should be determined by the number of 'feature bit' the material index has. See GetLightMaterialIndex().
             // Not all slots must be filled because certain combinations of the feature bits don't make sense (e.g. sprite bit on + shape bit off).
             if (s_LightMaterials == null)
-                s_LightMaterials = new Material[1 << k_NumberOfLocalShaderKeywords];
+                s_LightMaterials = new Material[k_NumberOfLightMaterials];
         }
 
         static public void CreateRenderTextures(CommandBuffer cmd, Camera camera)
@@ -396,7 +397,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             bitIndex++;
             uint shapeBit = light.IsShapeLight() ? 1u << bitIndex : 0u;
             bitIndex++;
-            uint additiveBit = (light.IsShapeLight() && light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive) ? 1u << bitIndex : 0u;
+            uint additiveBit = (light.lightOverlapMode == Light2D.LightOverlapMode.Additive) ? 1u << bitIndex : 0u;
             bitIndex++;
             uint spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
             bitIndex++;
@@ -417,12 +418,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (isVolume)
                 material = CoreUtils.CreateEngineMaterial(isShape ? s_RendererData.shapeLightVolumeShader : s_RendererData.pointLightVolumeShader);
             else
+            {
                 material = CoreUtils.CreateEngineMaterial(isShape ? s_RendererData.shapeLightShader : s_RendererData.pointLightShader);
 
-            if (!isVolume && isShape)
-            {
-                if (light.shapeLightOverlapMode == Light2D.LightOverlapMode.Additive)
+                if (light.lightOverlapMode == Light2D.LightOverlapMode.Additive)
+                {
                     SetBlendModes(material, BlendMode.One, BlendMode.One);
+                    material.EnableKeyword(k_UseAdditiveBlendingKeyword);
+                }
                 else
                     SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
             }

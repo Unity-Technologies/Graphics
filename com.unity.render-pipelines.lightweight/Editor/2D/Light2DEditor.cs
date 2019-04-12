@@ -106,6 +106,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_LightOperation;
         SerializedProperty m_FalloffIntensity;
         SerializedProperty m_PointZDistance;
+        SerializedProperty m_LightOrder;
+        SerializedProperty m_LightOverlapMode;
 
         // Point Light Properties
         SerializedProperty m_PointInnerAngle;
@@ -122,8 +124,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_ShapeLightParametricAngleOffset;
         SerializedProperty m_ShapeLightFalloffOffset;
         SerializedProperty m_ShapeLightSprite;
-        SerializedProperty m_ShapeLightOrder;
-        SerializedProperty m_ShapeLightOverlapMode;
 
         int[]           m_LightOperationIndices;
         GUIContent[]    m_LightOperationNames;
@@ -147,6 +147,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_LightOperation = serializedObject.FindProperty("m_LightOperationIndex");
             m_FalloffIntensity = serializedObject.FindProperty("m_FalloffIntensity");
             m_PointZDistance = serializedObject.FindProperty("m_PointLightDistance");
+            m_LightOrder = serializedObject.FindProperty("m_LightOrder");
+            m_LightOverlapMode = serializedObject.FindProperty("m_LightOverlapMode");
 
             // Point Light
             m_PointInnerAngle = serializedObject.FindProperty("m_PointLightInnerAngle");
@@ -163,8 +165,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
             m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
-            m_ShapeLightOrder = serializedObject.FindProperty("m_ShapeLightOrder");
-            m_ShapeLightOverlapMode = serializedObject.FindProperty("m_ShapeLightOverlapMode");
 
             m_AnyLightOperationEnabled = false;
             var lightOperationIndices = new List<int>();
@@ -261,9 +261,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
                     EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
             }
-
-            EditorGUILayout.PropertyField(m_ShapeLightOverlapMode, Styles.shapeLightOverlapMode);
-            EditorGUILayout.PropertyField(m_ShapeLightOrder, Styles.shapeLightOrder);
         }
 
         void UpdateApplyToSortingLayersArray()
@@ -636,9 +633,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     break;
             }
 
+            EditorGUILayout.PropertyField(m_LightOverlapMode, Styles.shapeLightOverlapMode);
+            EditorGUILayout.PropertyField(m_LightOrder, Styles.shapeLightOrder);
 
             EditorGUI.BeginChangeCheck();
-            
             EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);

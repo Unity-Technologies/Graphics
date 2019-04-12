@@ -9,7 +9,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             Blend SrcAlpha One
             ZWrite Off
             ZTest Off
-            Cull Off  // Shape lights have their interiors with the wrong winding order
+            Cull Off 
 
             HLSLPROGRAM
             #pragma prefer_hlslcc gles

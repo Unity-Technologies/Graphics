@@ -71,7 +71,11 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] Sprite m_LightCookieSprite = null;
         [SerializeField] bool m_UseNormalMap = false;
 
-        int         m_PreviousLightOperationIndex;
+        [SerializeField] int m_LightOrder = 0;
+        [SerializeField] LightOverlapMode m_LightOverlapMode = LightOverlapMode.Additive;
+
+        int m_PreviousLightOrder = -1;
+        int m_PreviousLightOperationIndex;
         float       m_PreviousLightVolumeOpacity;
         Sprite      m_PreviousLightCookieSprite     = null;
         Mesh        m_Mesh;
@@ -132,6 +136,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
+        public LightOverlapMode lightOverlapMode => m_LightOverlapMode;
+        public int lightOrder => m_LightOrder;
 
 
         //==========================================================================================
@@ -240,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             var lightList = s_Lights[m_LightOperationIndex];
             int index = 0;
 
-            while (index < lightList.Count && m_ShapeLightOrder > lightList[index].m_ShapeLightOrder)
+            while (index < lightList.Count && m_LightOrder > lightList[index].m_LightOrder)
                 index++;
 
             lightList.Insert(index, this);
@@ -434,7 +440,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             bool rebuildMesh = false;
 
             // Sorting. InsertLight() will make sure the lights are sorted.
-            if (LightUtility.CheckForChange(m_ShapeLightOrder, ref m_PreviousShapeLightOrder))
+            if (LightUtility.CheckForChange(m_LightOrder, ref m_PreviousLightOrder))
             {
                 s_Lights[(int)m_LightOperationIndex].Remove(this);
                 InsertLight();

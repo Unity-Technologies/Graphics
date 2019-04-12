@@ -1,12 +1,20 @@
 Shader "Hidden/Light2D-Point"
 {
+	Properties
+	{
+		[HideInInspector] _SrcBlend("__src", Float) = 1.0
+		[HideInInspector] _DstBlend("__dst", Float) = 0.0
+	}
+
     SubShader
     {
         Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "LightweightPipeline" }
 
         Pass
         {
-            Blend One One
+			//Blend SrcAlpha OneMinusSrcAlpha
+			//Blend One One
+			Blend [_SrcBlend][_DstBlend]
             ZWrite Off
             Cull Off
 
@@ -17,6 +25,7 @@ Shader "Hidden/Light2D-Point"
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
             #pragma multi_compile_local LIGHT_QUALITY_FAST __
 			#pragma multi_compile_local USE_NORMAL_MAP __
+			#pragma multi_compile_local USE_ADDITIVE_BLENDING __
 
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 			#include "Include/LightingUtility.hlsl"
@@ -99,13 +108,20 @@ Shader "Hidden/Light2D-Point"
 
 #if USE_POINT_LIGHT_COOKIES
                 half4 cookieColor = SAMPLE_TEXTURE2D(_PointLightCookieTex, sampler_PointLightCookieTex, input.lookupUV);
-                half4 lightColor = cookieColor * _LightColor * attenuation;
+                half4 lightColor = cookieColor * _LightColor;
 #else
-                half4 lightColor = _LightColor * attenuation;
+                half4 lightColor = _LightColor;
 #endif
+
+#if USE_ADDITIVE_BLENDING
+				lightColor *= attenuation;
+#else
+				lightColor.a = attenuation;
+#endif
+
 				APPLY_NORMALS_LIGHTING(input, lightColor);
 
-                return lightColor * _InverseHDREmulationScale;
+				return lightColor * _InverseHDREmulationScale;
             }
             ENDHLSL
         }

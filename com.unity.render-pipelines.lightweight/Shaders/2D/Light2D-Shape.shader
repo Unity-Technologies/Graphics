@@ -22,6 +22,7 @@ Shader "Hidden/Light2D-Shape"
             #pragma fragment frag
             #pragma multi_compile_local SPRITE_LIGHT __
 			#pragma multi_compile_local USE_NORMAL_MAP __
+			#pragma multi_compile_local USE_ADDITIVE_BLENDING __
 
             #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 			#include "Include/LightingUtility.hlsl"
@@ -89,9 +90,19 @@ Shader "Hidden/Light2D-Shape"
             {
                 half4 color = i.color;
 #if SPRITE_LIGHT
-                color *= SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
+				half4 cookie = SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
+	#if USE_ADDITIVE_BLENDING
+				
+                color *= cookie * cookie.a;
+	#else
+				color *= cookie;
+	#endif
 #else
+	#if USE_ADDITIVE_BLENDING
                 color *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+	#else
+				color.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+	#endif
 #endif
 				APPLY_NORMALS_LIGHTING(i, color);
 
