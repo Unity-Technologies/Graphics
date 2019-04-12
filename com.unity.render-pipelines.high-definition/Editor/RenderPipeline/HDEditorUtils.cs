@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditorInternal;
 using UnityEditor.Rendering;
@@ -79,6 +80,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var rect = GUILayoutUtility.GetRect(11, 17, GUILayout.ExpandWidth(false));
             rect.y += 4;
             return rect;
+        }
+
+        public static bool IsAssetPath(string path)
+        {
+            var isPathRooted = Path.IsPathRooted(path);
+            return isPathRooted && path.StartsWith(Application.dataPath)
+                   || !isPathRooted && path.StartsWith("Assets");
+        }
+
+        // Copy texture from cache
+        public static bool CopyFileWithRetryOnUnauthorizedAccess(string s, string path)
+        {
+            UnauthorizedAccessException exception = null;
+            for (var k = 0; k < 20; ++k)
+            {
+                try
+                {
+                    File.Copy(s, path, true);
+                    exception = null;
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    exception = e;
+                }
+            }
+
+            if (exception != null)
+            {
+                Debug.LogException(exception);
+                // Abort the update, something else is preventing the copy
+                return false;
+            }
+
+            return true;
         }
 
         public static void PropertyFieldWithOptionalFlagToggle<TEnum>(

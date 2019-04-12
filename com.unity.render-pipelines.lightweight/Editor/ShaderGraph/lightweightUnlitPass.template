@@ -96,10 +96,6 @@ ${PixelShaderSurfaceRemap}
  #if _AlphaClip
         clip(Alpha - AlphaClipThreshold);
 #endif
-#ifdef _ALPHAPREMULTIPLY_ON
-        
-        Color *= Alpha;
-#endif
         return half4(Color, Alpha);
     }
     ENDHLSL
