@@ -3,7 +3,7 @@ using UnityEngine.Rendering.LWRP;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    [CreateAssetMenu(fileName = "New 2D Renderer", menuName = "Rendering/Lightweight Render Pipeline/2D Renderer", order = CoreUtils.assetCreateMenuPriority1)]
+    [CreateAssetMenu(fileName = "New 2D Renderer", menuName = "Rendering/Lightweight Render Pipeline/2D Renderer", order = CoreUtils.assetCreateMenuPriority1 + 1)]
     public class _2DRendererData : ScriptableRendererData
     {
         static Color defaultColor { get { return new Color(54.0f / 255.0f, 58.0f / 255.0f, 66.0f / 255.0f); } }  
