@@ -152,7 +152,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LightType: 0
   m_LightOperationIndex: 0
-  m_FalloffCurve: 0.013
+  m_FalloffIntensity: 0.5
   m_Color: {r: 0.030893529, g: 0, b: 0.4056604, a: 1}
   m_Intensity: 2.74
   m_LightVolumeOpacity: 0
@@ -167,8 +167,8 @@ MonoBehaviour:
   m_PointLightQuality: 1
   m_ShapeLightParametricSides: 8
   m_ShapeLightParametricAngleOffset: 10
+  m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.63
-  m_ShapeLightRadius: 0.69
   m_ShapeLightFalloffOffset: {x: 0, y: -0.37}
   m_ShapeLightOrder: 0
   m_ShapeLightOverlapMode: 1
@@ -417,7 +417,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LightType: 1
   m_LightOperationIndex: 0
-  m_FalloffCurve: 0.403
+  m_FalloffIntensity: 0.5
   m_Color: {r: 0, g: 1, b: 0.20634079, a: 1}
   m_Intensity: 1
   m_LightVolumeOpacity: 0.077
@@ -432,8 +432,8 @@ MonoBehaviour:
   m_PointLightQuality: 1
   m_ShapeLightParametricSides: 6
   m_ShapeLightParametricAngleOffset: 0
+  m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.54
-  m_ShapeLightRadius: 1
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
   m_ShapeLightOrder: 0
   m_ShapeLightOverlapMode: 0
@@ -491,7 +491,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LightType: 3
   m_LightOperationIndex: 1
-  m_FalloffCurve: 0.5
+  m_FalloffIntensity: 0.5
   m_Color: {r: 0.25162834, g: 0, b: 0.2735849, a: 1}
   m_Intensity: 1
   m_LightVolumeOpacity: 0.5
@@ -506,8 +506,8 @@ MonoBehaviour:
   m_PointLightQuality: 1
   m_ShapeLightParametricSides: 6
   m_ShapeLightParametricAngleOffset: 0
+  m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.5
-  m_ShapeLightRadius: 1
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
   m_ShapeLightOrder: 0
   m_ShapeLightOverlapMode: 0
@@ -642,7 +642,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LightType: 3
   m_LightOperationIndex: 0
-  m_FalloffCurve: 0.566
+  m_FalloffIntensity: 0.5
   m_Color: {r: 0.6509434, g: 0.6509434, b: 0.6509434, a: 1}
   m_Intensity: 4.75
   m_LightVolumeOpacity: 0
@@ -658,8 +658,8 @@ MonoBehaviour:
   m_PointLightQuality: 1
   m_ShapeLightParametricSides: 6
   m_ShapeLightParametricAngleOffset: 0
+  m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.5
-  m_ShapeLightRadius: 1
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
   m_ShapeLightOrder: 0
   m_ShapeLightOverlapMode: 0
@@ -713,7 +713,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LightType: 4
   m_LightOperationIndex: 0
-  m_FalloffCurve: 0.5
+  m_FalloffIntensity: 0.5
   m_Color: {r: 1, g: 0.15420003, b: 0, a: 1}
   m_Intensity: 1
   m_LightVolumeOpacity: 0
@@ -728,8 +728,8 @@ MonoBehaviour:
   m_PointLightQuality: 1
   m_ShapeLightParametricSides: 6
   m_ShapeLightParametricAngleOffset: 0
+  m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.5
-  m_ShapeLightRadius: 1
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
   m_ShapeLightOrder: 0
   m_ShapeLightOverlapMode: 0
@@ -783,7 +783,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LightType: 0
   m_LightOperationIndex: 0
-  m_FalloffCurve: 0.226
+  m_FalloffIntensity: 0.5
   m_Color: {r: 0.9150943, g: 0.11654504, b: 0.7928844, a: 1}
   m_Intensity: 2.74
   m_LightVolumeOpacity: 0
@@ -798,8 +798,8 @@ MonoBehaviour:
   m_PointLightQuality: 1
   m_ShapeLightParametricSides: 8
   m_ShapeLightParametricAngleOffset: 10
+  m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.36
-  m_ShapeLightRadius: 1
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
   m_ShapeLightOrder: 1
   m_ShapeLightOverlapMode: 1
@@ -1095,7 +1095,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_LightType: 2
   m_LightOperationIndex: 1
-  m_FalloffCurve: 0.5
+  m_FalloffIntensity: 0.5
   m_Color: {r: 0.37983054, g: 0.8207547, b: 0.375534, a: 1}
   m_Intensity: 0.5
   m_LightVolumeOpacity: 0
@@ -1111,8 +1111,8 @@ MonoBehaviour:
   m_PointLightQuality: 1
   m_ShapeLightParametricSides: 6
   m_ShapeLightParametricAngleOffset: 0
+  m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.5
-  m_ShapeLightRadius: 1
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
   m_ShapeLightOrder: 0
   m_ShapeLightOverlapMode: 0
