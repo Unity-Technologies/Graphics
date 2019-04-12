@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
@@ -51,13 +49,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         
         [UnityEngine.Animations.NotKeyable]
         [SerializeField]
-        [Serialization.FormerlySerializedAs("m_LightProjectionType")]
         LightType m_LightType = LightType.Parametric;
         LightType m_PreviousLightType = (LightType)LightType.Parametric;
 
         [SerializeField]
-        [Serialization.FormerlySerializedAs("m_ShapeLightType")]
-        [Serialization.FormerlySerializedAs("m_LightOperation")]
         int m_LightOperationIndex = 0;
 
         [SerializeField]
@@ -65,7 +60,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             
         [ColorUsage(false, false)]
         [SerializeField]
-        [Serialization.FormerlySerializedAs("m_LightColor")]
         Color m_Color = Color.white;
         Color m_PreviousColor = Color.white;
         [SerializeField]

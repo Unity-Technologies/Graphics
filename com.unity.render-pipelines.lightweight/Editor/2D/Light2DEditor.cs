@@ -19,7 +19,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             public override bool IsAvailable()
             {
-                return base.IsAvailable() && (target as Light2D).lightType == Light2D.LightType.Freeform;
+                var light = target as Light2D;
+
+                if (light == null)
+                    return false;
+                else
+                    return base.IsAvailable() && light.lightType == Light2D.LightType.Freeform;
             }
 
             protected override IShape GetShape(Object target)
@@ -261,6 +266,45 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.PropertyField(m_ShapeLightOrder, Styles.shapeLightOrder);
         }
 
+        void UpdateApplyToSortingLayersArray()
+        {
+            m_ApplyToSortingLayers.ClearArray();
+            for (int i = 0; i < m_ApplyToSortingLayersList.Count; ++i)
+            {
+                m_ApplyToSortingLayers.InsertArrayElementAtIndex(i);
+                m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue = m_ApplyToSortingLayersList[i];
+            }
+
+            RemoveSelectedGlobalLights(targets);
+            serializedObject.ApplyModifiedProperties();
+            AddSelectedGlobalLights(targets);
+        }
+
+        void OnNoSortingLayerSelected()
+        {
+            m_ApplyToSortingLayersList.Clear();
+            UpdateApplyToSortingLayersArray();
+        }
+
+        void OnAllSortingLayersSelected()
+        {
+            m_ApplyToSortingLayersList.Clear();
+            m_ApplyToSortingLayersList.AddRange(m_AllSortingLayers.Select(x => x.id));
+            UpdateApplyToSortingLayersArray();
+        }
+
+        void OnSortingLayerSelected(object layerIDObject)
+        {
+            int layerID = (int)layerIDObject;
+
+            if (m_ApplyToSortingLayersList.Contains(layerID))
+                m_ApplyToSortingLayersList.RemoveAll(id => id == layerID);
+            else
+                m_ApplyToSortingLayersList.Add(layerID);
+
+            UpdateApplyToSortingLayersArray();
+        }
+
         void OnTargetSortingLayers()
         {
             EditorGUILayout.BeginHorizontal();
@@ -286,34 +330,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 GenericMenu menu = new GenericMenu();
                 menu.allowDuplicateNames = true;
 
-                GenericMenu.MenuFunction2 menuFunction = (layerIDObject) =>
-                {
-                    int layerID = (int)layerIDObject;
-
-                    if (m_ApplyToSortingLayersList.Contains(layerID))
-                        m_ApplyToSortingLayersList.RemoveAll(id => id == layerID);
-                    else
-                        m_ApplyToSortingLayersList.Add(layerID);
-
-                    m_ApplyToSortingLayers.ClearArray();
-                    for (int i = 0; i < m_ApplyToSortingLayersList.Count; ++i)
-                    {
-                        m_ApplyToSortingLayers.InsertArrayElementAtIndex(i);
-                        m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue = m_ApplyToSortingLayersList[i];
-                    }
-
-                    RemoveSelectedGlobalLights(targets);
-
-                    serializedObject.ApplyModifiedProperties();
-
-                    AddSelectedGlobalLights(targets);
-
-                };
+                menu.AddItem(Styles.sortingLayerNone, m_ApplyToSortingLayersList.Count == 0, OnNoSortingLayerSelected);
+                menu.AddItem(Styles.sortingLayerAll, m_ApplyToSortingLayersList.Count == m_AllSortingLayers.Length, OnAllSortingLayersSelected);
+                menu.AddSeparator("");
 
                 for (int i = 0; i < m_AllSortingLayers.Length; ++i)
                 {
                     var sortingLayer = m_AllSortingLayers[i];
-                    menu.AddItem(m_AllSortingLayerNames[i], m_ApplyToSortingLayersList.Contains(sortingLayer.id), menuFunction, sortingLayer.id);
+                    menu.AddItem(m_AllSortingLayerNames[i], m_ApplyToSortingLayersList.Contains(sortingLayer.id), OnSortingLayerSelected, sortingLayer.id);
                 }
 
                 menu.DropDown(m_SortingLayerDropdownRect);

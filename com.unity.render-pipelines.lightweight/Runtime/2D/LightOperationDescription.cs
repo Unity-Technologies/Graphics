@@ -42,10 +42,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [Serializable]
         internal struct BlendFactors
         {
-            [SerializeField, FormerlySerializedAs("modulate")]
             internal float multiplicative;
-
-            [SerializeField, FormerlySerializedAs("additve")]
             internal float additive;
         }
 
