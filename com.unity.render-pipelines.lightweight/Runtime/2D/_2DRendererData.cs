@@ -6,19 +6,26 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     [CreateAssetMenu(fileName = "New 2D Renderer", menuName = "Rendering/Lightweight Render Pipeline/2D Renderer", order = CoreUtils.assetCreateMenuPriority1 + 1)]
     public class _2DRendererData : ScriptableRendererData
     {
-        static Color defaultColor { get { return new Color(54.0f / 255.0f, 58.0f / 255.0f, 66.0f / 255.0f); } }  
-
         [SerializeField]
         float m_HDREmulationScale = 1;
 
         [SerializeField]
         _2DLightOperationDescription[] m_LightOperations;
 
-        [SerializeField] Shader m_ShapeLightShader = null;
-        [SerializeField] Shader m_ShapeLightVolumeShader = null;
-        [SerializeField] Shader m_PointLightShader = null;
-        [SerializeField] Shader m_PointLightVolumeShader = null;
-        [SerializeField] Shader m_BlitShader = null;
+        [SerializeField]
+        Shader m_ShapeLightShader = null;
+
+        [SerializeField]
+        Shader m_ShapeLightVolumeShader = null;
+
+        [SerializeField]
+        Shader m_PointLightShader = null;
+
+        [SerializeField]
+        Shader m_PointLightVolumeShader = null;
+
+        [SerializeField]
+        Shader m_BlitShader = null;
 
         public float hdrEmulationScale => m_HDREmulationScale;
         public _2DLightOperationDescription[] lightOperations => m_LightOperations;
@@ -37,16 +44,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_LightOperations[0].name = "Default";
             m_LightOperations[0].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
             m_LightOperations[0].renderTextureScale = 1.0f;
-            m_LightOperations[0].globalColor = defaultColor;
+            m_LightOperations[0].globalColor = new Color32(54, 58, 66, 255);    // This is the default ambient color in Lighting Settings. 
 
             for (int i = 1; i < m_LightOperations.Length; ++i)
             {
                 m_LightOperations[i].enabled = false;
-                m_LightOperations[i].name = "Disabled";
+                m_LightOperations[i].name = "Unnamed";
                 m_LightOperations[i].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
                 m_LightOperations[i].renderTextureScale = 1.0f;
                 m_LightOperations[i].globalColor = Color.black;
             }
+        }
+
+        protected override ScriptableRenderer Create()
+        {
+            return new _2DRenderer(this);
         }
 
 #if UNITY_EDITOR
@@ -85,8 +97,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (materialType == DefaultMaterialType.Sprite || materialType == DefaultMaterialType.Particle)
                 return UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.lightweight/Runtime/Materials/Sprite-Lit-Default.mat");
 
-
-
             return null;
         }
 
@@ -94,11 +104,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             return Shader.Find("Lightweight Render Pipeline/2D/Sprite-Lit-Default");
         }
-#endif
-
-        protected override ScriptableRenderer Create()
-        {
-            return new _2DRenderer(this);
-        }
+#endif 
     }
 }
