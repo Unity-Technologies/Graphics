@@ -12,7 +12,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         float m_HDREmulationScale = 1;
 
         [SerializeField]
-        [Serialization.FormerlySerializedAs("m_ShapeLightTypes")]
         _2DLightOperationDescription[] m_LightOperations;
 
         [SerializeField] Shader m_ShapeLightShader = null;
