@@ -287,5 +287,5 @@ Shader "HDRP/Nature/SpeedTree8"
     }
 
     FallBack "HDRP/Lit"
-    CustomEditor "SpeedTree8ShaderGUI"
+    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.SpeedTree8LitGUI"
 }
