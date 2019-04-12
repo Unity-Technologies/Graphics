@@ -299,8 +299,14 @@ namespace UnityEditor
             if (baseMapProp != null && baseColorProp != null) // Draw the baseMap, most shader will have at least a baseMap
             {
                 materialEditor.TexturePropertySingleLine(Styles.baseMap, baseMapProp, baseColorProp);
-                if(material.HasProperty("_MainTex"))
-                    material.SetTexture("_MainTex", baseMapProp.textureValue); // Temporary fix for lightmapping, to be replaced with attribute tag.
+                // TODO Temporary fix for lightmapping, to be replaced with attribute tag.
+                if (material.HasProperty("_MainTex"))
+                {
+                    material.SetTexture("_MainTex", baseMapProp.textureValue);
+                    var baseMapTiling = baseMapProp.textureScaleAndOffset;
+                    material.SetTextureScale("_MainTex", new Vector2(baseMapTiling.x, baseMapTiling.y));
+                    material.SetTextureOffset("_MainTex", new Vector2(baseMapTiling.z, baseMapTiling.w));
+                }
             }
         }
 
