@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float     asymmetry;    // [-1, 1]. Not currently available for density volumes
 
         public Texture3D volumeMask;
+        public Texture3D volumeFluidSim; //seongdae;fspm
         public Vector3   textureScrollingSpeed;
         public Vector3   textureTiling;
 
@@ -47,6 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             asymmetry             = _asymmetry;
 
             volumeMask            = null;
+            volumeFluidSim        = null; //seongdae;fspm
             textureIndex          = -1;
             textureScrollingSpeed = Vector3.zero;
             textureTiling         = Vector3.one;

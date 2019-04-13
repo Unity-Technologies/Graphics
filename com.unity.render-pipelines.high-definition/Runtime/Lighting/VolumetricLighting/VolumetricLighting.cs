@@ -39,6 +39,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return data;
         }
     } // struct VolumeProperties
+    //seongdae;fspm
+    [GenerateHLSL]
+    public struct FluidSimDensityVolumeEngineData
+    {
+
+    }
+    //seongdae;fspm
 
     public class VolumeRenderingUtils
     {
@@ -73,6 +80,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public List<OrientedBBox>      bounds;
         public List<DensityVolumeEngineData> density;
     }
+    //seongdae;fspm
+    public struct FluidSimDensityVolumeList
+    {
+        public List<OrientedBBox> bounds;
+        public List<FluidSimDensityVolumeEngineData> fluidSim;
+    }
+    //seongdae;fspm
 
     public class VolumetricLightingSystem
     {
@@ -635,6 +649,86 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.computePassCount);
             }
         }
+
+        //seongdae;fspm
+        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, FluidSimDensityVolumeList fluidSimDensityVolumes, LightLoop lightLoop)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
+                return;
+
+            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            if (visualEnvironment.fogType.value != FogType.Volumetric)
+                return;
+
+            using (new ProfilingSample(cmd, "FluidSim Volume Voxelization"))
+            {
+                int  numVisibleVolumes = m_VisibleVolumeBounds.Count;
+                bool tiledLighting     = lightLoop.HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+                bool highQuality       = preset == VolumetricLightingPreset.High;
+
+                int kernel = (tiledLighting ? 1 : 0) | (highQuality ? 2 : 0) + 4;
+
+                var currFrameParams = hdCamera.vBufferParams[0];
+                var cvp = currFrameParams.viewportSize;
+
+                Vector4 resolution  = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
+#if UNITY_2019_1_OR_NEWER
+                var vFoV        = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+                var lensShift = hdCamera.camera.GetGateFittedLensShift();
+#else
+                var vFoV        = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
+                var lensShift = Vector2.zero;
+#endif
+
+                // Compose the matrix which allows us to compute the world space view direction.
+                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.viewMatrix, false);
+
+                // Compute texel spacing at the depth of 1 meter.
+                float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
+
+                Texture3D volumeAtlas = DensityVolumeManager.manager.volumeAtlas.GetAtlas();
+                Vector4 volumeAtlasDimensions = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+
+                if (volumeAtlas != null)
+                {
+                    volumeAtlasDimensions.x = (float)volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
+                    volumeAtlasDimensions.y = volumeAtlas.width;
+                    volumeAtlasDimensions.z = volumeAtlas.depth;
+                    volumeAtlasDimensions.w = Mathf.Log(volumeAtlas.width, 2);              // Max LoD
+                }
+                else
+                {
+                    volumeAtlas = CoreUtils.blackVolumeTexture;
+                }
+
+                if(hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
+                {
+                    // We explicitly set the big tile info even though it is set globally, since this could be running async before the PushGlobalParams
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileX, lightLoop.GetNumTileBigTileX(hdCamera));
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileY, lightLoop.GetNumTileBigTileY(hdCamera));
+                    if (tiledLighting)
+                        cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs.g_vBigTileLightList, lightLoop.GetBigTileLightList());
+                }
+
+                cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);
+                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,    s_VisibleVolumeBoundsBuffer);
+                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,      s_VisibleVolumeDataBuffer);
+                cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeMaskAtlas, volumeAtlas);
+
+                // TODO: set the constant buffer data only once.
+                cmd.SetComputeMatrixParam(m_VolumeVoxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS,      transform);
+                cmd.SetComputeFloatParam( m_VolumeVoxelizationCS, HDShaderIDs._VBufferUnitDepthTexelSpacing, unitDepthTexelSpacing);
+                cmd.SetComputeIntParam(   m_VolumeVoxelizationCS, HDShaderIDs._NumVisibleDensityVolumes,     numVisibleVolumes);
+                cmd.SetComputeVectorParam(m_VolumeVoxelizationCS, HDShaderIDs._VolumeMaskDimensions,         volumeAtlasDimensions);
+
+                int w = (int)resolution.x;
+                int h = (int)resolution.y;
+
+                // The shader defines GROUP_SIZE_1D = 8.
+                cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.computePassCount);
+            }
+        }
+        //seongdae;fspm
 
         // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
         // The returned {x, y} coordinates (and all spheres) are all within the (-0.5, 0.5)^2 range.
