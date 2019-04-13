@@ -6,7 +6,7 @@
 	"unityRelease": "0b6",
     "displayName": "Lightweight RP",
     "dependencies": {
-        "com.unity.postprocessing": "2.1.4",
+        "com.unity.postprocessing": "2.1.6",
         "com.unity.render-pipelines.core": "5.13.0",
         "com.unity.shadergraph": "5.13.0"
     }
