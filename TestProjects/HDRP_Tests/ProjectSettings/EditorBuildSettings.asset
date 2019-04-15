@@ -69,29 +69,32 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1217_Lit_SSS_Pre-Post.unity
     guid: 6f2bc3028f3daba46ab0447a3e25ebc6
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1401_StackLitSG.unity
+    path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1402_StackLitSG_Testers.unity
+    path: Assets/GraphicTests/Scenes/1x_Materials/1303_StackLitSG_Testers.unity
     guid: 23d1a6dbc0bbc7d4abf6ce5e9cd0e132
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1402_StackLitSG_PLM.unity
+    path: Assets/GraphicTests/Scenes/1x_Materials/1302_StackLitSG_PixarLM.unity
     guid: baf6b66103b82f74e95a5ce4e8051db7
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1501_Fabric.unity
+    path: Assets/GraphicTests/Scenes/1x_Materials/1351_Fabric.unity
     guid: ce2b258da0df8d245b659390b6c2ac51
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1502_Fabric_Env_NoConvolution.unity
+    path: Assets/GraphicTests/Scenes/1x_Materials/1352_Fabric_Env_Convolution.unity
+    guid: 54443f41976c13246b6b67ce1dc2a06f
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1353_Fabric_Env_NoConvolution.unity
     guid: 57643150de083ba4488c5cb3b4854065
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1401_HairGraph.unity
+    guid: 7c0b384fd32894841954edea3211d084
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1601_TerrainLit.unity
     guid: d52dbea61cf2f884fadf33f8cc6afc0c
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1602_TerrainLit_Normal.unity
     guid: 493570d0c7a7cd0449d5ceb578701b5e
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1701_HairGraph/1701_HairGraph.unity
-    guid: 7c0b384fd32894841954edea3211d084
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2001_Dynamic_Directional.unity
     guid: 09baf18a7e1f6584f86675e6a2141c66
