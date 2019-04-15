@@ -28,7 +28,7 @@ internal class Lightweight2DUpgrader : MonoBehaviour
 
     static void UpgradeGameObject(GameObject go)
     {
-        SpriteRenderer[] spriteRenderers = go.GetComponentsInChildren<SpriteRenderer>();
+        SpriteRenderer[] spriteRenderers = go.GetComponentsInChildren<SpriteRenderer>(true);
         foreach (SpriteRenderer renderer in spriteRenderers)
         {
             renderer.sharedMaterial = s_SpriteLitDefault;
