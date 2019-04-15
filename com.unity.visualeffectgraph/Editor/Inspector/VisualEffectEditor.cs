@@ -710,7 +710,7 @@ namespace UnityEditor.VFX
                                         sourceVfxField.InsertArrayElementAtIndex(sourceVfxField.arraySize);
                                         var newEntry = sourceVfxField.GetArrayElementAtIndex(sourceVfxField.arraySize - 1);
 
-                                        newEntry.FindPropertyRelative("m_Overridden").boolValue = actualDisplayedPropertyOverridden.boolValue;
+                                        newEntry.FindPropertyRelative("m_Overridden").boolValue = true;
                                         SetObjectValue(newEntry.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
                                         newEntry.FindPropertyRelative("m_Name").stringValue = param.path;
                                         PropertyOverrideChanged();
