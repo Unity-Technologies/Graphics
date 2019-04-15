@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -17,24 +17,32 @@ namespace UnityEditor.VFX.Test
     {
         VFXViewController m_ViewController;
 
-        const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
+        const string testAssetName = "Assets/TmpTests/VFXGraph{0}.vfx";
 
         private int m_StartUndoGroupId;
+
+
+        string lastFileName;
+        static int cpt = 0;
 
         [SetUp]
         public void CreateTestAsset()
         {
-            var directoryPath = Path.GetDirectoryName(testAssetName);
+            lastFileName = string.Format(testAssetName, cpt++);
+
+            var directoryPath = Path.GetDirectoryName(lastFileName);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            if (File.Exists(testAssetName))
+
+
+            if (File.Exists(lastFileName))
             {
-                AssetDatabase.DeleteAsset(testAssetName);
+                AssetDatabase.DeleteAsset(lastFileName);
             }
 
-            var asset = VisualEffectResource.CreateNewAsset(testAssetName);
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(lastFileName);
 
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
@@ -49,7 +57,8 @@ namespace UnityEditor.VFX.Test
         {
             m_ViewController.useCount--;
             Undo.RevertAllDownToGroup(m_StartUndoGroupId);
-            AssetDatabase.DeleteAsset(testAssetName);
+            AssetDatabase.DeleteAsset(lastFileName);
+            lastFileName = null;
         }
 
         [Test]

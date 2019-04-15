@@ -126,7 +126,7 @@ namespace UnityEditor.VFX.Test
             }
 
 
-            m_Asset = VisualEffectResource.CreateNewAsset(filePath);
+            m_Asset = VisualEffectAssetEditorUtility.CreateNewAsset(filePath);
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
