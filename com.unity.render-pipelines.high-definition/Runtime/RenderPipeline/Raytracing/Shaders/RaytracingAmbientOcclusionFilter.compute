@@ -33,7 +33,7 @@ void AOCopyTAAHistory(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Get the previous value and current value
-    float historyValue = LOAD_TEXTURE2D_X(_AOHistorybufferRW, centerCoord);
+    float historyValue = LOAD_TEXTURE2D_X(_AOHistorybufferRW, centerCoord).x;
     float currentValue = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
 
     // Merge them into the previous buffer
