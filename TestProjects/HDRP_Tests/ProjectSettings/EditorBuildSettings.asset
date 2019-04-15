@@ -69,6 +69,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1217_Lit_SSS_Pre-Post.unity
     guid: 6f2bc3028f3daba46ab0447a3e25ebc6
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1218_Lit_DiffusionProfiles.unity
+    guid: d2d3cc41bae835b4baad808d950d67a9
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1
