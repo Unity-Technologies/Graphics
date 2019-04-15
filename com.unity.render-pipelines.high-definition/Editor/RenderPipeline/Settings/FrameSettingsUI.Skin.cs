@@ -47,9 +47,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent volumeVoxelizationAsyncContent = EditorGUIUtility.TrTextContent("Volumetrics Voxelization in Async", "When enabled, HDRP calculates volumetric voxelization asynchronously.");
 
         const string lightLoopSettingsHeaderContent = "Light Loop";
-#if FRAMESETTINGS_LOD_BIAS
         const string otherSettingsHeaderContent = "Other";
-#endif
 
 
         static readonly GUIContent exposureControlContent = EditorGUIUtility.TrTextContent("Exposure Control");

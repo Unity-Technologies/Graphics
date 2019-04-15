@@ -1461,21 +1461,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Must update after getting DebugDisplaySettings
             m_RayTracingManager.rayCountManager.ClearRayCount(cmd, hdCamera);
 #endif
-#if FRAMESETTINGS_LOD_BIAS
-            // Set the LOD bias and store current value to be able to restore it.
-            var initialLODBias = QualitySettings.lodBias;
-            QualitySettings.lodBias = hdCamera.frameSettings.lodBiasMode.ComputeValue(
-                QualitySettings.lodBias,
-                hdCamera.frameSettings.lodBias
-            );
-            cmd.SetLODBias(QualitySettings.lodBias);
-            var initialMaximumLODLevel = QualitySettings.maximumLODLevel;
-            QualitySettings.maximumLODLevel = hdCamera.frameSettings.maximumLODLevelMode.ComputeValue(
-                QualitySettings.maximumLODLevel,
-                hdCamera.frameSettings.maximumLODLevel
-            );
-            cmd.SetMaximumLODLevel(QualitySettings.maximumLODLevel);
-#endif
 
             m_DbufferManager.enableDecals = false;
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
@@ -1980,13 +1965,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (showGizmos)
                 RenderGizmos(cmd, camera, renderContext, GizmoSubset.PostImageEffects);
 #endif
-
-#if FRAMESETTINGS_LOD_BIAS
-            QualitySettings.lodBias = initialLODBias;
-            cmd.SetLODBias(initialLODBias);
-            QualitySettings.maximumLODLevel = initialMaximumLODLevel;
-            cmd.SetMaximumLODLevel(initialMaximumLODLevel);
-#endif
         }
 
         void BlitFinalCameraTexture(CommandBuffer cmd, HDCamera hdCamera, RenderTargetIdentifier destination)
@@ -2210,7 +2188,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
-#if FRAMESETTINGS_LOD_BIAS
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias
             var initialLODBias = QualitySettings.lodBias;
@@ -2225,7 +2202,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     QualitySettings.maximumLODLevel,
                     hdCamera.frameSettings.maximumLODLevel
                 );
-#endif
 
                 var includeEnvLights = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting);
 
@@ -2266,14 +2242,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return true;
 
-#if FRAMESETTINGS_LOD_BIAS
             }
             finally
             {
                 QualitySettings.lodBias = initialLODBias;
                 QualitySettings.maximumLODLevel = initialMaximumLODLevel;
             }
-#endif
         }
 
         void RenderGizmos(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext, GizmoSubset gizmoSubset)
