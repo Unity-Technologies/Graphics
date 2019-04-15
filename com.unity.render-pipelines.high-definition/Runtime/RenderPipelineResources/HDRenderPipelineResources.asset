@@ -236,4 +236,7 @@ MonoBehaviour:
     - {fileID: 2800000, guid: a35bdcb2008832646b3c8d2eb11e38a9, type: 3}
     SMAASearchTex: {fileID: 2800000, guid: dc95d70472e232b438d0fd38651e7ec2, type: 3}
     SMAAAreaTex: {fileID: 2800000, guid: 92e0d85ab4eca874098e7fcf6f8f674e, type: 3}
+  assets:
+    defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e,
+      type: 2}
   m_Version: 4

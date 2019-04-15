@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering
                 switch (SystemInfo.graphicsDeviceType)
                 {
                     case GraphicsDeviceType.Direct3D11:
+                    case GraphicsDeviceType.Direct3D12:
                         return SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne;
                 }
 

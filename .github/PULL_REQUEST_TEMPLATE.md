@@ -17,7 +17,7 @@ Please add any useful notes about the feature/fix that might be helpful for othe
 - [ ] C# and shader warnings (supress shader cache to see them)
 - Other: 
 
-**Automated Tests**: What did you setup?
+**Automated Tests**: What did you setup? (Add a screenshot or the reference image of the test please)
 
 Any test projects to go with this to help reviewers?
 
