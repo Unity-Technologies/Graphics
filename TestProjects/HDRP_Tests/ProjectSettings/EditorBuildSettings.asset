@@ -230,7 +230,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8101_Opaque.unity
     guid: 3f9e911b4dbc9464e85add595c37cb89
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8102_Transparent.unity
     guid: c2f6e1c5441279d42b05dbe99212bf2d
   - enabled: 0
