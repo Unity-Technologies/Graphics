@@ -9,7 +9,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal static class ShapeEditorToolContents
+    internal static class PathEditorToolContents
     {
         internal static readonly GUIContent shapeToolIcon = IconContent("ShapeTool", "Start editing the Shape in the Scene View.");
         internal static readonly GUIContent shapeToolPro = IconContent("ShapeToolPro", "Start editing the Shape in the Scene View.");
@@ -95,13 +95,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         }
     }
 
-    internal abstract class ShapeEditorTool<T> : EditorTool, IDuringSceneGuiTool where T : ScriptableShapeEditor
+    internal abstract class PathEditorTool<T> : EditorTool, IDuringSceneGuiTool where T : ScriptablePath
     {
         private Dictionary<UnityObject, T> m_ShapeEditors = new Dictionary<UnityObject, T>();
         private IGUIState m_GUIState = new GUIState();
         private Dictionary<UnityObject, GUISystem> m_GUISystems = new Dictionary<UnityObject, GUISystem>();
         private Dictionary<UnityObject, SerializedObject> m_SerializedObjects = new Dictionary<UnityObject, SerializedObject>();
-        private MultiShapeEditorController m_Controller = new MultiShapeEditorController();
+        private MultipleEditablePathController m_Controller = new MultipleEditablePathController();
         private PointRectSelector m_RectSelector = new PointRectSelector();
         private bool m_IsActive = false;
 
@@ -118,7 +118,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         public override GUIContent toolbarIcon
         {
-            get { return ShapeEditorToolContents.icon; }
+            get { return PathEditorToolContents.icon; }
         }
 
         public override bool IsAvailable()
@@ -349,7 +349,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         private void CreateGUISystem(UnityObject target)
         {
             var guiSystem = new GUISystem(m_GUIState);
-            var driver = new ShapeEditorDriver();
+            var driver = new EditablePathView();
 
             driver.controller = m_Controller;
             driver.Install(guiSystem);

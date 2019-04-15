@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal static class ShapeEditorExtensions
+    internal static class EditablePathExtensions
     {
-        public static Polygon ToPolygon(this IShapeEditor shapeEditor)
+        public static Polygon ToPolygon(this IEditablePath shapeEditor)
         {
             var polygon = new Polygon()
             {
@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             return polygon;
         }
 
-        public static Spline ToSpline(this IShapeEditor shapeEditor)
+        public static Spline ToSpline(this IEditablePath shapeEditor)
         {
             var count = shapeEditor.pointCount * 3;
 
@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
                 if (i * 3 + 1 < count)
                 {
-                    var nextIndex = ShapeEditorUtility.Mod(i+1, shapeEditor.pointCount);
+                    var nextIndex = EditablePathUtility.Mod(i+1, shapeEditor.pointCount);
 
                     spline.points[i*3 + 1] = shapeEditor.CalculateRightTangent(i);
                     spline.points[i*3 + 2] = shapeEditor.CalculateLeftTangent(nextIndex);
@@ -52,12 +52,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             return spline;
         }
 
-        public static Vector3 CalculateLocalLeftTangent(this IShapeEditor shapeEditor, int index)
+        public static Vector3 CalculateLocalLeftTangent(this IEditablePath shapeEditor, int index)
         {
             return shapeEditor.CalculateLeftTangent(index) - shapeEditor.GetPoint(index).position;
         }
 
-        public static Vector3 CalculateLeftTangent(this IShapeEditor shapeEditor, int index)
+        public static Vector3 CalculateLeftTangent(this IEditablePath shapeEditor, int index)
         {
             var point = shapeEditor.GetPoint(index);
             var isTangentLinear = point.localLeftTangent == Vector3.zero;
@@ -77,12 +77,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             return tangent;
         }
 
-        public static Vector3 CalculateLocalRightTangent(this IShapeEditor shapeEditor, int index)
+        public static Vector3 CalculateLocalRightTangent(this IEditablePath shapeEditor, int index)
         {
             return shapeEditor.CalculateRightTangent(index) - shapeEditor.GetPoint(index).position;
         }
 
-        public static Vector3 CalculateRightTangent(this IShapeEditor shapeEditor, int index)
+        public static Vector3 CalculateRightTangent(this IEditablePath shapeEditor, int index)
         {
             var point = shapeEditor.GetPoint(index);
             var isTangentLinear = point.localRightTangent == Vector3.zero;
@@ -102,17 +102,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             return tangent;
         }
 
-        public static ControlPoint GetPrevPoint(this IShapeEditor shapeEditor, int index)
+        public static ControlPoint GetPrevPoint(this IEditablePath shapeEditor, int index)
         {
-            return shapeEditor.GetPoint(ShapeEditorUtility.Mod(index - 1, shapeEditor.pointCount));
+            return shapeEditor.GetPoint(EditablePathUtility.Mod(index - 1, shapeEditor.pointCount));
         }
 
-        public static ControlPoint GetNextPoint(this IShapeEditor shapeEditor, int index)
+        public static ControlPoint GetNextPoint(this IEditablePath shapeEditor, int index)
         {
-            return shapeEditor.GetPoint(ShapeEditorUtility.Mod(index + 1, shapeEditor.pointCount));
+            return shapeEditor.GetPoint(EditablePathUtility.Mod(index + 1, shapeEditor.pointCount));
         }
 
-        public static void UpdateTangentMode(this IShapeEditor shapeEditor, int index)
+        public static void UpdateTangentMode(this IEditablePath shapeEditor, int index)
         {
             var localToWorldMatrix = shapeEditor.localToWorldMatrix;
             shapeEditor.localToWorldMatrix = Matrix4x4.identity;
@@ -133,7 +133,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             shapeEditor.localToWorldMatrix = localToWorldMatrix;
         }
 
-        public static void UpdateTangentsFromMode(this IShapeEditor shapeEditor)
+        public static void UpdateTangentsFromMode(this IEditablePath shapeEditor)
         {
             const float kEpsilon = 0.001f;
 
@@ -183,7 +183,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             shapeEditor.localToWorldMatrix = localToWorldMatrix;
         }
 
-        public static void SetTangentMode(this IShapeEditor shapeEditor, int index, TangentMode tangentMode)
+        public static void SetTangentMode(this IEditablePath shapeEditor, int index, TangentMode tangentMode)
         {
             var localToWorldMatrix = shapeEditor.localToWorldMatrix;
             shapeEditor.localToWorldMatrix = Matrix4x4.identity;
@@ -248,7 +248,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             shapeEditor.localToWorldMatrix = localToWorldMatrix;
         }
 
-        public static void MirrorTangent(this IShapeEditor shapeEditor, int index)
+        public static void MirrorTangent(this IEditablePath shapeEditor, int index)
         {
             var localToWorldMatrix = shapeEditor.localToWorldMatrix;
             shapeEditor.localToWorldMatrix = Matrix4x4.identity;

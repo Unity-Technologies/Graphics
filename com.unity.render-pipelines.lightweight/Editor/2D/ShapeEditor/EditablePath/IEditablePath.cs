@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal interface IShapeEditor : ISelectable<Vector3>
+    internal interface IEditablePath : ISelectable<Vector3>
     {
         ShapeType shapeType { get; set; }
         IUndoObject undoObject { get; set; }

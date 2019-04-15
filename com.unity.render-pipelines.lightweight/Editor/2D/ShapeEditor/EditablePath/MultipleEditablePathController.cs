@@ -4,20 +4,20 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal class MultiShapeEditorController : IShapeEditorController
+    internal class MultipleEditablePathController : IEditablePathController
     {
-        private IShapeEditorController m_Controller = new ShapeEditorController();
-        private List<IShapeEditor> m_ShapeEditors = new List<IShapeEditor>();
+        private IEditablePathController m_Controller = new EditablePathController();
+        private List<IEditablePath> m_ShapeEditors = new List<IEditablePath>();
         private float m_ClosestDistance = float.MaxValue;
-        private IShapeEditor m_ClosestShapeEditor;
+        private IEditablePath m_ClosestShapeEditor;
 
-        public IShapeEditor shapeEditor
+        public IEditablePath shapeEditor
         {
             get { return m_Controller.shapeEditor; }
             set { m_Controller.shapeEditor = value; }
         }
 
-        public IShapeEditor closestShapeEditor { get; private set; }
+        public IEditablePath closestShapeEditor { get; private set; }
 
         public ISnapping<Vector3> snapping
         {
@@ -36,13 +36,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             m_ShapeEditors.Clear();
         }
 
-        public void AddShapeEditor(IShapeEditor shapeEditor)
+        public void AddShapeEditor(IEditablePath shapeEditor)
         {
             if (!m_ShapeEditors.Contains(shapeEditor))
                 m_ShapeEditors.Add(shapeEditor);
         }
 
-        public void RemoveShapeEditor(IShapeEditor shapeEditor)
+        public void RemoveShapeEditor(IEditablePath shapeEditor)
         {
             m_ShapeEditors.Remove(shapeEditor);
         }
@@ -141,7 +141,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             }
         }
 
-        private void ForEach(Action<IShapeEditor> action)
+        private void ForEach(Action<IEditablePath> action)
         {
             foreach(var shapeEditor in m_ShapeEditors)
             {

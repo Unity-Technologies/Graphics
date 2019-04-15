@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     if (isOpenEnded)
                         leftTangent = points[0];
                     else
-                        leftTangent = points[ShapeEditorUtility.Mod(-1, pointCount)];
+                        leftTangent = points[EditablePathUtility.Mod(-1, pointCount)];
                 }
                 
                 if (i == pointCount - 1 && isOpenEnded)
@@ -63,8 +63,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             for (var i = 0; i < pointCount; ++i) 
             {
-                var prevIndex = ShapeEditorUtility.Mod(i-1, pointCount);
-                var nextIndex = ShapeEditorUtility.Mod(i+1, pointCount);
+                var prevIndex = EditablePathUtility.Mod(i-1, pointCount);
+                var nextIndex = EditablePathUtility.Mod(i+1, pointCount);
                 var controlPoint = controlPoints[i];
                 var prevControlPoint = controlPoints[prevIndex];
                 var nextControlPoint = controlPoints[nextIndex];

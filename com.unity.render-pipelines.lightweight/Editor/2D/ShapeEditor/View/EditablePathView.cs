@@ -7,12 +7,12 @@ using UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal class ShapeEditorDriver : IShapeEditorDriver
+    internal class EditablePathView : IEditablePathView
     {
         const float kSnappingDistance = 15f;
         const string kDeleteCommandName = "Delete";
         const string kSoftDeleteCommandName = "SoftDelete";
-        public IShapeEditorController controller { get; set; }
+        public IEditablePathController controller { get; set; }
         private Control m_PointControl;
         private Control m_EdgeControl;
         private Control m_LeftTangentControl;
@@ -26,9 +26,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         private GUIAction m_MoveRightTangentAction;
         private IDrawer m_Drawer;
 
-        public ShapeEditorDriver() : this(new Drawer()) { }
+        public EditablePathView() : this(new Drawer()) { }
         
-        public ShapeEditorDriver(IDrawer drawer)
+        public EditablePathView(IDrawer drawer)
         {
             m_Drawer = drawer;
 
@@ -353,7 +353,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private int NextIndex(int index)
         {
-            return ShapeEditorUtility.Mod(index + 1, GetPointCount());
+            return EditablePathUtility.Mod(index + 1, GetPointCount());
         }
 
         private ControlPoint NextControlPoint(int index)
@@ -363,7 +363,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private int PrevIndex(int index)
         {
-            return ShapeEditorUtility.Mod(index - 1, GetPointCount());
+            return EditablePathUtility.Mod(index - 1, GetPointCount());
         }
 
         private ControlPoint PrevControlPoint(int index)

@@ -7,8 +7,8 @@ using UnityEditor;
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(ScriptableShapeEditor), true)]
-    internal class ScriptableShapeEditorInspector : Editor
+    [CustomEditor(typeof(ScriptablePath), true)]
+    internal class ScriptablePathInspector : Editor
     {
         private static class Contents
         {
@@ -35,15 +35,15 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             }
         }
 
-        private List<ScriptableShapeEditor> m_ShapeEditors = null;
+        private List<ScriptablePath> m_ShapeEditors = null;
         private bool m_Dragged = false;
 
-        protected List<ScriptableShapeEditor> shapeEditors
+        protected List<ScriptablePath> shapeEditors
         {
             get
             {
                 if (m_ShapeEditors == null)
-                    m_ShapeEditors = targets.Select( t => t as ScriptableShapeEditor).ToList();
+                    m_ShapeEditors = targets.Select( t => t as ScriptablePath).ToList();
                 
                 return m_ShapeEditors;
             }

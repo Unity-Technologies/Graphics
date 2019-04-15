@@ -7,10 +7,10 @@ using UnityEditor.EditorTools;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal class ScriptableShapeEditor : ScriptableObject, IShapeEditor, IUndoObject
+    internal class ScriptablePath : ScriptableObject, IEditablePath, IUndoObject
     {
         [SerializeField]
-        private ShapeEditor m_ShapeEditor = new ShapeEditor();
+        private EditablePath m_ShapeEditor = new EditablePath();
         [SerializeField]
         private bool m_Modified = false;
 

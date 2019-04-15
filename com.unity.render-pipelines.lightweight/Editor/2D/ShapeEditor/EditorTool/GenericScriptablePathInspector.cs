@@ -7,7 +7,7 @@ using UnityEditor.EditorTools;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal class GenericShapeEditorInspector<U,T> : ScriptableShapeEditorInspector where U : ScriptableData<T>
+    internal class GenericScriptablePathInspector<U,T> : ScriptablePathInspector where U : ScriptableData<T>
     {
         private List<U> m_DataObjects = new List<U>();
         private List<U> m_SelectedDataObjects = new List<U>();
@@ -62,7 +62,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             var index = 0;
             foreach(var shapeEditor in shapeEditors)
             {
-                var genericShapeEditor = shapeEditor as GenericShapeEditor<T>;
+                var genericShapeEditor = shapeEditor as GenericScriptablePath<T>;
                 var customDataArray = genericShapeEditor.data;
                 var length = customDataArray.Length;
                 
@@ -84,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             var index = 0;
             foreach(var shapeEditor in shapeEditors)
             {
-                var genericShapeEditor = shapeEditor as GenericShapeEditor<T>;
+                var genericShapeEditor = shapeEditor as GenericScriptablePath<T>;
                 var customDataArray = genericShapeEditor.data;
                 var length = customDataArray.Length;
                 

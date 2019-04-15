@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal interface IShapeEditorController
+    internal interface IEditablePathController
     {
-        IShapeEditor shapeEditor { get; set; }
-        IShapeEditor closestShapeEditor { get; }
+        IEditablePath shapeEditor { get; set; }
+        IEditablePath closestShapeEditor { get; }
         ISnapping<Vector3> snapping { get; set; }
         bool enableSnapping { get; set; }
         void RegisterUndo(string name);

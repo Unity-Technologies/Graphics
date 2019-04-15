@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal class GenericShapeEditor<T> : ScriptableShapeEditor
+    internal class GenericScriptablePath<T> : ScriptablePath
     {
         [SerializeField]
         private List<T> m_Data = new List<T>();

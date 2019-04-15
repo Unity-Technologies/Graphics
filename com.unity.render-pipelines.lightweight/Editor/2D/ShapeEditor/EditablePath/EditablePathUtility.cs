@@ -3,7 +3,7 @@ using UnityEditor;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal class ShapeEditorUtility
+    internal class EditablePathUtility
     {
         public static int Mod(int x, int m)
         {

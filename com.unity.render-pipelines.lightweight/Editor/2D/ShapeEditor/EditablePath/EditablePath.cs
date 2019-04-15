@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
     [Serializable]
-    internal class ShapeEditor : IShapeEditor
+    internal class EditablePath : IEditablePath
     {
         [SerializeField]
         private ShapeType m_ShapeType;

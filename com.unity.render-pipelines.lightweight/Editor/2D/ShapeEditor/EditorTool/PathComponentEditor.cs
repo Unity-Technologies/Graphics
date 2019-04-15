@@ -9,7 +9,7 @@ using UnityEditor.Experimental.Rendering.LWRP.Path2D;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal abstract class ShapeComponentEditor<T> : Editor where T : ScriptableShapeEditor
+    internal abstract class PathComponentEditor<T> : Editor where T : ScriptablePath
     {
         private static class Contents
         {
@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private Editor m_CachedEditor = null;
 
-        protected void DoEditButton<U>(GUIContent icon, string label) where U : ShapeEditorTool<T>
+        protected void DoEditButton<U>(GUIContent icon, string label) where U : PathEditorTool<T>
         {
             const float kButtonWidth = 33;
             const float kButtonHeight = 23;
@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             }
         }
 
-        protected void DoShapeEditorInspector<U>() where U : ShapeEditorTool<T>
+        protected void DoShapeEditorInspector<U>() where U : PathEditorTool<T>
         {
             if (EditorToolManager.IsActiveTool<U>() && EditorToolManager.IsAvailable<U>())
             {
@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             }
         }
 
-        protected void DoSnappingInspector<U>() where U : ShapeEditorTool<T>
+        protected void DoSnappingInspector<U>() where U : PathEditorTool<T>
         {
             if (EditorToolManager.IsActiveTool<U>() && EditorToolManager.IsAvailable<U>())
             {
@@ -86,7 +86,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             }
         }
 
-        protected void DoOpenEndedInspector<U>(SerializedProperty isOpenEndedProperty) where U : ShapeEditorTool<T>
+        protected void DoOpenEndedInspector<U>(SerializedProperty isOpenEndedProperty) where U : PathEditorTool<T>
         {
             serializedObject.Update();
 

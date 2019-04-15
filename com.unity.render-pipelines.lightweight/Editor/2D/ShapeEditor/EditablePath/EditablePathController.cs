@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal class ShapeEditorController : IShapeEditorController
+    internal class EditablePathController : IEditablePathController
     {
         private ISnapping<Vector3> m_Snapping = new Snapping();
 
-        public IShapeEditor shapeEditor { get; set; }
-        public IShapeEditor closestShapeEditor { get { return shapeEditor; } }
+        public IEditablePath shapeEditor { get; set; }
+        public IEditablePath closestShapeEditor { get { return shapeEditor; } }
 
         public ISnapping<Vector3> snapping
         {
@@ -232,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private int NextIndex(int index)
         {
-            return ShapeEditorUtility.Mod(index + 1, shapeEditor.pointCount);
+            return EditablePathUtility.Mod(index + 1, shapeEditor.pointCount);
         }
 
         private ControlPoint NextControlPoint(int index)
@@ -242,7 +242,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private int PrevIndex(int index)
         {
-            return ShapeEditorUtility.Mod(index - 1, shapeEditor.pointCount);
+            return EditablePathUtility.Mod(index - 1, shapeEditor.pointCount);
         }
 
         private ControlPoint PrevControlPoint(int index)

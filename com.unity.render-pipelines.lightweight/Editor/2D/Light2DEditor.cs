@@ -10,10 +10,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 {
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]
-    internal class Light2DEditor : ShapeComponentEditor<ScriptableShapeEditor>
+    internal class Light2DEditor : PathComponentEditor<ScriptablePath>
     {
         [EditorTool("Edit Freeform Shape", typeof(Light2D))]
-        class FreeformShapeTool : ShapeEditorTool<ScriptableShapeEditor>
+        class FreeformShapeTool : PathEditorTool<ScriptablePath>
         {
             const string k_ShapePath = "m_ShapePath";
 
@@ -32,7 +32,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 return (target as Light2D).shapePath.ToPolygon(false);
             }
 
-            protected override void SetShape(ScriptableShapeEditor shapeEditor, SerializedObject serializedObject)
+            protected override void SetShape(ScriptablePath shapeEditor, SerializedObject serializedObject)
             {
                 serializedObject.Update();
 
@@ -132,7 +132,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SortingLayer[]  m_AllSortingLayers;
         GUIContent[]    m_AllSortingLayerNames;
         List<int>       m_ApplyToSortingLayersList;
-        ShapeEditor     m_ShapeEditor               = new ShapeEditor();
 
         Light2D lightObject => target as Light2D;
 
@@ -664,7 +663,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             if (m_LightType.intValue == (int)Light2D.LightType.Freeform)
             {
-                DoEditButton<FreeformShapeTool>(ShapeEditorToolContents.icon, "Edit Shape");
+                DoEditButton<FreeformShapeTool>(PathEditorToolContents.icon, "Edit Shape");
                 DoShapeEditorInspector<FreeformShapeTool>();
                 DoSnappingInspector<FreeformShapeTool>();
             }

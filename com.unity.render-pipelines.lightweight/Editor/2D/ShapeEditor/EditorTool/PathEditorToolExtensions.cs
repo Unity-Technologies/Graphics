@@ -9,9 +9,9 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal static class ShapeEditorToolExtensions
+    internal static class PathEditorToolExtensions
     {
-        public static void CycleTangentMode<T>(this ShapeEditorTool<T> shapeEditorTool) where T : ScriptableShapeEditor
+        public static void CycleTangentMode<T>(this PathEditorTool<T> shapeEditorTool) where T : ScriptablePath
         {
             var first = true;
             var mixed = false;
@@ -74,7 +74,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             }
         }
 
-        public static void MirrorTangent<T>(this ShapeEditorTool<T> shapeEditorTool) where T : ScriptableShapeEditor
+        public static void MirrorTangent<T>(this PathEditorTool<T> shapeEditorTool) where T : ScriptablePath
         {
             var targets = shapeEditorTool.targets;
 
