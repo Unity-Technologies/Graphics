@@ -113,9 +113,9 @@ public class MultiCam : MonoBehaviour
 
         targetCam.targetTexture = previousTargetTexture;
 
-        if (displayObject != null && displayObject.material != null)
+        if (displayObject != null && displayObject.sharedMaterial != null)
         {
-            displayObject.material.SetTexture(displayTextureProperty, rt);
+            displayObject.sharedMaterial.SetTexture(displayTextureProperty, rt);
             displayObject.transform.localScale = new Vector3( (singleRes.x*tiles.x) * 1f/(singleRes.y*tiles.y) ,1f,1f);
         }
     }
