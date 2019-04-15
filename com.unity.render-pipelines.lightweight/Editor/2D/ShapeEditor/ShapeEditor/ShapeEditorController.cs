@@ -109,12 +109,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         public void RemoveSelectedPoints()
         {
-            if (shapeEditor.pointCount > 2)
+            var minPointCount = shapeEditor.isOpenEnded ? 2 : 3;
+
+            if (shapeEditor.pointCount > minPointCount)
             {
                 var indices = shapeEditor.selection.elements.OrderByDescending( i => i);
 
                 foreach (var index in indices)
-                    if (shapeEditor.pointCount > 2)
+                    if (shapeEditor.pointCount > minPointCount)
                         shapeEditor.RemovePoint(index);
 
                 ClearSelection();
