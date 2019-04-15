@@ -11,6 +11,12 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractParticleOutput : VFXContext, IVFXSubRenderer
     {
+        public enum TextureColorMode
+        {
+            Textured,
+            GradientMapped
+        }
+
         public enum BlendMode
         {
             Additive,
@@ -73,7 +79,10 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected ZTestMode zTestMode = ZTestMode.Default;
 
-        [VFXSetting, SerializeField, Header("Particle Options"), FormerlySerializedAs("flipbookMode")]
+        [VFXSetting, SerializeField, Header("Particle Options")]
+        protected TextureColorMode textureColorMode;
+
+        [VFXSetting, SerializeField, FormerlySerializedAs("flipbookMode")]
         protected UVMode uvMode;
 
         [VFXSetting, SerializeField]
@@ -134,6 +143,11 @@ namespace UnityEditor.VFX
             if (blendMode == BlendMode.Masked)
                 yield return slotExpressions.First(o => o.name == "alphaThreshold");
 
+            if (textureColorMode == TextureColorMode.GradientMapped)
+            {
+                yield return slotExpressions.First(o => o.name == "gradient");
+            }
+
             if (supportSoftParticles)
             {
                 var softParticleFade = slotExpressions.First(o => o.name == "softParticlesFadeDistance");
@@ -171,12 +185,24 @@ namespace UnityEditor.VFX
             return new VFXExpressionMapper();
         }
 
+        public class InputPropertiesGradientMapped
+        {
+            [Tooltip("The gradient used to sample color")]
+            public Gradient gradient = VFXResources.defaultResources.gradientMapRamp;
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
+
+                if(textureColorMode == TextureColorMode.GradientMapped)
+                {
+                    foreach(var property in PropertiesFromType("InputPropertiesGradientMapped"))
+                        yield return property;
+                }
 
                 if (supportsUV && uvMode != UVMode.Simple)
                 {
@@ -205,6 +231,16 @@ namespace UnityEditor.VFX
         {
             get
             {
+                switch(textureColorMode)
+                {
+                    case TextureColorMode.Textured:
+                        yield return "VFX_TEXTURECOLOR_TEXTURED";
+                        break;
+                    case TextureColorMode.GradientMapped:
+                        yield return "VFX_TEXTURECOLOR_GRADIENTMAPPED";
+                        break;
+                }
+
                 if (isBlendModeOpaque)
                     yield return "IS_OPAQUE_PARTICLE";
                 else

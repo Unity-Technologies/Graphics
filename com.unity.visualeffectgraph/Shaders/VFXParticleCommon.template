@@ -76,3 +76,22 @@ if (!alive)
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
 ${VFXEnd}
+
+${VFXBegin:VFXApplyTextureColorMode}
+
+float4 color = VFXGetFragmentColor(i);
+
+#ifndef VFX_TEXTURE_COLOR
+	#define VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)
+#endif
+
+#if VFX_TEXTURECOLOR_TEXTURED
+	o.color = color * VFX_TEXTURE_COLOR;
+#endif
+
+#if VFX_TEXTURECOLOR_GRADIENTMAPPED
+	${VFXLoadAttributes:{gradient}}
+	o.color = SampleGradient(gradient, VFX_TEXTURE_COLOR.a * color.a) * float4(color.rgb,1.0);
+#endif
+
+${VFXEnd}
