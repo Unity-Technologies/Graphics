@@ -96,6 +96,21 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1602_TerrainLit_Normal.unity
     guid: 493570d0c7a7cd0449d5ceb578701b5e
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1701_Decals.unity
+    guid: a27cb5a638892574f99eb333bb3c7722
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1702_MeshDecals.unity
+    guid: d27cf5628eba05c479941957559088d1
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1703_Decals-ReorientedNormals.unity
+    guid: accc96ed8662d3b4ebc3be051aada793
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1704_Decals-Settings.unity
+    guid: ead63a11c9b9ca84a9419d8625393156
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1705_Decals-stress-test.unity
+    guid: 0e963f94367e3fe4a8c36b77f2e12a8b
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2001_Dynamic_Directional.unity
     guid: 09baf18a7e1f6584f86675e6a2141c66
   - enabled: 1
@@ -209,32 +224,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
     guid: 21522d96110c8dd41ab353d89fd740c3
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3002_ObjectMotionVector.unity
-    guid: 5fd66b494b9e057498e551fea7ab02fd
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3003_CameraMotionVector_TranslateX.unity
-    guid: 32624e48cd276b5418513150e7abd682
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3004_CameraMotionVector_TranslateY.unity
-    guid: b8bed96a3181ffe49b8e54bc9a3c7687
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3005_CameraMotionVector_TranslateZ.unity
-    guid: 55881ec59ae8d414cb8a77aa120a45ed
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3006_CameraMotionVector_RotateX.unity
-    guid: 0225322b58c79bb4d87afeb169e0d119
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3007_CameraMotionVector_RotateY.unity
-    guid: 01e6660110220214782d0ebf364fe7c9
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3008_CameraMotionVector_RotateZ.unity
-    guid: fabc53a9f87e8784580b4e75dc067ca3
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3009_CameraMotionVector_FOV.unity
-    guid: a5fb429214e9b2a4f8b3d258c0585630
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4000_Exposure.unity
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8101_Opaque.unity
@@ -263,21 +254,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8205_SceneDepthColorNodes.unity
     guid: 17a399a27d6d4504cb53093dcadfe715
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9001_Decals.unity
-    guid: a27cb5a638892574f99eb333bb3c7722
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9002_MeshDecals.unity
-    guid: d27cf5628eba05c479941957559088d1
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9003_Decals-ReorientedNormals.unity
-    guid: accc96ed8662d3b4ebc3be051aada793
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9004_Decals-Settings.unity
-    guid: ead63a11c9b9ca84a9419d8625393156
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9005_Decals-stress-test.unity
-    guid: 0e963f94367e3fe4a8c36b77f2e12a8b
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9101_Density-volumes.unity
     guid: 340fc0a32de5178478b13cfa2dd928f6
