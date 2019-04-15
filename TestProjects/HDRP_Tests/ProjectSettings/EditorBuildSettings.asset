@@ -192,6 +192,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2501_Instancing_Lighting.unity
     guid: d841ad64fdc2ae14ba996e30fe86b901
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2505_LightLayers.unity
+    guid: 100c0e304d8aba84186dcd9bf48e5b85
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2601_ColorTemp.unity
     guid: 34a3a4a7a56d3014dad3114e6b523742
   - enabled: 0
