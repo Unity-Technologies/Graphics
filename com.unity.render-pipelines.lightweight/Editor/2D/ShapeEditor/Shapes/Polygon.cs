@@ -29,5 +29,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             return controlPoints.ToArray();
         }
+
+        public static Polygon empty = new Polygon() { isOpenEnded = true, points = new Vector3[0] };
     }
 }

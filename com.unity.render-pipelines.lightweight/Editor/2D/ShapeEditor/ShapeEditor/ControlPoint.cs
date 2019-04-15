@@ -7,9 +7,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
     internal enum TangentMode
     {
-        Linear,
-        Continuous,
-        Broken
+        Linear = 0,
+        Continuous = 1,
+        Broken = 2
     }
 
     [Serializable]
@@ -28,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         public TangentMode tangentMode;
         public TangentCache continuousCache;
         public TangentCache brokenCache;
+        public bool mirrorLeft;
 
         public Vector3 leftTangent
         {

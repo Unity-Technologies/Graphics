@@ -71,7 +71,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     var dataObject = m_DataObjects[index + i];
                     dataObject.data = customDataArray[i];
 
-                    if (shapeEditor.pointSelection.Contains(i))
+                    if (shapeEditor.selection.Contains(i))
                         m_SelectedDataObjects.Add(dataObject);
                 }
                 

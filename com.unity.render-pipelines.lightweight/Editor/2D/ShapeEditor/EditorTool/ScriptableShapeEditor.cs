@@ -10,14 +10,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
     internal class ScriptableShapeEditor : ScriptableObject, IShapeEditor, IUndoObject
     {
         [SerializeField]
-        private UnityEngine.Object m_Owner;
-        [SerializeField]
         private ShapeEditor m_ShapeEditor = new ShapeEditor();
+        [SerializeField]
+        private bool m_Modified = false;
 
-        public UnityEngine.Object owner
+        internal bool modified
         {
-            get { return m_Owner; }
-            internal set { m_Owner = value; }
+            get { return m_Modified; }
         }
 
         public ShapeType shapeType
@@ -32,9 +31,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             set { }
         }
 
-        public ISelection<int> pointSelection
+        public ISelection<int> selection
         {
-            get { return m_ShapeEditor.pointSelection; }
+            get { return m_ShapeEditor.selection; }
         }
 
         public Matrix4x4 localToWorldMatrix
@@ -61,12 +60,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             set { m_ShapeEditor.right = value; }
         }
 
-        public bool snapping
-        {
-            get { return m_ShapeEditor.snapping; }
-            set { m_ShapeEditor.snapping = value; }
-        }
-
         public bool isOpenEnded
         {
             get { return m_ShapeEditor.isOpenEnded; }
@@ -78,19 +71,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             get { return m_ShapeEditor.pointCount; }
         }
 
-        public void Select(ISelector<Vector3> selector)
+        public bool Select(ISelector<Vector3> selector)
         {
-            m_ShapeEditor.Select(selector);
-        }
-
-        public void UpdateTangentMode(int index)
-        {
-            m_ShapeEditor.UpdateTangentMode(index);
-        }
-
-        public void SetTangentMode(int index, TangentMode tangentMode)
-        {
-            m_ShapeEditor.SetTangentMode(index, tangentMode);
+            return m_ShapeEditor.Select(selector);
         }
 
         public virtual void Clear()
@@ -126,6 +109,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         void IUndoObject.RegisterUndo(string name)
         {
             Undo.RegisterCompleteObjectUndo(this, name);
+            m_Modified = true;
         }
     }
 }

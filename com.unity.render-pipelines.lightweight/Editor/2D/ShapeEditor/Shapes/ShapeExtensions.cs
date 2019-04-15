@@ -1,3 +1,4 @@
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,10 +16,34 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             };
         }
 
-        public static IShape ToSpline(this Vector3[] points, bool isOpenEnded)
+        public static Spline ToSpline(this Vector3[] points, bool isOpenEnded)
         {
-            if (points.Length < 4 || (isOpenEnded && points.Length % 3 != 1) || (!isOpenEnded && points.Length % 3 != 0)) 
-                return points.ToPolygon(isOpenEnded).ToSpline();
+            if (!points.IsSpline(isOpenEnded) && points.IsSpline(!isOpenEnded))
+            {
+                var pointList = new List<Vector3>(points);
+
+                if (isOpenEnded)
+                {
+                    while (pointList.Count % 3 != 1)
+                        pointList.RemoveAt(pointList.Count-1);
+
+                    points = pointList.ToArray();
+                }
+                else
+                {
+                    var last = pointList[pointList.Count-1];
+                    var first = pointList[0];
+                    var v = first - last;
+
+                    pointList.Add(last + v.normalized * (v.magnitude / 3f));
+                    pointList.Add(first - v.normalized * (v.magnitude / 3f));
+
+                    points = pointList.ToArray();
+                }
+            }
+            
+            if (!points.IsSpline(isOpenEnded))
+                throw new Exception("The provided control point array can't conform a Spline.");
 
             return new Spline()
             {
@@ -27,7 +52,21 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             };
         }
 
-        public static IShape ToSpline(this Polygon polygon)
+        public static bool IsSpline(this Vector3[] points, bool isOpenEnded)
+        {
+            if (points.Length < 4)
+                return false;
+
+            if (isOpenEnded && points.Length % 3 != 1)
+                return false;
+
+            if (!isOpenEnded && points.Length % 3 != 0)
+                return false;
+
+            return true;
+        }
+
+        public static Spline ToSpline(this Polygon polygon)
         {
             var newPointCount = polygon.points.Length * 3;
 

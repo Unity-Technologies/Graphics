@@ -3,11 +3,6 @@ using UnityEditor;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
-    internal interface ISnapping<T>
-    {
-        T Snap(T value);
-    }
-
     internal class Snapping : ISnapping<Vector3>
     {
         public Vector3 Snap(Vector3 position)

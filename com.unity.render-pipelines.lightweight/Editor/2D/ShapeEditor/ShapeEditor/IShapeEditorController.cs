@@ -6,6 +6,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
     internal interface IShapeEditorController
     {
         IShapeEditor shapeEditor { get; set; }
+        IShapeEditor closestShapeEditor { get; }
         ISnapping<Vector3> snapping { get; set; }
         bool enableSnapping { get; set; }
         void RegisterUndo(string name);
@@ -15,7 +16,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         void RemoveSelectedPoints();
         void MoveSelectedPoints(Vector3 delta);
         void MoveEdge(int index, Vector3 delta);
-        void SetLeftTangent(int index, Vector3 position, bool setToLinear, Vector3 cachedRightTangent);
-        void SetRightTangent(int index, Vector3 position, bool setToLinear, Vector3 cachedLeftTangent);
+        void SetLeftTangent(int index, Vector3 position, bool setToLinear, bool mirror, Vector3 cachedRightTangent);
+        void SetRightTangent(int index, Vector3 position, bool setToLinear, bool mirror, Vector3 cachedLeftTangent);
+        void ClearClosestShapeEditor();
+        void AddClosestShapeEditor(float distance);
     }
 }

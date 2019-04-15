@@ -52,6 +52,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             m_Data.RemoveAt(index);
         }
 
+        public T GetData(int index)
+        {
+            return m_Data[index];
+        }
+
+        public void SetData(int index, T data)
+        {
+            m_Data[index] = data;
+        }
+
         protected virtual T Create()
         {
             return Activator.CreateInstance<T>();

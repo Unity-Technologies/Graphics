@@ -13,8 +13,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         const string kDeleteCommandName = "Delete";
         const string kSoftDeleteCommandName = "SoftDelete";
         public IShapeEditorController controller { get; set; }
-        protected Control m_PointControl;
-        protected Control m_EdgeControl;
+        private Control m_PointControl;
+        private Control m_EdgeControl;
         private Control m_LeftTangentControl;
         private Control m_RightTangentControl;
         private GUIAction m_MovePointAction;
@@ -49,6 +49,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             m_EdgeControl = new GenericControl("Edge")
             {
+                onEndLayout = (guiState) => { controller.AddClosestShapeEditor(m_EdgeControl.layoutData.distance); },
                 count = GetEdgeCount,
                 distance = DistanceToEdge,
                 position = (i) => { return GetPoint(i).position; },
@@ -72,10 +73,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     if (!IsSelected(i) || IsOpenEnded() && i == 0)
                         return float.MaxValue;
 
-                    var position = GetLeftTangentPosition(i);
+                    var position = GetLeftTangent(i);
                     return guiState.DistanceToCircle(position, guiState.GetHandleSize(position) * 10f);
                 },
-                position = (i) => { return GetLeftTangentPosition(i); },
+                position = (i) => { return GetLeftTangent(i); },
                 forward = (i) => { return GetForward(); },
                 up = (i) => { return GetUp(); },
                 right = (i) => { return GetRight(); },
@@ -85,7 +86,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                         return;
 
                     var position = GetPoint(i).position;
-                    var leftTangent = GetLeftTangentPosition(i);
+                    var leftTangent = GetLeftTangent(i);
                     
                     m_Drawer.DrawTangent(position, leftTangent);
                 }
@@ -105,10 +106,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     if (!IsSelected(i) || IsOpenEnded() && i == GetPointCount()-1)
                         return float.MaxValue;
 
-                    var position = GetRightTangentPosition(i);
+                    var position = GetRightTangent(i);
                     return guiState.DistanceToCircle(position, guiState.GetHandleSize(position) * 10f);
                 },
-                position = (i) => { return GetRightTangentPosition(i); },
+                position = (i) => { return GetRightTangent(i); },
                 forward = (i) => { return GetForward(); },
                 up = (i) => { return GetUp(); },
                 right = (i) => { return GetRight(); },
@@ -118,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                         return;
                     
                     var position = GetPoint(i).position;
-                    var rightTangent = GetRightTangentPosition(i);
+                    var rightTangent = GetRightTangent(i);
 
                     m_Drawer.DrawTangent(position, rightTangent);
                 }
@@ -126,7 +127,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             m_CreatePointAction = new CreatePointAction(m_PointControl, m_EdgeControl)
             {
-                enable = (guiState, action) => { return !guiState.isShiftDown; },
+                enable = (guiState, action) => { return !guiState.isShiftDown && controller.closestShapeEditor == controller.shapeEditor; },
                 enableRepaint = EnableCreatePointRepaint,
                 repaintOnMouseMove = (guiState, action) => { return true; },
                 guiToWorld = GUIToWorld,
@@ -137,30 +138,31 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 },
                 onPreRepaint = (guiState, action) =>
                 {
-                    var position = ClosestPointInEdge(guiState, guiState.mousePosition, m_EdgeControl.layoutData.index);
-
-                    m_Drawer.DrawCreatePointPreview(position);
+                    if (GetPointCount() > 0)
+                    {
+                        var position = ClosestPointInEdge(guiState, guiState.mousePosition, m_EdgeControl.layoutData.index);
+                        m_Drawer.DrawCreatePointPreview(position);
+                    }
                 }
+            };
+
+            Action<IGUIState> removePoints = (guiState) =>
+            {
+                controller.RegisterUndo("Remove Point");
+                controller.RemoveSelectedPoints();
+                guiState.changed = true;
             };
 
             m_RemovePointAction1 = new CommandAction(kDeleteCommandName)
             {
                 enable = (guiState, action) => { return GetSelectedPointCount() > 0; },
-                onCommand = () =>
-                {
-                    controller.RegisterUndo("Remove Point");
-                    controller.RemoveSelectedPoints();
-                }
+                onCommand = removePoints
             };
 
             m_RemovePointAction2 = new CommandAction(kSoftDeleteCommandName)
             {
                 enable = (guiState, action) => { return GetSelectedPointCount() > 0; },
-                onCommand = () =>
-                {
-                    controller.RegisterUndo("Remove Point");
-                    controller.RemoveSelectedPoints();
-                }
+                onCommand = removePoints
             };
 
             m_MovePointAction = new SliderAction(m_PointControl)
@@ -173,6 +175,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                         controller.ClearSelection();
                     
                     controller.SelectPoint(index, true);
+                    guiState.changed = true;
                 },
                 onSliderBegin = (guiState, control, position) =>
                 {
@@ -218,12 +221,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     var index = control.hotLayoutData.index;
                     var setToLinear = guiState.nearestControl == m_PointControl.ID && m_PointControl.layoutData.index == index;
 
-                    controller.SetLeftTangent(index, position, setToLinear, cachedRightTangent);
+                    controller.SetLeftTangent(index, position, setToLinear, guiState.isShiftDown, cachedRightTangent);
                     
                 },
                 onSliderEnd = (guiState, control, position) =>
                 {
                     controller.shapeEditor.UpdateTangentMode(control.hotLayoutData.index);
+                    guiState.changed = true;
                 }
             };
 
@@ -239,11 +243,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     var index = control.hotLayoutData.index;
                     var setToLinear = guiState.nearestControl == m_PointControl.ID && m_PointControl.layoutData.index == index;
 
-                    controller.SetRightTangent(index, position, setToLinear, cachedLeftTangent);
+                    controller.SetRightTangent(index, position, setToLinear, guiState.isShiftDown, cachedLeftTangent);
                 },
                 onSliderEnd = (guiState, control, position) =>
                 {
                     controller.shapeEditor.UpdateTangentMode(control.hotLayoutData.index);
+                    guiState.changed = true;
                 }
             };
         }
@@ -298,12 +303,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private int GetSelectedPointCount()
         {
-            return controller.shapeEditor.pointSelection.Count;
+            return controller.shapeEditor.selection.Count;
         }
 
         private bool IsSelected(int index)
         {
-            return controller.shapeEditor.pointSelection.Contains(index);
+            return controller.shapeEditor.selection.Contains(index);
         }
 
         private Vector3 GetForward()
@@ -336,34 +341,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             return controller.shapeEditor.isOpenEnded;
         }
 
-        private Vector3 GetLeftTangentPosition(int index)
+        private Vector3 GetLeftTangent(int index)
         {
-            var isLinear = Mathf.Approximately(GetPoint(index).localLeftTangent.sqrMagnitude, 0f);
-
-            if (isLinear)
-            {
-                var position = GetPoint(index).position;
-                var prevPosition = PrevControlPoint(index).position;
-
-                return (1f / 3f) * (prevPosition - position) + position;
-            }
-
-            return GetPoint(index).leftTangent;
+            return controller.shapeEditor.CalculateLeftTangent(index);
         }
 
-        private Vector3 GetRightTangentPosition(int index)
+        private Vector3 GetRightTangent(int index)
         {
-            var isLinear = Mathf.Approximately(GetPoint(index).localRightTangent.sqrMagnitude, 0f);
-
-            if (isLinear)
-            {
-                var position = GetPoint(index).position;
-                var nextPosition = NextControlPoint(index).position;
-
-                return (1f / 3f) * (nextPosition - position) + position;
-            }
-
-            return GetPoint(index).rightTangent;
+            return controller.shapeEditor.CalculateRightTangent(index);
         }
 
         private int NextIndex(int index)
@@ -407,8 +392,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     GUIToWorld(guiState, mousePosition),
                     GetPoint(index).position,
                     GetPoint(nextIndex).position,
-                    GetRightTangentPosition(index),
-                    GetLeftTangentPosition(nextIndex),
+                    GetRightTangent(index),
+                    GetLeftTangent(nextIndex),
                     out t);
             }
 
@@ -471,8 +456,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 
                 m_Drawer.DrawBezier(
                     GetPoint(index).position,
-                    GetRightTangentPosition(index),
-                    GetLeftTangentPosition(nextIndex),
+                    GetRightTangent(index),
+                    GetLeftTangent(nextIndex),
                     GetPoint(nextIndex).position,
                     5f,
                     color);

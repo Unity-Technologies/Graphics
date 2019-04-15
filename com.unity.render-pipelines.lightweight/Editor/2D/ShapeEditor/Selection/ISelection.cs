@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         void Clear();
         void BeginSelection();
         void EndSelection(bool select);
-        void Select(T element, bool select);
+        bool Select(T element, bool select);
         bool Contains(T element);
     }
 }

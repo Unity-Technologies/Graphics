@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             if (points == null)
                 throw new NullReferenceException("Points array is null");
 
-            if (points.Length < 4 || (isOpenEnded && points.Length % 3 != 1) || (!isOpenEnded && points.Length % 3 != 0)) 
+            if (!points.IsSpline(isOpenEnded)) 
                 throw new Exception("The provided control point array can't conform a Spline.");
 
             var controlPoints = new List<ControlPoint>();
@@ -97,5 +97,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             return controlPoints.ToArray();
         }
 
+        public static Spline empty = new Spline() { isOpenEnded = true, points = new Vector3[0] };
     }
 }

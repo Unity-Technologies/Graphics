@@ -74,14 +74,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             return false;
         }
 
-        internal static ScriptableShapeEditor[] GetShapeEditors<T>() where T : EditorTool
-        {
-            var tool = GetEditorTool<T>();
-            var targets = tool.targets;
-
-            return targets.Select( (t) => ShapeEditorCache.instance.GetShapeEditor(t) ).Where ( s => s != null).ToArray();
-        }
-
         internal static T GetEditorTool<T>() where T : EditorTool
         {
             foreach(var tool in m_Tools)
@@ -103,46 +95,68 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         }
     }
 
-    internal class ShapeEditorCache : ScriptableSingleton<ShapeEditorCache>
+    internal abstract class ShapeEditorTool<T> : EditorTool, IDuringSceneGuiTool where T : ScriptableShapeEditor
     {
-        private Dictionary<UnityObject, ScriptableShapeEditor> m_ShapeEditors = new Dictionary<UnityObject, ScriptableShapeEditor>();
-
-        internal ScriptableShapeEditor GetShapeEditor(UnityObject target)
-        {
-            var shapeEditor = default(ScriptableShapeEditor);
-            m_ShapeEditors.TryGetValue(target, out shapeEditor);
-            return shapeEditor;
-        }
-
-        internal ScriptableShapeEditor CreateShapeEditor<T>(UnityObject target) where T : ScriptableShapeEditor
-        {
-            var shapeEditor = GetShapeEditor(target);
-
-            if (shapeEditor == null)
-            {
-                shapeEditor = ScriptableObject.CreateInstance<T>();
-                shapeEditor.owner = target;
-                m_ShapeEditors[target] = shapeEditor;
-            }
-
-            return shapeEditor;
-        }
-    }
-
-    internal abstract class ShapeEditorTool<T> : EditorTool, IDuringSceneGuiTool, IShapeEditorController where T : ScriptableShapeEditor
-    {
+        private Dictionary<UnityObject, T> m_ShapeEditors = new Dictionary<UnityObject, T>();
+        private IGUIState m_GUIState = new GUIState();
         private Dictionary<UnityObject, GUISystem> m_GUISystems = new Dictionary<UnityObject, GUISystem>();
         private Dictionary<UnityObject, SerializedObject> m_SerializedObjects = new Dictionary<UnityObject, SerializedObject>();
-        private IShapeEditorController m_ShapeEditorController = new ShapeEditorController();
+        private MultiShapeEditorController m_Controller = new MultiShapeEditorController();
         private PointRectSelector m_RectSelector = new PointRectSelector();
         private bool m_IsActive = false;
 
-        private UnityObject currentTarget { get; set; }
-        private IShapeEditor currentShapeEditor { get { return GetShapeEditor(currentTarget); } }
+        internal T[] shapeEditors
+        {
+            get { return m_ShapeEditors.Values.ToArray(); }
+        }
+
+        public bool enableSnapping
+        {
+            get { return m_Controller.enableSnapping; }
+            set { m_Controller.enableSnapping = value; }
+        }
 
         public override GUIContent toolbarIcon
         {
             get { return ShapeEditorToolContents.icon; }
+        }
+
+        public override bool IsAvailable()
+        {
+            return targets.Count() > 0;
+        }
+
+        public T GetShapeEditor(UnityObject targetObject)
+        {
+            var shapeEditor = default(T);
+            m_ShapeEditors.TryGetValue(targetObject, out shapeEditor);
+            return shapeEditor;
+        }
+
+        public void SetShape(UnityObject target)
+        {
+            var shapeEditor = GetShapeEditor(target);
+            shapeEditor.localToWorldMatrix = Matrix4x4.identity;
+
+            var undoName = Undo.GetCurrentGroupName();
+            var serializedObject = GetSerializedObject(target);
+            
+            serializedObject.UpdateIfRequiredOrScript();
+
+            SetShape(shapeEditor, serializedObject);
+
+            Undo.SetCurrentGroupName(undoName);
+        }
+
+        private void RepaintInspectors()
+        {
+            var editorWindows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+
+            foreach (var editorWindow in editorWindows)
+            {
+                if (editorWindow.titleContent.text == "Inspector")
+                    editorWindow.Repaint();
+            }
         }
 
         private void OnEnable()
@@ -161,33 +175,75 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             EditorToolManager.Remove(this);
 
             EditorTools.EditorTools.activeToolChanged -= HandleActivation;
+            UnregisterCallbacks();
         }
 
         private void HandleActivation()
         {
             if (m_IsActive == false && EditorTools.EditorTools.IsActiveTool(this))
-            {
-                OnActivate();
-                m_IsActive = true;
-            }
+                Activate();
             else if (m_IsActive)
-            {
-                OnDeactivate();
-                m_IsActive = false;
-            }
+                Deactivate();
         }
 
-        private void OnActivate()
+        private void Activate()
         {
+            m_IsActive = true;
+            RegisterCallbacks();
+            InitializeCache();
+            OnActivate();
+        }
+
+        private void Deactivate()
+        {
+            OnDeactivate();
+            DestroyCache();
+            UnregisterCallbacks();
+            m_IsActive = false;
+        }
+
+        private void RegisterCallbacks()
+        {
+            UnregisterCallbacks();
             Selection.selectionChanged += SelectionChanged;
             EditorApplication.playModeStateChanged += PlayModeStateChanged;
-            InitializeCache();
+            Undo.undoRedoPerformed += UndoRedoPerformed;
         }
 
-        private void OnDeactivate()
+        private void UnregisterCallbacks()
         {
             Selection.selectionChanged -= SelectionChanged;
             EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+            Undo.undoRedoPerformed -= UndoRedoPerformed;
+        }
+
+        private void DestroyCache()
+        {
+            foreach (var pair in m_ShapeEditors)
+            {
+                var shapeEditor = pair.Value;
+
+                if (shapeEditor != null)
+                {
+                    Undo.ClearUndo(shapeEditor);
+                    UnityObject.DestroyImmediate(shapeEditor);
+                }
+            }
+            m_ShapeEditors.Clear();
+            m_Controller.ClearShapeEditors();
+            m_GUISystems.Clear();
+            m_SerializedObjects.Clear();
+        }
+
+        private void UndoRedoPerformed()
+        {
+            ForEachTarget((target) =>
+            {
+                var shapeEditor = GetShapeEditor(target);
+
+                if (!shapeEditor.modified)
+                    InitializeShapeEditor(target);
+            });
         }
 
         private void SelectionChanged()
@@ -205,54 +261,82 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         {
             m_RectSelector.onSelectionBegin = BeginSelection;
             m_RectSelector.onSelectionChanged = UpdateSelection;
+            m_RectSelector.onSelectionEnd = EndSelection;
         }
 
-        public override bool IsAvailable()
-        {
-            return targets.Count() > 0;
-        }
-
-        private void InitializeCache()
+        private void ForEachTarget(Action<UnityObject> action)
         {
             foreach(var target in targets)
             {
                 if (target == null)
                     continue;
-                
-                var shapeEditor = GetShapeEditorCreateIfNeeded(target);
-                var shape = GetShape(target);
-                var controlPoints = shape.ToControlPoints();
-                var pointCount = shapeEditor.pointCount;
 
-                shapeEditor.localToWorldMatrix = Matrix4x4.identity;
-                shapeEditor.shapeType = shape.type;
-                shapeEditor.isOpenEnded = shape.isOpenEnded;
-                shapeEditor.Clear();
-
-                foreach (var controlPoint in controlPoints)
-                    shapeEditor.AddPoint(controlPoint);
-
-                if (pointCount != shapeEditor.pointCount)
-                    shapeEditor.pointSelection.Clear();
-                
-                CreateGUISystem(target);
-                Initialize(shapeEditor as T, GetSerializedObject(target));
+                action(target);
             }
         }
 
-        private ScriptableShapeEditor GetShapeEditorCreateIfNeeded(UnityObject targetObject)
+        private void InitializeCache()
         {
-            var shapeEditor = ShapeEditorCache.instance.GetShapeEditor(targetObject);
+            m_Controller.ClearShapeEditors();
 
-            if (shapeEditor == null)
-                shapeEditor = ShapeEditorCache.instance.CreateShapeEditor<T>(targetObject);
+            ForEachTarget((target) =>
+            {
+                var shapeEditor = GetOrCreateShapeEditor(target);
+                var pointCount = shapeEditor.pointCount;
 
-            return shapeEditor;
+                InitializeShapeEditor(target);
+
+                if (pointCount != shapeEditor.pointCount)
+                    shapeEditor.selection.Clear();
+
+                CreateGUISystem(target);
+
+                m_Controller.AddShapeEditor(shapeEditor);
+            });
         }
 
-        private ScriptableShapeEditor GetShapeEditor(UnityObject targetObject)
+        private void InitializeShapeEditor(UnityObject target)
         {
-            return ShapeEditorCache.instance.GetShapeEditor(targetObject);
+            IShape shape = null;
+            ControlPoint[] controlPoints = null;
+
+            try
+            {
+                shape = GetShape(target);
+                controlPoints = shape.ToControlPoints();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.Message);
+            }
+
+            var shapeEditor = GetShapeEditor(target);
+            shapeEditor.Clear();
+
+            if (shape != null && controlPoints != null)
+            {
+                shapeEditor.localToWorldMatrix = Matrix4x4.identity;
+                shapeEditor.shapeType = shape.type;
+                shapeEditor.isOpenEnded = shape.isOpenEnded;
+
+                foreach (var controlPoint in controlPoints)
+                    shapeEditor.AddPoint(controlPoint);
+            }
+
+            Initialize(shapeEditor, GetSerializedObject(target));
+        }
+
+        private T GetOrCreateShapeEditor(UnityObject targetObject)
+        {
+            var shapeEditor = GetShapeEditor(targetObject);
+
+            if (shapeEditor == null)
+            {
+                shapeEditor = ScriptableObject.CreateInstance<T>();
+                m_ShapeEditors[targetObject] = shapeEditor;
+            }
+
+            return shapeEditor;
         }
 
         private GUISystem GetGUISystem(UnityObject target)
@@ -264,10 +348,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private void CreateGUISystem(UnityObject target)
         {
-            var guiSystem = new GUISystem(new GUIState());
+            var guiSystem = new GUISystem(m_GUIState);
             var driver = new ShapeEditorDriver();
 
-            driver.controller = this;
+            driver.controller = m_Controller;
             driver.Install(guiSystem);
 
             m_GUISystems[target] = guiSystem;
@@ -288,79 +372,88 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         void IDuringSceneGuiTool.DuringSceneGui(SceneView sceneView)
         {
-            m_RectSelector.OnGUI();
-            
-            foreach(var target in targets)
-            {
-                if (target == null)
-                    continue;
-
-                currentTarget = target;
-
-                var shapeEditor = GetShapeEditor(target);
-                shapeEditor.localToWorldMatrix = GetLocalToWorldMatrix(target);
-                shapeEditor.forward = GetForward(target);
-                shapeEditor.up = GetUp(target);
-                shapeEditor.right = GetRight(target);
-
-                GetGUISystem(target).OnGUI();
-            }
-
-            currentTarget = null;
-        }
-
-        private void SetShape(IShapeEditor shapeEditor, UnityObject target)
-        {
-            shapeEditor.localToWorldMatrix = Matrix4x4.identity;
-
-            var undoName = Undo.GetCurrentGroupName();
-            var serializedObject = GetSerializedObject(target);
-            
-            serializedObject.UpdateIfRequiredOrScript();
-
-            SetShape(shapeEditor as T, serializedObject);
-
-            Undo.SetCurrentGroupName(undoName);
-        }
-
-        internal void SetShapes()
-        {
-            foreach(var target in targets)
-            {
-                if (target == null)
-                    continue;
+            if (m_GUIState.eventType == EventType.Layout)
+                m_Controller.ClearClosestShapeEditor();
                 
-                SetShape(GetShapeEditor(target), target);
-            }
-        }
+            m_RectSelector.OnGUI();
 
-        private void RegisterUndo(string undoName)
-        {
-            foreach(var target in targets)
+            bool changed = false;
+            
+            ForEachTarget((target) =>
             {
-                if (target == null)
-                    continue;
-                    
                 var shapeEditor = GetShapeEditor(target);
-                shapeEditor.undoObject.RegisterUndo(undoName);
+
+                if (shapeEditor != null)
+                {
+                    shapeEditor.localToWorldMatrix = GetLocalToWorldMatrix(target);
+                    shapeEditor.forward = GetForward(target);
+                    shapeEditor.up = GetUp(target);
+                    shapeEditor.right = GetRight(target);
+                    m_Controller.shapeEditor = shapeEditor;
+
+                    using (var check = new EditorGUI.ChangeCheckScope())
+                    {
+                        GetGUISystem(target).OnGUI();
+                        changed |= check.changed;
+                    }
+                }
+            });
+
+            if (changed)
+            {
+                SetShapes();
+                RepaintInspectors();
             }
         }
 
-        private void BeginSelection(ISelector<Vector3> selector)
+        private void BeginSelection(ISelector<Vector3> selector, bool isAdditive)
         {
-            RegisterUndo("Selection");
+            m_Controller.RegisterUndo("Selection");
+
+            if (isAdditive)
+            {
+                ForEachTarget((target) =>
+                {
+                    var shapeEditor = GetShapeEditor(target);
+                    shapeEditor.selection.BeginSelection();
+                });
+            }
+            else
+            {
+                UpdateSelection(selector);
+            }
         }
 
         private void UpdateSelection(ISelector<Vector3> selector)
         {
-            foreach(var target in targets)
+            var repaintInspectors = false;
+
+            ForEachTarget((target) =>
             {
-                if (target == null)
-                    continue;
-                    
                 var shapeEditor = GetShapeEditor(target);
-                shapeEditor.Select(selector);
-            }
+
+                repaintInspectors |= shapeEditor.Select(selector);
+            });
+
+            if (repaintInspectors)
+                RepaintInspectors();
+        }
+
+        private void EndSelection(ISelector<Vector3> selector)
+        {
+            ForEachTarget((target) =>
+            {
+                var shapeEditor = GetShapeEditor(target);
+                shapeEditor.selection.EndSelection(true);
+            });
+        }
+
+        internal void SetShapes()
+        {
+            ForEachTarget((target) =>
+            {
+                SetShape(target);
+            });
         }
 
         private Transform GetTransform(UnityObject target)
@@ -368,22 +461,22 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             return (target as Component).transform;
         }
 
-        protected virtual Matrix4x4 GetLocalToWorldMatrix(UnityObject target)
+        private Matrix4x4 GetLocalToWorldMatrix(UnityObject target)
         {
             return GetTransform(target).localToWorldMatrix;
         }
 
-        protected virtual Vector3 GetForward(UnityObject target)
+        private Vector3 GetForward(UnityObject target)
         {
             return GetTransform(target).forward;
         }
 
-        protected virtual Vector3 GetUp(UnityObject target)
+        private Vector3 GetUp(UnityObject target)
         {
             return GetTransform(target).up;
         }
 
-        protected virtual Vector3 GetRight(UnityObject target)
+        private Vector3 GetRight(UnityObject target)
         {
             return GetTransform(target).right;
         }
@@ -391,108 +484,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         protected abstract IShape GetShape(UnityObject target);
         protected virtual void Initialize(T shapeEditor, SerializedObject serializedObject) { }
         protected abstract void SetShape(T shapeEditor, SerializedObject serializedObject);
-
-        IShapeEditor IShapeEditorController.shapeEditor
-        {
-            get { return currentShapeEditor; }
-            set {}
-        }
-        ISnapping<Vector3> IShapeEditorController.snapping
-        {
-            get { return m_ShapeEditorController.snapping; }
-            set { m_ShapeEditorController.snapping = value; }
-        }
-
-        public bool enableSnapping
-        {
-            get { return m_ShapeEditorController.enableSnapping; }
-            set { m_ShapeEditorController.enableSnapping = value; }
-        }
-
-        void IShapeEditorController.RegisterUndo(string name)
-        {
-            RegisterUndo(name);
-        }
-
-        void IShapeEditorController.ClearSelection()
-        {
-            foreach(var target in targets)
-            {
-                if (target == null)
-                    continue;
-                    
-                m_ShapeEditorController.shapeEditor = GetShapeEditor(target);
-                m_ShapeEditorController.ClearSelection();
-            }   
-        }
-
-        void IShapeEditorController.SelectPoint(int index, bool select)
-        {
-            m_ShapeEditorController.shapeEditor = currentShapeEditor;
-            m_ShapeEditorController.SelectPoint(index, select);
-        }
-
-        void IShapeEditorController.CreatePoint(int index, Vector3 position)
-        {
-            m_ShapeEditorController.shapeEditor = currentShapeEditor;
-            m_ShapeEditorController.CreatePoint(index, position);
-
-            SetShape(currentShapeEditor, currentTarget);
-        }
-
-        void IShapeEditorController.RemoveSelectedPoints()
-        {
-            foreach(var target in targets)
-            {
-                if (target == null)
-                    continue;
-                    
-                m_ShapeEditorController.shapeEditor = GetShapeEditor(target);
-                m_ShapeEditorController.RemoveSelectedPoints();
-            }
-
-            SetShapes();
-        }
-
-        void IShapeEditorController.MoveSelectedPoints(Vector3 delta)
-        {
-            foreach(var target in targets)
-            {
-                if (target == null)
-                    continue;
-                    
-                var shapeEditor = GetShapeEditor(target);
-                var localDelta = Vector3.Scale(shapeEditor.right + shapeEditor.up, delta);
-                
-                m_ShapeEditorController.shapeEditor = shapeEditor;
-                m_ShapeEditorController.MoveSelectedPoints(localDelta);
-            }
-
-            SetShapes();
-        }
-
-        void IShapeEditorController.MoveEdge(int index, Vector3 delta)
-        {
-            m_ShapeEditorController.shapeEditor = currentShapeEditor;
-            m_ShapeEditorController.MoveEdge(index, delta);
-
-            SetShape(currentShapeEditor, currentTarget);
-        }
-
-        void IShapeEditorController.SetLeftTangent(int index, Vector3 position, bool setToLinear, Vector3 cachedRightTangent)
-        {
-            m_ShapeEditorController.shapeEditor = currentShapeEditor;
-            m_ShapeEditorController.SetLeftTangent(index, position, setToLinear, cachedRightTangent);
-
-            SetShape(currentShapeEditor, currentTarget);
-        }
-
-        void IShapeEditorController.SetRightTangent(int index, Vector3 position, bool setToLinear, Vector3 cachedLeftTangent)
-        {
-            m_ShapeEditorController.shapeEditor = currentShapeEditor;
-            m_ShapeEditorController.SetRightTangent(index, position, setToLinear, cachedLeftTangent);
-
-            SetShape(currentShapeEditor, currentTarget);
-        }
+        protected virtual void OnActivate() { }
+        protected virtual void OnDeactivate() { }
     }
 }

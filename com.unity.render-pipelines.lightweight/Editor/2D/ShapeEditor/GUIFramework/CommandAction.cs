@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
     {
         private string m_CommandName;
 
-        public Action onCommand;
+        public Action<IGUIState> onCommand;
 
         public CommandAction(string commandName)
         {
@@ -30,6 +30,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
             if (guiState.eventType == EventType.ExecuteCommand && guiState.commandName == m_CommandName)
             {
                 guiState.UseCurrentEvent();
+                
                 return true;
             }
 
@@ -39,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
         protected override void OnFinish(IGUIState guiState)
         {
             if (onCommand != null)
-                onCommand();
+                onCommand(guiState);
         }
     }
 }

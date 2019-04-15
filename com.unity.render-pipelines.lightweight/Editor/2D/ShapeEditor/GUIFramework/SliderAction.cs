@@ -6,7 +6,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
     internal class SliderAction : ClickAction
     {
         private SliderData m_SliderData;
-        private bool m_Start;
 
         public Action<IGUIState, Control, Vector3> onSliderBegin;
         public Action<IGUIState, Control, Vector3> onSliderChanged;
@@ -30,19 +29,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
             m_SliderData.forward = hoveredControl.hotLayoutData.forward;
             m_SliderData.right = hoveredControl.hotLayoutData.right;
             m_SliderData.up = hoveredControl.hotLayoutData.up;
-            m_Start = true;
+
+            if (onSliderBegin != null)
+                onSliderBegin(guiState, hoveredControl, m_SliderData.position);
         }
 
         protected override void OnFinish(IGUIState guiState)
         {
-            if (!m_Start)
-            {
-                if (onSliderEnd != null)
-                    onSliderEnd(guiState, hoveredControl, m_SliderData.position);
+            if (onSliderEnd != null)
+                onSliderEnd(guiState, hoveredControl, m_SliderData.position);
 
-                guiState.UseCurrentEvent();
-            }
-
+            guiState.UseCurrentEvent();
             guiState.Repaint();
         }
 
@@ -54,14 +51,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
             if (changed)
             {
                 m_SliderData.position = newPosition;
-
-                if (m_Start)
-                {
-                    m_Start = false;
-
-                    if (onSliderBegin != null)
-                        onSliderBegin(guiState, hoveredControl, newPosition);
-                }
 
                 if (onSliderChanged != null)
                     onSliderChanged(guiState, hoveredControl, newPosition);

@@ -80,15 +80,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             m_TemporalSelection.Clear();
         }
 
-        public void Select(T element, bool select)
+        public bool Select(T element, bool select)
         {
+            var changed = false;
+
             if(EqualityComparer<T>.Default.Equals(element, GetInvalidElement()))
-                return;
+                return changed;
 
             if (select)
-                GetSelection().Add(element);
+                changed = GetSelection().Add(element);
             else if (Contains(element))
-                GetSelection().Remove(element);
+                changed = GetSelection().Remove(element);
+
+            return changed;
         }
 
         public bool Contains(T element)

@@ -12,9 +12,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
     {
         private static class Contents
         {
-            public static readonly GUIContent linearIcon = IconContent("TangentStraight", "TangentStraightPro", "Linear");
-            public static readonly GUIContent continuousIcon = IconContent("TangentCurved", "TangentCurvedPro", "Continuous");
-            public static readonly GUIContent brokenIcon = IconContent("TangentAssymetric", "TangentAssymetricPro", "Broken");
+            public static readonly GUIContent linearIcon = IconContent("TangentLinear", "TangentLinearPro", "Linear");
+            public static readonly GUIContent continuousIcon = IconContent("TangentContinuous", "TangentContinuousPro", "Continuous");
+            public static readonly GUIContent brokenIcon = IconContent("TangentBroken", "TangentBrokenPro", "Broken");
             public static readonly GUIContent positionLabel = new GUIContent("Position", "Position of the Control Point");
             public static readonly GUIContent enableSnapLabel = new GUIContent("Snapping", "Snap points using the snap settings");
             public static readonly GUIContent tangentModeLabel = new GUIContent("Tangent Mode");
@@ -118,16 +118,21 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             const float kButtonHeight = 23f;
             var buttonStyle = new GUIStyle("EditModeSingleButton");
 
-            EditorGUI.BeginChangeCheck();
-            value = GUILayout.Toggle(value, icon, buttonStyle, GUILayout.Width(kButtonWidth), GUILayout.Height(kButtonHeight));
-            return value && EditorGUI.EndChangeCheck();
+            var changed = false;
+            using (var check = new EditorGUI.ChangeCheckScope())
+            {
+                value = GUILayout.Toggle(value, icon, buttonStyle, GUILayout.Width(kButtonWidth), GUILayout.Height(kButtonHeight));
+                changed = check.changed;
+            }
+            
+            return value && changed;
         }
 
         private bool GetToggleStateFromTangentMode(TangentMode mode)
         {
             foreach(var shapeEditor in shapeEditors)
             {
-                var selection = shapeEditor.pointSelection;
+                var selection = shapeEditor.selection;
 
                 foreach (var index in selection.elements)
                     if (shapeEditor.GetPoint(index).tangentMode != mode)
@@ -143,7 +148,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             {
                 shapeEditor.undoObject.RegisterUndo("Tangent Mode");
 
-                foreach (var index in shapeEditor.pointSelection.elements)
+                foreach (var index in shapeEditor.selection.elements)
                     shapeEditor.SetTangentMode(index, tangentMode);
             }
 
@@ -157,7 +162,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             foreach(var shapeEditor in shapeEditors)
             {
-                var selection = shapeEditor.pointSelection;
+                var selection = shapeEditor.selection;
                 var matrix = shapeEditor.localToWorldMatrix;
 
                 shapeEditor.localToWorldMatrix = Matrix4x4.identity;
@@ -187,7 +192,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         {
             foreach(var shapeEditor in shapeEditors)
             {
-                var selection = shapeEditor.pointSelection;
+                var selection = shapeEditor.selection;
                 var matrix = shapeEditor.localToWorldMatrix;
 
                 shapeEditor.localToWorldMatrix = Matrix4x4.identity;
@@ -215,7 +220,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         protected bool IsAnyPointSelected()
         {
             foreach(var shapeEditor in shapeEditors)
-                if (shapeEditor.pointSelection.Count > 0)
+                if (shapeEditor.selection.Count > 0)
                     return true;
 
             return false;

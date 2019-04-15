@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
     internal abstract class RectSelector<T> : ISelector<T>
     {
-        public Action<ISelector<T>> onSelectionBegin;
+        public Action<ISelector<T>, bool> onSelectionBegin;
         public Action<ISelector<T>> onSelectionChanged;
         public Action<ISelector<T>> onSelectionEnd = null;
 
@@ -79,7 +79,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     m_GUIRect = CalculateGUIRect();
 
                     if (onSelectionBegin != null)
-                        onSelectionBegin(this);
+                        onSelectionBegin(this, guiState.isShiftDown);
                 },
                 onSliderChanged = (guiState, control, position) =>
                 {

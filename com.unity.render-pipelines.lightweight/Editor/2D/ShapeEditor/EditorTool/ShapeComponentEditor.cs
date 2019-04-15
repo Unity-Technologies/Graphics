@@ -39,18 +39,19 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             using (new EditorGUI.DisabledGroupScope(!EditorToolManager.IsAvailable<U>()))
             {
-                EditorGUI.BeginChangeCheck();
-
-                var isActive = GUI.Toggle(buttonRect, EditorToolManager.IsActiveTool<U>(), icon, buttonStyle);
-                
-                GUI.Label(labelRect, label);
-
-                if (EditorGUI.EndChangeCheck())
+                using (var check = new EditorGUI.ChangeCheckScope())
                 {
-                    if (isActive)
-                        EditorTools.EditorTools.SetActiveTool<U>();
-                    else
-                        EditorTools.EditorTools.RestorePreviousTool();
+                    var isActive = GUI.Toggle(buttonRect, EditorToolManager.IsActiveTool<U>(), icon, buttonStyle);
+                    
+                    GUI.Label(labelRect, label);
+
+                    if (check.changed)
+                    {
+                        if (isActive)
+                            EditorTools.EditorTools.SetActiveTool<U>();
+                        else
+                            EditorTools.EditorTools.RestorePreviousTool();
+                    }
                 }
             }
         }
@@ -59,25 +60,20 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         {
             if (EditorToolManager.IsActiveTool<U>() && EditorToolManager.IsAvailable<U>())
             {
-                var shapeEditors = EditorToolManager.GetShapeEditors<U>();
+                var shapeEditors = EditorToolManager.GetEditorTool<U>().shapeEditors;
 
-                if (shapeEditors.Length == 0)
+                CreateCachedEditor(shapeEditors, null, ref m_CachedEditor);
+
+                if (m_CachedEditor == null) //Needed to avoid a nullref on exiting playmode
                     return;
 
-                CreateCachedEditor(shapeEditors, null, ref m_CachedEditor); 
-
-                if (m_CachedEditor.serializedObject.UpdateIfRequiredOrScript())
+                using (var check = new EditorGUI.ChangeCheckScope())
                 {
-                    m_CachedEditor.serializedObject.SetIsDifferentCacheDirty();
-                    HandleUtility.Repaint();
+                    m_CachedEditor.OnInspectorGUI();
+
+                    if (check.changed)
+                        EditorToolManager.GetEditorTool<U>().SetShapes();
                 }
-
-                EditorGUI.BeginChangeCheck();
-
-                m_CachedEditor.OnInspectorGUI();
-
-                if (EditorGUI.EndChangeCheck())
-                    EditorToolManager.GetEditorTool<U>().SetShapes();
             }
         }
 
@@ -94,19 +90,21 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         {
             serializedObject.Update();
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(isOpenEndedProperty);
-
-            if (EditorGUI.EndChangeCheck())
+            using (var check = new EditorGUI.ChangeCheckScope())
             {
-                if (EditorToolManager.IsActiveTool<U>() && EditorToolManager.IsAvailable<U>())
+                EditorGUILayout.PropertyField(isOpenEndedProperty);
+
+                if (check.changed)
                 {
-                    var shapeEditors = EditorToolManager.GetShapeEditors<U>();
-                    
-                    foreach (var shapeEditor in shapeEditors)
+                    if (EditorToolManager.IsActiveTool<U>() && EditorToolManager.IsAvailable<U>())
                     {
-                        shapeEditor.undoObject.RegisterUndo("Set Open Ended");
-                        shapeEditor.isOpenEnded = isOpenEndedProperty.boolValue;
+                        var shapeEditors = EditorToolManager.GetEditorTool<U>().shapeEditors;
+                        
+                        foreach (var shapeEditor in shapeEditors)
+                        {
+                            shapeEditor.undoObject.RegisterUndo("Set Open Ended");
+                            shapeEditor.isOpenEnded = isOpenEndedProperty.boolValue;
+                        }
                     }
                 }
             }
