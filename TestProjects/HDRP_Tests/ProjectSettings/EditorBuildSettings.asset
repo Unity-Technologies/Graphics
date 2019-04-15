@@ -14,8 +14,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1103_Unlit_Distortion_DepthTest.unity
     guid: 27d04b0368c7fef4eb423d76cc0e48dc
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/1x_Materials/1104_Distortion_Compose.unity
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1104_Unlit_Distortion_Compose.unity
     guid: 27ed1a76ceb6cae4b90978787b4197ab
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1201_Lit_Features.unity
