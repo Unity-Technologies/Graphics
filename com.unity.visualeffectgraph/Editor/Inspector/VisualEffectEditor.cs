@@ -506,8 +506,7 @@ namespace UnityEditor.VFX
             rect.x += Styles.foldoutStyle.CalcSize(GUIContent.none).x;
             rect.y += 3;
 
-            if (Event.current.type == EventType.Repaint)
-                EditorGUI.LabelField(rect, nameContent, EditorStyles.boldLabel);
+            EditorGUI.LabelField(rect, nameContent, EditorStyles.boldLabel);
 
             bool result = false;
             rect.x = 14;
