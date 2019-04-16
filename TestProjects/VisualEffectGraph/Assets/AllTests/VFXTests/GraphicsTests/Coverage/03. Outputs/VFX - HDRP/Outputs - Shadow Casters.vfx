@@ -2655,7 +2655,7 @@ MonoBehaviour:
   preRefraction: 0
   materialType: 0
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 0}
+  diffusionProfileAsset: {fileID: 11400000, guid: 916c1971c2397be4a825dd6b615a31bd, type: 2}
   multiplyThicknessWithAlpha: 0
   useBaseColorMap: 3
   useMaskMap: 0
@@ -3020,7 +3020,7 @@ MonoBehaviour:
   preRefraction: 0
   materialType: 0
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 0}
+  diffusionProfileAsset: {fileID: 11400000, guid: 916c1971c2397be4a825dd6b615a31bd, type: 2}
   multiplyThicknessWithAlpha: 0
   useBaseColorMap: 3
   useMaskMap: 0
@@ -3463,7 +3463,7 @@ MonoBehaviour:
   preRefraction: 0
   materialType: 0
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 0}
+  diffusionProfileAsset: {fileID: 11400000, guid: 916c1971c2397be4a825dd6b615a31bd, type: 2}
   multiplyThicknessWithAlpha: 0
   useBaseColorMap: 3
   useMaskMap: 0
@@ -3826,7 +3826,7 @@ MonoBehaviour:
   preRefraction: 0
   materialType: 0
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 0}
+  diffusionProfileAsset: {fileID: 11400000, guid: 916c1971c2397be4a825dd6b615a31bd, type: 2}
   multiplyThicknessWithAlpha: 0
   useBaseColorMap: 3
   useMaskMap: 0

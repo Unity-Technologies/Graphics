@@ -60,8 +60,8 @@ MonoBehaviour:
   m_Property:
     name: bounds
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -92,7 +92,8 @@ MonoBehaviour:
 
       1: Working
 
-      2: Broken'
+      2:
+      Broken'
     theme: Classic
     textSize: Small
   systemInfos: []
@@ -103,10 +104,10 @@ MonoBehaviour:
     collapsed: 0
   uiBounds:
     serializedVersion: 2
-    x: -3408
+    x: -3416
     y: -190
     width: 5153
-    height: 2356
+    height: 2354
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -614,76 +615,72 @@ VisualEffectResource:
   m_ShaderSources:
   - compute: 1
     name: '[System 1]Initialize'
-    source: "#pragma kernel CSMain\r\n#define NB_THREADS_PER_GROUP 64\n#define VFX_USE_SIZE_CURRENT
-      1\n#define VFX_LOCAL_SPACE 1\n#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\n\r\n\r\n#include
+    source: "#pragma kernel CSMain\n#define NB_THREADS_PER_GROUP 64\n#define VFX_USE_SIZE_CURRENT
+      1\n#define VFX_LOCAL_SPACE 1\n#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\n\n\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\r\n\r\nRWByteAddressBuffer
-      attributeBuffer;\r\nByteAddressBuffer sourceAttributeBuffer;\r\n\r\nCBUFFER_START(initParams)\r\n#if
-      !VFX_USE_SPAWNER_FROM_GPU\r\n    uint nbSpawned;\t\t\t\t\t// Numbers of particle
-      spawned\r\n    uint spawnIndex;\t\t\t\t// Index of the first particle spawned\r\n
-      \   uint dispatchWidth;\r\n#else\r\n    uint offsetInAdditionalOutput;\r\n\tuint
-      nbMax;\r\n#endif\r\n\tuint systemSeed;\r\nCBUFFER_END\r\n\r\n#if VFX_USE_ALIVE_CURRENT\r\nRWStructuredBuffer<uint>
-      deadListIn;\r\nByteAddressBuffer deadListCount; // This is bad to use a SRV
-      to fetch deadList count but Unity API currently prevent from copying to CB\r\n#endif\r\n\r\n#if
-      VFX_USE_SPAWNER_FROM_GPU\r\nStructuredBuffer<uint> eventList;\r\nByteAddressBuffer
-      inputAdditional;\r\n#endif\r\n\r\nvoid SetAttribute_3278B22F(inout float size,
-      float Size) /*attribute:size Composition:Overwrite Source:Slot Random:Off channels:XYZ
-      */\n{\n    size = Size;\n}\n\n\r\n\r\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\r\nvoid
-      CSMain(uint3 groupId          : SV_GroupID,\r\n            uint3 groupThreadId
-      \   : SV_GroupThreadID)\r\n{\r\n    uint id = groupThreadId.x + groupId.x *
-      NB_THREADS_PER_GROUP;\r\n#if !VFX_USE_SPAWNER_FROM_GPU\r\n    id += groupId.y
-      * dispatchWidth * NB_THREADS_PER_GROUP;\r\n#endif\r\n\r\n#if VFX_USE_SPAWNER_FROM_GPU\r\n
-      \   uint maxThreadId = inputAdditional.Load((offsetInAdditionalOutput * 2 +
-      0) << 2);\r\n    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput
-      * 2 + 1) << 2) - maxThreadId;\r\n#else\r\n    uint maxThreadId = nbSpawned;\r\n
-      \   uint currentSpawnIndex = spawnIndex;\r\n#endif\r\n\r\n#if VFX_USE_ALIVE_CURRENT\r\n
-      \   maxThreadId = min(maxThreadId, deadListCount.Load(0x0));\r\n#elif VFX_USE_SPAWNER_FROM_GPU\r\n
-      \   maxThreadId = min(maxThreadId, nbMax); //otherwise, nbSpawned already clamped
-      on CPU\r\n#endif\r\n\r\n    if (id < maxThreadId)\r\n    {\r\n#if VFX_USE_SPAWNER_FROM_GPU\r\n
-      \       int sourceIndex = eventList[id];\r\n#endif\r\n        uint particleIndex
-      = id + currentSpawnIndex;\r\n\t\t\r\n#if !VFX_USE_SPAWNER_FROM_GPU\r\n        int
-      sourceIndex = 0;\n        /*//Loop with 1 iteration generate a wrong IL Assembly
-      (and actually, useless code)\n        uint currentSumSpawnCount = 0u;\n        for
-      (sourceIndex=0; sourceIndex<1; sourceIndex++)\n        {\n            currentSumSpawnCount
-      += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\n
-      \           if (id < currentSumSpawnCount)\n            {\n                break;\n
-      \           }\n        }\n        */\n        \n\r\n#endif\r\n        float
-      size = (float)0.1;\n        \n\r\n#if VFX_USE_PARTICLEID_CURRENT\r\n         particleId
-      = particleIndex;\r\n#endif\r\n#if VFX_USE_SEED_CURRENT\r\n        seed = WangHash(particleIndex
-      ^ systemSeed);\r\n#endif\r\n        \r\n        {\n            SetAttribute_3278B22F(
-      /*inout */size, (float)1);\n        }\n        \n\r\n\r\n#if VFX_USE_ALIVE_CURRENT\r\n
-      \       if (alive)\r\n        {\r\n\t\t\tuint deadIndex = deadListIn.DecrementCounter();\r\n
-      \           uint index = deadListIn[deadIndex];\r\n            attributeBuffer.Store((index
-      * 0x1 + 0x0) << 2,asuint(size));\n            \n\r\n        }\r\n#else\r\n        uint
-      index = particleIndex;\r\n        attributeBuffer.Store((index * 0x1 + 0x0)
-      << 2,asuint(size));\n        \n\r\n#endif\r\n    }\r\n}\r\n"
+      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
+      attributeBuffer;\nByteAddressBuffer sourceAttributeBuffer;\n\nCBUFFER_START(initParams)\n#if
+      !VFX_USE_SPAWNER_FROM_GPU\n    uint nbSpawned;\t\t\t\t\t// Numbers of particle
+      spawned\n    uint spawnIndex;\t\t\t\t// Index of the first particle spawned\n   
+      uint dispatchWidth;\n#else\n    uint offsetInAdditionalOutput;\n\tuint nbMax;\n#endif\n\tuint
+      systemSeed;\nCBUFFER_END\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint>
+      deadListIn;\nByteAddressBuffer deadListCount; // This is bad to use a SRV to
+      fetch deadList count but Unity API currently prevent from copying to CB\n#endif\n\n#if
+      VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint> eventList;\nByteAddressBuffer
+      inputAdditional;\n#endif\n\nvoid SetAttribute_3278B22F(inout float size, float
+      Size) /*attribute:size Composition:Overwrite Source:Slot Random:Off channels:XYZ
+      */\n{\n    size = Size;\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId   
+      : SV_GroupThreadID)\n{\n    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;\n#if
+      !VFX_USE_SPAWNER_FROM_GPU\n    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n#endif\n\n#if
+      VFX_USE_SPAWNER_FROM_GPU\n    uint maxThreadId = inputAdditional.Load((offsetInAdditionalOutput
+      * 2 + 0) << 2);\n    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput
+      * 2 + 1) << 2) - maxThreadId;\n#else\n    uint maxThreadId = nbSpawned;\n   
+      uint currentSpawnIndex = spawnIndex;\n#endif\n\n#if VFX_USE_ALIVE_CURRENT\n   
+      maxThreadId = min(maxThreadId, deadListCount.Load(0x0));\n#elif VFX_USE_SPAWNER_FROM_GPU\n   
+      maxThreadId = min(maxThreadId, nbMax); //otherwise, nbSpawned already clamped
+      on CPU\n#endif\n\n    if (id < maxThreadId)\n    {\n#if VFX_USE_SPAWNER_FROM_GPU\n       
+      int sourceIndex = eventList[id];\n#endif\n        uint particleIndex = id +
+      currentSpawnIndex;\n\t\t\n#if !VFX_USE_SPAWNER_FROM_GPU\n        int sourceIndex
+      = 0;\n        /*//Loop with 1 iteration generate a wrong IL Assembly (and actually,
+      useless code)\n        uint currentSumSpawnCount = 0u;\n        for (sourceIndex=0;
+      sourceIndex<1; sourceIndex++)\n        {\n            currentSumSpawnCount
+      += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\n           
+      if (id < currentSumSpawnCount)\n            {\n                break;\n           
+      }\n        }\n        */\n        \n\n#endif\n        float size = (float)0.1;\n       
+      \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
+      VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n       
+      \n        {\n            SetAttribute_3278B22F( /*inout */size, (float)1);\n       
+      }\n        \n\n\n#if VFX_USE_ALIVE_CURRENT\n        if (alive)\n        {\n\t\t\tuint
+      deadIndex = deadListIn.DecrementCounter();\n            uint index = deadListIn[deadIndex];\n           
+      attributeBuffer.Store((index * 0x1 + 0x0) << 2,asuint(size));\n           
+      \n\n        }\n#else\n        uint index = particleIndex;\n        attributeBuffer.Store((index
+      * 0x1 + 0x0) << 2,asuint(size));\n        \n\n#endif\n    }\n}\n"
   - compute: 1
     name: '[System 1]Update'
-    source: "#pragma kernel CSMain\r\n#define NB_THREADS_PER_GROUP 64\n#define VFX_HAS_INDIRECT_DRAW
-      1\n#define VFX_LOCAL_SPACE 1\n#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\n\r\n\r\n#include
+    source: "#pragma kernel CSMain\n#define NB_THREADS_PER_GROUP 64\n#define VFX_HAS_INDIRECT_DRAW
+      1\n#define VFX_LOCAL_SPACE 1\n#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\n\n\n#include
       \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\r\n\r\nRWByteAddressBuffer
-      attributeBuffer;\r\n\r\n#if VFX_USE_ALIVE_CURRENT\r\nRWStructuredBuffer<uint>
-      deadListOut;\r\n#endif\r\n\r\n#if VFX_HAS_INDIRECT_DRAW\r\nRWStructuredBuffer<uint>
-      indirectBuffer;\r\n#endif\r\n\r\nCBUFFER_START(updateParams)\r\n    uint nbMax;\r\n\tuint
-      dispatchWidth;\r\n\tuint systemSeed;\r\nCBUFFER_END\r\n\r\n\r\n\r\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\r\nvoid
-      CSMain(uint3 groupId          : SV_GroupID,\r\n            uint3 groupThreadId
-      \   : SV_GroupThreadID)\r\n{\r\n\tuint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP
-      + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\r\n\tuint index = id;\r\n\tif
-      (id < nbMax)\r\n\t{\r\n#if VFX_USE_ALIVE_CURRENT\r\n\t\t\r\n\t\tif (alive)\r\n\t\t{\r\n\t\t\t\r\n\t\t\t\r\n#if
-      VFX_USE_OLDPOSITION_CURRENT\r\n\t\t\toldPosition = position;\r\n#endif\r\n\t\t\t\r\n\t\t\t\r\n\t\t\tif
-      (alive)\r\n\t\t\t{\r\n\t\t\t\t\r\n#if VFX_HAS_INDIRECT_DRAW\r\n                uint
-      indirectIndex = indirectBuffer.IncrementCounter();\r\n\t\t\t\tindirectBuffer[indirectIndex]
-      = index;\r\n#endif\r\n\t\t\t}\r\n\t\t\telse\r\n\t\t\t{\r\n\t\t\t\t\r\n\t\t\t\tuint
-      deadIndex = deadListOut.IncrementCounter();\r\n\t\t\t\tdeadListOut[deadIndex]
-      = index;\r\n\t\t\t}\r\n\t\t}\r\n#else\r\n\t\t\r\n\t\t\r\n#if VFX_USE_OLDPOSITION_CURRENT\r\n\t\toldPosition
-      = position;\r\n#endif\r\n\t\t\r\n\t\t\r\n\t\t\r\n#if VFX_HAS_INDIRECT_DRAW\r\n
-      \       uint indirectIndex = indirectBuffer.IncrementCounter();\r\n\t\tindirectBuffer[indirectIndex]
-      = index;\r\n#endif\r\n#endif\r\n\t}\r\n}\r\n"
+      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nRWByteAddressBuffer
+      attributeBuffer;\n\n#if VFX_USE_ALIVE_CURRENT\nRWStructuredBuffer<uint> deadListOut;\n#endif\n\n#if
+      VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint> indirectBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n   
+      uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId   
+      : SV_GroupThreadID)\n{\n\tuint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP
+      + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif
+      (id < nbMax)\n\t{\n#if VFX_USE_ALIVE_CURRENT\n\t\t\n\t\tif (alive)\n\t\t{\n\t\t\t\n\t\t\t\n#if
+      VFX_USE_OLDPOSITION_CURRENT\n\t\t\toldPosition = position;\n#endif\n\t\t\t\n\t\t\t\n\t\t\tif
+      (alive)\n\t\t\t{\n\t\t\t\t\n#if VFX_HAS_INDIRECT_DRAW\n                uint
+      indirectIndex = indirectBuffer.IncrementCounter();\n\t\t\t\tindirectBuffer[indirectIndex]
+      = index;\n#endif\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\t\n\t\t\t\tuint deadIndex
+      = deadListOut.IncrementCounter();\n\t\t\t\tdeadListOut[deadIndex] = index;\n\t\t\t}\n\t\t}\n#else\n\t\t\n\t\t\n#if
+      VFX_USE_OLDPOSITION_CURRENT\n\t\toldPosition = position;\n#endif\n\t\t\n\t\t\n\t\t\n#if
+      VFX_HAS_INDIRECT_DRAW\n        uint indirectIndex = indirectBuffer.IncrementCounter();\n\t\tindirectBuffer[indirectIndex]
+      = index;\n#endif\n#endif\n\t}\n}\n"
   - compute: 0
     name: '[System 1]Lit Mesh Output'
-    source: "Shader \"Hidden/VFX/System 1/Lit Mesh Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
-      Off\r\n\t\t\r\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
+    source: "Shader \"Hidden/VFX/System 1/Lit Mesh Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
+      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
       \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Back\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
@@ -699,17 +696,17 @@ VisualEffectResource:
       1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define USE_CAST_SHADOWS_PASS 1\n\t\t#define
       VFX_HAS_INDIRECT_DRAW 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
       1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define
-      HDRP_USE_BASE_COLOR 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
-      \   float3 Position_b;\n\t\t    float smoothness;\n\t\t    float thickness;\n\t\t
-      \   uint3 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
+      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA
+      1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
+      1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t   
+      float3 Position_b;\n\t\t    float smoothness;\n\t\t    float thickness;\n\t\t   
+      uint3 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
       (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
       indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
       deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
-      nbMax;\n\t\t\tfloat systemSeed;\n\t\tCBUFFER_END\n\t\t\n\t\tENDHLSL\n\t\t\n\r\n\t\t\r\n\t\t\r\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
+      nbMax;\n\t\t\tfloat systemSeed;\n\t\tCBUFFER_END\n\t\t\n\t\tENDHLSL\n\t\t\n\n\t\t\n\t\t\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
       { \"LightMode\"=\"ForwardOnly\"}\n\t\t\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\t#define UNITY_MATERIAL_LIT\n\t\t\t#define LIGHTLOOP_TILE_PASS\n\t\t\t#define
       _ENABLE_FOG_ON_TRANSPARENT\n\t\t\t#define _DISABLE_DECALS\n\t\t\t#define _BLENDMODE_ALPHA\n\t\t\t#define
@@ -725,11 +722,12 @@ VisualEffectResource:
       float3 specularColor : COLOR1;\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t#if HDRP_USE_EMISSIVE_COLOR
       || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR\t\n\t\t\t\t\t\t\tnointerpolation float3
       emissiveColor : COLOR2;\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t//
-      x: smoothness\n\t\t\t\t\t\t\t// y: metallic/thickness\n\t\t\t\t\t\t\t// z: normal
-      scale\n\t\t\t\t\t\t\t// w: emissive scale\n\t\t\t\t\t\t\tnointerpolation float4
-      materialProperties : TEXCOORD0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\tfloat4
-      uv : TEXCOORD1;\n\t\t\t\t#else\n\t\t\t\tfloat2 uv : TEXCOORD1;\t\n\t\t\t\t#endif\n\t\t\t\tfloat3
-      normal : TEXCOORD2;\n\t\t\t\t#if USE_NORMAL_MAP\n\t\t\t\tfloat4 tangent : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\t\t#if
+      x: smoothness\n\t\t\t\t\t\t\t// y: metallic/thickness\n\t\t\t\t\t\t\t// z:
+      normal scale\n\t\t\t\t\t\t\t// w: emissive scale\n\t\t\t\t\t\t\tnointerpolation
+      float4 materialProperties : TEXCOORD0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t#if
+      USE_FLIPBOOK_INTERPOLATION\n\t\t\t\tfloat4 uv : TEXCOORD1;\n\t\t\t\t#else\n\t\t\t\tfloat2
+      uv : TEXCOORD1;\t\n\t\t\t\t#endif\n\t\t\t\tfloat3 normal : TEXCOORD2;\n\t\t\t\t#if
+      USE_NORMAL_MAP\n\t\t\t\tfloat4 tangent : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\t\t#if
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
@@ -755,22 +753,21 @@ VisualEffectResource:
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
-      */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
-      \   axisX = viewRot[0].xyz;\n\t\t\t    axisY = viewRot[1].xyz;\n\t\t\t    #if
-      VFX_LOCAL_SPACE // Need to remove potential scale in local transform\n\t\t\t
-      \   axisX = normalize(axisX);\n\t\t\t    axisY = normalize(axisY);\n\t\t\t    axisZ
-      = cross(axisX,axisY);\n\t\t\t    #else\n\t\t\t    axisZ = -viewRot[2].xyz;\n\t\t\t
-      \   #endif\n\t\t\t    \n\t\t\t}\n\t\t\tvoid SetAttribute_C707D62A(inout float3
-      position, float3 Position) /*attribute:position Composition:Add Source:Slot
-      Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct
-      vs_input\n\t\t\t{\n\t\t\t\tfloat3 pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\tfloat3
-      normal : NORMAL;\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\tfloat4 tangent
-      : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
-      vert(vs_input i, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index
-      = instanceID;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint
-      deadCount = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount =
-      deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif (index >= asuint(nbMax)
-      - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t   
+      axisX = viewRot[0].xyz;\n\t\t\t    axisY = viewRot[1].xyz;\n\t\t\t    #if VFX_LOCAL_SPACE
+      // Need to remove potential scale in local transform\n\t\t\t    axisX = normalize(axisX);\n\t\t\t   
+      axisY = normalize(axisY);\n\t\t\t    axisZ = cross(axisX,axisY);\n\t\t\t   
+      #else\n\t\t\t    axisZ = -viewRot[2].xyz;\n\t\t\t    #endif\n\t\t\t    \n\t\t\t}\n\t\t\tvoid
+      SetAttribute_C707D62A(inout float3 position, float3 Position) /*attribute:position
+      Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
+      position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
+      pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\tfloat3 normal : NORMAL;\n\t\t\t\t#ifdef
+      VFX_VARYING_TANGENT\n\t\t\t\tfloat4 tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma
+      vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID :
+      SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = instanceID;\n\t\t\t\tVFX_VARYING_PS_INPUTS
+      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint deadCount
+      = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount = deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\tfloat
       size = asfloat(attributeBuffer.Load((index * 0x1 + 0x0) << 2));\n\t\t\t\t\t\tfloat3
       position = float3(0,0,0);\n\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\tfloat
@@ -801,9 +798,9 @@ VisualEffectResource:
       = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(i.pos,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
-      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse transpose\n\t\t\t\to.VFX_VARYING_NORMAL
-      = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT
-      = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\n\t\t\t\t\t\to.VFX_VARYING_COLOR
       = color;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA)
       \n\t\t\t\t\t\to.VFX_VARYING_ALPHA = alpha;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -839,9 +836,9 @@ VisualEffectResource:
       VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
       out BSDFData bsdfData, out PreLightData preLightData, VFX_VARYING_PS_INPUTS
       i, float3 normalWS, const VFXUVData uvData, uint2 tileIndex)\n\t\t\t{\t\n\t\t\t\t#if
-      HDRP_MATERIAL_TYPE_TRANSLUCENT\n\t\t\t\tuint diffusionProfileHash = (uint)0;\n\t\t\t\t{\n\t\t\t\t
-      \   \n\t\t\t\t    diffusionProfileHash = (uint)0;\n\t\t\t\t}\n\t\t\t\t\n //
-      Loads diffusion profile\n\t\t\t\t#else\n\t\t\t\tconst uint diffusionProfileHash
+      HDRP_MATERIAL_TYPE_TRANSLUCENT\n\t\t\t\tuint diffusionProfileHash = (uint)0;\n\t\t\t\t{\n\t\t\t\t   
+      \n\t\t\t\t    diffusionProfileHash = (uint)1080233753;\n\t\t\t\t}\n\t\t\t\t\n
+      // Loads diffusion profile\n\t\t\t\t#else\n\t\t\t\tconst uint diffusionProfileHash
       = 0;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tfloat3 posRWS = VFXGetPositionRWS(i);\n\t\t\t\tfloat4
       posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs posInput = GetPositionInput(posSS.xy,
       _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);\n\t\t\t\t\n\t\t\t\tfloat
@@ -860,16 +857,16 @@ VisualEffectResource:
       USE_DOUBLE_SIDED\n\t\t\t, bool frontFace : SV_IsFrontFace\n\t\t#endif\n\t\t\t)\n\t\t\t{\n\t\t\t\t\n\t\t\t\t\t\t\t#if
       USE_DOUBLE_SIDED\n\t\t\t\t\t\t\tconst float faceMul = frontFace ? 1.0f : -1.0f;\n\t\t\t\t\t\t\t#else\n\t\t\t\t\t\t\tconst
       float faceMul = 1.0f;\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tfloat3
-      normalWS = normalize(i.VFX_VARYING_NORMAL * faceMul);\n\t\t\t\t\t\t\tconst VFXUVData
-      uvData = GetUVData(i);\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t#if defined(VFX_VARYING_TANGENT)
+      normalWS = normalize(i.VFX_VARYING_NORMAL * faceMul);\n\t\t\t\t\t\t\tconst
+      VFXUVData uvData = GetUVData(i);\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t#if defined(VFX_VARYING_TANGENT)
       && USE_NORMAL_MAP\n\t\t\t\t\t\t\tfloat3 tangentWS = normalize(i.VFX_VARYING_TANGENT.xyz);\n\t\t\t\t\t\t\tfloat3
       bitangentWS = cross(normalWS,tangentWS) * (i.VFX_VARYING_TANGENT.w * faceMul);\n\t\t\t\t\t\t\tfloat3
       n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);\n\t\t\t\t\t\t\tfloat3x3
       tbn = float3x3(tangentWS,bitangentWS,normalWS);\n\t\t\t\t\t\t\tfloat normalScale
       = 1.0f;\n\t\t\t\t\t\t\t#ifdef VFX_VARYING_NORMALSCALE\n\t\t\t\t\t\t\tnormalScale
-      = i.VFX_VARYING_NORMALSCALE;\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\tnormalWS =
-      normalize(lerp(normalWS,mul(n,tbn),normalScale));\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\toutColor
-      = VFXGetPixelOutputForward(i,normalWS,uvData);\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\r\n\t\t//
+      = i.VFX_VARYING_NORMALSCALE;\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\tnormalWS
+      = normalize(lerp(normalWS,mul(n,tbn),normalScale));\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\toutColor
+      = VFXGetPixelOutputForward(i,normalWS,uvData);\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
       Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
       }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\tfloat2
@@ -877,31 +874,30 @@ VisualEffectResource:
       || VFX_USE_ALPHA_CURRENT\n\t\t\t\t// x: alpha threshold\n\t\t\t\t// y: frame
       blending factor\n\t\t\t\t// z: alpha\n\t\t\t\tnointerpolation float3 builtInInterpolants
       : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
-      ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_ALPHA builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x\n\t\t#define VFX_VARYING_FRAMEBLEND
-      builtInInterpolants.y\n\t\t#define VFX_VARYING_UV uv\n\t\t\t\t\n\t\t\n\t\t\n\t\t//
+      ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_ALPHA
+      builtInInterpolants.z\n\t\t#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x\n\t\t#define
+      VFX_VARYING_FRAMEBLEND builtInInterpolants.y\n\t\t#define VFX_VARYING_UV uv\n\t\t\t\t\n\t\t\n\t\t\n\t\t//
       Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t\t\t\n\t\t\t#if
       !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
-      */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
-      \   axisX = viewRot[0].xyz;\n\t\t\t    axisY = viewRot[1].xyz;\n\t\t\t    #if
-      VFX_LOCAL_SPACE // Need to remove potential scale in local transform\n\t\t\t
-      \   axisX = normalize(axisX);\n\t\t\t    axisY = normalize(axisY);\n\t\t\t    axisZ
-      = cross(axisX,axisY);\n\t\t\t    #else\n\t\t\t    axisZ = -viewRot[2].xyz;\n\t\t\t
-      \   #endif\n\t\t\t    \n\t\t\t}\n\t\t\tvoid SetAttribute_C707D62A(inout float3
-      position, float3 Position) /*attribute:position Composition:Add Source:Slot
-      Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct
-      vs_input\n\t\t\t{\n\t\t\t\tfloat3 pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\tfloat3
-      normal : NORMAL;\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\tfloat4 tangent
-      : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
-      vert(vs_input i, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index
-      = instanceID;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint
-      deadCount = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount =
-      deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif (index >= asuint(nbMax)
-      - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t   
+      axisX = viewRot[0].xyz;\n\t\t\t    axisY = viewRot[1].xyz;\n\t\t\t    #if VFX_LOCAL_SPACE
+      // Need to remove potential scale in local transform\n\t\t\t    axisX = normalize(axisX);\n\t\t\t   
+      axisY = normalize(axisY);\n\t\t\t    axisZ = cross(axisX,axisY);\n\t\t\t   
+      #else\n\t\t\t    axisZ = -viewRot[2].xyz;\n\t\t\t    #endif\n\t\t\t    \n\t\t\t}\n\t\t\tvoid
+      SetAttribute_C707D62A(inout float3 position, float3 Position) /*attribute:position
+      Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
+      position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tfloat3
+      pos : POSITION;\n\t\t\t\tfloat2 uv : TEXCOORD0;\n\t\t\t\tfloat3 normal : NORMAL;\n\t\t\t\t#ifdef
+      VFX_VARYING_TANGENT\n\t\t\t\tfloat4 tangent : TANGENT;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\t#pragma
+      vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID :
+      SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = instanceID;\n\t\t\t\tVFX_VARYING_PS_INPUTS
+      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint deadCount
+      = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount = deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif
+      (index >= asuint(nbMax) - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\tfloat
       size = asfloat(attributeBuffer.Load((index * 0x1 + 0x0) << 2));\n\t\t\t\t\t\tfloat3
       position = float3(0,0,0);\n\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\tfloat
@@ -932,9 +928,9 @@ VisualEffectResource:
       = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(i.pos,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
-      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse transpose\n\t\t\t\to.VFX_VARYING_NORMAL
-      = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT
-      = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\n\t\t\t\t\t\to.VFX_VARYING_COLOR
       = color;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA)
       \n\t\t\t\t\t\to.VFX_VARYING_ALPHA = alpha;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -952,11 +948,11 @@ VisualEffectResource:
       fragment frag\n\t\t\tfloat frag(ps_input i) : SV_TARGET\n\t\t\t{\n\t\t\t\tfloat
       alpha = VFXGetFragmentColor(i).a;\n\t\t#if HDRP_USE_BASE_COLOR_MAP_ALPHA\n\t\t\t\talpha
       *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;\n\t\t#endif\t\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\t\treturn
-      0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\r\n\t}\r\n}\r\n"
+      0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t}\n}\n"
   - compute: 0
     name: '[System 1]Lit Quad Output'
-    source: "Shader \"Hidden/VFX/System 1/Lit Quad Output\"\n{\r\n\tSubShader\r\n\t{\t\r\n\t\tCull
-      Off\r\n\t\t\r\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
+    source: "Shader \"Hidden/VFX/System 1/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
+      Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
       \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
@@ -972,17 +968,17 @@ VisualEffectResource:
       1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define USE_CAST_SHADOWS_PASS 1\n\t\t#define
       VFX_HAS_INDIRECT_DRAW 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
       1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define
-      HDRP_USE_BASE_COLOR 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
-      \   float3 Position_b;\n\t\t    float smoothness;\n\t\t    float thickness;\n\t\t
-      \   uint3 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
+      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA
+      1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
+      1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t   
+      float3 Position_b;\n\t\t    float smoothness;\n\t\t    float thickness;\n\t\t   
+      uint3 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
       (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
       indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
       deadListCount;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
-      nbMax;\n\t\t\tfloat systemSeed;\n\t\tCBUFFER_END\n\t\t\n\t\tENDHLSL\n\t\t\n\r\n\t\t\r\n\t\t\r\n\t\t//
+      nbMax;\n\t\t\tfloat systemSeed;\n\t\tCBUFFER_END\n\t\t\n\t\tENDHLSL\n\t\t\n\n\t\t\n\t\t\n\t\t//
       Forward pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ForwardOnly\"}\n\t\t\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\t#define UNITY_MATERIAL_LIT\n\t\t\t#define LIGHTLOOP_TILE_PASS\n\t\t\t#define
       _ENABLE_FOG_ON_TRANSPARENT\n\t\t\t#define _DISABLE_DECALS\n\t\t\t#define _BLENDMODE_ALPHA\n\t\t\t#define
@@ -998,15 +994,15 @@ VisualEffectResource:
       float3 specularColor : COLOR1;\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t#if HDRP_USE_EMISSIVE_COLOR
       || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR\t\n\t\t\t\t\t\t\tnointerpolation float3
       emissiveColor : COLOR2;\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t//
-      x: smoothness\n\t\t\t\t\t\t\t// y: metallic/thickness\n\t\t\t\t\t\t\t// z: normal
-      scale\n\t\t\t\t\t\t\t// w: emissive scale\n\t\t\t\t\t\t\tnointerpolation float4
-      materialProperties : TEXCOORD0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\tfloat4
-      uv : TEXCOORD1;\n\t\t\t\t#else\n\t\t\t\tfloat2 uv : TEXCOORD1;\t\n\t\t\t\t#endif\n\t\t\t\t#if
-      USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
-      x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
-      z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      x: smoothness\n\t\t\t\t\t\t\t// y: metallic/thickness\n\t\t\t\t\t\t\t// z:
+      normal scale\n\t\t\t\t\t\t\t// w: emissive scale\n\t\t\t\t\t\t\tnointerpolation
+      float4 materialProperties : TEXCOORD0;\n\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t#if
+      USE_FLIPBOOK_INTERPOLATION\n\t\t\t\tfloat4 uv : TEXCOORD1;\n\t\t\t\t#else\n\t\t\t\tfloat2
+      uv : TEXCOORD1;\t\n\t\t\t\t#endif\n\t\t\t\t#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
+      || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t// x: inverse soft particles fade distance\n\t\t\t\t//
+      y: alpha threshold\n\t\t\t\t// z: frame blending factor\n\t\t\t\tnointerpolation
+      float3 builtInInterpolants : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
       float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
       bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
@@ -1020,29 +1016,30 @@ VisualEffectResource:
       HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_EMISSIVE emissiveColor\n\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t#define
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
-      VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
-      builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define
+      VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND
+      builtInInterpolants.z\n\t\t#define VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL
+      normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT
+      tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS
+      bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if
+      !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
-      */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
-      \   axisX = viewRot[0].xyz;\n\t\t\t    axisY = viewRot[1].xyz;\n\t\t\t    #if
-      VFX_LOCAL_SPACE // Need to remove potential scale in local transform\n\t\t\t
-      \   axisX = normalize(axisX);\n\t\t\t    axisY = normalize(axisY);\n\t\t\t    axisZ
-      = cross(axisX,axisY);\n\t\t\t    #else\n\t\t\t    axisZ = -viewRot[2].xyz;\n\t\t\t
-      \   #endif\n\t\t\t    \n\t\t\t}\n\t\t\tvoid SetAttribute_C707D62A(inout float3
-      position, float3 Position) /*attribute:position Composition:Add Source:Slot
-      Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma
-      vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID
-      : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint deadCount
-      = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount = deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif
-      (index >= asuint(nbMax) - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t   
+      axisX = viewRot[0].xyz;\n\t\t\t    axisY = viewRot[1].xyz;\n\t\t\t    #if VFX_LOCAL_SPACE
+      // Need to remove potential scale in local transform\n\t\t\t    axisX = normalize(axisX);\n\t\t\t   
+      axisY = normalize(axisY);\n\t\t\t    axisZ = cross(axisX,axisY);\n\t\t\t   
+      #else\n\t\t\t    axisZ = -viewRot[2].xyz;\n\t\t\t    #endif\n\t\t\t    \n\t\t\t}\n\t\t\tvoid
+      SetAttribute_C707D62A(inout float3 position, float3 Position) /*attribute:position
+      Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
+      position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
+      vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint
+      index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint
+      deadCount = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount
+      = deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif (index >= asuint(nbMax)
+      - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\tfloat
       size = asfloat(attributeBuffer.Load((index * 0x1 + 0x0) << 2));\n\t\t\t\t\t\tfloat3
       position = float3(0,0,0);\n\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\tfloat
@@ -1071,8 +1068,8 @@ VisualEffectResource:
       VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
       float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
-      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\t\t
-      \ float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\t\t 
+      float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -1115,9 +1112,9 @@ VisualEffectResource:
       VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
       out BSDFData bsdfData, out PreLightData preLightData, VFX_VARYING_PS_INPUTS
       i, float3 normalWS, const VFXUVData uvData, uint2 tileIndex)\n\t\t\t{\t\n\t\t\t\t#if
-      HDRP_MATERIAL_TYPE_TRANSLUCENT\n\t\t\t\tuint diffusionProfileHash = (uint)0;\n\t\t\t\t{\n\t\t\t\t
-      \   \n\t\t\t\t    diffusionProfileHash = (uint)0;\n\t\t\t\t}\n\t\t\t\t\n //
-      Loads diffusion profile\n\t\t\t\t#else\n\t\t\t\tconst uint diffusionProfileHash
+      HDRP_MATERIAL_TYPE_TRANSLUCENT\n\t\t\t\tuint diffusionProfileHash = (uint)0;\n\t\t\t\t{\n\t\t\t\t   
+      \n\t\t\t\t    diffusionProfileHash = (uint)1080233753;\n\t\t\t\t}\n\t\t\t\t\n
+      // Loads diffusion profile\n\t\t\t\t#else\n\t\t\t\tconst uint diffusionProfileHash
       = 0;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tfloat3 posRWS = VFXGetPositionRWS(i);\n\t\t\t\tfloat4
       posSS = i.VFX_VARYING_POSCS;\n\t\t\t\tPositionInputs posInput = GetPositionInput(posSS.xy,
       _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);\n\t\t\t\t\n\t\t\t\tfloat
@@ -1149,9 +1146,9 @@ VisualEffectResource:
       USE_NORMAL_MAP\n\t\t\t\t\t\t\tfloat3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);\n\t\t\t\t\t\t\tfloat3x3
       tbn = float3x3(tangentWS,bitangentWS,normalWS);\n\t\t\t\t\t\t\tfloat normalScale
       = 1.0f;\n\t\t\t\t\t\t\t#ifdef VFX_VARYING_NORMALSCALE\n\t\t\t\t\t\t\tnormalScale
-      = i.VFX_VARYING_NORMALSCALE;\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\tnormalWS =
-      normalize(lerp(normalWS,mul(n,tbn),normalScale));\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\toutColor
-      = VFXGetPixelOutputForward(i,normalWS,uvData);\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\r\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
+      = i.VFX_VARYING_NORMALSCALE;\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\tnormalWS
+      = normalize(lerp(normalWS,mul(n,tbn),normalScale));\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\toutColor
+      = VFXGetPixelOutputForward(i,normalWS,uvData);\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
       { \"LightMode\"=\"ShadowCaster\" }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
       USE_FLIPBOOK_INTERPOLATION\n\t\t\t\tfloat4 uv : TEXCOORD0;\n\t\t\t\t#else\n\t\t\t\tfloat2
@@ -1159,28 +1156,28 @@ VisualEffectResource:
       || VFX_USE_ALPHA_CURRENT\n\t\t\t\t// x: alpha threshold\n\t\t\t\t// y: frame
       blending factor\n\t\t\t\t// z: alpha\n\t\t\t\tnointerpolation float3 builtInInterpolants
       : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
-      ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_ALPHA builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x\n\t\t#define VFX_VARYING_FRAMEBLEND
-      builtInInterpolants.y\n\t\t#define VFX_VARYING_UV uv\n\t\t\n\t\t\n\t\t\n\t\t//
+      ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_ALPHA
+      builtInInterpolants.z\n\t\t#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x\n\t\t#define
+      VFX_VARYING_FRAMEBLEND builtInInterpolants.y\n\t\t#define VFX_VARYING_UV uv\n\t\t\n\t\t\n\t\t\n\t\t//
       Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t\t\t\n\t\t\t#if
       !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
-      */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
-      \   axisX = viewRot[0].xyz;\n\t\t\t    axisY = viewRot[1].xyz;\n\t\t\t    #if
-      VFX_LOCAL_SPACE // Need to remove potential scale in local transform\n\t\t\t
-      \   axisX = normalize(axisX);\n\t\t\t    axisY = normalize(axisY);\n\t\t\t    axisZ
-      = cross(axisX,axisY);\n\t\t\t    #else\n\t\t\t    axisZ = -viewRot[2].xyz;\n\t\t\t
-      \   #endif\n\t\t\t    \n\t\t\t}\n\t\t\tvoid SetAttribute_C707D62A(inout float3
-      position, float3 Position) /*attribute:position Composition:Add Source:Slot
-      Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t    position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma
-      vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID
-      : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS
-      o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint deadCount
-      = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount = deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif
-      (index >= asuint(nbMax) - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t   
+      axisX = viewRot[0].xyz;\n\t\t\t    axisY = viewRot[1].xyz;\n\t\t\t    #if VFX_LOCAL_SPACE
+      // Need to remove potential scale in local transform\n\t\t\t    axisX = normalize(axisX);\n\t\t\t   
+      axisY = normalize(axisY);\n\t\t\t    axisZ = cross(axisX,axisY);\n\t\t\t   
+      #else\n\t\t\t    axisZ = -viewRot[2].xyz;\n\t\t\t    #endif\n\t\t\t    \n\t\t\t}\n\t\t\tvoid
+      SetAttribute_C707D62A(inout float3 position, float3 Position) /*attribute:position
+      Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
+      position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#pragma vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS
+      vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)\n\t\t\t{\n\t\t\t\tuint
+      index = (id >> 2) + instanceID * 2048;\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint
+      deadCount = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount
+      = deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif (index >= asuint(nbMax)
+      - deadCount)\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\tindex = indirectBuffer[index];\n\t\t\t\t\t\tfloat
       size = asfloat(attributeBuffer.Load((index * 0x1 + 0x0) << 2));\n\t\t\t\t\t\tfloat3
       position = float3(0,0,0);\n\t\t\t\t\t\tfloat3 color = float3(1,1,1);\n\t\t\t\t\t\tfloat
@@ -1209,8 +1206,8 @@ VisualEffectResource:
       VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tconst
       float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;\n\t\t\t\tconst float4x4 elementToVFX
-      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\t\t
-      \ float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
+      = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);\n\t\t\t\t\t 
+      float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = TransformPositionVFXToClip(vPos);\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -1235,27 +1232,26 @@ VisualEffectResource:
       fragment frag\n\t\t\tfloat frag(ps_input i) : SV_TARGET\n\t\t\t{\n\t\t\t\tfloat
       alpha = VFXGetFragmentColor(i).a;\n\t\t#if HDRP_USE_BASE_COLOR_MAP_ALPHA\n\t\t\t\talpha
       *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;\t\n\t\t#endif\n\t\t\t\tVFXClipFragmentColor(alpha,i);\n\t\t\n\t\t\t\treturn
-      0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\r\n\t}\r\n}\r\n"
+      0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t}\n}\n"
   - compute: 1
     name: '[System 1]CameraSort'
-    source: "#pragma kernel CSMain\r\n#define NB_THREADS_PER_GROUP 64\n#define VFX_USE_POSITION_CURRENT
-      1\n#define VFX_LOCAL_SPACE 1\n#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\n\r\nCBUFFER_START(parameters)\n
-      \   float4x4 localToWorld;\nCBUFFER_END\n\n\r\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\r\n\r\nCBUFFER_START(params)\r\n
-      \   uint nbMax;\r\n    uint dispatchWidth;\r\nCBUFFER_END\r\n\r\nCBUFFER_START(cameraParams)\r\n
-      \   float3 cameraPosition;\r\nCBUFFER_END\r\n\r\nByteAddressBuffer attributeBuffer;\r\nStructuredBuffer<uint>
-      inputBuffer;\r\n\r\n#if USE_DEAD_LIST_COUNT\r\nByteAddressBuffer deadListCount;\r\n#endif\r\n\r\nstruct
-      Kvp\r\n{\r\n\tfloat sortKey;\r\n\tuint index;\r\n};\r\n\r\nRWStructuredBuffer<Kvp>
-      outputBuffer;\r\n\r\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\r\nvoid CSMain(uint3
-      groupId          : SV_GroupID,\r\n            uint3 groupThreadId    : SV_GroupThreadID)\r\n{\r\n\tuint
-      threshold = nbMax;\r\n#if USE_DEAD_LIST_COUNT\r\n\tthreshold -= deadListCount.Load(0);\r\n#endif\r\n\tuint
-      id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth
-      * NB_THREADS_PER_GROUP;\r\n\tif (id < threshold)\r\n\t{\r\n\t\tuint index =
-      inputBuffer[id];\r\n\t\tfloat3 position = float3(0,0,0);\n\t\t\n\r\n\t\t\r\n#if
-      VFX_LOCAL_SPACE\r\n\t\tfloat3 wPos = mul(localToWorld,float4(position,1.0f)).xyz;\r\n#else\r\n\t\tfloat3
-      wPos = position;\r\n#endif\r\n\t\tfloat3 camToPos = wPos - cameraPosition;\r\n\t\t\r\n\t\tKvp
-      kvp;\r\n\t\tkvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera\r\n\t\tkvp.index
-      = index;\r\n\r\n\t\toutputBuffer[id] = kvp;\r\n\t}\r\n}\r\n"
+    source: "#pragma kernel CSMain\n#define NB_THREADS_PER_GROUP 64\n#define VFX_USE_POSITION_CURRENT
+      1\n#define VFX_LOCAL_SPACE 1\n#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\n\nCBUFFER_START(parameters)\n   
+      float4x4 localToWorld;\nCBUFFER_END\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.cginc\"\n#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\n\n\nCBUFFER_START(params)\n   
+      uint nbMax;\n    uint dispatchWidth;\nCBUFFER_END\n\nCBUFFER_START(cameraParams)\n   
+      float3 cameraPosition;\nCBUFFER_END\n\nByteAddressBuffer attributeBuffer;\nStructuredBuffer<uint>
+      inputBuffer;\n\n#if USE_DEAD_LIST_COUNT\nByteAddressBuffer deadListCount;\n#endif\n\nstruct
+      Kvp\n{\n\tfloat sortKey;\n\tuint index;\n};\n\nRWStructuredBuffer<Kvp> outputBuffer;\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId   
+      : SV_GroupThreadID)\n{\n\tuint threshold = nbMax;\n#if USE_DEAD_LIST_COUNT\n\tthreshold
+      -= deadListCount.Load(0);\n#endif\n\tuint id = groupThreadId.x + groupId.x
+      * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tif
+      (id < threshold)\n\t{\n\t\tuint index = inputBuffer[id];\n\t\tfloat3 position
+      = float3(0,0,0);\n\t\t\n\n\t\t\n#if VFX_LOCAL_SPACE\n\t\tfloat3 wPos = mul(localToWorld,float4(position,1.0f)).xyz;\n#else\n\t\tfloat3
+      wPos = position;\n#endif\n\t\tfloat3 camToPos = wPos - cameraPosition;\n\t\t\n\t\tKvp
+      kvp;\n\t\tkvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera\n\t\tkvp.index
+      = index;\n\n\t\toutputBuffer[id] = kvp;\n\t}\n}\n"
   m_Infos:
     m_Expressions:
       m_Expressions:
@@ -1426,7 +1422,7 @@ VisualEffectResource:
       m_Uint:
         m_Array:
         - m_ExpressionIndex: 10
-          m_Value: 0
+          m_Value: 1080233753
         - m_ExpressionIndex: 15
           m_Value: 4294967295
       m_Int:
@@ -1900,7 +1896,8 @@ MonoBehaviour:
   preRefraction: 0
   materialType: 4
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 0}
+  diffusionProfileAsset: {fileID: 11400000, guid: 916c1971c2397be4a825dd6b615a31bd,
+    type: 2}
   multiplyThicknessWithAlpha: 0
   useBaseColorMap: 3
   useMaskMap: 0
@@ -2226,7 +2223,8 @@ MonoBehaviour:
   preRefraction: 0
   materialType: 4
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 0}
+  diffusionProfileAsset: {fileID: 11400000, guid: 916c1971c2397be4a825dd6b615a31bd,
+    type: 2}
   multiplyThicknessWithAlpha: 0
   useBaseColorMap: 3
   useMaskMap: 0
@@ -2630,7 +2628,8 @@ MonoBehaviour:
   preRefraction: 0
   materialType: 4
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 0}
+  diffusionProfileAsset: {fileID: 11400000, guid: 916c1971c2397be4a825dd6b615a31bd,
+    type: 2}
   multiplyThicknessWithAlpha: 0
   useBaseColorMap: 3
   useMaskMap: 0
@@ -2952,7 +2951,8 @@ MonoBehaviour:
   preRefraction: 0
   materialType: 4
   onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 0}
+  diffusionProfileAsset: {fileID: 11400000, guid: 916c1971c2397be4a825dd6b615a31bd,
+    type: 2}
   multiplyThicknessWithAlpha: 0
   useBaseColorMap: 3
   useMaskMap: 0
@@ -4105,8 +4105,8 @@ MonoBehaviour:
   m_Property:
     name: bounds
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []

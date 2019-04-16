@@ -12,92 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
-    type: 2}
-  m_RenderingPathDefaultCameraFrameSettings:
-    bitDatas:
-      data1: 16507701821213
-      data2: 4539628424389459968
-  m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
-    bitDatas:
-      data1: 16507697495837
-      data2: 4539628424389459968
-  m_RenderingPathDefaultRealtimeReflectionFrameSettings:
-    bitDatas:
-      data1: 16507540086557
-      data2: 4539628424389459968
-  m_RenderPipelineSettings:
-    supportShadowMask: 1
-    supportSSR: 1
-    supportSSAO: 1
-    supportSubsurfaceScattering: 1
-    increaseSssSampleCount: 0
-    supportVolumetrics: 1
-    increaseResolutionOfVolumetrics: 1
-    supportLightLayers: 0
-    supportDistortion: 1
-    supportTransparentBackface: 1
-    supportTransparentDepthPrepass: 1
-    supportTransparentDepthPostpass: 1
-    colorBufferFormat: 48
-    supportedLitShaderMode: 3
-    supportDecals: 0
-    msaaSampleCount: 1
-    supportMotionVectors: 1
-    supportRuntimeDebugDisplay: 1
-    supportDitheringCrossFade: 1
-    supportRayTracing: 0
-    lightLoopSettings:
-      cookieSize: 128
-      cookieTexArraySize: 16
-      pointCookieSize: 128
-      cubeCookieTexArraySize: 16
-      planarReflectionProbeCacheSize: 2
-      planarReflectionTextureSize: 128
-      reflectionProbeCacheSize: 4
-      reflectionCubemapSize: 128
-      reflectionCacheCompressed: 0
-      planarReflectionCacheCompressed: 0
-      skyReflectionSize: 256
-      skyLightingOverrideLayerMask:
-        serializedVersion: 2
-        m_Bits: 0
-      supportFabricConvolution: 0
-      maxDirectionalLightsOnScreen: 16
-      maxPunctualLightsOnScreen: 512
-      maxAreaLightsOnScreen: 64
-      maxEnvLightsOnScreen: 64
-      maxDecalsOnScreen: 512
-    hdShadowInitParams:
-      shadowAtlasResolution: 4096
-      maxShadowRequests: 128
-      shadowMapsDepthBits: 32
-      useDynamicViewportRescale: 1
-      shadowQuality: 0
-    decalSettings:
-      drawDistance: 1000
-      atlasWidth: 4096
-      atlasHeight: 4096
-      perChannelMask: 0
-    postProcessSettings:
-      m_LutSize: 32
-      lutFormat: 48
-    dynamicResolutionSettings:
-      enabled: 0
-      maxPercentage: 100
-      minPercentage: 100
-      dynResType: 0
-      upsampleFilter: 1
-      forceResolution: 0
-      forcedPercentage: 100
-  allowShaderVariantStripping: 1
-  enableSRPBatcher: 0
-  shaderVariantLogLevel: 0
-  diffusionProfileSettings: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
-    type: 2}
-  diffusionProfileSettingsList:
-  - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
-  - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
   m_Version: 5
   m_ObsoleteFrameSettings:
     overrides: 0
@@ -234,3 +148,113 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
+  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
+    type: 2}
+  m_RenderingPathDefaultCameraFrameSettings:
+    bitDatas:
+      data1: 16507701821213
+      data2: 4539628424389459968
+    lodBias: 1
+    lodBiasMode: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+  m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
+    bitDatas:
+      data1: 16507697495837
+      data2: 4539628424389459968
+    lodBias: 1
+    lodBiasMode: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+  m_RenderingPathDefaultRealtimeReflectionFrameSettings:
+    bitDatas:
+      data1: 16507540086557
+      data2: 4539628424389459968
+    lodBias: 1
+    lodBiasMode: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
+  m_RenderPipelineSettings:
+    supportShadowMask: 1
+    supportSSR: 1
+    supportSSAO: 1
+    supportSubsurfaceScattering: 1
+    increaseSssSampleCount: 0
+    supportVolumetrics: 1
+    increaseResolutionOfVolumetrics: 1
+    supportLightLayers: 0
+    supportDistortion: 1
+    supportTransparentBackface: 1
+    supportTransparentDepthPrepass: 1
+    supportTransparentDepthPostpass: 1
+    supportLowResTransparent: 1
+    colorBufferFormat: 48
+    supportedLitShaderMode: 3
+    supportDecals: 0
+    msaaSampleCount: 1
+    supportMotionVectors: 1
+    supportRuntimeDebugDisplay: 1
+    supportDitheringCrossFade: 1
+    supportRayTracing: 0
+    lightLoopSettings:
+      cookieSize: 128
+      cookieTexArraySize: 16
+      pointCookieSize: 128
+      cubeCookieTexArraySize: 16
+      planarReflectionProbeCacheSize: 2
+      planarReflectionTextureSize: 128
+      reflectionProbeCacheSize: 4
+      reflectionCubemapSize: 128
+      reflectionCacheCompressed: 0
+      planarReflectionCacheCompressed: 0
+      skyReflectionSize: 256
+      skyLightingOverrideLayerMask:
+        serializedVersion: 2
+        m_Bits: 0
+      supportFabricConvolution: 0
+      maxDirectionalLightsOnScreen: 16
+      maxPunctualLightsOnScreen: 512
+      maxAreaLightsOnScreen: 64
+      maxEnvLightsOnScreen: 64
+      maxDecalsOnScreen: 512
+    hdShadowInitParams:
+      maxShadowRequests: 128
+      directionalShadowsDepthBits: 32
+      shadowQuality: 0
+      punctualLightShadowAtlas:
+        shadowAtlasResolution: 4096
+        shadowAtlasDepthBits: 32
+        useDynamicViewportRescale: 1
+      areaLightShadowAtlas:
+        shadowAtlasResolution: 4096
+        shadowAtlasDepthBits: 32
+        useDynamicViewportRescale: 1
+    decalSettings:
+      drawDistance: 1000
+      atlasWidth: 4096
+      atlasHeight: 4096
+      perChannelMask: 0
+    postProcessSettings:
+      m_LutSize: 32
+      lutFormat: 48
+    dynamicResolutionSettings:
+      enabled: 0
+      maxPercentage: 100
+      minPercentage: 100
+      dynResType: 0
+      upsampleFilter: 1
+      forceResolution: 0
+      forcedPercentage: 100
+    lowresTransparentSettings:
+      enabled: 1
+      checkerboardDepthBuffer: 1
+      upsampleType: 1
+  allowShaderVariantStripping: 1
+  enableSRPBatcher: 0
+  shaderVariantLogLevel: 0
+  diffusionProfileSettings: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
+    type: 2}
+  diffusionProfileSettingsList:
+  - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
+  - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
+  - {fileID: 11400000, guid: 916c1971c2397be4a825dd6b615a31bd, type: 2}
