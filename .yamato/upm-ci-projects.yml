@@ -1,0 +1,60 @@
+editors:
+  - version: trunk
+platforms:
+  - name: Windows64
+    type: Unity::VM::GPU
+    image: sdet/gamecode_win10:latest
+    flavor: m1.large
+  - name: OSX
+    type: Unity::VM::osx
+    image: buildfarm/mac:stable
+    flavor: m1.mac
+testplatforms:
+  - name: Standalone
+    args: --suite=playmode --platform=Standalone
+  - name: playmode
+    args: --suite=playmode
+  - name: editmode
+    args: --suite=editor --platform=editmode
+projects:
+  - name: LWRP
+    folder: LWGraphicsTest
+  - name: ShaderGraph
+    folder: ShaderGraph
+  - name: PostProcessing
+    folder: PostProcessing
+  - name: HDRP
+    folder: HDRP_Tests
+  - name: VFXMain
+    folder: VisualEffectGraph
+  - name: VFX_LWRP
+    folder: VisualEffectGraph_LWRP
+---
+#turning off mac on this one for now so that all the macs don't start at once
+all_project_ci:
+  name: Run all test projects on all platforms
+  agent:
+    name: whatever
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-agent:latest
+    flavor: b1.small
+  commands:
+  - dir
+  dependencies:
+  {% for project in projects %}
+  {% for editor in editors %}
+  #{% for platform in platforms %}
+  {% for testplatform in testplatforms %}
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Windows64_{{ testplatform.name }}_{{ editor.version }}
+  {% endfor %}
+  {% endfor %}
+  {% endfor %}
+  #{% endfor %}
+  triggers:
+    branches:
+      only:
+        - master
+  artifacts:
+    logs.zip:
+      paths:
+      - "**/upm-ci~/test-results/**/*"

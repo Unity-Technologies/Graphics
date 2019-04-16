@@ -260,6 +260,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Asset.EvaluateSettings();
 
             UpgradeResourcesIfNeeded();
+
+            ValidateResources();
 #endif
 
             // Initial state of the RTHandle system.
@@ -401,6 +403,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // It's done here because we know every HDRP assets have been imported before
             (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources?.UpgradeIfNeeded();
         }
+        
+        void ValidateResources()
+        {
+            var resources = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources;
+
+            // We iterate over all compute shader to verify if they are all compiled, if it's not the case
+            // then we throw an exception to avoid allocating resources and crashing later on by using a null
+            // compute kernel.
+            foreach (var computeShader in resources.shaders.GetAllComputeShaders())
+            {
+                foreach (var message in UnityEditor.ShaderUtil.GetComputeShaderMessages(computeShader))
+                {
+                    if (message.severity == UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error)
+                    {
+                        // Will be catched by the try in HDRenderPipelineAsset.CreatePipeline()
+                        throw new Exception(String.Format(
+                            "Compute Shader compilation error on platform {0} in file {1}:{2}: {3}{4}\n" +
+                            "HDRP will not run until the error is fixed.\n",
+                            message.platform, message.file, message.line, message.message, message.messageDetails
+                        ));
+                    }
+                }
+            }
+        }
+
 #endif
 
         void InitializeRenderTextures()
@@ -1461,21 +1488,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Must update after getting DebugDisplaySettings
             m_RayTracingManager.rayCountManager.ClearRayCount(cmd, hdCamera);
 #endif
-#if FRAMESETTINGS_LOD_BIAS
-            // Set the LOD bias and store current value to be able to restore it.
-            var initialLODBias = QualitySettings.lodBias;
-            QualitySettings.lodBias = hdCamera.frameSettings.lodBiasMode.ComputeValue(
-                QualitySettings.lodBias,
-                hdCamera.frameSettings.lodBias
-            );
-            cmd.SetLODBias(QualitySettings.lodBias);
-            var initialMaximumLODLevel = QualitySettings.maximumLODLevel;
-            QualitySettings.maximumLODLevel = hdCamera.frameSettings.maximumLODLevelMode.ComputeValue(
-                QualitySettings.maximumLODLevel,
-                hdCamera.frameSettings.maximumLODLevel
-            );
-            cmd.SetMaximumLODLevel(QualitySettings.maximumLODLevel);
-#endif
 
             m_DbufferManager.enableDecals = false;
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
@@ -1980,13 +1992,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (showGizmos)
                 RenderGizmos(cmd, camera, renderContext, GizmoSubset.PostImageEffects);
 #endif
-
-#if FRAMESETTINGS_LOD_BIAS
-            QualitySettings.lodBias = initialLODBias;
-            cmd.SetLODBias(initialLODBias);
-            QualitySettings.maximumLODLevel = initialMaximumLODLevel;
-            cmd.SetMaximumLODLevel(initialMaximumLODLevel);
-#endif
         }
 
         void BlitFinalCameraTexture(CommandBuffer cmd, HDCamera hdCamera, RenderTargetIdentifier destination)
@@ -2210,7 +2215,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
-#if FRAMESETTINGS_LOD_BIAS
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias
             var initialLODBias = QualitySettings.lodBias;
@@ -2225,7 +2229,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     QualitySettings.maximumLODLevel,
                     hdCamera.frameSettings.maximumLODLevel
                 );
-#endif
 
                 var includeEnvLights = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting);
 
@@ -2266,14 +2269,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return true;
 
-#if FRAMESETTINGS_LOD_BIAS
             }
             finally
             {
                 QualitySettings.lodBias = initialLODBias;
                 QualitySettings.maximumLODLevel = initialMaximumLODLevel;
             }
-#endif
         }
 
         void RenderGizmos(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext, GizmoSubset gizmoSubset)
