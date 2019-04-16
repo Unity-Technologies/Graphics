@@ -215,7 +215,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2601_ColorTemp.unity
     guid: 34a3a4a7a56d3014dad3114e6b523742
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2602_BakedSpotShape.unity
     guid: c034386e3fb58f44783743edf9b0f4a4
   - enabled: 1
