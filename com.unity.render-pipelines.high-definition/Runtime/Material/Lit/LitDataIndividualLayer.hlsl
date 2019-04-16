@@ -219,7 +219,8 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 		float peelMask = saturate( (layerTexCoord.base.uv.y + _PeeledBarkUVRangeScale.x) / (_PeeledBarkUVRangeScale.y + dot(frac(GetObjectAbsolutePositionWS()), _PeeledBarkUVRangeScale.zwz)) );
 		detailMask = detailMask2.g * input.color.r < peelMask;
 	#elif defined(_MASKMAP_IDX)
-//forest-end:        detailMask = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).b;
+//forest-end:       
+        detailMask = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).b;
     #endif
     float2 detailAlbedoAndSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_DetailMap), SAMPLER_DETAILMAP_IDX, ADD_IDX(layerTexCoord.details)).rb;
     float detailAlbedo = detailAlbedoAndSmoothness.r * 2.0 - 1.0;
@@ -432,6 +433,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.iridescenceMask = 0.0;
 #endif
 
+//forest-begin: sky occlusion
+    float grassOcclusion;
+    surfaceData.skyOcclusion = SampleSkyOcclusion(input.positionRWS, grassOcclusion);
+//forest-end:
 //forest-begin: Tree Occlusion
     float4 treeOcclusionInput = float4(input.texCoord2.xy, input.texCoord3.xy);
     surfaceData.treeOcclusion = GetTreeOcclusion(input.positionRWS, treeOcclusionInput);
@@ -457,7 +462,9 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
-
+//forest-begin: sky occlusion
+    surfaceData.skyOcclusion = 1;
+//forest-end:
 //forest-begin: Tree Occlusion
     surfaceData.treeOcclusion = 1;
 //forest-end:

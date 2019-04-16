@@ -781,6 +781,19 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #else
     surfaceData.specularOcclusion = 1.0;
 #endif
+//forest-begin: lightmap occlusion
+    surfaceData.specularOcclusion = min(surfaceData.specularOcclusion, GetSpecularOcclusionFromLightmapLuminance(V, surfaceData.normalWS, input.texCoord1, input.texCoord2));
+//forest-end
+
+//forest-begin: occlusion probes
+    float grassOcclusion;
+    #ifdef _ENABLE_TERRAIN_MODE
+        // If it's a terrain, use the cheaper grass occlusion sampling method. It also has a separate intensity slider.
+        surfaceData.skyOcclusion = SampleSkyOcclusion(input.positionRWS, layerTexCoord.blendMask.uv, grassOcclusion);
+    #else
+        surfaceData.skyOcclusion = SampleSkyOcclusion(input.positionRWS, grassOcclusion);
+    #endif
+//forest-end:
 
 //forest-begin: Tree Occlusion
 	float4 treeOcclusionInput = float4(input.texCoord2.xy, input.texCoord3.xy);
@@ -812,8 +825,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif
-
-    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+//forest-begin: occlusion probes
+    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, grassOcclusion, builtinData);
+//forest-end:
 }
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataMeshModification.hlsl"

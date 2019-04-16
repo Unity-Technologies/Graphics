@@ -1,3 +1,92 @@
+//forest-begin: sky occlusion
+
+#define SKY_OCCLUSION 1
+#if SKY_OCCLUSION
+
+// Occlusion probes
+sampler3D _OcclusionProbes;
+float4x4 _OcclusionProbesWorldToLocal;
+sampler3D _OcclusionProbesDetail;
+float4x4 _OcclusionProbesWorldToLocalDetail;
+float4 _AmbientProbeSH[7];
+
+// Grass occlusion
+sampler2D _GrassOcclusion;
+float _GrassOcclusionAmountTerrain;
+float _GrassOcclusionAmountGrass;
+float _GrassOcclusionHeightFadeBottom;
+float _GrassOcclusionHeightFadeTop;
+float4x4 _GrassOcclusionWorldToLocal;
+sampler2D _GrassOcclusionHeightmap;
+float _GrassOcclusionHeightRange;
+float _GrassOcclusionCullHeight;
+
+float SampleGrassOcclusion(float2 terrainUV)
+{
+    return lerp(1.0, tex2D(_GrassOcclusion, terrainUV).a, _GrassOcclusionAmountTerrain);
+}
+
+float SampleGrassOcclusion(float3 positionWS)
+{
+    float3 pos = mul(_GrassOcclusionWorldToLocal, float4(positionWS, 1)).xyz;
+    float terrainHeight = tex2D(_GrassOcclusionHeightmap, pos.xz).a;
+    float height = pos.y - terrainHeight * _GrassOcclusionHeightRange;
+
+    UNITY_BRANCH
+    if(height < _GrassOcclusionCullHeight)
+    {
+        float xz = lerp(1.0, tex2D(_GrassOcclusion, pos.xz).a, _GrassOcclusionAmountGrass);
+        return saturate(xz + smoothstep(_GrassOcclusionHeightFadeBottom, _GrassOcclusionHeightFadeTop, height));
+
+        // alternatively:    
+        // float amount = saturate(smoothstep(_GrassOcclusionHeightFade, 0, pos.y) * _GrassOcclusionAmount);
+        // return lerp(1.0, tex2D(_GrassOcclusion, pos.xz).a, amount);
+    }
+    else
+        return 1;
+}
+
+float SampleOcclusionProbes(float3 positionWS)
+{
+	// TODO: no full matrix mul needed, just scale and offset the pos (don't really need to support rotation)
+    float occlusionProbes = 1;
+
+    float3 pos = mul(_OcclusionProbesWorldToLocalDetail, float4(positionWS, 1)).xyz;
+
+    UNITY_BRANCH
+	if(all(pos > 0) && all(pos < 1))
+    {
+		occlusionProbes = tex3D(_OcclusionProbesDetail, pos).a;
+	}
+    else
+    {
+		pos = mul(_OcclusionProbesWorldToLocal, float4(positionWS, 1)).xyz;
+		occlusionProbes = tex3D(_OcclusionProbes, pos).a;
+	}
+
+    return occlusionProbes;
+}
+
+float SampleSkyOcclusion(float3 positionRWS, out float grassOcclusion)
+{
+    float3 positionWS = GetAbsolutePositionWS(positionRWS);
+    grassOcclusion = SampleGrassOcclusion(positionWS);
+    return grassOcclusion * SampleOcclusionProbes(positionWS);
+}
+
+float SampleSkyOcclusion(float3 positionRWS, float2 terrainUV, out float grassOcclusion)
+{
+    float3 positionWS = GetAbsolutePositionWS(positionRWS);
+    grassOcclusion = SampleGrassOcclusion(terrainUV);
+    return grassOcclusion * SampleOcclusionProbes(positionWS);
+}
+
+#else
+float SampleGrassOcclusion(float2 terrainUV) { return 1; }
+float SampleSkyOcclusion(float3 positionRWS, out float grassOcclusion) { grassOcclusion = 1; return 1; }
+float SampleSkyOcclusion(float3 positionRWS, float2 terrainUV, out float grassOcclusion) { grassOcclusion = 1; return 1; }
+#endif
+//forest-end:
 //forest-begin: Tree occlusion
 
 //UnityPerMaterial
