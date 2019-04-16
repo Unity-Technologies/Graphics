@@ -59,8 +59,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
             for (int i = 0; i < s_SortingLayers.Length; i++)
             {
+                // The canvas renderer overrides its sorting layer value with short.MaxValue in the editor.
+                // When drawing the last sorting layer, include the range from layerValue to short.MaxValue
+                // so that UI can be rendered in the scene view.
                 short layerValue = (short)s_SortingLayers[i].value;
-                filterSettings.sortingLayerRange = new SortingLayerRange(layerValue, layerValue);
+                var upperBound = (i == s_SortingLayers.Length - 1) ? short.MaxValue : layerValue;
+                filterSettings.sortingLayerRange = new SortingLayerRange(layerValue, upperBound);
 
                 int layerToRender = s_SortingLayers[i].id;
 
