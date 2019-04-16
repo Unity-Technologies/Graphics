@@ -127,7 +127,7 @@ void RayGenIndirectDiffuse()
     finalColor *= 1.0f / _RaytracingNumSamples;
 
     // Expose and clamp the final color
-    finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
+    finalColor = clamp(finalColor, 0.0, _RaytracingIntensityClamp) ;
     
     // We store the sampled color and the weight that shall be used for it (1.0f)
     _IndirectDiffuseTextureRW[currentCoord] = float4(finalColor, 1.0f);

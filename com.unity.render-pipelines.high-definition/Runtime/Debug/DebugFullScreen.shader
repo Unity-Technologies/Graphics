@@ -35,20 +35,23 @@ Shader "Hidden/HDRP/DebugFullScreen"
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float2 texcoord : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
-
                 return output;
             }
 
@@ -125,6 +128,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                
                 // Note: If the single shadow debug mode is enabled, we don't render other full screen debug modes
                 // and the value of _FullScreenDebugMode is forced to 0
                 if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW)
@@ -158,6 +163,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     return color;
                 }
                 if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_INDIRECT_DIFFUSE)
+                {
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    return color;
+                }
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_PRIMARY_VISBILITY)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;

@@ -2,7 +2,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX.Utils
+namespace UnityEditor.Experimental.VFX.Utility
 {
     public partial class PointCacheBakeTool : EditorWindow
     {

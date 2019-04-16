@@ -27,7 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Shadow = 1 << 11,
             Decal = 1 << 12,
             PostProcess = 1 << 13,
-            DynamicResolution = 1 << 14
+            DynamicResolution = 1 << 14,
+            LowResTransparency = 1 << 15
         }
 
         readonly static ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -64,7 +65,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.FoldoutGroup(k_RenderingSectionTitle, Expandable.Rendering, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionRenderingUnsorted),
                     CED.FoldoutGroup(k_DecalsSubTitle, Expandable.Decal, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
-                    CED.FoldoutGroup(k_DynamicResolutionSubTitle, Expandable.DynamicResolution, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings)
+                    CED.FoldoutGroup(k_DynamicResolutionSubTitle, Expandable.DynamicResolution, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings),
+                    CED.FoldoutGroup(k_LowResTransparencySubTitle, Expandable.LowResTransparency, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLowResTransparentSettings)
                     ),
                 CED.FoldoutGroup(k_LightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
@@ -425,7 +427,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             --EditorGUI.indentLevel;
         }
-        
+
+        static void Drawer_SectionLowResTransparentSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.enabled, k_LowResTransparentEnabled);
+
+            /* For the time being we don't enable the option control and default to nearest depth. This might change in a close future. 
+            ++EditorGUI.indentLevel;
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.lowresTransparentSettings.enabled.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer, k_CheckerboardDepthBuffer);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.upsampleType, k_UpsampleFilter);
+            }
+            --EditorGUI.indentLevel;
+            */
+        }
+
         static void Drawer_SectionPostProcessSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();

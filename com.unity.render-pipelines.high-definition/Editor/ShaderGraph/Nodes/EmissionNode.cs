@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         EV100,
     }
 
-    [Title("Input", "High Definition Render Pipeline", "Emission Node")]
+    [Title("Utility", "High Definition Render Pipeline", "Emission Node")]
     class EmissionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public EmissionNode()
@@ -125,6 +125,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             registry.ProvideFunction(GetFunctionName(), s =>
                 {
+                    // We may need ConvertEvToLuminance() so we include CommonLighting.hlsl
+                    s.AppendLine("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl\"");
+                    
                     s.AppendLine("{1}3 {0}({1}3 ldrColor, {2} luminanceIntensity, {2} exposureWeight, {2} inverseCurrentExposureMultiplier)",
                         GetFunctionName(),
                         precision,

@@ -149,22 +149,7 @@ namespace UnityEngine.Rendering
             return Equals((VolumeParameter<T>)obj);
         }
 
-        //
-        // Implicit conversion; assuming the following:
-        //
-        //   var myFloatProperty = new ParameterOverride<float> { value = 42f; };
-        //
-        // It allows for implicit casts:
-        //
-        //   float myFloat = myFloatProperty.value; // No implicit cast
-        //   float myFloat = myFloatProperty;       // Implicit cast
-        //
-        // For safety reason this is one-way only.
-        //
-        public static implicit operator T(VolumeParameter<T> prop)
-        {
-            return prop.m_Value;
-        }
+        public static explicit operator T(VolumeParameter<T> prop) => prop.m_Value;
     }
 
     //

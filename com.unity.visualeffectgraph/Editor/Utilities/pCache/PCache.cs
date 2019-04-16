@@ -7,7 +7,7 @@ using System.Text;
 using System.Globalization;
 using UnityEngine;
 
-namespace UnityEditor.VFX.Utils
+namespace UnityEditor.Experimental.VFX.Utility
 {
     public class PCache
     {

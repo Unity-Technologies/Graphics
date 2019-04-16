@@ -79,6 +79,9 @@ void Frag(PackedVaryingsToPS packedInput,
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
+    // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
+    input.positionSS.xy = _OffScreenRendering > 0 ? (input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
+
     uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
 #if defined(UNITY_SINGLE_PASS_STEREO)
     tileIndex.x -= unity_StereoEyeIndex * _NumTileClusteredX;
@@ -113,17 +116,37 @@ void Frag(PackedVaryingsToPS packedInput,
     #endif
 
     // Same code in ShaderPassForwardUnlit.shader
-    if (_DebugViewMaterial != 0)
+    // Reminder: _DebugViewMaterialArray[i]
+    //   i==0 -> the size used in the buffer
+    //   i>0  -> the index used (0 value means nothing)
+    // The index stored in this buffer could either be
+    //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
+    //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
+    bool viewMaterial = false;
+    int bufferSize = int(_DebugViewMaterialArray[0]);
+    if (bufferSize != 0)
     {
+        bool needLinearToSRGB = false;
         float3 result = float3(1.0, 0.0, 1.0);
 
-        bool needLinearToSRGB = false;
+        // Loop through the whole buffer
+        // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
+        for (int index = 1; index <= bufferSize; index++)
+        {
+            int indexMaterialProperty = int(_DebugViewMaterialArray[index]);
 
-        GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
-        GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
-        GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
-        GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
-        GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
+            // skip if not really in use
+            if (indexMaterialProperty != 0)
+            {
+                viewMaterial = true;
+
+                GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
+                GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
+                GetBuiltinDataDebug(indexMaterialProperty, builtinData, result, needLinearToSRGB);
+                GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
+                GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
+            }
+        }
 
         // TEMP!
         // For now, the final blit in the backbuffer performs an sRGB write
@@ -133,61 +156,68 @@ void Frag(PackedVaryingsToPS packedInput,
 
         outColor = float4(result, 1.0);
     }
-    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR || _DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+
+    if (!viewMaterial)
     {
-        float3 result = float3(0.0, 0.0, 0.0);
+        if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR || _DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+        {
+            float3 result = float3(0.0, 0.0, 0.0);
 
-        GetPBRValidatorDebug(surfaceData, result);
+            GetPBRValidatorDebug(surfaceData, result);
 
-        outColor = float4(result, 1.0f);
-    }
-    else
+            outColor = float4(result, 1.0f);
+        }
+        else
 #endif
-    {
+        {
 #ifdef _SURFACE_TYPE_TRANSPARENT
-        uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
+            uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
 #else
-        uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
+            uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
 #endif
-        float3 diffuseLighting;
-        float3 specularLighting;
+            float3 diffuseLighting;
+            float3 specularLighting;
 
-        LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
-        diffuseLighting *= GetCurrentExposureMultiplier();
-        specularLighting *= GetCurrentExposureMultiplier();
+            diffuseLighting *= GetCurrentExposureMultiplier();
+            specularLighting *= GetCurrentExposureMultiplier();
 
 #ifdef OUTPUT_SPLIT_LIGHTING
-        if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
-        {
-            outColor = float4(specularLighting, 1.0);
-            outDiffuseLighting = float4(TagLightingForSSS(diffuseLighting), 1.0);
-        }
-        else
-        {
-            outColor = float4(diffuseLighting + specularLighting, 1.0);
-            outDiffuseLighting = 0;
-        }
-        ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
+            if (_EnableSubsurfaceScattering != 0 && ShouldOutputSplitLighting(bsdfData))
+            {
+                outColor = float4(specularLighting, 1.0);
+                outDiffuseLighting = float4(TagLightingForSSS(diffuseLighting), 1.0);
+            }
+            else
+            {
+                outColor = float4(diffuseLighting + specularLighting, 1.0);
+                outDiffuseLighting = 0;
+            }
+            ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
 #else
-        outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
-        outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
+            outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
+            outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
 #endif
+
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-        VaryingsPassToPS inputPass = UnpackVaryingsPassToPS(packedInput.vpass);
-        bool forceNoMotion = any(unity_MotionVectorsParams.yw == 0.0);
-        if (forceNoMotion)
-        {
-            outMotionVec = float4(2.0, 0.0, 0.0, 0.0);
-        }
-        else
-        {
-            float2 motionVec = CalculateMotionVector(inputPass.positionCS, inputPass.previousPositionCS);
-            EncodeMotionVector(motionVec * 0.5, outMotionVec);
-            outMotionVec.zw = 1.0;
-        }
+            VaryingsPassToPS inputPass = UnpackVaryingsPassToPS(packedInput.vpass);
+            bool forceNoMotion = any(unity_MotionVectorsParams.yw == 0.0);
+            if (forceNoMotion)
+            {
+                outMotionVec = float4(2.0, 0.0, 0.0, 0.0);
+            }
+            else
+            {
+                float2 motionVec = CalculateMotionVector(inputPass.positionCS, inputPass.previousPositionCS);
+                EncodeMotionVector(motionVec * 0.5, outMotionVec);
+                outMotionVec.zw = 1.0;
+            }
 #endif
+        }
+#ifdef DEBUG_DISPLAY
     }
+#endif
 
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;
