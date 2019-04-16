@@ -215,6 +215,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
+//forest-begin: View angle dependent smoothness tweak. Do this once, after combining all source smoothness, and calculating world space normal.
+    float NdotV = ClampNdotV(dot(surfaceData.normalWS, V));
+    float invNdotV = 1.f - NdotV;
+
+    surfaceData.perceptualSmoothness += _SmoothnessViewAngleOffset * invNdotV;
+    surfaceData.perceptualSmoothness = min(surfaceData.perceptualSmoothness, 1.f);
+//forest-end:
+
     // Use bent normal to sample GI if available
 #ifdef _BENTNORMALMAP
     GetNormalWS(input, bentNormalTS, bentNormalWS, doubleSidedConstants);

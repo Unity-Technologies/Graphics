@@ -15,6 +15,9 @@ Shader "HDRP/LitTessellation"
 
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
+//forest-begin: View angle dependent smoothness tweak
+        _SmoothnessViewAngleOffset("Smoothness View Angle Offset", Range(0.0, 1.0)) = 0.0
+//forest-end:
         _MaskMap("MaskMap", 2D) = "white" {}
         _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0

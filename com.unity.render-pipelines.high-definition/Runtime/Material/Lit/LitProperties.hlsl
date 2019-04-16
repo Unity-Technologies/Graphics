@@ -181,6 +181,9 @@ float _Metallic;
 float _Smoothness;
 float _SmoothnessRemapMin;
 float _SmoothnessRemapMax;
+//forest-begin: View angle dependent smoothness tweak
+float _SmoothnessViewAngleOffset;
+//forest-end:
 float _AORemapMin;
 float _AORemapMax;
 
