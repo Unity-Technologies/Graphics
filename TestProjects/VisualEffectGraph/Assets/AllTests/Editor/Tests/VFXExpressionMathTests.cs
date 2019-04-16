@@ -377,7 +377,7 @@ namespace UnityEditor.VFX.Test
             yield return new Min_Max_Expression_Folding_TestCase() { name = "min(1, (sub(x, 0))", expression = new VFXExpressionMin(one, new VFXExpressionSubtract(x, zero)), saturateExpected = false };
         }
 
-        [Test]
+        //[Test] //Unstable test, cannot catch this instability for now
         public void Min_Max_Expression_Folding([ValueSource("k_Min_Max_Expression_Folding_TestCase_Names")] string testCaseName)
         {
             var testCase = Generate_Min_Max_Expression_Folding_TestCase().First(o => o.name == testCaseName);
