@@ -168,7 +168,8 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #if defined(VARYINGS_NEED_TEXCOORD2) || defined(VARYINGS_DS_NEED_TEXCOORD2)
 //forest-begin: Tree occlusion
     output.texCoord2 = input.uv2.xy;
-//forest-end:#endif
+//forest-end:
+#endif
 #if defined(VARYINGS_NEED_TEXCOORD3) || defined(VARYINGS_DS_NEED_TEXCOORD3)
 //forest-begin: Tree occlusion
 	output.texCoord3 = input.uv3.xy;
