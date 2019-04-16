@@ -250,11 +250,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 if (lightType == Light2D.LightType.Parametric)
                 {
                     EditorGUILayout.PropertyField(m_ShapeLightParametricRadius, Styles.shapeLightParametricRadius);
+                    if (m_ShapeLightParametricRadius.floatValue < 0)
+                        m_ShapeLightParametricRadius.floatValue = 0;
+
                     EditorGUILayout.IntSlider(m_ShapeLightParametricSides, 3, 48, Styles.shapeLightParametricSides);
                     EditorGUILayout.Slider(m_ShapeLightParametricAngleOffset, 0, 359, Styles.shapeLightAngleOffset);
                 }
 
                 EditorGUILayout.PropertyField(m_ShapeLightFalloffSize, Styles.generalFalloffSize);
+                if (m_ShapeLightFalloffSize.floatValue < 0)
+                    m_ShapeLightFalloffSize.floatValue = 0;
+
                 EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
                 if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
