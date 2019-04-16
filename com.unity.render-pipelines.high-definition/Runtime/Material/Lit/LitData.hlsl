@@ -218,6 +218,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 
     surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    
+//forest-begin: View angle dependent smoothness tweak. Do this once, after combining all source smoothness, and calculating world space normal.
+    float NdotV = ClampNdotV(dot(surfaceData.normalWS, V));
+    float invNdotV = 1.f - NdotV;
+
+    surfaceData.perceptualSmoothness += _SmoothnessViewAngleOffset * invNdotV;
+    surfaceData.perceptualSmoothness = min(surfaceData.perceptualSmoothness, 1.f);
+//forest-end:
 
 #if HAVE_DECALS
     if (_EnableDecals)
