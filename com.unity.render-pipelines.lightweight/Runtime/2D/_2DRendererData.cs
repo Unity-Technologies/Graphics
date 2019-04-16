@@ -52,7 +52,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<Create2DRendererDataAsset>(), "New 2D Renderer Data.asset", null, null);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
         class Create2DRendererDataAsset : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
