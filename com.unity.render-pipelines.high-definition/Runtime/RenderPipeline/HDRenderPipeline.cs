@@ -1888,6 +1888,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
+                // We push the motion vector debug texture here as transparent object can overwrite the motion vector texture content.
+                PushFullScreenDebugTexture(hdCamera, cmd, m_SharedRTManager.GetMotionVectorsBuffer(), FullScreenDebugMode.MotionVectors);
+
                 // Second resolve the color buffer for finishing the frame
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
 
@@ -3013,7 +3016,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 HDUtils.DrawFullScreen(cmd, hdCamera, m_CameraMotionVectorsMaterial, m_SharedRTManager.GetMotionVectorsBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), null, 0);
-                PushFullScreenDebugTexture(hdCamera, cmd, m_SharedRTManager.GetMotionVectorsBuffer(), FullScreenDebugMode.MotionVectors);
 
 #if UNITY_EDITOR
 
