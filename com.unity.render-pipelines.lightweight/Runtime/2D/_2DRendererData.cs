@@ -1,9 +1,13 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
 
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.ProjectWindowCallback;
+#endif
+
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    [CreateAssetMenu(fileName = "New 2D Renderer", menuName = "Rendering/Lightweight Render Pipeline/2D Renderer", order = CoreUtils.assetCreateMenuPriority1 + 1)]
     public class _2DRendererData : ScriptableRendererData
     {
         [SerializeField]
@@ -36,7 +40,31 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
 
-        public _2DRendererData()
+        protected override ScriptableRenderer Create()
+        {
+            return new _2DRenderer(this);
+        }
+
+#if UNITY_EDITOR
+        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/2D Renderer", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
+        static void Create2DRendererData()
+        {
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<Create2DRendererDataAsset>(), "New 2D Renderer Data.asset", null, null);
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
+        class Create2DRendererDataAsset : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var instance = CreateInstance<_2DRendererData>();
+                instance.OnCreate();
+                AssetDatabase.CreateAsset(instance, pathName);
+                Selection.activeObject = instance;
+            }
+        }
+
+        void OnCreate()
         {
             m_LightOperations = new _2DLightOperationDescription[4];
 
@@ -49,37 +77,31 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             for (int i = 1; i < m_LightOperations.Length; ++i)
             {
                 m_LightOperations[i].enabled = false;
-                m_LightOperations[i].name = "Unnamed";
+                m_LightOperations[i].name = "Unnamed " + i;
                 m_LightOperations[i].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
                 m_LightOperations[i].renderTextureScale = 1.0f;
                 m_LightOperations[i].globalColor = Color.black;
             }
+
+            m_ShapeLightShader = Shader.Find("Hidden/Light2D-Shape");
+            m_ShapeLightVolumeShader = Shader.Find("Hidden/Light2D-Shape-Volumetric");
+            m_PointLightShader = Shader.Find("Hidden/Light2D-Point");
+            m_PointLightVolumeShader = Shader.Find("Hidden/Light2d-Point-Volumetric");
+            m_BlitShader = Shader.Find("Hidden/Lightweight Render Pipeline/Blit");
         }
 
-        protected override ScriptableRenderer Create()
-        {
-            return new _2DRenderer(this);
-        }
-
-#if UNITY_EDITOR
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            m_ShapeLightShader = m_ShapeLightShader ?? Shader.Find("Hidden/Light2D-Shape");
-            m_ShapeLightVolumeShader = m_ShapeLightVolumeShader ?? Shader.Find("Hidden/Light2D-Shape-Volumetric");
-            m_PointLightShader = m_PointLightShader ?? Shader.Find("Hidden/Light2D-Point");
-            m_PointLightVolumeShader = m_PointLightVolumeShader ?? Shader.Find("Hidden/Light2d-Point-Volumetric");
-            m_BlitShader = m_BlitShader ?? Shader.Find("Hidden/Lightweight Render Pipeline/Blit");
 
             // Provide a list of suggested texture property names to Sprite Editor via EditorPrefs.
             const string suggestedNamesKey = "SecondarySpriteTexturePropertyNames";
             const string maskTex = "_MaskTex";
             const string normalMap = "_NormalMap";
-            string suggestedNamesPrefs = UnityEditor.EditorPrefs.GetString(suggestedNamesKey);
+            string suggestedNamesPrefs = EditorPrefs.GetString(suggestedNamesKey);
 
             if (string.IsNullOrEmpty(suggestedNamesPrefs))
-                UnityEditor.EditorPrefs.SetString(suggestedNamesKey, maskTex + "," + normalMap);
+                EditorPrefs.SetString(suggestedNamesKey, maskTex + "," + normalMap);
             else
             {
                 if (!suggestedNamesPrefs.Contains(maskTex))
@@ -88,14 +110,14 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 if (!suggestedNamesPrefs.Contains(normalMap))
                     suggestedNamesPrefs += ("," + normalMap);
 
-                UnityEditor.EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
+                EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
             }
         }
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
         {
             if (materialType == DefaultMaterialType.Sprite || materialType == DefaultMaterialType.Particle)
-                return UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.lightweight/Runtime/Materials/Sprite-Lit-Default.mat");
+                return AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.lightweight/Runtime/Materials/Sprite-Lit-Default.mat");
 
             return null;
         }
