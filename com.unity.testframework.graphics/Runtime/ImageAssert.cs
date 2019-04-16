@@ -64,7 +64,14 @@ namespace UnityEngine.TestTools.Graphics
                     foreach (var camera in cameras)
                     {
                         camera.targetTexture = rt;
-                        camera.Render();
+
+                        // Some tests will fail because the current rendering resolution is different from the render texture.
+                        // To avoid that we add some dummy rendering frames AFTER the RT has been assigned.
+                        // 8 in total to allow for the TAA to make its job.
+
+                        for (int j=0 ; j<((dummyRenderedFrameCount == i)?8:1) ; ++j)
+                            camera.Render();
+
                         camera.targetTexture = null;
                     }
 
