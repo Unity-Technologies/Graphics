@@ -3339,7 +3339,7 @@ VisualEffectResource:
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float3 position
       = float3(0,0,0);\n        uint seed = (uint)0;\n        float3 direction = float3(0,0,1);\n
-      \       float lifetime = (float)0;\n        float3 velocity = float3(0,0,0);\n
+      \       float lifetime = (float)1;\n        float3 velocity = float3(0,0,0);\n
       \       uint particleId = (uint)0;\n        float age = (float)0;\n        float3
       color = float3(1,1,1);\n        bool alive = (bool)true;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n
       \        particleId = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed
@@ -3663,7 +3663,7 @@ VisualEffectResource:
       ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_ALPHA builtInInterpolants.z\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x\n\t\t#define VFX_VARYING_FRAMEBLEND
       builtInInterpolants.y\n\t\t#define VFX_VARYING_UV uv\n\t\t\t\t\n\t\t\n\t\t\n\t\t//
-      Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t#define USE_LEGACY_UNITY_MATRIX_VARIABLES\n\t\t\t\t\n\t\t\t#if
+      Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t\t\t\n\t\t\t#if
       !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
@@ -3827,22 +3827,20 @@ VisualEffectResource:
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,1,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
       = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
-      pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
-      ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
-      dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
-      / UNITY_MATRIX_P[0][0]));\n\t\t\t\t\n\t\t\t#if IS_OPAQUE_PARTICLE\n\t\t\t\tconst
-      float thicknessMul = 1.0f; // pixel perfect\n\t\t\t#else\n\t\t\t\tconst float
-      thicknessMul = 2.0f; // for AA\n\t\t\t#endif\n\t\t\t\tfloat minThickness = thicknessMul
-      / sqrt(dot(normal * normal,_ScreenParams.xy * _ScreenParams.xy)); // min thickness
-      based on normal orientation and aspect ratio\n\t\t\t\tfloat minThickness0 =
-      minThickness * pos0.w;\n\t\t\t\tfloat minThickness1 = minThickness * pos1.w;\n\t\t\t\t\n\t\t\t\tconst
-      float thickness = 0.0f; // tmp\n\t\t\t\tfloat4 dPos0 = float4(normal * max(abs(minThickness0),thickness),
-      0.0f, 0.0f);\n\t\t\t\tfloat4 dPos1 = float4(normal * max(abs(minThickness1),thickness),
-      0.0f, 0.0f);\n\t\t\t\tfloat4 vPosArray[4] = { pos0 + dPos0, pos0 - dPos0, pos1
-      + dPos1, pos1 - dPos1};\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_PIXELOFFSET\n\t\t\t\to.VFX_VARYING_PIXELOFFSET
-      = (id & 1) ? -1.0f : 1.0f;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t// If ever used
-      we need the position in vfx space (we dont take into account the pixel offset)\n\t\t\t\tfloat3
-      vPos = ((id >> 1) & 1) ? position : targetPosition;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
+      pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\t//
+      Clip on near plane\n\t\t\t\tpos0.w = max(1.0f, pos0.w);\n\t\t\t\tpos1.w = max(1.0f,
+      pos1.w);\n\t\t\t\t\n\t\t\t\tfloat2 ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2
+      ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2 dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2
+      normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1] / UNITY_MATRIX_P[0][0]));\n\t\t\t\t\n\t\t\t#if
+      IS_OPAQUE_PARTICLE\n\t\t\t\tconst float thicknessMul = 1.0f; // pixel perfect\n\t\t\t#else\n\t\t\t\tconst
+      float thicknessMul = 2.0f; // for AA\n\t\t\t#endif\n\t\t\t\tnormal *= thicknessMul
+      / _ScreenParams.xy;\n\t\t\t\t\n\t\t\t\tfloat4 dPos0 = float4(normal * pos0.w,
+      0.0f, 0.0f);\n\t\t\t\tfloat4 dPos1 = float4(normal * pos1.w, 0.0f, 0.0f);\n\t\t\t\tfloat4
+      vPosArray[4] = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};\n\t\t\t\t\n\t\t\t\t#ifdef
+      VFX_VARYING_PIXELOFFSET\n\t\t\t\to.VFX_VARYING_PIXELOFFSET = (id & 1) ? -1.0f
+      : 1.0f;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t// If ever used we need the position
+      in vfx space (we dont take into account the pixel offset)\n\t\t\t\tfloat3 vPos
+      = ((id >> 1) & 1) ? position : targetPosition;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = vPosArray[id & 3];;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_USE_COLOR_CURRENT
       && defined(VFX_VARYING_COLOR)\n\t\t\t\t\t\to.VFX_VARYING_COLOR = color;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
       VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) \n\t\t\t\t\t\to.VFX_VARYING_ALPHA
@@ -3859,10 +3857,10 @@ VisualEffectResource:
       (float4)0;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t// Forward pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags
       { \"LightMode\"=\"ForwardOnly\" }\n\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma target
       4.5\n\t\t\t\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
-      IS_TRANSPARENT_PARTICLE\n\t\t\t\tfloat pixelOffset : TEXCOORD0; // for AA\n\t\t\t\t#endif\n\t\t\t\t#if
-      VFX_NEEDS_COLOR_INTERPOLATOR\n\t\t\t\tnointerpolation float4 color : COLOR0;\n\t\t\t\t#endif\n\t\t\t\t#if
-      USE_SOFT_PARTICLE || USE_ALPHA_TEST\n\t\t\t\tnointerpolation float2 builtInInterpolants
-      : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3
+      IS_TRANSPARENT_PARTICLE\n\t\t\t\tnoperspective float pixelOffset : TEXCOORD0;
+      // for AA\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_COLOR_INTERPOLATOR\n\t\t\t\tnointerpolation
+      float4 color : COLOR0;\n\t\t\t\t#endif\n\t\t\t\t#if USE_SOFT_PARTICLE || USE_ALPHA_TEST\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3
       posWS : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\t\n\t\t\tstruct ps_output\n\t\t\t{\n\t\t\t\tfloat4
       color : SV_Target0;\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS ps_input\n\t\t#define
       VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_COLOR color.rgb\n\t\t#define
@@ -3927,22 +3925,20 @@ VisualEffectResource:
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,1,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
       = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
-      pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
-      ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
-      dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
-      / UNITY_MATRIX_P[0][0]));\n\t\t\t\t\n\t\t\t#if IS_OPAQUE_PARTICLE\n\t\t\t\tconst
-      float thicknessMul = 1.0f; // pixel perfect\n\t\t\t#else\n\t\t\t\tconst float
-      thicknessMul = 2.0f; // for AA\n\t\t\t#endif\n\t\t\t\tfloat minThickness = thicknessMul
-      / sqrt(dot(normal * normal,_ScreenParams.xy * _ScreenParams.xy)); // min thickness
-      based on normal orientation and aspect ratio\n\t\t\t\tfloat minThickness0 =
-      minThickness * pos0.w;\n\t\t\t\tfloat minThickness1 = minThickness * pos1.w;\n\t\t\t\t\n\t\t\t\tconst
-      float thickness = 0.0f; // tmp\n\t\t\t\tfloat4 dPos0 = float4(normal * max(abs(minThickness0),thickness),
-      0.0f, 0.0f);\n\t\t\t\tfloat4 dPos1 = float4(normal * max(abs(minThickness1),thickness),
-      0.0f, 0.0f);\n\t\t\t\tfloat4 vPosArray[4] = { pos0 + dPos0, pos0 - dPos0, pos1
-      + dPos1, pos1 - dPos1};\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_PIXELOFFSET\n\t\t\t\to.VFX_VARYING_PIXELOFFSET
-      = (id & 1) ? -1.0f : 1.0f;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t// If ever used
-      we need the position in vfx space (we dont take into account the pixel offset)\n\t\t\t\tfloat3
-      vPos = ((id >> 1) & 1) ? position : targetPosition;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
+      pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\t//
+      Clip on near plane\n\t\t\t\tpos0.w = max(1.0f, pos0.w);\n\t\t\t\tpos1.w = max(1.0f,
+      pos1.w);\n\t\t\t\t\n\t\t\t\tfloat2 ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2
+      ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2 dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2
+      normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1] / UNITY_MATRIX_P[0][0]));\n\t\t\t\t\n\t\t\t#if
+      IS_OPAQUE_PARTICLE\n\t\t\t\tconst float thicknessMul = 1.0f; // pixel perfect\n\t\t\t#else\n\t\t\t\tconst
+      float thicknessMul = 2.0f; // for AA\n\t\t\t#endif\n\t\t\t\tnormal *= thicknessMul
+      / _ScreenParams.xy;\n\t\t\t\t\n\t\t\t\tfloat4 dPos0 = float4(normal * pos0.w,
+      0.0f, 0.0f);\n\t\t\t\tfloat4 dPos1 = float4(normal * pos1.w, 0.0f, 0.0f);\n\t\t\t\tfloat4
+      vPosArray[4] = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};\n\t\t\t\t\n\t\t\t\t#ifdef
+      VFX_VARYING_PIXELOFFSET\n\t\t\t\to.VFX_VARYING_PIXELOFFSET = (id & 1) ? -1.0f
+      : 1.0f;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t// If ever used we need the position
+      in vfx space (we dont take into account the pixel offset)\n\t\t\t\tfloat3 vPos
+      = ((id >> 1) & 1) ? position : targetPosition;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = vPosArray[id & 3];;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_USE_COLOR_CURRENT
       && defined(VFX_VARYING_COLOR)\n\t\t\t\t\t\to.VFX_VARYING_COLOR = color;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
       VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) \n\t\t\t\t\t\to.VFX_VARYING_ALPHA
@@ -3967,7 +3963,7 @@ VisualEffectResource:
       : TEXCOORD0;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
       ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_ALPHA builtInInterpolants.y\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x\n\t\t\t\t\n\t\t\n\t\t\t\n\t\t//
-      Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t#define USE_LEGACY_UNITY_MATRIX_VARIABLES\n\t\t\t\t\n\t\t\t#if
+      Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t\t\t\n\t\t\t#if
       !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
       VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
@@ -4025,22 +4021,20 @@ VisualEffectResource:
       = mul(elementToVFX,float4(0,0,0,1)).xyz;\n\t\t\t\t\n\t\t\t\tfloat3 targetOffset
       = (float3)0;\n\t\t\t\t{\n\t\t\t\t    \n\t\t\t\t    targetOffset = float3(0,1,0);\n\t\t\t\t}\n\t\t\t\t\n\n\t\t\t\ttargetPosition
       = mul(elementToVFX,float4(targetOffset,1)).xyz;\n\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\tfloat4
-      pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\tfloat2
-      ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2 ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2
-      dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2 normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1]
-      / UNITY_MATRIX_P[0][0]));\n\t\t\t\t\n\t\t\t#if IS_OPAQUE_PARTICLE\n\t\t\t\tconst
-      float thicknessMul = 1.0f; // pixel perfect\n\t\t\t#else\n\t\t\t\tconst float
-      thicknessMul = 2.0f; // for AA\n\t\t\t#endif\n\t\t\t\tfloat minThickness = thicknessMul
-      / sqrt(dot(normal * normal,_ScreenParams.xy * _ScreenParams.xy)); // min thickness
-      based on normal orientation and aspect ratio\n\t\t\t\tfloat minThickness0 =
-      minThickness * pos0.w;\n\t\t\t\tfloat minThickness1 = minThickness * pos1.w;\n\t\t\t\t\n\t\t\t\tconst
-      float thickness = 0.0f; // tmp\n\t\t\t\tfloat4 dPos0 = float4(normal * max(abs(minThickness0),thickness),
-      0.0f, 0.0f);\n\t\t\t\tfloat4 dPos1 = float4(normal * max(abs(minThickness1),thickness),
-      0.0f, 0.0f);\n\t\t\t\tfloat4 vPosArray[4] = { pos0 + dPos0, pos0 - dPos0, pos1
-      + dPos1, pos1 - dPos1};\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_PIXELOFFSET\n\t\t\t\to.VFX_VARYING_PIXELOFFSET
-      = (id & 1) ? -1.0f : 1.0f;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t// If ever used
-      we need the position in vfx space (we dont take into account the pixel offset)\n\t\t\t\tfloat3
-      vPos = ((id >> 1) & 1) ? position : targetPosition;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
+      pos0 = TransformPositionVFXToClip(position);\n\t\t\t\tfloat4 pos1 = TransformPositionVFXToClip(targetPosition);\n\t\t\t\t\n\t\t\t\t//
+      Clip on near plane\n\t\t\t\tpos0.w = max(1.0f, pos0.w);\n\t\t\t\tpos1.w = max(1.0f,
+      pos1.w);\n\t\t\t\t\n\t\t\t\tfloat2 ndcPos0 = pos0.xy / pos0.w;\n\t\t\t\tfloat2
+      ndcPos1 = pos1.xy / pos1.w;\n\t\t\t\t\n\t\t\t\tfloat2 dir = ndcPos0 - ndcPos1;\n\t\t\t\tfloat2
+      normal = normalize(dir.yx * float2(-1,-UNITY_MATRIX_P[1][1] / UNITY_MATRIX_P[0][0]));\n\t\t\t\t\n\t\t\t#if
+      IS_OPAQUE_PARTICLE\n\t\t\t\tconst float thicknessMul = 1.0f; // pixel perfect\n\t\t\t#else\n\t\t\t\tconst
+      float thicknessMul = 2.0f; // for AA\n\t\t\t#endif\n\t\t\t\tnormal *= thicknessMul
+      / _ScreenParams.xy;\n\t\t\t\t\n\t\t\t\tfloat4 dPos0 = float4(normal * pos0.w,
+      0.0f, 0.0f);\n\t\t\t\tfloat4 dPos1 = float4(normal * pos1.w, 0.0f, 0.0f);\n\t\t\t\tfloat4
+      vPosArray[4] = { pos0 + dPos0, pos0 - dPos0, pos1 + dPos1, pos1 - dPos1};\n\t\t\t\t\n\t\t\t\t#ifdef
+      VFX_VARYING_PIXELOFFSET\n\t\t\t\to.VFX_VARYING_PIXELOFFSET = (id & 1) ? -1.0f
+      : 1.0f;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t// If ever used we need the position
+      in vfx space (we dont take into account the pixel offset)\n\t\t\t\tfloat3 vPos
+      = ((id >> 1) & 1) ? position : targetPosition;\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS
       = vPosArray[id & 3];;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if VFX_USE_COLOR_CURRENT
       && defined(VFX_VARYING_COLOR)\n\t\t\t\t\t\to.VFX_VARYING_COLOR = color;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
       VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) \n\t\t\t\t\t\to.VFX_VARYING_ALPHA
@@ -4181,7 +4175,7 @@ VisualEffectResource:
       : TEXCOORD0;\n\t\t\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
       ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_ALPHA builtInInterpolants.x\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t\t\n\t\t\n\t\t\n\t\t//
-      Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t#define USE_LEGACY_UNITY_MATRIX_VARIABLES\n\t\t\n\t\t\t#if
+      Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t\n\t\t\t#if
       !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
       VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
@@ -4350,7 +4344,7 @@ VisualEffectResource:
       ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_ALPHA builtInInterpolants.z\n\t\t#define
       VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x\n\t\t#define VFX_VARYING_FRAMEBLEND
       builtInInterpolants.y\n\t\t#define VFX_VARYING_UV uv\n\t\t\t\t\n\t\t\n\t\t\n\t\t//
-      Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t#define USE_LEGACY_UNITY_MATRIX_VARIABLES\n\t\t\t\t\n\t\t\t#if
+      Needed for HDRP\n\t\t#define SHADERPASS SHADERPASS_SHADOWS\n\t\t\t\t\n\t\t\t#if
       !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
       VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include

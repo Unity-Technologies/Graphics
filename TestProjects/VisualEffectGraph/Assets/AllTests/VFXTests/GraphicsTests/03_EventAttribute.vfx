@@ -3284,7 +3284,7 @@ VisualEffectResource:
       uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x8 + 0x3) << 2)));\n
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        \n\n#endif\n        float3 color = float3(1,1,1);\n
-      \       float lifetime = (float)0;\n        float size = (float)0.1;\n        float3
+      \       float lifetime = (float)1;\n        float size = (float)0.1;\n        float3
       velocity = float3(0,0,0);\n        float3 direction = float3(0,0,1);\n        float3
       position = float3(0,0,0);\n        uint seed = (uint)0;\n        bool alive
       = (bool)true;\n        float age = (float)0;\n        float3 color_source =
@@ -4094,7 +4094,7 @@ VisualEffectResource:
           structure: 5
           element: 4
       initialData:
-        data: 000000000000803f0000803f0000803f00000000
+        data: 000000000000803f0000803f0000803f0000803f
     - capacity: 1
       stride: 5
       layout:
@@ -4117,7 +4117,7 @@ VisualEffectResource:
           structure: 5
           element: 4
       initialData:
-        data: 000000000000803f0000803f0000803f00000000
+        data: 000000000000803f0000803f0000803f0000803f
     - capacity: 1
       stride: 5
       layout:
@@ -4140,7 +4140,7 @@ VisualEffectResource:
           structure: 5
           element: 4
       initialData:
-        data: 000000000000803f0000803f0000803f00000000
+        data: 000000000000803f0000803f0000803f0000803f
     m_Events:
     - name: OnPlay
       playSystems: 0000000001000000
