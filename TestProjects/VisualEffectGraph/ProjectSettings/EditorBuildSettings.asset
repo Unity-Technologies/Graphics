@@ -96,12 +96,10 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/02. SpawnAndInitialize/102_Spawning.unity
     guid: f96d343a732933243af8a7a35b578bf1
   - enabled: 1
-    path: Packages/com.unity.testing.visualeffectgraph/Coverage/07. Operators - Math/103_Operators
-      - Math.unity
+    path: Packages/com.unity.testing.visualeffectgraph/Coverage/07. Operators - Math/103_Operators - Math.unity
     guid: 720658c67c4bdce40a896fa6fb0e7563
   - enabled: 1
-    path: Packages/com.unity.testing.visualeffectgraph/Coverage/08. Operators - Other/104_Operators
-      - Other.unity
+    path: Packages/com.unity.testing.visualeffectgraph/Coverage/08. Operators - Other/104_Operators - Other.unity
     guid: 2075f7345284111468a89d28adbf277b
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/09. Update/105_Update.unity
