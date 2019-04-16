@@ -96,8 +96,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
-  m_LightingDataAsset: {fileID: 112000002, guid: 148e74912fe03fb4583a89c22b6d979e,
-    type: 2}
+  m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 0
 --- !u!196 &4
 NavMeshSettings:
@@ -159,6 +158,8 @@ MonoBehaviour:
   m_ApplyToSortingLayers: 00000000eb0feddf
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
+  m_LightOrder: 0
+  m_LightOverlapMode: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -170,8 +171,6 @@ MonoBehaviour:
   m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.63
   m_ShapeLightFalloffOffset: {x: 0, y: -0.37}
-  m_ShapeLightOrder: 0
-  m_ShapeLightOverlapMode: 1
   m_ShapePath:
   - {x: -0.5, y: -0.5, z: 0}
   - {x: 0.5, y: -0.5, z: 0}
@@ -424,6 +423,8 @@ MonoBehaviour:
   m_ApplyToSortingLayers: eb0feddf
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
+  m_LightOrder: 0
+  m_LightOverlapMode: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -435,8 +436,6 @@ MonoBehaviour:
   m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.54
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
-  m_ShapeLightOrder: 0
-  m_ShapeLightOverlapMode: 0
   m_ShapePath:
   - {x: -0.91161513, y: -0.83683455, z: 0}
   - {x: -0.62156034, y: -1.1765685, z: 0}
@@ -498,6 +497,8 @@ MonoBehaviour:
   m_ApplyToSortingLayers: e980ef06eb0feddf
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 1
+  m_LightOrder: 0
+  m_LightOverlapMode: 0
   m_PointLightInnerAngle: 48.799995
   m_PointLightOuterAngle: 88.27
   m_PointLightInnerRadius: 1.2891586
@@ -509,8 +510,6 @@ MonoBehaviour:
   m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.5
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
-  m_ShapeLightOrder: 0
-  m_ShapeLightOverlapMode: 0
   m_ShapePath:
   - {x: -0.5, y: -0.5, z: 0}
   - {x: 0.5, y: -0.5, z: 0}
@@ -650,6 +649,8 @@ MonoBehaviour:
   m_LightCookieSprite: {fileID: 21300000, guid: 86ce912717672b8429c58e6960c12e25,
     type: 3}
   m_UseNormalMap: 1
+  m_LightOrder: 0
+  m_LightOverlapMode: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0.65392894
@@ -661,8 +662,6 @@ MonoBehaviour:
   m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.5
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
-  m_ShapeLightOrder: 0
-  m_ShapeLightOverlapMode: 0
   m_ShapePath:
   - {x: -0.5, y: -0.5, z: 0}
   - {x: 0.5, y: -0.5, z: 0}
@@ -720,6 +719,8 @@ MonoBehaviour:
   m_ApplyToSortingLayers: eb0feddf
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
+  m_LightOrder: 0
+  m_LightOverlapMode: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -731,8 +732,6 @@ MonoBehaviour:
   m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.5
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
-  m_ShapeLightOrder: 0
-  m_ShapeLightOverlapMode: 0
   m_ShapePath:
   - {x: -0.5, y: -0.5, z: 0}
   - {x: 0.5, y: -0.5, z: 0}
@@ -790,6 +789,8 @@ MonoBehaviour:
   m_ApplyToSortingLayers: 00000000eb0feddf
   m_LightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
+  m_LightOrder: 0
+  m_LightOverlapMode: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -801,8 +802,6 @@ MonoBehaviour:
   m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.36
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
-  m_ShapeLightOrder: 1
-  m_ShapeLightOverlapMode: 1
   m_ShapePath:
   - {x: -0.5, y: -0.5, z: 0}
   - {x: 0.5, y: -0.5, z: 0}
@@ -1103,6 +1102,8 @@ MonoBehaviour:
   m_LightCookieSprite: {fileID: 7195817935496006023, guid: 418ab5c27d3054eb89959d9c715e00c9,
     type: 3}
   m_UseNormalMap: 0
+  m_LightOrder: 0
+  m_LightOverlapMode: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
   m_PointLightInnerRadius: 0
@@ -1114,8 +1115,6 @@ MonoBehaviour:
   m_ShapeLightParametricRadius: 1
   m_ShapeLightFalloffSize: 0.5
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
-  m_ShapeLightOrder: 0
-  m_ShapeLightOverlapMode: 0
   m_ShapePath:
   - {x: -0.5, y: -0.5, z: 0}
   - {x: 0.5, y: -0.5, z: 0}
