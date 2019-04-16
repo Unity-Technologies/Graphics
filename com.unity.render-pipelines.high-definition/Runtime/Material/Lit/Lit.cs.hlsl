@@ -41,6 +41,8 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_COLOR (1020)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_ABSORPTION_DISTANCE (1021)
 #define DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK (1022)
+#define DEBUGVIEW_LIT_SURFACEDATA_SKY_OCCLUSION (1023)
+#define DEBUGVIEW_LIT_SURFACEDATA_TREE_OCCLUSION (1024)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData:  static fields
@@ -72,6 +74,7 @@
 #define DEBUGVIEW_LIT_BSDFDATA_IOR (1074)
 #define DEBUGVIEW_LIT_BSDFDATA_ABSORPTION_COEFFICIENT (1075)
 #define DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK (1076)
+#define DEBUGVIEW_LIT_BSDFDATA_SKY_OCCLUSION (1077)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData
 // PackingRules = Exact
@@ -98,6 +101,8 @@ struct SurfaceData
     float3 transmittanceColor;
     float atDistance;
     float transmittanceMask;
+    float skyOcclusion;
+    float treeOcclusion;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Lit+BSDFData
@@ -129,6 +134,7 @@ struct BSDFData
     float ior;
     float3 absorptionCoefficient;
     float transmittanceMask;
+    float skyOcclusion;
 };
 
 //
@@ -208,6 +214,12 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_TRANSMITTANCE_MASK:
             result = surfacedata.transmittanceMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_SKY_OCCLUSION:
+            result = surfacedata.skyOcclusion.xxx;
+            break;
+        case DEBUGVIEW_LIT_SURFACEDATA_TREE_OCCLUSION:
+            result = surfacedata.treeOcclusion.xxx;
             break;
     }
 }
@@ -300,6 +312,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_LIT_BSDFDATA_TRANSMITTANCE_MASK:
             result = bsdfdata.transmittanceMask.xxx;
+            break;
+        case DEBUGVIEW_LIT_BSDFDATA_SKY_OCCLUSION:
+            result = bsdfdata.skyOcclusion.xxx;
             break;
     }
 }
