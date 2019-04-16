@@ -44,7 +44,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/016_Lighting_Scene_Directional.unity
     guid: 54170d1ce2ca64699a0d82056387d56f
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/017_Lighting_Scene_DirectionalBaked.unity
     guid: 245a2b08a4f72437193b06846a5c8e33
   - enabled: 0
