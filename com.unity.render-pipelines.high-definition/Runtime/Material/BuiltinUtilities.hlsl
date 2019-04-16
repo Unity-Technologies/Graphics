@@ -10,7 +10,15 @@ float4x4 GetProbeVolumeWorldToObject()
 // In unity we can have a mix of fully baked lightmap (static lightmap) + enlighten realtime lightmap (dynamic lightmap)
 // for each case we can have directional lightmap or not.
 // Else we have lightprobe for dynamic/moving entity. Either SH9 per object lightprobe or SH4 per pixel per object volume probe
-float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
+//forest-begin: sky occlusion / Tree occlusion
+float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, float skyOcclusion, float grassOcclusion, float treeOcclusion);
+
+float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap) {
+	return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap, 1.f, 1.f, 1.f);
+}
+
+float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, float skyOcclusion, float grassOcclusion, float treeOcclusion)
+//forest-end:
 {
     // If there is no lightmap, it assume lightprobe
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
@@ -27,9 +35,21 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
         SHCoefficients[5] = unity_SHBb;
         SHCoefficients[6] = unity_SHC;
 
+//forest-begin: sky occlusion
+        #if SKY_OCCLUSION
+			SHCoefficients[0] += _AmbientProbeSH[0] * skyOcclusion;
+			SHCoefficients[1] += _AmbientProbeSH[1] * skyOcclusion;
+			SHCoefficients[2] += _AmbientProbeSH[2] * skyOcclusion;
+			SHCoefficients[3] += _AmbientProbeSH[3] * skyOcclusion;
+			SHCoefficients[4] += _AmbientProbeSH[4] * skyOcclusion;
+			SHCoefficients[5] += _AmbientProbeSH[5] * skyOcclusion;
+			SHCoefficients[6] += _AmbientProbeSH[6] * skyOcclusion;
+       #endif
+//forest-end:
+
 //forest-begin: Tree occlusion
         return SampleSH9(SHCoefficients, normalWS) * treeOcclusion;
-//forest-end
+//forest-end:
     }
     else
     {
@@ -38,13 +58,13 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
             return SampleProbeVolumeSH9(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
 //forest-begin: Tree occlusion
                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz) * treeOcclusion;
-//forest-end
+//forest-end:
         else
 #endif
             return SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
 //forest-begin: Tree occlusion
                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz) * treeOcclusion;
-//forest-end
+//forest-end:
     }
 
 #else
@@ -83,8 +103,9 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
         #endif
     #endif
 
-    return bakeDiffuseLighting;
-
+//forest-begin: sky occlusion
+    return bakeDiffuseLighting * grassOcclusion;
+//forest-end:
 #endif
 }
 
@@ -138,8 +159,10 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 // 3. PostInitBuiltinData - Handle debug mode + allow the current lighting model to update the data with ModifyBakedDiffuseLighting
 
 // This method initialize BuiltinData usual values and after update of builtinData by the caller must be follow by PostInitBuiltinData
+//forest-begin: sky occlusion / Tree Occlusion
 void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, float3 backNormalWS, float4 texCoord1, float4 texCoord2,
-                        out BuiltinData builtinData)
+                        float skyOcclusion, float grassOcclusion, float treeOcclusion, out BuiltinData builtinData)
+//forest-end:
 {
     ZERO_INITIALIZE(BuiltinData, builtinData);
 
@@ -162,12 +185,16 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 #endif
 
     // Sample lightmap/lightprobe/volume proxy
-    builtinData.bakeDiffuseLighting = SampleBakedGI(posInput.positionWS, normalWS, texCoord1.xy, texCoord2.xy);
+//forest-begin: sky occlusion / Tree Occlusion
+    builtinData.bakeDiffuseLighting = SampleBakedGI(posInput.positionWS, normalWS, texCoord1.xy, texCoord2.xy, skyOcclusion, grassOcclusion, treeOcclusion);
+//forest-end:
     // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler
     // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
     // however it may not optimize the lightprobe case due to the proxy volume relying on dynamic if (to verify), not a problem for SH9, but a problem for proxy volume.
     // TODO: optimize more this code.
-    builtinData.backBakeDiffuseLighting = SampleBakedGI(posInput.positionWS, backNormalWS, texCoord1.xy, texCoord2.xy);
+//forest-begin: sky occlusion / Tree Occlusion
+    builtinData.backBakeDiffuseLighting = SampleBakedGI(posInput.positionWS, backNormalWS, texCoord1.xy, texCoord2.xy, skyOcclusion, grassOcclusion, treeOcclusion);
+//forest-end:
 
 #ifdef SHADOWS_SHADOWMASK
     float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy);

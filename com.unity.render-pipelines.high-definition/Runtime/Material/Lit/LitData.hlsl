@@ -248,8 +248,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #endif
 
+//forest-begin: lightmap occlusion
+    surfaceData.specularOcclusion = min(surfaceData.specularOcclusion, GetSpecularOcclusionFromLightmapLuminance(V, surfaceData.normalWS, input.texCoord1, input.texCoord2));
+//forest-end:
+
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+//forest-begin: occlusion probes
+    float grassOcclusion;
+    surfaceData.skyOcclusion = SampleSkyOcclusion(input.positionRWS, grassOcclusion);
+//forest-end:
 //forest-begin: Tree Occlusion
 	surfaceData.specularOcclusion = min(surfaceData.specularOcclusion, surfaceData.treeOcclusion);
 //forest-end:
@@ -273,7 +282,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
-    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+//forest-begin: occlusion probes
+    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, grassOcclusion, builtinData);
+//forest-end:
 }
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataMeshModification.hlsl"

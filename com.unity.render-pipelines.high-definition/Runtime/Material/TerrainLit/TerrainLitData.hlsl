@@ -207,6 +207,15 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.iridescenceThickness = 0.0;
     surfaceData.iridescenceMask = 0.0;
 
+//forest-begin: sky occlusion
+    float grassOcclusion;
+    surfaceData.skyOcclusion = SampleSkyOcclusion(input.positionRWS, grassOcclusion);
+//forest-end:
+//forest-begin: Tree Occlusion
+    float4 treeOcclusionInput = float4(input.texCoord2.xy, input.texCoord3.xy);
+    surfaceData.treeOcclusion = GetTreeOcclusion(input.positionRWS, treeOcclusionInput);
+//forest-end:
+
     // Transparency parameters
     // Use thickness from SSS
     surfaceData.ior = 1.0;
@@ -243,6 +252,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // as it can modify attribute use for static lighting
     ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif
-
-    GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, builtinData);
+//forest-begin: occlusion probes
+    GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, grassOcclusion, builtinData);
+//forest-end:
 }

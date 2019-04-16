@@ -103,6 +103,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public float atDistance;
             [SurfaceDataAttributes("Transmittance mask", precision = FieldPrecision.Real)]
             public float transmittanceMask;
+//forest-begin: sky occlusion
+            [SurfaceDataAttributes("Sky Occlusion")]
+            public float skyOcclusion;
+//forest-end:
 
 //forest-begin: Tree occlusion
             [SurfaceDataAttributes("Tree Occlusion")]
@@ -188,6 +192,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 absorptionCoefficient;
             [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public float transmittanceMask;
+//forest-begin: sky occlusion
+            public float skyOcclusion;
+//forest-end:
         };
 
         //-----------------------------------------------------------------------------

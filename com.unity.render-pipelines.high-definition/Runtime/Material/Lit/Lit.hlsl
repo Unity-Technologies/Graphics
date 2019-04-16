@@ -53,6 +53,10 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
+//forest-begin: sky occlusion
+float _OcclusionProbesReflectionOcclusionAmount;
+//forest-end:
+
 //-----------------------------------------------------------------------------
 // Definition
 //-----------------------------------------------------------------------------
@@ -451,6 +455,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
 #endif
 
+//forest-begin: sky occlusion
+    bsdfData.skyOcclusion = surfaceData.skyOcclusion;
+//forest-end:
+
     ApplyDebugToBSDFData(bsdfData);
 
     return bsdfData;
@@ -609,6 +617,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // Note: no need to store MATERIALFEATUREFLAGS_LIT_STANDARD, always present
     outGBuffer2.a  = PackFloatInt8bit(coatMask, materialFeatureId, 8);
 
+//forest-begin: sky occlusion
+    outGBuffer2.a  = PackFloatInt8bit(surfaceData.skyOcclusion, materialFeatureId, 8);
+//forest-end
+
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
     // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
@@ -689,6 +701,10 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     float coatMask;
     uint materialFeatureId;
     UnpackFloatInt8bit(inGBuffer2.a, 8, coatMask, materialFeatureId);
+//forest-begin: sky occlusion
+    coatMask = 0;
+    UnpackFloatInt8bit(inGBuffer2.a, 8, bsdfData.skyOcclusion, materialFeatureId);
+//forest-end:
 
     uint pixelFeatureFlags    = MATERIALFEATUREFLAGS_LIT_STANDARD; // Only sky/background do not have the Standard flag.
     bool pixelHasSubsurface   = materialFeatureId == GBUFFER_LIT_TRANSMISSION_SSS || materialFeatureId == GBUFFER_LIT_SSS;
@@ -1281,6 +1297,10 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         cbsdf.specR = specTerm * clampedNdotL;
     }
 
+//forest-begin: lightmap occlusion
+    specularLighting *= lerp(1.f, bsdfData.specularOcclusion, _LightmapOcclusionScalePowerReflStrengthSpecStrength.w);
+//forest-end:
+
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     return cbsdf;
 }
@@ -1866,6 +1886,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel, lightData.rangeCompressionFactorCompensation);
     weight *= preLD.a; // Used by planar reflection to discard pixel
+
+//forest-begin: sky occlusion
+    preLD *= lerp(1.0, bsdfData.skyOcclusion, _OcclusionProbesReflectionOcclusionAmount);
+//forest-end:
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
     {
