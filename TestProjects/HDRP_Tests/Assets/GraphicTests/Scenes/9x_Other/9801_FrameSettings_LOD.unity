@@ -916,7 +916,7 @@ GameObject:
   - component: {fileID: 174013717}
   - component: {fileID: 174013716}
   m_Layer: 0
-  m_Name: Camera_BS_0_5__MO_2
+  m_Name: Camera_BS_0_25__MO_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -978,7 +978,7 @@ MonoBehaviour:
     bitDatas:
       data1: 69284255760157
       data2: 4539628424389459968
-    lodBias: 0.5
+    lodBias: 0.25
     lodBiasMode: 1
     maximumLODLevel: 2
     maximumLODLevelMode: 1
@@ -1435,7 +1435,7 @@ GameObject:
   - component: {fileID: 238838736}
   - component: {fileID: 238838735}
   m_Layer: 0
-  m_Name: Camera_BS_0_5__MQ_*
+  m_Name: Camera_BS_0_25__MQ_*
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1483,7 +1483,7 @@ MonoBehaviour:
     bitDatas:
       data1: 69284255760157
       data2: 4539628424389459968
-    lodBias: 0.5
+    lodBias: 0.25
     lodBiasMode: 1
     maximumLODLevel: 2
     maximumLODLevelMode: 0
@@ -2602,7 +2602,7 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 447705153}
-  m_Text: Scale 0.5
+  m_Text: Scale 0.25
   m_OffsetZ: 0
   m_CharacterSize: 0.015
   m_LineSpacing: 1
@@ -3495,46 +3495,6 @@ PrefabInstance:
       propertyPath: orthographic size
       value: 0.5
       objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SetDebugView
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: ImageComparisonSettings.TargetWidth
-      value: 512
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: ImageComparisonSettings.TargetHeight
-      value: 512
-      objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: volumeLayerMask.m_Bits
@@ -3745,6 +3705,46 @@ PrefabInstance:
       propertyPath: m_ObsoleteFrameSettings.lightLoopSettings.isFptlEnabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetDebugView
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: doBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.TargetWidth
+      value: 512
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.TargetHeight
+      value: 512
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!4 &619747028 stripped
@@ -3817,7 +3817,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 99bc27fb0ff8514409d0942d7f776f29, type: 2}
+  - {fileID: 2100000, guid: 9524e5a4b2b92e74ab2b5466efbfa692, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3858,7 +3858,7 @@ GameObject:
   - component: {fileID: 732034766}
   - component: {fileID: 732034765}
   m_Layer: 0
-  m_Name: Camera_BS_0_5__MF_1
+  m_Name: Camera_BS_0_25__MF_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3920,7 +3920,7 @@ MonoBehaviour:
     bitDatas:
       data1: 69284255760157
       data2: 4539628424389459968
-    lodBias: 0.5
+    lodBias: 0.25
     lodBiasMode: 1
     maximumLODLevel: 1
     maximumLODLevelMode: 2
@@ -4411,7 +4411,7 @@ GameObject:
   - component: {fileID: 894061474}
   - component: {fileID: 894061473}
   m_Layer: 0
-  m_Name: Camera_BS_0_5__MF_3
+  m_Name: Camera_BS_0_25__MF_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4473,7 +4473,7 @@ MonoBehaviour:
     bitDatas:
       data1: 69284255760157
       data2: 4539628424389459968
-    lodBias: 0.5
+    lodBias: 0.25
     lodBiasMode: 1
     maximumLODLevel: 3
     maximumLODLevelMode: 2
@@ -7251,7 +7251,7 @@ GameObject:
   - component: {fileID: 2116227533}
   - component: {fileID: 2116227532}
   m_Layer: 0
-  m_Name: Camera_BS_0_5__MO_1
+  m_Name: Camera_BS_0_25__MO_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7313,7 +7313,7 @@ MonoBehaviour:
     bitDatas:
       data1: 69284255760157
       data2: 4539628424389459968
-    lodBias: 0.5
+    lodBias: 0.25
     lodBiasMode: 1
     maximumLODLevel: 1
     maximumLODLevelMode: 1

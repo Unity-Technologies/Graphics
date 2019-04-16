@@ -291,16 +291,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
 
-        public static readonly int _ViewMatrixStereo = Shader.PropertyToID("_ViewMatrixStereo");
-        public static readonly int _ProjMatrixStereo = Shader.PropertyToID("_ProjMatrixStereo");
-        public static readonly int _ViewProjMatrixStereo = Shader.PropertyToID("_ViewProjMatrixStereo");
-        public static readonly int _InvViewMatrixStereo = Shader.PropertyToID("_InvViewMatrixStereo");
-        public static readonly int _InvProjMatrixStereo = Shader.PropertyToID("_InvProjMatrixStereo");
-        public static readonly int _InvViewProjMatrixStereo = Shader.PropertyToID("_InvViewProjMatrixStereo");
-        public static readonly int _PrevViewProjMatrixStereo = Shader.PropertyToID("_PrevViewProjMatrixStereo");
-        public static readonly int _WorldSpaceCameraPosStereo = Shader.PropertyToID("_WorldSpaceCameraPosStereo");
-        public static readonly int _WorldSpaceCameraPosStereoEyeOffset = Shader.PropertyToID("_WorldSpaceCameraPosStereoEyeOffset");
-        public static readonly int _PrevCamPosRWSStereo = Shader.PropertyToID("_PrevCamPosRWSStereo");
+        public static readonly int _XRViewConstants = Shader.PropertyToID("_XRViewConstants");
         public static readonly int _TextureWidthScaling = Shader.PropertyToID("_TextureWidthScaling"); // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
 
         public static readonly int _DepthTexture                   = Shader.PropertyToID("_DepthTexture");
@@ -572,6 +563,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _Variants                       = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture                   = Shader.PropertyToID("_InputTexture");
         public static readonly int _OutputTexture                  = Shader.PropertyToID("_OutputTexture");
+        public static readonly int _SourceTexture                  = Shader.PropertyToID("_SourceTexture");
         public static readonly int _InputHistoryTexture            = Shader.PropertyToID("_InputHistoryTexture");
         public static readonly int _OutputHistoryTexture           = Shader.PropertyToID("_OutputHistoryTexture");
 

@@ -588,7 +588,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
                 // Compose the matrix which allows us to compute the world space view direction.
-                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.viewMatrix, false);
+                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.mainViewConstants.viewMatrix, false);
 
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
@@ -707,7 +707,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var lensShift   = Vector2.zero;
 #endif
                 // Compose the matrix which allows us to compute the world space view direction.
-                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.viewMatrix, false);
+                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.mainViewConstants.viewMatrix, false);
 
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
