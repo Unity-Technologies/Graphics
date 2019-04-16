@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute ScaleX              = new VFXAttribute("scaleX", VFXValue.Constant(1.0f), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute ScaleY              = new VFXAttribute("scaleY", VFXValue.Constant(1.0f), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute ScaleZ              = new VFXAttribute("scaleZ", VFXValue.Constant(1.0f), VFXVariadic.BelongsToVariadic);
-        public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValueType.Float);
+        public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValue.Constant(1.0f));
         public static readonly VFXAttribute Age                 = new VFXAttribute("age", VFXValueType.Float);
         public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
             new VFXAttribute("angle", VFXValueType.Float3, VFXVariadic.True),
             new VFXAttribute("angularVelocity", VFXValueType.Float3, VFXVariadic.True),
             new VFXAttribute("pivot", VFXValueType.Float3, VFXVariadic.True),
-            new VFXAttribute("scale", VFXValueType.Float3, VFXVariadic.True)
+            new VFXAttribute("scale", VFXValue.Constant(new Vector3((float)ScaleX.value.GetContent(), (float)ScaleY.value.GetContent(), (float)ScaleZ.value.GetContent())), VFXVariadic.True)
         };
 
         public static readonly string[] AllVariadic = AllVariadicAttribute.Select(e => e.name).ToArray();

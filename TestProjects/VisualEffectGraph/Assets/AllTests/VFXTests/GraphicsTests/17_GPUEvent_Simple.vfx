@@ -5634,7 +5634,7 @@ VisualEffectResource:
       += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x4 + 0x3) << 2)));\n
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float3 velocity
-      = float3(0,0,0);\n        float lifetime = (float)0;\n        float3 color =
+      = float3(0,0,0);\n        float lifetime = (float)1;\n        float3 color =
       float3(1,1,1);\n        float age = (float)0;\n        bool alive = (bool)true;\n
       \       float3 position = float3(0,0,0);\n        float3 color_source = asfloat(sourceAttributeBuffer.Load3((sourceIndex
       * 0x4 + 0x0) << 2));\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId
@@ -5863,7 +5863,7 @@ VisualEffectResource:
       on CPU\n#endif\n\n    if (id < maxThreadId)\n    {\n#if VFX_USE_SPAWNER_FROM_GPU\n
       \       int sourceIndex = eventList[id];\n#endif\n        uint particleIndex
       = id + currentSpawnIndex;\n\t\t\n#if !VFX_USE_SPAWNER_FROM_GPU\n        \n#endif\n
-      \       float lifetime = (float)0;\n        float3 color = float3(1,1,1);\n
+      \       float lifetime = (float)1;\n        float3 color = float3(1,1,1);\n
       \       float3 velocity = float3(0,0,0);\n        float3 position = float3(0,0,0);\n
       \       float age = (float)0;\n        bool alive = (bool)true;\n        float3
       color_source = asfloat(sourceAttributeBuffer.Load3((sourceIndex * 0x4 + 0x100)
@@ -5992,7 +5992,7 @@ VisualEffectResource:
       on CPU\n#endif\n\n    if (id < maxThreadId)\n    {\n#if VFX_USE_SPAWNER_FROM_GPU\n
       \       int sourceIndex = eventList[id];\n#endif\n        uint particleIndex
       = id + currentSpawnIndex;\n\t\t\n#if !VFX_USE_SPAWNER_FROM_GPU\n        \n#endif\n
-      \       float lifetime = (float)0;\n        float3 velocity = float3(0,0,0);\n
+      \       float lifetime = (float)1;\n        float3 velocity = float3(0,0,0);\n
       \       float3 color = float3(1,1,1);\n        float3 position = float3(0,0,0);\n
       \       bool alive = (bool)true;\n        float age = (float)0;\n        float3
       velocity_source = asfloat(sourceAttributeBuffer.Load3((sourceIndex * 0x4 + 0x0)

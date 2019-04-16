@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider))]
-        public string attribute = VFXAttribute.AllIncludingVariadic.First();
+        public string attribute;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
@@ -51,14 +51,29 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                if (!attributeIsValid)
+                    return string.Empty;
+
                 return ComposeName("");
             }
         }
+
+        private bool attributeIsValid
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(attribute);
+            }
+        }
+
 
         public override string name
         {
             get
             {
+                if (!attributeIsValid)
+                    return string.Empty;
+
                 string variadicName = (currentAttribute.variadic == VFXVariadic.True) ? "." + channels.ToString() : "";
                 return ComposeName(variadicName);
             }
@@ -93,7 +108,7 @@ namespace UnityEditor.VFX.Block
                 if (Source != ValueSource.Slot)
                     yield return "Random";
 
-                if (currentAttribute.variadic == VFXVariadic.False)
+                if (!attributeIsValid || currentAttribute.variadic == VFXVariadic.False)
                     yield return "channels";
 
                 foreach (var setting in base.filteredOutSettings)
@@ -105,21 +120,23 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var attrib = currentAttribute;
-                VFXAttributeMode attributeMode = (Composition == AttributeCompositionMode.Overwrite) ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite;
-                if (attrib.variadic == VFXVariadic.True)
+                if (attributeIsValid)
                 {
-                    string channelsString = channels.ToString();
-                    for (int i = 0; i < channelsString.Length; i++)
-                        yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                    var attrib = currentAttribute;
+                    VFXAttributeMode attributeMode = (Composition == AttributeCompositionMode.Overwrite) ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite;
+                    if (attrib.variadic == VFXVariadic.True)
+                    {
+                        string channelsString = channels.ToString();
+                        for (int i = 0; i < channelsString.Length; i++)
+                            yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                    }
+                    else
+                    {
+                        yield return new VFXAttributeInfo(attrib, attributeMode);
+                    }
+                    if (Random != RandomMode.Off)
+                        yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 }
-                else
-                {
-                    yield return new VFXAttributeInfo(attrib, attributeMode);
-                }
-
-                if (Random != RandomMode.Off)
-                    yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -132,6 +149,9 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                if (!attributeIsValid)
+                    return string.Empty;
+
                 var attrib = currentAttribute;
                 string source = "";
 
@@ -180,37 +200,40 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var param in base.parameters)
+                if (attributeIsValid)
                 {
-                    if ((param.name == "Value" || param.name == "Min" || param.name == "Max") && Source == ValueSource.Source)
-                        continue;
-
-                    yield return param;
-                }
-
-                if (Source == ValueSource.Source)
-                {
-                    VFXExpression sourceExpression = null;
-                    var attrib = currentAttribute;
-                    if (attrib.variadic == VFXVariadic.True)
+                    foreach (var param in base.parameters)
                     {
-                        var currentChannels = channels.ToString().Select(c => char.ToUpper(c));
-                        var currentChannelsExpression = currentChannels.Select(o =>
+                        if ((param.name == "Value" || param.name == "Min" || param.name == "Max") && Source == ValueSource.Source)
+                            continue;
+
+                        yield return param;
+                    }
+
+                    if (Source == ValueSource.Source)
+                    {
+                        VFXExpression sourceExpression = null;
+                        var attrib = currentAttribute;
+                        if (attrib.variadic == VFXVariadic.True)
                         {
-                            var subAttrib = VFXAttribute.Find(attribute + o);
-                            return new VFXAttributeExpression(subAttrib, VFXAttributeLocation.Source);
-                        }).ToArray();
+                            var currentChannels = channels.ToString().Select(c => char.ToUpper(c));
+                            var currentChannelsExpression = currentChannels.Select(o =>
+                            {
+                                var subAttrib = VFXAttribute.Find(attribute + o);
+                                return new VFXAttributeExpression(subAttrib, VFXAttributeLocation.Source);
+                            }).ToArray();
 
-                        if (currentChannelsExpression.Length == 1)
-                            sourceExpression = currentChannelsExpression[0];
+                            if (currentChannelsExpression.Length == 1)
+                                sourceExpression = currentChannelsExpression[0];
+                            else
+                                sourceExpression = new VFXExpressionCombine(currentChannelsExpression);
+                        }
                         else
-                            sourceExpression = new VFXExpressionCombine(currentChannelsExpression);
+                        {
+                            sourceExpression = new VFXAttributeExpression(attrib, VFXAttributeLocation.Source);
+                        }
+                        yield return new VFXNamedExpression(sourceExpression, "Value");
                     }
-                    else
-                    {
-                        sourceExpression = new VFXAttributeExpression(attrib, VFXAttributeLocation.Source);
-                    }
-                    yield return new VFXNamedExpression(sourceExpression, "Value");
                 }
             }
         }
@@ -231,55 +254,58 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (Source != ValueSource.Source)
+                if (attributeIsValid)
                 {
-                    var attrib = currentAttribute;
-
-                    VFXPropertyAttribute[] attr = null;
-                    if (attrib.Equals(VFXAttribute.Color))
-                        attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
-
-                    Type slotType = VFXExpression.TypeToType(attrib.type);
-                    object content = attrib.value.GetContent();
-                    if (attrib.variadic == VFXVariadic.True)
+                    if (Source != ValueSource.Source)
                     {
-                        string channelsString = channels.ToString();
+                        var attrib = currentAttribute;
 
-                        int length = channelsString.Length;
-                        switch (length)
+                        VFXPropertyAttribute[] attr = null;
+                        if (attrib.Equals(VFXAttribute.Color))
+                            attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
+
+                        Type slotType = VFXExpression.TypeToType(attrib.type);
+                        object content = attrib.value.GetContent();
+                        if (attrib.variadic == VFXVariadic.True)
                         {
-                            case 1:
-                                slotType = typeof(float);
-                                content = ((Vector3)content)[ChannelToIndex(channelsString[0])];
-                                break;
-                            case 2:
-                                slotType = typeof(Vector2);
-                                Vector2 v = (Vector2)(Vector3)content;
-                                for (int i = 0; i < 2; i++)
-                                    v[i] = ((Vector3)content)[ChannelToIndex(channelsString[i])];
-                                content = v;
-                                break;
-                            case 3:
-                                slotType = typeof(Vector3);
-                                break;
-                            default:
-                                break;
+                            string channelsString = channels.ToString();
+
+                            int length = channelsString.Length;
+                            switch (length)
+                            {
+                                case 1:
+                                    slotType = typeof(float);
+                                    content = ((Vector3)content)[ChannelToIndex(channelsString[0])];
+                                    break;
+                                case 2:
+                                    slotType = typeof(Vector2);
+                                    Vector2 v = (Vector2)(Vector3)content;
+                                    for (int i = 0; i < 2; i++)
+                                        v[i] = ((Vector3)content)[ChannelToIndex(channelsString[i])];
+                                    content = v;
+                                    break;
+                                case 3:
+                                    slotType = typeof(Vector3);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+
+                        if (Random == RandomMode.Off)
+                        {
+                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name)) { attributes = attr }, content);
+                        }
+                        else
+                        {
+                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min") { attributes = attr }, content);
+                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max") { attributes = attr }, content);
                         }
                     }
 
-                    if (Random == RandomMode.Off)
-                    {
-                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name)) { attributes = attr }, content);
-                    }
-                    else
-                    {
-                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min") { attributes = attr }, content);
-                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max") { attributes = attr }, content);
-                    }
+                    if (Composition == AttributeCompositionMode.Blend)
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))));
                 }
-
-                if (Composition == AttributeCompositionMode.Blend)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))));
             }
         }
 

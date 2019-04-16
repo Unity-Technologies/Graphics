@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Linq;
 using NUnit.Framework;
@@ -220,19 +220,26 @@ namespace UnityEditor.VFX.Test
         #pragma warning restore 0414
 
         [Test]
-        public void CheckDeterministicBehaviorFromLazyGetExpression([ValueSource("linkSubSlotOnly")] bool linkSubSlotOnly, [ValueSource("linkToDirection")] bool linkToDirection)
+        public void Check_Deterministic_Behavior_From_Lazy_Get_Expression_At_Several_Place([ValueSource("linkSubSlotOnly")] bool linkSubSlotOnly, [ValueSource("linkToDirection")] bool linkToDirection)
         {
             var arrVariants = Enumerable.Range(0, 4).Select(o => Enumerable.Range(0, 4));
             IEnumerable<IEnumerable<int>> empty = new[] { Enumerable.Empty<int>() };
-            var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))));
+            var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))))
+                                           .Select(o => o.ToArray()).ToArray();
+
+            //Cartesian product in combinations of [0,1,2,3]x[0,1,2,3] => {0,0,0,0}, {0,0,0,1}, ...
+            //We create a simple graph node_A (Vector3) and node_B (Vector3 or Direction)
+            //A link is done (to a subslot or directly to the masterslot)
+            //Then, we invalidate input/output slots following order provided by combination
+            //Finally, we compute expression tree from last output slot & dump it : all invalidation order should provide the same graph
+            //N.B.: This is a regression test, fixing an issue introduced rarely reproduced with spaceable slots
 
             var result = combinations.Select(o =>
             {
-                var combination = o.ToArray();
                 return new
                 {
-                    combination = combination,
-                    res = DumpCheckDeterministicBehaviorFromLazyGetExpression(linkSubSlotOnly, linkToDirection, combination),
+                    combination = o,
+                    res = DumpCheckDeterministicBehaviorFromLazyGetExpression(linkSubSlotOnly, linkToDirection, o),
                 };
             });
 
