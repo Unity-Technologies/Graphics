@@ -317,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Grab the RTIs and set the output render targets
                     m_RTIDs2[0] = m_CameraDepthValuesBuffer.nameID;
                     m_RTIDs2[1] = m_NormalRT.nameID;
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_RTIDs2, m_CameraDepthStencilBuffer);
+                    HDUtils.SetRenderTarget(cmd, m_RTIDs2, m_CameraDepthStencilBuffer);
 
                     // Set the input textures
                     Shader.SetGlobalTexture(HDShaderIDs._NormalTextureMS, m_NormalMSAART);
@@ -336,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "ResolveColor", CustomSamplerId.VolumeUpdate.GetSampler()))
                 {
                     // Grab the RTIs and set the output render targets
-                    HDUtils.SetRenderTarget(cmd, hdCamera, simpleTarget);
+                    HDUtils.SetRenderTarget(cmd, simpleTarget);
 
                     // Set the input textures
                     m_PropertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, msaaTarget);
