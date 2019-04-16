@@ -423,6 +423,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HDRaytracingManager                 m_RayTracingManager;
 #endif
 
+        Material m_CopyStencil;
+        // We need a copy for SSR because setting render states through uniform constants does not work with MaterialPropertyBlocks so it would override values set for the regular copy
+        Material m_CopyStencilForSSR;
+
         // Used to shadow shadow maps with use selection enabled in the debug menu
         int m_DebugSelectedLightShadowIndex;
         int m_DebugSelectedLightShadowCount;
@@ -676,6 +680,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             s_lightVolumes = new DebugLightVolumes();
             s_lightVolumes.InitData(m_Resources);
+
+            m_CopyStencil = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.copyStencilBufferPS);
+            m_CopyStencilForSSR = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.copyStencilBufferPS);
         }
 
         public void Cleanup()
@@ -746,6 +753,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
             CoreUtils.Destroy(m_CubeToPanoMaterial);
+
+            CoreUtils.Destroy(m_CopyStencil);
+            CoreUtils.Destroy(m_CopyStencilForSSR);
         }
 
 #if ENABLE_RAYTRACING
@@ -2949,6 +2959,68 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CoreUtils.SetKeyword(cmd, "USE_FPTL_LIGHTLIST", useFptl);
                 CoreUtils.SetKeyword(cmd, "USE_CLUSTERED_LIGHTLIST", !useFptl);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, useFptl ? s_LightList : s_PerVoxelLightLists);
+            }
+        }
+
+        public static void CopyStencilBufferForMaterialClassification(CommandBuffer cmd, RTHandleSystem.RTHandle depthStencilBuffer, RTHandleSystem.RTHandle stencilCopyBuffer, Material copyStencilMaterial)
+        {
+#if UNITY_SWITCH
+            // Faster on Switch.
+            HDUtils.SetRenderTarget(cmd, hdCamera, sharedRTManager.GetStencilBufferCopy(), sharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+
+            m_CopyStencil.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
+            m_CopyStencil.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.LightingMask);
+
+            // Use ShaderPassID 1 => "Pass 1 - Write 1 if value different from stencilRef to output"
+            CoreUtils.DrawFullScreen(cmd, m_CopyStencil, null, 1);
+#else
+            HDUtils.SetRenderTarget(cmd, stencilCopyBuffer, ClearFlag.Color, Color.clear);
+            HDUtils.SetRenderTarget(cmd, depthStencilBuffer);
+            cmd.SetRandomWriteTarget(1, stencilCopyBuffer);
+
+            copyStencilMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
+            copyStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
+
+            // Use ShaderPassID 3 => "Pass 3 - Initialize Stencil UAV copy with 1 if value different from stencilRef to output"
+            CoreUtils.DrawFullScreen(cmd, copyStencilMaterial, null, 3);
+            cmd.ClearRandomWriteTargets();
+#endif
+        }
+
+        public static void UpdateStencilBufferForSSRExclusion(CommandBuffer cmd, RTHandleSystem.RTHandle depthStencilBuffer, RTHandleSystem.RTHandle stencilCopyBuffer, Material copyStencilMaterial)
+        {
+            HDUtils.SetRenderTarget(cmd, depthStencilBuffer);
+            cmd.SetRandomWriteTarget(1, stencilCopyBuffer);
+
+            copyStencilMaterial.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR);
+            copyStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR);
+
+            // Pass 4 performs an OR between the already present content of the copy and the stencil ref, if stencil test passes.
+            CoreUtils.DrawFullScreen(cmd, copyStencilMaterial, null, 4);
+            cmd.ClearRandomWriteTargets();
+        }
+
+        public void CopyStencilBufferIfNeeded(CommandBuffer cmd, HDCamera hdCamera, SharedRTManager sharedRTManager)
+        {
+            // Clear and copy the stencil texture needs to be moved to before we invoke the async light list build,
+            // otherwise the async compute queue can end up using that texture before the graphics queue is done with it.
+            // TODO: Move this code inside LightLoop
+            // For the SSR we need the lighting flags to be copied into the stencil texture (it is use to discard object that have no lighting)
+            if (GetFeatureVariantsEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
+            {
+                // For material classification we use compute shader and so can't read into the stencil, so prepare it.
+                using (new ProfilingSample(cmd, "Clear and copy stencil texture for material classification", CustomSamplerId.ClearAndCopyStencilTexture.GetSampler()))
+                {
+                    CopyStencilBufferForMaterialClassification(cmd, sharedRTManager.GetDepthStencilBuffer(), sharedRTManager.GetStencilBufferCopy(), m_CopyStencil);
+                }
+
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
+                {
+                    using (new ProfilingSample(cmd, "Update stencil copy for SSR Exclusion", CustomSamplerId.UpdateStencilCopyForSSRExclusion.GetSampler()))
+                    {
+                        UpdateStencilBufferForSSRExclusion(cmd, sharedRTManager.GetDepthStencilBuffer(), sharedRTManager.GetStencilBufferCopy(), m_CopyStencilForSSR);
+                    }
+                }
             }
         }
 

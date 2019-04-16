@@ -67,10 +67,10 @@ void RaytracingIndirectDiffuseTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 
 
     float2 uv = posInputs.positionNDC;
 
-    float3 color = Fetch(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy);
-    float3 history = Fetch(_IndirectDiffuseHistorybufferRW, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy);
-    float3 topLeft = Fetch(_DenoiseInputTexture, uv, -RADIUS, _ScreenToTargetScale.xy);
-    float3 bottomRight = Fetch(_DenoiseInputTexture, uv, RADIUS, _ScreenToTargetScale.xy);
+    float3 color = Fetch(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy);
+    float3 history = Fetch(_IndirectDiffuseHistorybufferRW, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy);
+    float3 topLeft = Fetch(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy);
+    float3 bottomRight = Fetch(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy);
 
     float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
