@@ -28,7 +28,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class BuiltinSkyParameters
     {
         public Matrix4x4                pixelCoordToViewDirMatrix;
-        public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
         public CommandBuffer            commandBuffer;
         public Light                    sunLight;
