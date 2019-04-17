@@ -162,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We consider that the small loss in performance is acceptable in the editor.
             // A refactor of wireframe is needed before we can fix this properly (with not doing anything!)
 #if !UNITY_EDITOR
-            SetViewport(cmd, camera, buffer);
+            SetViewport(cmd, buffer);
 #endif
             CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
 #if UNITY_EDITOR
