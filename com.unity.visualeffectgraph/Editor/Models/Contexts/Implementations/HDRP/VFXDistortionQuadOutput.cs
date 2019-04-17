@@ -26,6 +26,8 @@ namespace UnityEditor.VFX
 
                 if (useGeometryShader)
                     yield return "USE_GEOMETRY_SHADER";
+
+                yield return "VFX_PRIMITIVE_QUAD";
             }
         }
 
