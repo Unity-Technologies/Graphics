@@ -5,8 +5,8 @@
 ${VFXPerPassInclude}
 ${VFXGeneratedBlockFunction}
 
-${VFXInclude("Shaders/ParticleQuads/PassVS.template"),!USE_GEOMETRY_SHADER}
-${VFXInclude("Shaders/ParticleQuads/PassGS.template"),USE_GEOMETRY_SHADER}
+${VFXInclude("Shaders/ParticlePlanarPrimitives/PassVS.template"),!USE_GEOMETRY_SHADER}
+${VFXInclude("Shaders/ParticlePlanarPrimitives/PassGS.template"),USE_GEOMETRY_SHADER}
 
 ${VFXBegin:VFXComputeNormalWS}
 #if USE_DOUBLE_SIDED
