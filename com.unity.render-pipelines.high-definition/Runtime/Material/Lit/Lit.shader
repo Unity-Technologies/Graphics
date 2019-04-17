@@ -794,6 +794,7 @@ Shader "HDRP/Lit"
 
             // multi compile that allows us to 
             #pragma multi_compile _ DIFFUSE_LIGHTING_ONLY
+            #pragma multi_compile _ USE_RTPV
 
             // We use the low shadow maps for raytracing
             #define SHADOW_LOW
@@ -811,6 +812,9 @@ Shader "HDRP/Lit"
             
             #include "Packages/com.unity.render-pipelines.high-definition\Runtime\Lighting\LightLoop\LightLoopDef.hlsl"
             #define HAS_LIGHTLOOP
+            #ifdef USE_RTPV
+            #   include "Assets/DDGI/IrradianceField.hlsl"
+            #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"

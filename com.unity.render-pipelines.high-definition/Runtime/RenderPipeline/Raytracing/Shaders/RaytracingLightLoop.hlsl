@@ -70,7 +70,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1.0f;
     context.sampleReflection = 0;
-/*
+
     // Evaluate sun shadows.
     if (_DirectionalShadowIndex >= 0)
     {
@@ -87,7 +87,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
         }
     }
-*/
+
     AggregateLighting aggregateLighting;
     ZERO_INITIALIZE(AggregateLighting, aggregateLighting); // LightLoop is in charge of initializing the structure
 
@@ -217,6 +217,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightSky, bsdfData, envLightSky.influenceShapeType, 0, val);
         AccumulateIndirectLighting(lighting, aggregateLighting);
     }
+
+#ifdef USE_RTPV
+    {
+        float3 wpos = GetAbsolutePositionWS(posInput.positionWS);
+        aggregateLighting.direct.diffuse += sampleIrradiance(wpos, bsdfData.normalWS, -WorldRayDirection(), bsdfData.normalWS);
+    }
+#endif
 
     PostEvaluateBSDF(context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting, diffuseLighting, specularLighting);
 }

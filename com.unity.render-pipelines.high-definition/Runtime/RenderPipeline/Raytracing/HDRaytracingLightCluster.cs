@@ -234,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 maxClusterPos.y = Mathf.Max(m_LightVolumesCPUArray[lightIdx].position.y + m_LightVolumesCPUArray[lightIdx].range, maxClusterPos.y);
                 maxClusterPos.z = Mathf.Max(m_LightVolumesCPUArray[lightIdx].position.z + m_LightVolumesCPUArray[lightIdx].range, maxClusterPos.z);
             }
-
+#if false
             minClusterPos.x = minClusterPos.x < clusterCenter.x - currentEnv.cameraClusterRange ? clusterCenter.x - currentEnv.cameraClusterRange : minClusterPos.x;
             minClusterPos.y = minClusterPos.y < clusterCenter.y - currentEnv.cameraClusterRange ? clusterCenter.y - currentEnv.cameraClusterRange : minClusterPos.y;
             minClusterPos.z = minClusterPos.z < clusterCenter.z - currentEnv.cameraClusterRange ? clusterCenter.z - currentEnv.cameraClusterRange : minClusterPos.z;
@@ -242,7 +242,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             maxClusterPos.x = maxClusterPos.x > clusterCenter.x + currentEnv.cameraClusterRange ? clusterCenter.x + currentEnv.cameraClusterRange : maxClusterPos.x;
             maxClusterPos.y = maxClusterPos.y > clusterCenter.y + currentEnv.cameraClusterRange ? clusterCenter.y + currentEnv.cameraClusterRange : maxClusterPos.y;
             maxClusterPos.z = maxClusterPos.z > clusterCenter.z + currentEnv.cameraClusterRange ? clusterCenter.z + currentEnv.cameraClusterRange : maxClusterPos.z;
+#else
+            minClusterPos.x = minClusterPos.x < clusterCenter.x - currentEnv.cameraClusterRange ? minClusterPos.x : clusterCenter.x - currentEnv.cameraClusterRange;
+            minClusterPos.y = minClusterPos.y < clusterCenter.y - currentEnv.cameraClusterRange ? minClusterPos.y : clusterCenter.y - currentEnv.cameraClusterRange;
+            minClusterPos.z = minClusterPos.z < clusterCenter.z - currentEnv.cameraClusterRange ? minClusterPos.z : clusterCenter.z - currentEnv.cameraClusterRange;
 
+            maxClusterPos.x = maxClusterPos.x > clusterCenter.x + currentEnv.cameraClusterRange ? maxClusterPos.x : clusterCenter.x + currentEnv.cameraClusterRange;
+            maxClusterPos.y = maxClusterPos.y > clusterCenter.y + currentEnv.cameraClusterRange ? maxClusterPos.y : clusterCenter.y + currentEnv.cameraClusterRange;
+            maxClusterPos.z = maxClusterPos.z > clusterCenter.z + currentEnv.cameraClusterRange ? maxClusterPos.z : clusterCenter.z + currentEnv.cameraClusterRange;
+
+#endif
             // Compute the cell size per dimension
             clusterCellSize = (maxClusterPos - minClusterPos);
             clusterCellSize.x /= 64.0f;
