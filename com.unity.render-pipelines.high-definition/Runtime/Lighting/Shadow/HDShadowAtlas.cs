@@ -316,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector4[] blurWeights = new Vector4[2];
 
-                // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts 
+                // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts
                 // the tail of the gaussian a bit too much, and it is a very fat curve, but it seems to work fine for our use case.
                 blurWeights[0].x = 0.1531703f;
                 blurWeights[0].y = 0.1448929f;
@@ -404,9 +404,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int summedAreaVerticalKernel = momentCS.FindKernel("MomentSummedAreaTableVertical");
 
                 // First of all let's clear the moment shadow map
-                HDUtils.SetRenderTarget(cmd, hdCamera, GetMomentRT(), ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_IntermediateSummedAreaTexture, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_SummedAreaTexture, ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, GetMomentRT(), ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, m_IntermediateSummedAreaTexture, ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, m_SummedAreaTexture, ClearFlag.Color, Color.black);
 
                 var atlasMoment = GetMomentRT();
 
