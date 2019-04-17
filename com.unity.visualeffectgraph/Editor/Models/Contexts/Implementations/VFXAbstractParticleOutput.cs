@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractParticleOutput : VFXContext, IVFXSubRenderer
     {
-        public enum TextureColorMode
+        public enum ColorMappingMode
         {
             Textured,
             GradientMapped
@@ -79,10 +79,10 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected ZTestMode zTestMode = ZTestMode.Default;
 
-        [VFXSetting, SerializeField, Header("Particle Options")]
-        protected TextureColorMode textureColorMode;
+        [VFXSetting, SerializeField, Tooltip("Determines how the color is handled at pixel shader"), Header("Particle Options")]
+        protected ColorMappingMode colorMappingMode;
 
-        [VFXSetting, SerializeField, FormerlySerializedAs("flipbookMode")]
+        [VFXSetting, SerializeField, Tooltip("Determines how the particle UV are handled"), FormerlySerializedAs("flipbookMode")]
         protected UVMode uvMode;
 
         [VFXSetting, SerializeField]
@@ -143,7 +143,7 @@ namespace UnityEditor.VFX
             if (blendMode == BlendMode.Masked)
                 yield return slotExpressions.First(o => o.name == "alphaThreshold");
 
-            if (textureColorMode == TextureColorMode.GradientMapped)
+            if (colorMappingMode == ColorMappingMode.GradientMapped)
             {
                 yield return slotExpressions.First(o => o.name == "gradient");
             }
@@ -198,7 +198,7 @@ namespace UnityEditor.VFX
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
-                if(textureColorMode == TextureColorMode.GradientMapped)
+                if(colorMappingMode == ColorMappingMode.GradientMapped)
                 {
                     foreach(var property in PropertiesFromType("InputPropertiesGradientMapped"))
                         yield return property;
@@ -231,13 +231,13 @@ namespace UnityEditor.VFX
         {
             get
             {
-                switch(textureColorMode)
+                switch(colorMappingMode)
                 {
-                    case TextureColorMode.Textured:
-                        yield return "VFX_TEXTURECOLOR_TEXTURED";
+                    case ColorMappingMode.Textured:
+                        yield return "VFX_COLORMAPPING_TEXTURED";
                         break;
-                    case TextureColorMode.GradientMapped:
-                        yield return "VFX_TEXTURECOLOR_GRADIENTMAPPED";
+                    case ColorMappingMode.GradientMapped:
+                        yield return "VFX_COLORMAPPING_GRADIENTMAPPED";
                         break;
                 }
 

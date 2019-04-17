@@ -344,7 +344,7 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                yield return "textureColorMode";
+                yield return "colorMappingMode";
 
                 if (materialType != MaterialType.Translucent && materialType != MaterialType.SimpleLitTranslucent)
                 {
@@ -380,7 +380,7 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            textureColorMode = TextureColorMode.Textured;
+            colorMappingMode = ColorMappingMode.Textured;
             base.OnEnable();
         }
 

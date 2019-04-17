@@ -48,7 +48,7 @@ Pass
 	ps_output frag(ps_input i)
 	{
 		ps_output o = (ps_output)0;
-		${VFXApplyTextureColorMode}
+		${VFXApplyColorMapping}
 		
 		// Line AA
 		#if IS_TRANSPARENT_PARTICLE	

@@ -97,7 +97,7 @@ o.viewToDecal2 = viewToDecal[2];
 		float2 uv = elementPos.xy * 0.5f + 0.5f;
 
 		#define VFX_TEXTURE_COLOR VFXGetTextureColorWithProceduralUV(s,i,uv)
-		${VFXApplyTextureColorMode}
+		${VFXApplyColorMapping}
 
 		o.color = VFXApplyPreExposure(o.color);
 		o.color = VFXApplyFog(o.color,i);

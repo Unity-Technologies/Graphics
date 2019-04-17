@@ -54,7 +54,7 @@ Pass
 		ps_output o = (ps_output)0;
 
 		#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
-		${VFXApplyTextureColorMode}
+		${VFXApplyColorMapping}
 
 		o.color = VFXApplyPreExposure(o.color);
 		o.color = VFXApplyFog(o.color,i);
