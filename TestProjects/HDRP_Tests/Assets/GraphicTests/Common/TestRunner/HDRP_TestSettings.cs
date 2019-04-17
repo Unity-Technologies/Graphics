@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-using NUnit.Framework;
-using UnityEditor;
-using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Events;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
@@ -33,10 +26,15 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
         if (currentRP != renderPipelineAsset)
         {
-            quitDebug.AppendLine($"{SceneManager.GetActiveScene().name} RP asset change: {( (currentRP)?AssetDatabase.GetAssetPath(currentRP):"null" )} => {AssetDatabase.GetAssetPath(renderPipelineAsset)}");
+            quitDebug.AppendLine($"{SceneManager.GetActiveScene().name} RP asset change: {( (currentRP)?currentRP.name:"null" )} => {renderPipelineAsset.name}");
 
             GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
         }
+
+#if UNITY_EDITOR
+        //Change game view size
+        GameViewUtils.SetTestGameViewSize( ImageComparisonSettings.TargetWidth, ImageComparisonSettings.TargetHeight );
+#endif
     }
 
     static StringBuilder quitDebug = new StringBuilder();
@@ -48,5 +46,19 @@ public class HDRP_TestSettings : GraphicsTestSettings
         Debug.Log($"Scenes that needed to change the RP asset:{Environment.NewLine}{quitDebug.ToString()}");
 
         quitDebug.Clear();
+    }
+
+    public void ApplyResolution()
+    {
+        Screen.SetResolution(
+            ImageComparisonSettings.TargetWidth,
+            ImageComparisonSettings.TargetHeight,
+            Screen.fullScreenMode
+            );
+
+#if UNITY_EDITOR
+        //Change game view size
+        GameViewUtils.SetTestGameViewSize( ImageComparisonSettings.TargetWidth, ImageComparisonSettings.TargetHeight );
+#endif
     }
 }

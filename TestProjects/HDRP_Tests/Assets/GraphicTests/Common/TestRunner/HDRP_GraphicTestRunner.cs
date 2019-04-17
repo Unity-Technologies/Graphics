@@ -7,6 +7,7 @@ using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using System.IO;
+using UnityEditor;
 
 public class HDRP_GraphicTestRunner
 {
@@ -29,6 +30,9 @@ public class HDRP_GraphicTestRunner
         {
             Assert.Fail("Missing camera for graphic tests.");
         }
+
+        // Set the resolution and game view size
+        settings.ApplyResolution();
 
         Time.captureFramerate = settings.captureFramerate;
 
@@ -102,10 +106,24 @@ public class HDRP_GraphicTestRunner
 
 #if UNITY_EDITOR
 
+    int previousGameView;
+
+    [OneTimeSetUp]
+    public void OneTimeSetUp()
+    {
+        previousGameView = GameViewUtils.GetSize();
+    }
+
     [TearDown]
-    public void DumpImagesInEditor()
+    public void TearDown()
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
+    }
+
+    [OneTimeTearDown]
+    public void OneTimeTearDownTearDown()
+    {
+        GameViewUtils.SetSize( previousGameView);
     }
 #endif
 
