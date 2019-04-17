@@ -1492,6 +1492,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Configure all the keywords
             ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
+            HDRaytracingLightProbeBakeManager.PreRender(hdCamera.camera, cmd);
+
             StartStereoRendering(cmd, renderContext, camera);
 
             ClearBuffers(hdCamera, cmd);
@@ -1815,7 +1817,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, rtEnvironement.maxNumLightsPercell);
                             cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
                             cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
-                            HDRaytracingLightProbeBakeManager.Bake(hdCamera.camera, cmd);
+                            HDRaytracingLightProbeBakeManager.Bake(hdCamera.camera, cmd, m_SkyManager);
                         }
                     }
                 }                
