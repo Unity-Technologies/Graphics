@@ -1,3 +1,4 @@
+// Shadow pass
 Pass
 {		
 	Tags { "LightMode"=${VFXPassShadow} }
@@ -30,22 +31,27 @@ Pass
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.y
 #define VFX_VARYING_UV uv
-
-${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
+		
+${VFXBegin:VFXVertexAdditionalProcess}
+float3 posWS = TransformPositionVFXToWorld(vPos);
+VFXApplyShadowBias(o.VFX_VARYING_POSCS, posWS, normalWS);
+${VFXEnd}
 
 // Needed for HDRP
 #define SHADERPASS SHADERPASS_SHADOWS
 		
-	${VFXInclude("Shaders/ParticleQuads/Pass.template")}	
+	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{
 		float alpha = VFXGetFragmentColor(i).a;
-#if HDRP_USE_BASE_COLOR_MAP_ALPHA
-		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;	
-#endif
+		alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;		
 		VFXClipFragmentColor(alpha,i);
+
+#ifndef USE_ALPHA_TEST
+		clip(alpha - 1e-5);
+#endif
 
 		return 0;
 	}

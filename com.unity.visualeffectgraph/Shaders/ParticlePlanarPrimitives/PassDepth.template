@@ -32,7 +32,7 @@ Pass
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.y
 #define VFX_VARYING_UV uv
 				
-	${VFXInclude("Shaders/ParticleQuads/Pass.template")}	
+	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
 		
 	#pragma fragment frag
 	float4 frag(ps_input i) : SV_TARGET

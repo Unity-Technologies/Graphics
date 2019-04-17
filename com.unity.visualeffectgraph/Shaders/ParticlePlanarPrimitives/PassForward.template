@@ -46,7 +46,7 @@ Pass
 #define VFX_VARYING_POSWS posWS
 #endif
 		
-	${VFXInclude("Shaders/ParticleQuads/Pass.template")}	
+	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
 		
 	#pragma fragment frag
 	ps_output frag(ps_input i)

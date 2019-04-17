@@ -122,6 +122,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/DistortionTest.unity
     guid: ba0c0a315741c3146b3685273bd5613a
+- enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/005_PlanarPrimitives.unity
+    guid: fd7efe8ee4dbe754084c1edb14955dc7
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/GradientMapped.unity
     guid: 56d69bce6c4697147823f3b5b3acd8ea

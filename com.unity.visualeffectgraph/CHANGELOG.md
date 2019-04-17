@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add automatic depth buffer reference for main camera (for position and collision blocks)
 - Total Time for PreWarm in Visual Effect Asset inspector
 - Support for unlit output with LWRP
+- Add Terrain Parameter Binder + Terrain Type
+- Add UI Parameter Binders : Slider, Toggle
+- Add Input Parameter Binders : Axis, Button, Key, Mouse, Touch
+- Add Other Parameter Binders : Previous Position, Hierarchy Attribute Map, Multi-Position, Enabled
 
 ### Fixed
 - Undo Redo while changing space
@@ -62,10 +66,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add customizable function in VariantProvider to replace the default cartesian product
 - Add Inverse Lerp node
 - Expose light probes parameters in VisualEffect inspector
-- Add Terrain Parameter Binder + Terrain Type
-- Add UI Parameter Binders : Slider, Toggle
-- Add Input Parameter Binders : Axis, Button, Key, Mouse, Touch
-- Add Other Parameter Binders : Previous Position, Hierarchy Attribute Map, Multi-Position, Enabled
 
 ### Fixed
 - Some fixes in noise library
