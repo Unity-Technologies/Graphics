@@ -108,8 +108,7 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/03. Outputs/106_Outputs.unity
     guid: 3beba1ddd4bd1e84b9ea2c49faf04c96
   - enabled: 1
-    path: Packages/com.unity.testing.visualeffectgraph/Coverage/04. Outputs - continued/107_Outputs
-      2.unity
+    path: Packages/com.unity.testing.visualeffectgraph/Coverage/04. Outputs - continued/107_Outputs 2.unity
     guid: da400ef71c862d14383ba915ca4f5b09
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/HDRP.unity
@@ -160,7 +159,6 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/06. OrientShadows/OrientShadows.unity
     guid: c7560353091ebd1499882d564f6756d7
   - enabled: 1
-    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/10. HDRP - Miscellaneous/HDRP
-      - Miscellaneous.unity
+    path: Assets/AllTests/VFXTests/GraphicsTests/Coverage/10. HDRP - Miscellaneous/HDRP - Miscellaneous.unity
     guid: dc1a5cc054c94244292fe8e7e85cd87f
   m_configObjects: {}
