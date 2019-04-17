@@ -207,12 +207,22 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             for (int i = 0; i < s_LightOperations.Length; ++i)
             {
-                if (!s_LightOperations[i].enabled)
-                    continue;
+                if (i >= k_UseLightOperationKeywords.Length)
+                    break;
 
-                cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, s_LightOperations[i].blendFactors);
-                cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_LightOperations[i].maskTextureChannelFilter.mask);
-                cmdBuffer.SetGlobalVector("_ShapeLightInvertedFilter" + i, s_LightOperations[i].maskTextureChannelFilter.inverted);
+                string keyword = k_UseLightOperationKeywords[i];
+                if (!s_LightOperations[i].enabled)
+                {
+                    cmdBuffer.DisableShaderKeyword(keyword);
+                    continue;
+                } 
+                else
+                {
+                    cmdBuffer.EnableShaderKeyword(keyword);
+                    cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, s_LightOperations[i].blendFactors);
+                    cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_LightOperations[i].maskTextureChannelFilter.mask);
+                    cmdBuffer.SetGlobalVector("_ShapeLightInvertedFilter" + i, s_LightOperations[i].maskTextureChannelFilter.inverted);
+                }
             }
 
             cmdBuffer.SetGlobalTexture("_FalloffLookup", GetFalloffLookupTexture());
@@ -320,17 +330,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             for (int i = 0; i < s_LightOperations.Length; ++i)
             {
-                if (i >= k_UseLightOperationKeywords.Length)
-                    break;
-
-                string keyword = k_UseLightOperationKeywords[i];
-                if (s_LightOperations[i].enabled)
-                    cmdBuffer.EnableShaderKeyword(keyword);
-                else
-                {
-                    cmdBuffer.DisableShaderKeyword(keyword);
+                if (!s_LightOperations[i].enabled)
                     continue;
-                }
 
                 string sampleName = "2D Lights - " + s_LightOperations[i].name;
                 cmdBuffer.BeginSample(sampleName);
