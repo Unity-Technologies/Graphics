@@ -7,11 +7,11 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo]
-    class VFXLitQuadOutput : VFXAbstractParticleHDRPLitOutput
+    class VFXLitTriangleOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Lit Quad Output"; } }
-        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitQuad"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
+        public override string name { get { return "Lit Triangle Output"; } }
+        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitTriangle"); } }
+        public override VFXTaskType taskType { get { return VFXTaskType.ParticleTriangleOutput; } }
         public override bool supportsUV { get { return true; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]

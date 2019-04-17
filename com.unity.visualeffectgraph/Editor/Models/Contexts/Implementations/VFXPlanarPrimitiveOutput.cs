@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
@@ -6,15 +7,27 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
-    class VFXQuadOutput : VFXAbstractParticleOutput
+    [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
+    class VFXPlanarPrimitiveOutput : VFXAbstractParticleOutput
     {
-        //[VFXSetting] // tmp dont expose as settings atm
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected VFXPrimitiveType primitiveType = VFXPrimitiveType.Quad;
+
+        //[VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool useGeometryShader = false;
 
-        public override string name { get { return "Quad Output"; } }
-        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleQuad"); } }
-        public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.ParticlePointOutput : VFXTaskType.ParticleQuadOutput; } }
+        public override string name { get { return primitiveType.ToString() + " Output"; } }
+        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
+        public override VFXTaskType taskType
+        {
+            get
+            {
+                if (useGeometryShader)
+                    return VFXTaskType.ParticlePointOutput;
+
+                return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType);
+            }
+        }
         public override bool supportsUV { get { return true; } }
 
         public override IEnumerable<string> additionalDefines
@@ -26,6 +39,8 @@ namespace UnityEditor.VFX
 
                 if (useGeometryShader)
                     yield return "USE_GEOMETRY_SHADER";
+
+                yield return VFXPlanarPrimitiveHelper.GetShaderDefine(primitiveType);
             }
         }
 
@@ -57,12 +72,25 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                var properties = base.inputProperties;
+                if (primitiveType == VFXPrimitiveType.Octagon)
+                    properties = properties.Concat(PropertiesFromType(typeof(VFXPlanarPrimitiveHelper.OctagonInputProperties)));
+                return properties;
+            }
+        }
+
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
             yield return slotExpressions.First(o => o.name == "mainTexture");
+            if (primitiveType == VFXPrimitiveType.Octagon)
+                yield return slotExpressions.First(o => o.name == "cropFactor");
         }
 
         public class InputProperties
