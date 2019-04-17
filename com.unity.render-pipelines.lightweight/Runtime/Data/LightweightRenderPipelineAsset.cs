@@ -484,6 +484,16 @@ namespace UnityEngine.Rendering.LWRP
         {
             get { return editorResources.terrainDetailGrassBillboardShader; }
         }
+
+        public override Shader defaultSpeedTree7Shader
+        {
+            get { return editorResources.defaultSpeedTree7Shader; }
+        }
+
+        public override Shader defaultSpeedTree8Shader
+        {
+            get { return editorResources.defaultSpeedTree8Shader; }
+        }						
 #endif
 
         public void OnBeforeSerialize()
