@@ -452,12 +452,22 @@ namespace UnityEditor.VFX
         {
             get
             {
-                string prefix = shaderNamePrefix;
-                if( GetData() != null)
+                string assetName = string.Empty;
+                try
+                {
+                    assetName = GetGraph().visualEffectResource.asset.name;
+                }
+                catch(Exception e)
+                {
+                    Debug.LogException(e, this);
+                }
+
+                string prefix = shaderNamePrefix + (assetName == string.Empty? "" : "/"+assetName);
+                if (GetData() != null)
                 {
                     string dataName = GetData().fileName;
-                    if( !string.IsNullOrEmpty(dataName))
-                        prefix += "/"+dataName;
+                    if (!string.IsNullOrEmpty(dataName))
+                        prefix += "/" + dataName;
                 }
 
                 if (letter != '\0')
