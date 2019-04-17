@@ -97,7 +97,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
-  m_LightingDataAsset: {fileID: 112000004, guid: 829e6dee05aedae45b5945c9b6fa29fa,
+  m_LightingDataAsset: {fileID: 112000002, guid: cc77fe5c46176ba41bc9ee62edfe5d76,
     type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -297,6 +297,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -395,7 +399,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: fcb41506f8761c24282f10f5728bddbe, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 05b2dace088e3a345ad3ed0d305c260a, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -1080,6 +1084,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -1178,7 +1186,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 15477ef85a144a749bb2db128b5b1291, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: eed09aff0d566094b9b5f0e0adf3671e, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -1862,6 +1870,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -1960,7 +1972,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 9ce55ac38907dee4a94cb481f8e80e54, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 5e03321fa16ac394ca8fcecf1acc7727, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -2314,6 +2326,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -2412,7 +2428,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: b884af3a4c61d384d8dd3262c0da6f3d, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 2b3528091ee34e34cbead0c540f034bc, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -2766,6 +2782,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -2864,7 +2884,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 1fa88243383895045a7393ad8ef0ac4c, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 78b9604515400a54594e8e779159c849, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -3218,6 +3238,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -3316,7 +3340,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 65549b6f5f8f79249bc07ddd25d8a946, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 3fd0810f48bccea47a39d16ceb28cd4b, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -3762,6 +3786,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -3860,7 +3888,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: a5efe9c454f7448448f07c6513dae429, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 4210956113868034b936178b3a7cedc0, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -4161,26 +4189,6 @@ PrefabInstance:
       propertyPath: far clip plane
       value: 15
       objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
-      value: 0.001
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: ImageComparisonSettings.TargetWidth
-      value: 400
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: ImageComparisonSettings.TargetHeight
-      value: 400
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: waitFrames
-      value: 120
-      objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_RenderingPathCustomFrameSettings.bitDatas.data1
@@ -4381,6 +4389,26 @@ PrefabInstance:
       propertyPath: m_ObsoleteFrameSettings.lightLoopSettings.isFptlEnabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
+      value: 0.001
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.TargetWidth
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.TargetHeight
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: waitFrames
+      value: 120
+      objectReference: {fileID: 0}
     - target: {fileID: 114270329781043846, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: width
@@ -4500,6 +4528,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -4598,7 +4630,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 8dd1a1f8c6492bc47b8338f71972683f, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 509750972f6f75344b3d5ea3c45f02e6, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -5209,6 +5241,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -5307,7 +5343,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 2a74353586ba8db4886d9f8451983570, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 7335dae894575bf4093ab22c4142ae7d, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -5661,6 +5697,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -5759,7 +5799,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 8e01af46113668a499ada61104144257, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 60e416b209b72634ea4c845b02d7d74e, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -6361,6 +6401,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -6459,7 +6503,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: f6a0f6d5a27b91046a06befb2e8d42c3, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 7f77117d2ded491479eb53a9e9527e31, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -6813,6 +6857,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -6911,7 +6959,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 28e46ad977384494b9cdff1cf02e343c, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 6f61e82dd06d1ee4faeeb551aa4dc76e, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -7343,6 +7391,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -7441,7 +7493,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: a29b3952ced4a42499ca80d3d18023f2, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: ac1309dec37954d43ac5612c93c0152f, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -8319,6 +8371,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -8417,7 +8473,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: a9412e24888d30344b4184cc8ae132fb, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: fe459b6bc3098074bbefba3b91da2fed, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -8771,6 +8827,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -8869,7 +8929,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 4b08379444e3d6d4aa0306a7f693c961, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 18e4f701126d3cd48ac25d8e83b439e4, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -9223,6 +9283,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -9321,7 +9385,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: cbb26e650103aac499ee51020f3add4a, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 294da21369fea854aaf562bf9f924018, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -9955,6 +10019,10 @@ MonoBehaviour:
         bitDatas:
           data1: 1105953095436
           data2: 4251398048237748224
+        lodBias: 1
+        lodBiasMode: 0
+        maximumLODLevel: 0
+        maximumLODLevelMode: 0
       renderingPathCustomFrameSettingsOverrideMask:
         mask:
           data1: 0
@@ -10053,7 +10121,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 124ed13984b142b448a05a9dc081aba4, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 49ee9e991ef26254fade23b6c6a3e44f, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:

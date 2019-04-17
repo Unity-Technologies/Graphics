@@ -72,6 +72,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1218_Lit_DiffusionProfiles.unity
     guid: d2d3cc41bae835b4baad808d950d67a9
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1219_Lit_Light_on_Tesselation.unity
+    guid: 3f6529c22f7d2ca46814b2e7afd04ef9
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1
@@ -114,22 +117,19 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1705_Decals-stress-test.unity
     guid: 0e963f94367e3fe4a8c36b77f2e12a8b
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2001_Dynamic_Directional.unity
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2001_Light_DynamicDirectional.unity
     guid: 09baf18a7e1f6584f86675e6a2141c66
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2002_Dynamic_Mix.unity
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2002_Light_DynamicMix.unity
     guid: bcbb964f739039045b7958a9b1489657
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2003_Light_Parameters.unity
     guid: ac9787fadf0b4ed4391bee6ba1d8e213
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2004_AnimatedCookie.unity
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2004_Light_AnimatedCookie.unity
     guid: 9f03abfd8e9cc614c89458cbdb208e7c
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2005_Area_Light_Meshes.unity
-    guid: 359ded33a047fd540b5e19a98547f5e2
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2006_Spot_Angle_Distance.unity
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2006_Light_SpotAngleDistance.unity
     guid: c39638d0d6bfcf644b4b6966af6fc876
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2007_FogFallback.unity
@@ -141,8 +141,11 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2102_GI_Emission.unity
     guid: b8f49ca9a12abb4468116e9422139e63
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2103_BakeMixed.unity
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2103_GI_BakeMixed.unity
     guid: d8cfa4fd9319d2444b3bf6dd836ffe31
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2104_GI_LightProbeInstancing.unity
+    guid: d841ad64fdc2ae14ba996e30fe86b901
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
     guid: d485acf0535eb4b42a9a3847f4a8274a
@@ -195,25 +198,22 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2306_Contact_Shadow_SpotLight.unity
     guid: a8ecf1e3cee864a48bd6bca2c797fdb3
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2307_ShadowVeryHigh.unity
-    guid: c110cc3f909bb664b82eb554f0494597
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2308_Shadow_AreaLight.unity
-    guid: b03383077f153b7439af7708ebe1155a
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2309_Shadow_DisableLightLayer.unity
     guid: a8cbd2435b2e88e4b8f3060f575e7af5
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
-    guid: 3f6529c22f7d2ca46814b2e7afd04ef9
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2307_ShadowVeryHigh.unity
+    guid: c110cc3f909bb664b82eb554f0494597
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2501_Instancing_Lighting.unity
-    guid: d841ad64fdc2ae14ba996e30fe86b901
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
+    guid: 359ded33a047fd540b5e19a98547f5e2
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2402_Area_Rect_Shadow.unity
+    guid: b03383077f153b7439af7708ebe1155a
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2505_LightLayers.unity
     guid: 100c0e304d8aba84186dcd9bf48e5b85
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2601_ColorTemp.unity
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2005_Light_ColorTemp.unity
     guid: 34a3a4a7a56d3014dad3114e6b523742
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2602_BakedSpotShape.unity
