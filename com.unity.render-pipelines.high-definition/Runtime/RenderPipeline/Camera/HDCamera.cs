@@ -568,13 +568,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
-                viewConstants.prevWorldSpaceCameraPos = viewConstants.worldSpaceCameraPos - viewConstants.prevWorldSpaceCameraPos;
+                Vector3 cameraDisplacement = viewConstants.worldSpaceCameraPos - viewConstants.prevWorldSpaceCameraPos;
+
+                viewConstants.prevWorldSpaceCameraPos -= viewConstants.worldSpaceCameraPos; // Make it relative w.r.t. the curr cam pos
+
                 // This fixes issue with cameraDisplacement stacking in prevViewProjMatrix when same camera renders multiple times each logical frame
                 // causing glitchy motion blur when editor paused.
                 if (m_LastFrameActive != Time.frameCount)
                 {
-                    Matrix4x4 cameraDisplacement = Matrix4x4.Translate(viewConstants.prevWorldSpaceCameraPos);
-                    viewConstants.prevViewProjMatrix *= cameraDisplacement; // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
+                    viewConstants.prevViewProjMatrix *= Matrix4x4.Translate(cameraDisplacement); // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
                 }
             }
             else
