@@ -210,7 +210,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The cascade atlas will be allocated only if there is a directional light
             m_Atlas = new HDShadowAtlas(renderPipelineResources, punctualLightAtlasInfo.shadowAtlasResolution, punctualLightAtlasInfo.shadowAtlasResolution, HDShaderIDs._ShadowAtlasSize, clearMaterial, false, depthBufferBits: punctualLightAtlasInfo.shadowAtlasDepthBits, name: "Shadow Map Atlas");
             // Cascade atlas render texture will only be allocated if there is a shadow casting directional light
-            bool useMomentShadows = GetDirectionaShadowAlgorithm() == DirectionalShadowAlgorithm.IMS;
+            bool useMomentShadows = GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS;
             m_CascadeAtlas = new HDShadowAtlas(renderPipelineResources, 1, 1, HDShaderIDs._CascadeShadowAtlasSize, clearMaterial, useMomentShadows, depthBufferBits: directionalShadowDepthBits, name: "Cascade Shadow Map Atlas");
 
             m_AreaLightShadowAtlas = new HDShadowAtlas(renderPipelineResources, areaLightAtlasInfo.shadowAtlasResolution, areaLightAtlasInfo.shadowAtlasResolution, HDShaderIDs._AreaShadowAtlasSize, clearMaterial, false, BlurredEVSM: true, depthBufferBits: areaLightAtlasInfo.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
@@ -221,7 +221,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_MaxShadowRequests = maxShadowRequests;
         }
 
-        public static DirectionalShadowAlgorithm GetDirectionaShadowAlgorithm()
+        public static DirectionalShadowAlgorithm GetDirectionalShadowAlgorithm()
         {
             var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
             switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowQuality)
@@ -400,7 +400,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
         {
-            cullingParams.shadowDistance = Mathf.Min(VolumeManager.instance.stack.GetComponent<HDShadowSettings>().maxShadowDistance, cullingParams.shadowDistance);
+            cullingParams.shadowDistance = Mathf.Min(VolumeManager.instance.stack.GetComponent<HDShadowSettings>().maxShadowDistance.value, cullingParams.shadowDistance);
         }
 
         public void LayoutShadowMaps(LightingDebugSettings lightingDebugSettings)
@@ -470,7 +470,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
                 m_DirectionalShadowData.cascadeDirection = Vector4.zero;
 
-            m_DirectionalShadowData.cascadeDirection.w = VolumeManager.instance.stack.GetComponent<HDShadowSettings>().cascadeShadowSplitCount;
+            m_DirectionalShadowData.cascadeDirection.w = VolumeManager.instance.stack.GetComponent<HDShadowSettings>().cascadeShadowSplitCount.value;
         }
 
         public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, CullingResults cullResults, HDCamera hdCamera)
@@ -504,7 +504,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // If the shadow algorithm is the improved moment shadow
-            if (GetDirectionaShadowAlgorithm() == DirectionalShadowAlgorithm.IMS)
+            if (GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS)
             {
                 m_CascadeAtlas.ComputeMomentShadows(cmd, hdCamera);
             }

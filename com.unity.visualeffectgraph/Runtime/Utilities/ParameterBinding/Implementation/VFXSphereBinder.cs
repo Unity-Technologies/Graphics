@@ -1,11 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-namespace UnityEngine.VFX.Utils
+namespace UnityEngine.Experimental.VFX.Utility
 {
+    [AddComponentMenu("VFX/Utilities/Parameters/VFX Sphere Collider Binder")]
     [VFXBinder("Collider/Sphere")]
     public class VFXSphereBinder : VFXBinderBase
     {

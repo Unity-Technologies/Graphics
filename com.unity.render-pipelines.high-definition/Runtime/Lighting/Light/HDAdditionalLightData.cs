@@ -266,7 +266,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         int GetShadowRequestCount()
         {
-            return (legacyLight.type == LightType.Point && lightTypeExtent == LightTypeExtent.Punctual) ? 6 : (legacyLight.type == LightType.Directional) ? m_ShadowSettings.cascadeShadowSplitCount : 1;
+            return (legacyLight.type == LightType.Point && lightTypeExtent == LightTypeExtent.Punctual) ? 6 : (legacyLight.type == LightType.Directional) ? m_ShadowSettings.cascadeShadowSplitCount.value : 1;
         }
 
         public void ReserveShadows(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
@@ -330,7 +330,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Update the directional shadow atlas size
             if (legacyLight.type == LightType.Directional)
-                shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount);
+                shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
 
             int count = GetShadowRequestCount();
             for (int index = 0; index < count; index++)
@@ -358,7 +358,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, VisibleLight visibleLight, CullingResults cullResults, int lightIndex, out int shadowRequestCount)
         {
             int                 firstShadowRequestIndex = -1;
-            Vector3             cameraPos = hdCamera.camera.transform.position;
+            Vector3             cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
             shadowRequestCount = 0;
 
             int count = GetShadowRequestCount();
@@ -377,7 +377,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Vector2 shapeSize = new Vector2(shapeWidth, shapeHeight);
                     float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
                     Vector3 shadowOffset = offset * visibleLight.GetForward();
-                    HDShadowUtils.ExtractAreaLightData(hdCamera, visibleLight, lightTypeExtent, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane - offset, shapeSize, viewportSize, m_ShadowData.normalBiasMax, out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
+                    HDShadowUtils.ExtractAreaLightData(hdCamera, visibleLight, lightTypeExtent, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, m_ShadowData.normalBiasMax, out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
                 }
                 else
                 {
@@ -405,7 +405,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             float nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
                             HDShadowUtils.ExtractDirectionalLightData(
-                                visibleLight, viewportSize, (uint)index, m_ShadowSettings.cascadeShadowSplitCount,
+                                visibleLight, viewportSize, (uint)index, m_ShadowSettings.cascadeShadowSplitCount.value,
                                 m_ShadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
                                 out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
                                 out shadowRequest.deviceProjection, out shadowRequest.splitData

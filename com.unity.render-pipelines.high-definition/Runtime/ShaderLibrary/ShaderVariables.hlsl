@@ -11,10 +11,11 @@
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
 // This need to be fixed.
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Camera/HDCamera.cs.hlsl"
 #if defined(USING_STEREO_MATRICES)
-    #define _WorldSpaceCameraPos _WorldSpaceCameraPosStereo[unity_StereoEyeIndex].xyz
-    #define _WorldSpaceCameraPosEyeOffset _WorldSpaceCameraPosStereoEyeOffset[unity_StereoEyeIndex].xyz
-    #define _PrevCamPosRWS _PrevCamPosRWSStereo[unity_StereoEyeIndex].xyz
+    #define _WorldSpaceCameraPos            _XRViewConstants[unity_StereoEyeIndex].worldSpaceCameraPos
+    #define _WorldSpaceCameraPosViewOffset  _XRViewConstants[unity_StereoEyeIndex].worldSpaceCameraPosViewOffset
+    #define _PrevCamPosRWS                  _XRViewConstants[unity_StereoEyeIndex].prevWorldSpaceCameraPos
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
@@ -209,9 +210,9 @@ CBUFFER_START(UnityGlobal)
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
     uint   _VBufferSliceCount;
     float  _VBufferRcpSliceCount;
-    float  _Pad2;
+    float  _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
     float  _Pad3;
-    float4 _VBufferUvScaleAndLimit;     // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+    float4 _VBufferUvScaleAndLimit;        // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
     float4 _VBufferDistanceEncodingParams; // See the call site for description
     float4 _VBufferDistanceDecodingParams; // See the call site for description
 
@@ -236,6 +237,7 @@ CBUFFER_START(UnityGlobal)
     uint _EnableSSRefraction;
 
     uint _OffScreenRendering;
+    uint _OffScreenDownsampleFactor;
 
 CBUFFER_END
 
@@ -243,16 +245,7 @@ CBUFFER_END
 #if defined(USING_STEREO_MATRICES)
 
 CBUFFER_START(UnityPerPassStereo)
-float4x4 _ViewMatrixStereo[2];
-float4x4 _ProjMatrixStereo[2];
-float4x4 _ViewProjMatrixStereo[2];
-float4x4 _InvViewMatrixStereo[2];
-float4x4 _InvProjMatrixStereo[2];
-float4x4 _InvViewProjMatrixStereo[2];
-float4x4 _PrevViewProjMatrixStereo[2];
-float4   _WorldSpaceCameraPosStereo[2];
-float4   _WorldSpaceCameraPosStereoEyeOffset[2];
-float4   _PrevCamPosRWSStereo[2];
+    StructuredBuffer<ViewConstants> _XRViewConstants;
 CBUFFER_END
 
 #endif // USING_STEREO_MATRICES
@@ -269,14 +262,24 @@ float SampleCameraDepth(float2 uv)
     return LoadCameraDepth(uint2(uv * _ScreenSize.xy));
 }
 
+float3 LoadCameraColor(uint2 pixelCoords, uint lod)
+{
+    return LOAD_TEXTURE2D_X_LOD(_ColorPyramidTexture, pixelCoords, lod).rgb;
+}
+
+float3 SampleCameraColor(float2 uv, float lod)
+{
+    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _ScreenToTargetScaleHistory.xy, lod).rgb;
+}
+
 float3 LoadCameraColor(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_X_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
+    return LoadCameraColor(pixelCoords, 0);
 }
 
 float3 SampleCameraColor(float2 uv)
 {
-    return LoadCameraColor(uint2(uv * _ScreenSize.xy));
+    return SampleCameraColor(uv, 0);
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)

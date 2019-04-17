@@ -169,7 +169,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected virtual bool showBlendModePopup { get { return true; } }
         protected virtual bool showPreRefractionPass { get { return true; } }
-        protected virtual bool showLowResolutionPass { get { return false; } } // Not implemented yet
+        protected virtual bool showLowResolutionPass { get { return true; } }
         protected virtual bool showAfterPostProcessPass { get { return true; } }
 
         List<string> m_RenderingPassNames = new List<string>();
@@ -279,7 +279,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
 #if ENABLE_RAYTRACING
             m_RenderingPassNames.Add("Raytracing");
-            m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
+            m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Raytracing);
 #endif
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());

@@ -261,8 +261,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return activeFields;
         }
 
-        private static bool GenerateShaderPassUnlit(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassUnlit(UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
+            pass.OnGeneratePass(masterNode);
+
             // apply master node options to active fields
             HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
@@ -295,8 +297,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     materialTags.GetTags(tagsVisitor, HDRenderPipeline.k_ShaderTagName);
                     subShader.AddShaderChunk(tagsVisitor.ToString(), false);
                 }
-
-                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, false);
+                
+                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, false, false);
 
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
