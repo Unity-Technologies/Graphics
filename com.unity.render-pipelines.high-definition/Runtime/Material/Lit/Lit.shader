@@ -389,6 +389,7 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ USE_RTPV_RASTER
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -403,6 +404,10 @@ Shader "HDRP/Lit"
             // Don't do it with debug display mode as it is possible there is no depth prepass in this case
             #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
         #endif
+
+            #ifdef USE_RTPV_RASTER
+            #   include "Packages/com.unity.ddgi/IrradianceField.hlsl"
+            #endif
 
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -699,6 +704,8 @@ Shader "HDRP/Lit"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ USE_RTPV_RASTER
+
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
@@ -734,6 +741,10 @@ Shader "HDRP/Lit"
             // - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
 
             #define HAS_LIGHTLOOP
+
+            #ifdef USE_RTPV_RASTER
+            #   include "Packages/com.unity.ddgi/IrradianceField.hlsl"
+            #endif
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
@@ -813,7 +824,7 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition\Runtime\Lighting\LightLoop\LightLoopDef.hlsl"
             #define HAS_LIGHTLOOP
             #ifdef USE_RTPV
-            #   include "Assets/DDGI/IrradianceField.hlsl"
+            #   include "Packages/com.unity.ddgi/IrradianceField.hlsl"
             #endif
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
