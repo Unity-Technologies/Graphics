@@ -284,8 +284,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _InvProjParam = Shader.PropertyToID("_InvProjParam");
         public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
         public static readonly int _ScreenParams = Shader.PropertyToID("_ScreenParams");
-        public static readonly int _ScreenToTargetScale = Shader.PropertyToID("_ScreenToTargetScale");
-        public static readonly int _ScreenToTargetScaleHistory = Shader.PropertyToID("_ScreenToTargetScaleHistory");
+        public static readonly int _RTHandleScale = Shader.PropertyToID("_RTHandleScale");
+        public static readonly int _RTHandleScaleHistory = Shader.PropertyToID("_RTHandleScaleHistory");
         public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
@@ -522,7 +522,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AreaShadowHistoryRW             = Shader.PropertyToID("_AreaShadowHistoryRW");
         public static readonly int _AnalyticProbBuffer              = Shader.PropertyToID("_AnalyticProbBuffer");
         public static readonly int _AnalyticHistoryBuffer           = Shader.PropertyToID("_AnalyticHistoryBuffer");
-        
+
         // Ambient occlusion
         public static readonly int _AOHistorybufferRW               = Shader.PropertyToID("_AOHistorybufferRW");
         public static readonly int _RaytracingAOIntensity           = Shader.PropertyToID("_RaytracingAOIntensity");

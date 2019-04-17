@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Check if the state is valid for evaluating ambient occlusion
             bool invalidState = rtEnvironement == null
-            || aoFilter == null || aoShader == null 
+            || aoFilter == null || aoShader == null
             || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null
             || !(hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && aoSettings.intensity.value > 0f);
 
@@ -136,13 +136,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     case HDRaytracingEnvironment.AOFilterMode.Nvidia:
                     {
-                        cmd.DenoiseAmbientOcclusionTexture(m_IntermediateBuffer, m_HitDistanceBuffer, m_SharedRTManager.GetDepthStencilBuffer(), m_ViewSpaceNormalBuffer, outputTexture, hdCamera.viewMatrix, hdCamera.projMatrix, (uint)rtEnvironement.maxFilterWidthInPixels, rtEnvironement.filterRadiusInMeters, rtEnvironement.normalSharpness, 1.0f, 0.0f);
+                        cmd.DenoiseAmbientOcclusionTexture(m_IntermediateBuffer, m_HitDistanceBuffer, m_SharedRTManager.GetDepthStencilBuffer(), m_ViewSpaceNormalBuffer, outputTexture, hdCamera.mainViewConstants.viewMatrix, hdCamera.mainViewConstants.projMatrix, (uint)rtEnvironement.maxFilterWidthInPixels, rtEnvironement.filterRadiusInMeters, rtEnvironement.normalSharpness, 1.0f, 0.0f);
                     }
                     break;
                     case HDRaytracingEnvironment.AOFilterMode.SpatioTemporal:
                     {
                         m_KernelFilter = aoFilter.FindKernel("AOCopyTAAHistory");
-                        
+
                         // Grab the history buffer
                         RTHandleSystem.RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
                             ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
                         var historyScale = new Vector2(hdCamera.actualWidth / (float)ambientOcclusionHistory.rt.width, hdCamera.actualHeight / (float)ambientOcclusionHistory.rt.height);
-                        cmd.SetComputeVectorParam(aoFilter, HDShaderIDs._ScreenToTargetScaleHistory, historyScale);
+                        cmd.SetComputeVectorParam(aoFilter, HDShaderIDs._RTHandleScaleHistory, historyScale);
                         cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                         cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_ViewSpaceNormalBuffer);
                         cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, m_IntermediateBuffer);
@@ -196,7 +196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
                     case HDRaytracingEnvironment.AOFilterMode.None:
                     {
-                        HDUtils.BlitCameraTexture(cmd, hdCamera, m_IntermediateBuffer, outputTexture);
+                        HDUtils.BlitCameraTexture(cmd, m_IntermediateBuffer, outputTexture);
                     }
                     break;
                 }

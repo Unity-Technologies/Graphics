@@ -35,20 +35,23 @@ Shader "Hidden/HDRP/DebugFullScreen"
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float2 texcoord : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
-
                 return output;
             }
 
@@ -125,6 +128,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                
                 // Note: If the single shadow debug mode is enabled, we don't render other full screen debug modes
                 // and the value of _FullScreenDebugMode is forced to 0
                 if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW)
@@ -197,7 +202,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float cols = kGrid;
                     float2 size = _ScreenSize.xy / float2(cols, rows);
                     float body = min(size.x, size.y) / sqrt(2.0);
-                    float2 positionSS = input.texcoord.xy / _ScreenToTargetScale.xy;
+                    float2 positionSS = input.texcoord.xy / _RTHandleScale.xy;
                     positionSS *= _ScreenSize.xy;
                     float2 center = (floor(positionSS / size) + 0.5) * size;
                     positionSS -= center;
@@ -205,7 +210,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     // Sample the center of the cell to get the current arrow vector
                     float2 arrow_coord = center * _ScreenSize.zw;
 
-                    arrow_coord *= _ScreenToTargetScale.xy;
+                    arrow_coord *= _RTHandleScale.xy;
 
                     float2 mv_arrow = SampleMotionVectors(arrow_coord);
                     mv_arrow.y *= -1;
