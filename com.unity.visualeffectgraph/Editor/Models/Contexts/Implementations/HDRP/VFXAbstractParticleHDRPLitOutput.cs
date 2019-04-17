@@ -344,6 +344,8 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
+                yield return "colorMappingMode";
+
                 if (materialType != MaterialType.Translucent && materialType != MaterialType.SimpleLitTranslucent)
                 {
                     yield return "diffusionProfileHash";
@@ -374,6 +376,12 @@ namespace UnityEditor.VFX
                 if (isBlendModeOpaque)
                     yield return "onlyAmbientLighting";
             }
+        }
+
+        public override void OnEnable()
+        {
+            colorMappingMode = ColorMappingMode.Default;
+            base.OnEnable();
         }
 
         // HDRP always premultiplies in shader
