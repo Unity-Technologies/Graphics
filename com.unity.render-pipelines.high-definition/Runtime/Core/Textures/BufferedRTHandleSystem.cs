@@ -54,6 +54,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public int maxWidth { get { return m_RTHandleSystem.GetMaxWidth(); } }
         public int maxHeight { get { return m_RTHandleSystem.GetMaxHeight(); } }
+        public RTHandleProperties rtHandleProperties { get { return m_RTHandleSystem.rtHandleProperties; } }
 
         /// <summary>
         /// Return the frame RT or null.

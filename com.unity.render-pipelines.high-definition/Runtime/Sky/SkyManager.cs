@@ -392,7 +392,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // FIXME: 24B GC pressure
                 var propertyBlock = new MaterialPropertyBlock();
                 propertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDirWS);
-                HDUtils.DrawFullScreen(cmd, hdCamera, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
+                HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
             }
         }
 

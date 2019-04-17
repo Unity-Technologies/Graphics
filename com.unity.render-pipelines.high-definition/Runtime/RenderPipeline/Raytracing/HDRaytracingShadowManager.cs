@@ -293,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
                     var historyScale = new Vector2(hdCamera.actualWidth / (float)areaShadowHistoryArray.rt.width, hdCamera.actualHeight / (float)areaShadowHistoryArray.rt.height);
-                    cmd.SetComputeVectorParam(shadowFilter, HDShaderIDs._ScreenToTargetScaleHistory, historyScale);
+                    cmd.SetComputeVectorParam(shadowFilter, HDShaderIDs._RTHandleScaleHistory, historyScale);
                     cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._AnalyticProbBuffer, m_AnalyticProbBuffer);
                     cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                     cmd.SetComputeTextureParam(shadowFilter, applyTAAKernel, HDShaderIDs._AnalyticHistoryBuffer, areaAnalyticHistoryArray); 

@@ -146,8 +146,8 @@ CBUFFER_START(UnityGlobal)
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
 
     // Those two uniforms are specific to the RTHandle system
-    float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
-    float4 _ScreenToTargetScaleHistory; // Same as above but the RTHandle handle size is that of the history buffer
+    float4 _RTHandleScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+    float4 _RTHandleScaleHistory; // Same as above but the RTHandle handle size is that of the history buffer
 
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
     // x = 1 - f/n
@@ -269,7 +269,7 @@ float3 LoadCameraColor(uint2 pixelCoords, uint lod)
 
 float3 SampleCameraColor(float2 uv, float lod)
 {
-    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _ScreenToTargetScaleHistory.xy, lod).rgb;
+    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _RTHandleScaleHistory.xy, lod).rgb;
 }
 
 float3 LoadCameraColor(uint2 pixelCoords)
@@ -355,7 +355,7 @@ float GetInversePreviousExposureMultiplier()
 float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels)
 {
     float2 maxCoord = 1.0f - numberOfTexels * texelSize;
-    return min(UV, maxCoord) * _ScreenToTargetScale.xy;
+    return min(UV, maxCoord) * _RTHandleScale.xy;
 }
 
 // This is assuming half a texel offset in the clamp.
@@ -372,7 +372,7 @@ float2 ClampAndScaleUVForBilinear(float2 UV)
 
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
-    return min(UV, 1.0f) * _ScreenToTargetScale.xy;
+    return min(UV, 1.0f) * _RTHandleScale.xy;
 }
 
 bool ReplaceDiffuseForReflectionPass(float3 fresnel0)

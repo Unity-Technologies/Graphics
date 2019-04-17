@@ -107,7 +107,7 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     if (abs(historyAnalyticValue - currentAnalyticValue) >= 1e-1 * Max3(1.0f, abs(historyAnalyticValue), abs(currentAnalyticValue)) || historyAnalyticValue < 0.0f)
     {
         // Fetch the current value
-        float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).xy;
+        float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
 
         // Set it as the output and leave the function
         _AreaShadowHistoryRW[uint3(centerCoord, _RaytracingShadowSlot)] = color;
@@ -115,10 +115,10 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
         return;
     }
 
-    float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).xy;
-    float2 history = Fetch4(_DenoiseInputTexture, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy).zw;
-    float2 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _ScreenToTargetScale.xy).xy;
-    float2 bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _ScreenToTargetScale.xy).xy;
+    float2 color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).xy;
+    float2 history = Fetch4(_DenoiseInputTexture, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).zw;
+    float2 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy).xy;
+    float2 bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy).xy;
 
     float2 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
@@ -173,11 +173,11 @@ void AreaShadowApplyTAA2(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     // Get the UV value (in screen space) corresponding to the current pixel,
     // and fetch the corresponding data in the history buffer
     const float2 uv = posInput.positionNDC;
-    const float4 center = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy);
+    const float4 center = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy);
 
     // Also fetch neighborhood representatives, to estimate variation
-    const float4 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _ScreenToTargetScale.xy);
-    const float4 bottomRight =Fetch4(_DenoiseInputTexture, uv, RADIUS, _ScreenToTargetScale.xy);
+    const float4 topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy);
+    const float4 bottomRight =Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy);
     const float4 corners = 4.0 * (topLeft + bottomRight) - 2.0 * center;
     const float4 average = (corners + center) / 7.0;
 
@@ -195,7 +195,7 @@ void AreaShadowApplyTAA2(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
 
     // Based on the velocity, try and find the matching texel in the history buffer,
     // and clamp the value based on the current spatial variation, to reduce ghosting
-    float2 history = Fetch4(_DenoiseInputTexture, uv - velocity, 0.0, _ScreenToTargetScale.xy).zw;
+    float2 history = Fetch4(_DenoiseInputTexture, uv - velocity, 0.0, _RTHandleScale.xy).zw;
     history = clamp(history, center.xy - diffSpace, center.xy + diffSpace);
 
     // Last but not least, use the previously computed alpha to drive persistence

@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DispatchCompute(countCompute, currentKenel, tileSize, tileSize, 1);
 
                 // Clear the ray count texture (that ensures that we don't have to check what we are reading while we reduce)
-                HDUtils.SetRenderTarget(cmd, camera, m_RayCountTexture, ClearFlag.Color);
+                HDUtils.SetRenderTarget(cmd, m_RayCountTexture, ClearFlag.Color);
             }
         }
 

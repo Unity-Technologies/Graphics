@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RaytracingShader reflectionShader = m_PipelineAsset.renderPipelineResources.shaders.reflectionRaytracing;
 
             bool invalidState = rtEnvironement == null || blueNoise == null
-                || reflectionFilter == null || reflectionShader == null 
+                || reflectionFilter == null || reflectionShader == null
                 || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // If no acceleration structure available, end it now
@@ -224,16 +224,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Bind the right texture for clear coat support
                         cmd.SetComputeTextureParam(reflectionFilter, currentKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMaskTexture);
-                        
+
                         // Compute the texture
                         cmd.DispatchCompute(reflectionFilter, currentKernel, numTilesXHR, numTilesYHR, 1);
-                        
+
                         int numTilesXFR = (texWidth + (areaTileSize - 1)) / areaTileSize;
                         int numTilesYFR = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
                         RTHandleSystem.RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection)
                             ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
-                        
+
                         // Fetch the right filter to use
                         currentKernel = reflectionFilter.FindKernel("TemporalAccumulationFilter");
                         cmd.SetComputeFloatParam(reflectionFilter, HDShaderIDs._TemporalAccumuationWeight, rtEnvironement.reflTemporalAccumulationWeight);
@@ -267,7 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                                     // Compute the combined TAA frame
                                     var historyScale = new Vector2(hdCamera.actualWidth / (float)reflectionHistory.rt.width, hdCamera.actualHeight / (float)reflectionHistory.rt.height);
-                                    cmd.SetComputeVectorParam(reflectionFilter, HDShaderIDs._ScreenToTargetScaleHistory, historyScale);
+                                    cmd.SetComputeVectorParam(reflectionFilter, HDShaderIDs._RTHandleScaleHistory, historyScale);
                                     cmd.SetComputeTextureParam(reflectionFilter, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                                     cmd.SetComputeTextureParam(reflectionFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_LightingTexture);
                                     cmd.SetComputeTextureParam(reflectionFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, m_HitPdfTexture);
@@ -275,7 +275,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     cmd.DispatchCompute(reflectionFilter, m_KernelFilter, numTilesX, numTilesY, 1);
 
                                     // Output the new history
-                                    HDUtils.BlitCameraTexture(cmd, hdCamera, m_HitPdfTexture, reflectionHistory);
+                                    HDUtils.BlitCameraTexture(cmd, m_HitPdfTexture, reflectionHistory);
 
                                     m_KernelFilter = reflectionFilter.FindKernel("ReflBilateralFilterH");
 
@@ -300,7 +300,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 break;
                                 case HDRaytracingEnvironment.ReflectionsFilterMode.None:
                                 {
-                                    HDUtils.BlitCameraTexture(cmd, hdCamera, m_LightingTexture, outputTexture);
+                                    HDUtils.BlitCameraTexture(cmd, m_LightingTexture, outputTexture);
                                 }
                                 break;
                             }

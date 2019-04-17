@@ -58,10 +58,10 @@ void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Group
 
     float2 uv = posInputs.positionNDC;
 
-    float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).x;
-    float history = Fetch4(_DenoiseInputTexture, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy).y;
-    float topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _ScreenToTargetScale.xy).x;
-    float bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _ScreenToTargetScale.xy).x;
+    float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).x;
+    float history = Fetch4(_DenoiseInputTexture, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).y;
+    float topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy).x;
+    float bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy).x;
 
     float corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
