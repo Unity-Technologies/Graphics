@@ -77,7 +77,7 @@ ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
 ${VFXEnd}
 
-${VFXBegin:VFXApplyColorMapping}
+${VFXBegin:VFXApplyColor}
 
 float4 color = VFXGetFragmentColor(i);
 
@@ -85,7 +85,7 @@ float4 color = VFXGetFragmentColor(i);
 	#define VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)
 #endif
 
-#if VFX_COLORMAPPING_TEXTURED
+#if VFX_COLORMAPPING_DEFAULT
 	o.color = color * VFX_TEXTURE_COLOR;
 #endif
 

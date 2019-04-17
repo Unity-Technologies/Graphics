@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
     {
         public enum ColorMappingMode
         {
-            Textured,
+            Default,
             GradientMapped
         }
 
@@ -233,8 +233,8 @@ namespace UnityEditor.VFX
             {
                 switch(colorMappingMode)
                 {
-                    case ColorMappingMode.Textured:
-                        yield return "VFX_COLORMAPPING_TEXTURED";
+                    case ColorMappingMode.Default:
+                        yield return "VFX_COLORMAPPING_DEFAULT";
                         break;
                     case ColorMappingMode.GradientMapped:
                         yield return "VFX_COLORMAPPING_GRADIENTMAPPED";

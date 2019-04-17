@@ -380,7 +380,7 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            colorMappingMode = ColorMappingMode.Textured;
+            colorMappingMode = ColorMappingMode.Default;
             base.OnEnable();
         }
 
