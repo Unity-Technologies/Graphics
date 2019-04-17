@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         GraphData m_Graph;
         GraphView m_GraphView;
         Texture2D m_Icon;
+        List<NodeEntry> currentNodeEntries;
+        public SearchWindowAdapter searcherAdapter;
         public List<SearcherItem> searcherEntries;
         public ShaderPort connectedPort { get; set; }
         public bool nodeNeedsRepositioning { get; set; }
@@ -29,7 +31,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_EditorWindow = editorWindow;
             m_Graph = graph;
             m_GraphView = graphView;
-            searcherEntries = CreateSearcherDatabase();
+            searcherAdapter = new SearchWindowAdapter("Create Node");
+            GenerateNodeEntries();
+            searcherEntries = CreateSearcherDatabase(currentNodeEntries);
 
             // Transparent icon to trick search window into indenting items
             m_Icon = new Texture2D(1, 1);
@@ -46,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        struct NodeEntry
+        public struct NodeEntry
         {
             public string[] title;
             public AbstractMaterialNode node;
@@ -56,11 +60,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         List<int> m_Ids;
         List<ISlot> m_Slots = new List<ISlot>();
 
-        List<NodeEntry> newNodeEntries = new List<NodeEntry>();
-
-        public List<SearcherItem> CreateSearcherDatabase()
+        public void GenerateNodeEntries()
         {
-
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -135,8 +136,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return 0;
                 });
 
-            newNodeEntries = nodeEntries;
+            currentNodeEntries = nodeEntries;
+        }
 
+        public List<SearcherItem> CreateSearcherDatabase(List<NodeEntry> nodeEntries)
+        {
             //create empty root for searcher tree 
             var root = new List<SearcherItem>();
             
@@ -146,8 +150,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 SearcherItem parent = null;
                 foreach(var pathEntry in nodeEntry.title)
                 {
-                    List<SearcherItem> children = parent != null ? parent.children : root;
-                    item = children.Find(x => x.name == pathEntry);
+                    List<SearcherItem> children = parent != null ? parent.Children : root;
+                    item = children.Find(x => x.Name == pathEntry);
 
                     if (item == null)
                     {
@@ -162,8 +166,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                             children.Add(item);
                         }
                     }
+
                     parent = item;
-                    root.Add(parent);
+
+                    if (parent.Depth == 0 && !root.Contains(parent))
+                        root.Add(parent);
                 }
                 
             }
@@ -229,46 +236,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public bool OnSelectEntry(SearchTreeEntry entry, SearchWindowContext context)
-        {
-            var nodeEntry = (NodeEntry)entry.userData;
-            var node = nodeEntry.node;
-
-            var drawState = node.drawState;
-
-
-            var windowRoot = m_EditorWindow.rootVisualElement;
-            var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, context.screenMousePosition - m_EditorWindow.position.position);
-            var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
-            drawState.position = new Rect(graphMousePosition, Vector2.zero);
-            node.drawState = drawState;
-
-            m_Graph.owner.RegisterCompleteObjectUndo("Add " + node.name);
-            m_Graph.AddNode(node);
-
-            if (connectedPort != null)
-            {
-                var connectedSlot = connectedPort.slot;
-                var connectedSlotReference = connectedSlot.owner.GetSlotReference(connectedSlot.id);
-                var compatibleSlotReference = node.GetSlotReference(nodeEntry.compatibleSlotId);
-
-                var fromReference = connectedSlot.isOutputSlot ? connectedSlotReference : compatibleSlotReference;
-                var toReference = connectedSlot.isOutputSlot ? compatibleSlotReference : connectedSlotReference;
-                m_Graph.Connect(fromReference, toReference);
-
-                nodeNeedsRepositioning = true;
-                targetSlotReference = compatibleSlotReference;
-                targetPosition = graphMousePosition;
-            }
-
-            return true;
-        }
-
-        public bool OnSearcherSelectEntry(SearcherItem entry, SearchWindowContext context)
+        public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null)
                 return false;
-            var nodeEntry = newNodeEntries.Find(currentNode => currentNode.title.Contains(entry.name));
+            var nodeEntry = currentNodeEntries.Find(currentNode => currentNode.title.Contains(entry.Name));
 
             var node = nodeEntry.node;
 
@@ -276,7 +248,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
 
             var windowRoot = m_EditorWindow.rootVisualElement;
-            var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, context.screenMousePosition - m_EditorWindow.position.position);
+            var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, screenMousePosition - m_EditorWindow.position.position);
             var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
             drawState.position = new Rect(graphMousePosition, Vector2.zero);
             node.drawState = drawState;
