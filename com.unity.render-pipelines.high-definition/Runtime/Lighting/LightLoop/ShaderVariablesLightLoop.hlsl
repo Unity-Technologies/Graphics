@@ -5,6 +5,7 @@
 #else
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
+	#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Light/HDLightFlag.cs.hlsl"
 
     // don't support Buffer yet in unity
     StructuredBuffer<uint>  g_vBigTileLightList;
@@ -19,6 +20,7 @@
     StructuredBuffer<DirectionalLightData> _DirectionalLightDatas;
     StructuredBuffer<LightData>            _LightDatas;
     StructuredBuffer<EnvLightData>         _EnvLightDatas;
+	StructuredBuffer<LightClipPlaneData>   _LightFlagDatas;
 
     // Used by directional and spot lights
     TEXTURE2D_ARRAY(_CookieTextures);

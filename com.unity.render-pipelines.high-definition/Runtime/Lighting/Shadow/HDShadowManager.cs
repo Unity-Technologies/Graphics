@@ -167,10 +167,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public HDShadowAtlasInitParams areaLightShadowAtlas;
     }
 
-    public class HDShadowResolutionRequest
+    public struct HDShadowResolutionRequest
     {
-        public Rect             atlasViewport;
-        public Vector2          resolution;
+        public Rect        atlasViewport;
+        public Vector2     resolution;
         public ShadowMapType    shadowMapType;
     }
 
@@ -180,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         List<HDShadowData>          m_ShadowDatas = new List<HDShadowData>();
         HDShadowRequest[]           m_ShadowRequests;
-        List<HDShadowResolutionRequest> m_ShadowResolutionRequests = new List<HDShadowResolutionRequest>();
+        List<int> m_ShadowResolutionRequests = new List<int>();
 
         HDDirectionalShadowData     m_DirectionalShadowData;
 
@@ -270,32 +270,48 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 resolution = resolution,
                 shadowMapType = shadowMapType,
             };
-
+            
+            int index = 0;
             switch (shadowMapType)
             {
                 case ShadowMapType.PunctualAtlas:
-                    m_Atlas.ReserveResolution(resolutionRequest);
+                    index  = m_Atlas.ReserveResolution(resolutionRequest);
                     break;
                 case ShadowMapType.AreaLightAtlas:
-                    m_AreaLightShadowAtlas.ReserveResolution(resolutionRequest);
+                    index = m_AreaLightShadowAtlas.ReserveResolution(resolutionRequest);
                     break;
                 case ShadowMapType.CascadedDirectional:
-                    m_CascadeAtlas.ReserveResolution(resolutionRequest);
+                    index = m_CascadeAtlas.ReserveResolution(resolutionRequest);
                     break;
             }
-
-            m_ShadowResolutionRequests.Add(resolutionRequest);
+            
+            m_ShadowResolutionRequests.Add(index);
             m_ShadowRequestCount = m_ShadowResolutionRequests.Count;
 
             return m_ShadowResolutionRequests.Count - 1;
         }
 
-        public Vector2 GetReservedResolution(int index)
+        public Vector2 GetReservedResolution(int index, ShadowMapType shadowMapType)
         {
             if (index < 0 || index >= m_ShadowRequestCount)
                 return Vector2.zero;
+            
+            int shadowRequestIndex = m_ShadowResolutionRequests[index];
+            switch( shadowMapType.shaodwMapType)
+            {
+                case ShadowMapType.PunctualAtlas:
+                    return m_Atlas.GetHDShadowResolutionRequest(shadowRequestIndex).resolution;
+                    break;
+                case ShadowMapType.CascadedDirectional:
+                    return m_CascadeAtlas.GetHDShadowResolutionRequest(shadowRequestIndex).resolution;
+                    break;
+                case ShaodwMapType.AreaLightAtlas:
+                    return m_AreaLightShadowAtlas.GetHDShadowResolutionRequest(shadowRequestIndex).resolution;
+                    break;
+            }
 
-            return m_ShadowResolutionRequests[index].resolution;
+            return Vector2.zero
+           
         }
 
         public void UpdateShadowRequest(int index, HDShadowRequest shadowRequest)
@@ -303,27 +319,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (index >= m_ShadowRequestCount)
                 return;
 
-            shadowRequest.atlasViewport = m_ShadowResolutionRequests[index].atlasViewport;
-            m_ShadowRequests[index] = shadowRequest;
+            int shadowRequestIndex = m_ShadowResolutionRequests[index];
 
             switch (shadowRequest.shadowMapType)
             {
                 case ShadowMapType.PunctualAtlas:
                 {
+                    shadowRequest.atlasViewport = m_Atlas.GetHDShadowResolutionRequest(shaodwRequestIndex).atlasViewport;
                     m_Atlas.AddShadowRequest(shadowRequest);
                     break;
                 }
                 case ShadowMapType.CascadedDirectional:
                 {
+                    shadowRequest.atlasViewport = m_CascadeAtlas.GetHDShadowResolutionRequest(shadowRequestIndex).atlasViewport;
                     m_CascadeAtlas.AddShadowRequest(shadowRequest);
                     break;
                 }
                 case ShadowMapType.AreaLightAtlas:
                 {
+                    shadowRequest.atlastViewport = m_AreaLightShadowAtlas.GetHDShadowResolutionRequest(shadowRequestIndex).atlasViewport;                   
                     m_AreaLightShadowAtlas.AddShadowRequest(shadowRequest);
                     break;
                 }
             };
+            m_ShadowRequests[index] = shadowRequest;
         }
 
         public void UpdateCascade(int cascadeIndex, Vector4 cullingSphere, float border)
@@ -414,13 +433,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (lightingDebugSettings.shadowResolutionScaleFactor != 1.0f)
             {
-                foreach (var shadowResolutionRequest in m_ShadowResolutionRequests)
-                {
-                    // We don't rescale the directional shadows with the global shadow scale factor
-                    // because there is no dynamic atlas rescale when it overflow.
-                    if (shadowResolutionRequest.shadowMapType != ShadowMapType.CascadedDirectional)
-                        shadowResolutionRequest.resolution *= lightingDebugSettings.shadowResolutionScaleFactor;
-                }
+                m_Atlas.ScaleShadowResolutionRequests( lightingDebugSettings.shadowResolutionScaleFactor);
+                m_AreaLightShadowAtlas.ScaleShadowResolutionRequests(lightingDebugSettings.shadowResolutionScaleFactor);
             }
 
             // Assign a position to all the shadows in the atlas, and scale shadows if needed

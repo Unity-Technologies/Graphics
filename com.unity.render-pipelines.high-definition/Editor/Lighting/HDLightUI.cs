@@ -241,6 +241,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightShape.Point:
                     EditorGUILayout.PropertyField(serialized.serializedLightData.shapeRadius, s_Styles.lightRadius);
                     EditorGUILayout.PropertyField(serialized.serializedLightData.maxSmoothness, s_Styles.maxSmoothness);
+        			DrawLightFlags(serialized);
                     break;
 
                 case LightShape.Spot:
@@ -285,6 +286,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 break;
                         }
                     }
+                    DrawLightFlags(serialized);
                     break;
 
                 case LightShape.Rectangle:
@@ -378,6 +380,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 ConvertLightIntensity(oldLigthUnit, selectedLightUnit, serialized, owner);
                 serialized.serializedLightData.lightUnit.enumValueIndex = (int)selectedLightUnit;
+            }
+        }
+
+        static void DrawLightFlags(SerializedHDLight serialized)
+        {
+            if ( serialized.serializedLightDatas.isEditingMultipleObjects )
+            {
+                EditorGUILayout.HelpBox("Cannot edit flags for multi-object", MessageType.Info);
+            }
+            else
+            {
+                var ald = serialized.serializedLightDatas.targetObject as HDAdditionalLightData;
+                if (ald != null)
+                {
+                    Rect rect = EditorGUILayout.GetControlRect(true);
+                    float labelWidth = rect.x;
+                    rect = EditorGUI.IndentedRect(rect);
+                    labelWidth = EditorGUIUtility.labelWidth - (rect.x - labelWidth);
+                    GUI.Label(new Rect(rect.x, rect.y, labelWidth, rect.height), "Light Flags");
+                    rect.width -= labelWidth; rect.x += labelWidth;
+                    if (GUI.Button(rect, "Add Light Flag"))
+                        ald.AddLightFlag();
+
+                    EditorGUI.indentLevel++;
+                    labelWidth = EditorGUIUtility.labelWidth;
+                    EditorGUIUtility.labelWidth = 0;
+                    GUIContent removeLabel = new GUIContent("Remove", "Destroy the light flag");
+                    float removeWidth = GUI.skin.button.CalcSize(removeLabel).x;
+                    const float hSpace = 2;
+                    var flags = ald.LightFlags;
+                    foreach (var f in flags)
+                    {
+                        rect = EditorGUILayout.GetControlRect(true);
+                        rect.width -= removeWidth + hSpace;
+                        bool enabled = GUI.enabled;
+                        GUI.enabled = false;
+                        EditorGUI.ObjectField(rect, f, typeof(HDLightFlag), !EditorUtility.IsPersistent(ald));
+                        GUI.enabled = enabled;
+                        rect.x += rect.width + hSpace; rect.width = removeWidth;
+                        if (GUI.Button(rect, removeLabel))
+                            Undo.DestroyObjectImmediate(f.gameObject);
+                    }
+                    EditorGUIUtility.labelWidth = labelWidth;
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 

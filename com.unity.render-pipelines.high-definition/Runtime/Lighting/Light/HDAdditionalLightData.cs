@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
@@ -367,7 +368,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var         shadowRequest = shadowRequests[index];
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex);
+                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex, m_Light.type != LightType.Directional);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1069,5 +1070,77 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <returns></returns>
         internal static int RenderingLayerMaskToLightLayer(int renderingLayerMask)
             => (byte)renderingLayerMask;
+
+        //
+        //  Light Flags
+        //
+        [HideInInspector, SerializeField]
+        private HDLightFlag[] m_LightFlags; 
+        public HDLightFlag[]  LightFlags 
+        {
+            get 
+            {
+                #if UNITY_EDITOR
+                ValidateLightFlags();
+                #endif
+                return m_LightFlags; 
+            } 
+        }
+
+        void InvalidateLightFlags() { m_LightFlags = null; }
+        void ValidateLightFlags()
+        {
+            if (m_LightFlags == null)
+            {
+                List<HDLightFlag> flags = new List<HDLightFlag>();
+                GetComponentsInChildren(flags);
+                if (flags.Count == 0)
+                {
+                    m_LightFlags = new HDLightFlag[0];
+                    return;
+                }
+
+                for (int i = flags.Count - 1; i >= 0; --i)
+                    if (flags[i].transform.parent != transform)
+                        flags.RemoveAt(i);
+
+                if (flags.Count != 0)
+                {
+                    m_LightFlags = flags.ToArray();
+                }
+                else
+                {
+                    m_LightFlags = new HDLightFlag[0];
+                }
+            }
+        }
+
+        public HDLightFlag AddLightFlag(HDLightFlag copyFrom = null)
+        {
+            GameObject go = new GameObject("Flag", typeof(HDLightFlag));
+#if UNITY_EDITOR
+            Undo.RegisterCreatedObjectUndo(go, "Add Light Flag");
+            Undo.SetTransformParent(go.transform, transform, "Add Light Flag");
+            EditorUtility.SetDirty(this);
+#else
+            go.transform.parent = transform.parent;
+#endif
+            var flag = go.GetComponent<HDLightFlag>();
+            if (copyFrom == null)
+            {
+                flag.transform.localPosition = Vector3.zero;
+                flag.transform.localRotation = Quaternion.LookRotation(-Vector3.forward);
+                flag.m_Feather = 1;
+            }
+            else
+            {
+                flag.transform.localPosition = copyFrom.transform.localPosition;
+                flag.transform.localRotation = copyFrom.transform.localRotation;
+                flag.m_Feather = copyFrom.m_Feather;
+            }
+
+            return flag;
+        }
+        void OnTransformChildrenChanged() { InvalidateLightFlags(); }
     }
 }

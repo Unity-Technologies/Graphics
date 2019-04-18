@@ -39,6 +39,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         readonly HDRenderPipelineAsset m_Asset;
         public HDRenderPipelineAsset asset { get { return m_Asset; } }
+        
+   		//SS Spotlight Added.
+		public delegate void HDPassCallback(CommandBuffer cmd, HDCamera cam, RenderTexture depthBuffer);
+		public static HDPassCallback afterGBufferPass = null;
 
         public RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -1562,13 +1566,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
-            // We can now bind the normal buffer to be use by any effect
-            m_SharedRTManager.BindNormalBuffer(cmd);
+                    // We can now bind the normal buffer to be use by any effect
+                    m_SharedRTManager.BindNormalBuffer(cmd);
 
-            // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
-            GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
-            // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
-            cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
+                    // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
+                    GenerateDepthPyramid(hdCamera, cmd, FullScreenDebugMode.DepthPyramid);
+                    // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
+
+					//SS Spotlight Added.
+					if (afterGBufferPass != null)
+					{
+						afterGBufferPass(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer());
+					}
 
             if (shouldRenderMotionVectorAfterGBuffer)
             {

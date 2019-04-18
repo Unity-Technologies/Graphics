@@ -4,6 +4,7 @@ using UnityEngine;
 
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -20,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering
         internal class RecorderEntry
         {
             public string name;
+            public string displayName;
             public float time;
             public int count;
             public float avgTime;
@@ -31,11 +33,17 @@ namespace UnityEngine.Experimental.Rendering
 
         RecorderEntry[] recordersList =
         {
-            new RecorderEntry() { name="RenderLoop.Draw" },
-            new RecorderEntry() { name="Shadows.Draw" },
-            new RecorderEntry() { name="RenderLoopNewBatcher.Draw" },
-            new RecorderEntry() { name="ShadowLoopNewBatcher.Draw" },
-            new RecorderEntry() { name="RenderLoopDevice.Idle" },
+            new RecorderEntry() { name="PlayerLoop", displayName = "Main loop total" },
+            new RecorderEntry() { name="BehaviourUpdate", displayName = "Behaviour Update"  },
+            new RecorderEntry() { name="CoroutinesDelayedCalls",  displayName = "CoroutinesDelayedCalls"},
+            new RecorderEntry() { name="Gfx.WaitForPresent", displayName = "GPU Bound Sync Time" },
+            new RecorderEntry() { name="C#_HDRenderPipelineRender", displayName = "Main thread HDRP C#" },
+            new RecorderEntry() { name="HDRenderPipeline::Render", displayName = "Main + Render thread HDRP C++" },
+            new RecorderEntry() { name="RenderLoop.Draw", displayName = "Render thread Draw" },
+            new RecorderEntry() { name="Shadows.Draw", displayName = "Render thread Shadows" },
+            new RecorderEntry() { name="RenderLoopNewBatcher.Draw", displayName = "SRP Batcher Draw" },
+            new RecorderEntry() { name="ShadowLoopNewBatcher.Draw", displayName = "SRP Batcher Shadows" },
+//            new RecorderEntry() { name="RenderLoopDevice.Idle",   displayName = "RenderLoop waiting for SRP Batcher"},
         };
 
         void OnEnable()
@@ -56,6 +64,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (sampler != null)
                 {
                     recordersList[i].recorder = sampler.GetRecorder();
+                    recordersList[i].recorder.enabled = true;
                 }
             }
         }
@@ -69,6 +78,19 @@ namespace UnityEngine.Experimental.Rendering
 
             if (m_Enable)
             {
+
+                for (int i = 0; i < recordersList.Length; i++)
+                {
+                    if (!recordersList[i].recorder.isValid)
+                    {
+                        var sampler = Sampler.Get(recordersList[i].name);
+                        if (sampler != null)
+                        {
+                            recordersList[i].recorder = sampler.GetRecorder();
+                            recordersList[i].recorder.enabled = true;
+                        }
+                    }
+                }
 
                 // get timing & update average accumulators
                 for (int i = 0; i < recordersList.Length; i++)
@@ -115,8 +137,12 @@ namespace UnityEngine.Experimental.Rendering
                 string sLabel = System.String.Format("<b>{0:F2} FPS ({1:F2}ms)</b>\n", 1.0f / m_AvgDeltaTime, Time.deltaTime * 1000.0f);
                 for (int i = 0; i < recordersList.Length; i++)
                 {
-                    sLabel += string.Format("{0:F2}ms (*{1:F2})\t({2:F2}ms *{3:F2})\t<b>{4}</b>\n", recordersList[i].avgTime, recordersList[i].avgCount, recordersList[i].time, recordersList[i].count, recordersList[i].name);
+                    if (recordersList[i].recorder.isValid)
+                    {
+                        sLabel += string.Format("{0:F2}ms (*{1:F2})\t({2:F2}ms *{3:F2})\t<b>{4}</b>\n", recordersList[i].avgTime, recordersList[i].avgCount, recordersList[i].time, recordersList[i].count, recordersList[i].displayName);
+                    }
                 }
+                sLabel += string.Format("\n Num Onscreen Shadows {0}\n", (RenderPipelineManager.currentPipeline as UnityEngine.Experimental.Rendering.HDPipeline.HDRenderPipeline).GetCurrentShadowCount());
                 GUILayout.Label(sLabel);
 
                 //Memory =========================================================/* Added by Ming Wai */
@@ -153,8 +179,8 @@ namespace UnityEngine.Experimental.Rendering
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
             widgets.AddRange(
                 new DebugUI.Widget[]
-            {
-                    new DebugUI.Container
+                {
+                    new DebugUI.Foldout
                     {
                         displayName = "Mini Profiler",
                         children =
@@ -163,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering
                             new DebugUI.BoolField { displayName = "Enable New Batcher", getter = () => GraphicsSettings.useScriptableRenderPipelineBatching , setter = value => GraphicsSettings.useScriptableRenderPipelineBatching  = value },
                         }
                     },
-            });
+                });
 
             var panel = DebugManager.instance.GetPanel(menuName, true);
             panel.children.Add(widgets.ToArray());

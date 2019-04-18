@@ -279,6 +279,17 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 }
 #endif
 
+//ref: https://github.com/Unity-Technologies/VolumetricLighting
+half ShadowPlane(half3 worldPos, half4 plane, half feather)
+{
+    half x = plane.w - dot(worldPos, plane.xyz);
+    // Compiler bug workaround
+    x += 0.0001;
+
+    //Smoothstep from 0.
+    return smoothstep(0, feather, x);
+}
+
 // None of the outputs are premultiplied.
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, light.forward).
 // Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
@@ -297,6 +308,15 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     color       = light.color;
     attenuation = PunctualLightAttenuation(distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
                                            light.angleScale, light.angleOffset);
+
+	//Light Flags.
+    for(int i = light.flagIndex; i < light.flagIndex + light.flagCount; i++)
+    {
+        attenuation *= ShadowPlane(GetAbsolutePositionWS(positionWS),
+                                   GetPlane  (_LightFlagDatas[i]),
+                                   GetFeather(_LightFlagDatas[i]));
+    }
+
 
     // Height fog attenuation.
     {

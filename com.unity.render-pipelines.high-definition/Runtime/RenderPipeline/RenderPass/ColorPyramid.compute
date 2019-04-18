@@ -143,6 +143,11 @@ void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThr
     float4 p11 = _Source[COORD_TEXTURE2D_X(min(uthreadUL + uint2(1u, 1u), size))];
     float4 p01 = _Source[COORD_TEXTURE2D_X(min(uthreadUL + uint2(0u, 1u), size))];
 
+    p00 = (isnan(p00.x) ? float4(0.0f, 0.0f, 0.0f, 0.0f) : p00);
+    p10 = (isnan(p10.x) ? float4(0.0f, 0.0f, 0.0f, 0.0f) : p10);
+    p11 = (isnan(p11.x) ? float4(0.0f, 0.0f, 0.0f, 0.0f) : p11);
+    p01 = (isnan(p01.x) ? float4(0.0f, 0.0f, 0.0f, 0.0f) : p01);
+
     // Store the 4 downsampled pixels in LDS
     uint destIdx = groupThreadId.x + (groupThreadId.y << 4u);
     Store2Pixels(destIdx     , p00, p10);

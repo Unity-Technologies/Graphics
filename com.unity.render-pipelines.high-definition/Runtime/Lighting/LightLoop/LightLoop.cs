@@ -159,6 +159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const int k_MaxPunctualLightsOnScreen    = 512;
         public const int k_MaxAreaLightsOnScreen        = 64;
         public const int k_MaxDecalsOnScreen = 512;
+        public const int k_MaxLightFlagsOnScreen = 512;
         public const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxEnvLightsOnScreen;
         public const int k_MaxEnvLightsOnScreen = 64;
         public static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
@@ -193,6 +194,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ComputeBuffer m_LightDatas = null;
         ComputeBuffer m_EnvLightDatas = null;
         ComputeBuffer m_DecalDatas = null;
+        ComputeBuffer m_LightFlagDatas = null;
+
 
         Texture2DArray  m_DefaultTexture2DArray;
         Cubemap         m_DefaultTextureCube;
@@ -243,6 +246,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public List<DirectionalLightData> directionalLights;
             public List<LightData> lights;
             public List<EnvLightData> envLights;
+            public List<HDLightFlag.LightClipPlaneData> lightFlags;
 
             public List<SFiniteLightBound> bounds;
             public List<LightVolumeData> lightVolumes;
@@ -254,6 +258,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 directionalLights.Clear();
                 lights.Clear();
                 envLights.Clear();
+				lightFlags.Clear();
+
 
                 bounds.Clear();
                 lightVolumes.Clear();
@@ -266,6 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 directionalLights = new List<DirectionalLightData>();
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
+				lightFlags = new List<HDLightFlag.LightClipPlaneData>();
 
                 bounds = new List<SFiniteLightBound>();
                 lightVolumes = new List<LightVolumeData>();
@@ -601,6 +608,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_LightDatas = new ComputeBuffer(m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
             m_EnvLightDatas = new ComputeBuffer(m_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
             m_DecalDatas = new ComputeBuffer(m_MaxDecalsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
+            m_LightFlagDatas = new ComputeBuffer(k_MaxLightFlagsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDLightFlag.LightClipPlaneData)));
 
             s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
 
@@ -689,6 +697,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.SafeRelease(m_LightDatas);
             CoreUtils.SafeRelease(m_EnvLightDatas);
             CoreUtils.SafeRelease(m_DecalDatas);
+			CoreUtils.SafeRelease(m_LightFlagDatas);
+
 
             if (m_ReflectionProbeCache != null)
             {
@@ -1056,7 +1066,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool GetLightData(CommandBuffer cmd, HDShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType,
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData,
-            int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings
+            int lightIndex, int shadowIndex, ref Vector3 lightDimensions, ref int lightFlagOffset, DebugDisplaySettings debugDisplaySettings
 #if ENABLE_RAYTRACING
             , int maxAreaLightShadows, ref int areaShadowIndex
 #endif
@@ -1274,6 +1284,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
             #endif
+
+            //Punctual light flags
+            HDLightFlag[] flags = additionalLightData.LightFlags;
+            int flagCount = (flags != null) ? flags.Length : 0;
+            int numFlags = flagCount;
+
+            for (int i = 0; i < flagCount; i++)
+            {
+                HDLightFlag hdFlag = flags[i];
+                if (hdFlag == null)
+                {
+                    numFlags--;
+                }
+                else
+                {
+                    m_lightList.lightFlags.Add(hdFlag.ClipParams);
+                }
+            }
+            
+            lightData.flagIndex = lightFlagOffset;
+            lightData.flagCount = numFlags;
+            lightFlagOffset += lightData.flagCount;
+
+
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
             lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
 
@@ -1818,6 +1852,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int directionalLightcount = 0;
                     int punctualLightcount = 0;
                     int areaLightCount = 0;
+                    int lightFlagOffset = 0;
+
 
                     int lightCount = Math.Min(cullResults.visibleLights.Length, m_MaxLightsOnScreen);
                     UpdateSortKeysArray(lightCount);
@@ -2004,7 +2040,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
 
                         // Punctual, area, projector lights - the rendering side.
-                        if (GetLightData(cmd, hdShadowSettings, camera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings
+                        if (GetLightData(cmd, hdShadowSettings, camera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, ref lightDimensions, ref lightFlagOffset, debugDisplaySettings
                         #if ENABLE_RAYTRACING
                             , maxAreaLightShadows, ref areaLightShadowIndex
                         #endif
@@ -2590,6 +2626,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DirectionalLightDatas.SetData(m_lightList.directionalLights);
             m_LightDatas.SetData(m_lightList.lights);
             m_EnvLightDatas.SetData(m_lightList.envLights);
+			m_LightFlagDatas.SetData(m_lightList.lightFlags);
             m_DecalDatas.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
 
             // These two buffers have been set in Rebuild()
@@ -2639,6 +2676,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightCount, m_lightList.envLights.Count);
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, m_DecalDatas);
                 cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDatasCount);
+				cmd.SetGlobalBuffer(HDShaderIDs._LightFlagDatas, m_LightFlagDatas);
+
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(hdCamera));

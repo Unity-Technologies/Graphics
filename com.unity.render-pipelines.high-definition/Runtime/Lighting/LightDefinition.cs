@@ -118,6 +118,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         public int contactShadowIndex;      // negative if unused (TODO: 16 bit)
 
+		public Vector2 unused0;
+        public int flagIndex;
+        public int flagCount;
+
         public float   shadowDimmer;
         public float   volumetricShadowDimmer;  // Replaces 'shadowDimmer'
         public int     nonLightMappedOnly;      // Used with ShadowMask feature (TODO: use a bitfield)
