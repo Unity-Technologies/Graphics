@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for ShaderGraph Unlit masternode not writing velocity
 - Fixed a crash when assiging a new HDRP asset with the 'Verify Saving Assets' option enabled
 - Fixed exposure to properly support TEXTURE2D_X
+- Fixed TerrainLit basemap texture generation
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
