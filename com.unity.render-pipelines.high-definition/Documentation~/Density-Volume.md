@@ -9,6 +9,7 @@ HDRP voxelizes Density Volumes to enhance performance. This results in two limit
 
 To create a Density Volume, right click in the Hierarchy and select __Rendering > Density Volume__. Alternatively, you can use the menu bar at the top of the screen and navigate to __GameObject > Rendering > Density Volume__.
 
+
 # Properties
 
 ![](Images/DensityVolume1.png)
