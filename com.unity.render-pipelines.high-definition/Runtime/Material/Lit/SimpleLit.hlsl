@@ -425,7 +425,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 transmittance = float3(0.0, 0.0, 0.0);
 #if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+    if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS))
     {
         float3 a = 0; float b = 0;
         // Caution: This function modify N and contactShadowIndex
@@ -450,7 +450,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
 #if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
     // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+    if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS))
     {
         float  NdotV = ClampNdotV(preLightData.NdotV);
         float  LdotV = dot(L, V);
@@ -532,7 +532,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
     // (Note: EvaluateLight_Punctual discard the fetch if NdotL < 0)
     if (NdotL < 0 && lightData.shadowIndex >= 0)
     {
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+        if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS))
         {
             normalWS = -normalWS; // Flip normal for shadow bias
             lightData.contactShadowIndex = -1;  //  Disable shadow contact
