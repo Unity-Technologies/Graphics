@@ -69,6 +69,14 @@
 * Camera
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Multisampling Anti-Aliasing](MSAA)
+* Debugging
+  * Render Pipeline Debug
+    * [Overview](Render-Pipeline-Debug-Overview)
+    * [Camera](Render-Pipeline-Debug-Camera)
+    * [Lighting](Render-Pipeline-Debug-Lighting)
+    * [Material](Render-Pipeline-Debug-Material)
+    * [Rendering](Render-Pipeline-Debug-Rendering)
+    * [Decals](Render-Pipeline-Debug-Decals)
 * [VR in HDRP](VR-in-HDRP)
 * [HDRP Glossary](Glossary)
 
