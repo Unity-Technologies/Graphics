@@ -58,6 +58,9 @@ namespace UnityEditor.Rendering.HighDefinition
             LightingSettings = 1 << 2,
             AsynComputeSettings = 1 << 3,
             LightLoop = 1 << 4,
+ //forest-begin: customizable sorting flags
+ 			SectionSortingFlags = 1 << 6,
+ //forest-end:
         }
 
         readonly static ExpandedState<Expandable, FrameSettings> k_ExpandedState = new ExpandedState<Expandable, FrameSettings>(~(-1), "HDRP");
@@ -86,6 +89,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
                     CED.Group(206, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
                     )
+//forest-begin: customizable sorting flags
+					, CED.FoldoutGroup("Sorting Flags", Expandable.SectionSortingFlags, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+                    CED.Group(190, (serialized, owner) => Drawer_SectionSortingFlags(serialized, owner, withOverride))
+                    )
+//forest-end:
                 );
 
         static HDRenderPipelineAsset GetHDRPAssetFor(Editor owner)
@@ -238,6 +246,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             area.Draw(withOverride);
         }
+		
+//forest-begin: customizable sorting flags
+		static void Drawer_SectionSortingFlags(SerializedFrameSettings serialized, Editor owner, bool withOverride) {
+			
+            EditorGUILayout.PropertyField(serialized.sortFlagsDepthPrepass, sortFlagsDepthPrepassContent);
+			EditorGUILayout.PropertyField(serialized.sortFlagsGBuffer, sortFlagsGBufferContent);
+			EditorGUILayout.PropertyField(serialized.sortFlagsForward, sortFlagsForwardContent);
+		    EditorGUILayout.PropertyField(serialized.sortFlagsObjectMotionVectors, sortFlagsObjectMotionVectorsContent);
+            
+		}
+//forest-end:
 
         // Use an enum to have appropriate UI enum field in the frame setting api
         // Do not use anywhere else
