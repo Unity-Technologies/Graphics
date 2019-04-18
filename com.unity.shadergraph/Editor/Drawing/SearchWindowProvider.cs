@@ -53,6 +53,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             public string[] title;
             public AbstractMaterialNode node;
             public int compatibleSlotId;
+            public string slotName;
         }
 
         List<int> m_Ids;
@@ -124,9 +125,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var value = entry1.title[i].CompareTo(entry2.title[i]);
                         if (value != 0)
                         {
+                            //if slot values are mismatched, sort by slot value
+                            var slotValue = entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);
+                            if (slotValue != 0)
+                                return slotValue;
+
                             // Make sure that leaves go before nodes
                             if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
-                                return entry1.title.Length < entry2.title.Length ? -1 : 1;
+                                return entry1.title.Length < entry2.title.Length ? -1 : 1;                           
+                                
                             return value;
                         }
                     }
@@ -135,45 +142,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             currentNodeEntries = nodeEntries;
         }
-
-        //public void CreateSearcherDatabase()
-        //{
-        //    //create empty root for searcher tree 
-        //    var root = new List<SearcherItem>();
-        //    
-        //    foreach (var nodeEntry in currentNodeEntries)
-        //    {
-        //        SearcherItem item = null;
-        //        SearcherItem parent = null;
-        //        foreach(var pathEntry in nodeEntry.title)
-        //        {
-        //            List<SearcherItem> children = parent != null ? parent.Children : root;
-        //            item = children.Find(x => x.Name == pathEntry);
-//
-        //            if (item == null)
-        //            {
-        //                item = new SearcherItem(pathEntry);
-//
-        //                if (parent != null)
-        //                {
-        //                    parent.AddChild(item);
-        //                }
-        //                else
-        //                {
-        //                    children.Add(item);
-        //                }
-        //            }
-//
-        //            parent = item;
-//
-        //            if (parent.Depth == 0 && !root.Contains(parent))
-        //                root.Add(parent);
-        //        }
-        //        
-        //    }
-//
-        //    var nodeDatabase = SearcherDatabase.Create(root, Application.dataPath + "/../Library/ShaderGraph");
-        //}
 
         public Searcher.Searcher LoadSearchWindow()
         {
@@ -213,8 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 
             }
 
-            var nodeDatabase = SearcherDatabase.Create(root, Application.dataPath + "/../Library/ShaderGraph");
-            nodeDatabase = SearcherDatabase.Load(Application.dataPath + "/../Library/ShaderGraph");
+            var nodeDatabase = SearcherDatabase.Create(root, string.Empty, false);
             
             return new Searcher.Searcher(nodeDatabase, searcherAdapter);             
         }
@@ -251,18 +218,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var materialSlot = (MaterialSlot)slot;
                     return !materialSlot.IsCompatibleStageWith(connectedSlot);
                 });
-
-            if (hasSingleSlot && m_Slots.Count == 1)
-            {
-                addNodeEntries.Add(new NodeEntry
-                {
-                    node = node,
-                    title = title,
-                    compatibleSlotId = m_Slots.First().id
-                });
-                return;
-            }
-
+            
             foreach (var slot in m_Slots)
             {
                 var entryTitle = new string[title.Length];
