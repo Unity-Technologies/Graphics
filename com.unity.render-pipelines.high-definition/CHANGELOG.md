@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed TerrainLit basemap texture generation
 - Fixed single-pass stereo rendering
 - Fixed issue with renderPipelineResources and diffusion profile asset that ahve incorrect path and prevent correct upgrade of package
+- Fixed a bug that caused nans when material classification was enabled and a tile contained one standard material + a material with transmission.
 
 ## [5.13.0-preview] - 2019-04-15
 
