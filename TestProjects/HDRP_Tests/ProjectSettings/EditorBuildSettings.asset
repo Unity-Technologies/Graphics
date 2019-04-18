@@ -87,6 +87,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1602_TerrainLit_Normal.unity
     guid: 493570d0c7a7cd0449d5ceb578701b5e
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1603_TerrainLit_BaseMap.unity
+    guid: db02f2dc6427fce4b9372c28c86f0f73
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1701_HairGraph/1701_HairGraph.unity
     guid: 7c0b384fd32894841954edea3211d084
   - enabled: 1
