@@ -45,6 +45,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent SSAOAsyncContent = EditorGUIUtility.TrTextContent("SSAO in Async", "When enabled, HDRP calculates screen space ambient occlusion asynchronously.");
         static readonly GUIContent contactShadowsAsyncContent = EditorGUIUtility.TrTextContent("Contact Shadows in Async", "When enabled, HDRP calculates Contact Shadows asynchronously.");
         static readonly GUIContent volumeVoxelizationAsyncContent = EditorGUIUtility.TrTextContent("Volumetrics Voxelization in Async", "When enabled, HDRP calculates volumetric voxelization asynchronously.");
+        
+//forest-begin: customizable sorting flags
+        static readonly GUIContent sortFlagsDepthPrepassContent = EditorGUIUtility.TrTextContent("Depth Prepass");
+		static readonly GUIContent sortFlagsGBufferContent = EditorGUIUtility.TrTextContent("G-Buffer");
+		static readonly GUIContent sortFlagsForwardContent = EditorGUIUtility.TrTextContent("Forward");
+		static readonly GUIContent sortFlagsObjectMotionVectorsContent = EditorGUIUtility.TrTextContent("Object Motion Vectors");
+//forest-end:
 
         const string lightLoopSettingsHeaderContent = "Light Loop";
 

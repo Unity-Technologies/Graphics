@@ -13,6 +13,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty maximumLODLevel;
         public SerializedProperty maximumLODLevelMode;
 
+//forest-begin: customizable sorting flags
+		public SerializedProperty sortFlagsDepthPrepass;
+		public SerializedProperty sortFlagsGBuffer;
+		public SerializedProperty sortFlagsForward;
+		public SerializedProperty sortFlagsObjectMotionVectors;
+//forest-end:
+
         public SerializedObject serializedObject => rootData.serializedObject;
         
         public LitShaderMode? litShaderMode
@@ -104,6 +111,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             lodBiasMode = rootData.FindPropertyRelative("lodBiasMode");
             maximumLODLevel = rootData.FindPropertyRelative("maximumLODLevel");
             maximumLODLevelMode = rootData.FindPropertyRelative("maximumLODLevelMode");
+
+//forest-begin: customizable sorting flags
+			sortFlagsDepthPrepass = rootData.FindPropertyRelative("sortFlagsDepthPrepass");
+			sortFlagsGBuffer = rootData.FindPropertyRelative("sortFlagsGBuffer");
+			sortFlagsForward = rootData.FindPropertyRelative("sortFlagsForward");
+			sortFlagsObjectMotionVectors = rootData.FindPropertyRelative("sortFlagsObjectMotionVectors");
+//forest-end:
         }
     }
 }

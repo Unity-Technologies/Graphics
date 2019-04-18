@@ -256,6 +256,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 //forest-end:
             }),
             lodBias = 1,
+//forest-begin: customizable sorting flags
+		sortFlagsDepthPrepass = SortingCriteria.CommonOpaque,
+		sortFlagsGBuffer = SortingCriteria.CommonOpaque,
+		sortFlagsForward = SortingCriteria.CommonOpaque,
+		sortFlagsObjectMotionVectors = SortingCriteria.CommonOpaque,
+//forest-end:
         };
         /// <summary>Default FrameSettings for realtime ReflectionProbe/PlanarReflectionProbe renderer.</summary>
         public static readonly FrameSettings defaultRealtimeReflectionProbe = new FrameSettings()
@@ -302,6 +308,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.SpecularLighting,
             }),
             lodBias = 1,
+//forest-begin: customizable sorting flags
+		sortFlagsDepthPrepass = SortingCriteria.CommonOpaque,
+		sortFlagsGBuffer = SortingCriteria.CommonOpaque,
+		sortFlagsForward = SortingCriteria.CommonOpaque,
+		sortFlagsObjectMotionVectors = SortingCriteria.CommonOpaque,
+//forest-end:
         };
         /// <summary>Default FrameSettings for baked or custom ReflectionProbe/PlanarReflectionProbe renderer.</summary>
         public static readonly FrameSettings defaultCustomOrBakeReflectionProbe = new FrameSettings()
@@ -347,6 +359,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.SpecularLighting,
             }),
             lodBias = 1,
+//forest-begin: customizable sorting flags
+		sortFlagsDepthPrepass = SortingCriteria.CommonOpaque,
+		sortFlagsGBuffer = SortingCriteria.CommonOpaque,
+		sortFlagsForward = SortingCriteria.CommonOpaque,
+		sortFlagsObjectMotionVectors = SortingCriteria.CommonOpaque,
+//forest-end:
         };
 
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
@@ -377,6 +395,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get => bitDatas[(uint)FrameSettingsField.LitShaderMode] ? LitShaderMode.Deferred : LitShaderMode.Forward;
             set => bitDatas[(uint)FrameSettingsField.LitShaderMode] = value == LitShaderMode.Deferred;
         }
+
+//forest-begin: customizable sorting flags
+		public SortingCriteria sortFlagsDepthPrepass;
+		public SortingCriteria sortFlagsGBuffer;
+		public SortingCriteria sortFlagsForward;
+		public SortingCriteria sortFlagsObjectMotionVectors;
+//forest-end:
 
         /// <summary>Get stored data for this field.</summary>
         public bool IsEnabled(FrameSettingsField field) => bitDatas[(uint)field];
@@ -411,6 +436,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 overriddenFrameSettings.maximumLODLevelMode = overridingFrameSettings.maximumLODLevelMode;
 
             //override remaining values here if needed
+
+//forest-begin: customizable sorting flags
+            overriddenFrameSettings.sortFlagsDepthPrepass = overridingFrameSettings.sortFlagsDepthPrepass;
+            overriddenFrameSettings.sortFlagsGBuffer = overridingFrameSettings.sortFlagsGBuffer;
+            overriddenFrameSettings.sortFlagsForward = overridingFrameSettings.sortFlagsForward;
+            overriddenFrameSettings.sortFlagsObjectMotionVectors = overridingFrameSettings.sortFlagsObjectMotionVectors;
+//forest-end:
         }
 
         /// <summary>Check FrameSettings with what is supported in RenderPipelineSettings and change value in order to be compatible.</summary>
