@@ -712,6 +712,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _LowResDepthTexture             = Shader.PropertyToID("_LowResDepthTexture");
         public static readonly int _LowResTransparent              = Shader.PropertyToID("_LowResTransparent");
 
+        public static readonly int _LightFlagDatas                 = Shader.PropertyToID("_LightFlagDatas");
+
 
     }
 }

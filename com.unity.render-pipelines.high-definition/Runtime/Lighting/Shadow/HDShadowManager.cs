@@ -297,20 +297,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return Vector2.zero;
             
             int shadowRequestIndex = m_ShadowResolutionRequests[index];
-            switch( shadowMapType.shaodwMapType)
+            switch( shadowMapType )
             {
                 case ShadowMapType.PunctualAtlas:
                     return m_Atlas.GetHDShadowResolutionRequest(shadowRequestIndex).resolution;
-                    break;
+                    
                 case ShadowMapType.CascadedDirectional:
                     return m_CascadeAtlas.GetHDShadowResolutionRequest(shadowRequestIndex).resolution;
-                    break;
-                case ShaodwMapType.AreaLightAtlas:
+                    
+                case ShadowMapType.AreaLightAtlas:
                     return m_AreaLightShadowAtlas.GetHDShadowResolutionRequest(shadowRequestIndex).resolution;
-                    break;
+                    
             }
 
-            return Vector2.zero
+            return Vector2.zero;
            
         }
 
@@ -325,7 +325,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 case ShadowMapType.PunctualAtlas:
                 {
-                    shadowRequest.atlasViewport = m_Atlas.GetHDShadowResolutionRequest(shaodwRequestIndex).atlasViewport;
+                    shadowRequest.atlasViewport = m_Atlas.GetHDShadowResolutionRequest(shadowRequestIndex).atlasViewport;
                     m_Atlas.AddShadowRequest(shadowRequest);
                     break;
                 }
@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 case ShadowMapType.AreaLightAtlas:
                 {
-                    shadowRequest.atlastViewport = m_AreaLightShadowAtlas.GetHDShadowResolutionRequest(shadowRequestIndex).atlasViewport;                   
+                    shadowRequest.atlasViewport = m_AreaLightShadowAtlas.GetHDShadowResolutionRequest(shadowRequestIndex).atlasViewport;                   
                     m_AreaLightShadowAtlas.AddShadowRequest(shadowRequest);
                     break;
                 }
