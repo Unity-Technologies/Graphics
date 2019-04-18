@@ -15,15 +15,8 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXGUITests
     {
-        private const int testAssetCount = 9;
+        private const int testAssetCount = 8;
         private VisualEffectAsset[] m_GuiTestAssets = new VisualEffectAsset[testAssetCount];
-        private VisualEffectAsset m_GuiTest1;
-        private VisualEffectAsset m_GuiTest2;
-        private VisualEffectAsset m_GuiTest3;
-        private VisualEffectAsset m_GuiTest4;
-        private VisualEffectAsset m_GuiTest5;
-        private VisualEffectAsset m_GuiTest6;
-        private VisualEffectAsset m_GuiTest7;
 
         [OneTimeSetUp]
         public void CreateTestAssets()
@@ -67,7 +60,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateFlowEdgesTest()
         {
-            EditTestAsset(4);
+            EditTestAsset(3);
 
             var eventContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kEvent).First();
             var eventContext = m_ViewController.AddVFXContext(new Vector2(300, 100), eventContextDesc);
@@ -169,7 +162,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllInitializeBlocksTest()
         {
-            EditTestAsset(1);
+            EditTestAsset(0);
             CreateAllInitializeBlocks();
         }
 
@@ -181,7 +174,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllUpdateBlocksTest()
         {
-            EditTestAsset(2);
+            EditTestAsset(1);
             CreateAllUpdateBlocks();
         }
 
@@ -193,21 +186,21 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllOutputBlocksTest()
         {
-            EditTestAsset(3);
+            EditTestAsset(2);
             CreateAllOutputBlocks();
         }
 
         [Test]
         public void CreateAllSpawnerBlocksTest()
         {
-            EditTestAsset(1);
+            EditTestAsset(0);
             CreateAllBlocks(VFXContextType.kSpawner);
         }
 
         [Test]
         public void CreateAllEventBlocksTest()
         {
-            EditTestAsset(1);
+            EditTestAsset(0);
             CreateAllBlocks(VFXContextType.kEvent);
         }
 
@@ -255,7 +248,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ExpandRetractAndSetPropertyValue()
         {
-            EditTestAsset(8);
+            EditTestAsset(7);
 
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
 
@@ -328,7 +321,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllOperatorsTest()
         {
-            EditTestAsset(5);
+            EditTestAsset(4);
             CreateAllOperators();
         }
 
@@ -363,14 +356,14 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllParametersTest()
         {
-            EditTestAsset(6);
+            EditTestAsset(5);
             CreateAllParameters();
         }
 
         [Test]
         public void CreateAllDataEdgesTest()
         {
-            EditTestAsset(7);
+            EditTestAsset(6);
             CreateDataEdges(CreateAllOutputBlocks(), CreateAllParameters());
         }
     }
