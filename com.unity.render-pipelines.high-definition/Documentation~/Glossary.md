@@ -7,6 +7,10 @@
 #### atmospheric scattering
 Atmospheric scattering is the phenomena that occurs when particles suspended in the atmosphere diffuse (or scatter) a portion of the light, passing through them, in all directions.
 
+<a name="ChannelPacking"></a>
+
+#### channel packing
+A channel packed Texture is a Texture which has a separate grayscale image in each of its channels.
 
 <a name="NyquistRate"></a>
 
