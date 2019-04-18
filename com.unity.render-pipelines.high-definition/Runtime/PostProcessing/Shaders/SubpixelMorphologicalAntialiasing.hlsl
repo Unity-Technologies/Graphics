@@ -562,10 +562,10 @@
 #define SMAASampleLevelZero(tex, coord) SAMPLE_TEXTURE2D_X_LOD(tex, LinearSampler, ClampAndScaleUVForBilinear(coord), 0)
 #define SMAASampleLevelZeroNoRescale(tex, coord) tex.SampleLevel(LinearSampler, coord, 0)
 #define SMAASampleLevelZeroPoint(tex, coord) SAMPLE_TEXTURE2D_X_LOD(tex, PointSampler, ClampAndScaleUVForPoint(coord), 0) 
-#define SMAASampleLevelZeroOffset(tex, coord, offset) SAMPLE_TEXTURE2D_X_LOD(tex, LinearSampler, ClampAndScaleUVForBilinear(coord) + offset * SMAA_RT_METRICS.xy, 0)
+#define SMAASampleLevelZeroOffset(tex, coord, offset) SAMPLE_TEXTURE2D_X_LOD(tex, LinearSampler, ClampAndScaleUVForBilinear(coord + offset * SMAA_RT_METRICS.xy), 0)
 #define SMAASample(tex, coord) SAMPLE_TEXTURE2D_X(tex, LinearSampler, ClampAndScaleUVForBilinear(coord))
 #define SMAASamplePoint(tex, coord) SAMPLE_TEXTURE2D_X(tex, PointSampler, ClampAndScaleUVForPoint(coord))
-#define SMAASampleOffset(tex, coord, offset) SAMPLE_TEXTURE2D_X(tex, LinearSampler, ClampAndScaleUVForBilinear(coord) + offset * SMAA_RT_METRICS.xy)
+#define SMAASampleOffset(tex, coord, offset) SAMPLE_TEXTURE2D_X(tex, LinearSampler, ClampAndScaleUVForBilinear(coord + offset * SMAA_RT_METRICS.xy))
 #define SMAA_FLATTEN [flatten]
 #define SMAA_BRANCH [branch]
 #define SMAATexture2DMS2(tex) Texture2DMS<float4, 2> tex
