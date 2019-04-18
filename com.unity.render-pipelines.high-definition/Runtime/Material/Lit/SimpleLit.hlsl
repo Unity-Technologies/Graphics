@@ -428,8 +428,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
     {
         float3 a = 0; float b = 0;
-        // Caution: This function modify N and contactShadowIndex
-        transmittance = PreEvaluateDirectionalLightTransmission(bsdfData, lightData, a, b); // contactShadowIndex is only modify for the code of this function
+        // Caution: This function modify N and contactShadowMask
+        transmittance = PreEvaluateDirectionalLightTransmission(bsdfData, lightData, a, b); // contactShadowMask is only modify for the code of this function
     }
 #endif
 
@@ -510,7 +510,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
     // Transparent have no contact shadow information
 #ifndef _SURFACE_TYPE_TRANSPARENT
-    shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
+    shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowMask));
 #endif
 
 #endif // HDRP_ENABLE_SHADOWS
@@ -535,7 +535,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
         {
             normalWS = -normalWS; // Flip normal for shadow bias
-            lightData.contactShadowIndex = -1;  //  Disable shadow contact
+            lightData.contactShadowMask = 0;  //  Disable shadow contact
         }
         transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
     }
@@ -562,7 +562,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 #if HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
-        // Caution: This function modify N and lightData.contactShadowIndex
+        // Caution: This function modify N and lightData.contactShadowMask
         transmittance = PreEvaluatePunctualLightTransmission(lightLoopContext, posInput, distances.x, NdotL, L, bsdfData, N, lightData);
     }
 #endif
