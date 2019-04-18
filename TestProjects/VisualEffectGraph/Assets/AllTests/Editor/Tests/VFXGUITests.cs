@@ -15,12 +15,38 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXGUITests
     {
-        //[MenuItem("VFX Editor/Run GUI Tests")]
+        private const int testAssetCount = 9;
+        private VisualEffectAsset[] m_GuiTestAssets = new VisualEffectAsset[testAssetCount];
+        private VisualEffectAsset m_GuiTest1;
+        private VisualEffectAsset m_GuiTest2;
+        private VisualEffectAsset m_GuiTest3;
+        private VisualEffectAsset m_GuiTest4;
+        private VisualEffectAsset m_GuiTest5;
+        private VisualEffectAsset m_GuiTest6;
+        private VisualEffectAsset m_GuiTest7;
+
+        [OneTimeSetUp]
+        public void CreateTestAssets()
+        {
+            for (int i = 0; i < testAssetCount; ++i)
+                m_GuiTestAssets[i] = CreateTestAsset("GUITest" + i);
+        }
+
+        [OneTimeTearDown]
+        public void DestroyTestAssets()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            window.Close();
+
+            for (int i = 0; i < testAssetCount; ++i)
+                DestroyTestAsset("GUITest" + i);
+        }
+
         public static void RunGUITests()
         {
             VFXGUITests tests = new VFXGUITests();
 
-            tests.CreateTestAsset("GUITest");
+            tests.CreateTestAssets();
             var initContext = tests.CreateAllInitializeBlocks();
             var updateContext = tests.CreateAllUpdateBlocks();
             var outputContext = tests.CreateAllOutputBlocks();
@@ -30,6 +56,7 @@ namespace UnityEditor.VFX.Test
             List<VFXParameter> parameters = tests.CreateAllParameters();
 
             tests.CreateDataEdges(updateContext, parameters);
+            tests.DestroyTestAssets();
         }
 
         VFXViewController m_ViewController;
@@ -37,11 +64,10 @@ namespace UnityEditor.VFX.Test
 
         const string testAssetName = "Assets/TmpTests/{0}.vfx";
 
-
         [Test]
         public void CreateFlowEdgesTest()
         {
-            CreateTestAsset("GUITest4");
+            EditTestAsset(4);
 
             var eventContextDesc = VFXLibrary.GetContexts().Where(t => t.model.contextType == VFXContextType.kEvent).First();
             var eventContext = m_ViewController.AddVFXContext(new Vector2(300, 100), eventContextDesc);
@@ -69,8 +95,6 @@ namespace UnityEditor.VFX.Test
             contextControllers.Add(m_ViewController.allChildren.OfType<VFXContextController>().First(t => t.model == outputContext) as VFXContextController);
 
             CreateFlowEdges(contextControllers);
-
-            DestroyTestAsset("GUITest4");
         }
 
         void CreateFlowEdges(IList<VFXContextController> contextControllers)
@@ -114,9 +138,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        public VisualEffectAsset m_Asset;
-
-        public void CreateTestAsset(string name)
+        private VisualEffectAsset CreateTestAsset(string name)
         {
             var filePath = string.Format(testAssetName, name);
             var directoryPath = Path.GetDirectoryName(filePath);
@@ -126,29 +148,29 @@ namespace UnityEditor.VFX.Test
             }
 
 
-            m_Asset = VisualEffectAssetEditorUtility.CreateNewAsset(filePath);
+            return VisualEffectAssetEditorUtility.CreateNewAsset(filePath);  
+        }
+
+        private void EditTestAsset(int assetIndex)
+        {
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
-            m_ViewController = VFXViewController.GetController(m_Asset.GetResource(), true);
+            m_ViewController = VFXViewController.GetController(m_GuiTestAssets[assetIndex].GetResource(), true);
             window.graphView.controller = m_ViewController;
         }
 
-        void DestroyTestAsset(string name)
+        private void DestroyTestAsset(string name)
         {
             var filePath = string.Format(testAssetName, name);
             AssetDatabase.DeleteAsset(filePath);
-
-            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-            window.Close();
         }
 
         [Test]
         public void CreateAllInitializeBlocksTest()
         {
-            CreateTestAsset("TestGUI1");
+            EditTestAsset(1);
             CreateAllInitializeBlocks();
-            DestroyTestAsset("TestGUI1");
         }
 
         VFXContextController CreateAllInitializeBlocks()
@@ -159,9 +181,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllUpdateBlocksTest()
         {
-            CreateTestAsset("TestGUI2");
+            EditTestAsset(2);
             CreateAllUpdateBlocks();
-            DestroyTestAsset("TestGUI2");
         }
 
         VFXContextController CreateAllUpdateBlocks()
@@ -172,25 +193,22 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllOutputBlocksTest()
         {
-            CreateTestAsset("TestGUI3");
+            EditTestAsset(3);
             CreateAllOutputBlocks();
-            DestroyTestAsset("TestGUI3");
         }
 
         [Test]
         public void CreateAllSpawnerBlocksTest()
         {
-            CreateTestAsset("TestGUI1");
+            EditTestAsset(1);
             CreateAllBlocks(VFXContextType.kSpawner);
-            DestroyTestAsset("TestGUI1");
         }
 
         [Test]
         public void CreateAllEventBlocksTest()
         {
-            CreateTestAsset("TestGUI1");
+            EditTestAsset(1);
             CreateAllBlocks(VFXContextType.kEvent);
-            DestroyTestAsset("TestGUI1");
         }
 
         VFXContextController CreateAllBlocks(VFXContextType type)
@@ -237,7 +255,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void ExpandRetractAndSetPropertyValue()
         {
-            CreateTestAsset("TestGUI4");
+            EditTestAsset(8);
 
             var initContextDesc = VFXLibrary.GetContexts().Where(t => t.name == "Initialize").First();
 
@@ -305,16 +323,13 @@ namespace UnityEditor.VFX.Test
             vector3yController.SetPropertyValue(7.8f);
 
             Assert.AreEqual(slot.value, new Vector3(1.2f, 7.8f, 5.6f));
-
-            DestroyTestAsset("TestGUI4");
         }
 
         [Test]
         public void CreateAllOperatorsTest()
         {
-            CreateTestAsset("TestGUI5");
+            EditTestAsset(5);
             CreateAllOperators();
-            DestroyTestAsset("TestGUI5");
         }
 
         List<VFXOperator> CreateAllOperators()
@@ -348,18 +363,15 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CreateAllParametersTest()
         {
-            CreateTestAsset("TestGUI6");
+            EditTestAsset(6);
             CreateAllParameters();
-
-            DestroyTestAsset("TestGUI6");
         }
 
         [Test]
         public void CreateAllDataEdgesTest()
         {
-            CreateTestAsset("TestGUI7");
+            EditTestAsset(7);
             CreateDataEdges(CreateAllOutputBlocks(), CreateAllParameters());
-            DestroyTestAsset("TestGUI7");
         }
     }
 }
