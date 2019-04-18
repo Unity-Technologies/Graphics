@@ -14,7 +14,7 @@ HDRP uses the [Volume](Volumes.html) framework to generate **Micro Shadows**, so
 
 1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector
 2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Micro Shadows**. 
-   HDRP now applies **Micro Shadows** to any Camera this Volume affects.
+   HDRP now processes **Micro Shadows** for any Camera this Volume affects.
 
 ## Properties
 
