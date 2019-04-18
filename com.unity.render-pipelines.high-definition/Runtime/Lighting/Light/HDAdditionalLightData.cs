@@ -368,7 +368,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var         shadowRequest = shadowRequests[index];
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex, m_Light.type != LightType.Directional);
+                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex, shadowRequest.shadowMapType);
 
                 if (shadowRequestIndex == -1)
                     continue;
