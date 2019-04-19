@@ -124,22 +124,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                             return 1;
                         var value = entry1.title[i].CompareTo(entry2.title[i]);
                         if (value != 0)
-                        {
-                            //if slot values are mismatched, sort by slot value
-                            var slotValue = entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);
-                            if (slotValue != 0)
-                                return slotValue;
-
+                        {                            
                             // Make sure that leaves go before nodes
                             if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
-                                return entry1.title.Length < entry2.title.Length ? -1 : 1;                           
-                                
+                            {
+                                if (entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId) != 0)
+                                    return entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);
+                                    
+                                return entry1.title.Length < entry2.title.Length ? -1 : 1;
+                            }                                                         
+                            
                             return value;
                         }
                     }
                     return 0;
                 });
 
+            
             currentNodeEntries = nodeEntries;
         }
 
@@ -228,7 +229,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     title = entryTitle,
                     node = node,
-                    compatibleSlotId = slot.id
+                    compatibleSlotId = slot.id,
+                    slotName = slot.displayName
                 });
             }
         }
