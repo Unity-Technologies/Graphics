@@ -16,16 +16,28 @@ MonoBehaviour:
     type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 68175617195804
+      data1: 68184207261468
       data2: 4539628424389459968
+    lodBias: 1
+    lodBiasMode: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 69275665694493
+      data1: 69284255629085
       data2: 4539628424389459968
+    lodBias: 1
+    lodBiasMode: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 69275665628957
+      data1: 69284255563549
       data2: 4539628424389459968
+    lodBias: 1
+    lodBiasMode: 0
+    maximumLODLevel: 0
+    maximumLODLevelMode: 0
   m_RenderPipelineSettings:
     supportShadowMask: 1
     supportSSR: 0
@@ -39,6 +51,8 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
+    supportLowResTransparent: 1
+    colorBufferFormat: 74
     supportedLitShaderMode: 1
     supportDecals: 1
     msaaSampleCount: 1
@@ -46,9 +60,6 @@ MonoBehaviour:
     supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 1
     supportRayTracing: 0
-    editorRaytracingFilterLayerMask:
-      serializedVersion: 2
-      m_Bits: 4294967295
     lightLoopSettings:
       cookieSize: 128
       cookieTexArraySize: 16
@@ -71,11 +82,17 @@ MonoBehaviour:
       maxEnvLightsOnScreen: 64
       maxDecalsOnScreen: 512
     hdShadowInitParams:
-      shadowAtlasResolution: 4096
       maxShadowRequests: 128
-      shadowMapsDepthBits: 32
-      useDynamicViewportRescale: 1
+      directionalShadowsDepthBits: 32
       shadowQuality: 3
+      punctualLightShadowAtlas:
+        shadowAtlasResolution: 4096
+        shadowAtlasDepthBits: 32
+        useDynamicViewportRescale: 1
+      areaLightShadowAtlas:
+        shadowAtlasResolution: 4096
+        shadowAtlasDepthBits: 32
+        useDynamicViewportRescale: 1
     decalSettings:
       drawDistance: 1000
       atlasWidth: 2048
@@ -92,6 +109,10 @@ MonoBehaviour:
       upsampleFilter: 1
       forceResolution: 0
       forcedPercentage: 100
+    lowresTransparentSettings:
+      enabled: 1
+      checkerboardDepthBuffer: 1
+      upsampleType: 1
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0
@@ -113,7 +134,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 86c1c808ebce1cc4992b9b0fd197a0b3, type: 2}
   - {fileID: 11400000, guid: 3506ae472b257f042af66a183fbaac6a, type: 2}
   - {fileID: 11400000, guid: 6be2047feaba36945b8fd12f29e3a7b5, type: 2}
-  m_Version: 2
+  m_Version: 5
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
