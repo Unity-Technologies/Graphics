@@ -22,11 +22,11 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl"
 
         // Terrain builtin keywords
-        #pragma shader_feature _TERRAIN_8_LAYERS
-        #pragma shader_feature _NORMALMAP
-        #pragma shader_feature _MASKMAP
+        #pragma shader_feature_local _TERRAIN_8_LAYERS
+        #pragma shader_feature_local _NORMALMAP
+        #pragma shader_feature_local _MASKMAP
 
-        #pragma shader_feature _TERRAIN_BLEND_HEIGHT
+        #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
 
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
 
