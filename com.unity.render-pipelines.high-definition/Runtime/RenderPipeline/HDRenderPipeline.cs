@@ -226,13 +226,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool showCascade
         {
-            get => m_DebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
+            get => m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
             set
             {
                 if (value)
-                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.VisualizeCascade);
+                    m_CurrentDebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.VisualizeCascade);
                 else
-                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
+                    m_CurrentDebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
             }
         }
 
@@ -1405,6 +1405,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             target.id = m_TemporaryTargetForCubemaps;
                         }
 
+
+                        var aovRequestIndex = 0;
+                        foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
+                        {
+                        using (new ProfilingSample(
+                            cmd,
+                                $"HDRenderPipeline::Render {renderRequest.hdCamera.camera.name} - AOVRequest {aovRequestIndex++}",
+                                CustomSamplerId.HDRenderPipelineRender.GetSampler())
+                            )
+                            {
+                                cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
+                                ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
+                                cmd.SetInvertCulling(false);
+                            }
+                            renderContext.ExecuteCommandBuffer(cmd);
+                            CommandBufferPool.Release(cmd);
+                            renderContext.Submit();
+                            cmd = CommandBufferPool.Get();
+                        }
+
                         using (new ProfilingSample(
                             cmd,
                             $"HDRenderPipeline::Render {renderRequest.hdCamera.camera.name}",
@@ -1412,9 +1432,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         )
                         {
                             cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
-                            ExecuteRenderRequest(renderRequest, renderContext, cmd);
+                            ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.@default);
                             cmd.SetInvertCulling(false);
+                        }
 
+                        {
                             var target = renderRequest.target;
                             // Handle the copy if requested
                             if (target.copyToTarget != null)
@@ -1447,7 +1469,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnityEngine.Rendering.RenderPipeline.EndFrameRendering(renderContext, cameras);
         }
 
-        void ExecuteRenderRequest(RenderRequest renderRequest, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        void ExecuteRenderRequest(
+            RenderRequest renderRequest,
+            ScriptableRenderContext renderContext,
+            CommandBuffer cmd,
+            AOVRequestData aovRequest
+        )
         {
             InitializeGlobalResources(renderContext);
 
@@ -1460,6 +1487,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Updates RTHandle
             hdCamera.BeginRender();
+
+            using (ListPool<RTHandleSystem.RTHandle>.Get(out var aovBuffers))
+            {
+                aovRequest.AllocateTargetTexturesIfRequired(ref aovBuffers);
 
             // If we render a reflection view or a preview we should not display any debug information
             // This need to be call before ApplyDebugDisplaySettings()
@@ -1478,6 +1509,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
             }
+
+                    aovRequest.SetupDebugData(ref m_CurrentDebugDisplaySettings);
 
 #if ENABLE_RAYTRACING
             // Must update after getting DebugDisplaySettings
@@ -1536,7 +1569,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool enableBakeShadowMask;
             using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
             {
-                enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, m_DebugDisplaySettings);
+                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, m_CurrentDebugDisplaySettings, aovRequest);
             }
             // Configure all the keywords
             ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
@@ -1890,11 +1923,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // At this point, m_CameraColorBuffer has been filled by either debug views are regular rendering so we can push it here.
             PushColorPickerDebugTexture(cmd, hdCamera, m_CameraColorBuffer);
 
+                aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
             RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
-            if (Debug.isDebugBuild)
+                if (Debug.isDebugBuild || aovRequest.isValid)
             {
                 hdCamera.ExecuteCaptureActions(m_IntermediateAfterPostProcessBuffer, cmd);
 
@@ -1907,6 +1941,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 StopStereoRendering(cmd, renderContext, camera);
+                    aovRequest.PushCameraTexture(cmd, AOVBuffers.Output, hdCamera, m_IntermediateAfterPostProcessBuffer, aovBuffers);
             }
 
             // Pushes to XR headset and/or display mirror
@@ -1945,6 +1980,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     CoreUtils.DrawFullScreen(cmd, m_CopyDepth, m_CopyDepthPropertyBlock);
                 }
             }
+                aovRequest.PushCameraTexture(cmd, AOVBuffers.DepthStencil, hdCamera, m_SharedRTManager.GetDepthStencilBuffer(), aovBuffers);
+                aovRequest.PushCameraTexture(cmd, AOVBuffers.MotionVectors, hdCamera, m_SharedRTManager.GetMotionVectorsBuffer(), aovBuffers);
+                aovRequest.PushCameraTexture(cmd, AOVBuffers.Normals, hdCamera, m_SharedRTManager.GetNormalBuffer(), aovBuffers);
 
 #if UNITY_EDITOR
             // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
@@ -1954,6 +1992,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (showGizmos)
                 RenderGizmos(cmd, camera, renderContext, GizmoSubset.PostImageEffects);
 #endif
+
+                aovRequest.Execute(cmd, aovBuffers, RenderOutputProperties.From(hdCamera));
+        }
         }
 
         void BlitFinalCameraTexture(CommandBuffer cmd, HDCamera hdCamera, RenderTargetIdentifier destination)
@@ -2192,51 +2233,51 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     hdCamera.frameSettings.maximumLODLevel
                 );
 
-                var includeEnvLights = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting);
+            var includeEnvLights = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting);
 
-                DecalSystem.CullRequest decalCullRequest = null;
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
-                {
-                    // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
-                    decalCullRequest = GenericPool<DecalSystem.CullRequest>.Get();
-                    DecalSystem.instance.CurrentCamera = camera;
-                    DecalSystem.instance.BeginCull(decalCullRequest);
-                }
+            DecalSystem.CullRequest decalCullRequest = null;
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            {
+                // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
+                decalCullRequest = GenericPool<DecalSystem.CullRequest>.Get();
+                DecalSystem.instance.CurrentCamera = camera;
+                DecalSystem.instance.BeginCull(decalCullRequest);
+            }
 
-                // TODO: use a parameter to select probe types to cull depending on what is enabled in framesettings
-                var hdProbeCullState = new HDProbeCullState();
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
-                    hdProbeCullState = HDProbeSystem.PrepareCull(camera);
+            // TODO: use a parameter to select probe types to cull depending on what is enabled in framesettings
+            var hdProbeCullState = new HDProbeCullState();
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
+                hdProbeCullState = HDProbeSystem.PrepareCull(camera);
 
-                using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
-                    cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
+            using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
+                cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
-                    HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
-                else
-                    cullingResults.hdProbeCullingResults = default;
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
+                HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
+            else
+                cullingResults.hdProbeCullingResults = default;
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
-                {
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            {
                     using (new ProfilingSample(null, "DBufferPrepareDrawData",
                         CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
-                        DecalSystem.instance.EndCull(decalCullRequest, cullingResults.decalCullResults);
-                }
+                    DecalSystem.instance.EndCull(decalCullRequest, cullingResults.decalCullResults);
+            }
 
-                if (decalCullRequest != null)
-                {
-                    decalCullRequest.Clear();
-                    GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
-                }
+            if (decalCullRequest != null)
+            {
+                decalCullRequest.Clear();
+                GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
+            }
 
-                return true;
+            return true;
 
             }
             finally
             {
                 QualitySettings.lodBias = initialLODBias;
                 QualitySettings.maximumLODLevel = initialMaximumLODLevel;
-            }
+        }
         }
 
         void RenderGizmos(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext, GizmoSubset gizmoSubset)
@@ -2863,10 +2904,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             transparentRange = HDRenderQueue.k_RenderQueue_TransparentWithLowRes;
                         }
 
-                        if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
+                    	if(!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
                     	{
                             if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
-                        	    transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
+                        	transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
                             else
                                 transparentRange = HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes;
                         }
@@ -3392,7 +3433,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Color ||
                         // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
-                        m_DebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
+                        m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                         // If we want the sky but the sky don't exist, still clear with background color
                         (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid()) ||
                         // Special handling for Preview we force to clear with background color (i.e black)
@@ -3403,7 +3444,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Color clearColor = hdCamera.backgroundColorHDR;
 
                         // We set the background color to black when the luxmeter is enabled to avoid picking the sky color
-                        if (m_DebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                        if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
                             clearColor = Color.black;
 
                         HDUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa), ClearFlag.Color, clearColor);
