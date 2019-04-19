@@ -2917,7 +2917,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "RenderUI", CustomSamplerId.ForwardPassName.GetSampler()))
             {
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraUIBuffer, m_SharedRTManager.GetDepthStencilBuffer());
+                HDUtils.SetRenderTarget(cmd, m_CameraUIBuffer, m_SharedRTManager.GetDepthStencilBuffer());
                 bool renderMotionVecForTransparent = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
                 RenderQueueRange transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
                 RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames, m_currentRendererConfigurationBakedLighting, transparentRange);
@@ -3434,7 +3434,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new ProfilingSample(cmd, "ClearBuffers", CustomSamplerId.ClearUIBuffer.GetSampler()))
                     {
-                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraUIBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa), ClearFlag.Color, Color.black);
+                        HDUtils.SetRenderTarget(cmd, m_CameraUIBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa), ClearFlag.Color, Color.black);
                     }
                 }
 
