@@ -50,7 +50,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
 //forest-begin: G-Buffer motion vectors
 #if defined(HAS_VEGETATION_ANIM) && defined(GBUFFER_MOTION_VECTORS)
-	float2 velocity = CalculateVelocity(packedInput.vmesh.mvPositionCS, packedInput.vmesh.mvPrevPositionCS);
+	float2 velocity = CalculateMotionVector(packedInput.vmesh.mvPositionCS, packedInput.vmesh.mvPrevPositionCS);
 
 	// Convert from Clip space (-1..1) to NDC 0..1 space.
 	// Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
