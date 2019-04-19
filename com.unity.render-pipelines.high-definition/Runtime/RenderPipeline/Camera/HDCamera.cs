@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -213,6 +214,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
 
         public HDPhysicalCamera physicalParameters => m_AdditionalCameraData?.physicalParameters;
+
+        public IEnumerable<AOVRequestData> aovRequests =>
+            m_AdditionalCameraData != null && !m_AdditionalCameraData.Equals(null)
+                ? m_AdditionalCameraData.aovRequests
+                : Enumerable.Empty<AOVRequestData>();
 
         public bool invertFaceCulling
             => m_AdditionalCameraData != null && m_AdditionalCameraData.invertFaceCulling;
@@ -624,6 +630,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 frustumPlaneEquations[i] = new Vector4(frustum.planes[i].normal.x, frustum.planes[i].normal.y, frustum.planes[i].normal.z, frustum.planes[i].distance);
             }
+
+            m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
         }
 
         void UpdateVolumeParameters()
