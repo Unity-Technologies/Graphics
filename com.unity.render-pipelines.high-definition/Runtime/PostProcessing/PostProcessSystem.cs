@@ -674,7 +674,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             kernel = cs.FindKernel("KPrePass");
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourceTex);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTex);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_TempTexture1024);
             cmd.DispatchCompute(cs, kernel, 1024 / 8, 1024 / 8, 1);
 
@@ -725,8 +725,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CopyTemporalAntialiasingHistory(cmd, camera, source, nextHistory);
             }
 
-            var historyScale = new Vector2(camera.actualWidth / (float)prevHistory.rt.width, camera.actualHeight / (float)prevHistory.rt.height);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenToTargetScaleHistory, historyScale);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryTexture, prevHistory);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputHistoryTexture, nextHistory);
@@ -833,8 +832,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If TAA is enabled we use the camera history system to grab CoC history textures, but
             // because these don't use the same RTHandle system as the global one we'll have a
-            // different scale than _ScreenToTargetScale so we need to handle our own
-            var cocHistoryScale = camera.doubleBufferedViewportScale;
+            // different scale than _RTHandleScale so we need to handle our own
+            var cocHistoryScale = RTHandles.rtHandleProperties.rtHandleScale;
 
             ComputeShader cs;
             int kernel;
@@ -938,7 +937,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (taaEnabled)
                 {
                     GrabCoCHistory(camera, out var prevCoCTex, out var nextCoCTex);
-                    cocHistoryScale = new Vector2(camera.actualWidth / (float)prevCoCTex.rt.width, camera.actualHeight / (float)prevCoCTex.rt.height);
+                    cocHistoryScale = new Vector2(camera.historyRTHandleProperties.rtHandleScale.z, camera.historyRTHandleProperties.rtHandleScale.w);
 
                     cs = m_Resources.shaders.depthOfFieldCoCReprojectCS;
                     kernel = cs.FindKernel("KMain");
@@ -1370,7 +1369,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams1);
-                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.prevViewProjMatrixNoCameraTrans);
+                // XRTODO: handle XR instancing by looping over camera.xrViewConstants
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.mainViewConstants.prevViewProjMatrixNoCameraTrans);
 
                 threadGroupX = (camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
                 threadGroupY = (camera.actualHeight + (groupSizeY - 1)) / groupSizeY;
@@ -2124,24 +2124,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // -----------------------------------------------------------------------------
             // Clear
-            HDUtils.SetRenderTarget(cmd, camera, SMAAEdgeTex, ClearFlag.Color);
-            HDUtils.SetRenderTarget(cmd, camera, SMAABlendTex, ClearFlag.Color);
+            HDUtils.SetRenderTarget(cmd, SMAAEdgeTex, ClearFlag.Color);
+            HDUtils.SetRenderTarget(cmd, SMAABlendTex, ClearFlag.Color);
 
             // -----------------------------------------------------------------------------
             // EdgeDetection stage
             cmd.SetGlobalTexture(HDShaderIDs._InputTexture, source);
-            HDUtils.DrawFullScreen(cmd, camera, m_SMAAMaterial, SMAAEdgeTex, depthBuffer, null, (int)SMAAStage.EdgeDetection);
+            HDUtils.DrawFullScreen(cmd, m_SMAAMaterial, SMAAEdgeTex, depthBuffer, null, (int)SMAAStage.EdgeDetection);
 
             // -----------------------------------------------------------------------------
             // BlendWeights stage
             cmd.SetGlobalTexture(HDShaderIDs._InputTexture, SMAAEdgeTex);
-            HDUtils.DrawFullScreen(cmd, camera, m_SMAAMaterial, SMAABlendTex, depthBuffer, null, (int)SMAAStage.BlendWeights);
+            HDUtils.DrawFullScreen(cmd, m_SMAAMaterial, SMAABlendTex, depthBuffer, null, (int)SMAAStage.BlendWeights);
 
             // -----------------------------------------------------------------------------
             // NeighborhoodBlending stage
             cmd.SetGlobalTexture(HDShaderIDs._InputTexture, source);
             m_SMAAMaterial.SetTexture(HDShaderIDs._SMAABlendTex, SMAABlendTex);
-            HDUtils.DrawFullScreen(cmd, camera, m_SMAAMaterial, destination, null, (int)SMAAStage.NeighborhoodBlending);
+            HDUtils.DrawFullScreen(cmd, m_SMAAMaterial, destination, null, (int)SMAAStage.NeighborhoodBlending);
 
             // -----------------------------------------------------------------------------
             m_Pool.Recycle(SMAAEdgeTex);

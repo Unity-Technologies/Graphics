@@ -24,6 +24,8 @@ MonoBehaviour:
     type: 3}
   m_AutodeskInteractiveMaskedShader: {fileID: 4800000, guid: 80aa867ac363ac043847b06ad71604cd,
     type: 3}
+  m_SpeedTree7Shader: {fileID: 4800000, guid: 0f4122b9a743b744abe2fb6a0a88868b, type: 3}
+  m_SpeedTree8Shader: {fileID: 4800000, guid: 99134b1f0c27d54469a840832a28fadf, type: 3}
   m_TerrainDetailLitShader: {fileID: 4800000, guid: f6783ab646d374f94b199774402a5144,
     type: 3}
   m_TerrainDetailGrassShader: {fileID: 4800000, guid: e507fdfead5ca47e8b9a768b51c291a1,

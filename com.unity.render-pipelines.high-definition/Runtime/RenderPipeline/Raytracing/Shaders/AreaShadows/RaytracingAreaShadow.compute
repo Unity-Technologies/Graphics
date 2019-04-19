@@ -35,17 +35,17 @@
 #define RAYTRACING_AREA_SHADOW_TILE_SIZE 8
 
 // The target acceleration structure that we will evaluate the reflexion in
-TEXTURE2D(_DepthTexture);
+TEXTURE2D_X(_DepthTexture);
 
 // The target area light to raytrace
 uint                        _RaytracingTargetAreaLight;
 
 // Output buffers of the shadows raytrace shader
-RWTexture2D<float2>         _AnalyticProbBuffer;
-RWTexture2D<float2>         _RaytracedAreaShadowSample;
-RWTexture2D<float2>         _RaytracedAreaShadowIntegration;
-RWTexture2D<float4>         _RaytracingDirectionBuffer;
-RWTexture2D<float>          _RaytracingDistanceBuffer;
+RW_TEXTURE2D_X(float2, _AnalyticProbBuffer);
+RW_TEXTURE2D_X(float2, _RaytracedAreaShadowSample);
+RW_TEXTURE2D_X(float2, _RaytracedAreaShadowIntegration);
+RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
+RW_TEXTURE2D_X(float, _RaytracingDistanceBuffer);
 
 // Prepass that evaluates the data required for the ray tracing
 [numthreads(RAYTRACING_AREA_SHADOW_TILE_SIZE, RAYTRACING_AREA_SHADOW_TILE_SIZE, 1)]
@@ -56,16 +56,16 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // The value -1.0 is used to identify an invalid pixel
-    _AnalyticProbBuffer[currentCoord] = float2(-1.0, -1.0);
-    _RaytracedAreaShadowIntegration[currentCoord] = float2(0.0, 0.0);
+    _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)] = float2(-1.0, -1.0);
+    _RaytracedAreaShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
 
     // Values that need to be defined per sample
-    _RaytracedAreaShadowSample[currentCoord] = float2(0.0, 0.0);
-    _RaytracingDirectionBuffer[currentCoord] = float4(0.0, 0.0, 0.0, 0.0);
-    _RaytracingDistanceBuffer[currentCoord] = 0.0;
+    _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
 
     // Read the depth value
-    float depthValue  = _DepthTexture[currentCoord].x;
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
@@ -138,8 +138,8 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     if(!EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
     {
         // We want this to be flagged as a proper shadow, and not a 0/0 case
-        _RaytracedAreaShadowIntegration[currentCoord] = float2(0.0, 0.0);
-        _AnalyticProbBuffer[currentCoord] = float2(-1.0, -1.0);
+        _RaytracedAreaShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
+        _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)] = float2(-1.0, -1.0);
         return;
     }
 
@@ -166,8 +166,8 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     // If we could not sample , or the sample is not in the hemisphere or the sample is on the backface of the light
     if (!validity || dot(misOutput.dir, normalData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
     {
-        _RaytracedAreaShadowSample[currentCoord] = float2(0.0, 0.0);
-        _AnalyticProbBuffer[currentCoord] = float2(U, misInput.brdfProb);
+        _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
+        _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)] = float2(U, misInput.brdfProb);
         return;
     }
 
@@ -206,8 +206,8 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     }
 
     // Pass on the values to the output buffer (Sn, Un) and (U)
-    _RaytracedAreaShadowSample[currentCoord] = float2(UnL, UnL);
-    _AnalyticProbBuffer[currentCoord] = float2(U, misInput.brdfProb);
+    _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(UnL, UnL);
+    _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)] = float2(U, misInput.brdfProb);
 
     // Let's shift the origin and destination positions by a bias
     float3 rayOrigin = positionWS;
@@ -215,8 +215,8 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     float rayDistance = length(rayDestination-rayOrigin);
     float3 rayDirection = (rayDestination - rayOrigin) / rayDistance;
 
-    _RaytracingDirectionBuffer[currentCoord] = float4(rayDirection, 1.0f);
-    _RaytracingDistanceBuffer[currentCoord] = rayDistance;
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, 1.0f);
+    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
 }
 
 // Prepass that evaluates the data required for the ray tracing
@@ -228,10 +228,10 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Read the depth value
-    float depthValue  = _DepthTexture[currentCoord].x;
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || _AnalyticProbBuffer[currentCoord].x < 0.0)
+    float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || LOAD_TEXTURE2D_X(_AnalyticProbBuffer, currentCoord).x < 0.0)
     {
-        _RaytracedAreaShadowSample[currentCoord] = float2(0.0, 0.0);
+        _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
         return;
     }
 
@@ -270,7 +270,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
 
     // Our shader only processes luminance
-    float U = _AnalyticProbBuffer[currentCoord].x;
+    float U = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, currentCoord).x;
 
     // Structure that holds all the input data for the MIS
     MISSamplingInput misInput;
@@ -280,7 +280,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     misInput.positionWS = positionWS;
     misInput.rectDimension = lightData.size.xy;
     misInput.rectWSPos = GetAbsolutePositionWS(lightData.positionRWS);
-    misInput.brdfProb = _AnalyticProbBuffer[currentCoord].y;
+    misInput.brdfProb = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, currentCoord).y;
 
     // Setup and check the spherical rectangle
     SphQuad squad;
@@ -313,7 +313,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     // If we could not sample , or the sample is not in the hemisphere or the sample is on the backface of the light
     if (!validity || dot(misOutput.dir, normalData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
     {
-        _RaytracedAreaShadowSample[currentCoord] = float2(0.0, 0.0);
+        _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
         return;
     }
 
@@ -352,7 +352,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     }
 
     // Pass on the values to the output buffer (Sn, Un) and (U)
-    _RaytracedAreaShadowSample[currentCoord] = float2(UnL, UnL);
+    _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(UnL, UnL);
 
     // Let's shift the origin and destination positions by a bias
     float3 rayOrigin = positionWS;
@@ -360,6 +360,6 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     float rayDistance = length(rayDestination - rayOrigin);
     float3 rayDirection = (rayDestination - rayOrigin) / rayDistance;
 
-    _RaytracingDirectionBuffer[currentCoord] = float4(rayDirection, 1.0f);
-    _RaytracingDistanceBuffer[currentCoord] = rayDistance;
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, 1.0f);
+    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
 }

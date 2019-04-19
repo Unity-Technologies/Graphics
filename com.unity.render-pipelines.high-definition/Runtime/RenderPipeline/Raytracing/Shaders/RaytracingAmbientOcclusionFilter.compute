@@ -16,20 +16,14 @@
 // Tile size of this compute
 #define AMBIENT_OCCLUSION_TILE_SIZE 8
 
-// Input integration textures
-RWTexture2D<float4>         _SourceTexture;
-RWTexture2D<float4>         _OutputTexture;
-
-// ScreenSpace buffers
-Texture2D<float>			_DepthTexture;
-
-// Buffers for the temporal filtering
-RWTexture2D<float>          _AOHistorybufferRW;
+// Input filter DATA
+TEXTURE2D_X(_DepthTexture);
+RW_TEXTURE2D_X(float, _AOHistorybufferRW);
 TEXTURE2D_X(_DenoiseInputTexture);
-RWTexture2D<float4>         _DenoiseOutputTextureRW;
+int _RaytracingDenoiseRadius;
 
-// Filter parameters
-int                         _RaytracingDenoiseRadius;
+// Output Filter Data
+RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 
 [numthreads(AMBIENT_OCCLUSION_TILE_SIZE, AMBIENT_OCCLUSION_TILE_SIZE, 1)]
 void AOCopyTAAHistory(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -39,11 +33,11 @@ void AOCopyTAAHistory(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Get the previous value and current value
-    float historyValue = _AOHistorybufferRW[centerCoord];
+    float historyValue = LOAD_TEXTURE2D_X(_AOHistorybufferRW, centerCoord);
     float currentValue = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
 
     // Merge them into the previous buffer
-    _DenoiseOutputTextureRW[centerCoord] = float4(currentValue, historyValue, 0, 0);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(currentValue, historyValue, 0, 0);
 }
 
 [numthreads(AMBIENT_OCCLUSION_TILE_SIZE, AMBIENT_OCCLUSION_TILE_SIZE, 1)]
@@ -53,7 +47,7 @@ void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Group
     uint2 centerCoord = groupId * AMBIENT_OCCLUSION_TILE_SIZE + groupThreadId;
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
-    float depth = LOAD_TEXTURE2D(_DepthTexture, centerCoord).r;
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput_Stereo(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
 
     float2 closest = GetClosestFragment(posInputs);
@@ -64,10 +58,10 @@ void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Group
 
     float2 uv = posInputs.positionNDC;
 
-    float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).x;
-    float history = Fetch4(_DenoiseInputTexture, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy).y;
-    float topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _ScreenToTargetScale.xy).x;
-    float bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _ScreenToTargetScale.xy).x;
+    float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).x;
+    float history = Fetch4(_DenoiseInputTexture, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).y;
+    float topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy).x;
+    float bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy).x;
 
     float corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
@@ -101,8 +95,8 @@ void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Group
     color = UnmapPerChannel(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);
     
-    _AOHistorybufferRW[centerCoord] = color;
-    _DenoiseOutputTextureRW[centerCoord] = float4(color, color, color, 1.0);
+    _AOHistorybufferRW[COORD_TEXTURE2D_X(centerCoord)] = color;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, color, color, 1.0);
 }
 
 // ----------------------------------------------------------------------------
@@ -138,7 +132,7 @@ BilateralData TapBilateralData(uint2 coordSS)
 
     if (DEPTH_WEIGHT > 0.0 || PLANE_WEIGHT > 0.0)
     {
-        posInput.deviceDepth = LOAD_TEXTURE2D(_DepthTexture, coordSS).r;
+        posInput.deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, coordSS).r;
         key.z = Linear01Depth(posInput.deviceDepth, _ZBufferParams);
     }
 
@@ -152,7 +146,7 @@ BilateralData TapBilateralData(uint2 coordSS)
     if ((NORMAL_WEIGHT > 0.0) || (PLANE_WEIGHT > 0.0))
     {
         NormalData normalData;
-        const float4 normalBuffer = _NormalBufferTexture[COORD_TEXTURE2D_X(coordSS)];
+        const float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, coordSS);
         DecodeFromNormalBuffer(normalBuffer, coordSS, normalData);
         key.normal = normalData.normalWS;
     }
@@ -231,5 +225,5 @@ void AOBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
 
     // Store the intermediate result
     float ao = aoSum / wSum;
-    _DenoiseOutputTextureRW[centerCoord] = float4(ao, ao, ao, 1.0);
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(ao, ao, ao, 1.0);
 }

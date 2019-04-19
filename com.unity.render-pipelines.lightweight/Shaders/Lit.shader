@@ -114,7 +114,7 @@ Shader "Lightweight Render Pipeline/Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-
+            
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 

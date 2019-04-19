@@ -188,7 +188,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
     // Transparents have no contact shadow information
 #ifndef _SURFACE_TYPE_TRANSPARENT
-    shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
+    shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowMask));
 #endif
 
 #ifdef DEBUG_DISPLAY
@@ -343,7 +343,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
     // Transparents have no contact shadow information
 #ifndef _SURFACE_TYPE_TRANSPARENT
-    shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowIndex));
+    shadow = min(shadow, GetContactShadow(lightLoopContext, light.contactShadowMask));
 #endif
 
 #ifdef DEBUG_DISPLAY

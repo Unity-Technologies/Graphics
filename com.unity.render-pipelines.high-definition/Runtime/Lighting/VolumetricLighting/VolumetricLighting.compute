@@ -171,7 +171,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
         // Prep the light so that it works with non-volumetrics-specific code.
-        light.contactShadowIndex = -1;
+        light.contactShadowMask  = 0;
         light.lightDimmer        = light.volumetricLightDimmer;
         light.shadowDimmer       = light.volumetricShadowDimmer;
 
@@ -188,7 +188,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         DirectionalLightData light = _DirectionalLightDatas[i];
 
         // Prep the light so that it works with non-volumetrics-specific code.
-        light.contactShadowIndex = -1;
+        light.contactShadowMask  = 0;
         light.lightDimmer        = light.volumetricLightDimmer;
         light.shadowDimmer       = light.volumetricShadowDimmer;
 
@@ -251,7 +251,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
             if (light.lightType >= GPULIGHTTYPE_PROJECTOR_BOX) { break; }
 
             // Prep the light so that it works with non-volumetrics-aware code.
-            light.contactShadowIndex = -1;
+            light.contactShadowMask  = 0;
             light.shadowDimmer       = light.volumetricShadowDimmer;
             light.lightDimmer        = light.volumetricLightDimmer;
 
@@ -349,7 +349,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
             if (light.lightType != GPULIGHTTYPE_PROJECTOR_BOX) { break; }
 
             // Prep the light so that it works with non-volumetrics-aware code.
-            light.contactShadowIndex = -1;
+            light.contactShadowMask  = 0;
             light.shadowDimmer       = light.volumetricShadowDimmer;
             light.lightDimmer        = light.volumetricLightDimmer;
 

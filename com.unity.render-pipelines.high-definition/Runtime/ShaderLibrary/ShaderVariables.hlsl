@@ -11,10 +11,11 @@
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
 // This need to be fixed.
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Camera/HDCamera.cs.hlsl"
 #if defined(USING_STEREO_MATRICES)
-    #define _WorldSpaceCameraPos _WorldSpaceCameraPosStereo[unity_StereoEyeIndex].xyz
-    #define _WorldSpaceCameraPosEyeOffset _WorldSpaceCameraPosStereoEyeOffset[unity_StereoEyeIndex].xyz
-    #define _PrevCamPosRWS _PrevCamPosRWSStereo[unity_StereoEyeIndex].xyz
+    #define _WorldSpaceCameraPos            _XRViewConstants[unity_StereoEyeIndex].worldSpaceCameraPos
+    #define _WorldSpaceCameraPosViewOffset  _XRViewConstants[unity_StereoEyeIndex].worldSpaceCameraPosViewOffset
+    #define _PrevCamPosRWS                  _XRViewConstants[unity_StereoEyeIndex].prevWorldSpaceCameraPos
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
@@ -145,8 +146,8 @@ CBUFFER_START(UnityGlobal)
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
 
     // Those two uniforms are specific to the RTHandle system
-    float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
-    float4 _ScreenToTargetScaleHistory; // Same as above but the RTHandle handle size is that of the history buffer
+    float4 _RTHandleScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+    float4 _RTHandleScaleHistory; // Same as above but the RTHandle handle size is that of the history buffer
 
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
     // x = 1 - f/n
@@ -244,16 +245,7 @@ CBUFFER_END
 #if defined(USING_STEREO_MATRICES)
 
 CBUFFER_START(UnityPerPassStereo)
-float4x4 _ViewMatrixStereo[2];
-float4x4 _ProjMatrixStereo[2];
-float4x4 _ViewProjMatrixStereo[2];
-float4x4 _InvViewMatrixStereo[2];
-float4x4 _InvProjMatrixStereo[2];
-float4x4 _InvViewProjMatrixStereo[2];
-float4x4 _PrevViewProjMatrixStereo[2];
-float4   _WorldSpaceCameraPosStereo[2];
-float4   _WorldSpaceCameraPosStereoEyeOffset[2];
-float4   _PrevCamPosRWSStereo[2];
+    StructuredBuffer<ViewConstants> _XRViewConstants;
 CBUFFER_END
 
 #endif // USING_STEREO_MATRICES
@@ -277,7 +269,7 @@ float3 LoadCameraColor(uint2 pixelCoords, uint lod)
 
 float3 SampleCameraColor(float2 uv, float lod)
 {
-    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _ScreenToTargetScaleHistory.xy, lod).rgb;
+    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _RTHandleScaleHistory.xy, lod).rgb;
 }
 
 float3 LoadCameraColor(uint2 pixelCoords)
@@ -363,7 +355,7 @@ float GetInversePreviousExposureMultiplier()
 float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels)
 {
     float2 maxCoord = 1.0f - numberOfTexels * texelSize;
-    return min(UV, maxCoord) * _ScreenToTargetScale.xy;
+    return min(UV, maxCoord) * _RTHandleScale.xy;
 }
 
 // This is assuming half a texel offset in the clamp.
@@ -380,7 +372,7 @@ float2 ClampAndScaleUVForBilinear(float2 UV)
 
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
-    return min(UV, 1.0f) * _ScreenToTargetScale.xy;
+    return min(UV, 1.0f) * _RTHandleScale.xy;
 }
 
 bool ReplaceDiffuseForReflectionPass(float3 fresnel0)

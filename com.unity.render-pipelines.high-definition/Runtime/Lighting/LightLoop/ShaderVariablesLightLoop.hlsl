@@ -33,14 +33,14 @@
     TEXTURE2D_ARRAY(_Env2DTextures);
 
     // Contact shadows
-    TEXTURE2D_X(_DeferredShadowTexture);
+    TEXTURE2D_X_UINT(_DeferredShadowTexture);
 
 #if SHADEROPTIONS_RAYTRACING
     // Area shadow paper texture
     TEXTURE2D_ARRAY(_AreaShadowTexture);
 
     // Indirect Diffuse Texture
-    TEXTURE2D(_IndirectDiffuseTexture);
+    TEXTURE2D_X(_IndirectDiffuseTexture);
 #endif
 
 #endif

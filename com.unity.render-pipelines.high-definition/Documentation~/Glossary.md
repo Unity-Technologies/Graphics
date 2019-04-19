@@ -7,6 +7,10 @@
 #### atmospheric scattering
 Atmospheric scattering is the phenomena that occurs when particles suspended in the atmosphere diffuse (or scatter) a portion of the light, passing through them, in all directions.
 
+<a name="ChannelPacking"></a>
+
+#### channel packing
+A channel packed Texture is a Texture which has a separate grayscale image in each of its channels.
 
 <a name="NyquistRate"></a>
 
@@ -108,7 +112,7 @@ Measures the apparent brightness of light either emitted from a light source, or
 <a name="EV"></a>
 #### exposure value (EV):
 
-A value that represents a combination of a camera's shutter speed and f-number. It is essentially a measurement of exposure such that all combinations of shutter speed and f-number that yield the same level of exposure have the same EV. HDRP Lights can use **Ev 100**, which is EV with a 100 International Standards Organisation (ISO) film.
+A value that represents a combination of a camera's shutter speed and f-number. It is essentially a measurement of exposure such that all combinations of shutter speed and f-number that yield the same level of exposure have the same EV. HDRP Lights can use **EV<sub>100</sub>**, which is EV with a 100 International Standards Organisation (ISO) film.
 
 
 

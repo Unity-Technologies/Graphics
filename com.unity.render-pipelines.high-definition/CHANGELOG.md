@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.7.0-preview] - 2019-XX-XX
 
+### Added
+- Added ViewConstants StructuredBuffer to simplify XR rendering
+
+### Fixed
+- Fixed deserialization crash at runtime
+- Fix for ShaderGraph Unlit masternode not writing velocity
+- Fixed a crash when assiging a new HDRP asset with the 'Verify Saving Assets' option enabled
+- Fixed exposure to properly support TEXTURE2D_X
+- Fixed TerrainLit basemap texture generation
+- Fixed a bug that caused nans when material classification was enabled and a tile contained one standard material + a material with transmission.
+
+### Changed
+- Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
+
 ## [6.6.0-preview] - 2019-04-01
 
 ### Added

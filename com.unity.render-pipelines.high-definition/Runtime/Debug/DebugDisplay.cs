@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SSAO,
         ScreenSpaceReflections,
         ContactShadows,
+        ContactShadowsFade,
         PreRefractionColorPyramid,
         DepthPyramid,
         FinalColorPyramid,
@@ -75,7 +76,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float debugOverlayRatio = 0.33f;
             public FullScreenDebugMode fullScreenDebugMode = FullScreenDebugMode.None;
             public float fullscreenDebugMip = 0.0f;
+            public int fullScreenContactShadowLightIndex = 0;
             public bool showSSSampledColor = false;
+            public bool showContactShadowFade = false;
 
             public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
             public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -526,6 +529,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     });
                     break;
                 }
+                case FullScreenDebugMode.ContactShadows:
+                    list.Add(new DebugUI.Container
+                    {
+                        children = 
+                        {
+                            new DebugUI.IntField
+                            {
+                                displayName = "Light Index",
+                                getter = () =>
+                                {
+                                    return data.fullScreenContactShadowLightIndex;
+                                },
+                                setter = value =>
+                                {
+                                    data.fullScreenContactShadowLightIndex = value;
+                                },
+                                min = () => -1, // -1 will display all contact shadow
+                                max = () => LightDefinitions.s_LightListMaxPrunedEntries - 1
+                            },
+                        }
+                    });
+                    break;
                 default:
                     data.fullscreenDebugMip = 0;
                     break;
