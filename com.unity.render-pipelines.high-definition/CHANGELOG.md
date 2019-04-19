@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed TerrainLit basemap texture generation
+- Fixed single-pass stereo rendering
 
 ## [5.13.0-preview] - 2019-04-15
 
