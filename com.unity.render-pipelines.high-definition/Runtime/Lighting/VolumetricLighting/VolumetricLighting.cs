@@ -1,7 +1,7 @@
 using System;
-using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -41,9 +41,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     } // struct VolumeProperties
     //seongdae;fspm
     [GenerateHLSL]
-    public struct FluidSimDensityVolumeEngineData
+    public struct FluidSimVolumeEngineData
     {
-
+        public int textureIndex;
     }
     //seongdae;fspm
 
@@ -81,10 +81,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public List<DensityVolumeEngineData> density;
     }
     //seongdae;fspm
-    public struct FluidSimDensityVolumeList
+    public struct FluidSimVolumeList
     {
         public List<OrientedBBox> bounds;
-        public List<FluidSimDensityVolumeEngineData> fluidSim;
+        public List<FluidSimVolumeEngineData> fluidSim;
     }
     //seongdae;fspm
 
@@ -153,9 +153,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         List<DensityVolumeEngineData> m_VisibleVolumeData         = null;
         public const int              k_MaxVisibleVolumeCount     = 512;
 
+        //seongdae;fspm
+        List<OrientedBBox>             m_VisibleFluidSimVolumeBounds   = null;
+        List<FluidSimVolumeEngineData> m_VisibleFluidSimVolumeData     = null;
+        public const int               k_MaxVisibleFluidSimVolumeCount = 16;
+        //seongdae;fspm
+
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         static ComputeBuffer          s_VisibleVolumeBoundsBuffer = null;
         static ComputeBuffer          s_VisibleVolumeDataBuffer   = null;
+        static ComputeBuffer          s_VisibleFluidSimVolumeBoundsBuffer = null; //seongdae;fspm
+        static ComputeBuffer          s_VisibleFluidSimVolumeDataBuffer   = null; //seongdae;fspm
 
         // These two buffers do not depend on the frameID and are therefore shared by all views.
         RTHandleSystem.RTHandle       m_DensityBufferHandle;
@@ -264,6 +272,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
 
+            //seongdae;fspm
+            m_VisibleFluidSimVolumeBounds       = new List<OrientedBBox>();
+            m_VisibleFluidSimVolumeData         = new List<FluidSimVolumeEngineData>();
+            s_VisibleFluidSimVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleFluidSimVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
+            s_VisibleFluidSimVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleFluidSimVolumeCount, Marshal.SizeOf(typeof(FluidSimVolumeEngineData)));
+            //seongdae;fspm
+
             int d = ComputeVBufferSliceCount(preset);
 
             // With stereo instancing, the VBuffer is doubled and split into 2 compartments for each eye
@@ -360,9 +375,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             CoreUtils.SafeRelease(s_VisibleVolumeBoundsBuffer);
             CoreUtils.SafeRelease(s_VisibleVolumeDataBuffer);
+            CoreUtils.SafeRelease(s_VisibleFluidSimVolumeBoundsBuffer); //seongdae;fspm
+            CoreUtils.SafeRelease(s_VisibleFluidSimVolumeDataBuffer); //seongdae;fspm
 
             m_VisibleVolumeBounds = null;
             m_VisibleVolumeData   = null;
+            m_VisibleFluidSimVolumeBounds = null; //seongdae;fspm
+            m_VisibleFluidSimVolumeData   = null; //seongdae;fspm
         }
 
         public void Cleanup()
@@ -572,6 +591,71 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        //seongdae;fspm
+
+        public FluidSimVolumeList PrepareVisibleFluidSimVolumeList(HDCamera hdCamera, CommandBuffer cmd, float time)
+        {
+            FluidSimVolumeList FluidSimVolumes = new FluidSimVolumeList();
+
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
+                return FluidSimVolumes;
+
+            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            if (visualEnvironment.fogType.value != FogType.Volumetric)
+                return FluidSimVolumes;
+
+            using (new ProfilingSample(cmd, "Prepare Visible FluidSim Density Volume List"))
+            {
+                Vector3 camPosition = hdCamera.camera.transform.position;
+                Vector3 camOffset   = Vector3.zero;// World-origin-relative
+
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    camOffset = camPosition; // Camera-relative
+                }
+
+                m_VisibleFluidSimVolumeBounds.Clear();
+                m_VisibleFluidSimVolumeData.Clear();
+
+                // Collect all visible finite fluid sim volume data, and upload it to the GPU.
+                FluidSimVolume[] fluidSimVolumes = DensityVolumeManager.manager.PrepareFluidSimVolumeData(cmd, hdCamera.camera, time);
+
+                for (int i = 0; i < Math.Min(fluidSimVolumes.Length, k_MaxVisibleFluidSimVolumeCount); i++)
+                {
+                    FluidSimVolume fluidSimVolume = fluidSimVolumes[i];
+
+                    // TODO: cache these?
+                    var obb = new OrientedBBox(Matrix4x4.TRS(fluidSimVolume.transform.position, fluidSimVolume.transform.rotation, fluidSimVolume.parameters.size));
+
+                    // Handle camera-relative rendering.
+                    obb.center -= camOffset;
+
+                    // Frustum cull on the CPU for now. TODO: do it on the GPU.
+                    // TODO: account for custom near and far planes of the V-Buffer's frustum.
+                    // It's typically much shorter (along the Z axis) than the camera's frustum.
+                    // XRTODO: fix combined frustum culling
+                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8) || hdCamera.camera.stereoEnabled)
+                    {
+                        // TODO: cache these?
+                        var data = fluidSimVolume.parameters.ConvertToEngineData();
+
+                        m_VisibleFluidSimVolumeBounds.Add(obb);
+                        m_VisibleFluidSimVolumeData.Add(data);
+                    }
+                }
+
+                s_VisibleFluidSimVolumeBoundsBuffer.SetData(m_VisibleFluidSimVolumeBounds);
+                s_VisibleFluidSimVolumeDataBuffer.SetData(m_VisibleFluidSimVolumeData);
+
+                // Fill the struct with pointers in order to share the data with the light loop.
+                FluidSimVolumes.bounds  = m_VisibleFluidSimVolumeBounds;
+                FluidSimVolumes.fluidSim = m_VisibleFluidSimVolumeData;
+
+                return FluidSimVolumes;
+            }
+        }
+        //seongdae;fspm
+
         public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes, LightLoop lightLoop)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
@@ -651,7 +735,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         //seongdae;fspm
-        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, FluidSimDensityVolumeList fluidSimDensityVolumes, LightLoop lightLoop)
+        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, FluidSimVolumeList FluidSimVolumes, LightLoop lightLoop)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -662,9 +746,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "FluidSim Volume Voxelization"))
             {
-                int  numVisibleVolumes = m_VisibleVolumeBounds.Count;
-                bool tiledLighting     = lightLoop.HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
-                bool highQuality       = preset == VolumetricLightingPreset.High;
+                int  numVisibleFluidSimVolumes = m_VisibleFluidSimVolumeBounds.Count;
+                bool tiledLighting             = lightLoop.HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+                bool highQuality               = preset == VolumetricLightingPreset.High;
 
                 int kernel = (tiledLighting ? 1 : 0) | (highQuality ? 2 : 0) + 4;
 
@@ -711,14 +795,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);
-                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,    s_VisibleVolumeBoundsBuffer);
-                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,      s_VisibleVolumeDataBuffer);
+                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,    s_VisibleFluidSimVolumeBoundsBuffer);
+                cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,      s_VisibleFluidSimVolumeDataBuffer);
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeMaskAtlas, volumeAtlas);
 
                 // TODO: set the constant buffer data only once.
                 cmd.SetComputeMatrixParam(m_VolumeVoxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS,      transform);
                 cmd.SetComputeFloatParam( m_VolumeVoxelizationCS, HDShaderIDs._VBufferUnitDepthTexelSpacing, unitDepthTexelSpacing);
-                cmd.SetComputeIntParam(   m_VolumeVoxelizationCS, HDShaderIDs._NumVisibleDensityVolumes,     numVisibleVolumes);
+                cmd.SetComputeIntParam(   m_VolumeVoxelizationCS, HDShaderIDs._NumVisibleDensityVolumes,     numVisibleFluidSimVolumes);
                 cmd.SetComputeVectorParam(m_VolumeVoxelizationCS, HDShaderIDs._VolumeMaskDimensions,         volumeAtlasDimensions);
 
                 int w = (int)resolution.x;

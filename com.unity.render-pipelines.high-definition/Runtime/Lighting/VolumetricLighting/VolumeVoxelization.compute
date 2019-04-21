@@ -16,10 +16,10 @@
 #pragma kernel VolumeVoxelizationTiledMQ              VolumeVoxelization=VolumeVoxelizationTiledMQ              VL_PRESET_MQ
 #pragma kernel VolumeVoxelizationBruteforceHQ         VolumeVoxelization=VolumeVoxelizationBruteforceHQ         LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ
 #pragma kernel VolumeVoxelizationTiledHQ              VolumeVoxelization=VolumeVoxelizationTiledHQ              VL_PRESET_HQ
-#pragma kernel VolumeFluidSimVoxelizationBruteforceMQ VolumeVoxelization=VolumeFluidSimVoxelizationBruteforceMQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_MQ FLUID_SIM
-#pragma kernel VolumeFluidSimVoxelizationTiledMQ      VolumeVoxelization=VolumeFluidSimVoxelizationTiledMQ      VL_PRESET_MQ                                    FLUID_SIM
-#pragma kernel VolumeFluidSimVoxelizationBruteforceHQ VolumeVoxelization=VolumeFluidSimVoxelizationBruteforceHQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ FLUID_SIM
-#pragma kernel VolumeFluidSimVoxelizationTiledHQ      VolumeVoxelization=VolumeFluidSimVoxelizationTiledHQ      VL_PRESET_HQ                                    FLUID_SIM
+#pragma kernel VolumeVoxelizationFluidSimBruteforceMQ VolumeVoxelization=VolumeVoxelizationFluidSimBruteforceMQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_MQ FLUID_SIM
+#pragma kernel VolumeVoxelizationFluidSimTiledMQ      VolumeVoxelization=VolumeVoxelizationFluidSimTiledMQ      VL_PRESET_MQ                                    FLUID_SIM
+#pragma kernel VolumeVoxelizationFluidSimBruteforceHQ VolumeVoxelization=VolumeVoxelizationFluidSimBruteforceHQ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ FLUID_SIM
+#pragma kernel VolumeVoxelizationFluidSimTiledHQ      VolumeVoxelization=VolumeVoxelizationFluidSimTiledHQ      VL_PRESET_HQ                                    FLUID_SIM
 //seongdae;fspm
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
@@ -63,8 +63,13 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
+#ifndef FLUID_SIM //seongdae;fspm
 StructuredBuffer<OrientedBBox>            _VolumeBounds;
 StructuredBuffer<DensityVolumeEngineData> _VolumeData;
+#else //seongdae;fspm
+StructuredBuffer<OrientedBBox>             _VolumeBounds;
+StructuredBuffer<FluidSimVolumeEngineData> _VolumeData;
+#endif //seongdae;fspm
 
 TEXTURE3D(_VolumeMaskAtlas);
 
@@ -152,6 +157,7 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).a;
 }
 
+#ifndef FLUID_SIM //seongdae;fspm
 void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, JitteredRay ray)
 {
     uint volumeCount, volumeStart;
@@ -340,6 +346,174 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
         t0 = t1;
     }
 }
+//seongdae;fspm
+#else
+void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, JitteredRay ray)
+{
+    uint volumeCount, volumeStart;
+
+#ifdef USE_BIG_TILE_LIGHTLIST
+    // Offset for stereo rendering
+    tileIndex += unity_StereoEyeIndex * _NumTileBigTileX * _NumTileBigTileY;
+
+    // The "big tile" list contains the number of objects contained within the tile followed by the
+    // list of object indices. Note that while objects are already sorted by type, we don't know the
+    // number of each type of objects (e.g. lights), so we should remember to break out of the loop.
+    volumeCount = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex];
+    volumeStart = MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex + 1;
+
+    // For now, iterate through all the objects to determine the correct range.
+    // TODO: precompute this, of course.
+    {
+        uint offset = 0;
+
+        for (; offset < volumeCount; offset++)
+        {
+            uint objectIndex = FetchIndex(volumeStart, offset);
+
+            if (objectIndex >= _DensityVolumeIndexShift)
+            {
+                // We have found the first density volume.
+                break;
+            }
+        }
+
+        volumeStart += offset;
+        volumeCount -= offset;
+    }
+
+#else  // USE_BIG_TILE_LIGHTLIST
+
+    volumeCount = _NumVisibleDensityVolumes;
+    volumeStart = 0;
+
+#endif // USE_BIG_TILE_LIGHTLIST
+
+    float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+    float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
+
+    for (uint slice = 0; slice < _VBufferSliceCount; slice++)
+    {
+        uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
+
+        float e1 = slice * de + de; // (slice + 1) / sliceCount
+        float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
+        float dt = t1 - t0;
+        float t = t0 + 0.5 * dt;
+
+        float3 voxelCenterWS = ray.originWS + t * ray.centerDirWS;
+
+        float3 volumeScattering = float3(0.0, 0.0, 0.0);
+        float  volumeExtinction = 0.0;
+
+        for (uint volumeOffset = 0; volumeOffset < volumeCount; volumeOffset++)
+        {
+        #ifdef USE_BIG_TILE_LIGHTLIST
+            uint volumeIndex = FetchIndex(volumeStart, volumeOffset) - _DensityVolumeIndexShift;
+        #else
+            uint volumeIndex = FetchIndex(volumeStart, volumeOffset);
+        #endif
+
+            const OrientedBBox obb = _VolumeBounds[volumeIndex];
+
+            const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.up, obb.right));
+            const float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
+
+            // Express the voxel center in the local coordinate system of the box.
+            const float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
+            const float3 voxelCenterCS = (voxelCenterBS * rcp(obbExtents));
+
+            const float3 voxelAxisRightBS   = mul(ray.xDirDerivWS, transpose(obbFrame));
+            const float3 voxelAxisUpBS      = mul(ray.yDirDerivWS, transpose(obbFrame));
+            const float3 voxelAxisForwardBS = mul(ray.centerDirWS, transpose(obbFrame));
+
+        #if SOFT_VOXELIZATION
+            // We need to determine which is the face closest to 'voxelCenterBS'.
+            float minFaceDist = abs(obbExtents.x - abs(voxelCenterBS.x));
+
+            // TODO: use v_cubeid_f32.
+            uint axisIndex; float faceDist;
+
+            faceDist    = abs(obbExtents.y - abs(voxelCenterBS.y));
+            axisIndex   = (faceDist < minFaceDist) ? 1 : 0;
+            minFaceDist = min(faceDist, minFaceDist);
+
+            faceDist    = abs(obbExtents.z - abs(voxelCenterBS.z));
+            axisIndex   = (faceDist < minFaceDist) ? 2 : axisIndex;
+
+            float3 N = float3(axisIndex == 0 ? 1 : 0, axisIndex == 1 ? 1 : 0, axisIndex == 2 ? 1 : 0);
+
+            // We have determined the normal of the closest face.
+            // We now have to construct the diagonal of the voxel with the longest extent along this normal.
+            float3 minDiagPointBS, maxDiagPointBS;
+
+            // Start at the center of the voxel.
+            minDiagPointBS = maxDiagPointBS = voxelCenterBS;
+
+            bool  normalFwd  = dot(voxelAxisForwardBS, N) >= 0;
+            float mulForward = 0.5 * (normalFwd ? dt : -dt);
+            float mulMin     = 0.5 * (normalFwd ? t0 : t1);
+            float mulMax     = 0.5 * (normalFwd ? t1 : t0);
+
+            minDiagPointBS -= mulForward * voxelAxisForwardBS;
+            maxDiagPointBS += mulForward * voxelAxisForwardBS;
+
+            float mulUp = dot(voxelAxisUpBS, N) >= 0 ? 1 : -1;
+
+            minDiagPointBS -= (mulMin * mulUp) * voxelAxisUpBS;
+            maxDiagPointBS += (mulMax * mulUp) * voxelAxisUpBS;
+
+            float mulRight = dot(voxelAxisRightBS, N) >= 0 ? 1 : -1;
+
+            minDiagPointBS -= (mulMin * mulRight) * voxelAxisRightBS;
+            maxDiagPointBS += (mulMax * mulRight) * voxelAxisRightBS;
+
+            // We want to determine the fractional overlap of the diagonal and the box.
+            float3 diagOriginBS = minDiagPointBS;
+            float3 diagUnDirBS  = maxDiagPointBS - minDiagPointBS;
+
+            float tEntr, tExit;
+
+            IntersectRayAABB(diagOriginBS, diagUnDirBS,
+                             -obbExtents, obbExtents,
+                             0, 1,
+                             tEntr, tExit);
+
+            // TODO: currently, soft voxelization does not account for the distance fade.
+            // Therefore, instead of a smooth transition, you may see a discrete pop between slices.
+            // How to make the distance fade affect the volume volume coverage?
+            float overlapFraction = tExit - tEntr;
+
+        #else  // SOFT_VOXELIZATION
+
+            bool overlap = Max3(abs(voxelCenterCS.x), abs(voxelCenterCS.y), abs(voxelCenterCS.z)) <= 1;
+
+            float overlapFraction = overlap ? 1 : 0;
+
+        #endif // SOFT_VOXELIZATION
+
+            if (overlapFraction > 0)
+            {
+                // We must clamp here, otherwise, with soft voxelization enabled,
+                // the center of the voxel can be slightly outside the box.
+                float3 voxelCenterNDC = saturate(voxelCenterCS * 0.5 + 0.5);
+
+                // Due to clamping above, 't' may not exactly correspond to the distance
+                // to the sample point. We ignore it for performance and simplicity.
+                float dist = t;
+
+                volumeScattering += float3(0.1, 0.0, 0.0);
+                volumeExtinction += 0.0;
+            }
+        }
+
+        _VBufferDensity[voxelCoord] += float4(volumeScattering, volumeExtinction);
+
+        t0 = t1;
+    }
+}
+#endif
+//seongdae;fspm
 
 [numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
 void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,

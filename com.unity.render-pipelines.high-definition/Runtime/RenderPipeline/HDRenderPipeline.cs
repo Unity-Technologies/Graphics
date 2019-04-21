@@ -1519,6 +1519,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
             DensityVolumeList densityVolumes = m_VolumetricLightingSystem.PrepareVisibleDensityVolumeList(hdCamera, cmd, m_Time);
+            FluidSimVolumeList fluidSimVolumes = m_VolumetricLightingSystem.PrepareVisibleFluidSimVolumeList(hdCamera, cmd, m_Time); //seongdae;fspm
 
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
@@ -1729,7 +1730,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     haveAsyncTaskWithShadows = true;
 
                     void Callback(CommandBuffer asyncCmd)
-                        => m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
+                        //=> m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop); //seongdae;fspm;origin
+                    //seongdae;fspm
+                    {
+                        m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
+                        m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, fluidSimVolumes, m_LightLoop);
+                    }
+                    //seongdae;fspm
                 }
 
                 if (hdCamera.frameSettings.SSRRunsAsync())
@@ -1805,6 +1812,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Perform the voxelization step which fills the density 3D texture.
                     m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes, m_LightLoop);
+                    m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, fluidSimVolumes, m_LightLoop); //seongdae;fspm
                 }
 
                 // Render the volumetric lighting.
