@@ -57,7 +57,6 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue, inout floa
     if (_WindEnabled > 0)
     {
 		float3 rotatedWindVector = normalize(mul(_ST_WindVector.xyz, (float3x3)UNITY_MATRIX_M));
-        //float3 rotatedWindVector = mul(_ST_WindVector.xyz, (float3x3)unity_ObjectToWorld);
         float windLength = length(rotatedWindVector);
         if (windLength < 1e-5)
         {
@@ -66,7 +65,6 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue, inout floa
         }
         rotatedWindVector /= windLength;
 
-        //float3 treePos = float3(unity_ObjectToWorld[0].w, unity_ObjectToWorld[1].w, unity_ObjectToWorld[2].w);
 		float3 treePos = float3(UNITY_MATRIX_M[0].w, UNITY_MATRIX_M[1].w, UNITY_MATRIX_M[2].w);
         float3 windyPosition = input.vertex.xyz;
 
@@ -153,7 +151,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue, inout floa
     viewDot *= viewDot;
     viewDot += topDown ? 0.38 : 0.18; // different scales for horz and vert billboards to fix transition zone
 
-                                      // if invisible, avoid overdraw
+	// if invisible, avoid overdraw
     if (viewDot < 0.3333)
     {
         input.vertex.xyz = float3(0, 0, 0);
