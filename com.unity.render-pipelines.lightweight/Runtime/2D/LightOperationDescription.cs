@@ -42,8 +42,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [Serializable]
         internal struct BlendFactors
         {
-            internal float multiplicative;
-            internal float additive;
+            public float multiplicative;
+            public float additive;
         }
 
         public bool enabled;
