@@ -431,9 +431,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.DrawWireArc(transform.position, transform.forward, Quaternion.AngleAxis(180 - angle / 2, transform.forward) * -transform.up, angle, radius);
         }
 
-        Handles.CapFunction GetCapFunc(Texture texture)
+        Handles.CapFunction GetCapFunc(Texture texture, bool isAngleHandle)
         {
-            return (controlID, position, rotation, size, eventType) => Light2DEditorUtility.GUITextureCap(controlID, texture, position, rotation, size, eventType);
+            return (controlID, position, rotation, size, eventType) => Light2DEditorUtility.GUITextureCap(controlID, texture, position, rotation, size, eventType, isAngleHandle);
         }
 
         private void DrawAngleHandles(Light2D light)
@@ -442,14 +442,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.color = Color.yellow;
 
             float outerAngle = light.pointLightOuterAngle;
-            float diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, k_AngleCapOffset, GetCapFunc(Styles.lightCapTopRight), GetCapFunc(Styles.lightCapBottomRight), ref outerAngle);
+            float diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, k_AngleCapOffset, GetCapFunc(Styles.lightCapTopRight, true), GetCapFunc(Styles.lightCapBottomRight, true), ref outerAngle);
             light.pointLightOuterAngle = outerAngle;
 
             if (diff != 0.0f)
                 light.pointLightInnerAngle = Mathf.Max(0.0f, light.pointLightInnerAngle + diff);
 
             float innerAngle = light.pointLightInnerAngle;
-            diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, -k_AngleCapOffset, GetCapFunc(Styles.lightCapTopLeft), GetCapFunc(Styles.lightCapBottomLeft), ref innerAngle);
+            diff = DrawAngleHandle(light.transform, light.pointLightOuterRadius, -k_AngleCapOffset, GetCapFunc(Styles.lightCapTopLeft, true), GetCapFunc(Styles.lightCapBottomLeft, true), ref innerAngle);
             light.pointLightInnerAngle = innerAngle;
 
             if (diff != 0.0f)
@@ -462,7 +462,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         private void DrawRangeHandles(Light2D light)
         {
-            var handleColor = Handles.color;
             var dummy = 0.0f;
             bool radiusChanged = false;
             Vector3 handlePos = Vector3.zero;
@@ -475,7 +474,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             float outerRadius = light.pointLightOuterRadius;
             EditorGUI.BeginChangeCheck();
-            Vector3 returnPos = DrawAngleSlider2D(light.transform, rotLeft, outerRadius, -handleOffset, GetCapFunc(Styles.lightCapUp), handleSize, false, false, false, ref dummy);
+            Vector3 returnPos = DrawAngleSlider2D(light.transform, rotLeft, outerRadius, -handleOffset, GetCapFunc(Styles.lightCapUp, false), handleSize, false, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 var vec = (returnPos - light.transform.position).normalized;
@@ -489,7 +488,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             Handles.color = Color.gray;
             float innerRadius = light.pointLightInnerRadius;
             EditorGUI.BeginChangeCheck();
-            returnPos = DrawAngleSlider2D(light.transform, rotLeft, innerRadius, handleOffset, GetCapFunc(Styles.lightCapDown), handleSize, true, false, false, ref dummy);
+            returnPos = DrawAngleSlider2D(light.transform, rotLeft, innerRadius, handleOffset, GetCapFunc(Styles.lightCapDown, false), handleSize, true, false, false, ref dummy);
             if (EditorGUI.EndChangeCheck())
             {
                 innerRadius = (returnPos - light.transform.position).magnitude;
@@ -504,9 +503,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             {
                 light.pointLightInnerRadius = (outerRadius < innerRadius) ? outerRadius : innerRadius;
                 light.pointLightOuterRadius = (innerRadius > outerRadius) ? innerRadius : outerRadius;
-            }
-            
-            Handles.color = handleColor;
+            }      
         }
 
         void OnSceneGUI()
