@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_UseNormalMap;
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricAlpha;
-        SerializedProperty m_LightOperation;
+        SerializedProperty m_LightOperationIndex;
         SerializedProperty m_FalloffIntensity;
         SerializedProperty m_PointZDistance;
         SerializedProperty m_LightOrder;
@@ -143,7 +143,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_UseNormalMap = serializedObject.FindProperty("m_UseNormalMap");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
-            m_LightOperation = serializedObject.FindProperty("m_LightOperationIndex");
+            m_LightOperationIndex = serializedObject.FindProperty("m_LightOperationIndex");
             m_FalloffIntensity = serializedObject.FindProperty("m_FalloffIntensity");
             m_PointZDistance = serializedObject.FindProperty("m_PointLightDistance");
             m_LightOrder = serializedObject.FindProperty("m_LightOrder");
@@ -174,15 +174,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             {
                 for (int i = 0; i < rendererData.lightOperations.Length; ++i)
                 {
-                    var lightOperation = rendererData.lightOperations[i];
+                    lightOperationIndices.Add(i);
+
+                    ref var lightOperation = ref rendererData.lightOperations[i];
                     if (lightOperation.enabled)
                     {
-                        lightOperationIndices.Add(i);
                         lightOperationNames.Add(lightOperation.name);
+                        m_AnyLightOperationEnabled = true;
                     }
+                    else
+                        lightOperationNames.Add(lightOperation.name + " (Disabled)");
                 }
-
-                m_AnyLightOperationEnabled = lightOperationIndices.Count != 0;
             }
             else
             {
@@ -642,7 +644,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.PropertyField(m_LightOrder, Styles.shapeLightOrder);
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.IntPopup(m_LightOperation, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
+            EditorGUILayout.IntPopup(m_LightOperationIndex, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
             EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
 
