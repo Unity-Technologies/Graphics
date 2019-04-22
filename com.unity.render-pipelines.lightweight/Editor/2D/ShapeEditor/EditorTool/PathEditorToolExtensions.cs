@@ -11,26 +11,26 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
     internal static class PathEditorToolExtensions
     {
-        public static void CycleTangentMode<T>(this PathEditorTool<T> shapeEditorTool) where T : ScriptablePath
+        public static void CycleTangentMode<T>(this PathEditorTool<T> pathEditorTool) where T : ScriptablePath
         {
             var first = true;
             var mixed = false;
             var tangentMode = TangentMode.Linear;
-            var targets = shapeEditorTool.targets;
+            var targets = pathEditorTool.targets;
 
             foreach(var target in targets)
             {
-                var shapeEditor = shapeEditorTool.GetShapeEditor(target);
+                var path = pathEditorTool.GetPath(target);
 
-                if (shapeEditor.selection.Count == 0)
+                if (path.selection.Count == 0)
                     continue;
 
-                for (var i = 0; i < shapeEditor.pointCount; ++i)
+                for (var i = 0; i < path.pointCount; ++i)
                 {
-                    if (!shapeEditor.selection.Contains(i))
+                    if (!path.selection.Contains(i))
                         continue;
 
-                    var point = shapeEditor.GetPoint(i);
+                    var point = path.GetPoint(i);
                     
                     if (first)
                     {
@@ -55,47 +55,47 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             foreach(var target in targets)
             {
-                var shapeEditor = shapeEditorTool.GetShapeEditor(target);
+                var path = pathEditorTool.GetPath(target);
 
-                if (shapeEditor.selection.Count == 0)
+                if (path.selection.Count == 0)
                     continue;
 
-                shapeEditor.undoObject.RegisterUndo("Cycle Tangent Mode");
+                path.undoObject.RegisterUndo("Cycle Tangent Mode");
 
-                for (var i = 0; i < shapeEditor.pointCount; ++i)
+                for (var i = 0; i < path.pointCount; ++i)
                 {
-                    if (!shapeEditor.selection.Contains(i))
+                    if (!path.selection.Contains(i))
                         continue;
 
-                    shapeEditor.SetTangentMode(i, tangentMode);
+                    path.SetTangentMode(i, tangentMode);
                 }
 
-                shapeEditorTool.SetShape(target);
+                pathEditorTool.SetPath(target);
             }
         }
 
-        public static void MirrorTangent<T>(this PathEditorTool<T> shapeEditorTool) where T : ScriptablePath
+        public static void MirrorTangent<T>(this PathEditorTool<T> pathEditorTool) where T : ScriptablePath
         {
-            var targets = shapeEditorTool.targets;
+            var targets = pathEditorTool.targets;
 
             foreach(var target in targets)
             {
-                var shapeEditor = shapeEditorTool.GetShapeEditor(target);
+                var path = pathEditorTool.GetPath(target);
 
-                if (shapeEditor.selection.Count == 0)
+                if (path.selection.Count == 0)
                     continue;
 
-                shapeEditor.undoObject.RegisterUndo("Mirror Tangents");
+                path.undoObject.RegisterUndo("Mirror Tangents");
 
-                for (var i = 0; i < shapeEditor.pointCount; ++i)
+                for (var i = 0; i < path.pointCount; ++i)
                 {
-                    if (!shapeEditor.selection.Contains(i))
+                    if (!path.selection.Contains(i))
                         continue;
 
-                    shapeEditor.MirrorTangent(i);
+                    path.MirrorTangent(i);
                 }
 
-                shapeEditorTool.SetShape(target);
+                pathEditorTool.SetPath(target);
             }
         }
 

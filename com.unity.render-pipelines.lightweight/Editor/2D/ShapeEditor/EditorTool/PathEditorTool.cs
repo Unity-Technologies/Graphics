@@ -97,7 +97,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
     internal abstract class PathEditorTool<T> : EditorTool, IDuringSceneGuiTool where T : ScriptablePath
     {
-        private Dictionary<UnityObject, T> m_ShapeEditors = new Dictionary<UnityObject, T>();
+        private Dictionary<UnityObject, T> m_Paths = new Dictionary<UnityObject, T>();
         private IGUIState m_GUIState = new GUIState();
         private Dictionary<UnityObject, GUISystem> m_GUISystems = new Dictionary<UnityObject, GUISystem>();
         private Dictionary<UnityObject, SerializedObject> m_SerializedObjects = new Dictionary<UnityObject, SerializedObject>();
@@ -105,9 +105,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         private PointRectSelector m_RectSelector = new PointRectSelector();
         private bool m_IsActive = false;
 
-        internal T[] shapeEditors
+        internal T[] paths
         {
-            get { return m_ShapeEditors.Values.ToArray(); }
+            get { return m_Paths.Values.ToArray(); }
         }
 
         public bool enableSnapping
@@ -126,24 +126,24 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             return targets.Count() > 0;
         }
 
-        public T GetShapeEditor(UnityObject targetObject)
+        public T GetPath(UnityObject targetObject)
         {
-            var shapeEditor = default(T);
-            m_ShapeEditors.TryGetValue(targetObject, out shapeEditor);
-            return shapeEditor;
+            var path = default(T);
+            m_Paths.TryGetValue(targetObject, out path);
+            return path;
         }
 
-        public void SetShape(UnityObject target)
+        public void SetPath(UnityObject target)
         {
-            var shapeEditor = GetShapeEditor(target);
-            shapeEditor.localToWorldMatrix = Matrix4x4.identity;
+            var path = GetPath(target);
+            path.localToWorldMatrix = Matrix4x4.identity;
 
             var undoName = Undo.GetCurrentGroupName();
             var serializedObject = GetSerializedObject(target);
             
             serializedObject.UpdateIfRequiredOrScript();
 
-            SetShape(shapeEditor, serializedObject);
+            SetShape(path, serializedObject);
 
             Undo.SetCurrentGroupName(undoName);
         }
@@ -219,18 +219,18 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private void DestroyCache()
         {
-            foreach (var pair in m_ShapeEditors)
+            foreach (var pair in m_Paths)
             {
-                var shapeEditor = pair.Value;
+                var path = pair.Value;
 
-                if (shapeEditor != null)
+                if (path != null)
                 {
-                    Undo.ClearUndo(shapeEditor);
-                    UnityObject.DestroyImmediate(shapeEditor);
+                    Undo.ClearUndo(path);
+                    UnityObject.DestroyImmediate(path);
                 }
             }
-            m_ShapeEditors.Clear();
-            m_Controller.ClearShapeEditors();
+            m_Paths.Clear();
+            m_Controller.ClearPaths();
             m_GUISystems.Clear();
             m_SerializedObjects.Clear();
         }
@@ -239,10 +239,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         {
             ForEachTarget((target) =>
             {
-                var shapeEditor = GetShapeEditor(target);
+                var path = GetPath(target);
 
-                if (!shapeEditor.modified)
-                    InitializeShapeEditor(target);
+                if (!path.modified)
+                    InitializePath(target);
             });
         }
 
@@ -277,25 +277,25 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private void InitializeCache()
         {
-            m_Controller.ClearShapeEditors();
+            m_Controller.ClearPaths();
 
             ForEachTarget((target) =>
             {
-                var shapeEditor = GetOrCreateShapeEditor(target);
-                var pointCount = shapeEditor.pointCount;
+                var path = GetOrCreatePath(target);
+                var pointCount = path.pointCount;
 
-                InitializeShapeEditor(target);
+                InitializePath(target);
 
-                if (pointCount != shapeEditor.pointCount)
-                    shapeEditor.selection.Clear();
+                if (pointCount != path.pointCount)
+                    path.selection.Clear();
 
                 CreateGUISystem(target);
 
-                m_Controller.AddShapeEditor(shapeEditor);
+                m_Controller.AddPath(path);
             });
         }
 
-        private void InitializeShapeEditor(UnityObject target)
+        private void InitializePath(UnityObject target)
         {
             IShape shape = null;
             ControlPoint[] controlPoints = null;
@@ -310,33 +310,34 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 Debug.LogError(e.Message);
             }
 
-            var shapeEditor = GetShapeEditor(target);
-            shapeEditor.Clear();
+            var path = GetPath(target);
+            path.Clear();
 
             if (shape != null && controlPoints != null)
             {
-                shapeEditor.localToWorldMatrix = Matrix4x4.identity;
-                shapeEditor.shapeType = shape.type;
-                shapeEditor.isOpenEnded = shape.isOpenEnded;
+                path.localToWorldMatrix = Matrix4x4.identity;
+                path.shapeType = shape.type;
+                path.isOpenEnded = shape.isOpenEnded;
 
                 foreach (var controlPoint in controlPoints)
-                    shapeEditor.AddPoint(controlPoint);
+                    path.AddPoint(controlPoint);
             }
 
-            Initialize(shapeEditor, GetSerializedObject(target));
+            Initialize(path, GetSerializedObject(target));
         }
 
-        private T GetOrCreateShapeEditor(UnityObject targetObject)
+        private T GetOrCreatePath(UnityObject targetObject)
         {
-            var shapeEditor = GetShapeEditor(targetObject);
+            var path = GetPath(targetObject);
 
-            if (shapeEditor == null)
+            if (path == null)
             {
-                shapeEditor = ScriptableObject.CreateInstance<T>();
-                m_ShapeEditors[targetObject] = shapeEditor;
+                path = ScriptableObject.CreateInstance<T>();
+                path.owner = targetObject;
+                m_Paths[targetObject] = path;
             }
 
-            return shapeEditor;
+            return path;
         }
 
         private GUISystem GetGUISystem(UnityObject target)
@@ -349,10 +350,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         private void CreateGUISystem(UnityObject target)
         {
             var guiSystem = new GUISystem(m_GUIState);
-            var driver = new EditablePathView();
+            var view = new EditablePathView();
 
-            driver.controller = m_Controller;
-            driver.Install(guiSystem);
+            view.controller = m_Controller;
+            view.Install(guiSystem);
 
             m_GUISystems[target] = guiSystem;
         }
@@ -373,7 +374,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         void IDuringSceneGuiTool.DuringSceneGui(SceneView sceneView)
         {
             if (m_GUIState.eventType == EventType.Layout)
-                m_Controller.ClearClosestShapeEditor();
+                m_Controller.ClearClosestPath();
                 
             m_RectSelector.OnGUI();
 
@@ -381,19 +382,20 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             
             ForEachTarget((target) =>
             {
-                var shapeEditor = GetShapeEditor(target);
+                var path = GetPath(target);
 
-                if (shapeEditor != null)
+                if (path != null)
                 {
-                    shapeEditor.localToWorldMatrix = GetLocalToWorldMatrix(target);
-                    shapeEditor.forward = GetForward(target);
-                    shapeEditor.up = GetUp(target);
-                    shapeEditor.right = GetRight(target);
-                    m_Controller.shapeEditor = shapeEditor;
+                    path.localToWorldMatrix = GetLocalToWorldMatrix(target);
+                    path.forward = GetForward(target);
+                    path.up = GetUp(target);
+                    path.right = GetRight(target);
+                    m_Controller.editablePath = path;
 
                     using (var check = new EditorGUI.ChangeCheckScope())
                     {
                         GetGUISystem(target).OnGUI();
+                        OnCustomGUI(path);
                         changed |= check.changed;
                     }
                 }
@@ -414,8 +416,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             {
                 ForEachTarget((target) =>
                 {
-                    var shapeEditor = GetShapeEditor(target);
-                    shapeEditor.selection.BeginSelection();
+                    var path = GetPath(target);
+                    path.selection.BeginSelection();
                 });
             }
             else
@@ -430,9 +432,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             ForEachTarget((target) =>
             {
-                var shapeEditor = GetShapeEditor(target);
+                var path = GetPath(target);
 
-                repaintInspectors |= shapeEditor.Select(selector);
+                repaintInspectors |= path.Select(selector);
             });
 
             if (repaintInspectors)
@@ -443,8 +445,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         {
             ForEachTarget((target) =>
             {
-                var shapeEditor = GetShapeEditor(target);
-                shapeEditor.selection.EndSelection(true);
+                var path = GetPath(target);
+                path.selection.EndSelection(true);
             });
         }
 
@@ -452,7 +454,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         {
             ForEachTarget((target) =>
             {
-                SetShape(target);
+                SetPath(target);
             });
         }
 
@@ -482,9 +484,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         }
 
         protected abstract IShape GetShape(UnityObject target);
-        protected virtual void Initialize(T shapeEditor, SerializedObject serializedObject) { }
-        protected abstract void SetShape(T shapeEditor, SerializedObject serializedObject);
+        protected virtual void Initialize(T path, SerializedObject serializedObject) { }
+        protected abstract void SetShape(T path, SerializedObject serializedObject);
         protected virtual void OnActivate() { }
         protected virtual void OnDeactivate() { }
+        protected virtual void OnCustomGUI(T path) { }
     }
 }

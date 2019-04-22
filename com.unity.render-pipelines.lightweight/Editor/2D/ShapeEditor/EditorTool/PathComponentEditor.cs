@@ -56,13 +56,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             }
         }
 
-        protected void DoShapeEditorInspector<U>() where U : PathEditorTool<T>
+        protected void DoPathInspector<U>() where U : PathEditorTool<T>
         {
             if (EditorToolManager.IsActiveTool<U>() && EditorToolManager.IsAvailable<U>())
             {
-                var shapeEditors = EditorToolManager.GetEditorTool<U>().shapeEditors;
+                var paths = EditorToolManager.GetEditorTool<U>().paths;
 
-                CreateCachedEditor(shapeEditors, null, ref m_CachedEditor);
+                CreateCachedEditor(paths, null, ref m_CachedEditor);
 
                 if (m_CachedEditor == null) //Needed to avoid a nullref on exiting playmode
                     return;
@@ -98,12 +98,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 {
                     if (EditorToolManager.IsActiveTool<U>() && EditorToolManager.IsAvailable<U>())
                     {
-                        var shapeEditors = EditorToolManager.GetEditorTool<U>().shapeEditors;
+                        var paths = EditorToolManager.GetEditorTool<U>().paths;
                         
-                        foreach (var shapeEditor in shapeEditors)
+                        foreach (var path in paths)
                         {
-                            shapeEditor.undoObject.RegisterUndo("Set Open Ended");
-                            shapeEditor.isOpenEnded = isOpenEndedProperty.boolValue;
+                            path.undoObject.RegisterUndo("Set Open Ended");
+                            path.isOpenEnded = isOpenEndedProperty.boolValue;
                         }
                     }
                 }

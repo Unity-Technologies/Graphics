@@ -35,17 +35,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             }
         }
 
-        private List<ScriptablePath> m_ShapeEditors = null;
+        private List<ScriptablePath> m_Paths = null;
         private bool m_Dragged = false;
 
-        protected List<ScriptablePath> shapeEditors
+        protected List<ScriptablePath> paths
         {
             get
             {
-                if (m_ShapeEditors == null)
-                    m_ShapeEditors = targets.Select( t => t as ScriptablePath).ToList();
+                if (m_Paths == null)
+                    m_Paths = targets.Select( t => t as ScriptablePath).ToList();
                 
-                return m_ShapeEditors;
+                return m_Paths;
             }
         }
 
@@ -99,8 +99,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 {
                     if (m_Dragged == false)
                     {
-                        foreach(var shapeEditor in shapeEditors)
-                            shapeEditor.undoObject.RegisterUndo("Point Position");
+                        foreach(var path in paths)
+                            path.undoObject.RegisterUndo("Point Position");
                         
                         m_Dragged = true;
                     }
@@ -130,12 +130,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private bool GetToggleStateFromTangentMode(TangentMode mode)
         {
-            foreach(var shapeEditor in shapeEditors)
+            foreach(var path in paths)
             {
-                var selection = shapeEditor.selection;
+                var selection = path.selection;
 
                 foreach (var index in selection.elements)
-                    if (shapeEditor.GetPoint(index).tangentMode != mode)
+                    if (path.GetPoint(index).tangentMode != mode)
                         return false;
             }
             
@@ -144,12 +144,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private void SetMixedTangentMode(TangentMode tangentMode)
         {
-            foreach(var shapeEditor in shapeEditors)
+            foreach(var path in paths)
             {
-                shapeEditor.undoObject.RegisterUndo("Tangent Mode");
+                path.undoObject.RegisterUndo("Tangent Mode");
 
-                foreach (var index in shapeEditor.selection.elements)
-                    shapeEditor.SetTangentMode(index, tangentMode);
+                foreach (var index in path.selection.elements)
+                    path.SetTangentMode(index, tangentMode);
             }
 
             SceneView.RepaintAll();
@@ -160,16 +160,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             var first = true;
             position = Vector3.zero;
 
-            foreach(var shapeEditor in shapeEditors)
+            foreach(var path in paths)
             {
-                var selection = shapeEditor.selection;
-                var matrix = shapeEditor.localToWorldMatrix;
+                var selection = path.selection;
+                var matrix = path.localToWorldMatrix;
 
-                shapeEditor.localToWorldMatrix = Matrix4x4.identity;
+                path.localToWorldMatrix = Matrix4x4.identity;
 
                 foreach (var index in selection.elements)
                 {
-                    var controlPoint = shapeEditor.GetPoint(index);
+                    var controlPoint = path.GetPoint(index);
 
                     if (first)
                     {
@@ -182,7 +182,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     }
                 }
 
-                shapeEditor.localToWorldMatrix = matrix;
+                path.localToWorldMatrix = matrix;
             }
             
             return false;
@@ -190,28 +190,28 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private void SetMixedDeltaPosition(Vector3 delta)
         {
-            foreach(var shapeEditor in shapeEditors)
+            foreach(var path in paths)
             {
-                var selection = shapeEditor.selection;
-                var matrix = shapeEditor.localToWorldMatrix;
+                var selection = path.selection;
+                var matrix = path.localToWorldMatrix;
 
-                shapeEditor.localToWorldMatrix = Matrix4x4.identity;
+                path.localToWorldMatrix = Matrix4x4.identity;
 
                 foreach (var index in selection.elements)
                 {
-                    var controlPoint = shapeEditor.GetPoint(index);
+                    var controlPoint = path.GetPoint(index);
                     controlPoint.position += delta;
-                    shapeEditor.SetPoint(index, controlPoint);
+                    path.SetPoint(index, controlPoint);
                 }
 
-                shapeEditor.localToWorldMatrix = matrix;
+                path.localToWorldMatrix = matrix;
             }
         }
 
         private bool IsAnyShapeType(ShapeType shapeType)
         {
-            foreach(var shapeEditor in shapeEditors)
-                if (shapeEditor.shapeType == shapeType)
+            foreach(var path in paths)
+                if (path.shapeType == shapeType)
                     return true;
 
             return false;
@@ -219,8 +219,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         protected bool IsAnyPointSelected()
         {
-            foreach(var shapeEditor in shapeEditors)
-                if (shapeEditor.selection.Count > 0)
+            foreach(var path in paths)
+                if (path.selection.Count > 0)
                     return true;
 
             return false;

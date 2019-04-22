@@ -49,7 +49,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             m_EdgeControl = new GenericControl("Edge")
             {
-                onEndLayout = (guiState) => { controller.AddClosestShapeEditor(m_EdgeControl.layoutData.distance); },
+                onEndLayout = (guiState) => { controller.AddClosestPath(m_EdgeControl.layoutData.distance); },
                 count = GetEdgeCount,
                 distance = DistanceToEdge,
                 position = (i) => { return GetPoint(i).position; },
@@ -127,7 +127,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             m_CreatePointAction = new CreatePointAction(m_PointControl, m_EdgeControl)
             {
-                enable = (guiState, action) => { return !guiState.isShiftDown && controller.closestShapeEditor == controller.shapeEditor; },
+                enable = (guiState, action) => { return !guiState.isShiftDown && controller.closestEditablePath == controller.editablePath; },
                 enableRepaint = EnableCreatePointRepaint,
                 repaintOnMouseMove = (guiState, action) => { return true; },
                 guiToWorld = GUIToWorld,
@@ -226,7 +226,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 },
                 onSliderEnd = (guiState, control, position) =>
                 {
-                    controller.shapeEditor.UpdateTangentMode(control.hotLayoutData.index);
+                    controller.editablePath.UpdateTangentMode(control.hotLayoutData.index);
                     guiState.changed = true;
                 }
             };
@@ -247,7 +247,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 },
                 onSliderEnd = (guiState, control, position) =>
                 {
-                    controller.shapeEditor.UpdateTangentMode(control.hotLayoutData.index);
+                    controller.editablePath.UpdateTangentMode(control.hotLayoutData.index);
                     guiState.changed = true;
                 }
             };
@@ -285,70 +285,70 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         private ControlPoint GetPoint(int index)
         {
-            return controller.shapeEditor.GetPoint(index);
+            return controller.editablePath.GetPoint(index);
         }
 
         private int GetPointCount()
         {
-            return controller.shapeEditor.pointCount;
+            return controller.editablePath.pointCount;
         }
 
         private int GetEdgeCount()
         {
-            if (controller.shapeEditor.isOpenEnded)
-                return controller.shapeEditor.pointCount - 1;
+            if (controller.editablePath.isOpenEnded)
+                return controller.editablePath.pointCount - 1;
 
-            return controller.shapeEditor.pointCount;
+            return controller.editablePath.pointCount;
         }
 
         private int GetSelectedPointCount()
         {
-            return controller.shapeEditor.selection.Count;
+            return controller.editablePath.selection.Count;
         }
 
         private bool IsSelected(int index)
         {
-            return controller.shapeEditor.selection.Contains(index);
+            return controller.editablePath.selection.Contains(index);
         }
 
         private Vector3 GetForward()
         {
-            return controller.shapeEditor.forward;
+            return controller.editablePath.forward;
         }
 
         private Vector3 GetUp()
         {
-            return controller.shapeEditor.up;
+            return controller.editablePath.up;
         }
 
         private Vector3 GetRight()
         {
-            return controller.shapeEditor.right;
+            return controller.editablePath.right;
         }
 
         private Matrix4x4 GetLocalToWorldMatrix()
         {
-            return controller.shapeEditor.localToWorldMatrix;
+            return controller.editablePath.localToWorldMatrix;
         }
 
         private ShapeType GetShapeType()
         {
-            return controller.shapeEditor.shapeType;
+            return controller.editablePath.shapeType;
         }
 
         private bool IsOpenEnded()
         {
-            return controller.shapeEditor.isOpenEnded;
+            return controller.editablePath.isOpenEnded;
         }
 
         private Vector3 GetLeftTangent(int index)
         {
-            return controller.shapeEditor.CalculateLeftTangent(index);
+            return controller.editablePath.CalculateLeftTangent(index);
         }
 
         private Vector3 GetRightTangent(int index)
         {
-            return controller.shapeEditor.CalculateRightTangent(index);
+            return controller.editablePath.CalculateRightTangent(index);
         }
 
         private int NextIndex(int index)

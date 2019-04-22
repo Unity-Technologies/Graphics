@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
+using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 {
     internal class ScriptablePath : ScriptableObject, IEditablePath, IUndoObject
     {
         [SerializeField]
-        private EditablePath m_ShapeEditor = new EditablePath();
+        private EditablePath m_EditablePath = new EditablePath();
         [SerializeField]
         private bool m_Modified = false;
 
@@ -19,10 +20,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             get { return m_Modified; }
         }
 
+        internal UnityObject owner { get; set; }
+
         public ShapeType shapeType
         {
-            get { return m_ShapeEditor.shapeType; }
-            set { m_ShapeEditor.shapeType = value; }
+            get { return m_EditablePath.shapeType; }
+            set { m_EditablePath.shapeType = value; }
         }
 
         public IUndoObject undoObject
@@ -33,77 +36,77 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         public ISelection<int> selection
         {
-            get { return m_ShapeEditor.selection; }
+            get { return m_EditablePath.selection; }
         }
 
         public Matrix4x4 localToWorldMatrix
         {
-            get { return m_ShapeEditor.localToWorldMatrix; }
-            set { m_ShapeEditor.localToWorldMatrix = value; }
+            get { return m_EditablePath.localToWorldMatrix; }
+            set { m_EditablePath.localToWorldMatrix = value; }
         }
 
         public Vector3 forward
         {
-            get { return m_ShapeEditor.forward; }
-            set { m_ShapeEditor.forward = value; }
+            get { return m_EditablePath.forward; }
+            set { m_EditablePath.forward = value; }
         }
 
         public Vector3 up
         {
-            get { return m_ShapeEditor.up; }
-            set { m_ShapeEditor.up = value; }
+            get { return m_EditablePath.up; }
+            set { m_EditablePath.up = value; }
         }
 
         public Vector3 right
         {
-            get { return m_ShapeEditor.right; }
-            set { m_ShapeEditor.right = value; }
+            get { return m_EditablePath.right; }
+            set { m_EditablePath.right = value; }
         }
 
         public bool isOpenEnded
         {
-            get { return m_ShapeEditor.isOpenEnded; }
-            set { m_ShapeEditor.isOpenEnded = value; }
+            get { return m_EditablePath.isOpenEnded; }
+            set { m_EditablePath.isOpenEnded = value; }
         }
 
         public int pointCount
         {
-            get { return m_ShapeEditor.pointCount; }
+            get { return m_EditablePath.pointCount; }
         }
 
         public bool Select(ISelector<Vector3> selector)
         {
-            return m_ShapeEditor.Select(selector);
+            return m_EditablePath.Select(selector);
         }
 
         public virtual void Clear()
         {
-            m_ShapeEditor.Clear();
+            m_EditablePath.Clear();
         }
 
         public virtual ControlPoint GetPoint(int index)
         {
-            return m_ShapeEditor.GetPoint(index);
+            return m_EditablePath.GetPoint(index);
         }
 
         public virtual void SetPoint(int index, ControlPoint controlPoint)
         {
-            m_ShapeEditor.SetPoint(index, controlPoint);
+            m_EditablePath.SetPoint(index, controlPoint);
         }
 
         public virtual void AddPoint(ControlPoint controlPoint)
         {
-            m_ShapeEditor.AddPoint(controlPoint);
+            m_EditablePath.AddPoint(controlPoint);
         }
 
         public virtual void InsertPoint(int index, ControlPoint controlPoint)
         {
-            m_ShapeEditor.InsertPoint(index, controlPoint);
+            m_EditablePath.InsertPoint(index, controlPoint);
         }
 
         public virtual void RemovePoint(int index)
         {
-            m_ShapeEditor.RemovePoint(index);
+            m_EditablePath.RemovePoint(index);
         }
 
         void IUndoObject.RegisterUndo(string name)

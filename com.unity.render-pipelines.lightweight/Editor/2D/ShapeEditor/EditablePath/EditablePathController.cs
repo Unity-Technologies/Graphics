@@ -8,8 +8,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
     {
         private ISnapping<Vector3> m_Snapping = new Snapping();
 
-        public IEditablePath shapeEditor { get; set; }
-        public IEditablePath closestShapeEditor { get { return shapeEditor; } }
+        public IEditablePath editablePath { get; set; }
+        public IEditablePath closestEditablePath { get { return editablePath; } }
 
         public ISnapping<Vector3> snapping
         {
@@ -21,33 +21,33 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         public void RegisterUndo(string name)
         {
-            if (shapeEditor.undoObject != null)
-                shapeEditor.undoObject.RegisterUndo(name);
+            if (editablePath.undoObject != null)
+                editablePath.undoObject.RegisterUndo(name);
         }
 
         public void ClearSelection()
         {
-            shapeEditor.selection.Clear();
+            editablePath.selection.Clear();
         }
 
         public void SelectPoint(int index, bool select)
         {
-            shapeEditor.selection.Select(index, select);
+            editablePath.selection.Select(index, select);
         }
 
         public void CreatePoint(int index, Vector3 position)
         {
             ClearSelection();
 
-            if (shapeEditor.shapeType == ShapeType.Polygon)
+            if (editablePath.shapeType == ShapeType.Polygon)
             {
-                shapeEditor.InsertPoint(index + 1, new ControlPoint() { position = position });
+                editablePath.InsertPoint(index + 1, new ControlPoint() { position = position });
             }
-            else if (shapeEditor.shapeType == ShapeType.Spline)
+            else if (editablePath.shapeType == ShapeType.Spline)
             {
                 var nextIndex = NextIndex(index);
-                var currentPoint = shapeEditor.GetPoint(index);
-                var nextPoint = shapeEditor.GetPoint(nextIndex);
+                var currentPoint = editablePath.GetPoint(index);
+                var nextPoint = editablePath.GetPoint(nextIndex);
 
                 float t;
                 var closestPoint = BezierUtility.ClosestPointOnCurve(
@@ -101,23 +101,23 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                         nextPoint.tangentMode = TangentMode.Broken;
                 }
 
-                shapeEditor.SetPoint(index, currentPoint);
-                shapeEditor.SetPoint(nextIndex, nextPoint);
-                shapeEditor.InsertPoint(newPointIndex, newPoint);
+                editablePath.SetPoint(index, currentPoint);
+                editablePath.SetPoint(nextIndex, nextPoint);
+                editablePath.InsertPoint(newPointIndex, newPoint);
             }
         }
 
         public void RemoveSelectedPoints()
         {
-            var minPointCount = shapeEditor.isOpenEnded ? 2 : 3;
+            var minPointCount = editablePath.isOpenEnded ? 2 : 3;
 
-            if (shapeEditor.pointCount > minPointCount)
+            if (editablePath.pointCount > minPointCount)
             {
-                var indices = shapeEditor.selection.elements.OrderByDescending( i => i);
+                var indices = editablePath.selection.elements.OrderByDescending( i => i);
 
                 foreach (var index in indices)
-                    if (shapeEditor.pointCount > minPointCount)
-                        shapeEditor.RemovePoint(index);
+                    if (editablePath.pointCount > minPointCount)
+                        editablePath.RemovePoint(index);
 
                 ClearSelection();
             }
@@ -125,33 +125,35 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         public void MoveSelectedPoints(Vector3 delta)
         {
-            for (var i = 0; i < shapeEditor.pointCount; ++i)
+            delta = Vector3.ProjectOnPlane(delta, editablePath.forward);
+
+            for (var i = 0; i < editablePath.pointCount; ++i)
             {
-                if (shapeEditor.selection.Contains(i))
+                if (editablePath.selection.Contains(i))
                 {                            
-                    var controlPoint = shapeEditor.GetPoint(i);
+                    var controlPoint = editablePath.GetPoint(i);
                     controlPoint.position += delta;
-                    shapeEditor.SetPoint(i, controlPoint);
+                    editablePath.SetPoint(i, controlPoint);
                 }
             }
         }
 
         public void MoveEdge(int index, Vector3 delta)
         {
-            if (shapeEditor.isOpenEnded && index == shapeEditor.pointCount - 1)
+            if (editablePath.isOpenEnded && index == editablePath.pointCount - 1)
                 return;
             
-            var controlPoint = shapeEditor.GetPoint(index);
+            var controlPoint = editablePath.GetPoint(index);
             controlPoint.position += delta;
-            shapeEditor.SetPoint(index, controlPoint);
+            editablePath.SetPoint(index, controlPoint);
             controlPoint = NextControlPoint(index);
             controlPoint.position += delta;
-            shapeEditor.SetPoint(NextIndex(index), controlPoint);
+            editablePath.SetPoint(NextIndex(index), controlPoint);
         }
 
         public void SetLeftTangent(int index, Vector3 position, bool setToLinear, bool mirror, Vector3 cachedRightTangent)
         {
-            var controlPoint = shapeEditor.GetPoint(index);
+            var controlPoint = editablePath.GetPoint(index);
             controlPoint.leftTangent = position;
             controlPoint.mirrorLeft = false;
 
@@ -170,12 +172,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 controlPoint.localRightTangent = magnitude * -controlPoint.localLeftTangent.normalized;
             }
 
-            shapeEditor.SetPoint(index, controlPoint);
+            editablePath.SetPoint(index, controlPoint);
         }
 
         public void SetRightTangent(int index, Vector3 position, bool setToLinear, bool mirror, Vector3 cachedLeftTangent)
         {
-            var controlPoint = shapeEditor.GetPoint(index);
+            var controlPoint = editablePath.GetPoint(index);
             controlPoint.rightTangent = position;
             controlPoint.mirrorLeft = true;
 
@@ -194,60 +196,60 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 controlPoint.localLeftTangent = magnitude * -controlPoint.localRightTangent.normalized;
             }
 
-            shapeEditor.SetPoint(index, controlPoint);
+            editablePath.SetPoint(index, controlPoint);
         }
 
-        public void ClearClosestShapeEditor() { }
-        public void AddClosestShapeEditor(float distance) { }
+        public void ClearClosestPath() { }
+        public void AddClosestPath(float distance) { }
 
         private Vector3 GetLeftTangentPosition(int index)
         {
-            var isLinear = Mathf.Approximately(shapeEditor.GetPoint(index).localLeftTangent.sqrMagnitude, 0f);
+            var isLinear = Mathf.Approximately(editablePath.GetPoint(index).localLeftTangent.sqrMagnitude, 0f);
 
             if (isLinear)
             {
-                var position = shapeEditor.GetPoint(index).position;
+                var position = editablePath.GetPoint(index).position;
                 var prevPosition = PrevControlPoint(index).position;
 
                 return (1f / 3f) * (prevPosition - position) + position;
             }
 
-            return shapeEditor.GetPoint(index).leftTangent;
+            return editablePath.GetPoint(index).leftTangent;
         }
 
         private Vector3 GetRightTangentPosition(int index)
         {
-            var isLinear = Mathf.Approximately(shapeEditor.GetPoint(index).localRightTangent.sqrMagnitude, 0f);
+            var isLinear = Mathf.Approximately(editablePath.GetPoint(index).localRightTangent.sqrMagnitude, 0f);
 
             if (isLinear)
             {
-                var position = shapeEditor.GetPoint(index).position;
+                var position = editablePath.GetPoint(index).position;
                 var nextPosition = NextControlPoint(index).position;
 
                 return (1f / 3f) * (nextPosition - position) + position;
             }
 
-            return shapeEditor.GetPoint(index).rightTangent;
+            return editablePath.GetPoint(index).rightTangent;
         }
 
         private int NextIndex(int index)
         {
-            return EditablePathUtility.Mod(index + 1, shapeEditor.pointCount);
+            return EditablePathUtility.Mod(index + 1, editablePath.pointCount);
         }
 
         private ControlPoint NextControlPoint(int index)
         {
-            return shapeEditor.GetPoint(NextIndex(index));
+            return editablePath.GetPoint(NextIndex(index));
         }
 
         private int PrevIndex(int index)
         {
-            return EditablePathUtility.Mod(index - 1, shapeEditor.pointCount);
+            return EditablePathUtility.Mod(index - 1, editablePath.pointCount);
         }
 
         private ControlPoint PrevControlPoint(int index)
         {
-            return shapeEditor.GetPoint(PrevIndex(index));
+            return editablePath.GetPoint(PrevIndex(index));
         }
     }
 }

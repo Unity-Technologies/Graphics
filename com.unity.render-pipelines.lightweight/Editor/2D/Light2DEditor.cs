@@ -669,7 +669,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (m_LightType.intValue == (int)Light2D.LightType.Freeform)
             {
                 DoEditButton<FreeformShapeTool>(PathEditorToolContents.icon, "Edit Shape");
-                DoShapeEditorInspector<FreeformShapeTool>();
+                DoPathInspector<FreeformShapeTool>();
                 DoSnappingInspector<FreeformShapeTool>();
             }
 

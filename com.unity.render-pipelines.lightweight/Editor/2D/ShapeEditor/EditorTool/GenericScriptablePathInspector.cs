@@ -53,17 +53,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
             m_SelectedDataObjects.Clear();
 
-            foreach(var shapeEditor in shapeEditors)
-                elementCount += shapeEditor.pointCount;
+            foreach(var path in paths)
+                elementCount += path.pointCount;
             
             while (m_DataObjects.Count < elementCount)
                 CreateDataObject();
 
             var index = 0;
-            foreach(var shapeEditor in shapeEditors)
+            foreach(var path in paths)
             {
-                var genericShapeEditor = shapeEditor as GenericScriptablePath<T>;
-                var customDataArray = genericShapeEditor.data;
+                var genericPath = path as GenericScriptablePath<T>;
+                var customDataArray = genericPath.data;
                 var length = customDataArray.Length;
                 
                 for (var i = 0; i < length; ++i)
@@ -71,8 +71,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                     var dataObject = m_DataObjects[index + i];
                     dataObject.data = customDataArray[i];
 
-                    if (shapeEditor.selection.Contains(i))
+                    if (path.selection.Contains(i))
+                    {
+                        dataObject.owner = path.owner;
+                        dataObject.index = i;
                         m_SelectedDataObjects.Add(dataObject);
+                    }
                 }
                 
                 index += length;
@@ -82,16 +86,16 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
         private void SetDataObjects()
         {
             var index = 0;
-            foreach(var shapeEditor in shapeEditors)
+            foreach(var path in paths)
             {
-                var genericShapeEditor = shapeEditor as GenericScriptablePath<T>;
-                var customDataArray = genericShapeEditor.data;
+                var genericPath = path as GenericScriptablePath<T>;
+                var customDataArray = genericPath.data;
                 var length = customDataArray.Length;
                 
                 for (var i = 0; i < length; ++i)
                     customDataArray[i] = m_DataObjects[index + i].data;
 
-                genericShapeEditor.data = customDataArray;
+                genericPath.data = customDataArray;
                 
                 index += length;
             }

@@ -18,20 +18,20 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         public DefaultStyles()
         {
-            var pointNormal = Resources.Load<Texture2D>("ShapeEditor/pointNormal");
-            var pointHovered = Resources.Load<Texture2D>("ShapeEditor/pointHovered");
-            var pointSelected = Resources.Load<Texture2D>("ShapeEditor/pointSelected");
-            var pointPreview = Resources.Load<Texture2D>("ShapeEditor/pointPreview");
-            var pointRemovePreview = Resources.Load<Texture2D>("ShapeEditor/pointRemovePreview");
-            var tangentNormal = Resources.Load<Texture2D>("ShapeEditor/tangentNormal");
+            var pointNormal = Resources.Load<Texture2D>("Path/pointNormal");
+            var pointHovered = Resources.Load<Texture2D>("Path/pointHovered");
+            var pointSelected = Resources.Load<Texture2D>("Path/pointSelected");
+            var pointPreview = Resources.Load<Texture2D>("Path/pointPreview");
+            var pointRemovePreview = Resources.Load<Texture2D>("Path/pointRemovePreview");
+            var tangentNormal = Resources.Load<Texture2D>("Path/tangentNormal");
 
-            pointNormalStyle = CreateStyle(Resources.Load<Texture2D>("ShapeEditor/pointNormal"), Vector2.one * 12f);
-            pointHoveredStyle = CreateStyle(Resources.Load<Texture2D>("ShapeEditor/pointHovered"), Vector2.one * 12f);
-            pointSelectedStyle = CreateStyle(Resources.Load<Texture2D>("ShapeEditor/pointSelected"), Vector2.one * 12f);
-            pointPreviewStyle = CreateStyle(Resources.Load<Texture2D>("ShapeEditor/pointPreview"), Vector2.one * 12f);
-            pointRemovePreviewStyle = CreateStyle(Resources.Load<Texture2D>("ShapeEditor/pointRemovePreview"), Vector2.one * 12f);
-            tangentNormalStyle = CreateStyle(Resources.Load<Texture2D>("ShapeEditor/tangentNormal"), Vector2.one * 8f);
-            tangentHoveredStyle = CreateStyle(Resources.Load<Texture2D>("ShapeEditor/pointHovered"), Vector2.one * 10f);
+            pointNormalStyle = CreateStyle(Resources.Load<Texture2D>("Path/pointNormal"), Vector2.one * 12f);
+            pointHoveredStyle = CreateStyle(Resources.Load<Texture2D>("Path/pointHovered"), Vector2.one * 12f);
+            pointSelectedStyle = CreateStyle(Resources.Load<Texture2D>("Path/pointSelected"), Vector2.one * 12f);
+            pointPreviewStyle = CreateStyle(Resources.Load<Texture2D>("Path/pointPreview"), Vector2.one * 12f);
+            pointRemovePreviewStyle = CreateStyle(Resources.Load<Texture2D>("Path/pointRemovePreview"), Vector2.one * 12f);
+            tangentNormalStyle = CreateStyle(Resources.Load<Texture2D>("Path/tangentNormal"), Vector2.one * 8f);
+            tangentHoveredStyle = CreateStyle(Resources.Load<Texture2D>("Path/pointHovered"), Vector2.one * 10f);
 
             selectionRectStyle = GUI.skin.FindStyle("selectionRect");
         }

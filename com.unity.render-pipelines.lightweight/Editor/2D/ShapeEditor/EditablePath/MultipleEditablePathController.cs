@@ -7,17 +7,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
     internal class MultipleEditablePathController : IEditablePathController
     {
         private IEditablePathController m_Controller = new EditablePathController();
-        private List<IEditablePath> m_ShapeEditors = new List<IEditablePath>();
+        private List<IEditablePath> m_Paths = new List<IEditablePath>();
         private float m_ClosestDistance = float.MaxValue;
-        private IEditablePath m_ClosestShapeEditor;
+        private IEditablePath m_ClosestPath;
 
-        public IEditablePath shapeEditor
+        public IEditablePath editablePath
         {
-            get { return m_Controller.shapeEditor; }
-            set { m_Controller.shapeEditor = value; }
+            get { return m_Controller.editablePath; }
+            set { m_Controller.editablePath = value; }
         }
 
-        public IEditablePath closestShapeEditor { get; private set; }
+        public IEditablePath closestEditablePath { get; private set; }
 
         public ISnapping<Vector3> snapping
         {
@@ -31,46 +31,46 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             set { m_Controller.enableSnapping = value; }
         }
 
-        public void ClearShapeEditors()
+        public void ClearPaths()
         {
-            m_ShapeEditors.Clear();
+            m_Paths.Clear();
         }
 
-        public void AddShapeEditor(IEditablePath shapeEditor)
+        public void AddPath(IEditablePath path)
         {
-            if (!m_ShapeEditors.Contains(shapeEditor))
-                m_ShapeEditors.Add(shapeEditor);
+            if (!m_Paths.Contains(path))
+                m_Paths.Add(path);
         }
 
-        public void RemoveShapeEditor(IEditablePath shapeEditor)
+        public void RemovePath(IEditablePath path)
         {
-            m_ShapeEditors.Remove(shapeEditor);
+            m_Paths.Remove(path);
         }
 
         public void RegisterUndo(string name)
         {
-            var current = shapeEditor;
+            var current = editablePath;
 
             ForEach((s) =>
             {
-                shapeEditor = s;
+                editablePath = s;
                 m_Controller.RegisterUndo(name);
             });
 
-            shapeEditor = current;
+            editablePath = current;
         }
 
         public void ClearSelection()
         {
-            var current = shapeEditor;
+            var current = editablePath;
 
             ForEach((s) =>
             {
-                shapeEditor = s;
+                editablePath = s;
                 m_Controller.ClearSelection();
             });   
 
-            shapeEditor = current;
+            editablePath = current;
         }
 
         public void SelectPoint(int index, bool select)
@@ -85,30 +85,28 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         public void RemoveSelectedPoints()
         {
-            var current = shapeEditor;
+            var current = editablePath;
 
             ForEach((s) =>
             {
-                shapeEditor = s;
+                editablePath = s;
                 m_Controller.RemoveSelectedPoints();
             });
 
-            shapeEditor = current;
+            editablePath = current;
         }
 
         public void MoveSelectedPoints(Vector3 delta)
         {
-            var current = shapeEditor;
+            var current = editablePath;
 
             ForEach((s) =>
             {
-                shapeEditor = s;
-                var localDelta = Vector3.Scale(s.right + s.up, delta);
-                
-                m_Controller.MoveSelectedPoints(localDelta);
+                editablePath = s;
+                m_Controller.MoveSelectedPoints(delta);
             });
 
-            shapeEditor = current;
+            editablePath = current;
         }
 
         public void MoveEdge(int index, Vector3 delta)
@@ -126,29 +124,29 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
             m_Controller.SetRightTangent(index, position, setToLinear, mirror, cachedLeftTangent);
         }
 
-        public void ClearClosestShapeEditor()
+        public void ClearClosestPath()
         {
             m_ClosestDistance = float.MaxValue;
-            closestShapeEditor = null;
+            closestEditablePath = null;
         }
 
-        public void AddClosestShapeEditor(float distance)
+        public void AddClosestPath(float distance)
         {
             if (distance <= m_ClosestDistance)
             {
                 m_ClosestDistance = distance;
-                closestShapeEditor = shapeEditor;
+                closestEditablePath = editablePath;
             }
         }
 
         private void ForEach(Action<IEditablePath> action)
         {
-            foreach(var shapeEditor in m_ShapeEditors)
+            foreach(var path in m_Paths)
             {
-                if (shapeEditor == null)
+                if (path == null)
                     continue;
 
-                action(shapeEditor);
+                action(path);
             }
         }
     }
