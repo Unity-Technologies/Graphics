@@ -12,6 +12,14 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
+    internal struct NodeEntry
+    {
+        public string[] title;
+        public AbstractMaterialNode node;
+        public int compatibleSlotId;
+        public string slotName;
+    }
+
     class SearchWindowProvider : ScriptableObject
     {
         EditorWindow m_EditorWindow;
@@ -48,14 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public struct NodeEntry
-        {
-            public string[] title;
-            public AbstractMaterialNode node;
-            public int compatibleSlotId;
-            public string slotName;
-        }
-
+        
         List<int> m_Ids;
         List<ISlot> m_Slots = new List<ISlot>();
 
@@ -128,10 +129,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                             // Make sure that leaves go before nodes
                             if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
                             {
-                                if (entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId) != 0)
-                                    return entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);
-                                    
-                                return entry1.title.Length < entry2.title.Length ? -1 : 1;
+                                //once nodes are sorted, sort slot entries by slot order instead of alphebetically                                 
+                                return entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);
                             }                                                         
                             
                             return value;
@@ -155,14 +154,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 SearcherItem item = null;
                 SearcherItem parent = null;
-                foreach(var pathEntry in nodeEntry.title)
+                for(int i = 0; i < nodeEntry.title.Length; i++)
                 {
+                    var pathEntry = nodeEntry.title[i];
                     List<SearcherItem> children = parent != null ? parent.Children : root;
                     item = children.Find(x => x.Name == pathEntry);
 
                     if (item == null)
                     {
-                        item = new SearcherItem(pathEntry);
+                        //if we have slot entries and are at a leaf, add the slot name to the entry title
+                        if (nodeEntry.compatibleSlotId != -1 && i == nodeEntry.title.Length - 1)
+                            item = new SearchNodeItem(pathEntry + ": " + nodeEntry.slotName, nodeEntry);
+                        else
+                            item = new SearchNodeItem(pathEntry, nodeEntry);
 
                         if (parent != null)
                         {
@@ -222,12 +226,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             
             foreach (var slot in m_Slots)
             {
-                var entryTitle = new string[title.Length];
-                title.CopyTo(entryTitle, 0);
-                entryTitle[entryTitle.Length - 1] += ": " + slot.displayName;
+                //var entryTitle = new string[title.Length];
+                //title.CopyTo(entryTitle, 0);
+                //entryTitle[entryTitle.Length - 1] += ": " + slot.displayName;
                 addNodeEntries.Add(new NodeEntry
                 {
-                    title = entryTitle,
+                    title = title,
                     node = node,
                     compatibleSlotId = slot.id,
                     slotName = slot.displayName
@@ -240,8 +244,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if(entry == null)
                 return false;
-            var nodeEntry = currentNodeEntries.Find(currentNode => currentNode.title.Contains(entry.Name));
-
+           
+            var nodeEntry = (entry as SearchNodeItem).UserData;
             var node = nodeEntry.node;
 
             var drawState = node.drawState;

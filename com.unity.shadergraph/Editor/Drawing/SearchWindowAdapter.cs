@@ -9,23 +9,38 @@ using UnityEngine;
 using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
 {
     public class SearchWindowAdapter : SearcherAdapter
     {
         readonly VisualTreeAsset m_DefaultItemTemplate;
-        public override string Title { get; }
         public override bool HasDetailsPanel => false;
 
         Label m_DetailsLabel;
 
-        public SearchWindowAdapter(string title) : base("Create Node")
+        public SearchWindowAdapter(string title) : base(title)
         {
-            Title = title;
             m_DefaultItemTemplate = Resources.Load<VisualTreeAsset>("SearcherItem");
         }
 
+        
+    }
+
+    internal class SearchNodeItem : SearcherItem
+    {
+        public NodeEntry UserData;
+        //public new SearchNodeItem Parent;
+        //public new List<SearchNodeItem> Children;
+
+        public SearchNodeItem(string name, NodeEntry userData, string help = " ", List<SearchNodeItem> children = null) : base(name)
+        {
+            UserData = userData;
+            
+        }
+
+        
     }
     
 }
