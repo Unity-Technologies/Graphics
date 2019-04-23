@@ -57,6 +57,7 @@ Shader "Hidden/Light2D-Point"
 
             TEXTURE2D(_LightLookup);
             SAMPLER(sampler_LightLookup);
+            float4 _LightLookup_TexelSize;
 
 			NORMALS_LIGHTING_VARIABLES
 
@@ -80,8 +81,9 @@ Shader "Hidden/Light2D-Point"
 
                 float4 lightSpacePos = mul(_LightInvMatrix, worldSpacePos);
                 float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
-                output.lookupUV = 0.5 * (lightSpacePos.xy + 1);
-                output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
+                float halfTexelOffset = 0.5 * _LightLookup_TexelSize.x;
+                output.lookupUV = 0.5 * (lightSpacePos.xy + 1) + halfTexelOffset;
+                output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1) + halfTexelOffset;
 
 				TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)
 

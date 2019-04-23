@@ -53,6 +53,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
             TEXTURE2D(_LightLookup);
             SAMPLER(sampler_LightLookup);
+            float4 _LightLookup_TexelSize;
 
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
@@ -79,8 +80,9 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
                 float4 lightSpacePos = mul(_LightInvMatrix, worldSpacePos);
                 float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
-                output.lookupUV = 0.5 * (lightSpacePos.xy + 1);
-                output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1);
+                float halfTexelOffset = 0.5 * _LightLookup_TexelSize.x;
+                output.lookupUV = 0.5 * (lightSpacePos.xy + 1) + halfTexelOffset;
+                output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1) + halfTexelOffset;
 
 #if LIGHT_QUALITY_FAST
                 output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
