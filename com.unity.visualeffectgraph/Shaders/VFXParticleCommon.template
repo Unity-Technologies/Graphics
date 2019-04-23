@@ -51,6 +51,10 @@ o.VFX_VARYING_UV.xy = uvData.uvs.xy;
 #if USE_FLIPBOOK_INTERPOLATION
 o.VFX_VARYING_UV.zw = uvData.uvs.zw;
 o.VFX_VARYING_FRAMEBLEND = uvData.blend;
+#if USE_FLIPBOOK_MOTIONVECTORS
+${VFXLoadParameter:{motionVectorScale}}
+o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
+#endif
 #endif
 #endif
 ${VFXEnd}
