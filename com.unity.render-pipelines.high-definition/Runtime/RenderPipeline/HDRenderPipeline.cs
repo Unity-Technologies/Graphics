@@ -26,13 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static HDRenderPipeline()
         {
 #if UNITY_EDITOR
-            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>
             {
-                if (s_DefaultVolume != null && !s_DefaultVolume.Equals(null))
-                {
-                    CoreUtils.Destroy(s_DefaultVolume.gameObject);
-                    s_DefaultVolume = null;
-                }
             };
 #endif
         }
@@ -433,6 +427,10 @@ namespace UnityEngine.Rendering.HighDefinition
             MousePositionDebug.instance.Build();
 
             InitializeRenderStateBlocks();
+
+//forest-begin: Configure callbacks
+			HDRPCallbackAttribute.ConfigureAllLoadedCallbacks();
+//forest-end:
 
             // Keep track of the original msaa sample value
             // TODO : Bind this directly to the debug menu instead of having an intermediate value
@@ -1666,7 +1664,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             target.id = m_TemporaryTargetForCubemaps;
                         }
 
-
+//forest-begin: Prepare frame callback
+                        if(OnBeginCamera != null)
+                            OnBeginCamera(renderContext, renderRequest.hdCamera.camera, currentFrameSettings, cmd);
+//forest-end:
                         // var aovRequestIndex = 0;
                         foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                         {
@@ -1736,6 +1737,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         renderContext.ExecuteCommandBuffer(cmd);
                         CommandBufferPool.Release(cmd);
                         renderContext.Submit();
+
+//forest-begin: Callbacks
+                        if(OnAfterCameraSubmit != null)
+                            OnAfterCameraSubmit(renderRequest.hdCamera.camera);
+//forest-end:
                     }
                 }
             }
@@ -1841,6 +1847,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             PushGlobalParams(hdCamera, cmd);
             VFXManager.ProcessCameraCommand(camera, cmd);
+
+//forest-begin: Prepare frame callback
+			if(OnPrepareCamera != null)
+				OnPrepareCamera(renderContext, hdCamera, cmd);
+//forest-end:
 
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
@@ -2132,6 +2143,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
 
                 RenderDeferredLighting(hdCamera, cmd);
+
+//forest-begin: Callbacks
+				if(OnBeforeForwardOpaque != null)
+					OnBeforeForwardOpaque(renderContext, hdCamera, /*postProcessLayer,*/ m_SharedRTManager.GetDepthTexture(), m_CameraColorBuffer, cmd);
+//forest-end:
 
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
 
@@ -2524,6 +2540,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
             }
 #endif
+
+//forest-begin: Before camera cull callback
+					if(OnBeforeCameraCull != null)
+						OnBeforeCameraCull(renderContext, hdCamera, hdCamera.frameSettings/* , cmd*/);
+//forest-end:
 
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias
