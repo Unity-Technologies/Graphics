@@ -641,16 +641,20 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.PropertyField(m_LightOrder, Styles.shapeLightOrder);
 
             EditorGUI.BeginChangeCheck();
+
             EditorGUILayout.IntPopup(m_LightOperationIndex, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
-            EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
 
-            bool updateGlobalLights = false;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_LightIntensity, Styles.generalLightIntensity);
+            if (EditorGUI.EndChangeCheck())
+                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
+
+            bool updateGlobalLights = EditorGUI.EndChangeCheck();
+
             if (m_LightType.intValue != (int)Light2D.LightType.Global)
             {
                 EditorGUILayout.PropertyField(m_UseNormalMap, Styles.generalUseNormalMap);
-                m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
-                updateGlobalLights |= EditorGUI.EndChangeCheck();
 
                 if (m_UseNormalMap.boolValue)
                 {
