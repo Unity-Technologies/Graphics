@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
         //------------------------------------------------------------------------------------------
-        [SerializeField] int                m_ShapeLightParametricSides         = 6;
+        [SerializeField] int                m_ShapeLightParametricSides         = 5;
         [SerializeField] float              m_ShapeLightParametricAngleOffset   = 0.0f;
         [SerializeField] float              m_ShapeLightParametricRadius        = 1.0f;
         [SerializeField] float              m_ShapeLightFalloffSize             = 0.50f;
