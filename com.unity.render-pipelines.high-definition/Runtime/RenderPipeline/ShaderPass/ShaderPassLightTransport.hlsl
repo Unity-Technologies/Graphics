@@ -60,10 +60,14 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     output.vmesh.texCoord1 = inputMesh.uv1;
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD2
-    output.vmesh.texCoord2 = inputMesh.uv2;
+//forest-begin: uv2 might be four components
+    output.vmesh.texCoord2 = inputMesh.uv2.xy;
+//forest-end:
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD3
-    output.vmesh.texCoord3 = inputMesh.uv3;
+//forest-begin: uv3 might be three components
+	output.vmesh.texCoord3 = inputMesh.uv3.xy;
+//forest-end:
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.vmesh.color = inputMesh.color;
