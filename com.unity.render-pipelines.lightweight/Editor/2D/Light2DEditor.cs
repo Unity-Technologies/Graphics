@@ -517,8 +517,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             {
                 case Light2D.LightType.Point:
                     {
-                        Undo.RecordObject(light, "Edit Target Light");
-                        Undo.RecordObject(light.transform, light.transform.GetHashCode() + "_undo");
+                        Undo.RecordObject(light.transform, "Edit Point Light Transform");
+                        Undo.RecordObject(light, "Edit Point Light");
 
                         DrawRangeHandles(light);
                         DrawAngleHandles(light);
