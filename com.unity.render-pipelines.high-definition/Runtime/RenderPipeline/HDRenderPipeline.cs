@@ -2520,6 +2520,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingParams.cullingOptions |= CullingOptions.NeedsReflectionProbes;
             else
                 cullingParams.cullingOptions &= ~CullingOptions.NeedsReflectionProbes;
+
+//forest-begin: Explicit reflection probe tracking: don't cull reflection probes as we'll just throw away the results anyway
+			if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.DisableReflectionProbeCulling))
+				cullingParams.cullingOptions &= ~CullingOptions.NeedsReflectionProbes;
+//forest-end:
+
             return true;
         }
 
