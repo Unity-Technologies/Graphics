@@ -34,18 +34,24 @@ Pass
 		nointerpolation float4 builtInInterpolants : TEXCOORD1;
 		#endif
 
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		// x: motion vector scale u
+		// y: motion vector scale v
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		#endif
+
 		// x: horizontal value / normal scale
 		// y: vertical value 
 		// z: blur scale
-		nointerpolation float3 distortionInterpolants : TEXCOORD2;
+		nointerpolation float3 distortionInterpolants : TEXCOORD3;
 
 		#if USE_SOFT_PARTICLE
-		float4 projPos : TEXCOORD3;
+		float4 projPos : TEXCOORD4;
 		#endif
 
 		#if DISTORTION_NORMALBASED
-		float3 normal : TEXCOORD4;
-		float4 tangent : TEXCOORD5;
+		float3 normal : TEXCOORD5;
+		float4 tangent : TEXCOORD6;
 		#endif
 	};
 
@@ -60,6 +66,7 @@ Pass
 	#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 	#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 	#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
+	#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 	#define VFX_VARYING_ALPHA builtInInterpolants.w
 #if DISTORTION_NORMALBASED
 	#define VFX_VARYING_NORMAL normal

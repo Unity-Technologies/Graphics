@@ -24,8 +24,13 @@ Pass
 		// z: frame blending factor
 		nointerpolation float3 builtInInterpolants : TEXCOORD1;
 		#endif
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		// x: motion vectors scale X
+		// y: motion vectors scale Y
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		#endif
 		#if VFX_NEEDS_POSWS_INTERPOLATOR
-		float3 posWS : TEXCOORD2;
+		float3 posWS : TEXCOORD3;
 		#endif
 	};
 	
@@ -41,6 +46,7 @@ Pass
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
