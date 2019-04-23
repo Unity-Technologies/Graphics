@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     // TODO: 
     //     Fix parametric mesh code so that the vertices, triangle, and color arrays are only recreated when number of sides change
     //     Change code to update mesh only when it is on screen. Maybe we can recreate a changed mesh if it was on screen last update (in the update), and if it wasn't set it dirty. If dirty, in the OnBecameVisible function create the mesh and clear the dirty flag.
-    [ExecuteAlways]
+    [ExecuteAlways, DisallowMultipleComponent]
     sealed public partial class Light2D : MonoBehaviour
     {
         /// <summary>
