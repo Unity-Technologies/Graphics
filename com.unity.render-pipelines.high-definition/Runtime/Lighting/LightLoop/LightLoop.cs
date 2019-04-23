@@ -132,6 +132,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float unused2;
     };
 
+//forest-begin: Explicit reflection probe tracking
+	public struct VisibleReflectionProbe {
+        
+        public Texture texture;
+        public ReflectionProbe reflectionProbe;
+        public Bounds bounds;
+        public Matrix4x4 localToWorldMatrix;
+        public Vector4 hdrData;
+        public Vector3 center;
+        public float blendDistance;
+        public int importance;
+        public bool isBoxProjection;
+
+		public static implicit operator VisibleReflectionProbe(UnityEngine.Rendering.VisibleReflectionProbe other) {
+			return new VisibleReflectionProbe {
+                texture = other.texture,
+                reflectionProbe = other.reflectionProbe,
+                bounds = other.bounds,
+                localToWorldMatrix = other.localToWorldMatrix,
+                hdrData = other.hdrData,
+                center = other.center,
+                blendDistance = other.blendDistance,
+                importance = other.importance,
+                isBoxProjection = other.isBoxProjection
+			};
+		}
+
+		public static implicit operator VisibleReflectionProbe(ReflectionProbe other) {
+			return new VisibleReflectionProbe {
+                texture = other.texture,
+                reflectionProbe = other,
+                bounds = other.bounds,
+                localToWorldMatrix = Matrix4x4.TRS(other.transform.position, other.transform.rotation, Vector3.one),
+                hdrData = other.textureHDRDecodeValues,
+                center = other.center,
+                blendDistance = other.blendDistance,
+                importance = other.importance,
+                isBoxProjection = other.boxProjection
+			};
+		}
+	}
+//forest-end:
+
         public enum TileClusterDebug : int
         {
             None,
@@ -604,6 +647,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Used to shadow shadow maps with use selection enabled in the debug menu
         int m_DebugSelectedLightShadowIndex;
         int m_DebugSelectedLightShadowCount;
+
+//forest-begin: Explicit reflection probe tracking
+		List<VisibleReflectionProbe> m_VisibleReflectionProbes = new List<VisibleReflectionProbe>();
+//forest-end:
+
 
         public bool HasLightToCull()
         {
@@ -1799,8 +1847,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
 
+//forest-begin: Explicit reflection probe tracking
+				m_VisibleReflectionProbes.Clear();
+                var disableReflectionProbeCulling = m_FrameSettings.IsEnabled(FrameSettingsField.DisableReflectionProbeCulling);
+				if (disableReflectionProbeCulling)
+					foreach(var probe in HDAdditionalReflectionData.s_ActiveReflectionProbes)
+						m_VisibleReflectionProbes.Add(probe);
+
+				var visibleReflectionProbesCount = disableReflectionProbeCulling ? m_VisibleReflectionProbes.Count : cullResults.visibleReflectionProbes.Length;
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
-                if (cullResults.visibleLights.Length != 0 || cullResults.visibleReflectionProbes.Length != 0)
+                if (cullResults.visibleLights.Length != 0 || visibleReflectionProbesCount != 0)
+//forest-end:
                 {
                     // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
                     // If we reach maximum of lights available on screen, then we discard the light.
@@ -2048,7 +2105,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Debug.Assert(m_MaxEnvLightsOnScreen <= 256); //for key construction
                     int envLightCount = 0;
 
-                    var totalProbes = cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count;
+//forest-begin: Explicit reflection probe tracking
+					var totalProbes = visibleReflectionProbesCount + hdProbeCullingResults.visibleProbes.Count;
+//forest-end:
                     int probeCount = Math.Min(totalProbes, m_MaxEnvLightsOnScreen);
                     UpdateSortKeysArray(probeCount);
                     sortCount = 0;
@@ -2059,7 +2118,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                  debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.PlanarProbe);
                     for (int probeIndex = 0, numProbes = totalProbes; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
-                        if (probeIndex < cullResults.visibleReflectionProbes.Length)
+//forest-begin: Explicit reflection probe tracking
+                        if (probeIndex < visibleReflectionProbesCount)
+//forest-end:	
                         {
                             if (!enableReflectionProbes)
                             {
@@ -2068,7 +2129,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 continue;
                             }
 
-                            var probe = cullResults.visibleReflectionProbes[probeIndex];
+//forest-begin: Explicit reflection probe tracking
+                            var probe = disableReflectionProbeCulling ? m_VisibleReflectionProbes[probeIndex] : cullResults.visibleReflectionProbes[probeIndex];
+//forest-end:
                             if (probe.reflectionProbe == null
                                 || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
                                 || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
@@ -2145,7 +2208,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         PlanarReflectionProbe planarProbe = null;
                         VisibleReflectionProbe probe = default(VisibleReflectionProbe);
                         if (listType == 0)
-                            probe = cullResults.visibleReflectionProbes[probeIndex];
+//forest-begin: Explicit reflection probe tracking
+                            probe = disableReflectionProbeCulling ? m_VisibleReflectionProbes[probeIndex] : cullResults.visibleReflectionProbes[probeIndex];
+//forest-end:
                         else
                             planarProbe = (PlanarReflectionProbe)hdProbeCullingResults.visibleProbes[probeIndex];
 

@@ -1,5 +1,8 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+//forest-begin: Explicit reflection probe tracking
+	[ExecuteInEditMode]
+//forest-end:
     [RequireComponent(typeof(ReflectionProbe))]
     public sealed partial class HDAdditionalReflectionData : HDProbe
     {
@@ -8,6 +11,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             type = ProbeSettings.ProbeType.ReflectionProbe;
             k_ReflectionProbeMigration.Migrate(this);
         }
+//forest-begin: Explicit reflection probe tracking
+		static public System.Collections.Generic.List<ReflectionProbe> s_ActiveReflectionProbes = new System.Collections.Generic.List<ReflectionProbe>();
+
+		void OnEnable()
+        {
+			s_ActiveReflectionProbes.Add(GetComponent<ReflectionProbe>());
+        }
+
+		void OnDisable()
+        {
+			s_ActiveReflectionProbes.Remove(GetComponent<ReflectionProbe>());
+		}
+//forest-end:
     }
 
     public static class HDAdditionalReflectionDataExtensions
