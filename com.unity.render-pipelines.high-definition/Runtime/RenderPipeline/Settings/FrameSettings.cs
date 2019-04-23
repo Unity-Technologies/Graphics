@@ -222,7 +222,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
 		GBufferMotionVectors = 90,
 //forest-end:
+//forest-begin: Explicit reflection probe tracking
+        [FrameSettingsField(0, autoName: DisableReflectionProbeCulling)]
+
+		DisableReflectionProbeCulling = 91,
 //forest-end:
+//forest-end: custom frame settings flags
+
         //lightLoop settings from 120 to 127
         [FrameSettingsField(3, autoName: FPTLForForwardOpaque)]
         FPTLForForwardOpaque = 120,
