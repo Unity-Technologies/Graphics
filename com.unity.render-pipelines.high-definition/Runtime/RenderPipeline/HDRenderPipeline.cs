@@ -11,6 +11,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public partial class HDRenderPipeline : UnityEngine.Rendering.RenderPipeline
     {
+//forest-begin: Callbacks
+		public delegate void Action<T1, T2, T3, T4, T5, T6>(T1 arg, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
+
+		public static event Action<ScriptableRenderContext, Camera, FrameSettings, CommandBuffer> OnBeginCamera;
+		public static event Action<ScriptableRenderContext, HDCamera, FrameSettings/*, CommandBuffer*/> OnBeforeCameraCull;
+		public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnPrepareCamera;
+		public static event Action<ScriptableRenderContext, HDCamera, /*PostProcessLayer,*/ RTHandleSystem.RTHandle, RTHandleSystem.RTHandle, CommandBuffer> OnBeforeForwardOpaque;
+		public static event Action<Camera> OnAfterCameraSubmit;
+//forest-end:
 
         public const string k_ShaderTagName = "HDRenderPipeline";
 
@@ -338,6 +347,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MousePositionDebug.instance.Build();
 
             InitializeRenderStateBlocks();
+
+//forest-begin: Configure callbacks
+			HDRPCallbackAttribute.ConfigureAllLoadedCallbacks();
+//forest-end:
 
             // Keep track of the original msaa sample value
             // TODO : Bind this directly to the debug menu instead of having an intermediate value
@@ -1405,7 +1418,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             target.id = m_TemporaryTargetForCubemaps;
                         }
 
-
+//forest-begin: Prepare frame callback
+                        if(OnBeginCamera != null)
+                            OnBeginCamera(renderContext, renderRequest.hdCamera.camera, currentFrameSettings, cmd);
+//forest-end:
                         var aovRequestIndex = 0;
                         foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
                         {
@@ -1464,6 +1480,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         CommandBufferPool.Release(cmd);
                         renderContext.Submit();
+
+//forest-begin: Callbacks
+                        if(OnAfterCameraSubmit != null)
+                            OnAfterCameraSubmit(renderRequest.hdCamera.camera);
+//forest-end:
                     }
                 }
             }
@@ -1571,6 +1592,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             SetupCameraProperties(hdCamera, renderContext, cmd);
 
             PushGlobalParams(hdCamera, cmd);
+
+//forest-begin: Prepare frame callback
+			if(OnPrepareCamera != null)
+				OnPrepareCamera(renderContext, hdCamera, cmd);
+//forest-end:
 
             // TODO: Find a correct place to bind these material textures
             // We have to bind the material specific global parameters in this mode
@@ -1866,6 +1892,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hdCamera.xr.StartLegacyStereo(camera, cmd, renderContext);
 
                 RenderDeferredLighting(hdCamera, cmd);
+
+//forest-begin: Callbacks
+				if(OnBeforeForwardOpaque != null)
+					OnBeforeForwardOpaque(renderContext, hdCamera, /*postProcessLayer,*/ m_SharedRTManager.GetDepthTexture(), m_CameraColorBuffer, cmd);
+//forest-end:
 
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
 
@@ -2264,6 +2295,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
             }
 #endif
+
+//forest-begin: Before camera cull callback
+					if(OnBeforeCameraCull != null)
+						OnBeforeCameraCull(renderContext, hdCamera, hdCamera.frameSettings/* , cmd*/);
+//forest-end:
 
             // Set the LOD bias and store current value to be able to restore it.
             // Use a try/finalize pattern to be sure to restore properly the qualitySettings.lodBias
