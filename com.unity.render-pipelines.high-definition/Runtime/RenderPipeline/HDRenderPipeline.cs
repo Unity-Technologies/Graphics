@@ -532,7 +532,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 overridesEnvironmentLighting = true,
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
-                editableMaterialRenderQueue = false
+                editableMaterialRenderQueue = false,
+                rendersScreenSpaceUI = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -2903,6 +2904,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        void RenderScreenSpaceOverlayUI(Camera camera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            HDUtils.SetRenderTarget(cmd, m_CameraUIBuffer, m_SharedRTManager.GetDepthStencilBuffer());
+            // Render overlays from engine
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            renderContext.DrawUIOverlay(camera);
+        }
+
         void RenderTransparentUI(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             ForwardPass pass = ForwardPass.Transparent;
@@ -2921,8 +2931,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bool renderMotionVecForTransparent = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
                 RenderQueueRange transparentRange = HDRenderQueue.k_RenderQueue_AllTransparent;
                 RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames, m_currentRendererConfigurationBakedLighting, transparentRange);
+
+                RenderScreenSpaceOverlayUI(hdCamera.camera, renderContext, cmd);
             }
         }
+
 
         // This is use to Display legacy shader with an error shader
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

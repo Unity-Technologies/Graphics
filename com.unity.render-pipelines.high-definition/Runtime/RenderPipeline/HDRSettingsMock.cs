@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private static HDROutputSettings s_Instance = new HDROutputSettings();
         public static HDROutputSettings instance { get { return s_Instance; } }
 
-        static private bool ACTIVE = false;
+        static private bool ACTIVE = true;
         private static RTHandleSystem.RTHandle m_UITarget = null;
 
 

@@ -2,6 +2,8 @@
 
 // TEMP_REMOVE_NOTES_FCC:
 //  - I think at the moment our grading output is in sRGB so we'll need here to rotate back to BT 2020 effectively losing lots of colors, what if we do the opposite? What if we output the grading to BT 2020 and then rotate for the sRGB? For perf?
+// TODO_FCC: Decide what to do with the UI (where to put it at least)  
+
 
 // Attack plan:
 //      - Do all the grading and tone mapping in Rec2020 (well, at least do final rotation to Rec2020). Or maybe AP1 since we already have it from the tonemapper? 
@@ -15,7 +17,7 @@
 
 // TODOs:
 //  - We should tonemap in a rotated color space (i.e. BT2020) to get more out of it. We then rotate to Rec709 on SDR and not viceversa 
-//  - Expose the paper white nit  to user, a sensible range is 50 - 300. What paperwhite will do 
+//  - Expose the paper white nit  to user, a sensible range is 50 - 300.
 
 // A bit of nomenclature that will be used in the file:
 // Gamut: It is the subset of colors that is possible to reproduce by using three specific primary colors. 
