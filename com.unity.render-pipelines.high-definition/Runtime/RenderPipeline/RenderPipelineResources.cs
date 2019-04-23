@@ -33,8 +33,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
             public Shader deferredPS;
-            [Reload("Runtime/RenderPipeline/RenderPass/ColorPyramid.compute")]
-            public ComputeShader colorPyramidCS;
             [Reload("Runtime/RenderPipeline/RenderPass/ColorPyramidPS.Shader")]
             public Shader colorPyramidPS;
             [Reload("Runtime/RenderPipeline/RenderPass/DepthPyramid.compute")]

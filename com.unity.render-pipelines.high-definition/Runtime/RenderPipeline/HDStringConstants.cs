@@ -176,6 +176,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _MouseClickPixelCoord = Shader.PropertyToID("_MouseClickPixelCoord");
         public static readonly int _DebugFont = Shader.PropertyToID("_DebugFont");
         public static readonly int _DebugExposure = Shader.PropertyToID("_DebugExposure");
+        public static readonly int _DebugContactShadowLightIndex = Shader.PropertyToID("_DebugContactShadowLightIndex");
 
         public static readonly int _DebugViewMaterial = Shader.PropertyToID("_DebugViewMaterialArray");
         public static readonly int _DebugLightingMode = Shader.PropertyToID("_DebugLightingMode");
@@ -239,8 +240,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ContactShadowParamsParameters = Shader.PropertyToID("_ContactShadowParamsParameters");
         public static readonly int _ContactShadowParamsParameters2 = Shader.PropertyToID("_ContactShadowParamsParameters2");
         public static readonly int _DirectionalContactShadowSampleCount = Shader.PropertyToID("_SampleCount");
-        public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
-        public static readonly int _PunctualLightPosition = Shader.PropertyToID("_PunctualLightPosition");
         public static readonly int _MicroShadowingOpacity = Shader.PropertyToID("_MicroShadowOpacity");
         public static readonly int _ShadowClipPlanes = Shader.PropertyToID("_ShadowClipPlanes");
 

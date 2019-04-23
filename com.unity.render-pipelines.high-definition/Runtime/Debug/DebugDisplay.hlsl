@@ -31,6 +31,7 @@ float4 _DebugLightingMaterialValidatePureMetalColor;
 float4 _MousePixelCoord;  // xy unorm, zw norm
 float4 _MouseClickPixelCoord;  // xy unorm, zw norm
 float _DebugExposure;
+uint _DebugContactShadowLightIndex;
 CBUFFER_END
 
 // Local shader variables

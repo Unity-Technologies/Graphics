@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: SceneColorMaterialUnlit
-  m_Shader: {fileID: -6465566751694194690, guid: db5bdd75ded3cba4a9a39c6ea54a568c,
+  m_Shader: {fileID: -6465566751694194690, guid: 0022cfd8cafe02f49970a6986cf6d50a,
     type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -217,6 +217,7 @@ Material:
     - _ZTestModeDistortion: 8
     - _ZWrite: 1
     m_Colors:
+    - Color_763047D0: {r: 0, g: 0.77254903, b: 1, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}

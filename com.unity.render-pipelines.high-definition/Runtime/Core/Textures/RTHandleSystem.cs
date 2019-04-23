@@ -10,8 +10,10 @@ namespace UnityEngine.Experimental.Rendering
 
     public struct RTHandleProperties
     {
-        public Vector2Int previousViewportSize;    // Size set as reference at the previous frame
-        public Vector2Int currentViewportSize;     // Size set as reference at the current frame
+        public Vector2Int previousViewportSize;     // Size set as reference at the previous frame
+        public Vector2Int previousRenderTargetSize; // Size of the render targets at the previous frame
+        public Vector2Int currentViewportSize;      // Size set as reference at the current frame
+        public Vector2Int currentRenderTargetSize;  // Size of the render targets at the current frame
         // Scale factor from RTHandleSystem max size to requested reference size (referenceSize/maxSize)
         // (x,y) current frame (z,w) last frame (this is only used for buffered RTHandle Systems
         public Vector4 rtHandleScale;
@@ -78,6 +80,7 @@ namespace UnityEngine.Experimental.Rendering
         public void SetReferenceSize(int width, int height, MSAASamples msaaSamples)
         {
             m_RTHandleProperties.previousViewportSize = m_RTHandleProperties.currentViewportSize;
+            m_RTHandleProperties.previousRenderTargetSize = m_RTHandleProperties.currentRenderTargetSize;
             Vector2 lastFrameMaxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
 
             width = Mathf.Max(width, 1);
@@ -92,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_RTHandleProperties.currentViewportSize = new Vector2Int(width, height);
+            m_RTHandleProperties.currentRenderTargetSize = new Vector2Int(GetMaxWidth(), GetMaxHeight());
 
             if (HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
             {
