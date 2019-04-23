@@ -76,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             for (int i = 1; i < m_LightOperations.Length; ++i)
             {
                 m_LightOperations[i].enabled = false;
-                m_LightOperations[i].name = "Unnamed " + i;
+                m_LightOperations[i].name = "Light Operation " + i;
                 m_LightOperations[i].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
                 m_LightOperations[i].renderTextureScale = 1.0f;
                 m_LightOperations[i].globalColor = Color.black;
