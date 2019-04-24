@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_ColorTargetHandle = RenderTargetHandle.CameraTarget;
             PixelPerfectCamera ppc = cameraData.camera.GetComponent<PixelPerfectCamera>();
             bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
-            bool useOffscreenColorTexture = (ppc != null && ppc.useOffscreenRT) || postProcessEnabled;
+            bool useOffscreenColorTexture = (ppc != null && ppc.useOffscreenRT) || postProcessEnabled || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport;
 
             if (useOffscreenColorTexture)
             {
