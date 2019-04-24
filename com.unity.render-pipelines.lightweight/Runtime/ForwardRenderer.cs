@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.LWRP
         const string k_CreateCameraTextures = "Create Camera Texture";
 
         VolumeBlendingPass m_VolumeBlendingPass;
+        ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
@@ -29,6 +30,7 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetHandle m_CameraDepthAttachment;
         RenderTargetHandle m_DepthTexture;
         RenderTargetHandle m_OpaqueColor;
+        RenderTargetHandle m_ColorGradingLut;
 
         ForwardLights m_ForwardLights;
         StencilState m_DefaultStencilState;
@@ -57,6 +59,7 @@ namespace UnityEngine.Rendering.LWRP
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, screenspaceShadowsMaterial);
+            m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
@@ -76,6 +79,7 @@ namespace UnityEngine.Rendering.LWRP
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
             m_OpaqueColor.Init("_CameraOpaqueTexture");
+            m_ColorGradingLut.Init("_InternalGradingLut");
             m_ForwardLights = new ForwardLights();
         }
 
@@ -163,6 +167,12 @@ namespace UnityEngine.Rendering.LWRP
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
             }
 
+            if (postProcessEnabled)
+            {
+                m_ColorGradingLutPass.Setup(m_ColorGradingLut);
+                EnqueuePass(m_ColorGradingLutPass);
+            }
+
             EnqueuePass(m_RenderOpaqueForwardPass);
 
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
@@ -194,7 +204,7 @@ namespace UnityEngine.Rendering.LWRP
                 if (postProcessEnabled)
                 {
                     // TODO: fix this, will break with v3
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment, m_ColorGradingLut);
                     EnqueuePass(m_PostProcessPass);
                 }
 
@@ -215,7 +225,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 if (postProcessEnabled)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ColorGradingLut);
                     EnqueuePass(m_PostProcessPass);
                 }
                 else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)

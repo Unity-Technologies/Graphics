@@ -15,10 +15,11 @@ namespace UnityEngine.Rendering.LWRP
     // TODO: Final pass dithering
     internal class PostProcessPass : ScriptableRenderPass
     {
+        RenderTextureDescriptor m_Descriptor;
         RenderTargetHandle m_Source;
         RenderTargetHandle m_Destination;
-        RenderTextureDescriptor m_Descriptor;
-        
+        RenderTargetHandle m_InternalLut;
+
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
 
         MaterialLibrary m_Materials;
@@ -31,21 +32,11 @@ namespace UnityEngine.Rendering.LWRP
         ChromaticAberration m_ChromaticAberration;
         Vignette m_Vignette;
         ColorLookup m_ColorLookup;
-        ChannelMixer m_ChannelMixer;
         ColorAdjustments m_ColorAdjustments;
-        ColorCurves m_Curves;
-        LiftGammaGain m_LiftGammaGain;
-        ShadowsMidtonesHighlights m_ShadowsMidtonesHighlights;
-        SplitToning m_SplitToning;
         Tonemapping m_Tonemapping;
-        WhiteBalance m_WhiteBalance;
         FilmGrain m_FilmGrain;
 
         // Misc
-        readonly GraphicsFormat m_HdrLutFormat;
-        readonly GraphicsFormat m_LdrLutFormat;
-        readonly RenderTargetHandle m_InternalLut;
-
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_BloomFormat;
 
@@ -55,42 +46,14 @@ namespace UnityEngine.Rendering.LWRP
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
 
-            m_InternalLut = new RenderTargetHandle();
-            m_InternalLut.Init("_InternalGradingLut");
-
             // Texture format pre-lookup
-            unsafe
-            {
-                var asset = LightweightRenderPipeline.asset;
-                var hdr = asset != null && asset.supportsHDR;
+            var asset = LightweightRenderPipeline.asset;
+            var hdr = asset != null && asset.supportsHDR;
 
-                // Lut
-                var lutFormats = stackalloc GraphicsFormat[3]
-                {
-                    GraphicsFormat.R16G16B16A16_SFloat,
-                    GraphicsFormat.B10G11R11_UFloatPack32,
-
-                    // Obviously using this for log lut encoding is a very bad idea for precision
-                    // but we need it for compatibility reasons and avoid black screens on platforms
-                    // that don't support floating point formats. Expect banding and posterization
-                    // artifact if this ends up being used.
-                    GraphicsFormat.R8G8B8A8_UNorm
-                };
-
-                m_HdrLutFormat = PickSupportedFormat(lutFormats, 3);
-                m_LdrLutFormat = GraphicsFormat.R8G8B8A8_UNorm;
-
-                // Bloom
-                var bloomFormats = stackalloc GraphicsFormat[2]
-                {
-                    GraphicsFormat.B10G11R11_UFloatPack32,
-                    GraphicsFormat.R8G8B8A8_UNorm
-                };
-
-                m_BloomFormat = hdr
-                    ? PickSupportedFormat(bloomFormats, 2)
-                    : GraphicsFormat.R8G8B8A8_UNorm;
-            }
+            if (hdr && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                m_BloomFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+            else
+                m_BloomFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
             // Bloom pyramid shader ids - can't use a simple stackalloc in the bloom function as we
             // unfortunately need to allocate strings
@@ -104,23 +67,12 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
-        // No Span<T> in Unity yet
-        static unsafe GraphicsFormat PickSupportedFormat(GraphicsFormat* formats, int count, FormatUsage flags = FormatUsage.Linear | FormatUsage.Render)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                if (SystemInfo.IsFormatSupported(formats[i], flags))
-                    return formats[i];
-            }
-
-            return GraphicsFormat.None;
-        }
-
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle sourceHandle, RenderTargetHandle destinationHandle)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle sourceHandle, in RenderTargetHandle destinationHandle, in RenderTargetHandle internalLut)
         {
             m_Descriptor = baseDescriptor;
             m_Source = sourceHandle;
             m_Destination = destinationHandle;
+            m_InternalLut = internalLut;
         }
 
         public bool CanRunOnTile()
@@ -132,23 +84,18 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // Start by pre-fetching all builtin effect settings
+            // Start by pre-fetching all builtin effect settings we need
+            // Some of the color-grading settings are only used in the color grading lut pass
             var stack = VolumeManager.instance.stack;
-            m_PaniniProjection            = stack.GetComponent<PaniniProjection>();
-            m_Bloom                       = stack.GetComponent<Bloom>();
-            m_LensDistortion              = stack.GetComponent<LensDistortion>();
-            m_ChromaticAberration         = stack.GetComponent<ChromaticAberration>();
-            m_Vignette                    = stack.GetComponent<Vignette>();
-            m_ColorLookup                 = stack.GetComponent<ColorLookup>();
-            m_ChannelMixer                = stack.GetComponent<ChannelMixer>();
-            m_ColorAdjustments            = stack.GetComponent<ColorAdjustments>();
-            m_Curves                      = stack.GetComponent<ColorCurves>();
-            m_LiftGammaGain               = stack.GetComponent<LiftGammaGain>();
-            m_ShadowsMidtonesHighlights   = stack.GetComponent<ShadowsMidtonesHighlights>();
-            m_SplitToning                 = stack.GetComponent<SplitToning>();
-            m_Tonemapping                 = stack.GetComponent<Tonemapping>();
-            m_WhiteBalance                = stack.GetComponent<WhiteBalance>();
-            m_FilmGrain                   = stack.GetComponent<FilmGrain>();
+            m_PaniniProjection    = stack.GetComponent<PaniniProjection>();
+            m_Bloom               = stack.GetComponent<Bloom>();
+            m_LensDistortion      = stack.GetComponent<LensDistortion>();
+            m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
+            m_Vignette            = stack.GetComponent<Vignette>();
+            m_ColorLookup         = stack.GetComponent<ColorLookup>();
+            m_ColorAdjustments    = stack.GetComponent<ColorAdjustments>();
+            m_Tonemapping         = stack.GetComponent<Tonemapping>();
+            m_FilmGrain           = stack.GetComponent<FilmGrain>();
 
             if (CanRunOnTile())
             {
@@ -241,8 +188,6 @@ namespace UnityEngine.Rendering.LWRP
                 Blit(cmd, GetSource(), m_Destination.Identifier(), m_Materials.uber);
 
                 // Cleanup
-                cmd.ReleaseTemporaryRT(m_InternalLut.id);
-
                 if (bloomActive)
                     cmd.ReleaseTemporaryRT(ShaderConstants._BloomMipUp[0]);
 
@@ -504,105 +449,19 @@ namespace UnityEngine.Rendering.LWRP
 
         #region Color Grading
 
-        void SetupColorGrading(CommandBuffer cmd, ref RenderingData renderingData, Material srcMaterial)
+        void SetupColorGrading(CommandBuffer cmd, ref RenderingData renderingData, Material material)
         {
             ref var postProcessingData = ref renderingData.postProcessingData;
             bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
-
-            // Prepare texture & material
             int lutHeight = postProcessingData.lutSize;
             int lutWidth = lutHeight * lutHeight;
-            var format = hdr ? m_HdrLutFormat : m_LdrLutFormat;
-            var lutMaterial = hdr ? m_Materials.lutBuilderHdr : m_Materials.lutBuilderLdr;
-
-            cmd.GetTemporaryRT(m_InternalLut.id, lutWidth, lutHeight, 0, FilterMode.Bilinear, format);
-
-            // Prepare data
-            var lmsColorBalance = ColorUtils.ColorBalanceToLMSCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
-            var hueSatCon = new Vector4(m_ColorAdjustments.hueShift.value / 360f, m_ColorAdjustments.saturation.value / 100f + 1f, m_ColorAdjustments.contrast.value / 100f + 1f, 0f);
-            var channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn.value / 100f, m_ChannelMixer.redOutGreenIn.value / 100f, m_ChannelMixer.redOutBlueIn.value / 100f, 0f);
-            var channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn.value / 100f, m_ChannelMixer.greenOutGreenIn.value / 100f, m_ChannelMixer.greenOutBlueIn.value / 100f, 0f);
-            var channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn.value / 100f, m_ChannelMixer.blueOutGreenIn.value / 100f, m_ChannelMixer.blueOutBlueIn.value / 100f, 0f);
-
-            var shadowsHighlightsLimits = new Vector4(
-                m_ShadowsMidtonesHighlights.shadowsStart.value,
-                m_ShadowsMidtonesHighlights.shadowsEnd.value,
-                m_ShadowsMidtonesHighlights.highlightsStart.value,
-                m_ShadowsMidtonesHighlights.highlightsEnd.value
-            );
-
-            var (shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
-                m_ShadowsMidtonesHighlights.shadows.value,
-                m_ShadowsMidtonesHighlights.midtones.value,
-                m_ShadowsMidtonesHighlights.highlights.value
-            );
-
-            var (lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
-                m_LiftGammaGain.lift.value,
-                m_LiftGammaGain.gamma.value,
-                m_LiftGammaGain.gain.value
-            );
-
-            var (splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
-                m_SplitToning.shadows.value,
-                m_SplitToning.highlights.value,
-                m_SplitToning.balance.value
-            );
-
-            var lutParameters = new Vector4(lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f));
-            float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
-
-            // Fill in constants
-            lutMaterial.SetVector(ShaderConstants._Lut_Params, lutParameters);
-            lutMaterial.SetVector(ShaderConstants._ColorBalance, lmsColorBalance);
-            lutMaterial.SetVector(ShaderConstants._ColorFilter, m_ColorAdjustments.colorFilter.value.linear);
-            lutMaterial.SetVector(ShaderConstants._ChannelMixerRed, channelMixerR);
-            lutMaterial.SetVector(ShaderConstants._ChannelMixerGreen, channelMixerG);
-            lutMaterial.SetVector(ShaderConstants._ChannelMixerBlue, channelMixerB);
-            lutMaterial.SetVector(ShaderConstants._HueSatCon, hueSatCon);
-            lutMaterial.SetVector(ShaderConstants._Lift, lift);
-            lutMaterial.SetVector(ShaderConstants._Gamma, gamma);
-            lutMaterial.SetVector(ShaderConstants._Gain, gain);
-            lutMaterial.SetVector(ShaderConstants._Shadows, shadows);
-            lutMaterial.SetVector(ShaderConstants._Midtones, midtones);
-            lutMaterial.SetVector(ShaderConstants._Highlights, highlights);
-            lutMaterial.SetVector(ShaderConstants._ShaHiLimits, shadowsHighlightsLimits);
-            lutMaterial.SetVector(ShaderConstants._SplitShadows, splitShadows);
-            lutMaterial.SetVector(ShaderConstants._SplitHighlights, splitHighlights);
-
-            // YRGB curves
-            lutMaterial.SetTexture(ShaderConstants._CurveMaster, m_Curves.master.value.GetTexture());
-            lutMaterial.SetTexture(ShaderConstants._CurveRed, m_Curves.red.value.GetTexture());
-            lutMaterial.SetTexture(ShaderConstants._CurveGreen, m_Curves.green.value.GetTexture());
-            lutMaterial.SetTexture(ShaderConstants._CurveBlue, m_Curves.blue.value.GetTexture());
-
-            // Secondary curves
-            lutMaterial.SetTexture(ShaderConstants._CurveHueVsHue, m_Curves.hueVsHue.value.GetTexture());
-            lutMaterial.SetTexture(ShaderConstants._CurveHueVsSat, m_Curves.hueVsSat.value.GetTexture());
-            lutMaterial.SetTexture(ShaderConstants._CurveLumVsSat, m_Curves.lumVsSat.value.GetTexture());
-            lutMaterial.SetTexture(ShaderConstants._CurveSatVsSat, m_Curves.satVsSat.value.GetTexture());
-
-            // Tonemapping (baked into the lut for HDR)
-            if (hdr)
-            {
-                lutMaterial.shaderKeywords = null;
-
-                switch (m_Tonemapping.mode.value)
-                {
-                    case TonemappingMode.Neutral: lutMaterial.EnableKeyword("TONEMAP_NEUTRAL"); break;
-                    case TonemappingMode.ACES: lutMaterial.EnableKeyword("TONEMAP_ACES"); break;
-                    default: break; // None
-                }
-            }
-
-            // Render the lut
-            cmd.Blit(null, m_InternalLut.id, lutMaterial);
 
             // Source material setup
+            float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
             cmd.SetGlobalTexture(ShaderConstants._InternalLut, m_InternalLut.Identifier());
-            srcMaterial.SetVector(ShaderConstants._Lut_Params, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear));
-            srcMaterial.SetTexture(ShaderConstants._UserLut, m_ColorLookup.texture.value);
-            srcMaterial.SetVector(ShaderConstants._UserLut_Params, !m_ColorLookup.IsActive()
+            material.SetVector(ShaderConstants._Lut_Params, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear));
+            material.SetTexture(ShaderConstants._UserLut, m_ColorLookup.texture.value);
+            material.SetVector(ShaderConstants._UserLut_Params, !m_ColorLookup.IsActive()
                 ? Vector4.zero
                 : new Vector4(1f / m_ColorLookup.texture.value.width,
                               1f / m_ColorLookup.texture.value.height,
@@ -612,14 +471,14 @@ namespace UnityEngine.Rendering.LWRP
 
             if (hdr)
             {
-                srcMaterial.EnableKeyword("HDR_GRADING");
+                material.EnableKeyword("HDR_GRADING");
             }
             else
             {
                 switch (m_Tonemapping.mode.value)
                 {
-                    case TonemappingMode.Neutral: srcMaterial.EnableKeyword("TONEMAP_NEUTRAL"); break;
-                    case TonemappingMode.ACES: srcMaterial.EnableKeyword("TONEMAP_ACES"); break;
+                    case TonemappingMode.Neutral: material.EnableKeyword("TONEMAP_NEUTRAL"); break;
+                    case TonemappingMode.ACES: material.EnableKeyword("TONEMAP_ACES"); break;
                     default: break; // None
                 }
             }
@@ -664,8 +523,6 @@ namespace UnityEngine.Rendering.LWRP
         {
             public readonly Material stopNaN;
             public readonly Material paniniProjection;
-            public readonly Material lutBuilderLdr;
-            public readonly Material lutBuilderHdr;
             public readonly Material bloom;
             public readonly Material uber;
 
@@ -673,8 +530,6 @@ namespace UnityEngine.Rendering.LWRP
             {
                 stopNaN = Load(data.shaders.stopNanPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
-                lutBuilderLdr = Load(data.shaders.lutBuilderLdrPS);
-                lutBuilderHdr = Load(data.shaders.lutBuilderHdrPS);
                 bloom = Load(data.shaders.bloomPS);
                 uber = Load(data.shaders.uberPostPS);
             }
@@ -687,9 +542,7 @@ namespace UnityEngine.Rendering.LWRP
                     return null;
                 }
 
-                var material = CoreUtils.CreateEngineMaterial(shader);
-
-                return material;
+                return CoreUtils.CreateEngineMaterial(shader);
             }
         }
 
@@ -712,29 +565,6 @@ namespace UnityEngine.Rendering.LWRP
             public static readonly int _Vignette_Params2   = Shader.PropertyToID("_Vignette_Params2");
             public static readonly int _Lut_Params         = Shader.PropertyToID("_Lut_Params");
             public static readonly int _UserLut_Params     = Shader.PropertyToID("_UserLut_Params");
-            public static readonly int _ColorBalance       = Shader.PropertyToID("_ColorBalance");
-            public static readonly int _ColorFilter        = Shader.PropertyToID("_ColorFilter");
-            public static readonly int _ChannelMixerRed    = Shader.PropertyToID("_ChannelMixerRed");
-            public static readonly int _ChannelMixerGreen  = Shader.PropertyToID("_ChannelMixerGreen");
-            public static readonly int _ChannelMixerBlue   = Shader.PropertyToID("_ChannelMixerBlue");
-            public static readonly int _HueSatCon          = Shader.PropertyToID("_HueSatCon");
-            public static readonly int _Lift               = Shader.PropertyToID("_Lift");
-            public static readonly int _Gamma              = Shader.PropertyToID("_Gamma");
-            public static readonly int _Gain               = Shader.PropertyToID("_Gain");
-            public static readonly int _Shadows            = Shader.PropertyToID("_Shadows");
-            public static readonly int _Midtones           = Shader.PropertyToID("_Midtones");
-            public static readonly int _Highlights         = Shader.PropertyToID("_Highlights");
-            public static readonly int _ShaHiLimits        = Shader.PropertyToID("_ShaHiLimits");
-            public static readonly int _SplitShadows       = Shader.PropertyToID("_SplitShadows");
-            public static readonly int _SplitHighlights    = Shader.PropertyToID("_SplitHighlights");
-            public static readonly int _CurveMaster        = Shader.PropertyToID("_CurveMaster");
-            public static readonly int _CurveRed           = Shader.PropertyToID("_CurveRed");
-            public static readonly int _CurveGreen         = Shader.PropertyToID("_CurveGreen");
-            public static readonly int _CurveBlue          = Shader.PropertyToID("_CurveBlue");
-            public static readonly int _CurveHueVsHue      = Shader.PropertyToID("_CurveHueVsHue");
-            public static readonly int _CurveHueVsSat      = Shader.PropertyToID("_CurveHueVsSat");
-            public static readonly int _CurveLumVsSat      = Shader.PropertyToID("_CurveLumVsSat");
-            public static readonly int _CurveSatVsSat      = Shader.PropertyToID("_CurveSatVsSat");
             public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
             public static readonly int _Grain_Texture      = Shader.PropertyToID("_Grain_Texture");
