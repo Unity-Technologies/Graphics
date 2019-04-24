@@ -1,0 +1,3 @@
+<UXML xmlns:ui="UnityEngine.Experimental.UIElements" xmlns:vfx="UnityEditor.VFX.UI">
+    <ui:Label name="title" />
+</UXML>

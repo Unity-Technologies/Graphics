@@ -1,19 +1,70 @@
+using System.Collections.Generic;
+using System.Linq;
+
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using System.Collections.Generic;
-using Type = System.Type;
-using System.Linq;
 using UnityEngine.Profiling;
+
+using Type = System.Type;
+
+
 
 using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
+    class VFXEdgeConnector : EdgeConnector<VFXDataEdge>
+    {
+        VFXDataAnchor m_Anchor;
+        public VFXEdgeConnector(VFXDataAnchor anchor):base(anchor)
+        {
+            m_Anchor = anchor;
+        }
+
+
+        protected override void OnMouseMove(MouseMoveEvent e)
+        {
+            base.OnMouseMove(e);
+
+            if (!e.isPropagationStopped)
+                return;
+            
+            VFXView view = m_Anchor.GetFirstAncestorOfType<VFXView>();
+            if (view == null)
+                return;
+
+            s_PickedList.Clear();
+            view.panel.PickAll(e.mousePosition, s_PickedList);
+
+            VFXDataAnchor anchor = s_PickedList.OfType<VFXDataAnchor>().FirstOrDefault();
+
+            if(anchor != null)
+                view.StartEdgeDragInfo(this.edgeDragHelper.draggedPort as VFXDataAnchor, anchor);
+            else
+                view.StopEdgeDragInfo();
+        }
+
+        protected override void OnMouseUp(MouseUpEvent e)
+        {
+            base.OnMouseUp(e);
+
+            if (!e.isPropagationStopped)
+                return;
+
+            VFXView view = m_Anchor.GetFirstAncestorOfType<VFXView>();
+            if (view == null)
+                return;
+            view.StopEdgeDragInfo();
+
+        }
+
+        static List<VisualElement> s_PickedList = new List<VisualElement>();
+    }
+
+
     class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorController>, IEdgeConnectorListener
     {
-        VisualElement m_ConnectorHighlight;
-
         VFXDataAnchorController m_Controller;
         Controller IControlledElement.controller
         {
@@ -50,19 +101,6 @@ namespace UnityEditor.VFX.UI
             AddToClassList("VFXDataAnchor");
             this.AddStyleSheetPath("VFXTypeColor");
 
-            m_ConnectorHighlight = new VisualElement();
-
-            m_ConnectorHighlight.style.position = PositionType.Absolute;
-            m_ConnectorHighlight.style.top = 0f;
-            m_ConnectorHighlight.style.left = 0f;
-            m_ConnectorHighlight.style.bottom = 0f;
-            m_ConnectorHighlight.style.right = 0f;
-            m_ConnectorHighlight.pickingMode = PickingMode.Ignore;
-
-            VisualElement connector = m_ConnectorBox as VisualElement;
-
-            connector.Add(m_ConnectorHighlight);
-
             m_Node = node;
 
             RegisterCallback<MouseEnterEvent>(OnMouseEnter);
@@ -71,6 +109,12 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
             Profiler.EndSample();
         }
+
+        public VisualElement connector
+        {
+            get { return m_ConnectorBox; }
+        }
+
 
         public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
@@ -90,7 +134,7 @@ namespace UnityEditor.VFX.UI
         public static VFXDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
             var anchor = new VFXDataAnchor(controller.orientation, controller.direction, controller.portType, node);
-            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
+            anchor.m_EdgeConnector = new VFXEdgeConnector(anchor);
             anchor.controller = controller;
 
             anchor.AddManipulator(anchor.m_EdgeConnector);

@@ -18,7 +18,8 @@ using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
+
+    public class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool assetMoved = false;
 
@@ -26,6 +27,72 @@ namespace UnityEditor.VFX.UI
         {
             assetMoved = true;
             return AssetMoveResult.DidNotMove;
+        }
+    }
+
+    class EdgeDragInfo : VisualElement
+    {
+        VFXView m_View;
+        public EdgeDragInfo(VFXView view)
+        {
+            m_View = view;
+            var tpl = Resources.Load<VisualTreeAsset>("uxml/EdgeDragInfo");
+            tpl.CloneTree(this);
+
+            this.AddStyleSheetPath("EdgeDragInfo");
+
+            m_Text = this.Q<Label>("title");
+
+            pickingMode = PickingMode.Ignore;
+            m_Text.pickingMode = PickingMode.Ignore;
+        }
+
+        Label m_Text;
+
+        public void StartEdgeDragInfo(VFXDataAnchor draggedAnchor, VFXDataAnchor overAnchor)
+        {
+            string error = null;
+            if (draggedAnchor != overAnchor)
+            {
+                if (draggedAnchor.direction == overAnchor.direction)
+                {
+                    if (draggedAnchor.direction == Direction.Input)
+                        error = "You must link an input to an output";
+                    else
+                        error = "You must link an output to an input";
+                }
+                else if (draggedAnchor.controller.connections.Any(t => draggedAnchor.direction == Direction.Input ? t.output == overAnchor.controller : t.input == overAnchor.controller))
+                {
+                    error = "An edge with the same input and output already exists";
+                }
+                else if (!draggedAnchor.controller.model.CanLink(overAnchor.controller.model))
+                {
+                    error = "The input and output have incompatible types";
+                }
+                else
+                {
+                    bool can = draggedAnchor.controller.CanLink(overAnchor.controller);
+
+                    if( !can )
+                    {
+                        if( ! draggedAnchor.controller.CanLinkToNode(overAnchor.controller.sourceNode,null))
+                            error = "The edge would create a loop in the operators";
+                        else
+                            error = "Link impossible for an unknown reason";
+                    }
+
+                    
+                }
+            }
+            if (error == null)
+                style.display = DisplayStyle.None;
+            else
+                m_Text.text = error;
+
+            var layout = overAnchor.connector.parent.ChangeCoordinatesTo(m_View, overAnchor.connector.layout);
+
+            style.top = layout.yMax + 16;
+            style.left = layout.xMax;
         }
     }
 
@@ -311,7 +378,7 @@ namespace UnityEditor.VFX.UI
 
             styleSheets.Add(LoadStyleSheet("VFXView"));
             if( ! EditorGUIUtility.isProSkin)
-            {
+            { 
                 styleSheets.Add(LoadStyleSheet("VFXView-light"));
             }
             else
@@ -1112,7 +1179,7 @@ namespace UnityEditor.VFX.UI
                 if(edge != null)
                     VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
                 else
-                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -1332,7 +1399,7 @@ namespace UnityEditor.VFX.UI
             else if (change.elementsToRemove != null)
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
-
+                
                 foreach( var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
                 {
                     RemoveElement(dataEdge);
@@ -2085,6 +2152,26 @@ namespace UnityEditor.VFX.UI
             {
                 item.AssetMoved();
             }
+        }
+
+        EdgeDragInfo m_EdgeDragInfo;
+
+        public void StartEdgeDragInfo(VFXDataAnchor draggerAnchor, VFXDataAnchor overAnchor)
+        {
+            if (m_EdgeDragInfo == null)
+            {
+                m_EdgeDragInfo = new EdgeDragInfo(this);
+                Add(m_EdgeDragInfo);
+            }
+
+            m_EdgeDragInfo.style.display = DisplayStyle.Flex;
+            m_EdgeDragInfo.StartEdgeDragInfo(draggerAnchor, overAnchor);
+        }
+
+        public void StopEdgeDragInfo()
+        {
+            if(m_EdgeDragInfo != null)
+                m_EdgeDragInfo.style.display = DisplayStyle.None;
         }
     }
 }
