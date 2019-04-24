@@ -516,7 +516,7 @@ namespace UnityEditor.VFX
 
             int nbRemoved = m_LinkedSlots.RemoveAll(c => c == null);// Remove bad references if any
             if (nbRemoved > 0)
-                Debug.LogFormat("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType());
+                Debug.LogWarningFormat("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType());
 
             m_ExpressionTreeUpToDate = false;
             m_DefaultExpressionInitialized = false;
