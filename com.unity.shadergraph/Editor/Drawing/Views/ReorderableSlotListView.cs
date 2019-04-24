@@ -18,19 +18,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         private string label => string.Format("{0}s", m_SlotType.ToString());
         public int labelWidth => 80;
 
-        public GUIStyle labelStyle
-        {
-            get
-            {
-                if(m_LabelStyle == null)
-                {
-                    m_LabelStyle = new GUIStyle();
-                    m_LabelStyle.normal.textColor = Color.white;
-                }
-                return m_LabelStyle;
-            }
-        }
-
         internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
@@ -90,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 EditorGUI.BeginChangeCheck();
                 
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), labelStyle); 
+                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label); 
                 var shaderOutputName = NodeUtils.GetHLSLSafeName(displayName);
                 var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + labelWidth, rect.y, rect.width - labelWidth, EditorGUIUtility.singleLineHeight), oldSlot.concreteValueType);
 
