@@ -620,9 +620,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         Handles.color = Color.white;
 
                         for (int i = 0; i < falloffShape.Count - 1; ++i)
+                        {
                             Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
+                            Handles.DrawLine(t.TransformPoint(light.shapePath[i]), t.TransformPoint(light.shapePath[i + 1]));
+                        }
 
                         Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                        Handles.DrawLine(t.TransformPoint(light.shapePath[falloffShape.Count - 1]), t.TransformPoint(light.shapePath[0]));
                     }
                     break;
             }
