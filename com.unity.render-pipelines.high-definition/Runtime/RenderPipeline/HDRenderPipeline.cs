@@ -281,7 +281,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RENDER GRAPH
         RenderGraph             m_RenderGraph;
-
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
 
@@ -289,10 +288,16 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_RayTracingSupported = false;
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
-
 #if UNITY_EDITOR
         bool m_ResourcesInitialized = false;
 #endif
+
+#if UNITY_EDITOR
+		bool		m_LockRenderCamera;
+		Vector3		m_LockedPosition;
+		Quaternion	m_LockedRotation;
+#endif
+//forest-end:
 
         public HDRenderPipeline(HDRenderPipelineAsset asset, HDRenderPipelineAsset defaultAsset)
         {
@@ -430,6 +435,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
 //forest-begin: Configure callbacks
 			HDRPCallbackAttribute.ConfigureAllLoadedCallbacks();
+//forest-end:
+
+//forest-begin: Locked render camera
+#if UNITY_EDITOR
+			var panel = DebugManager.instance.GetPanel("Scene View", true);
+			var container = panel.children.Where(c => c.displayName == "Forest Custom").FirstOrDefault() as DebugUI.Container;
+            if (container != null)
+            {
+                container.children.Add(new DebugUI.BoolField {
+                    displayName = "Lock Render Camera",
+                    getter = () => m_LockRenderCamera,
+                    setter = value => m_LockRenderCamera = value
+                });
+            }
+#endif
 //forest-end:
 
             // Keep track of the original msaa sample value
@@ -1070,6 +1090,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Indices of render request to render before this one
             public List<int> dependsOnRenderRequestIndices;
             public CameraSettings cameraSettings;
+
+//forest-begin: Locked render camera
+#if UNITY_EDITOR
+			public Vector3 preLockedPosition;
+			public Quaternion preLockedRotation;
+#endif
+//forest-end:
         }
         struct HDCullingResults
         {
@@ -1324,6 +1351,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     // This is a root render request
                     rootRenderRequestIndices.Add(request.index);
 
+//forest-begin: Locked render camera
+#if UNITY_EDITOR
+                    request.preLockedPosition = camera.transform.position;
+                    request.preLockedRotation = camera.transform.rotation;
+
+                    if(!m_LockRenderCamera) {
+                        m_LockedPosition = camera.transform.position;
+                        m_LockedRotation = camera.transform.rotation;
+                    } else {
+                        camera.transform.position = m_LockedPosition;
+                        camera.transform.rotation = m_LockedRotation;
+                    }
+#endif
+//forest-end:
                     // Add visible probes to list
                     for (var i = 0; i < cullingResults.cullingResults.visibleReflectionProbes.Length; ++i)
                     {
@@ -1842,6 +1883,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ApplyDebugDisplaySettings(hdCamera, cmd);
             m_SkyManager.UpdateCurrentSkySettings(hdCamera);
+
+//forest-begin: Locked render camera
+#if UNITY_EDITOR
+					if(m_LockRenderCamera) {
+						camera.transform.position = renderRequest.preLockedPosition;
+						camera.transform.rotation = renderRequest.preLockedRotation;
+						
+						hdCamera = HDCamera.Get(camera);
+					}
+#endif
+//forest-end:
 
             SetupCameraProperties(hdCamera, renderContext, cmd);
 
