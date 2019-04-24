@@ -281,6 +281,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_areaLightCount = 0;
         int m_lightCount = 0;
         int m_densityVolumeCount = 0;
+        int m_fluidSimVolumeCount = 0; //seongdae;fspm
         bool m_enableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
         bool m_hasRunLightListPrevFrame = false;
 
@@ -1768,7 +1769,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Return true if BakedShadowMask are enabled
         public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings)
+            //HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings) //seongdae;fspm;origin
+            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, FluidSimVolumeList fluidSimVolumes, DebugDisplaySettings debugDisplaySettings) //seongdae;fspm
         {
         #if ENABLE_RAYTRACING
             HDRaytracingEnvironment raytracingEnv = m_RayTracingManager.CurrentEnvironment();
@@ -2186,6 +2188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
+                m_fluidSimVolumeCount = fluidSimVolumes.bounds != null ? fluidSimVolumes.bounds.Count : 0; //seongdae;fspm
 
                 Matrix4x4 worldToViewCR = worldToView;
 
@@ -2201,8 +2204,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     LightFeatureFlags featureFlags = 0;
                     AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, camera.stereoEnabled);
                 }
+                //seongdae;fspm
+                for (int i = 0, n = m_fluidSimVolumeCount; i < n; i++)
+                {
+                    // Density volumes are not lights and therefore should not affect light classification.
+                    LightFeatureFlags featureFlags = 0;
+                    AddBoxVolumeDataAndBound(fluidSimVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, camera.stereoEnabled);
+                }
+                //seongdae;fspm
 
-                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
+                //m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount; //seongdae;fspm;origin
+                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount + m_fluidSimVolumeCount; //seongdae;fspm
                 Debug.Assert(m_lightCount == m_lightList.bounds.Count);
                 Debug.Assert(m_lightCount == m_lightList.lightVolumes.Count);
 

@@ -502,7 +502,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 // to the sample point. We ignore it for performance and simplicity.
                 float dist = t;
 
-                volumeScattering += float3(0.1, 0.0, 0.0);
+                volumeScattering += float3(0.0, 0.1, 0.0);
                 volumeExtinction += 0.0;
             }
         }

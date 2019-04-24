@@ -156,7 +156,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //seongdae;fspm
         List<OrientedBBox>             m_VisibleFluidSimVolumeBounds   = null;
         List<FluidSimVolumeEngineData> m_VisibleFluidSimVolumeData     = null;
-        public const int               k_MaxVisibleFluidSimVolumeCount = 16;
+        public const int               k_MaxVisibleFluidSimVolumeCount = 512;
         //seongdae;fspm
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
