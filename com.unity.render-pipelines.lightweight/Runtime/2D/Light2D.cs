@@ -21,15 +21,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Global = 4
         }
 
-        /// <summary>
-        ///  Light overlap modes. For typical lighting use additive. To override a lights color with the color of another light use AlphaBlend.
-        /// </summary>
-        public enum LightOverlapMode
-        {
-            Additive,
-            AlphaBlend
-        }
-
         //------------------------------------------------------------------------------------------
         //                                      Static/Constants
         //------------------------------------------------------------------------------------------
@@ -70,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] bool m_UseNormalMap = false;
 
         [SerializeField] int m_LightOrder = 0;
-        [SerializeField] LightOverlapMode m_LightOverlapMode = LightOverlapMode.Additive;
+        [SerializeField] bool m_AlphaBlendOnOverlap = false; 
 
         int m_PreviousLightOrder = -1;
         int m_PreviousLightOperationIndex;
@@ -134,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public Sprite lightCookieSprite => m_LightCookieSprite;
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
-        public LightOverlapMode lightOverlapMode => m_LightOverlapMode;
+        public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
         public int lightOrder => m_LightOrder;
 
 #if UNITY_EDITOR
@@ -490,7 +481,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
-
+            Gizmos.color = Color.blue;
             Gizmos.DrawIcon(transform.position, s_LightIconPaths[(int)m_LightType], true);
         }
 #endif

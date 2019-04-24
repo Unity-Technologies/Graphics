@@ -70,6 +70,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
             public static GUIContent generalVolumeOpacity = EditorGUIUtility.TrTextContent("Volume Opacity", "Specify the light's volumetric light volume opacity");
             public static GUIContent generalLightOperation = EditorGUIUtility.TrTextContent("Light Operation", "Specify the light operation");
+            public static GUIContent generalLightOverlapMode = EditorGUIUtility.TrTextContent("Alpha Blend on Overlap", "Use alpha blending instead of additive blending when this light overlaps others");
+            public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same light operation get rendered.");
 
             public static GUIContent pointLightQuality = EditorGUIUtility.TrTextContent("Quality", "Use accurate if there are noticeable visual issues");
             public static GUIContent pointLightInnerAngle =  EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light");
@@ -85,8 +87,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
             public static GUIContent shapeLightFalloffOffset = EditorGUIUtility.TrTextContent("Falloff Offset", "Specify the shape's falloff offset");
             public static GUIContent shapeLightAngleOffset = EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object");
-            public static GUIContent shapeLightOverlapMode = EditorGUIUtility.TrTextContent("Light Overlap Mode", "Specify what should happen when this light overlaps other lights");
-            public static GUIContent shapeLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same light operation get rendered.");
 
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply this light to the specified sorting layers.");
             public static GUIContent sortingLayerAll = EditorGUIUtility.TrTextContent("All");
@@ -114,7 +114,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_FalloffIntensity;
         SerializedProperty m_PointZDistance;
         SerializedProperty m_LightOrder;
-        SerializedProperty m_LightOverlapMode;
+        SerializedProperty m_AlphaBlendOnOverlap;
 
         // Point Light Properties
         SerializedProperty m_PointInnerAngle;
@@ -179,7 +179,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_FalloffIntensity = serializedObject.FindProperty("m_FalloffIntensity");
             m_PointZDistance = serializedObject.FindProperty("m_PointLightDistance");
             m_LightOrder = serializedObject.FindProperty("m_LightOrder");
-            m_LightOverlapMode = serializedObject.FindProperty("m_LightOverlapMode");
+            m_AlphaBlendOnOverlap = serializedObject.FindProperty("m_AlphaBlendOnOverlap");
 
             // Point Light
             m_PointInnerAngle = serializedObject.FindProperty("m_PointLightInnerAngle");
@@ -668,8 +668,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     break;
             }
 
-            EditorGUILayout.PropertyField(m_LightOverlapMode, Styles.shapeLightOverlapMode);
-            EditorGUILayout.PropertyField(m_LightOrder, Styles.shapeLightOrder);
+            EditorGUILayout.PropertyField(m_AlphaBlendOnOverlap, Styles.generalLightOverlapMode);
+            EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
 
             EditorGUI.BeginChangeCheck();
 
