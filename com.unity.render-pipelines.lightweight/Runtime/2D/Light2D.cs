@@ -45,8 +45,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
         //------------------------------------------------------------------------------------------
-
-        
         [UnityEngine.Animations.NotKeyable]
         [SerializeField]
         LightType m_LightType = LightType.Parametric;
@@ -138,6 +136,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public bool useNormalMap => m_UseNormalMap;
         public LightOverlapMode lightOverlapMode => m_LightOverlapMode;
         public int lightOrder => m_LightOrder;
+
+#if UNITY_EDITOR
+        public static string s_IconsPath = "Packages/com.unity.render-pipelines.lightweight/Editor/2D/Resources/SceneViewIcons/";
+        public static string s_ParametricLightIconPath = s_IconsPath + "ParametricLight.png";
+        public static string s_FreeformLightIconPath = s_IconsPath + "FreeformLight.png";
+        public static string s_SpriteLightIconPath = s_IconsPath + "SpriteLight.png";
+        public static string s_PointLightIconPath = s_IconsPath + "PointLight.png";
+        public static string s_GlobalLightIconPath = s_IconsPath + "GlobalLight.png";
+        public static string[] s_LightIconPaths = new string[] { s_ParametricLightIconPath, s_FreeformLightIconPath, s_SpriteLightIconPath, s_PointLightIconPath, s_GlobalLightIconPath };
+#endif
 
 
         //==========================================================================================
@@ -478,9 +486,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 Light2D.AddGlobalLight(this, true);
         }
 
+
+#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
-            Gizmos.DrawIcon(transform.position, "PointLight Gizmo", true);
+
+            Gizmos.DrawIcon(transform.position, s_LightIconPaths[(int)m_LightType], true);
         }
+#endif
     }
 }
