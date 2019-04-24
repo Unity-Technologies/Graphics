@@ -76,9 +76,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     LightLoopContext context;
 
     context.shadowContext    = InitShadowContext();
-    context.contactShadow    = InitContactShadow(posInput);
     context.shadowValue      = 1;
     context.sampleReflection = 0;
+    
+    // Initialize the contactShadow and contactShadowFade fields
+    InitContactShadow(posInput, context);
 
     // First of all we compute the shadow value of the directional light to reduce the VGPR pressure
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
@@ -99,7 +101,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             if (MaterialSupportsTransmission(bsdfData))
             {
                 // We support some kind of transmission.
-                if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+                if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_THICKNESS))
                 {
                     // We always evaluate shadows.
                     evaluateShadows = true;
@@ -129,28 +131,24 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
         uint lightCount, lightStart;
-        bool fastPath = false;
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
-
-#if SCALARIZE_LIGHT_LOOP
-        // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-        uint lightStartLane0 = WaveReadLaneFirst(lightStart);
-        fastPath = WaveActiveAllTrue(lightStart == lightStartLane0); 
-#endif
-
 #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         lightCount = _PunctualLightCount;
         lightStart = 0;
 #endif
 
-#if SCALARIZE_LIGHT_LOOP
+        bool fastPath = false;
+    #if SCALARIZE_LIGHT_LOOP
+        uint lightStartLane0;
+        fastPath = IsFastPath(lightStart, lightStartLane0);
+
         if (fastPath)
         {
             lightStart = lightStartLane0;
         }
-#endif
+    #endif
 
         // Scalarized loop. All lights that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the one relevant to current thread/pixel are processed.
         // For clarity, the following code will follow the convention: variables starting with s_ are meant to be wave uniform (meant for scalar register),
@@ -163,23 +161,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         while (v_lightListOffset < lightCount)
         {
             v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
-            uint s_lightIdx = v_lightIdx;
-#if SCALARIZE_LIGHT_LOOP
-            if (!fastPath)
-            {
-                // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave. 
-                s_lightIdx = WaveActiveMin(v_lightIdx);
-                // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-               // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
-                if (s_lightIdx == -1)
-                {
-                    break;
-                }
-            }
-            // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-            // However, we are certain at this point that the index is scalar.
-            s_lightIdx = WaveReadLaneFirst(s_lightIdx);
-#endif
+            uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
+            if (s_lightIdx == -1)
+                break;
+            
             LightData s_lightData = FetchLight(s_lightIdx);
 
             // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
@@ -215,21 +200,19 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         uint envLightStart, envLightCount;
 
-        bool fastPath = false;
         // Fetch first env light to provide the scene proxy for screen space computation
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
-
-    #if SCALARIZE_LIGHT_LOOP
-        // Fast path is when we all pixels in a wave is accessing same tile or cluster.
-        uint envStartFirstLane = WaveReadLaneFirst(envLightStart);
-        fastPath = WaveActiveAllTrue(envLightStart == envStartFirstLane); 
-    #endif
-
 #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         envLightCount = _EnvLightCount;
         envLightStart = 0;
 #endif
+
+        bool fastPath = false;
+    #if SCALARIZE_LIGHT_LOOP
+        uint envStartFirstLane;
+        fastPath = IsFastPath(envLightStart, envStartFirstLane);
+    #endif
 
         // Reflection / Refraction hierarchy is
         //  1. Screen Space Refraction / Reflection
@@ -265,6 +248,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
         {
             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
+
         #if SCALARIZE_LIGHT_LOOP
             if (fastPath)
             {
@@ -278,25 +262,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             while (v_envLightListOffset < envLightCount)
             {
                 v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
-                uint s_envLightIdx = v_envLightIdx;
-
-            #if SCALARIZE_LIGHT_LOOP
-                if (!fastPath)
-                {
-                    s_envLightIdx = WaveActiveMin(v_envLightIdx);
-                    // If we are not in fast path, s_envLightIdx is not scalar
-                   // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-                   // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
-                    if (s_envLightIdx == -1)
-                    {
-                        break;
-                    }
-                }
-                // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-                // However, we are certain at this point that the index is scalar.
-                s_envLightIdx = WaveReadLaneFirst(s_envLightIdx);
-
-            #endif
+                uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
+                if (s_envLightIdx == -1)
+                    break;
 
                 EnvLightData s_envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
 

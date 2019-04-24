@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 
@@ -166,6 +167,86 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FrameSettingsRenderType defaultFrameSettings;
 
         public ref FrameSettings renderingPathCustomFrameSettings => ref m_RenderingPathCustomFrameSettings;
+
+        AOVRequestDataCollection m_AOVRequestDataCollection = new AOVRequestDataCollection(null);
+
+        /// <summary>Set AOV requests to use.</summary>
+        /// <param name="aovRequests">Describes the requests to execute.</param>
+        /// <example>
+        /// <code>
+        /// using System.Collections.Generic;
+        /// using UnityEngine;
+        /// using UnityEngine.Experimental.Rendering;
+        /// using UnityEngine.Experimental.Rendering.HDPipeline;
+        /// using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
+        ///
+        /// [ExecuteAlways]
+        /// [RequireComponent(typeof(Camera))]
+        /// [RequireComponent(typeof(HDAdditionalCameraData))]
+        /// public class SetupAOVCallbacks : MonoBehaviour
+        /// {
+        ///     private static RTHandleSystem.RTHandle m_ColorRT;
+        ///
+        ///     [SerializeField] private Texture m_Target;
+        ///     [SerializeField] private DebugFullScreen m_DebugFullScreen;
+        ///     [SerializeField] private DebugLightFilterMode m_DebugLightFilter;
+        ///     [SerializeField] private MaterialSharedProperty m_MaterialSharedProperty;
+        ///     [SerializeField] private LightingProperty m_LightingProperty;
+        ///     [SerializeField] private AOVBuffers m_BuffersToCopy;
+        ///     [SerializeField] private List<GameObject> m_IncludedLights;
+        ///
+        ///
+        ///     void OnEnable()
+        ///     {
+        ///         var aovRequest = new AOVRequest(AOVRequest.@default)
+        ///             .SetLightFilter(m_DebugLightFilter);
+        ///         if (m_DebugFullScreen != DebugFullScreen.None)
+        ///             aovRequest = aovRequest.SetFullscreenOutput(m_DebugFullScreen);
+        ///         if (m_MaterialSharedProperty != MaterialSharedProperty.None)
+        ///             aovRequest = aovRequest.SetFullscreenOutput(m_MaterialSharedProperty);
+        ///         if (m_LightingProperty != LightingProperty.None)
+        ///             aovRequest = aovRequest.SetFullscreenOutput(m_LightingProperty);
+        ///
+        ///         var add = GetComponent<HDAdditionalCameraData>();
+        ///         add.SetAOVRequests(
+        ///             new AOVRequestBuilder()
+        ///                 .Add(
+        ///                     aovRequest,
+        ///                     bufferId => m_ColorRT ?? (m_ColorRT = RTHandles.Alloc(512, 512)),
+        ///                     m_IncludedLights.Count > 0 ? m_IncludedLights : null,
+        ///                     new []{ m_BuffersToCopy },
+        ///                     (cmd, textures, properties) =>
+        ///                     {
+        ///                         if (m_Target != null)
+        ///                             cmd.Blit(textures[0], m_Target);
+        ///                     })
+        ///                 .Build()
+        ///         );
+        ///     }
+        ///
+        ///     private void OnGUI()
+        ///     {
+        ///         GUI.DrawTexture(new Rect(10, 10, 512, 256), m_Target);
+        ///     }
+        ///
+        ///     void OnDisable()
+        ///     {
+        ///         var add = GetComponent<HDAdditionalCameraData>();
+        ///         add.SetAOVRequests(null);
+        ///     }
+        ///
+        ///     void OnValidate()
+        ///     {
+        ///         OnDisable();
+        ///         OnEnable();
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
+        public void SetAOVRequests(AOVRequestDataCollection aovRequests)
+            => m_AOVRequestDataCollection = aovRequests;
+
+        public IEnumerable<AOVRequestData> aovRequests => m_AOVRequestDataCollection;
 
         // Use for debug windows
         // When camera name change we need to update the name in DebugWindows.

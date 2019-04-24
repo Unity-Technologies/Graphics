@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/004_Bounds.unity
     guid: fc042ee6987609a4b895d96dffef8dff
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/005_PlanarPrimitives.unity
+    guid: fd7efe8ee4dbe754084c1edb14955dc7
   m_configObjects: {}

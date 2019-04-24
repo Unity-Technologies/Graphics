@@ -8,18 +8,6 @@ namespace UnityEngine.Rendering.LWRP
 {    
     public class ForwardRendererData : ScriptableRendererData
     {
-        [Serializable, ReloadGroup]
-        public sealed class ShaderResources
-        {
-            [SerializeField, Reload("Shaders/Utils/Blit.shader")]
-            public Shader blitPS;
-
-            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
-            public Shader copyDepthPS;
-
-            [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
-            public Shader screenSpaceShadowPS;
-
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
         internal class CreateForwardRendererAsset : EndNameEditAction
@@ -31,13 +19,25 @@ namespace UnityEngine.Rendering.LWRP
                 Selection.activeObject = instance;
             }
         }
-        
+
         [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateForwardRendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
         }
 #endif
+
+        [Serializable, ReloadGroup]
+        public sealed class ShaderResources
+        {
+            [SerializeField, Reload("Shaders/Utils/Blit.shader")]
+            public Shader blitPS;
+
+            [SerializeField, Reload("Shaders/Utils/CopyDepth.shader")]
+            public Shader copyDepthPS;
+
+            [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            public Shader screenSpaceShadowPS;
         
             [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;

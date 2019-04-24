@@ -4,7 +4,16 @@ The Gradient Sky Volume component override controls settings relevant to renderi
 
 You can alter these values at run time. This component also exposes options that enable you to define how HDRP updates the indirect lighting the sky generates in the Scene.
 
-To use this type of sky. You must first add it to a Volume and set that Volume’s **Visual Environment** component override’s **Sky Type** to **Gradient**. For details on how to do this, see the [Visual Environment](Override-Visual-Environment.html) documentation.
+##  Using Gradient Sky
+
+**Gradient Sky** uses the [Volume](Volumes.html) framework, so to enable and modify **Gradient Sky** properties, you must add a **Gradient Sky** override to a [Volume](Volumes.html) in your Scene. To add **Gradient  Sky** to a Volume:
+
+1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+2. In the Inspector, navigate to **Add Override > Sky** and click on **Gradient Sky**.
+
+After you add a **Gradient Sky** override, you must set the Volume to use **Gradient Sky**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Gradient Sky**. HDRP now renders a **Gradient Sky** for any Camera this Volume affects.
+
+## Properties
 
 ![](Images/Override-GradientSky1.png)
 
