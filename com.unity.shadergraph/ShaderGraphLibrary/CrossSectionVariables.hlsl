@@ -1,0 +1,10 @@
+#ifndef CROSS_SECTION_GLOBAL_SHADER_VARIABLES_INCLUDED
+#define CROSS_SECTION_GLOBAL_SHADER_VARIABLES_INCLUDED
+
+float3 _UnityAEC_ClipPlanePosition;
+float3 _UnityAEC_ClipPlaneNormal;
+float3 _UnityAEC_ClipPlaneTangent;
+float3 _UnityAEC_ClipPlaneBitangent;
+float _UnityAEC_CutMainStyle;
+
+#endif
