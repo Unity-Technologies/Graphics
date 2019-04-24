@@ -6,6 +6,7 @@ using Unity.Collections;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [DisallowMultipleComponent, ExecuteInEditMode]
+    [DefaultExecutionOrder(100)]
     public class HDRaytracingEnvironment : MonoBehaviour
     {
 #if ENABLE_RAYTRACING
@@ -187,24 +188,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(1, 27)]
         public int indirectDiffuseFilterRadius = 16;
 
-        void Start()
+
+        //HACK FOR MULTIPLE ENVIRONMENT START============
+        void OnEnable()
         {
             // Grab the High Definition RP
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
-                hdPipeline.m_RayTracingManager.RegisterEnvironment(this);
+                hdPipeline.m_RayTracingManager.RegisterEnvironment(this, false);
             }
         }
-        void OnDestroy()
+        void OnDisable()
         {
             // Grab the High Definition RP
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
-                hdPipeline.m_RayTracingManager.UnregisterEnvironment(this);
+                hdPipeline.m_RayTracingManager.UnregisterEnvironment(this, false);
             }
         }
+
+        //HACK FOR MULTIPLE ENVIRONMENT END============
 #endif
     }
 }

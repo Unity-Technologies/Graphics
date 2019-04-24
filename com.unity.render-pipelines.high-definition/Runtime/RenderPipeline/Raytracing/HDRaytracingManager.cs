@@ -15,28 +15,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         List<HDRaytracingEnvironment> m_Environments = new List<HDRaytracingEnvironment>();
 
         // Flag that defines if we should rebuild everything (when adding or removing an environment)
-        bool m_DirtyEnvironment = false;
+        bool m_DirtyEnvironment = true;
 
-        public void RegisterEnvironment(HDRaytracingEnvironment targetEnvironment)
+        public void RegisterEnvironment(HDRaytracingEnvironment targetEnvironment, bool makeDirty = true)
         {
             if (!m_Environments.Contains(targetEnvironment))
             {
                 // Add this env to the list of environments
                 m_Environments.Add(targetEnvironment);
-                m_DirtyEnvironment = true;
+                m_DirtyEnvironment = makeDirty;
 
                 // Now that a new environment has been set, we need to update
                 UpdateEnvironmentSubScenes();
             }
         }
 
-        public void UnregisterEnvironment(HDRaytracingEnvironment targetEnvironment)
+        public void UnregisterEnvironment(HDRaytracingEnvironment targetEnvironment, bool makeDirty = true)
         {
             if (m_Environments.Contains(targetEnvironment))
             {
                 // Add this graph
                 m_Environments.Remove(targetEnvironment);
-                m_DirtyEnvironment = true;
+                m_DirtyEnvironment = makeDirty;
 
                 // Now that a new environement has been removed, we need to update
                 UpdateEnvironmentSubScenes();
@@ -118,7 +118,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDRaytracingEnvironment[] environmentArray = Object.FindObjectsOfType<HDRaytracingEnvironment>();
             for (int envIdx = 0; envIdx < environmentArray.Length; ++envIdx)
             {
-                RegisterEnvironment(environmentArray[envIdx]);
+                RegisterEnvironment(environmentArray[envIdx], true);
             }
 
             // Init the ray count manager
@@ -134,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static void OnHierarchyChanged()
         {
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            if (hdPipeline != null)
+            if (hdPipeline != null && !Application.isPlaying)
             {
                 hdPipeline.m_RayTracingManager.SetDirty();
             }

@@ -609,8 +609,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return lightType != LightTypeExtent.Punctual;
         }
 
-#if UNITY_EDITOR
+#if !UNITY_EDITOR
+        public bool useColorTemperature
+        {
+            get{ return false;}
+        }
 
+#endif
+
+
+#if UNITY_EDITOR
         // Force to retrieve color light's m_UseColorTemperature because it's private
         [System.NonSerialized]
         SerializedProperty useColorTemperatureProperty;
@@ -620,6 +628,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
+                
                 if (useColorTemperatureProperty == null)
                 {
                     lightSerializedObject = new SerializedObject(m_Light);
