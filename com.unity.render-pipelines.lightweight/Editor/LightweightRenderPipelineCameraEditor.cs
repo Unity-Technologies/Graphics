@@ -86,9 +86,11 @@ namespace UnityEditor.Rendering.LWRP
             public static GUIContent[] antialiasingOptions =
             {
                 new GUIContent("None"),
-                new GUIContent("Fast Approximate Anti-aliasing (FXAA)")
+                new GUIContent("Fast Approximate Anti-aliasing (FXAA)"),
+                new GUIContent("Subpixel Morphological Anti-aliasing (SMAA)"),
+                new GUIContent("Temporal Anti-aliasing (TAA)")
             };
-            public static int[] antialiasingValues = { 0, 1 };
+            public static int[] antialiasingValues = { 0, 1, 2, 3 };
         };
 
         public Camera camera { get { return target as Camera; } }

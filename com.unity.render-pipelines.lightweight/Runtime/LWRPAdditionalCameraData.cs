@@ -18,7 +18,9 @@ namespace UnityEngine.Rendering.LWRP
     public enum AntialiasingMode
     {
         None,
-        FastApproximateAntialiasing
+        FastApproximateAntialiasing,
+        SubpixelMorphologicalAntiAliasing,
+        TemporalAntialiasing
     }
 
     [DisallowMultipleComponent]
