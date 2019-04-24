@@ -58,9 +58,11 @@ Pass
 	ps_output frag(ps_input i)
 	{
 		ps_output o = (ps_output)0;
-		o.color = VFXGetFragmentColor(i);
-		o.color *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i);
-        o.color = VFXApplyPreExposure(o.color);
+		
+		#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
+		${VFXApplyColor}
+
+		o.color = VFXApplyPreExposure(o.color);
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);
 		o.color.a = saturate(o.color.a);
