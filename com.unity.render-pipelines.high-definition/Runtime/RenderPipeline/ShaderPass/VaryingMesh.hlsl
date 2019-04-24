@@ -9,6 +9,14 @@
 	#define ATTRIBUTES_NEED_COLOR
 #endif
 //forest-end:
+//forest-begin: Tessellated displacement scale
+#if defined(_TESSELLATION_DISPLACEMENT)
+	#ifndef ATTRIBUTES_NEED_COLOR
+		#define ATTRIBUTES_NEED_COLOR
+	#endif
+	#define VARYINGS_DS_NEED_COLOR
+#endif
+//forest-end:
 //forest-begin: Procedural bark peel
 #if defined(_DETAIL_MAP_PEEL)
 	#ifndef ATTRIBUTES_NEED_COLOR

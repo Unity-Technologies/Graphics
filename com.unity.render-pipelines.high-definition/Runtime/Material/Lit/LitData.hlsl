@@ -185,8 +185,14 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+//forest-begin: Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
+	#if !defined(_TESSELLATION_DISPLACEMENT)
+//forest-end:
     uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
     LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
+//forest-begin: Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
+	#endif
+//forest-end:
 #endif
 
 #ifdef _DOUBLESIDED_ON
