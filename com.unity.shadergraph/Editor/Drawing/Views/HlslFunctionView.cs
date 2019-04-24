@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         private EnumField m_Type;
         private TextField m_FunctionName;
-        private TextField m_FunctionSource;
+        private ObjectField m_FunctionSource;
         private TextField m_FunctionBody;
 
         internal HlslFunctionView(CustomFunctionNode node)
@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Type");
                     node.sourceType = (HlslSourceType)s.newValue;
                     Draw(node);
+                    node.ValidateNode();
                     node.Dirty(ModificationScope.Graph);
                 }
             });
@@ -56,25 +57,46 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Name");
                     node.functionName = m_FunctionName.value;
+                    node.ValidateNode();
                     node.Dirty(ModificationScope.Graph);
                 }
             });
 
-            m_FunctionSource = new TextField { value = node.functionSource, multiline = false };
-            m_FunctionSource.RegisterCallback<FocusInEvent>(s =>
+            // Handle upgrade from legacy asset path version
+            // If functionSource is not empty or a guid then assume it is legacy version
+            // If asset can be loaded from path then get its guid
+            // Otherwise it was the default string so set to empty
+            Guid guid;
+            if(!string.IsNullOrEmpty(node.functionSource) && !Guid.TryParse(node.functionSource, out guid))
             {
-                if(m_FunctionSource.value == CustomFunctionNode.defaultFunctionSource)
-                    m_FunctionSource.value = "";
-            });
-            m_FunctionSource.RegisterCallback<FocusOutEvent>(s =>
+                string guidString = string.Empty;
+                TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(node.functionSource);
+                if(textAsset != null)
+                {
+                    long localId;
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(textAsset, out guidString, out localId);
+                }
+                node.functionSource = guidString;
+                node.Dirty(ModificationScope.Graph);
+            }
+            
+            string path = AssetDatabase.GUIDToAssetPath(node.functionSource);
+            m_FunctionSource = new ObjectField() { value = AssetDatabase.LoadAssetAtPath<TextAsset>(path), objectType = typeof(TextAsset)};
+            m_FunctionSource.RegisterValueChangedCallback(s =>
             {
-                if(m_FunctionSource.value == "")
-                    m_FunctionSource.value = CustomFunctionNode.defaultFunctionSource;
+                long localId;
+                string guidString = string.Empty;
+                if(s.newValue != null)
+                {
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier((TextAsset)s.newValue, out guidString, out localId);
+                }
 
-                if(m_FunctionSource.value != node.functionSource)
+                if(guidString != node.functionSource)
                 {
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Source");
-                    node.functionSource = m_FunctionSource.value;
+                    node.functionSource = guidString;
+                    Draw(node);
+                    node.ValidateNode();
                     node.Dirty(ModificationScope.Graph);
                 }
             });
@@ -94,6 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     node.owner.owner.RegisterCompleteObjectUndo("Change Function Body");
                     node.functionBody = m_FunctionBody.value;
+                    node.ValidateNode();
                     node.Dirty(ModificationScope.Graph);
                 }
             });

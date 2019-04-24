@@ -12,6 +12,11 @@ namespace UnityEditor.ShaderGraph
     [Title("Utility", "Custom Function")]
     class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IHasSettings
     {
+        static string[] s_ValidExtensions = { ".hlsl", ".cginc" };
+        static string s_NoFunctionNameSet = "A Custom Function Node requires a function name to be set.";
+        static string s_NoFunctionBodySet = "String mode requires a function body to be set.";
+        static string s_NoFileSelected = "File mode requires a Source file to be selected.";
+        static string s_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl and .cginc";
         static string s_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
 
         public CustomFunctionNode()
@@ -44,7 +49,7 @@ namespace UnityEditor.ShaderGraph
         public static string defaultFunctionName => m_DefaultFunctionName;
 
         [SerializeField]
-        private string m_FunctionSource = m_DefaultFunctionSource;
+        private string m_FunctionSource;
 
         private static string m_DefaultFunctionSource = "Enter function source file path here...";
 
@@ -53,8 +58,6 @@ namespace UnityEditor.ShaderGraph
             get => m_FunctionSource;
             set => m_FunctionSource = value;
         }
-
-        public static string defaultFunctionSource => m_DefaultFunctionSource;
 
         [SerializeField]
         private string m_FunctionBody = m_DefaultFunctionBody;
@@ -127,7 +130,13 @@ namespace UnityEditor.ShaderGraph
                 switch (sourceType)
                 {
                     case HlslSourceType.File:
-                        builder.AppendLine($"#include \"{functionSource}\"");
+                        string path = AssetDatabase.GUIDToAssetPath(functionSource);
+
+                        // This is required for upgrading without console errors
+                        if(string.IsNullOrEmpty(path))
+                            path = functionSource;
+
+                        builder.AppendLine($"#include \"{path}\"");
                         break;
                     case HlslSourceType.String:
                         builder.AppendLine(GetFunctionHeader());
@@ -201,8 +210,15 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                bool validFunctionSource = !string.IsNullOrEmpty(functionSource) && functionSource != m_DefaultFunctionSource;
-                return validFunctionName & validFunctionSource;
+                if(!validFunctionName || string.IsNullOrEmpty(functionSource) || functionSource == m_DefaultFunctionSource)
+                    return false;
+
+                string path = AssetDatabase.GUIDToAssetPath(functionSource);
+                if(string.IsNullOrEmpty(path))
+                    path = functionSource;
+
+                string extension = path.Substring(path.LastIndexOf('.'));
+                return s_ValidExtensions.Contains(extension);
             }
         }
 
@@ -211,6 +227,36 @@ namespace UnityEditor.ShaderGraph
             if (!this.GetOutputSlots<MaterialSlot>().Any())
             {
                 owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+            }
+
+            if(functionName == m_DefaultFunctionName)
+            {
+                owner.AddValidationError(tempId, s_NoFunctionNameSet, ShaderCompilerMessageSeverity.Warning);
+            }
+
+            if(sourceType == HlslSourceType.String)
+            {
+                if(functionBody == m_DefaultFunctionBody)
+                {
+                    owner.AddValidationError(tempId, s_NoFunctionBodySet, ShaderCompilerMessageSeverity.Warning);
+                }
+            }
+            else
+            {
+                if(string.IsNullOrEmpty(functionSource))
+                {
+                    owner.AddValidationError(tempId, s_NoFileSelected, ShaderCompilerMessageSeverity.Warning);
+                }
+
+                string path = AssetDatabase.GUIDToAssetPath(functionSource);
+                if(!string.IsNullOrEmpty(path))
+                {
+                    string extension = path.Substring(path.LastIndexOf('.'));
+                    if(!s_ValidExtensions.Contains(extension))
+                    {
+                        owner.AddValidationError(tempId, s_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                    }
+                }
             }
             
             base.ValidateNode();
