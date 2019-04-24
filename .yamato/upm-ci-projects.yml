@@ -50,6 +50,7 @@ all_project_ci:
   {% endfor %}
   {% endfor %}
   #{% endfor %}
+    - .yamato/upm-ci-katana.yml#run_katana_metal
   triggers:
     branches:
       only:
