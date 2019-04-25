@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added ViewConstants StructuredBuffer to simplify XR rendering
 - Added API to render specific settings during a frame
+- Added stadia to the supported platforms (2019.3)
 
 ### Fixed
 - Fixed deserialization crash at runtime
