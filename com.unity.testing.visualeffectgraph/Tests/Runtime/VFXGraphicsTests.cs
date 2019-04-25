@@ -142,10 +142,17 @@ namespace UnityEngine.VFX.Test
                     RenderTexture.active = null;
                     actual.Apply();
 
+                    var imageComparisonSettings = new ImageComparisonSettings() { AverageCorrectnessThreshold = 10e-5f };
+                    var testSettingsInScene = Object.FindObjectOfType<GraphicsTestSettings>();
+                    if (testSettingsInScene != null)
+                    {
+                        imageComparisonSettings.AverageCorrectnessThreshold = testSettingsInScene.ImageComparisonSettings.AverageCorrectnessThreshold;
+                    }
+
                     if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)) &&
                         !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && UnstableMetalTests.Any(o => testCase.ScenePath.Contains(o))))
                     {
-                        ImageAssert.AreEqual(testCase.ReferenceImage, actual, new ImageComparisonSettings() { AverageCorrectnessThreshold = 10e-5f });
+                        ImageAssert.AreEqual(testCase.ReferenceImage, actual, imageComparisonSettings);
                     }
                     else
                     {
