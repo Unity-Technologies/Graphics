@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.Test
             var slotCount = blockConstantRate.GetInputSlot(0);
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            var spawnerOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
 
             var spawnCountValue = 753.0f;
             slotCount.value = spawnCountValue;
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.Test
             var slotCount = blockConstantRate.GetInputSlot(0);
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            var spawnerOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
 
             var spawnCountValue = 1984.0f;
             slotCount.value = spawnCountValue;
@@ -220,7 +220,7 @@ namespace UnityEditor.VFX.Test
             blockCustomSpawner.SetSettingValue("m_customType", new SerializableType(typeof(VFXCustomSpawnerTest)));
 
             var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            var spawnerOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
             var blockSetAttribute = ScriptableObject.CreateInstance<SetAttribute>();
             blockSetAttribute.SetSettingValue("attribute", "lifetime");
             spawnerInit.AddChild(blockSetAttribute);
