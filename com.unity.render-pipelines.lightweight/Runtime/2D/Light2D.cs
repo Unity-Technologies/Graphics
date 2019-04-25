@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 
+#if UNITY_EDITOR
+using UnityEditor.Experimental.SceneManagement;
+#endif
+
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     // TODO: 
@@ -40,7 +44,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static BoundingSphere[] s_BoundingSpheres;
         static Dictionary<int, Color>[] s_GlobalClearColors = SetupGlobalClearColors();
 
-        internal static Dictionary<int, Color>[] globalClearColors { get { return s_GlobalClearColors; } }
+        internal static Dictionary<int, Color>[] globalClearColors
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+                    return s_GlobalClearColorsForPrefab;
+#endif
+                return s_GlobalClearColors;
+            }
+        }
 
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
@@ -145,6 +159,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public static string s_PointLightIconPath = s_IconsPath + "PointLight.png";
         public static string s_GlobalLightIconPath = s_IconsPath + "GlobalLight.png";
         public static string[] s_LightIconPaths = new string[] { s_ParametricLightIconPath, s_FreeformLightIconPath, s_SpriteLightIconPath, s_PointLightIconPath, s_GlobalLightIconPath };
+
+        static Dictionary<int, Color>[] s_GlobalClearColorsForPrefab = SetupGlobalClearColors();
 #endif
 
 
@@ -321,35 +337,44 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static internal void AddGlobalLight(Light2D light2D, bool overwriteColor = false)
         {
+#if UNITY_EDITOR
+            if (PrefabStageUtility.GetPrefabStage(light2D.gameObject) != PrefabStageUtility.GetCurrentPrefabStage())
+                return;
+#endif
+
             for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
             {
                 int sortingLayer = light2D.m_ApplyToSortingLayers[i];
-                Dictionary<int, Color> globalColorOp = s_GlobalClearColors[light2D.m_LightOperationIndex];
+                Dictionary<int, Color> globalColorOp = globalClearColors[light2D.m_LightOperationIndex];
                 if (!globalColorOp.ContainsKey(sortingLayer))
                 {
                     globalColorOp.Add(sortingLayer, light2D.m_Intensity * light2D.m_Color);
                 }
                 else
                 {
-                    globalColorOp[sortingLayer] = light2D.m_Intensity * light2D.m_Color;
-                    if(!overwriteColor)
-                        Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light operation index " + light2D.m_LightOperationIndex);
+                    if (overwriteColor)
+                        globalColorOp[sortingLayer] = light2D.m_Intensity * light2D.m_Color;
+                    else
+                        Debug.LogWarning("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light operation index " + light2D.m_LightOperationIndex);
                 }
             }
         }
 
-
         static internal void RemoveGlobalLight(int lightOperationIndex, Light2D light2D)
         {
+#if UNITY_EDITOR
+            if (PrefabStageUtility.GetPrefabStage(light2D.gameObject) != PrefabStageUtility.GetCurrentPrefabStage())
+                return;
+#endif
+
             for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
             {
                 int sortingLayer = light2D.m_ApplyToSortingLayers[i];
-                Dictionary<int, Color> globalColorOp = s_GlobalClearColors[lightOperationIndex];
+                Dictionary<int, Color> globalColorOp = globalClearColors[lightOperationIndex];
                 if (globalColorOp.ContainsKey(sortingLayer))
                     globalColorOp.Remove(sortingLayer);
             }
         }
-
 
         private void Awake()
         {
