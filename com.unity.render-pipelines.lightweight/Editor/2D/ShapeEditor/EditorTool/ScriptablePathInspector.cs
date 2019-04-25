@@ -80,6 +80,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
 
         protected void DoPositionInspector()
         {
+            var showMixedValue = EditorGUI.showMixedValue;
+            var wideMode = EditorGUIUtility.wideMode;
+
             var position = Vector3.zero;
             var isMixed = GetMixedPosition(out position);
 
@@ -109,7 +112,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Path2D
                 }
             }
 
-            EditorGUI.showMixedValue = false;
+            EditorGUI.showMixedValue = showMixedValue;
+            EditorGUIUtility.wideMode = wideMode;
         }
 
         private bool DoToggle(bool value, GUIContent icon)
