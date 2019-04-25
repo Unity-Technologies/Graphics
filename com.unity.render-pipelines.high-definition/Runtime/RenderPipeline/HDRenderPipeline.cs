@@ -1881,7 +1881,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
                 // We push the motion vector debug texture here as transparent object can overwrite the motion vector texture content.
-                PushFullScreenDebugTexture(hdCamera, cmd, m_SharedRTManager.GetMotionVectorsBuffer(), FullScreenDebugMode.MotionVectors);
+                if(m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
+                    PushFullScreenDebugTexture(hdCamera, cmd, m_SharedRTManager.GetMotionVectorsBuffer(), FullScreenDebugMode.MotionVectors);
 
                 // Second resolve the color buffer for finishing the frame
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
@@ -1981,8 +1982,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
                 aovRequest.PushCameraTexture(cmd, AOVBuffers.DepthStencil, hdCamera, m_SharedRTManager.GetDepthStencilBuffer(), aovBuffers);
-                aovRequest.PushCameraTexture(cmd, AOVBuffers.MotionVectors, hdCamera, m_SharedRTManager.GetMotionVectorsBuffer(), aovBuffers);
                 aovRequest.PushCameraTexture(cmd, AOVBuffers.Normals, hdCamera, m_SharedRTManager.GetNormalBuffer(), aovBuffers);
+                if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
+                    aovRequest.PushCameraTexture(cmd, AOVBuffers.MotionVectors, hdCamera, m_SharedRTManager.GetMotionVectorsBuffer(), aovBuffers);
 
 #if UNITY_EDITOR
             // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
