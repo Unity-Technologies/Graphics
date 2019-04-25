@@ -1,0 +1,93 @@
+fileFormatVersion: 2
+guid: ad3766b62766542478da3a88086426d5
+SpeedTreeImporter:
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Broadleaf_Desktop_Field_Billboard_LOD3
+    second: {fileID: 2100000, guid: 2d3b1678c7e49f143a7d036c99e3824d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Broadleaf_Desktop_Field_LOD0
+    second: {fileID: 2100000, guid: b2a3558f3ac13134aa9922400d004aba, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Broadleaf_Desktop_Field_LOD1
+    second: {fileID: 2100000, guid: 337d631e8dfdf2d4db8a54bb8dcad4eb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Broadleaf_Desktop_Field_LOD2
+    second: {fileID: 2100000, guid: e0f7ddf3032adde40997a3a42df56e80, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Main_Bark_LOD0
+    second: {fileID: 2100000, guid: ee3a232387a0047408ab3b05a7566c41, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Main_Bark_LOD1
+    second: {fileID: 2100000, guid: 1dab464ec253fb747984167d4036004a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Main_Bark_LOD2
+    second: {fileID: 2100000, guid: b62167859d5bc484a8214f7e6d6cfa5d, type: 2}
+  serializedVersion: 6
+  mainColor: {r: 1, g: 1, b: 1, a: 1}
+  hueVariation: {r: 1, g: 0.5, b: 0, a: 0.1}
+  alphaTestRef: 0.33
+  bestWindQuality: 4
+  hasBillboard: 1
+  lODSettings:
+  - height: 0.5
+    castShadows: 1
+    receiveShadows: 1
+    useLightProbes: 1
+    reflectionProbeUsage: 1
+    enableBump: 1
+    enableHue: 1
+    enableSubsurface: 1
+    windQuality: 4
+  - height: 0.25
+    castShadows: 1
+    receiveShadows: 1
+    useLightProbes: 1
+    reflectionProbeUsage: 1
+    enableBump: 1
+    enableHue: 1
+    enableSubsurface: 1
+    windQuality: 4
+  - height: 0.125
+    castShadows: 1
+    receiveShadows: 1
+    useLightProbes: 1
+    reflectionProbeUsage: 1
+    enableBump: 1
+    enableHue: 1
+    enableSubsurface: 1
+    windQuality: 4
+  - height: 0.01
+    castShadows: 1
+    receiveShadows: 1
+    useLightProbes: 0
+    reflectionProbeUsage: 0
+    enableBump: 1
+    enableHue: 1
+    enableSubsurface: 1
+    windQuality: 1
+  enableSmoothLODTransition: 1
+  animateCrossFading: 1
+  billboardTransitionCrossFadeWidth: 0.25
+  fadeOutWidth: 0.25
+  scaleFactor: 0.3048
+  materialVersion: 3
+  materialLocation: 1
+  fileIDType: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

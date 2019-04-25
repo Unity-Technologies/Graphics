@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Broadleaf_Desktop_Field_LOD1
+  m_Shader: {fileID: 4800000, guid: fab2af2463693304d879239c6837958b, type: 3}
+  m_ShaderKeywords: EFFECT_BUMP EFFECT_EXTRA_TEX EFFECT_HUE_VARIATION EFFECT_SUBSURFACE
+    _WINDQUALITY_BEST
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 1
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: 158315448d92dfc499af68e6355d7255, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ExtraTex:
+        m_Texture: {fileID: 2800000, guid: f7c1a033fa4bb7e42bc1f111c9ed55f1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 95a6190e9a312d84abba744ced4d5c70, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SubsurfaceTex:
+        m_Texture: {fileID: 2800000, guid: 672b6ab8741fb0f47945ec42540a764d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _BillboardKwToggle: 0
+    - _BillboardShadowFade: 0.5
+    - _Cutoff: 0.333
+    - _Glossiness: 0.5
+    - _HueVariationKwToggle: 1
+    - _Metallic: 0
+    - _NormalMapKwToggle: 1
+    - _SubsurfaceIndirect: 0.25
+    - _SubsurfaceKwToggle: 1
+    - _TwoSided: 0
+    - _WindQuality: 4
+    - _ZBias: 0.0032
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _HueVariationColor: {r: 1, g: 0.5, b: 0, a: 0.1}
+    - _SubsurfaceColor: {r: 1, g: 1, b: 1, a: 1}
