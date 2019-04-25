@@ -2154,24 +2154,24 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        EdgeDragInfo m_EdgeDragInfo;
+        VFXEdgeDragInfo m_EdgeDragInfo;
 
         public void StartEdgeDragInfo(VFXDataAnchor draggerAnchor, VFXDataAnchor overAnchor)
         {
             if (m_EdgeDragInfo == null)
             {
-                m_EdgeDragInfo = new EdgeDragInfo(this);
+                m_EdgeDragInfo = new VFXEdgeDragInfo(this);
                 Add(m_EdgeDragInfo);
+                m_EdgeDragInfo.style.display = DisplayStyle.None;
             }
 
-            m_EdgeDragInfo.style.display = DisplayStyle.Flex;
             m_EdgeDragInfo.StartEdgeDragInfo(draggerAnchor, overAnchor);
         }
 
         public void StopEdgeDragInfo()
         {
-            if(m_EdgeDragInfo != null)
-                m_EdgeDragInfo.style.display = DisplayStyle.None;
+            if (m_EdgeDragInfo != null)
+                m_EdgeDragInfo.StopEdgeDragInfo();
         }
     }
 }

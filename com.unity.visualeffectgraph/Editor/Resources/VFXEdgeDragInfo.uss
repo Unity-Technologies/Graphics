@@ -1,4 +1,4 @@
-EdgeDragInfo
+VFXEdgeDragInfo
 {
     position:Absolute;
     max-height:200;
@@ -17,7 +17,7 @@ EdgeDragInfo
     padding-bottom:8px;
 }
 
-EdgeDragInfo #title
+VFXEdgeDragInfo #title
 {
     -white-space:word-wrap;
     font-size:11px;
