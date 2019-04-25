@@ -251,6 +251,8 @@ namespace UnityEngine.Rendering.LWRP
                 cameraData.isPostProcessEnabled &= additionalCameraData.renderPostProcessing;
                 cameraData.isStopNaNEnabled = cameraData.isPostProcessEnabled && additionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
                 cameraData.isDitheringEnabled = cameraData.isPostProcessEnabled && additionalCameraData.dithering;
+                cameraData.antialiasing = cameraData.isPostProcessEnabled ? additionalCameraData.antialiasing : AntialiasingMode.None;
+                cameraData.antialiasingQuality = additionalCameraData.antialiasingQuality;
             }
             else
             {
@@ -260,6 +262,8 @@ namespace UnityEngine.Rendering.LWRP
                 cameraData.volumeTrigger = null;
                 cameraData.isStopNaNEnabled = false;
                 cameraData.isDitheringEnabled = false;
+                cameraData.antialiasing = AntialiasingMode.None;
+                cameraData.antialiasingQuality = AntialiasingQuality.High;
             }
 
             cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.isPostProcessEnabled;

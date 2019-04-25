@@ -1,4 +1,4 @@
-Shader "Hidden/Lightweight Render Pipeline/Panini Projection"
+Shader "Hidden/Lightweight Render Pipeline/PaniniProjection"
 {
     Properties
     {

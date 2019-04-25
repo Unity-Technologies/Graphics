@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering.LWRP
             [Reload("Shaders/PostProcessing/StopNaN.shader")]
             public Shader stopNanPS;
 
+            [Reload("Shaders/PostProcessing/SubpixelMorphologicalAntialiasing.shader")]
+            public Shader subpixelMorphologicalAntialiasingPS;
+
             [Reload("Shaders/PostProcessing/PaniniProjection.shader")]
             public Shader paniniProjectionPS;
 
@@ -83,6 +86,12 @@ namespace UnityEngine.Rendering.LWRP
                 "Textures/FilmGrain/Large02.png"
             })]
             public Texture2D[] filmGrainTex;
+
+            [Reload("Textures/SMAA/AreaTex.tga")]
+            public Texture2D smaaAreaTex;
+
+            [Reload("Textures/SMAA/SearchTex.tga")]
+            public Texture2D smaaSearchTex;
         }
 
         public ShaderResources shaders;

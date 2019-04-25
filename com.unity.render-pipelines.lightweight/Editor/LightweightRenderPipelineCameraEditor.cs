@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.LWRP
 
             public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Render Post-processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
+            public static GUIContent antialiasingQuality = EditorGUIUtility.TrTextContent("Quality", "The quality level to use for the selected anti-aliasing method.");
             public static GUIContent stopNaN = EditorGUIUtility.TrTextContent("Stop NaN", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will affect performances and should only be used if you experience NaN issues that you can't fix. Has no effect on GLES2 platforms.");
             public static GUIContent dithering = EditorGUIUtility.TrTextContent("Dithering", "Applies 8-bit dithering to the final render to reduce color banding.");
 
@@ -91,6 +92,15 @@ namespace UnityEditor.Rendering.LWRP
                 new GUIContent("Temporal Anti-aliasing (TAA)")
             };
             public static int[] antialiasingValues = { 0, 1, 2, 3 };
+
+            // Beautified anti-aliasing quality names
+            public static GUIContent[] antialiasingQualityOptions =
+            {
+                new GUIContent("Low"),
+                new GUIContent("Medium"),
+                new GUIContent("High")
+            };
+            public static int[] antialiasingQualityValues = { 0, 1, 2 };
         };
 
         public Camera camera { get { return target as Camera; } }
@@ -118,6 +128,7 @@ namespace UnityEditor.Rendering.LWRP
         SerializedProperty m_AdditionalCameraDataVolumeTrigger;
         SerializedProperty m_AdditionalCameraDataRenderPostProcessing;
         SerializedProperty m_AdditionalCameraDataAntialiasing;
+        SerializedProperty m_AdditionalCameraDataAntialiasingQuality;
         SerializedProperty m_AdditionalCameraDataStopNaN;
         SerializedProperty m_AdditionalCameraDataDithering;
 
@@ -167,6 +178,7 @@ namespace UnityEditor.Rendering.LWRP
             m_AdditionalCameraDataVolumeTrigger = m_AdditionalCameraDataSO.FindProperty("m_VolumeTrigger");
             m_AdditionalCameraDataRenderPostProcessing = m_AdditionalCameraDataSO.FindProperty("m_RenderPostProcessing");
             m_AdditionalCameraDataAntialiasing = m_AdditionalCameraDataSO.FindProperty("m_Antialiasing");
+            m_AdditionalCameraDataAntialiasingQuality = m_AdditionalCameraDataSO.FindProperty("m_AntialiasingQuality");
             m_AdditionalCameraDataStopNaN = m_AdditionalCameraDataSO.FindProperty("m_StopNaN");
             m_AdditionalCameraDataDithering = m_AdditionalCameraDataSO.FindProperty("m_Dithering");
         }
@@ -314,6 +326,7 @@ namespace UnityEditor.Rendering.LWRP
             Transform selectedVolumeTrigger;
             bool selectedRenderPostProcessing;
             AntialiasingMode selectedAntialiasing;
+            AntialiasingQuality selectedAntialiasingQuality;
             bool selectedStopNaN;
             bool selectedDithering;
 
@@ -327,6 +340,7 @@ namespace UnityEditor.Rendering.LWRP
                 selectedVolumeTrigger = null;
                 selectedRenderPostProcessing = true;
                 selectedAntialiasing = AntialiasingMode.None;
+                selectedAntialiasingQuality = AntialiasingQuality.High;
                 selectedStopNaN = false;
                 selectedDithering = false;
             }
@@ -341,6 +355,7 @@ namespace UnityEditor.Rendering.LWRP
                 selectedVolumeTrigger = (Transform)m_AdditionalCameraDataVolumeTrigger.objectReferenceValue;
                 selectedRenderPostProcessing = m_AdditionalCameraDataRenderPostProcessing.boolValue;
                 selectedAntialiasing = (AntialiasingMode)m_AdditionalCameraDataAntialiasing.intValue;
+                selectedAntialiasingQuality = (AntialiasingQuality)m_AdditionalCameraDataAntialiasingQuality.intValue;
                 selectedStopNaN = m_AdditionalCameraDataStopNaN.boolValue;
                 selectedDithering = m_AdditionalCameraDataDithering.boolValue;
             }
@@ -372,6 +387,14 @@ namespace UnityEditor.Rendering.LWRP
             {
                 EditorGUI.indentLevel++;
                 hasChanged |= DrawIntPopup(m_AdditionalCameraDataAntialiasing, ref selectedAntialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);
+
+                if (selectedAntialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                {
+                    EditorGUI.indentLevel++;
+                    hasChanged |= DrawIntPopup(m_AdditionalCameraDataAntialiasingQuality, ref selectedAntialiasingQuality, Styles.antialiasingQuality, Styles.antialiasingQualityOptions, Styles.antialiasingQualityValues);
+                    EditorGUI.indentLevel--;
+                }
+
                 hasChanged |= DrawToggle(m_AdditionalCameraDataStopNaN, ref selectedStopNaN, Styles.stopNaN);
                 hasChanged |= DrawToggle(m_AdditionalCameraDataDithering, ref selectedDithering, Styles.dithering);
                 EditorGUI.indentLevel--;
@@ -393,6 +416,7 @@ namespace UnityEditor.Rendering.LWRP
                 m_AdditionalCameraDataVolumeTrigger.objectReferenceValue = selectedVolumeTrigger;
                 m_AdditionalCameraDataRenderPostProcessing.boolValue = selectedRenderPostProcessing;
                 m_AdditionalCameraDataAntialiasing.intValue = (int)selectedAntialiasing;
+                m_AdditionalCameraDataAntialiasingQuality.intValue = (int)selectedAntialiasingQuality;
                 m_AdditionalCameraDataStopNaN.boolValue = selectedStopNaN;
                 m_AdditionalCameraDataDithering.boolValue = selectedDithering;
                 m_AdditionalCameraDataSO.ApplyModifiedProperties();

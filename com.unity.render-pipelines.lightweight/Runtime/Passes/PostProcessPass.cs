@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.LWRP
         RenderTextureDescriptor m_Descriptor;
         RenderTargetHandle m_Source;
         RenderTargetHandle m_Destination;
+        RenderTargetHandle m_DepthBuffer;
         RenderTargetHandle m_InternalLut;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
@@ -67,11 +68,12 @@ namespace UnityEngine.Rendering.LWRP
             }
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle sourceHandle, in RenderTargetHandle destinationHandle, in RenderTargetHandle internalLut)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle sourceHandle, in RenderTargetHandle destinationHandle, in RenderTargetHandle depthBuffer, in RenderTargetHandle internalLut)
         {
             m_Descriptor = baseDescriptor;
             m_Source = sourceHandle;
             m_Destination = destinationHandle;
+            m_DepthBuffer = depthBuffer;
             m_InternalLut = internalLut;
         }
 
@@ -152,6 +154,16 @@ namespace UnityEngine.Rendering.LWRP
                 }
             }
 
+            // Anti-aliasing
+            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+            {
+                using (new ProfilingSample(cmd, "Sub-pixel Morphological Anti-aliasing"))
+                {
+                    DoSubpixelMorphologicalAntialiasing(ref cameraData, cmd, GetSource(), GetDestination());
+                    Swap();
+                }
+            }
+
             // Panini projection is done as a fullscreen pass after all depth-based effects are done
             // and before bloom kicks in
             if (m_PaniniProjection.IsActive() && !cameraData.isSceneViewCamera)
@@ -195,6 +207,71 @@ namespace UnityEngine.Rendering.LWRP
                     cmd.ReleaseTemporaryRT(destination);
             }
         }
+
+        #region Sub-pixel Morphological Anti-aliasing
+
+        void DoSubpixelMorphologicalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
+        {
+            var camera = cameraData.camera;
+            var material = m_Materials.subpixelMorphologicalAntialiasing;
+            const int kStencilBit = 64;
+
+            // Globals
+            material.SetVector(ShaderConstants._Metrics, new Vector4(1f / camera.pixelWidth, 1f / camera.pixelHeight, camera.pixelWidth, camera.pixelHeight));
+            material.SetTexture(ShaderConstants._AreaTexture, m_Data.textures.smaaAreaTex);
+            material.SetTexture(ShaderConstants._SearchTexture, m_Data.textures.smaaSearchTex);
+            material.SetInt(ShaderConstants._StencilRef, kStencilBit);
+            material.SetInt(ShaderConstants._StencilMask, kStencilBit);
+
+            // Quality presets
+            material.shaderKeywords = null;
+
+            switch (cameraData.antialiasingQuality)
+            {
+                case AntialiasingQuality.Low: material.EnableKeyword("SMAA_PRESET_LOW");
+                    break;
+                case AntialiasingQuality.Medium: material.EnableKeyword("SMAA_PRESET_MEDIUM");
+                    break;
+                case AntialiasingQuality.High: material.EnableKeyword("SMAA_PRESET_HIGH");
+                    break;
+            }
+
+            // Intermediate targets
+            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
+            cmd.GetTemporaryRT(ShaderConstants._BlendTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
+
+            // Clear the temporary textures
+            cmd.SetRenderTarget(ShaderConstants._EdgeTexture);
+            cmd.ClearRenderTarget(false, true, Color.clear);
+            cmd.SetRenderTarget(ShaderConstants._BlendTexture);
+            cmd.ClearRenderTarget(false, true, Color.clear);
+
+            // Prepare for manual blit
+            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+            cmd.SetViewport(camera.pixelRect);
+
+            // Pass 1: Edge detection
+            cmd.SetRenderTarget(ShaderConstants._EdgeTexture, m_DepthBuffer.Identifier());
+            cmd.SetGlobalTexture(ShaderConstants._InputTexture, source);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
+
+            // Pass 2: Blend weights
+            cmd.SetRenderTarget(ShaderConstants._BlendTexture, m_DepthBuffer.Identifier());
+            cmd.SetGlobalTexture(ShaderConstants._InputTexture, ShaderConstants._EdgeTexture);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+
+            // Pass 3: Neighborhood blending
+            cmd.SetRenderTarget(destination);
+            cmd.SetGlobalTexture(ShaderConstants._InputTexture, source);
+            cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
+
+            // Cleanup
+            cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
+            cmd.ReleaseTemporaryRT(ShaderConstants._BlendTexture);
+        }
+
+        #endregion
 
         #region Panini Projection
 
@@ -522,6 +599,7 @@ namespace UnityEngine.Rendering.LWRP
         class MaterialLibrary
         {
             public readonly Material stopNaN;
+            public readonly Material subpixelMorphologicalAntialiasing;
             public readonly Material paniniProjection;
             public readonly Material bloom;
             public readonly Material uber;
@@ -529,6 +607,7 @@ namespace UnityEngine.Rendering.LWRP
             public MaterialLibrary(ForwardRendererData data)
             {
                 stopNaN = Load(data.shaders.stopNanPS);
+                subpixelMorphologicalAntialiasing = Load(data.shaders.subpixelMorphologicalAntialiasingPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
                 uber = Load(data.shaders.uberPostPS);
@@ -551,6 +630,16 @@ namespace UnityEngine.Rendering.LWRP
         {
             public static readonly int _TempTarget         = Shader.PropertyToID("_TempTarget");
 
+            public static readonly int _StencilRef         = Shader.PropertyToID("_StencilRef");
+            public static readonly int _StencilMask        = Shader.PropertyToID("_StencilMask");
+
+            public static readonly int _Metrics            = Shader.PropertyToID("_Metrics");
+            public static readonly int _AreaTexture        = Shader.PropertyToID("_AreaTexture");
+            public static readonly int _SearchTexture      = Shader.PropertyToID("_SearchTexture");
+            public static readonly int _EdgeTexture        = Shader.PropertyToID("_EdgeTexture");
+            public static readonly int _BlendTexture       = Shader.PropertyToID("_BlendTexture");
+
+            public static readonly int _InputTexture       = Shader.PropertyToID("_InputTexture");
             public static readonly int _Params             = Shader.PropertyToID("_Params");
             public static readonly int _MainTexLowMip      = Shader.PropertyToID("_MainTexLowMip");
             public static readonly int _Bloom_Params       = Shader.PropertyToID("_Bloom_Params");

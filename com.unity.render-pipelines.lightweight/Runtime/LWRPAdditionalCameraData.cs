@@ -23,6 +23,14 @@ namespace UnityEngine.Rendering.LWRP
         TemporalAntialiasing
     }
 
+    // Only used for SMAA right now
+    public enum AntialiasingQuality
+    {
+        Low,
+        Medium,
+        High
+    }
+
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
@@ -49,6 +57,7 @@ namespace UnityEngine.Rendering.LWRP
 
         [SerializeField] bool m_RenderPostProcessing = true;
         [SerializeField] AntialiasingMode m_Antialiasing = AntialiasingMode.None;
+        [SerializeField] AntialiasingQuality m_AntialiasingQuality = AntialiasingQuality.High;
         [SerializeField] bool m_StopNaN = false;
         [SerializeField] bool m_Dithering = false;
 
@@ -151,6 +160,12 @@ namespace UnityEngine.Rendering.LWRP
         {
             get => m_Antialiasing;
             set => m_Antialiasing = value;
+        }
+
+        public AntialiasingQuality antialiasingQuality
+        {
+            get => m_AntialiasingQuality;
+            set => m_AntialiasingQuality = value;
         }
 
         public bool stopNaN

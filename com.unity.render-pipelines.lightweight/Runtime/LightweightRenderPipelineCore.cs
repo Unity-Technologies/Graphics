@@ -57,6 +57,8 @@ namespace UnityEngine.Rendering.LWRP
 
         public bool isStopNaNEnabled;
         public bool isDitheringEnabled;
+        public AntialiasingMode antialiasing;
+        public AntialiasingQuality antialiasingQuality;
     }
 
     public struct ShadowData

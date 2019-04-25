@@ -14,8 +14,8 @@ struct Attributes
 
 struct Varyings
 {
-    half4 positionCS    : SV_POSITION;
-    half2 uv            : TEXCOORD0;
+    float4 positionCS    : SV_POSITION;
+    float2 uv            : TEXCOORD0;
 };
 
 Varyings Vert(Attributes input)
