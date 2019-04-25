@@ -1,20 +1,22 @@
 # Reflection Probe
 
-Reflection Probes are one of the [Reflection Probes](Reflection-Probes-Intro.html) that the High Definition Render Pipeline (HDRP) provides to help you create reactive and accurate reflective Materials.
+The Reflection Probe component is one of the types of [Reflection Probe](Reflection-Probes-Intro.html) that the High Definition Render Pipeline (HDRP) provides to help you create reactive and accurate reflective Materials.
 
-Properties
+## Properties
 
 The HDRP Reflection Probe uses the [built-in render pipeline Reflection Probe](https://docs.unity3d.com/Manual/class-ReflectionProbe.html) as a base, and thus shares many properties with the built-in version. HDRP Reflection Probes also share many properties with the [HDRP Planar Reflection Probe](Planar-Reflection-Probe.html).
 
 ![img](Images/ReflectionProbe1.png)
 
-## General Properties
+### General Properties
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
-| **Realtime Mode** | A Reflection Probe updates in real time. Use this property to tell HDRP how often to update the Probe.<br />**Every Frame** updates the Probe’s capture data every frame.<br />**On Enable** updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to. |
+| **Type**          | Use the drop-down to select the mode this Reflection Probe uses to capture a view of the Scene. Reflective Materials query this capture to process reflections for their surface.<br />**Realtime**: Makes the Reflection Probe capture a view of the Scene in real time. Use the **Realtime Mode** property to set the time period.<br />**Custom**: Allows you to assign a cubemap Texture to act as the Reflection Probe's captured view of the Scene. Use the **Texture** property to assign the cubemap.<br />**Baked**: Makes the Reflection Probe use a static cubemap Texture at runtime. You must bake this Texture before you build your Unity Project. |
+| **Realtime Mode** | Use the drop-down to select how often the Reflection Probe should capture a view of the Scene.<br />Select **Realtime** from the **Type** drop-down to expose this property.<br />**Every Frame**: Updates the Probe’s capture data every frame.<br />**On Enable**: Updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to. |
+| **Texture**       | Assign a Texture for the Reflection Probe to use as its captured view of the Scene.<br />Select **Custom** from the **Type** drop-down to expose this property. |
 
-## Projection Settings
+### Projection Settings
 
 The following properties control the projection settings for this Reflection Probe.
 
@@ -23,13 +25,13 @@ The following properties control the projection settings for this Reflection Pro
 | **Proxy Volume**                         | The [Reflection Proxy Volume](Reflection-Proxy-Volume.html) this Probe uses to correct displacement issues between the Probe’s capture point (**Mirror Position**) and the position of the reflective Material using the Texture this Probe captures. Note: The **Proxy Volume** you assign must be the same **Shape** as the Influence Volume. |
 | **Use Influence Volume As Proxy Volume** | Enable this checkbox to use the boundaries of the Influence Volume as the Proxy Volume. Do not assign the **Proxy Volume** property to expose this property. |
 
-<a name=”InfluenceVolume”></a>
+<a name="InfluenceVolume"></a>
 
-## Influence Volume
+### Influence Volume
 
 The Influence Volume defines the area around the Probe in which reflective Materials use the results that the Probe captures to influence the reflective behavior of their surface. The Probe also uses the bounds of the Influence Volume to calculate **Field Of View** if you don’t provide an override value.
 
-<a name=”Workflows”></a>
+<a name="Workflows"></a>
 
 There are two workflows you can use to edit your Reflection Probe’s Influence Volume: **Normal** mode and **Advanced** mode. The two buttons in the top right of the **Influence Volume** section allow you to select which mode to use.
 
@@ -45,7 +47,7 @@ There are two workflows you can use to edit your Reflection Probe’s Influence 
 | **Blend Normal Distance** | The area around the Reflection Probe where normals pointing away from the capture position don’t receive any influence from this probe.<br />1. A pixel on a reflective surface outside of the **Blend Normal Influence** volume receives a blended influence from this Probe.<br />2. The pixel receives no influence from this Probe if it has a normal pointing away from the **Capture Position**. This is useful when you have a building with a Probe inside that has an Influence Volume larger than the building itself. Setting the **Blend Normal Distance** to be less than the buildings size means that the Probe does not affect the outside facing walls of the building.<br />This property is only available for deferred Reflection Probes. |
 | **Face Fade**             | Defines a fade value for each direction on each axis of an Influence Volume with a **Box Shape**. Reflection Probes fade out the Reflection Probe’s effect on reflective Materials based on these values. Only available in **Advanced** mode. |
 
-## Capture Settings
+### Capture Settings
 
 The following properties control the method that the Reflection Probe uses to capture its surroundings..
 
@@ -64,7 +66,7 @@ The following properties control the method that the Reflection Probe uses to ca
 | **Probe Layer Mask**       | Acts as a culling mask for environment lights (light from Planar Reflection Probes and Reflection Probes). This Reflection Probe ignores all Reflection Probes that are on Layers not included in this Layer mask, so use this property to ignore certain Reflection Probes when rendering this one. |
 | **Custom Frame Settings**  | Allows you to define custom [Frame Settings](Frame-Settings.html) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.html). |
 
-## Custom Settings
+### Custom Settings
 
 The following properties control extra behavior options for fine-tuning the behavior of your Reflection Probes.
 

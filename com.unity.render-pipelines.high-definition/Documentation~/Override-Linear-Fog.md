@@ -4,11 +4,12 @@ The High Definition Render Pipeline (HDRP) provides a type of [fog](Fog-Overview
 
 ## Using Linear Fog
 
-Linear Fog uses the [Volume](Volumes.html) framework, which means that to enable and modify Linear Fog properties, you must add a **Linear Fog** override to a [Volume](Volumes.html) in your Scene.
+**Linear Fog** uses the [Volume](Volumes.html) framework, so to enable and modify **Linear  Fog** properties, you must add a **Linear Fog** override to a [Volume](Volumes.html) in your Scene. To add **Linear Fog** to a Volume:
 
-To add **Linear Fog** to a Volume, select the Volume component in the Scene or Hierarchy to view it in the Inspector, then navigate to **Add override > Fog** and click on **Linear Fog**. 
+1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+2. In the Inspector, navigate to **Add Override > Fog** and click on **Linear Fog**.
 
-After you add a **Linear Fog** override, you must set the Volume to use Linear Fog. The [Visual Environment](Override-Visual-Environment.html) override controls which type of fog the Volume uses. In the Visual Environment override, navigate to the **Fog** section and set the **Type** to **Linear Fog**. HDRP now applies **Linear Fog** to any Camera this Volume affects.
+After you add a **Linear Fog** override, you must set the Volume to use **Linear Fog**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of fog the Volume uses. In the **Visual Environment** override, navigate to the **Fog** section and set the **Type** to **Linear Fog**. HDRP now renders **Linear Fog** for any Camera this Volume affects.
 
 ## Properties
 

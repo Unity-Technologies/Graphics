@@ -29,32 +29,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Displacement mapping (POM, tessellation, per vertex)
             //public static GUIContent enablePerPixelDisplacementText = new GUIContent("Per Pixel Displacement", "");
 
-            public static GUIContent displacementModeText = new GUIContent("Displacement Mode", "Specify the method HDRP uses to apply height map displacement to the selected element: Vertex, pixel, or tessellated vertex.\n You must use flat surfaces for Pixel displacement.");
-            public static GUIContent lockWithObjectScaleText = new GUIContent("Lock with object scale", "When enabled, displacement mapping takes the absolute value of the scale of the object into account.");
-            public static GUIContent lockWithTilingRateText = new GUIContent("Lock with height map tiling rate", "When enabled, displacement mapping takes the absolute value of the tiling rate of the height map into account.");
+            public static GUIContent displacementModeText = new GUIContent("Displacement Mode", "Specifies the method HDRP uses to apply height map displacement to the selected element: Vertex, pixel, or tessellated vertex.\n You must use flat surfaces for Pixel displacement.");
+            public static GUIContent lockWithObjectScaleText = new GUIContent("Lock With Object Scale", "When enabled, displacement mapping takes the absolute value of the scale of the object into account.");
+            public static GUIContent lockWithTilingRateText = new GUIContent("Lock With Height Map Tiling Rate", "When enabled, displacement mapping takes the absolute value of the tiling rate of the height map into account.");
 
             // Material ID
-            public static GUIContent materialIDText = new GUIContent("Material Type", "Specify additional feature for this Material. Customize you Material with different settings depending on which Material Type you select.");
+            public static GUIContent materialIDText = new GUIContent("Material Type", "Specifies additional feature for this Material. Customize you Material with different settings depending on which Material Type you select.");
             public static GUIContent transmissionEnableText = new GUIContent("Transmission", "When enabled HDRP processes the transmission effect for subsurface scattering. Simulates the translucency of the object.");
 
             // Per pixel displacement
-            public static GUIContent ppdMinSamplesText = new GUIContent("Minimum steps", "Controls the minimum number of steps HDRP uses for per pixel displacement mapping.");
-            public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum steps", "Controls the maximum number of steps HDRP uses for per pixel displacement mapping.");
-            public static GUIContent ppdLodThresholdText = new GUIContent("Fading mip level start", "Controls the Height Map mip level where the parallax occlusion mapping effect begins to disappear.");
-            public static GUIContent ppdPrimitiveLength = new GUIContent("Primitive length", "Sets the length of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
-            public static GUIContent ppdPrimitiveWidth = new GUIContent("Primitive width", "Sets the width of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
+            public static GUIContent ppdMinSamplesText = new GUIContent("Minimum Steps", "Controls the minimum number of steps HDRP uses for per pixel displacement mapping.");
+            public static GUIContent ppdMaxSamplesText = new GUIContent("Maximum Steps", "Controls the maximum number of steps HDRP uses for per pixel displacement mapping.");
+            public static GUIContent ppdLodThresholdText = new GUIContent("Fading Mip Level Start", "Controls the Height Map mip level where the parallax occlusion mapping effect begins to disappear.");
+            public static GUIContent ppdPrimitiveLength = new GUIContent("Primitive Length", "Sets the length of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
+            public static GUIContent ppdPrimitiveWidth = new GUIContent("Primitive Width", "Sets the width of the primitive (with the scale of 1) to which HDRP applies per-pixel displacement mapping. For example, the standard quad is 1 x 1 meter, while the standard plane is 10 x 10 meters.");
 
             // Tessellation
             public static string tessellationModeStr = "Tessellation Mode";
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
 
-            public static GUIContent tessellationText = new GUIContent("Tessellation options", "Tessellation options");
-            public static GUIContent tessellationFactorText = new GUIContent("Tessellation factor", "Controls the strength of the tessellation effect. Higher values result in more tessellation. Maximum tessellation factor is 15 on the Xbox One and PS4");
-            public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start fade distance", "Sets the distance (in meters) at which tessellation begins to fade out.");
-            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End fade distance", "Sets the maximum distance (in meters) to the Camera where HDRP tessellates triangle.");
-            public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle size", "Sets the desired screen space size of triangles (in pixels). Smaller values result in smaller triangle.");
-            public static GUIContent tessellationShapeFactorText = new GUIContent("Shape factor", "Controls the strength of Phong tessellation shape (lerp factor).");
-            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle culling Epsilon", "Controls triangle culling. A value of -1.0 disables back face culling for tessellation, higher values produce more aggressive culling and better performance.");
+            public static GUIContent tessellationText = new GUIContent("Tessellation Options", "Tessellation options");
+            public static GUIContent tessellationFactorText = new GUIContent("Tessellation Factor", "Controls the strength of the tessellation effect. Higher values result in more tessellation. Maximum tessellation factor is 15 on the Xbox One and PS4");
+            public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start Fade Distance", "Sets the distance (in meters) at which tessellation begins to fade out.");
+            public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End Fade Distance", "Sets the maximum distance (in meters) to the Camera where HDRP tessellates triangle.");
+            public static GUIContent tessellationFactorTriangleSizeText = new GUIContent("Triangle Size", "Sets the desired screen space size of triangles (in pixels). Smaller values result in smaller triangle.");
+            public static GUIContent tessellationShapeFactorText = new GUIContent("Shape Factor", "Controls the strength of Phong tessellation shape (lerp factor).");
+            public static GUIContent tessellationBackFaceCullEpsilonText = new GUIContent("Triangle Culling Epsilon", "Controls triangle culling. A value of -1.0 disables back face culling for tessellation, higher values produce more aggressive culling and better performance.");
 
             // Vertex animation
             public static string vertexAnimation = "Vertex Animation";
@@ -74,7 +74,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Controls the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
 
             // SSR
-            public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive SSR.");
+            public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
 
         }
 

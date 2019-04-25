@@ -30,10 +30,9 @@ void AOCopyTAAHistory(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AMBIENT_OCCLUSION_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Get the previous value and current value
-    float historyValue = LOAD_TEXTURE2D_X(_AOHistorybufferRW, centerCoord);
+    float historyValue = _AOHistorybufferRW[COORD_TEXTURE2D_X(centerCoord)];
     float currentValue = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
 
     // Merge them into the previous buffer
@@ -45,7 +44,6 @@ void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Group
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AMBIENT_OCCLUSION_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput_Stereo(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);

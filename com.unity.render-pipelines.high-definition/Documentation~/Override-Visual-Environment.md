@@ -2,7 +2,14 @@
 
 The Visual Environment Volume component override specifies the **Sky Type** and **Fog Type** that HDRP renders in the Volume.
 
-This Visual Environment override comes as default when you create a **Scene Settings** GameObject (Menu: **GameObject > Rendering > Scene Settings**).
+## Using the Visual Environment
+
+The **Visual Environment** uses the [Volume](Volumes.html) framework, so to enable and modify **Visual Environment** properties, you must add a **Visual Environment** override to a [Volume](Volumes.html) in your Scene.
+
+The **Visual Environment** override comes as default when you create a **Scene Settings** GameObject (Menu: **GameObject > Rendering > Scene Settings**). You can also manually add a **Visual Environment** override to any [Volume](Volumes.html). To add **Visual Environment** to a Volume:
+
+1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+2. In the Inspector, navigate to **Add Override** and click on **Visual Environment**. You can now use the **Visual Environment** override to control the sky and fog for this Volume.
 
 ## Properties
 

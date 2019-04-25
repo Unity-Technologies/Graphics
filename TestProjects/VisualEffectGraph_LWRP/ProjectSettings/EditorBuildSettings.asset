@@ -21,6 +21,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/004_Bounds.unity
     guid: fc042ee6987609a4b895d96dffef8dff
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/005_PlanarPrimitives.unity
+    guid: fd7efe8ee4dbe754084c1edb14955dc7
+  - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/01. Attributes/100_Attributes.unity
     guid: e0d80ac1c9520ce4399d0d688ebec48d
   - enabled: 1
