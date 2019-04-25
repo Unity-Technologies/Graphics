@@ -19,7 +19,7 @@ To add a Light component to an existing GameObject:
 2.  In the Inspector, click **Add Component**.
 3. Go to the **Rendering** section, and click **Light**. This creates a new Light source and attaches it to the currently selected GameObject. It also adds the **HD Additional Light Data** and **Additional Shadow Data** HDRP components.
 
-Alternatively, you can search for “Light” in the **Add Component** window, then click **Light** to add the Light component.
+Alternatively, you can search for "Light" in the **Add Component** window, then click **Light** to add the Light component.
 
 ## Configuring Lights
 
@@ -39,7 +39,7 @@ The properties available for Lights are in separate drop-down sections. Each dro
 - [Volumetrics](#VolumetricProperties)
 - [Shadows](#ShadowProperties)
 
-<a name=”AdvancedProperties”></a>
+<a name="AdvancedProperties"></a>
 
 #### Advanced properties
 
@@ -51,7 +51,7 @@ The following image shows the Light Inspector window for a Realtime Rectangle Li
 
 ![](Images/LightComponent2.png)
 
-<a name=”GeneralProperties”></a>
+<a name="GeneralProperties"></a>
 
 ### General
 
@@ -73,7 +73,7 @@ The following image shows the Light Inspector window for a Realtime Rectangle Li
 | **Rectangle**   | Projects light from a rectangle. Light shines in all directions uniformly from the surface of the rectangle. |
 | **Tube**        | Emits light in all directions equally along a line in space. |
 
-<a name=”ShapeProperties”></a>
+<a name="ShapeProperties"></a>
 
 ### **Shape**
 
@@ -121,7 +121,7 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | ------------ | ------------------------------------------------------------ |
 | **Length**   | Defines the length of the Tube Light. The center of the Light is the Transform Position and the Light itself extends out from the center symmetrically. The **Length** is the distance from one end of the tube to the other. |
 
-<a name=”EmissionProperties”></a>
+<a name="EmissionProperties"></a>
 
 ### **Emission**
 
@@ -159,7 +159,7 @@ These settings define the emissive behavior of your Light. You can set the Light
 | **Size X**   | The horizontal size of the projected cookie texture in pixels. Set a **Cookie** in the Light Inspector to expose this property. |
 | **Size Y**   | The vertical size of the projected cookie texture in pixels. Set a **Cookie** in the Light Inspector to expose this property. |
 
-<a name=”VolumetricProperties”></a>
+<a name="VolumetricProperties"></a>
 
 ### **Volumetrics**
 
@@ -173,7 +173,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 | **Dimmer**        | Dims the volumetric lighting effect of this Light.           |
 | **Shadow Dimmer** | Dims the volumetric fog effect of this Light. Set this property to 0 to make the volumetric scattering compute faster. |
 
-<a name=”ShadowProperties”></a>
+<a name="ShadowProperties"></a>
 
 ### **Shadows**
 
