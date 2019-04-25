@@ -109,7 +109,7 @@ To create a new Lit Shader Material, navigate to your Project's Asset window, ri
 | **Detail Normal Scale**          | Use this slider to modulate the intensity of the detail normal map, between 0 and 2. The default value is 1 and has no scale. |
 | **Detail Smoothness Scale**      | Use this slider modulate the smoothness of the detail map (blue channel) between 0 and 2, like an overlay effect. The default value is 1 and has no scale. |
 
-<a name=”TransparencyInputs”></a>
+<a name="TransparencyInputs"></a>
 
 ### Transparency Inputs
 
