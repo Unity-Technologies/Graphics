@@ -394,6 +394,10 @@ namespace UnityEditor.Rendering.LWRP
                     hasChanged |= DrawIntPopup(m_AdditionalCameraDataAntialiasingQuality, ref selectedAntialiasingQuality, Styles.antialiasingQuality, Styles.antialiasingQualityOptions, Styles.antialiasingQualityValues);
                     EditorGUI.indentLevel--;
                 }
+                else if (selectedAntialiasing == AntialiasingMode.TemporalAntialiasing)
+                {
+                    EditorGUILayout.HelpBox("Temporal anti-aliasing is not supported on the Lightweight Render Pipeline yet.", MessageType.Info);
+                }
 
                 hasChanged |= DrawToggle(m_AdditionalCameraDataStopNaN, ref selectedStopNaN, Styles.stopNaN);
                 hasChanged |= DrawToggle(m_AdditionalCameraDataDithering, ref selectedDithering, Styles.dithering);
