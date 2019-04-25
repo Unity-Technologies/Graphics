@@ -114,7 +114,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             get { return m_Color; }
             set
             {
-                AddGlobalLight(this, true);
+                if (m_LightType == LightType.Global)
+                    AddGlobalLight(this, true);
+
                 m_Color = value;
             }
         }
@@ -127,7 +129,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             get { return m_Intensity; }
             set
             {
-                AddGlobalLight(this, true);
+                if (m_LightType == LightType.Global)
+                    AddGlobalLight(this, true);
+
                 m_Intensity = value;
             }
         }
