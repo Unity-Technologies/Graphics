@@ -12,8 +12,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 #if defined(USE_RTPV_RASTER_ON)
     {
         float3 wpos = GetAbsolutePositionWS(positionRWS);
-        float3 dummyViewDir = float3(0, 0, 0);
-        return sampleIrradiance(wpos, normalWS, dummyViewDir, normalWS);
+        return sampleIrradiance(wpos, normalWS, normalize(-positionRWS), normalWS);
     }
 #elif defined(USE_RTPV_RASTER_OFF)
     {
