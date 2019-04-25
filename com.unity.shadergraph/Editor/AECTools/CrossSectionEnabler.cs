@@ -224,7 +224,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         public const float k_AlphaThresholdDisabledEquivalent = -1f;
-        public const float k_SimplePropertyStateInvalidValue = -1f; // symbol for invalid / not found / no change for doublesided properties / toggle 
+        public const float k_SimplePropertyStateInvalidValue = -1f; // symbol for invalid / not found / no change for doublesided properties / toggle
+        public static readonly Vector3 k_NeutralTangentValue = new Vector3(0f, 0f, 1f);
 
         // List of possible slotid field names for the alpha threshold input:
         // Will be populated automatically on init from the mapping info we've set in k_SlotIdFieldNamesToGenericInput
@@ -700,6 +701,13 @@ namespace UnityEditor.ShaderGraph
                     return;
                 mslot.value = (float)(object)value;
             }
+            else if (typeof(T) == typeof(Vector3))
+            {
+                Vector3MaterialSlot mslot = node.FindSlot<Vector3MaterialSlot>(slotId);
+                if (mslot == null)
+                    return;
+                mslot.value = (Vector3)(object)value;
+            }
             else
             {
                 throw new NotImplementedException();
@@ -1054,6 +1062,17 @@ namespace UnityEditor.ShaderGraph
                                                              k_AlphaThresholdDisabledEquivalent);
                 }
             }
+
+            // TODO: Finally, if any of the ports we splice had special semantics on the master node, we need a
+            // mechanism to handle the same default values. Unfortunately, because of the limitation on the nature of the
+            // ports you can add on subgraph nodes (same as properties for the outer graph), there's no way to have
+            // a disconnected port forwarding the same behavior as a master node disconnect port.
+            // This is the case for normals right now, so we fix that by just writing the neutral tangent space values.
+            // (also, again, there is no check if there's a connection, any connection will override the slot value)
+            SetMaterialSlotValueByGenericName(crossSectionSubGraphNode, GenericSlotNames.Normal, (CrossSectionNodeTranslator)genericSlotNamesToCrossSectionIOSlotIds,
+                                              k_NeutralTangentValue);
+            SetMaterialSlotValueByGenericName(crossSectionSubGraphNode, GenericSlotNames.CoatNormal, (CrossSectionNodeTranslator)genericSlotNamesToCrossSectionIOSlotIds,
+                                              k_NeutralTangentValue);
 
             // Try to find our connector in the processed shader graph and if found, connect it to the cross section
             // node so that per shader graph material (local settings) can be forwarded to the cross section node and
