@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.LWRP
 
         RenderTargetHandle m_InternalLut;
 
-        public ColorGradingLutPass(RenderPassEvent evt, ForwardRendererData data)
+        public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
             renderPassEvent = evt;
             overrideCameraTarget = true;

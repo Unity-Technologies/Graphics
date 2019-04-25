@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.LWRP
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
 
         MaterialLibrary m_Materials;
-        ForwardRendererData m_Data; // TODO: Not portable between LW "renderers", fix me
+        PostProcessData m_Data;
 
         // Builtin effects settings
         PaniniProjection m_PaniniProjection;
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.LWRP
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_BloomFormat;
 
-        public PostProcessPass(RenderPassEvent evt, ForwardRendererData data)
+        public PostProcessPass(RenderPassEvent evt, PostProcessData data)
         {
             renderPassEvent = evt;
             m_Data = data;
@@ -604,7 +604,7 @@ namespace UnityEngine.Rendering.LWRP
             public readonly Material bloom;
             public readonly Material uber;
 
-            public MaterialLibrary(ForwardRendererData data)
+            public MaterialLibrary(PostProcessData data)
             {
                 stopNaN = Load(data.shaders.stopNanPS);
                 subpixelMorphologicalAntialiasing = Load(data.shaders.subpixelMorphologicalAntialiasingPS);
