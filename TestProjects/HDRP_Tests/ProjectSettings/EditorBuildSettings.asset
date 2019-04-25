@@ -254,7 +254,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4011_MotionBlur_PerObject.unity
     guid: bfedb7e76d6153a4896b9d61a8d826af
   - enabled: 0
