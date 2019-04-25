@@ -25,13 +25,13 @@ The following properties control the projection settings for this Reflection Pro
 | **Proxy Volume**                         | The [Reflection Proxy Volume](Reflection-Proxy-Volume.html) this Probe uses to correct displacement issues between the Probe’s capture point (**Mirror Position**) and the position of the reflective Material using the Texture this Probe captures. Note: The **Proxy Volume** you assign must be the same **Shape** as the Influence Volume. |
 | **Use Influence Volume As Proxy Volume** | Enable this checkbox to use the boundaries of the Influence Volume as the Proxy Volume. Do not assign the **Proxy Volume** property to expose this property. |
 
-<a name=”InfluenceVolume”></a>
+<a name="InfluenceVolume"></a>
 
 ### Influence Volume
 
 The Influence Volume defines the area around the Probe in which reflective Materials use the results that the Probe captures to influence the reflective behavior of their surface. The Probe also uses the bounds of the Influence Volume to calculate **Field Of View** if you don’t provide an override value.
 
-<a name=”Workflows”></a>
+<a name="Workflows"></a>
 
 There are two workflows you can use to edit your Reflection Probe’s Influence Volume: **Normal** mode and **Advanced** mode. The two buttons in the top right of the **Influence Volume** section allow you to select which mode to use.
 
