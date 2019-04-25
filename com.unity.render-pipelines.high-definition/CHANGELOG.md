@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with renderPipelineResources and diffusion profile asset that ahve incorrect path and prevent correct upgrade of package
 - Fixed a bug that caused nans when material classification was enabled and a tile contained one standard material + a material with transmission
 - Fixed gradient sky hash that was not using the exposure hash
+- Fixed displayed default FrameSettings in HDRenderPipelineAsset wrongly updated on scripts reload.
 
 ## [5.13.0-preview] - 2019-04-15
 
