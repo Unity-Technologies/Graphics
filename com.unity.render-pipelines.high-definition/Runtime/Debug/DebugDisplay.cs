@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 using UnityEngine.Rendering;
-using static UnityEngine.Experimental.Rendering.HDPipeline.MaterialDebugSettings;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -18,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SSAO,
         ScreenSpaceReflections,
         ContactShadows,
+        ContactShadowsFade,
         PreRefractionColorPyramid,
         DepthPyramid,
         FinalColorPyramid,
@@ -75,7 +75,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float debugOverlayRatio = 0.33f;
             public FullScreenDebugMode fullScreenDebugMode = FullScreenDebugMode.None;
             public float fullscreenDebugMip = 0.0f;
+            public int fullScreenContactShadowLightIndex = 0;
             public bool showSSSampledColor = false;
+            public bool showContactShadowFade = false;
 
             public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
             public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -141,6 +143,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float[] GetDebugMaterialIndexes()
         {
             return data.materialDebugSettings.GetDebugMaterialIndexes();
+        }
+
+        public DebugLightFilterMode GetDebugLightFilterMode()
+        {
+            return data.lightingDebugSettings.debugLightFilterMode;
         }
 
         public DebugLightingMode GetDebugLightingMode()
@@ -270,6 +277,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (value == ShadowMapDebugMode.SingleShadow)
                 data.fullScreenDebugMode = 0;
             data.lightingDebugSettings.shadowDebugMode = value;
+        }
+
+        public void SetDebugLightFilterMode(DebugLightFilterMode value)
+        {
+            if (value != 0)
+            {
+                data.materialDebugSettings.DisableMaterialDebug();
+                data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
+            }
+            data.lightingDebugSettings.debugLightFilterMode = value;
         }
 
         public void SetDebugLightingMode(DebugLightingMode value)
@@ -455,6 +472,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Max Value", getter = () => data.lightingDebugSettings.shadowMaxValue, setter = value => data.lightingDebugSettings.shadowMaxValue = value });
 
             list.Add(new DebugUI.EnumField { displayName = "Lighting Debug Mode", getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => data.lightingDebugModeEnumIndex = value });
+            list.Add(new DebugUI.BitField { displayName = "Light Hierarchy Debug Mode", getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode), onValueChanged = RefreshLightingDebug, });
             list.Add(new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_LightingFullScreenDebugStrings, enumValues = s_LightingFullScreenDebugValues, onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingFulscreenDebugModeEnumIndex, setIndex = value => data.lightingFulscreenDebugModeEnumIndex = value });
             switch (data.fullScreenDebugMode)
             {
@@ -526,6 +544,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     });
                     break;
                 }
+                case FullScreenDebugMode.ContactShadows:
+                    list.Add(new DebugUI.Container
+                    {
+                        children = 
+                        {
+                            new DebugUI.IntField
+                            {
+                                displayName = "Light Index",
+                                getter = () =>
+                                {
+                                    return data.fullScreenContactShadowLightIndex;
+                                },
+                                setter = value =>
+                                {
+                                    data.fullScreenContactShadowLightIndex = value;
+                                },
+                                min = () => -1, // -1 will display all contact shadow
+                                max = () => LightDefinitions.s_LightListMaxPrunedEntries - 1
+                            },
+                        }
+                    });
+                    break;
                 default:
                     data.fullscreenDebugMip = 0;
                     break;

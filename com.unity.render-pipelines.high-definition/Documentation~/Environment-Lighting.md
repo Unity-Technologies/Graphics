@@ -31,7 +31,7 @@ The [Static Lighting Sky](Static-Lighting-Sky.html) component specifies the type
 
 You can assign the same Volume Profile to both a Static Lighting Sky and a Volume in your Scene. If you use the same sky settings for the baked lighting defined in the Static Lighting Sky and the visual background in the Volume, the baked lighting accurately matches the background at run time. If you want to control the light baking for the environment lighting separately to the visual background in your Scene, you can assign a different Volume Profile for each process .
 
-<a name=”DecoupleVisualEnvironment”></a>
+<a name="DecoupleVisualEnvironment"></a>
 
 ## Decoupling Visual Environment from lighting
 
