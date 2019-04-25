@@ -298,7 +298,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
                 if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
+                {
+                    bool oldWideMode = EditorGUIUtility.wideMode;
+                    EditorGUIUtility.wideMode = true;
                     EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
+                    EditorGUIUtility.wideMode = oldWideMode;
+                }
             }
         }
 
