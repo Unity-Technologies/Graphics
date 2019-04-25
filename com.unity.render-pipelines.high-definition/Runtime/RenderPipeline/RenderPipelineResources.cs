@@ -344,7 +344,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable, ReloadGroup]
         public sealed class AssetResources
         {
-            [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
+            [Reload("RenderPipelineResources/defaultDiffusionProfile.asset")]
             public DiffusionProfileSettings defaultDiffusionProfile;
         }
 
