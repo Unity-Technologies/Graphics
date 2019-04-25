@@ -224,6 +224,7 @@ namespace UnityEngine.Rendering.LWRP
             cameraData.isPostProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
 
             // Disables postprocessing in mobile VR. It's not stable on mobile yet.
+            // TODO: enable postfx for stereo rendering
             if (cameraData.isStereoEnabled && Application.isMobilePlatform)
                 cameraData.isPostProcessEnabled = false;
 

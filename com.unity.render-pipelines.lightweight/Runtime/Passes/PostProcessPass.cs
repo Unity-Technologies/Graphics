@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.LWRP
         bool IsTileCompatible();
     }
 
-    // TODO: Anti-aliasing
+    // TODO: FXAA, TAA
     // TODO: Motion blur
     // TODO: Depth of Field
     // TODO: Final pass dithering
@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.LWRP
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
 
         MaterialLibrary m_Materials;
-        ForwardRendererData m_Data;
+        ForwardRendererData m_Data; // TODO: Not portable between LW "renderers", fix me
 
         // Builtin effects settings
         PaniniProjection m_PaniniProjection;
