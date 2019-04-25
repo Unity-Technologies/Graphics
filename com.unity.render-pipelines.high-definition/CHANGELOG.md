@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed TerrainLit basemap texture generation
 - Fixed single-pass stereo rendering
 - Fixed issue with renderPipelineResources and diffusion profile asset that ahve incorrect path and prevent correct upgrade of package
-- Fixed a bug that caused nans when material classification was enabled and a tile contained one standard material + a material with transmission.
+- Fixed a bug that caused nans when material classification was enabled and a tile contained one standard material + a material with transmission
+- Fixed gradient sky hash that was not using the exposure hash
 
 ## [5.13.0-preview] - 2019-04-15
 
@@ -20,7 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed deserialization crash at runtime
-- Fix for ShaderGraph Unlit masternode not writing velocity
+- Fixed for ShaderGraph Unlit masternode not writing velocity
 - Fixed a crash when assiging a new HDRP asset with the 'Verify Saving Assets' option enabled
 - Fixed exposure to properly support TEXTURE2D_X
 
