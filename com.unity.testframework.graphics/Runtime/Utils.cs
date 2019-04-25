@@ -42,6 +42,10 @@ namespace UnityEditor.TestTools.Graphics
                     return RuntimePlatform.XboxOne;
                 case BuildTarget.tvOS:
                     return RuntimePlatform.tvOS;
+#if UNITY_2019_3_OR_NEWER
+                case BuildTarget.Stadia:
+                    return RuntimePlatform.Stadia;
+#endif
             }
 
             throw new ArgumentOutOfRangeException("target", target, "Unknown BuildTarget");
@@ -90,6 +94,10 @@ namespace UnityEditor.TestTools.Graphics
                     return BuildTarget.WSAPlayer;
                 case RuntimePlatform.XboxOne:
                     return BuildTarget.XboxOne;
+#if UNITY_2019_3_OR_NEWER
+                case RuntimePlatform.Stadia:
+                    return BuildTarget.Stadia;
+#endif
             }
 
             throw new ArgumentOutOfRangeException("platform", platform, "Unknown RuntimePlatform");
