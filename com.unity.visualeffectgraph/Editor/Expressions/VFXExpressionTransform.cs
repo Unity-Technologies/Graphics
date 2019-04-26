@@ -432,6 +432,45 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionTransformVector4 : VFXExpression
+    {
+        public VFXExpressionTransformVector4()
+            : this(VFXValue<Matrix4x4>.Default, VFXValue<Vector4>.Default)
+        {
+        }
+
+        public VFXExpressionTransformVector4(VFXExpression matrix, VFXExpression position)
+            : base(VFXExpression.Flags.InvalidOnCPU, new VFXExpression[] { matrix, position })
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.None;
+            }
+        }
+
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrixReduce = constParents[0];
+            var positionReduce = constParents[1];
+
+            var matrix = matrixReduce.Get<Matrix4x4>();
+            var position = positionReduce.Get<Vector4>();
+
+            return VFXValue.Constant(matrix.MultiplyPoint(position));
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("mul({0}, {1})", parents[0], parents[1]);
+        }
+    }
+
     class VFXExpressionTransformDirection : VFXExpression
     {
         public VFXExpressionTransformDirection() : this(VFXValue<Matrix4x4>.Default, VFXValue<Vector3>.Default)
