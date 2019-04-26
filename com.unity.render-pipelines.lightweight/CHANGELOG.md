@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added SpeedTree shaders.
 
+### Fixed
+- Fixed a typo in the Particle Unlit Shader, so Soft Particles now work correctly.
+
 ## [5.13.0] - 2019-04-15
 ### Fixed
 - When in playmode, the error 'Non matching Profiler.EndSample' no longer appears. [case 1140750](https://fogbugz.unity3d.com/f/cases/1140750/)
