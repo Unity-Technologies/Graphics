@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
+        [SerializeField] bool m_UseVirtualTexturing = true;
 
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
@@ -419,6 +420,12 @@ namespace UnityEngine.Rendering.LWRP
         {
             get { return m_UseSRPBatcher; }
             set { m_UseSRPBatcher = value; }
+        }
+
+        public bool usesVirtualTexturing
+        {
+            get { return m_UseVirtualTexturing; }
+            set { m_UseVirtualTexturing = value; }
         }
 
         public override Material defaultMaterial

@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.LWRP
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
 
+        VTFeedbackPass m_VTFeedbackPass;
+
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
 #endif
@@ -56,6 +58,7 @@ namespace UnityEngine.Rendering.LWRP
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, screenspaceShadowsMaterial);
+            m_VTFeedbackPass = new VTFeedbackPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
             m_OpaquePostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingOpaques, true);
@@ -161,6 +164,12 @@ namespace UnityEngine.Rendering.LWRP
             {
                 m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
                 EnqueuePass(m_ScreenSpaceShadowResolvePass);
+            }
+
+            if (LightweightRenderPipeline.asset.usesVirtualTexturing)
+            {
+                m_VTFeedbackPass.Setup(cameraTargetDescriptor);
+                EnqueuePass(m_VTFeedbackPass);
             }
 
             EnqueuePass(m_RenderOpaqueForwardPass);

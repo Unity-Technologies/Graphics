@@ -7,6 +7,7 @@ using UnityEditor.Rendering.LWRP;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
+using Experimental = UnityEngine.Experimental;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -119,6 +120,8 @@ namespace UnityEngine.Rendering.LWRP
 
                 EndCameraRendering(renderContext, camera);
             }
+
+            Experimental.VirtualTexturing.UpdateSystem();
 
             EndFrameRendering(renderContext, cameras);
         }
