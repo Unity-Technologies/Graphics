@@ -49,9 +49,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public bool enabled;
         public string name;
 
-        [SerializeField, ColorUsage(false)]
-        internal Color globalColor;
-
         [SerializeField]
         internal TextureChannel maskTextureChannel;
 

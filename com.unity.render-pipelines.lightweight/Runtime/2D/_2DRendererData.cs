@@ -71,7 +71,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             m_LightOperations[0].name = "Default";
             m_LightOperations[0].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
             m_LightOperations[0].renderTextureScale = 1.0f;
-            m_LightOperations[0].globalColor = new Color32(54, 58, 66, 255);    // This is the default ambient color in Lighting Settings. 
 
             for (int i = 1; i < m_LightOperations.Length; ++i)
             {
@@ -79,7 +78,6 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 m_LightOperations[i].name = "Light Operation " + i;
                 m_LightOperations[i].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
                 m_LightOperations[i].renderTextureScale = 1.0f;
-                m_LightOperations[i].globalColor = Color.black;
             }
 
             m_ShapeLightShader = Shader.Find("Hidden/Light2D-Shape");

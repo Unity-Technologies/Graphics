@@ -11,7 +11,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
             public static readonly GUIContent lightOperations = EditorGUIUtility.TrTextContent("Light Operations", "A Light Operation is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent name = EditorGUIUtility.TrTextContent("Name");
-            public static readonly GUIContent globalColor = EditorGUIUtility.TrTextContent("Global Color", "The default clear color of the lighting buffer.");
             public static readonly GUIContent maskTextureChannel = EditorGUIUtility.TrTextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Operation.");
             public static readonly GUIContent renderTextureScale = EditorGUIUtility.TrTextContent("Render Texture Scale", "The resolution of the lighting buffer relative to the screen resolution. 1.0 means full screen size.");
             public static readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "How the lighting should be blended with the main color of the objects.");
@@ -24,7 +23,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         {
             public SerializedProperty enabled;
             public SerializedProperty name;
-            public SerializedProperty globalColor;
             public SerializedProperty maskTextureChannel;
             public SerializedProperty renderTextureScale;
             public SerializedProperty blendMode;
@@ -51,7 +49,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
                 props.enabled = lightOpProp.FindPropertyRelative("enabled");
                 props.name = lightOpProp.FindPropertyRelative("name");
-                props.globalColor = lightOpProp.FindPropertyRelative("globalColor");
                 props.maskTextureChannel = lightOpProp.FindPropertyRelative("maskTextureChannel");
                 props.renderTextureScale = lightOpProp.FindPropertyRelative("renderTextureScale");
                 props.blendMode = lightOpProp.FindPropertyRelative("blendMode");
@@ -94,7 +91,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     EditorGUI.indentLevel++;
 
                     EditorGUILayout.PropertyField(props.name, Styles.name);
-                    EditorGUILayout.PropertyField(props.globalColor, Styles.globalColor);
                     EditorGUILayout.PropertyField(props.maskTextureChannel, Styles.maskTextureChannel);
                     EditorGUILayout.PropertyField(props.renderTextureScale, Styles.renderTextureScale);
                     EditorGUILayout.PropertyField(props.blendMode, Styles.blendMode);
