@@ -220,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LTCAreaLightCookieManager m_AreaLightCookieManager;
 
         // For now we don't use shadow cascade borders.
-        static public readonly bool s_UseCascadeBorders = false;
+        static public readonly bool s_UseCascadeBorders = true;
 
         // Keep sorting array around to avoid garbage
         uint[] m_SortKeys = null;
