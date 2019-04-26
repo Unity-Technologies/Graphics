@@ -23,7 +23,8 @@ def main():
         pass
 
     # get test results
-    katana_lib.process_running_builds(build_number, project)
+    while not katana_lib.process_running_builds(build_number, project):
+        pass
 
 if __name__ == '__main__':
     main()
