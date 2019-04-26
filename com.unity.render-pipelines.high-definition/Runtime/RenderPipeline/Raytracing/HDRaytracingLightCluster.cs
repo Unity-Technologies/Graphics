@@ -454,7 +454,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 Color value = light.color.linear * light.intensity;
-                if (additionalLightData.useColorTemperature)
+                if (light.useColorTemperature)
                     value *= Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
                 lightData.color = new Vector3(value.r, value.g, value.b);
 
