@@ -1,6 +1,10 @@
 // This allows us to either use the light cluster to pick which lights should be used, or use all the lights available
 #define USE_LIGHT_CLUSTER 
 
+#if defined( USE_RTPV ) && defined( RT_SUN_OCC )
+RaytracingAccelerationStructure raytracingAccelStruct;
+#endif
+
 uint GetTotalLightClusterCellCount(int cellIndex)
 {
     return _RaytracingLightCluster[cellIndex * (_LightPerCellCount + 3) + 0];   
@@ -71,6 +75,36 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowValue      = 1.0f;
     context.sampleReflection = 0;
 
+#if defined( USE_RTPV ) && defined( RT_SUN_OCC )
+    // Evaluate sun shadows.
+    if (_DirectionalShadowIndex >= 0)
+    {
+        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+
+        if (dot(bsdfData.normalWS, -light.forward) > 0.0)
+        {
+            const float kTMax = 1e10f;
+            RayDesc rayDescriptor;
+            rayDescriptor.Origin    = GetAbsolutePositionWS(posInput.positionWS);
+            rayDescriptor.Direction = -light.forward;
+            rayDescriptor.TMin      = 0;
+            rayDescriptor.TMax      = kTMax;
+
+            RayIntersection rayIntersection;
+            rayIntersection.color             = float3(0.0, 0.0, 0.0);
+            rayIntersection.incidentDirection = rayDescriptor.Direction;
+            rayIntersection.origin            = rayDescriptor.Origin;
+            rayIntersection.t                 = -1.0f;
+            rayIntersection.cone.spreadAngle  = 0;
+            rayIntersection.cone.width        = 0;
+
+            const uint missShaderIndex = 0;
+            TraceRay(raytracingAccelStruct, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, 0xFF, 0, 1, 1, rayDescriptor, rayIntersection);
+
+            context.shadowValue = rayIntersection.t == -1.0f ? 0.0 : 1.0;
+        }
+    }
+#else
     // Evaluate sun shadows.
     if (_DirectionalShadowIndex >= 0)
     {
@@ -87,6 +121,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
         }
     }
+#endif
 
     AggregateLighting aggregateLighting;
     ZERO_INITIALIZE(AggregateLighting, aggregateLighting); // LightLoop is in charge of initializing the structure
