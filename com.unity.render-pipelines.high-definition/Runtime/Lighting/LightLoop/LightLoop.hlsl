@@ -37,7 +37,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
             float3(1.0, 1.0, 1.0)
         };
 
-        diffuseLighting = float3(1.0, 1.0, 1.0);
+        diffuseLighting = Luminance(diffuseLighting);
         if (_DirectionalShadowIndex >= 0)
         {
             real alpha;
@@ -57,7 +57,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
                 float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
                 // We can't mix with the lighting as it can be HDR and it is hard to find a good lerp operation for this case that is still compliant with
                 // exposure. So disable exposure instead and replace color.
-                diffuseLighting = cascadeShadowColor * shadow;
+                diffuseLighting = cascadeShadowColor * Luminance(diffuseLighting) * shadow;
             }
 
         }

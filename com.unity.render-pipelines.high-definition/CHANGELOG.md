@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added ViewConstants StructuredBuffer to simplify XR rendering
 - Added API to render specific settings during a frame
 - Added stadia to the supported platforms (2019.3)
+- Enabled cascade blends settings in the HD Shadow component
 
 ### Fixed
 - Fixed deserialization crash at runtime
@@ -18,8 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed exposure to properly support TEXTURE2D_X
 - Fixed TerrainLit basemap texture generation
 - Fixed a bug that caused nans when material classification was enabled and a tile contained one standard material + a material with transmission.
-- Fixed gradient sky hash that was not using the exposure hash
 - Fixed displayed default FrameSettings in HDRenderPipelineAsset wrongly updated on scripts reload.
+- Fixed gradient sky hash that was not using the exposure hash.
+- Fixed visualize cascade mode with exposure.
+- Fixed (enabled) exposure on override lighting debug modes.
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
