@@ -792,7 +792,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)
+        public void Compile(VFXCompilationStatus status,VFXCompilationMode compilationMode, bool forceShaderValidation)
         {
             // Prevent doing anything ( and especially showing progesses ) in an empty graph.
             if (m_Graph.children.Count() < 1)
@@ -936,7 +936,7 @@ namespace UnityEditor.VFX
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
                 foreach (var data in compilableData)
                 {
-                    data.FillDescs(bufferDescs,
+                    data.FillDescs(status,bufferDescs,
                         temporaryBufferDescs,
                         systemDescs,
                         m_ExpressionGraph,

@@ -547,6 +547,61 @@ namespace UnityEditor.VFX.UI
                 return DropdownMenuAction.Status.Normal;
         }
 
+        List<IconBadge> m_ErrorBadges = new List<IconBadge>();
+
+        internal void UpdateStatus(VFXCompilationStatus status)
+        {
+
+            foreach(var badge in m_ErrorBadges)
+            {
+                badge.Detach();
+                badge.RemoveFromHierarchy();
+            }
+
+            m_ErrorBadges.Clear();
+
+            if (status == null)
+                return;
+
+            foreach( var error in status.errors)
+            {
+                VisualElement target = null;
+                VisualElement targetParent = null;
+                SpriteAlignment alignement = SpriteAlignment.TopLeft;
+
+                if( error.model is VFXSlot)
+                {
+                    var slot = (VFXSlot)error.model;
+                    // todo manage parameter slot if they can have error
+
+                    var nodeController = controller.GetNodeController(slot.owner as VFXModel, 0);
+                    if (nodeController == null)
+                        continue;
+                    var anchorController = (slot.direction == VFXSlot.Direction.kInput ? nodeController.inputPorts : nodeController.outputPorts).FirstOrDefault(t=>t.model == slot);
+                    if (anchorController == null)
+                        continue;
+
+                    targetParent = GetNodeByController(nodeController);
+                    target = (targetParent as VFXNodeUI).GetPorts(slot.direction == VFXSlot.Direction.kInput, slot.direction != VFXSlot.Direction.kInput).FirstOrDefault(t => t.controller == anchorController);
+                    alignement = slot.direction == VFXSlot.Direction.kInput ? SpriteAlignment.LeftCenter : SpriteAlignment.RightCenter;
+                }
+                if( target != null)
+                {
+                    var badge = IconBadge.CreateError(error.error);
+                    targetParent.Add(badge);
+                    badge.AttachTo(target, alignement);
+                    m_ErrorBadges.Add(badge);
+                    badge.AddManipulator(new Clickable(() =>
+                    {
+                        badge.Detach();
+                        badge.RemoveFromHierarchy();
+                    }));
+                }
+            }
+
+            
+        }
+
 
         public void SetBoardToFront(GraphElement board)
         {
@@ -1207,7 +1262,10 @@ namespace UnityEditor.VFX.UI
         {
             var graph = controller.graph;
             graph.SetExpressionGraphDirty();
+            var status = graph.compilationStatus;
             graph.RecompileIfNeeded(false, false);
+            if (graph.compilationStatus != status)
+                UpdateStatus(graph.compilationStatus);
         }
 
 
