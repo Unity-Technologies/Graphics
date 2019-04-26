@@ -376,15 +376,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Only display the support ray tracing feature if the platform supports it
 #if REALTIME_RAYTRACING_SUPPORT
-            if(UnityEngine.SystemInfo.supportsRayTracing)
+            if (UnityEngine.SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Direct3D12)
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
+                if(UnityEngine.SystemInfo.supportsRayTracing)
+                {
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
+                }
+                else
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracingNeedsHardware);
+                }
             }
             else
-#endif
             {
-                serialized.renderPipelineSettings.supportRayTracing.boolValue = false;
+                using (new EditorGUI.DisabledScope(true))
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracingNeedsDX12);
             }
+#endif
 
             EditorGUILayout.Space(); //to separate with following sub sections
         }
