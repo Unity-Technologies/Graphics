@@ -1492,7 +1492,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Configure all the keywords
             ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
+#if ENABLE_RAYTRACING
             HDRaytracingLightProbeBakeManager.PreRender(hdCamera.camera, cmd);
+#endif
 
             StartStereoRendering(cmd, renderContext, camera);
 
