@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed gradient sky hash that was not using the exposure hash.
 - Fixed visualize cascade mode with exposure.
 - Fixed (enabled) exposure on override lighting debug modes.
+- Fixed issue with LightExplorer when volume have no profile
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
