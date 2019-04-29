@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: 2019.2
 projects:
   - name: Core
     folder: none

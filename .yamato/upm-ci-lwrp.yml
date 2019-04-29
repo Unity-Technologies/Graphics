@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: 2019.2
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
