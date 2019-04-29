@@ -192,13 +192,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     }
     #if SEARCHER_PRESENT
     class SearcherProvider : SearchWindowProvider
-    {
-        public SearchWindowAdapter searcherAdapter;
-        public void InitializeSearcher(EditorWindow editorWindow, GraphData graph, GraphView graphView)
-        {
-            searcherAdapter = new SearchWindowAdapter("Create Node");
-        }
-        
+    {        
         public Searcher.Searcher LoadSearchWindow()
         {
             GenerateNodeEntries();
@@ -244,7 +238,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var nodeDatabase = SearcherDatabase.Create(root, string.Empty, false);
             
-            return new Searcher.Searcher(nodeDatabase, searcherAdapter);             
+            return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));             
         }
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
