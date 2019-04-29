@@ -92,12 +92,7 @@ Shader "Lightweight Render Pipeline/Unlit VT"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
                 
-				//output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
-				GraniteStreamingTextureConstantBuffer textureParamBlock;
-				textureParamBlock.data[0] = _TextureStack_atlasparams[0];
-				textureParamBlock.data[1] = _TextureStack_atlasparams[1];
-				output.uv = Granite_Transform(textureParamBlock, TRANSFORM_TEX(input.uv, _BaseMap));
-
+				output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
                 
                 return output;
@@ -133,7 +128,7 @@ Shader "Lightweight Render Pipeline/Unlit VT"
 
 				GraniteLookupData graniteLookupData;
 				float4 resolve;
-				Granite_Lookup_PreTransformed_Anisotropic(grCB, translationTable, uv, graniteLookupData, resolve);
+				Granite_Lookup_Anisotropic(grCB, translationTable, uv, graniteLookupData, resolve);
 
 				half4 texColor;
 				Granite_Sample_HQ(grCB, graniteLookupData, cache, 0, texColor);
