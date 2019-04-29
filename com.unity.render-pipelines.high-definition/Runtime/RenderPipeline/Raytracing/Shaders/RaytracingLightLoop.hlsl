@@ -65,6 +65,18 @@ LightData FetchClusterLightIndex(int cellIndex, uint lightIndex)
     return _LightDatasRT[absoluteLightIndex];
 }
 
+
+float3 offsetRay(float3 p, float3 n)
+{
+    float  kOrigin     = 1.0f / 32.0f;
+    float  kFloatScale = 1.0f / 65536.0f;
+    float  kIntScale   = 256.0f;
+    int3   of_i        = n * kIntScale();
+    float3 p_i         = asfloat(asint(p) + ((p < 0) ? -of_i : of_i));
+
+    return abs(p) < kOrigin() ? (p + kFloatScale() * n) : p_i;
+}
+
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, float reflectionWeight, float3 reflection, float3 transmission,
 			out float3 diffuseLighting,
             out float3 specularLighting)
@@ -83,11 +95,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         if (dot(bsdfData.normalWS, -light.forward) > 0.0)
         {
+            const float kTMin = 1e-6f;
             const float kTMax = 1e10f;
             RayDesc rayDescriptor;
-            rayDescriptor.Origin    = GetAbsolutePositionWS(posInput.positionWS);
+            rayDescriptor.Origin    = offset_ray(GetAbsolutePositionWS(posInput.positionWS), bsdfData.normalWS);
             rayDescriptor.Direction = -light.forward;
-            rayDescriptor.TMin      = 0;
+            rayDescriptor.TMin      = kTMin;
             rayDescriptor.TMax      = kTMax;
 
             RayIntersection rayIntersection;
@@ -101,7 +114,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             const uint missShaderIndex = 0;
             TraceRay(raytracingAccelStruct, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, 0xFF, 0, 1, 1, rayDescriptor, rayIntersection);
 
-            context.shadowValue = rayIntersection.t == -1.0f ? 0.0 : 1.0;
+            context.shadowValue = rayIntersection.t < kTMax ? 0.0 : 1.0;
         }
     }
 #else
