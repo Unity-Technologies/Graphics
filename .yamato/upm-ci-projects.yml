@@ -54,7 +54,7 @@ all_project_ci:
   triggers:
     branches:
       only:
-        - master
+        - release/2019.2
   artifacts:
     logs.zip:
       paths:
