@@ -35,23 +35,18 @@ namespace UnityEditor.ShaderGraph
             if (extension != ShaderGraphImporter.Extension && extension != ShaderSubGraphImporter.Extension)
                 return false;
 
-            var foundWindow = false;
             foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
             {
                 if (w.selectedGuid == guid)
                 {
-                    foundWindow = true;
                     w.Focus();
+                    return true;
                 }
             }
 
-            if (!foundWindow)
-            {
-                var window = CreateInstance<MaterialGraphEditWindow>();
-                window.Initialize(guid);
-                window.Show();
-            }
-
+            var window = EditorWindow.CreateWindow<MaterialGraphEditWindow>(typeof(MaterialGraphEditWindow), typeof(SceneView));
+            window.Initialize(guid);
+            window.Focus();
             return true;
         }
 
