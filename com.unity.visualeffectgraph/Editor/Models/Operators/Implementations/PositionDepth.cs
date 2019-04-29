@@ -6,7 +6,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "DemoTeam")]
+    [VFXInfo(category = "Sampling")]
     class PositionDepth : VFXOperator
     {
         public enum PositionMode
