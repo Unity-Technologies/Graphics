@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -130,7 +132,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     class HDRPreprocessShaders : IPreprocessShaders
     {
         // Track list of materials asking for specific preprocessor step
-        List<BaseShaderPreprocessor> materialList;
+        List<BaseShaderPreprocessor> shaderProcessorsList;
 
 
         uint m_TotalVariantsInputCount;
@@ -139,11 +141,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public HDRPreprocessShaders()
         {
             // TODO: Grab correct configuration/quality asset.
-            HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            if (hdPipelineAsset == null)
+            if (ShaderBuildPreprocessor.hdrpAssets == null || ShaderBuildPreprocessor.hdrpAssets.Count == 0)
                 return;
 
-            materialList = HDEditorUtils.GetBaseShaderPreprocessorList();
+            shaderProcessorsList = HDEditorUtils.GetBaseShaderPreprocessorList();
         }
 
         void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, ShaderVariantLogLevel logLevel, uint prevVariantsCount, uint currVariantsCount)
@@ -168,14 +169,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
             // TODO: Grab correct configuration/quality asset.
-            HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            if (hdPipelineAsset == null)
+            var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
+            
+            if (hdPipelineAssets.Count == 0)
                 return;
 
             uint preStrippingCount = (uint)inputData.Count;
-
-            // This test will also return if we are not using HDRenderPipelineAsset
-            if (hdPipelineAsset == null || !hdPipelineAsset.allowShaderVariantStripping)
+            
+            // Test if striping is enabled in any of the found HDRP assets.
+            if ( hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping) )
                 return;
 
             int inputShaderVariantCount = inputData.Count;
@@ -184,13 +186,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 ShaderCompilerData input = inputData[i];
 
-                bool removeInput = false;
-                // Call list of strippers
-                // Note that all strippers cumulate each other, so be aware of any conflict here
-                foreach (BaseShaderPreprocessor material in materialList)
+                // Remove the input by default, until we find a HDRP Asset in the list that needs it.
+                bool removeInput = true;
+                
+                foreach (var hdAsset in hdPipelineAssets)
                 {
-                    if (material.ShadersStripper(hdPipelineAsset, shader, snippet, input))
-                        removeInput = true;
+                    var stripedByPreprocessor = false;
+                    
+                    // Call list of strippers
+                    // Note that all strippers cumulate each other, so be aware of any conflict here
+                    foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
+                    {
+                        if ( shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input) )
+                        {
+                            stripedByPreprocessor = true;
+                            break;
+                        }
+                    }
+
+                    if (!stripedByPreprocessor)
+                    {
+                        removeInput = false;
+                        break;
+                    }
                 }
 
                 if (removeInput)
@@ -200,12 +218,84 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (hdPipelineAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+            foreach (var hdAsset in hdPipelineAssets)
             {
-                m_TotalVariantsInputCount += preStrippingCount;
-                m_TotalVariantsOutputCount += (uint)inputData.Count;
-                LogShaderVariants(shader, snippet, hdPipelineAsset.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
+                if (hdAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+                {
+                    m_TotalVariantsInputCount += preStrippingCount;
+                    m_TotalVariantsOutputCount += (uint)inputData.Count;
+                    LogShaderVariants(shader, snippet, hdAsset.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
+                }
             }
+        }
+    }
+    
+    // Build preprocessor to find all potentially used HDRP assets.
+    class ShaderBuildPreprocessor : IPreprocessBuildWithReport
+    {
+        private static List<HDRenderPipelineAsset> _hdrpAssets;
+
+        public static List<HDRenderPipelineAsset> hdrpAssets
+        {
+            get
+            {
+                if (_hdrpAssets == null || _hdrpAssets.Count == 0) GetAllValidHDRPAssets();
+                return _hdrpAssets;
+            }
+        }
+
+        static void GetAllValidHDRPAssets()
+        {
+            if (_hdrpAssets != null) hdrpAssets.Clear();
+            else _hdrpAssets = new List<HDRenderPipelineAsset>();
+            
+            // Add to the list the HDRP asset currently set in the graphic settings.
+            if ( GraphicsSettings.renderPipelineAsset != null && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset )
+                _hdrpAssets.Add(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            
+            // Get all enabled scenes path in the build settings.
+            var scenesPaths = EditorBuildSettings.scenes
+                .Where(s => s.enabled)
+                .Select(s => s.path);
+
+            // Find all HDRP assets that are dependencies of the scenes.
+            _hdrpAssets = scenesPaths.Aggregate( new List<HDRenderPipelineAsset>(),
+                (list, scene) =>
+                {
+                    list.AddRange(
+                        AssetDatabase.GetDependencies(scene)
+                            .Select(AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>)
+                            .Where( a => a != null && !list.Contains(a) )
+                        );
+                    return list;
+                });
+
+            // Add the HDRP assets that are in the Resources folders.
+            _hdrpAssets.AddRange(
+                Resources.FindObjectsOfTypeAll<HDRenderPipelineAsset>()
+                .Where( a => !_hdrpAssets.Contains(a) )
+                );
+            
+            // Prompt a warning if we find 0 HDRP Assets.
+            if (_hdrpAssets.Count == 0)
+                if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead no VERY long compilation time.", "Ok", "Cancel"))
+                throw new UnityEditor.Build.BuildFailedException("Build canceled");
+
+            /*
+            Debug.Log(string.Format("{0} HDRP assets in build:{1}",
+                _hdrpAssets.Count,
+                _hdrpAssets
+                    .Select(a => a.name)
+                    .Aggregate("", (current, next) => $"{current}{System.Environment.NewLine}- {next}" )
+                ));
+            // */
+        }
+        
+        public int callbackOrder { get { return 0; } }
+        
+        public void OnPreprocessBuild(BuildReport report)
+        {
+            GetAllValidHDRPAssets();
         }
     }
 }
