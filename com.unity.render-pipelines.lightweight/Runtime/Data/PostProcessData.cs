@@ -36,6 +36,9 @@ namespace UnityEngine.Rendering.LWRP
             [Reload("Shaders/PostProcessing/SubpixelMorphologicalAntialiasing.shader")]
             public Shader subpixelMorphologicalAntialiasingPS;
 
+            [Reload("Shaders/PostProcessing/CameraMotionBlur.shader")]
+            public Shader cameraMotionBlurPS;
+
             [Reload("Shaders/PostProcessing/PaniniProjection.shader")]
             public Shader paniniProjectionPS;
 

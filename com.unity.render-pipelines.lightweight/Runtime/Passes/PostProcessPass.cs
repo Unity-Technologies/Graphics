@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.LWRP
         PostProcessData m_Data;
 
         // Builtin effects settings
+        MotionBlur m_MotionBlur;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
         LensDistortion m_LensDistortion;
@@ -40,6 +41,8 @@ namespace UnityEngine.Rendering.LWRP
         // Misc
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_BloomFormat;
+        Matrix4x4 m_PrevViewProjM = Matrix4x4.identity;
+        bool m_ResetHistory;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data)
         {
@@ -66,6 +69,8 @@ namespace UnityEngine.Rendering.LWRP
                 ShaderConstants._BloomMipUp[i] = Shader.PropertyToID("_BloomMipUp" + i);
                 ShaderConstants._BloomMipDown[i] = Shader.PropertyToID("_BloomMipDown" + i);
             }
+
+            m_ResetHistory = true;
         }
 
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle sourceHandle, in RenderTargetHandle destinationHandle, in RenderTargetHandle depthBuffer, in RenderTargetHandle internalLut)
@@ -75,6 +80,11 @@ namespace UnityEngine.Rendering.LWRP
             m_Destination = destinationHandle;
             m_DepthBuffer = depthBuffer;
             m_InternalLut = internalLut;
+        }
+
+        public void ResetHistory()
+        {
+            m_ResetHistory = true;
         }
 
         public bool CanRunOnTile()
@@ -89,6 +99,7 @@ namespace UnityEngine.Rendering.LWRP
             // Start by pre-fetching all builtin effect settings we need
             // Some of the color-grading settings are only used in the color grading lut pass
             var stack = VolumeManager.instance.stack;
+            m_MotionBlur          = stack.GetComponent<MotionBlur>();
             m_PaniniProjection    = stack.GetComponent<PaniniProjection>();
             m_Bloom               = stack.GetComponent<Bloom>();
             m_LensDistortion      = stack.GetComponent<LensDistortion>();
@@ -113,6 +124,8 @@ namespace UnityEngine.Rendering.LWRP
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
+
+            m_ResetHistory = false;
         }
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
@@ -160,6 +173,15 @@ namespace UnityEngine.Rendering.LWRP
                 using (new ProfilingSample(cmd, "Sub-pixel Morphological Anti-aliasing"))
                 {
                     DoSubpixelMorphologicalAntialiasing(ref cameraData, cmd, GetSource(), GetDestination());
+                    Swap();
+                }
+            }
+
+            if (m_MotionBlur.IsActive() && !cameraData.isSceneViewCamera)
+            {
+                using (new ProfilingSample(cmd, "Motion Blur"))
+                {
+                    DoMotionBlur(cameraData.camera, cmd, GetSource(), GetDestination());
                     Swap();
                 }
             }
@@ -269,6 +291,34 @@ namespace UnityEngine.Rendering.LWRP
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._BlendTexture);
+        }
+
+        #endregion
+
+        #region Motion Blur
+
+        void DoMotionBlur(Camera camera, CommandBuffer cmd, int source, int destination)
+        {
+            var material = m_Materials.cameraMotionBlur;
+
+            // This is needed because Blit will reset viewproj matrices to identity and LW currently
+            // relies on SetupCameraProperties instead of handling its own matrices.
+            // TODO: We need get rid of SetupCameraProperties and setup camera matrices in LWRP
+            var proj = GL.GetGPUProjectionMatrix(camera.nonJitteredProjectionMatrix, true);
+            var view = camera.worldToCameraMatrix;
+            var viewProj = proj * view;
+
+            material.SetMatrix("_ViewProjM", viewProj);
+
+            if (m_ResetHistory)
+                material.SetMatrix("_PrevViewProjM", viewProj);
+            else
+                material.SetMatrix("_PrevViewProjM", m_PrevViewProjM);
+
+            material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
+            cmd.Blit(source, destination, material, (int)m_MotionBlur.quality.value);
+
+            m_PrevViewProjM = viewProj;
         }
 
         #endregion
@@ -600,6 +650,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             public readonly Material stopNaN;
             public readonly Material subpixelMorphologicalAntialiasing;
+            public readonly Material cameraMotionBlur;
             public readonly Material paniniProjection;
             public readonly Material bloom;
             public readonly Material uber;
@@ -608,6 +659,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 stopNaN = Load(data.shaders.stopNanPS);
                 subpixelMorphologicalAntialiasing = Load(data.shaders.subpixelMorphologicalAntialiasingPS);
+                cameraMotionBlur = Load(data.shaders.cameraMotionBlurPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
                 uber = Load(data.shaders.uberPostPS);
