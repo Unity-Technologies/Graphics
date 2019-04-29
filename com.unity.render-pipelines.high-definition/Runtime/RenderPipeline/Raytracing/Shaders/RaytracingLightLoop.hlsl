@@ -71,10 +71,10 @@ float3 offsetRay(float3 p, float3 n)
     float  kOrigin     = 1.0f / 32.0f;
     float  kFloatScale = 1.0f / 65536.0f;
     float  kIntScale   = 256.0f;
-    int3   of_i        = n * kIntScale();
+    int3   of_i        = n * kIntScale;
     float3 p_i         = asfloat(asint(p) + ((p < 0) ? -of_i : of_i));
 
-    return abs(p) < kOrigin() ? (p + kFloatScale() * n) : p_i;
+    return abs(p) < kOrigin ? (p + kFloatScale * n) : p_i;
 }
 
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, float reflectionWeight, float3 reflection, float3 transmission,
@@ -98,7 +98,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             const float kTMin = 1e-6f;
             const float kTMax = 1e10f;
             RayDesc rayDescriptor;
-            rayDescriptor.Origin    = offset_ray(GetAbsolutePositionWS(posInput.positionWS), bsdfData.normalWS);
+            rayDescriptor.Origin    = offsetRay(GetAbsolutePositionWS(posInput.positionWS), bsdfData.normalWS);
             rayDescriptor.Direction = -light.forward;
             rayDescriptor.TMin      = kTMin;
             rayDescriptor.TMax      = kTMax;
