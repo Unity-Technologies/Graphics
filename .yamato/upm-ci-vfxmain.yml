@@ -39,7 +39,7 @@ projects:
       - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
       - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
       - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
-      - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }} -c editor --wait --published
+      - cd TestProjects/{{ project.folder }} && unity-downloader-cli -u {{ editor.version }} -c editor --wait --published
       {% if testplatform.name == "Standalone" %}
         - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
       {% else %}
