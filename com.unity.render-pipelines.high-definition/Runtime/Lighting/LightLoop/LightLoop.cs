@@ -85,6 +85,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // feature variants
         public static int s_NumFeatureVariants = 29;
 
+        // light list limits
+        public static int s_LightListMaxCoarseEntries = 64;
+        public static int s_LightListMaxPrunedEntries = 24;
+        public static int s_LightClusterMaxCoarseEntries = 128;
+
         // Following define the maximum number of bits use in each feature category.
         public static uint s_LightFeatureMaskFlags = 0xFFF000;
         public static uint s_LightFeatureMaskFlagsOpaque = 0xFFF000 & ~((uint)LightFeatureFlags.SSRefraction); // Opaque don't support screen space refraction
@@ -215,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LTCAreaLightCookieManager m_AreaLightCookieManager;
 
         // For now we don't use shadow cascade borders.
-        static public readonly bool s_UseCascadeBorders = false;
+        static public readonly bool s_UseCascadeBorders = true;
 
         // Keep sorting array around to avoid garbage
         uint[] m_SortKeys = null;
@@ -407,11 +412,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Light m_CurrentSunLight;
         int m_CurrentShadowSortedSunLightIndex = -1;
 
-        // Used to get the current dominant casting shadow light on screen (the one which takes the biggest part of the screen)
-        int m_DominantLightIndex = -1;
-        float m_DominantLightValue;
-        // Store the dominant light to give to ScreenSpaceShadow.compute (null is the dominant light is directional)
-        LightData m_DominantLightData;
+        // Contact shadow index reseted at the beginning of each frame, used to generate the contact shadow mask
+        int m_ContactShadowIndex;
 
         public Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
@@ -773,6 +775,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_EnableContactShadow = m_FrameSettings.IsEnabled(FrameSettingsField.ContactShadows) && m_ContactShadows.enable.value && m_ContactShadows.length.value > 0;
             m_indirectLightingController = VolumeManager.instance.stack.GetComponent<IndirectLightingController>();
 
+            m_ContactShadowIndex = 0;
+
             // Cluster
             {
                 var clustPrepassSourceIdx = m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
@@ -931,32 +935,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
         }
 
-        bool GetDominantLightWithShadows(AdditionalShadowData additionalShadowData, VisibleLight light, Light lightComponent, int lightIndex = -1)
-        {
-            // Can happen for particle lights (where we don't support shadows anyway)
-            if (lightComponent == null)
-                return false;
-
-            // Ratio of the size of the light on screen and its intensity, gives a value used to compare light importance
-            float lightDominanceValue = light.screenRect.size.magnitude * lightComponent.intensity;;
-
-            if (additionalShadowData == null || !additionalShadowData.contactShadows)
-                return false;
-            if (lightDominanceValue <= m_DominantLightValue || m_DominantLightValue == Single.PositiveInfinity)
-                return false;
-
-            // Directional lights are always considered first.
-            if (light.lightType == LightType.Directional)
-                m_DominantLightValue = Single.PositiveInfinity;
-            else
-            {
-                m_DominantLightData = m_lightList.lights[lightIndex];
-                m_DominantLightIndex = lightIndex;
-                m_DominantLightValue = lightDominanceValue;
-            }
-            return true;
-        }
-
         public bool GetDirectionalLightData(CommandBuffer cmd, GPULightType gpuLightType, VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData, int lightIndex, int shadowIndex, DebugDisplaySettings debugDisplaySettings, int sortedIndex)
         {
             // Clamp light list to the maximum allowed lights on screen to avoid ComputeBuffer overflow
@@ -1006,11 +984,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 lightData.shadowDimmer           = additionalShadowData.shadowDimmer;
                 lightData.volumetricShadowDimmer = additionalShadowData.volumetricShadowDimmer;
+                lightData.contactShadowMask      = GetContactShadowMask(additionalShadowData.contactShadows);
             }
             else
             {
                 lightData.shadowDimmer           = 1.0f;
                 lightData.volumetricShadowDimmer = 1.0f;
+                lightData.contactShadowMask      = 0;
             }
 
             // fix up shadow information
@@ -1052,14 +1032,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             }
 
-            lightData.contactShadowIndex = -1;
-
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
-
-            // The first directional light with contact shadow enabled is always taken as dominant light
-            if (GetDominantLightWithShadows(additionalShadowData, light, lightComponent))
-                lightData.contactShadowIndex = 0;
 
             m_lightList.directionalLights.Add(lightData);
 
@@ -1226,7 +1200,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.specularDimmer        = lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * m_FrameSettings.specularGlobalDimmer : 0);
             lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.volumetricDimmer);
 
-            lightData.contactShadowIndex = -1;
             lightData.cookieIndex = -1;
             lightData.shadowIndex = -1;
 #if ENABLE_RAYTRACING
@@ -1262,12 +1235,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalShadowData.shadowFadeDistance));
                 lightData.shadowDimmer           = shadowDistanceFade * additionalShadowData.shadowDimmer;
                 lightData.volumetricShadowDimmer = shadowDistanceFade * additionalShadowData.volumetricShadowDimmer;
+                lightData.contactShadowMask      = GetContactShadowMask(additionalShadowData.contactShadows);
             }
             else
             {
-                lightData.shadowDimmer = 1.0f;
+                lightData.shadowDimmer           = 1.0f;
                 lightData.volumetricShadowDimmer = 1.0f;
-            }
+                lightData.contactShadowMask      = 0;
+             }
 
 #if ENABLE_RAYTRACING
             if(gpuLightType == GPULightType.Rectangle && lightComponent.shadows != LightShadows.None && areaShadowIndex < maxAreaLightShadows && additionalLightData.useRayTracedShadows)
@@ -1303,12 +1278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.nonLightMappedOnly = 0;
             }
 
-
             m_lightList.lights.Add(lightData);
-
-            // Check if the current light is dominant and store it's index to change it's property later,
-            // as we can't know which one will be dominant before checking all the lights
-            GetDominantLightWithShadows(additionalShadowData, light, lightComponent, m_lightList.lights.Count -1);
 
             return true;
         }
@@ -1780,11 +1750,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Return true if BakedShadowMask are enabled
         public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings)
+            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
         #if ENABLE_RAYTRACING
             HDRaytracingEnvironment raytracingEnv = m_RayTracingManager.CurrentEnvironment();
         #endif
+
+            var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
+            var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
@@ -1798,8 +1771,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
-                m_DominantLightIndex = -1;
-                m_DominantLightValue = 0;
                 m_DebugSelectedLightShadowIndex = -1;
 
                 int decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
@@ -1837,11 +1808,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
                         var light = cullResults.visibleLights[lightIndex];
+                        if (!aovRequest.IsLightEnabled(light.light.gameObject))
+                            continue;
+
                         var lightComponent = light.light;
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
 
+                    #if ENABLE_RAYTRACING
+                        if(additionalData.lightTypeExtent == LightTypeExtent.Rectangle && additionalLightData.useRayTracedShadows)
+                            continue;
+                    #endif
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         additionalData.ReserveShadows(camera, m_ShadowManager, m_ShadowInitParameters, cullResults, m_FrameSettings, lightIndex);
 
@@ -1924,6 +1902,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
+                        if (hasDebugLightFilter
+                            && !debugLightFilter.IsEnabledFor(gpuLightType, additionalData.spotLightShape))
+                            continue;
+
                         // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
                         m_SortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | (uint)lightIndex;
                     }
@@ -1973,7 +1955,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Manage shadow requests
                         #if ENABLE_RAYTRACING
-                        if (additionalLightData.WillRenderShadows() && !additionalLightData.useRayTracedShadows)
+                        if (additionalLightData.WillRenderShadows() && !(additionalLightData.useRayTracedShadows && gpuLightType == GPULightType.Rectangle))
                         #else
                         if (additionalLightData.WillRenderShadows())
                         #endif
@@ -2056,14 +2038,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Update the compute buffer with the shadow request datas
                     m_ShadowManager.PrepareGPUShadowDatas(cullResults, camera);
 
-                    //Activate contact shadows on dominant light
-                    if (m_DominantLightIndex != -1)
-                    {
-                        m_DominantLightData =  m_lightList.lights[m_DominantLightIndex];
-                        m_DominantLightData.contactShadowIndex = 0;
-                        m_lightList.lights[m_DominantLightIndex] = m_DominantLightData;
-                    }
-
                     // Sanity check
                     Debug.Assert(m_lightList.directionalLights.Count == directionalLightcount);
                     Debug.Assert(m_lightList.lights.Count == areaLightCount + punctualLightcount);
@@ -2080,12 +2054,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     UpdateSortKeysArray(probeCount);
                     sortCount = 0;
 
+                    var enableReflectionProbes = !hasDebugLightFilter ||
+                                                 debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.ReflectionProbe);
+                    var enablePlanarProbes = !hasDebugLightFilter ||
+                                                 debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.PlanarProbe);
                     for (int probeIndex = 0, numProbes = totalProbes; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
                     {
                         if (probeIndex < cullResults.visibleReflectionProbes.Length)
                         {
+                            if (!enableReflectionProbes)
+                            {
+                                // Skip directly to planar probes
+                                probeIndex = cullResults.visibleReflectionProbes.Length - 1;
+                                continue;
+                            }
+
                             var probe = cullResults.visibleReflectionProbes[probeIndex];
-                            if (probe.reflectionProbe == null || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled)
+                            if (probe.reflectionProbe == null
+                                || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
+                                || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
                                 continue;
 
                             // Exclude env lights based on hdCamera.probeLayerMask
@@ -2116,8 +2103,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
+                            if (!enablePlanarProbes)
+                                // skip planar probes
+                                break;
+
                             var planarProbeIndex = probeIndex - cullResults.visibleReflectionProbes.Length;
                             var probe = hdProbeCullingResults.visibleProbes[planarProbeIndex];
+                            if (!aovRequest.IsLightEnabled(probe.gameObject))
+                                continue;
 
                             // probe.texture can be null when we are adding a reflection probe in the editor
                             if (probe.texture == null || envLightCount >= k_MaxEnvLightsOnScreen)
@@ -2699,11 +2692,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool outputSplitLighting;
         }
 
+        public bool WillRenderContactShadow()
+        {
+            // When contact shadow index is 0, then there is no light casting contact shadow in the view
+            return m_EnableContactShadow && m_ContactShadowIndex != 0;
+        }
+
         public void SetScreenSpaceShadowsTexture(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, CommandBuffer cmd)
         {
-            AdditionalShadowData sunShadowData = m_CurrentSunLight != null ? m_CurrentSunLight.GetComponent<AdditionalShadowData>() : null;
-            bool needsContactShadows = (m_CurrentSunLight != null && sunShadowData != null && sunShadowData.contactShadows) || m_DominantLightIndex != -1;
-            if (!m_EnableContactShadow || !needsContactShadows)
+            if (!WillRenderContactShadow())
             {
                 cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, TextureXR.GetBlackTexture());
                 return;
@@ -2711,15 +2708,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, deferredShadowRT);
         }
 
+        // The first rendered 24 lights that have contact shadow enabled have a mask used to select the bit that contains
+        // the contact shadow shadowed information (occluded or not). Otherwise -1 is written
+        public int GetContactShadowMask(bool contactShadowEnabled)
+        {
+            if (!contactShadowEnabled)
+                return 0;
+            
+            // We have 24 max contact shadow light per frame
+            if (m_ContactShadowIndex >= LightDefinitions.s_LightListMaxPrunedEntries)
+                return 0;
+
+            return 1 << m_ContactShadowIndex++;
+        }
+
         public void RenderScreenSpaceShadows(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, int firstMipOffsetY, CommandBuffer cmd)
         {
-            AdditionalShadowData sunShadowData = m_CurrentSunLight != null ? m_CurrentSunLight.GetComponent<AdditionalShadowData>() : null;
             // if there is no need to compute contact shadows, we just quit
-            bool needsContactShadows = (m_CurrentSunLight != null && sunShadowData != null && sunShadowData.contactShadows) || m_DominantLightIndex != -1;
-            if (!m_EnableContactShadow || !needsContactShadows)
-            {
+            if (!WillRenderContactShadow())
                 return;
-            }
 
             using (new ProfilingSample(cmd, "Screen Space Shadow", CustomSamplerId.TPScreenSpaceShadows.GetSampler()))
             {
@@ -2737,12 +2744,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightDirection = -m_CurrentSunLight.transform.forward;
                     lightDirection.w = 1;
                 }
-                if (m_DominantLightIndex != -1)
-                {
-                    lightPosition = m_DominantLightData.positionRWS;
-                    lightPosition.w = 1;
-                    lightDirection.w = 0;
-                }
 
                 m_ShadowManager.BindResources(cmd);
 
@@ -2754,8 +2755,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeVectorParam(screenSpaceShadowComputeShader, HDShaderIDs._ContactShadowParamsParameters, contactShadowParams);
                 cmd.SetComputeVectorParam(screenSpaceShadowComputeShader, HDShaderIDs._ContactShadowParamsParameters2, contactShadowParams2);
                 cmd.SetComputeIntParam(screenSpaceShadowComputeShader, HDShaderIDs._DirectionalContactShadowSampleCount, m_ContactShadows.sampleCount.value);
-                cmd.SetComputeVectorParam(screenSpaceShadowComputeShader, HDShaderIDs._DirectionalLightDirection, lightDirection);
-                cmd.SetComputeVectorParam(screenSpaceShadowComputeShader, HDShaderIDs._PunctualLightPosition, lightPosition);
+                cmd.SetComputeBufferParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs._DirectionalLightDatas, m_DirectionalLightDatas);
+
+                // Send light list to the compute 
+                cmd.SetComputeBufferParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs._LightDatas, m_LightDatas);
+                cmd.SetComputeBufferParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, s_LightList);
 
                 // Inject the texture in the adequate slot
                 cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);

@@ -162,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We consider that the small loss in performance is acceptable in the editor.
             // A refactor of wireframe is needed before we can fix this properly (with not doing anything!)
 #if !UNITY_EDITOR
-            SetViewport(cmd, camera, buffer);
+            SetViewport(cmd, buffer);
 #endif
             CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
 #if UNITY_EDITOR
@@ -499,6 +499,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if !UNITY_2019_2_OR_NEWER
                     buildTarget == UnityEditor.BuildTarget.StandaloneLinuxUniversal ||
 #endif
+#if UNITY_2019_3_OR_NEWER
+                    buildTarget == UnityEditor.BuildTarget.Stadia ||
+#endif
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
@@ -533,6 +536,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case UnityEditor.BuildTarget.StandaloneLinux64:
 #if !UNITY_2019_2_OR_NEWER
                 case UnityEditor.BuildTarget.StandaloneLinuxUniversal:
+#endif
+#if UNITY_2019_3_OR_NEWER
+                case UnityEditor.BuildTarget.Stadia:
 #endif
                     return OperatingSystemFamily.Linux;
                 default:

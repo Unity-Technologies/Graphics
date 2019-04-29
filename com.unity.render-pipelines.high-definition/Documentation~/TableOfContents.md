@@ -21,7 +21,7 @@
   * Lighting
     * [Ambient Occlusion](Override-Ambient-Occlusion)
     * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
-    * [Volumetric Lighting Quality](Override-Volumetric-Lighting-Controller)
+    * [Volumetric Fog Quality](Override-Volumetric-Fog-Quality)
   * Shadowing
     * [Contact Shadows](Override-Contact-Shadows)
     * [Micro Shadows](Override-Micro-Shadows)
@@ -57,6 +57,7 @@
   * [Environment Lighting](Environment-Lighting)
   * [Static Lighting Sky](Static-Lighting-Sky)
   * [Atmospheric Scattering](Atmospheric-Scattering)
+  * [Density Volume](Density-Volume)
   * [Light Layers](Light-Layers)
   * [Shadows](Shadows-in-HDRP)
   * [Volumetric Lighting](Volumetric-Lighting)
@@ -68,6 +69,14 @@
 * Camera
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Multisampling Anti-Aliasing](MSAA)
+* Debugging
+  * Render Pipeline Debug
+    * [Overview](Render-Pipeline-Debug-Overview)
+    * [Camera](Render-Pipeline-Debug-Camera)
+    * [Lighting](Render-Pipeline-Debug-Lighting)
+    * [Material](Render-Pipeline-Debug-Material)
+    * [Rendering](Render-Pipeline-Debug-Rendering)
+    * [Decals](Render-Pipeline-Debug-Decals)
 * [VR in HDRP](VR-in-HDRP)
 * [HDRP Glossary](Glossary)
 

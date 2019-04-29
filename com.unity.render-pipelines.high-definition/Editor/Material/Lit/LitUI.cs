@@ -13,17 +13,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public static string InputsText = "Surface Inputs";
 
-            public static GUIContent baseColorText = new GUIContent("Base Map", "Specify the base color (RGB) and opacity (A).");
+            public static GUIContent baseColorText = new GUIContent("Base Map", "Specifies the base color (RGB) and opacity (A) of the Material.");
 
-            public static GUIContent metallicText = new GUIContent("Metallic", "Controls the scale factor for the Material's Metallic effect.");
-            public static GUIContent smoothnessText = new GUIContent("Smoothness", "Controls the scale factor for the Material's Smoothness.");
-            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Controls a remap for the Material's Smoothness.");
-            public static GUIContent aoRemappingText = new GUIContent("Ambient Occlusion Remapping", "Controls a remap for the Materials's Ambient Occlusion effect.");
+            public static GUIContent metallicText = new GUIContent("Metallic", "Controls the scale factor for the Material's metallic effect.");
+            public static GUIContent smoothnessText = new GUIContent("Smoothness", "Controls the scale factor for the Material's smoothness.");
+            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Controls a remap for the smoothness channel in the Mask Map.");
+            public static GUIContent aoRemappingText = new GUIContent("Ambient Occlusion Remapping", "Controls a remap for the ambient occlusion channel in the Mask Map.");
             public static GUIContent maskMapSText = new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metallic (R), Ambient occlusion (G), Detail mask (B), Smoothness (A).");
-            public static GUIContent maskMapSpecularText = new GUIContent("Mask Map", "Specify the Mask Map for this Material - Ambient occlusion (G), Detail mask (B), Smoothness (A).");
+            public static GUIContent maskMapSpecularText = new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Ambient occlusion (G), Detail mask (B), Smoothness (A).");
 
-            public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
-            public static GUIContent normalMapText = new GUIContent("Normal Map", "Specifies the Normal Map for this Material (BC7/BC5/DXT5(nm)) and control its strength.");
+            public static GUIContent normalMapSpaceText = new GUIContent("Normal Map Space", "");
+            public static GUIContent normalMapText = new GUIContent("Normal Map", "Specifies the Normal Map for this Material (BC7/BC5/DXT5(nm)) and controls its strength.");
             public static GUIContent normalMapOSText = new GUIContent("Normal Map OS", "Specifies the object space Normal Map (BC7/DXT1/RGB).");
             public static GUIContent bentNormalMapText = new GUIContent("Bent normal map", "Specifies the cosine weighted Bent Normal Map (BC7/BC5/DXT5(nm)) for this Material. Use only with indirect diffuse lighting (Lightmaps and Light Probes).");
             public static GUIContent bentNormalMapOSText = new GUIContent("Bent normal map OS", "Specifies the object space Bent Normal Map (BC7/DXT1/RGB) for this Material. Use only with indirect diffuse lighting (Lightmaps and Light Probes).");
@@ -31,10 +31,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Height
             public static GUIContent heightMapText = new GUIContent("Height Map", "Specifies the Height Map (R) for this Material.\nFor floating point textures, set the Min, Max, and base values to 0, 1, and 0 respectively.");
             public static GUIContent heightMapCenterText = new GUIContent("Base", "Controls the base of the Height Map (between 0 and 1).");
-            public static GUIContent heightMapMinText = new GUIContent("Min (cm)", "Sets the minimum value in the Height Map (in centimeters).");
-            public static GUIContent heightMapMaxText = new GUIContent("Max (cm)", "Sets the maximum value in the Height Map (in centimeters).");
-            public static GUIContent heightMapAmplitudeText = new GUIContent("Amplitude (cm)", "Sets the amplitude of the Height Map (in centimeters).");
-            public static GUIContent heightMapOffsetText = new GUIContent("Offset (cm)", "Sets the offset HDRP applies to the Height Map (in centimeters).");
+            public static GUIContent heightMapMinText = new GUIContent("Min", "Sets the minimum value in the Height Map (in centimeters).");
+            public static GUIContent heightMapMaxText = new GUIContent("Max", "Sets the maximum value in the Height Map (in centimeters).");
+            public static GUIContent heightMapAmplitudeText = new GUIContent("Amplitude", "Sets the amplitude of the Height Map (in centimeters).");
+            public static GUIContent heightMapOffsetText = new GUIContent("Offset", "Sets the offset HDRP applies to the Height Map (in centimeters).");
             public static GUIContent heightMapParametrization = new GUIContent("Parametrization", "Specifies the parametrization method for the Height Map.");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Specifies the Tangent Map (BC7/BC5/DXT5(nm)) for this Material.");
@@ -42,12 +42,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Controls the scale factor for anisotropy.");
             public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map", "Specifies the Anisotropy Map(R) for this Material.");
 
-            public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
-            public static GUIContent texWorldScaleText = new GUIContent("World scale", "Sets the tiling factor HDRP applies to Planar/Trilinear mapping.");
+            public static GUIContent UVBaseMappingText = new GUIContent("Base UV Mapping", "");
+            public static GUIContent texWorldScaleText = new GUIContent("World Scale", "Sets the tiling factor HDRP applies to Planar/Trilinear mapping.");
 
             // Details
             public static string detailText = "Detail Inputs";
-            public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
+            public static GUIContent UVDetailMappingText = new GUIContent("Detail UV Mapping", "");
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map", "Specifies the Detail Map albedo (R) Normal map y-axis (G) Smoothness (B) Normal map x-axis (A) - Neutral value is (0.5, 0.5, 0.5, 0.5)");
             public static GUIContent detailAlbedoScaleText = new GUIContent("Detail Albedo Scale", "Controls the scale factor for the Detail Map's Albedo.");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail Normal Scale", "Controls the scale factor for the Detail Map's Normal map.");
@@ -55,12 +55,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent linkDetailsWithBaseText = new GUIContent("Lock to Base Tiling/Offset", "When enabled, HDRP locks the Detail's Tiling/Offset values to the Base Tiling/Offset.");
 
             // Subsurface
-            public static GUIContent diffusionProfileText = new GUIContent("Diffusion profile", "Specifies the Diffusion Profie HDRP uses to determine the behavior of the subsurface scattering/transmission effect.");
-            public static GUIContent subsurfaceMaskText = new GUIContent("Subsurface mask", "Controls the overall strength of the subsurface scattering effect.");
-            public static GUIContent subsurfaceMaskMapText = new GUIContent("Subsurface mask map", "Specifies the Subsurface mask map (R) for this Material - This map controls the strength of the subsurface scattering effect.");
+            public static GUIContent diffusionProfileText = new GUIContent("Diffusion Profile", "Specifies the Diffusion Profie HDRP uses to determine the behavior of the subsurface scattering/transmission effect.");
+            public static GUIContent subsurfaceMaskText = new GUIContent("Subsurface Mask", "Controls the overall strength of the subsurface scattering effect.");
+            public static GUIContent subsurfaceMaskMapText = new GUIContent("Subsurface Mask Map", "Specifies the Subsurface mask map (R) for this Material - This map controls the strength of the subsurface scattering effect.");
             public static GUIContent thicknessText = new GUIContent("Thickness", "Controls the strength of the Thickness Map, low values allow some light to transmit through the object.");
-            public static GUIContent thicknessMapText = new GUIContent("Thickness map", "Specify the Thickness Map (R) for this Material - This map describes the thickness of the object. When subsurface scattering is enabled, low values allow some light to transmit through the object.");
-            public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Controls a remaps for the values of the thickness map from [0, 1] to the specified range.");
+            public static GUIContent thicknessMapText = new GUIContent("Thickness Map", "Specifies the Thickness Map (R) for this Material - This map describes the thickness of the object. When subsurface scattering is enabled, low values allow some light to transmit through the object.");
+            public static GUIContent thicknessRemapText = new GUIContent("Thickness Remap", "Controls a remap for the Thickness Map from [0, 1] to the specified range.");
 
             // Iridescence
             public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask", "Specifies the Iridescence Mask (R) for this Material - This map controls the intensity of the iridescence.");
@@ -76,26 +76,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent specularColorText = new GUIContent("Specular Color", "Specifies the Specular color (RGB) of this Material.");
 
             // Specular occlusion
-            public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion from Bent Normal", "Requires cosine weighted bent normal and cosine weighted ambient occlusion. Specular occlusion for Reflection Probe");
+            public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion From Bent Normal", "Requires cosine weighted bent normal and cosine weighted ambient occlusion. Specular occlusion for Reflection Probe");
             public static GUIContent specularOcclusionWarning = new GUIContent("Require a cosine weighted bent normal and ambient occlusion maps");
 
             // Emissive
             public static string emissiveLabelText = "Emission Inputs";
 
             public static GUIContent emissiveText = new GUIContent("Emission Map", "Specifies the Emission Map (RGB) for this Material. Uses Candelas per square meter for units.");
-            public static GUIContent albedoAffectEmissiveText = new GUIContent("Emission multiply with Base", "When enabled, HDRP multiplies the emission color by the albedo.");
+            public static GUIContent albedoAffectEmissiveText = new GUIContent("Emission Multiply With Base", "When enabled, HDRP multiplies the emission color by the albedo.");
             public static GUIContent useEmissiveIntensityText = new GUIContent("Use Emission Intensity", "Specifies whether to use to a HDR color or a LDR color with a separate multiplier.");
             public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "");
             public static GUIContent emissiveIntensityFromHDRColorText = new GUIContent("The emission intensity is from the HDR color picker in luminance", "");
-            public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Control the percentage of emission to expose.");
+            public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure Weight", "Control the percentage of emission to expose.");
 
             public static GUIContent normalMapSpaceWarning = new GUIContent("HDRP does not support object space normals with triplanar mapping.");
 
             // Transparency
             public static string refractionModelText = "Refraction Model";
-            public static GUIContent refractionIorText = new GUIContent("Index of refraction", "Controls the index of refraction for this Material.");
+            public static GUIContent refractionIorText = new GUIContent("Index Of Refraction", "Controls the index of refraction for this Material.");
             public static GUIContent refractionThicknessText = new GUIContent("Refraction Thickness", "Controls the thickness for rough refraction.");
-            public static GUIContent refractionThicknessMultiplierText = new GUIContent("Refraction Thickness multiplier", "Sets an overall thickness multiplier in meters.");
+            public static GUIContent refractionThicknessMultiplierText = new GUIContent("Refraction Thickness Multiplier", "Sets an overall thickness multiplier in meters.");
             public static GUIContent refractionThicknessMapText = new GUIContent("Refraction Thickness Map", "Specifies the Refraction Thickness Map (R) for this Material - This acts as a thickness multiplier map.");
             // Transparency absorption
             public static GUIContent transmittanceColorText = new GUIContent("Transmittance Color", "Specifies the Transmittance Color (RGB) for this Material.");
