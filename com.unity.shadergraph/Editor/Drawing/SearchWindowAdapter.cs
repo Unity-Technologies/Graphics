@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
-using UnityEditor.Searcher;
 using UnityEngine;
 using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing;
+#if SEARCHER_PRESENT
+using UnityEditor.Searcher;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -17,8 +18,6 @@ namespace UnityEditor.ShaderGraph
     {
         readonly VisualTreeAsset m_DefaultItemTemplate;
         public override bool HasDetailsPanel => false;
-
-        Label m_DetailsLabel;
 
         public SearchWindowAdapter(string title) : base(title)
         {
@@ -31,8 +30,6 @@ namespace UnityEditor.ShaderGraph
     internal class SearchNodeItem : SearcherItem
     {
         public NodeEntry UserData;
-        //public new SearchNodeItem Parent;
-        //public new List<SearchNodeItem> Children;
 
         public SearchNodeItem(string name, NodeEntry userData, string help = " ", List<SearchNodeItem> children = null) : base(name)
         {
@@ -44,4 +41,13 @@ namespace UnityEditor.ShaderGraph
     }
     
 }
+#else
+namespace UnityEditor.ShaderGraph
+{
+    public class SearchWindowAdapter
+    {
+
+    }
+}
+#endif
 

@@ -1,7 +1,9 @@
 using UnityEngine;
-using UnityEditor.Searcher;
 using UnityEditor.Experimental.GraphView;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
+#if SEARCHER_PRESENT
+using UnityEditor.Searcher;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -22,9 +24,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var draggedPort = (edge.output != null ? edge.output.edgeConnector.edgeDragHelper.draggedPort : null) ?? (edge.input != null ? edge.input.edgeConnector.edgeDragHelper.draggedPort : null);
             m_SearchWindowProvider.connectedPort = (ShaderPort)draggedPort;
-            SearcherWindow.Show(m_editorWindow, m_SearchWindowProvider.LoadSearchWindow(), 
-                item => m_SearchWindowProvider.OnSearcherSelectEntry(item, position),
+            #if SEARCHER_PRESENT
+            SearcherWindow.Show(m_editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(), 
+                item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, position),
                 position, null);
+            #else
+            SearchWindow.Open(new SearchWindowContext(position), (m_SearchWindowProvider as FallbackSearchProvider));
+            #endif
         }
 
         public void OnDrop(GraphView graphView, Edge edge)
