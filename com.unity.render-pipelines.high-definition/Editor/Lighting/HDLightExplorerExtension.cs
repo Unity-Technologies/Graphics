@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 this.isGlobal = isGlobal;
                 this.profile = profile;
                 VisualEnvironment visualEnvironment = null;
-                this.hasVisualEnvironment = profile.TryGet<VisualEnvironment>(typeof(VisualEnvironment), out visualEnvironment);
+                this.hasVisualEnvironment = profile != null ? profile.TryGet<VisualEnvironment>(typeof(VisualEnvironment), out visualEnvironment) : false;
                 if (this.hasVisualEnvironment)
                 {
                     this.skyType = (SkyType)visualEnvironment.skyType.value;
@@ -137,7 +137,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var reflectionProbes = Object.FindObjectsOfType<ReflectionProbe>();
             {
-                foreach (ReflectionProbe probe in reflectionProbes )
+                foreach (ReflectionProbe probe in reflectionProbes)
                 {
                     reflectionProbeDataPairing[probe] = probe.GetComponent<HDAdditionalReflectionData>();
                 }
@@ -156,7 +156,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             foreach (var volume in volumes)
             {
                 bool hasStaticLightingSky = volume.GetComponent<StaticLightingSky>();
-                volumeDataPairing[volume] = new VolumeData(volume.isGlobal, volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile, hasStaticLightingSky);
+                volumeDataPairing[volume] = !volume.HasInstantiatedProfile() && volume.sharedProfile == null
+                    ? new VolumeData(volume.isGlobal, null, hasStaticLightingSky)
+                    : new VolumeData(volume.isGlobal, volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile, hasStaticLightingSky);
             }
             return volumes;
         }

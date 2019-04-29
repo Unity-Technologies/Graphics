@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed displayed default FrameSettings in HDRenderPipelineAsset wrongly updated on scripts reload.
 - Fixed visualize cascade mode with exposure.
 - Fixed (enabled) exposure on override lighting debug modes.
+- Fixed issue with LightExplorer when volume have no profile
 
 ## [5.13.0-preview] - 2019-04-15
 
