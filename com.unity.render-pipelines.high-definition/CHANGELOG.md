@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with SSR for negative, infinite and NaN history values
 - Fixed LightLayer in HDReflectionProbe and PlanarReflectionProbe inspector that was not displayed as a mask.
 - Fixed NaN in transmission when the thickness and a color component of the scattering distance was to 0
+- Fixed Light's ShadowMask multi-edition.
 
 ### Changed
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal

@@ -597,14 +597,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
                         {
+                            EditorGUI.showMixedValue = serialized.serializedLightData.nonLightmappedOnly.hasMultipleDifferentValues;
                             EditorGUI.BeginChangeCheck();
                             ShadowmaskMode shadowmask = serialized.serializedLightData.nonLightmappedOnly.boolValue ? ShadowmaskMode.ShadowMask : ShadowmaskMode.DistanceShadowmask;
                             shadowmask = (ShadowmaskMode)EditorGUILayout.EnumPopup(s_Styles.nonLightmappedOnly, shadowmask);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 serialized.serializedLightData.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
-                                ((Light)owner.target).lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                                foreach (Light target in owner.targets)
+                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
                             }
+                            EditorGUI.showMixedValue = false;
                         }
                     }
                     if (serialized.editorLightShape == LightShape.Rectangle)
