@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
 - Modified the variants stripper to take in account multiple HDRP assets used in the build.
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
+- Update Pyramid Spot Light to better match emitted light volume.
 
 ## [6.6.0-preview] - 2019-04-01
 
