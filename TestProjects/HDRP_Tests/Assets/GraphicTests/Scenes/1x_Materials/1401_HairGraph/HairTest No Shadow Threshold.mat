@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: HairTest
-  m_Shader: {fileID: -6465566751694194690, guid: 101a796373a94404faec2ab2055d5d4b,
+  m_Name: HairTest No Shadow Threshold
+  m_Shader: {fileID: -6465566751694194690, guid: 8aa0a6311d70a437cb9c6a3e561b8dc7,
     type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
