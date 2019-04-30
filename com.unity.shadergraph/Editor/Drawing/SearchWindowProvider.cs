@@ -199,6 +199,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             //create empty root for searcher tree 
             var root = new List<SearcherItem>();
+            var dummyEntry = new NodeEntry();
             
             foreach (var nodeEntry in currentNodeEntries)
             {
@@ -215,8 +216,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                         //if we have slot entries and are at a leaf, add the slot name to the entry title
                         if (nodeEntry.compatibleSlotId != -1 && i == nodeEntry.title.Length - 1)
                             item = new SearchNodeItem(pathEntry + ": " + nodeEntry.slotName, nodeEntry);
-                        else
+                        //if we don't have slot entries and are at a leaf, add userdata to the entry
+                        if (i == nodeEntry.title.Length - 1)
                             item = new SearchNodeItem(pathEntry, nodeEntry);
+                        //if we aren't a leaf, don't add user data
+                        else
+                            item = new SearchNodeItem(pathEntry, dummyEntry);
 
                         if (parent != null)
                         {
@@ -242,7 +247,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
-            if(entry == null)
+            if(entry == null || (entry as SearchNodeItem).UserData.node == null)
                 return false;
            
             var nodeEntry = (entry as SearchNodeItem).UserData;
