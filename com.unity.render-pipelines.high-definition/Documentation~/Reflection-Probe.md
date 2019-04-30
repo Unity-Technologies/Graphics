@@ -23,7 +23,7 @@ The following properties control the projection settings for this Reflection Pro
 | **Property**                             | **Description**                                              |
 | ---------------------------------------- | ------------------------------------------------------------ |
 | **Proxy Volume**                         | The [Reflection Proxy Volume](Reflection-Proxy-Volume.html) this Probe uses to correct displacement issues between the Probe’s capture point (**Mirror Position**) and the position of the reflective Material using the Texture this Probe captures. Note: The **Proxy Volume** you assign must be the same **Shape** as the Influence Volume. |
-| **Use Influence Volume As Proxy Volume** | Enable this checkbox to use the boundaries of the Influence Volume as the Proxy Volume. Do not assign the **Proxy Volume** property to expose this property. |
+| **Use Influence Volume As Proxy Volume** | Enable the checkbox to use the boundaries of the Influence Volume as the Proxy Volume. Do not assign the **Proxy Volume** property to expose this property. |
 
 <a name="InfluenceVolume"></a>
 
@@ -54,7 +54,7 @@ The following properties control the method that the Reflection Probe uses to ca
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
 | **Capture Position**       | The position, relative to the Transform Position, from which the Reflection Probe captures its surroundings. |
-| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />**Sky** uses the sky defined by the current [Volume](Volumes.html) settings to fill empty background areas.<br />**Background** uses the **Background Color** setting to fill empty background areas.<br />**None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
+| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />**Sky** uses the sky defined by the current [Volume](Volumes.html) settings to fill empty background areas.<br />**Background** uses the **Background Color** property to fill empty background areas.<br />**None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
 | **Background Color**       | The color to fill empty background areas of the RenderTexture if you set the **Clear Mode** to **Background**. |
 | **Clear Depth**            | Choose whether the Reflection Probe clears the Depth Buffer or not. |
 | **Volume Layer Mask**      | A LayerMask that defines which Volumes affect this Reflection Probe’s capture. |
