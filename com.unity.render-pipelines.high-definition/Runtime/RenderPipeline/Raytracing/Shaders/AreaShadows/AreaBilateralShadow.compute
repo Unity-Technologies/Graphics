@@ -85,7 +85,7 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
 
     // Compute the world space coordinate of this pixel
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
-    PositionInputs posInputs = GetPositionInput_Stereo(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
     // Get the cosest pixel
     float2 closest = GetClosestFragment(posInputs);
@@ -162,7 +162,7 @@ void AreaShadowApplyTAA2(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     uint2 coordSS = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
     coordSS.x = coordSS.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
-    PositionInputs posInput = GetPositionInput_Stereo(coordSS, _ScreenSize.zw, uint2(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE), unity_StereoEyeIndex);
+    PositionInputs posInput = GetPositionInput(coordSS, _ScreenSize.zw, uint2(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE));
 
     // Fetch velocity information
     float2 velocity = 0.0;
@@ -315,8 +315,7 @@ BilateralData TapBilateralData(uint2 coordSS)
 
     if (PLANE_WEIGHT > 0.0)
     {
-        posInput = GetPositionInput_Stereo(coordSS, _ScreenSize.zw, posInput.deviceDepth,
-                                           UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+        posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         key.position = posInput.positionWS;
     }
 
