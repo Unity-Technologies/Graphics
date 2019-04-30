@@ -72,7 +72,7 @@ void RayGenShadows()
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput_Stereo(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0, 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Decode the world space normal
     NormalData normalData;
@@ -294,7 +294,7 @@ void RayGenShadowSingle()
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput_Stereo(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0, 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
