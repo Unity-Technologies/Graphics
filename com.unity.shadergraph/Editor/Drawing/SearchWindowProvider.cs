@@ -128,8 +128,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                             // Make sure that leaves go before nodes
                             if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
                             {
-                                //once nodes are sorted, sort slot entries by slot order instead of alphebetically                                 
-                                return entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);
+                                //once nodes are sorted, sort slot entries by slot order instead of alphebetically 
+                                var alphaOrder = entry1.title.Length < entry2.title.Length ? -1 : 1;
+                                var slotOrder = entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);                     
+                                return alphaOrder.CompareTo(slotOrder);
                             }                                                         
                             
                             return value;
@@ -217,7 +219,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (nodeEntry.compatibleSlotId != -1 && i == nodeEntry.title.Length - 1)
                             item = new SearchNodeItem(pathEntry + ": " + nodeEntry.slotName, nodeEntry);
                         //if we don't have slot entries and are at a leaf, add userdata to the entry
-                        if (i == nodeEntry.title.Length - 1)
+                        else if (nodeEntry.compatibleSlotId == -1 && i == nodeEntry.title.Length - 1)
                             item = new SearchNodeItem(pathEntry, nodeEntry);
                         //if we aren't a leaf, don't add user data
                         else
