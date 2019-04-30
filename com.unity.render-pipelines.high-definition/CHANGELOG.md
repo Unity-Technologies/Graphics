@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with LightExplorer when volume have no profile
 - Fixed issue with SSR for negative, infinite and NaN history values
 
+### Changed
+- Improve the ray biasing code to avoid self-intersections during the SSR traversal
+
 ## [5.13.0-preview] - 2019-04-15
 
 ## [5.12.0-preview] - 2019-04-11
@@ -34,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed exposure to properly support TEXTURE2D_X
 
 ### Changed
+
 
 ## [5.11.0-preview] - 2019-04-01
 
