@@ -39,7 +39,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
 	float depth = LoadCameraDepth(input.positionSS.xy);
-	PositionInputs posInput = GetPositionInput_Stereo(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+	PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
     positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);
@@ -60,7 +60,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 #else // Decal mesh
 
     // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput_Stereo(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0), unity_StereoEyeIndex);
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0));
 
     #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);

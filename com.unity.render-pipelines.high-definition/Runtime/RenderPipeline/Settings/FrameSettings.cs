@@ -402,17 +402,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
 
-            // XRTODO: double-wide cleanup
-            bool stereo = camera.stereoEnabled;
-            bool stereoDoubleWide = stereo && (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass);
-            bool stereoInstancing = stereo && (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced);
+            // XRTODO: fix it
+            bool stereoInstancing = camera.stereoEnabled && (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced);
 
             // When rendering reflection probe we disable specular as it is view dependent
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Reflection] = !reflection;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
-            if (GL.wireframe || stereoDoubleWide)
+            if (GL.wireframe)
             {
                 sanitazedFrameSettings.litShaderMode = LitShaderMode.Forward;
             }
@@ -441,7 +439,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool msaa = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.MSAA] &= renderPipelineSettings.supportMSAA && sanitazedFrameSettings.litShaderMode == LitShaderMode.Forward;
 
             // No recursive reflections
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= !reflection && renderPipelineSettings.supportSSR && !msaa && !preview && !stereoDoubleWide;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= !reflection && renderPipelineSettings.supportSSR && !msaa && !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= !reflection && renderPipelineSettings.supportSubsurfaceScattering;
 
@@ -449,7 +447,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool atmosphericScattering = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
 
             // Volumetric are disabled if there is no atmospheric scattering
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering && !stereoDoubleWide; //&& !preview induced by atmospheric scattering
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Volumetrics] &= renderPipelineSettings.supportVolumetrics && atmosphericScattering; //&& !preview induced by atmospheric scattering
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview;
 
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
@@ -475,10 +473,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= async;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= async;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
-			
-            // XRTODO: workaround for lighting issues with single-pass double-wide (disable tile lighting)
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.BigTilePrepass] &= !stereoDoubleWide;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.DeferredTile] &= !stereoDoubleWide;
 
             // XRTODO: fix indirect deferred pass with instancing
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.ComputeLightEvaluation] &= !stereoInstancing;
@@ -486,7 +480,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa && !stereoDoubleWide;
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset.</summary>
