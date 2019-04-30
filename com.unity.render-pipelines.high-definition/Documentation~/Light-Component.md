@@ -11,13 +11,13 @@ To create a new Light Gameobject:
 1. In the Unity Editor, go to **GameObject > Light**
 2. Select the Light type you want to add.
 
-Unity creates a new GameObject and attaches a Light component, as well as two other High Definition Render Pipeline (HDRP) components: **HD Additional Light Data** and **Additional Shadow Data**. Unity places the new Light GameObject into your Scene, centered on your current view in the Scene window.
+Unity creates a new GameObject and attaches a Light component, as well as two other High Definition Render Pipeline (HDRP) components: **HD Additional Light Data** and **HD Additional Shadow Data**. Unity places the new Light GameObject into your Scene, centered on your current view in the Scene window.
 
 To add a Light component to an existing GameObject:
 
 1. Select the GameObject you want to add a Light.
 2.  In the Inspector, click **Add Component**.
-3. Go to the **Rendering** section, and click **Light**. This creates a new Light source and attaches it to the currently selected GameObject. It also adds the **HD Additional Light Data** and **Additional Shadow Data** HDRP components.
+3. Go to the **Rendering** section, and click **Light**. This creates a new Light source and attaches it to the currently selected GameObject. It also adds the **HD Additional Light Data** and **HD Additional Shadow Data** HDRP components.
 
 Alternatively, you can search for "Light" in the **Add Component** window, then click **Light** to add the Light component.
 
@@ -131,7 +131,7 @@ These settings define the emissive behavior of your Light. You can set the Light
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Color Temperature**     | Enable this checkbox to set the color temperature mode for this Light. Color Temperature mode adjusts the color of your Light based on a red-to-blue kelvin temperature scale. When enabled, this hides the **Color** property and exposes **Filter** and **Temperature**. Disable this checkbox to only display the **Color** field in the Inspector and use that as the Light color, without the temperature. |
+| **Color Temperature**     | Enable the checkbox to set the color temperature mode for this Light. Color Temperature mode adjusts the color of your Light based on a red-to-blue kelvin temperature scale. When enabled, this hides the **Color** property and exposes **Filter** and **Temperature**. Disable this checkbox to only display the **Color** field in the Inspector and use that as the Light color, without the temperature. |
 | **- Filter**              | Allows you to select the color of the Light’s filter using the colour picker. HDRP uses this and the **Temperature** property to calculate the final color of the Light. |
 | **- Temperature**         | Allows you to select a temperature that HDRP uses to calculate a color on a red-to-blue kelvin temperature scale. You can move the slider along the scale itself, or specify an exact temperature value in the field to the right of the slider scale. |
 | **Color**                 | Allows you to select the color of the Light using the colour picker. |
@@ -139,18 +139,18 @@ These settings define the emissive behavior of your Light. You can set the Light
 | **Range**                 | The range of influence for this Light. Defines how far the emitted light reaches. This property is available for all **Light Types** except **Directional**. |
 | **Indirect Multiplier**   | The intensity of [indirect](https://docs.unity3d.com/Manual/LightModes-TechnicalInformation.html) light in your Scene. A value of 1 mimics realistic light behavior. A value of 0 disables indirect lighting for this Light. If both **Realtime** and **Baked** Global Illumination are disabled in Lighting Settings (menu: **Window > Rendering > Lighting Settings**), the Indirect Multiplier has no effect. |
 | **Cookie**                | An RGB Texture that the Light projects. For example, to create silhouettes or patterned illumination for the Light. Texture shapes should be 2D for Spot and Directional Lights and Cube for Point Lights. Always import **Cookie** textures as the default texture type. This property is available for **Spot**, **Directional**, and **Point** Lights. |
-| **Affect Diffuse**        | Enable this checkbox to apply [diffuse](<https://docs.unity3d.com/Manual/shader-NormalDiffuse.html>) lighting to this Light. |
-| **Affect Specular**       | Enable this checkbox to apply [specular](https://docs.unity3d.com/Manual/shader-NormalSpecular.html) lighting to this Light. |
-| **Range Attenuation**     | Enable this checkbox to make this Light shine uniformly across its range. This stops light from fading around the edges. This setting is useful when the range limit is not visible on screen, and you do not want the edges of your light to fade out. This property is available for all **Light Types** except **Directional**. |
+| **Affect Diffuse**        | Enable the checkbox to apply [diffuse](<https://docs.unity3d.com/Manual/shader-NormalDiffuse.html>) lighting to this Light. |
+| **Affect Specular**       | Enable the checkbox to apply [specular](https://docs.unity3d.com/Manual/shader-NormalSpecular.html) lighting to this Light. |
+| **Range Attenuation**     | Enable the checkbox to make this Light shine uniformly across its range. This stops light from fading around the edges. This setting is useful when the range limit is not visible on screen, and you do not want the edges of your light to fade out. This property is available for all **Light Types** except **Directional**. |
 | **Fade Distance**         | The distance between the Light source and the Camera at which the Light begins to fade out. Measured in meters. This property is available for all **Light Types** except **Directional**. |
 | **Dimmer**                | Dims the Light. Does not affect the intensity of the light. You can also modify this property via [Timeline](https://docs.unity3d.com/Manual/TimelineSection.html), Scripting or [animation](https://docs.unity3d.com/Manual/animeditor-AnimatingAGameObject.html). The parameter lets you fade the Light in and out without having to store its original intensity. |
-| **Display Emissive Mesh** | Enable this checkbox to make Unity automatically generate a Mesh with an emissive Material using the size, colour, and intensity of this Light. Unity automatically adds the Mesh and Material to the GameObject the Light component is attached to. This property is available for **Rectangle** and **Tube** Lights. |
+| **Display Emissive Mesh** | Enable the checkbox to make Unity automatically generate a Mesh with an emissive Material using the size, colour, and intensity of this Light. Unity automatically adds the Mesh and Material to the GameObject the Light component is attached to. This property is available for **Rectangle** and **Tube** Lights. |
 
 #### Spot Light
 
 | **Property**  | **Description**                                              |
 | ------------- | ------------------------------------------------------------ |
-| **Reflector** | Enable this checkbox to simulate a reflective surface behind the Spot Light. Spot Lights are Point Lights that are partly occluded at the back by a reflective surface. Simulating this reflective surface increases the intensity of the Spot Light because the reflective surface reflects light originally directed backwards to focus the intensity in the Spot Light’s direction. |
+| **Reflector** | Enable the checkbox to simulate a reflective surface behind the Spot Light. Spot Lights are Point Lights that are partly occluded at the back by a reflective surface. Simulating this reflective surface increases the intensity of the Spot Light because the reflective surface reflects light originally directed backwards to focus the intensity in the Spot Light’s direction. |
 
 #### Directional Light
 
@@ -169,7 +169,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
-| **Enable**        | Enable this checkbox to simulate light scattering through volumetric fog. Enabling this property allows you to edit the **Dimmer** and **Shadow Dimmer** properties. |
+| **Enable**        | Enable the checkbox to simulate light scattering through volumetric fog. Enabling this property allows you to edit the **Dimmer** and **Shadow Dimmer** properties. |
 | **Dimmer**        | Dims the volumetric lighting effect of this Light.           |
 | **Shadow Dimmer** | Dims the volumetric fog effect of this Light. Set this property to 0 to make the volumetric scattering compute faster. |
 
@@ -177,7 +177,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 
 ### **Shadows**
 
-Use the Shadows section to adjust the Shadows cast by this Light. HDRP currently does not support shadowing for **Rectangle** and **Tube** Lights. Because of this, Unity does not expose the **Shadows** drop-down section in the Inspector when you select either of these two **Types**. The Light **Types** that HDRP does support shadowing for (**Spot**, **Directional**, and **Point**) share almost all of their properties.
+Use the Shadows section to adjust the Shadows cast by this Light. HDRP currently does not support shadowing **Tube** Lights. Because of this, Unity does not expose the **Shadows** drop-down section in the Inspector when you select either of this **Type**. The Light **Types** that HDRP does support shadowing for (**Spot**, **Directional**, and **Point**) share almost all of their properties.
 
 Unity exposes extra properties in the **Shadows** section depending on the **Mode** you set in the [General](#GeneralProperties) section. It also exposes extra properties depending on the **Filtering Quality** set in your Unity Project’s [HDRP Asset](HDRP-Asset.html). To change the **Filtering Quality** property, navigate to your Project’s **HDRP Asset > Shadows** and use the **Filtering Quality** drop-down  to select the shadow filtering mode. Setting **Filtering Quality** to **High** or **Very High** exposes extra properties in the Light Inspector’s **Shadow** drop-down section. For more information on shadow filtering in HDRP, see the documentation on [Shadow Filtering](Shadows-in-HDRP.html#ShadowFiltering)
 
@@ -187,15 +187,15 @@ Unity exposes extra properties in the **Shadows** section depending on the **Mod
 
 | **Property**                | **Description**                                              |
 | --------------------------- | ------------------------------------------------------------ |
-| **Enable**                  | Enable this checkbox to add shadows to this Light.           |
+| **Enable**                  | Enable the checkbox to add shadows to this Light.           |
 | **Resolution**              | The resolution of this Light’s shadow maps. Measured in pixels. A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage, so if you experience any performance issues, try using a lower value. |
 | **Near Plane**              | The distance, in meters, from the Light that GameObjects begin to cast shadows. |
 | **Shadowmask Mode**         | Defines how the shadowmask behaves for this Light. For detailed information on each **Shadowmask Mode**, see the documentation on [Shadowmasks](Shadows-in-HDRP.html#ShadowmaskModes). This property is only visible if you tet the **Mode**, under [General](#GeneralProperties), to **Mixed**. |
 | **View Bias Scale**         | Defines how much the [View Bias](https://docs.unity3d.com/Manual/ShadowOverview.html#LightBias) scales with distance for this Light. Surfaces directly illuminated by a Light can sometimes appear to be partly in shadow and parts of the surface might be incorrectly illuminated due to low-resolution shadow maps or shadow filtering. If the shadows that this Light casts appear incorrectly, use the slider to adjust this value until they are correct. |
 | **View Bias**               | The minimum [View Bias](https://docs.unity3d.com/Manual/ShadowOverview.html#LightBias) for this Light. For more information about View Bias in HDRP, see documentation on [Shadows](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki/Shadows). |
 | **Normal Bias**             | Controls the amount of normal [bias](https://docs.unity3d.com/Manual/ShadowOverview.html#LightBias) this Light applies along the [normal](https://docs.unity3d.com/Manual/AnatomyofaMesh.html) of the illuminated surface. |
-| **Edge Leak Fixup**         | Enable this checkbox to prevent light leaking at the edge of shadows this Light casts. |
-| **- Edge Tolerance Normal** | Enable this checkbox to use the edge leak fix in normal mode. Uncheck this box to use the edge leak fix in view mode. |
+| **Edge Leak Fixup**         | Enable the checkbox to prevent light leaking at the edge of shadows this Light casts. |
+| **- Edge Tolerance Normal** | Enable the checkbox to use the edge leak fix in normal mode. Uncheck this box to use the edge leak fix in view mode. |
 | **- Edge Tolerance**        | The threshold, between 0 and 1, which determines whether to apply the edge leak fix. |
 | **Dimmer**                  | Dims the shadows this Light casts so they become more faded and transparent. |
 | **Fade Distance**           | The distance, in meters, between the Camera and the Light at which shadows fade out. This property is available for **Spot** and **Point** Lights. |
@@ -225,7 +225,7 @@ Select **Very High** from the **Filtering Quality** drop-down to expose the foll
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Enable**   | Enable this checkbox to add [Contact Shadows](Override-Contact-Shadows.html) to this Light. |
+| **Enable**   | Enable the checkbox to add [Contact Shadows](Override-Contact-Shadows.html) to this Light. |
 
 ##### Baked Shadows
 

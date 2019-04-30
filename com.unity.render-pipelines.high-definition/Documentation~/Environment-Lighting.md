@@ -1,4 +1,4 @@
-# Environment lighting in the High Definition Render Pipeline
+# Environment lighting
 
 The High Definition Render Pipeline (HDRP) generates environment lighting from the area surrounding your Unity Scene. The most common source of environment lighting is sky lighting, but there are other types of background light, such as light from an interior lighting studio.
 
