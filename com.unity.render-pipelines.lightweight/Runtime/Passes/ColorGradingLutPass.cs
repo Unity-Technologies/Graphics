@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             // Render the lut
-            cmd.Blit(null, m_InternalLut.id, material);
+            Blit(cmd, m_InternalLut.id, m_InternalLut.id, material);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
