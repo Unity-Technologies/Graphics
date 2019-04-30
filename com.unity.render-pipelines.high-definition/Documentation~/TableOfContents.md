@@ -4,6 +4,7 @@
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
   * [Advanced Properties](Advanced-Properties)
+  * [VR in HDRP](VR-in-HDRP)
   * Overviews
     * [Materials Overview](Materials-Shaders-Overview)
     * [Fog Overview](Fog-Overview)
@@ -35,25 +36,28 @@
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
 * Materials
-  * Shared Material Features
-    * [Surface Type](Surface-Type)
-    * [Double Sided](Double-Sided)
-    * [Ambient Occlusion](Ambient-Occlusion)
-    * [Alpha Clipping](Alpha-Clipping)
-    * [Material Type](Material-Type)
-  * [Lit Shader](Lit-Shader)
-  * [Unlit Shader](Unlit-Shader)
-  * [Decal Shader](Decal-Shader)
+  * [Surface Type](Surface-Type)
+  * [Double Sided](Double-Sided)
+  * [Ambient Occlusion](Ambient-Occlusion)
+  * [Alpha Clipping](Alpha-Clipping)
+  * [Material Type](Material-Type)
+  * [Renderer and Material Priority](Renderer-And-Material-Priority)
   * Subsurface Scattering
-    * [Subsurface Scattering Materials](Subsurface-Scattering)
-    * [Diffusion Profile](Diffusion-Profile)
+    - [Subsurface Scattering Materials](Subsurface-Scattering)
+    - [Diffusion Profile](Diffusion-Profile)
+  
+  * [Decal Projector](Decal-Projector)
+  * Shader List
+    * [Lit Shader](Lit-Shader)
+    * [Unlit Shader](Unlit-Shader)
+    * [Decal Shader](Decal-Shader)
 * Lighting
   * Reflection Probes
     * [Reflection Probes Introduction](Reflection-Probes-Intro)
     * [Reflection Probe](Reflection-Probe)
     * [Planar Reflection Probe](Planar-Reflection-Probe)
     * [Reflection Proxy Volume](Reflection-Proxy-Volume)
-  * [Light Component](Light-Component)
+  * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
   * [Static Lighting Sky](Static-Lighting-Sky)
   * [Atmospheric Scattering](Atmospheric-Scattering)
@@ -62,10 +66,6 @@
   * [Shadows](Shadows-in-HDRP)
   * [Volumetric Lighting](Volumetric-Lighting)
   * [Physical Light Units and Intensities](Physical-Light-Units)
-* Object Sorting
-  * [Renderer and Material Priority](Renderer-And-Material-Priority)
-* Decals
-  * [Decal Projector](Decal-Projector)
 * Camera
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Multisampling Anti-Aliasing](MSAA)
@@ -77,6 +77,5 @@
     * [Material](Render-Pipeline-Debug-Material)
     * [Rendering](Render-Pipeline-Debug-Rendering)
     * [Decals](Render-Pipeline-Debug-Decals)
-* [VR in HDRP](VR-in-HDRP)
 * [HDRP Glossary](Glossary)
 

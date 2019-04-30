@@ -12,7 +12,7 @@ Subsurface scattering also handles the light that penetrates GameObjects from be
 To enable subsurface scattering in your [HDRP Asset](HDRP-Asset.html):
 
 - In the HDRP Asset’s Inspector window, navigate to the __Material__ section and enable the __Subsurface Scattering__ checkbox.
-- When you enable the __Subsurface Scattering__ checkbox, HDRP displays the __High Quality__ option. You can enable this checkbox to increase the sample count and reduce the amount of visual noise the blur pass can cause by undersampling. Note that this is around two and a half times more resource intensive than the default quality.
+- When you enable the __Subsurface Scattering__ checkbox, HDRP displays the __High Quality__ option. You can Enable the checkbox to increase the sample count and reduce the amount of visual noise the blur pass can cause by undersampling. Note that this is around two and a half times more resource intensive than the default quality.
 - Within the __HDRP Asset__, locate the __Default Frame Settings__. Under the __Lighting__ section, enable __Subsurface Scattering__ and __Transmission__.
 
 HDRP stores most subsurface scattering settings in a [Diffusion Profile Settings](Diffusion-Profile.html) Asset. The __Diffusion Profile List Asset__ contains a set of 15 Diffusion Profiles you can edit and later assign to your Materials.
