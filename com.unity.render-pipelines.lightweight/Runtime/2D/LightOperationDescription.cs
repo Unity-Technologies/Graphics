@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
@@ -41,20 +42,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [Serializable]
         internal struct BlendFactors
         {
-            [SerializeField] internal float modulate;
-            [SerializeField] internal float additve;
+            public float multiplicative;
+            public float additive;
         }
 
         public bool enabled;
         public string name;
-        [ColorUsageAttribute(false, true)]
-        [SerializeField] internal Color globalColor;
-        [SerializeField] internal TextureChannel maskTextureChannel;
-        [SerializeField] internal BlendMode blendMode;
-        [SerializeField] internal float renderTextureScale;
-        [SerializeField] internal BlendFactors customBlendFactors;
 
+        [SerializeField]
+        internal TextureChannel maskTextureChannel;
 
+        [SerializeField, Range(0.01f, 1.0f)]
+        internal float renderTextureScale;
+
+        [SerializeField]
+        internal BlendMode blendMode;
+
+        [SerializeField]
+        internal BlendFactors customBlendFactors;
 
         internal Vector2 blendFactors
         {
@@ -77,8 +82,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                         result.y = -1.0f;
                         break;
                     case BlendMode.Custom:
-                        result.x = customBlendFactors.modulate;
-                        result.y = customBlendFactors.additve;
+                        result.x = customBlendFactors.multiplicative;
+                        result.y = customBlendFactors.additive;
                         break;
                     default:
                         result = Vector2.zero;
