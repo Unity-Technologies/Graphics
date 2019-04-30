@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.LWRP
         SerializedDataParameter m_Mode;
         SerializedDataParameter m_Quality;
         SerializedDataParameter m_Intensity;
+        SerializedDataParameter m_Clamp;
 
         public override void OnEnable()
         {
@@ -16,6 +17,7 @@ namespace UnityEditor.Rendering.LWRP
             m_Mode = Unpack(o.Find(x => x.mode));
             m_Quality = Unpack(o.Find(x => x.quality));
             m_Intensity = Unpack(o.Find(x => x.intensity));
+            m_Clamp = Unpack(o.Find(x => x.clamp));
         }
 
         public override void OnInspectorGUI()
@@ -26,6 +28,7 @@ namespace UnityEditor.Rendering.LWRP
             {
                 PropertyField(m_Quality);
                 PropertyField(m_Intensity);
+                PropertyField(m_Clamp);
             }
             else
             {

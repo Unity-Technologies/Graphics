@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.LWRP
         RenderTextureDescriptor m_Descriptor;
         RenderTargetHandle m_Source;
         RenderTargetHandle m_Destination;
-        RenderTargetHandle m_DepthBuffer;
         RenderTargetHandle m_InternalLut;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
@@ -73,12 +72,11 @@ namespace UnityEngine.Rendering.LWRP
             m_ResetHistory = true;
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle sourceHandle, in RenderTargetHandle destinationHandle, in RenderTargetHandle depthBuffer, in RenderTargetHandle internalLut)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle sourceHandle, in RenderTargetHandle destinationHandle, in RenderTargetHandle internalLut)
         {
             m_Descriptor = baseDescriptor;
             m_Source = sourceHandle;
             m_Destination = destinationHandle;
-            m_DepthBuffer = depthBuffer;
             m_InternalLut = internalLut;
         }
 
@@ -262,23 +260,19 @@ namespace UnityEngine.Rendering.LWRP
             cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
             cmd.GetTemporaryRT(ShaderConstants._BlendTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
 
-            // Clear the temporary textures
-            cmd.SetRenderTarget(ShaderConstants._EdgeTexture);
-            cmd.ClearRenderTarget(false, true, Color.clear);
-            cmd.SetRenderTarget(ShaderConstants._BlendTexture);
-            cmd.ClearRenderTarget(false, true, Color.clear);
-
             // Prepare for manual blit
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             cmd.SetViewport(camera.pixelRect);
 
             // Pass 1: Edge detection
-            cmd.SetRenderTarget(ShaderConstants._EdgeTexture, m_DepthBuffer.Identifier());
+            cmd.SetRenderTarget(ShaderConstants._EdgeTexture, depthAttachment);
+            cmd.ClearRenderTarget(true, true, Color.clear); // TODO: Explicitly clearing depth/stencil here but we shouldn't have to, FIXME /!\
             cmd.SetGlobalTexture(ShaderConstants._InputTexture, source);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
 
             // Pass 2: Blend weights
-            cmd.SetRenderTarget(ShaderConstants._BlendTexture, m_DepthBuffer.Identifier());
+            cmd.SetRenderTarget(ShaderConstants._BlendTexture, depthAttachment);
+            cmd.ClearRenderTarget(false, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._InputTexture, ShaderConstants._EdgeTexture);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
 
@@ -291,6 +285,7 @@ namespace UnityEngine.Rendering.LWRP
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._BlendTexture);
+            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
         #endregion
@@ -316,6 +311,7 @@ namespace UnityEngine.Rendering.LWRP
                 material.SetMatrix("_PrevViewProjM", m_PrevViewProjM);
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
+            material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
             cmd.Blit(source, destination, material, (int)m_MotionBlur.quality.value);
 
             m_PrevViewProjM = viewProj;

@@ -21,6 +21,7 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
         float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;
         float _Intensity;
+        float _Clamp;
         float4 _MainTex_TexelSize;
 
         struct Attributes
@@ -49,6 +50,12 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
             return output;
         }
 
+        float2 ClampVelocity(float2 velocity, float maxVelocity)
+        {
+            float len = length(velocity);
+            return (len > 0.0) ? min(len, maxVelocity) * (velocity * rcp(len)) : 0.0;
+        }
+
         // Per-pixel camera velocity
         float2 GetCameraVelocity(float4 uv)
         {
@@ -70,7 +77,7 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
             float2 prevPosCS = prevClipPos.xy / prevClipPos.w;
             float2 curPosCS = curClipPos.xy / curClipPos.w;
 
-            return prevPosCS - curPosCS;
+            return ClampVelocity(prevPosCS - curPosCS, _Clamp);
         }
 
         float3 GatherSample(float sampleNumber, float2 velocity, float invSampleCount, float2 centerUV, float randomVal, float velocitySign)

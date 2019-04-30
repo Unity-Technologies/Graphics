@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.LWRP
                 if (postProcessEnabled)
                 {
                     // TODO: fix this, will break with v3
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_ActiveCameraColorAttachment, m_ColorGradingLut);
                     EnqueuePass(m_PostProcessPass);
                 }
 
@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 if (postProcessEnabled)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ColorGradingLut);
                     EnqueuePass(m_PostProcessPass);
                 }
                 else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
