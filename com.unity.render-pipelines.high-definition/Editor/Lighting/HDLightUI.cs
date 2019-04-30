@@ -202,24 +202,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
-                var renderingLayerMask = serialized.serializedLightData.renderingLayerMask.intValue;
-                int lightLayer;
-                if (serialized.serializedLightData.renderingLayerMask.hasMultipleDifferentValues)
-                {
-                    EditorGUI.showMixedValue = true;
-                    lightLayer = 0;
-                }
-                else
-                    lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
-                EditorGUI.BeginChangeCheck();
-                lightLayer = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)lightLayer));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    // Overwrite only first byte
-                    lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
-                    serialized.serializedLightData.renderingLayerMask.intValue = lightLayer;
-                }
-                EditorGUI.showMixedValue = false;
+                LightLayerMaskDrawer(s_Styles.lightLayer, serialized.serializedLightData.renderingLayerMask);
             }
         }
 
@@ -797,6 +780,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(serialized.serializedLightData.kernelSize, s_Styles.kernelSize);
             EditorGUILayout.PropertyField(serialized.serializedLightData.lightAngle, s_Styles.lightAngle);
             EditorGUILayout.PropertyField(serialized.serializedLightData.maxDepthBias, s_Styles.maxDepthBias);
+        }
+
+        public static void LightLayerMaskDrawer(GUIContent label, SerializedProperty property)
+        {
+            var renderingLayerMask = property.intValue;
+            int lightLayer;
+            if (property.hasMultipleDifferentValues)
+            {
+                EditorGUI.showMixedValue = true;
+                lightLayer = 0;
+            }
+            else
+                lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
+            EditorGUI.BeginChangeCheck();
+            lightLayer = System.Convert.ToInt32(EditorGUILayout.EnumFlagsField(label, (LightLayerEnum)lightLayer));
+            if (EditorGUI.EndChangeCheck())
+            {
+                lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
+                property.intValue = lightLayer;
+            }
+            EditorGUI.showMixedValue = false;
         }
     }
 }
