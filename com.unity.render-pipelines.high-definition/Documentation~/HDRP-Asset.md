@@ -113,7 +113,7 @@ Use the Reflection settings to configure the resolution of your reflections and 
 | **Planar Reflection Texture Size**         | Use the drop-down to select the maximum resolution of individual Planar Reflection textures. |
 | **Planar Probe Cache Size**                | The maximum size of the Planer Reflection Probe cache. Defines how many Probe textures HDRP can save in cache. |
 
-<a name=”SkyLighting”></a>
+<a name="SkyLighting"></a>
 
 ### Sky
 

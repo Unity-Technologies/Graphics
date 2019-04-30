@@ -44,7 +44,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/016_Lighting_Scene_Directional.unity
     guid: 54170d1ce2ca64699a0d82056387d56f
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/017_Lighting_Scene_DirectionalBaked.unity
     guid: 245a2b08a4f72437193b06846a5c8e33
   - enabled: 0
@@ -155,4 +155,40 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/058_SpeedTree_V8.unity
     guid: 9227139f6abe79f42bf0defa48491666
+  - enabled: 1
+    path: Assets/Scenes/057_xr_Camera_Clip.unity
+    guid: c19e9fe812db5c34592e2e2af7778fc8
+  - enabled: 1
+    path: Assets/Scenes/058_xr_LitShaderLightProbes.unity
+    guid: d7018bb17cb4b7745944921ff4ba6dde
+  - enabled: 1
+    path: Assets/Scenes/059_xr_LitShaderMaps.unity
+    guid: e11b892ea1dbc934c9f88172ebd48c4f
+  - enabled: 1
+    path: Assets/Scenes/060_xr_UnlitSprites.unity
+    guid: b297cee4303f4834b9b1c900996a3edf
+  - enabled: 1
+    path: Assets/Scenes/061_xr_PBS_EnvironmentBRDF_Spheres.unity
+    guid: e6b6cac1cd594e246834d5cd95fb53fc
+  - enabled: 1
+    path: Assets/Scenes/062_xr_Lighting_Scene_Directional.unity
+    guid: 2332b44eb1f8c874c88a82d72c4accef
+  - enabled: 0
+    path: Assets/Scenes/063_xr_Lighting_Scene_DirectionalBaked.unity
+    guid: 77e221f332239f943a43c61ecfe67a23
+  - enabled: 0
+    path: Assets/Scenes/064_xr_Lighting_BasicPoint.unity
+    guid: 76c689d257cb6184fb8eda097a9b0c52
+  - enabled: 0
+    path: Assets/Scenes/065_xr_Lighting_BasicSpot.unity
+    guid: 1c44222c598a7ec47b0baf67e5a7e900
+  - enabled: 1
+    path: Assets/Scenes/066_xr_Shader_PBRvalidation_Specular.unity
+    guid: 03934edd2bce5ca41b81a3b5d06f2947
+  - enabled: 1
+    path: Assets/Scenes/067_xr_Shader_PBRvalidation_Metallic.unity
+    guid: 30e5fcb7971e6e94a8bbe83e1259c6a4
+  - enabled: 1
+    path: Assets/Scenes/068_xr_CenterLine.unity
+    guid: 4eb297ef901e5c24fa0088510b645913
   m_configObjects: {}

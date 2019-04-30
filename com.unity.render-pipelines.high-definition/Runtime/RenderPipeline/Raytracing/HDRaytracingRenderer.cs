@@ -74,10 +74,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void EvaluateRaytracingMask(CullingResults cull, HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext)
         {
             // Clear our target
-            HDUtils.SetRenderTarget(cmd, hdCamera, m_RaytracingFlagTarget, ClearFlag.Color, Color.black);
+            HDUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, ClearFlag.Color, Color.black);
 
             // Bind out custom color texture
-            HDUtils.SetRenderTarget(cmd, hdCamera, m_RaytracingFlagTarget, m_SharedRTManager.GetDepthStencilBuffer());
+            HDUtils.SetRenderTarget(cmd, m_RaytracingFlagTarget, m_SharedRTManager.GetDepthStencilBuffer());
 
             // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
             renderContext.ExecuteCommandBuffer(cmd);

@@ -127,7 +127,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.copyStencilBufferPS);
             m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.SplitLighting);
             m_CopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
-            
+
             this.hdAsset = hdAsset;
             defaultDiffusionProfile = hdAsset.renderPipelineResources.assets.defaultDiffusionProfile;
         }
@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // if the diffusion profile was already set and it haven't changed then there is nothing to upgrade
             if (setDiffusionProfiles[index] == settings && diffusionProfileUpdate[index] == settings.updateCount)
                 return;
-            
+
             // if the settings have not yet been initialized
             if (settings.profile.filterKernelNearField == null)
                 return;
@@ -213,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             uint mask = 1u << index;
             texturingModeFlags &= ~mask;
             transmissionFlags &= ~mask;
-            
+
             texturingModeFlags |= (uint)settings.profile.texturingMode    << index;
             transmissionFlags  |= (uint)settings.profile.transmissionMode << index;
 
@@ -280,7 +280,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Clear the SSS filtering target
                     using (new ProfilingSample(cmd, "Clear SSS filtering target", CustomSamplerId.ClearSSSFilteringTarget.GetSampler()))
                     {
-                        HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraFilteringBuffer, ClearFlag.Color, Color.clear);
+                        HDUtils.SetRenderTarget(cmd, m_CameraFilteringBuffer, ClearFlag.Color, Color.clear);
                     }
                 }
 
@@ -290,9 +290,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Therefore, it's computed in a pixel shader, and optimized to only contain the SSS bit.
 
                     // Clear the HTile texture. TODO: move this to ClearBuffers(). Clear operations must be batched!
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_HTile, ClearFlag.Color, Color.clear);
+                    HDUtils.SetRenderTarget(cmd, m_HTile, ClearFlag.Color, Color.clear);
 
-                    HDUtils.SetRenderTarget(cmd, hdCamera, depthStencilBufferRT); // No need for color buffer here
+                    HDUtils.SetRenderTarget(cmd, depthStencilBufferRT); // No need for color buffer here
                     cmd.SetRandomWriteTarget(1, m_HTile); // This need to be done AFTER SetRenderTarget
                     // Generate HTile for the split lighting stencil usage. Don't write into stencil texture (shaderPassId = 2)
                     // Use ShaderPassID 1 => "Pass 2 - Export HTILE for stencilRef to output"
@@ -323,7 +323,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, sssKernel, HDShaderIDs._SSSBufferTexture[i], GetSSSBuffer(i));
                 }
-                
+
                 int numTilesX = ((int)(hdCamera.textureWidthScaling.x * hdCamera.screenSize.x) + 15) / 16;
                 int numTilesY = ((int)hdCamera.screenSize.y + 15) / 16;
                 int numTilesZ = hdCamera.computePassCount;
@@ -338,7 +338,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._IrradianceSource, m_CameraFilteringBuffer);  // Cannot set a RT on a material
 
                     // Additively blend diffuse and specular lighting into 'm_CameraColorBufferRT'.
-                    HDUtils.DrawFullScreen(cmd, hdCamera, m_CombineLightingPass, colorBufferRT, depthStencilBufferRT);
+                    HDUtils.DrawFullScreen(cmd, m_CombineLightingPass, colorBufferRT, depthStencilBufferRT);
                 }
                 else
                 {

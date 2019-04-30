@@ -167,7 +167,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
                 }
-                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_PRIMARY_VISBILITY)
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_PRIMARY_VISIBILITY)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
@@ -202,7 +202,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float cols = kGrid;
                     float2 size = _ScreenSize.xy / float2(cols, rows);
                     float body = min(size.x, size.y) / sqrt(2.0);
-                    float2 positionSS = input.texcoord.xy / _ScreenToTargetScale.xy;
+                    float2 positionSS = input.texcoord.xy / _RTHandleScale.xy;
                     positionSS *= _ScreenSize.xy;
                     float2 center = (floor(positionSS / size) + 0.5) * size;
                     positionSS -= center;
@@ -210,7 +210,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     // Sample the center of the cell to get the current arrow vector
                     float2 arrow_coord = center * _ScreenSize.zw;
 
-                    arrow_coord *= _ScreenToTargetScale.xy;
+                    arrow_coord *= _RTHandleScale.xy;
 
                     float2 mv_arrow = SampleMotionVectors(arrow_coord);
                     mv_arrow.y *= -1;
@@ -232,16 +232,26 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS)
                 {
-                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
-                    return float4(1.0f - color.rrr, 0.0);
-                }
+                    uint contactShadowData = LOAD_TEXTURE2D_X(_DeferredShadowTexture, input.texcoord * _ScreenSize.xy).r;
 
+                    // when the index is -1 we display all contact shadows
+                    uint mask = (_DebugContactShadowLightIndex == -1) ? -1 : 1 << _DebugContactShadowLightIndex;
+                    float lightContactShadow = (contactShadowData & mask) != 0;
+
+                    return float4(1.0 - lightContactShadow.xxx, 0.0);
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS_FADE)
+                {
+                    uint contactShadowData = LOAD_TEXTURE2D_X(_DeferredShadowTexture, input.texcoord * _ScreenSize.xy).r;
+                    float fade = float((contactShadowData >> 24)) / 255.0;
+
+                    return float4(fade.xxx, 0.0);
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return float4(color.rgb, 1.0f);
                 }
-
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)
                 {
