@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified the variants stripper to take in account multiple HDRP assets used in the build.
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
 - Update Pyramid Spot Light to better match emitted light volume.
+- Moved _XRViewConstants out of UnityPerPassStereo constant buffer to fix issues with PSSL
 
 ## [6.6.0-preview] - 2019-04-01
 
