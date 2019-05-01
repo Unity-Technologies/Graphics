@@ -11,15 +11,15 @@ namespace UnityEditor.TestTools.Graphics
 {
     internal class EditorGraphicsTestCaseProvider : IGraphicsTestCaseProvider
     {
-        string m_ReferenceImagePath = string.Empty;
+        string m_ExpectedImagePath = string.Empty;
 
         public EditorGraphicsTestCaseProvider()
         {
         }
 
-        public EditorGraphicsTestCaseProvider(string referenceImagePath)
+        public EditorGraphicsTestCaseProvider(string expectedImagePath)
         {
-            m_ReferenceImagePath = referenceImagePath;
+            m_ExpectedImagePath = expectedImagePath;
         }
 
         public static IEnumerable<string> GetTestScenePaths()
@@ -37,21 +37,21 @@ namespace UnityEditor.TestTools.Graphics
 
         public IEnumerable<GraphicsTestCase> GetTestCases()
         {
-            var allImages = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath, QualitySettings.activeColorSpace, Application.platform,
+            var allImages = CollectExpectedImagePathsFor(string.IsNullOrEmpty(m_ExpectedImagePath) ? ExpectedImagesRoot : m_ExpectedImagePath, QualitySettings.activeColorSpace, Application.platform,
                 SystemInfo.graphicsDeviceType);
 
             var scenes = GetTestScenePaths();
             foreach (var scenePath in scenes)
             {
-                Texture2D referenceImage = null;
+                Texture2D expectedImage = null;
 
                 string imagePath;
                 if (allImages.TryGetValue(Path.GetFileNameWithoutExtension(scenePath), out imagePath))
                 {
-                    referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
+                    expectedImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
                 }
 
-                yield return new GraphicsTestCase(scenePath, referenceImage);
+                yield return new GraphicsTestCase(scenePath, expectedImage);
             }
         }
 
@@ -59,31 +59,31 @@ namespace UnityEditor.TestTools.Graphics
         {
             GraphicsTestCase output = null;
 
-            var allImages = CollectReferenceImagePathsFor(string.IsNullOrEmpty(m_ReferenceImagePath) ? ReferenceImagesRoot : m_ReferenceImagePath, QualitySettings.activeColorSpace, Application.platform,
+            var allImages = CollectExpectedImagePathsFor(string.IsNullOrEmpty(m_ExpectedImagePath) ? ExpectedImagesRoot : m_ExpectedImagePath, QualitySettings.activeColorSpace, Application.platform,
                 SystemInfo.graphicsDeviceType);
 
-            Texture2D referenceImage = null;
+            Texture2D expectedImage = null;
 
             string imagePath;
             if (allImages.TryGetValue(Path.GetFileNameWithoutExtension(scenePath), out imagePath))
-                referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
+                expectedImage = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
 
-            output = new GraphicsTestCase(scenePath, referenceImage);
+            output = new GraphicsTestCase(scenePath, expectedImage);
 
             return output;
         }
 
-        public const string ReferenceImagesRoot = "Assets/ReferenceImages";
+        public const string ExpectedImagesRoot = "Assets/ExpectedImages";
 
-        public static Dictionary<string, string> CollectReferenceImagePathsFor(string referenceImageRoot, ColorSpace colorSpace, RuntimePlatform runtimePlatform,
+        public static Dictionary<string, string> CollectExpectedImagePathsFor(string expectedImageRoot, ColorSpace colorSpace, RuntimePlatform runtimePlatform,
             GraphicsDeviceType graphicsApi)
         {
             var result = new Dictionary<string, string>();
 
-            if (!Directory.Exists(referenceImageRoot))
+            if (!Directory.Exists(expectedImageRoot))
                 return result;
 
-            var fullPathPrefix = string.Format("{0}/{1}/{2}/{3}/", referenceImageRoot, colorSpace, runtimePlatform, graphicsApi);
+            var fullPathPrefix = string.Format("{0}/{1}/{2}/{3}/", expectedImageRoot, colorSpace, runtimePlatform, graphicsApi);
 
             foreach (var assetPath in AssetDatabase.GetAllAssetPaths()
                 .Where(p => p.StartsWith(fullPathPrefix, StringComparison.OrdinalIgnoreCase))

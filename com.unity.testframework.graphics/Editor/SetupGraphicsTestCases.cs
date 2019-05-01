@@ -36,7 +36,7 @@ namespace UnityEditor.TestTools.Graphics
 
         public void Setup()
         {
-            Setup(EditorGraphicsTestCaseProvider.ReferenceImagesRoot);
+            Setup(EditorGraphicsTestCaseProvider.ExpectedImagesRoot);
         }
 
         public void Setup(string rootImageTemplatePath)
@@ -68,16 +68,16 @@ namespace UnityEditor.TestTools.Graphics
 
             foreach (var api in graphicsDevices)
             {
-                var images = EditorGraphicsTestCaseProvider.CollectReferenceImagePathsFor(rootImageTemplatePath, colorSpace, runtimePlatform, api);
+                var images = EditorGraphicsTestCaseProvider.CollectExpectedImagePathsFor(rootImageTemplatePath, colorSpace, runtimePlatform, api);
 
-                Utils.SetupReferenceImageImportSettings(images.Values);
+                Utils.SetupExpectedImageImportSettings(images.Values);
 
                 if (buildPlatform == BuildTarget.NoTarget)
                     continue;
 
                 bundleBuilds.Add(new AssetBundleBuild
                 {
-                    assetBundleName = string.Format("referenceimages-{0}-{1}-{2}", colorSpace, runtimePlatform, api),
+                    assetBundleName = string.Format("expectedImages-{0}-{1}-{2}", colorSpace, runtimePlatform, api),
                     addressableNames = images.Keys.ToArray(),
                     assetNames = images.Values.ToArray()
                 });

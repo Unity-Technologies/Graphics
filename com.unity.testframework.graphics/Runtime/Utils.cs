@@ -95,7 +95,7 @@ namespace UnityEditor.TestTools.Graphics
             throw new ArgumentOutOfRangeException("platform", platform, "Unknown RuntimePlatform");
         }
 
-        public static void SetupReferenceImageImportSettings(IEnumerable<string> imageAssetPaths)
+        public static void SetupExpectedImageImportSettings(IEnumerable<string> imageAssetPaths)
         {
             // Make sure that all the images have compression turned off and are readable
             AssetDatabase.StartAssetEditing();

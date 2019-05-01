@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 public class LWGraphicsTests
 {
 
-    public const string lwPackagePath = "Assets/ReferenceImages";
+    public const string lwPackagePath = "Assets/ExpectedImages";
 
     [UnityTest, Category("LightWeightRP")]
     [PrebuildSetup("SetupGraphicsTestCases")]
@@ -28,7 +28,7 @@ public class LWGraphicsTests
         for (int i = 0; i < settings.WaitFrames; i++)
             yield return null;
 
-        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x=>x != null), settings.ImageComparisonSettings);
+        ImageAssert.AreEqual(testCase.ExpectedImage, cameras.Where(x=>x != null), settings.ImageComparisonSettings);
     }
 
 #if UNITY_EDITOR

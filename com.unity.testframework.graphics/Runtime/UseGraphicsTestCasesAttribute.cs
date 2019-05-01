@@ -15,15 +15,15 @@ namespace UnityEngine.TestTools.Graphics
     /// </summary>
     public class UseGraphicsTestCasesAttribute : UnityEngine.TestTools.UnityTestAttribute, ITestBuilder
     {
-        string m_ReferenceImagePath = string.Empty;
+        string m_expectedImagePath = string.Empty;
 
         NUnitTestCaseBuilder _builder = new NUnitTestCaseBuilder();
 
         public UseGraphicsTestCasesAttribute(){}
 
-        public UseGraphicsTestCasesAttribute(string referenceImagePath)
+        public UseGraphicsTestCasesAttribute(string expectedImagePath)
         {
-            m_ReferenceImagePath = referenceImagePath;
+            m_expectedImagePath = expectedImagePath;
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace UnityEngine.TestTools.Graphics
             get
             {
 #if UNITY_EDITOR
-                return new UnityEditor.TestTools.Graphics.EditorGraphicsTestCaseProvider(m_ReferenceImagePath);
+                return new UnityEditor.TestTools.Graphics.EditorGraphicsTestCaseProvider(m_expectedImagePath);
 #else
                 return new RuntimeGraphicsTestCaseProvider();
 #endif
@@ -106,9 +106,9 @@ namespace UnityEngine.TestTools.Graphics
             return results;
         }
 
-        public static GraphicsTestCase GetCaseFromScenePath(string scenePath, string referenceImagePath = null )
+        public static GraphicsTestCase GetCaseFromScenePath(string scenePath, string expectedImagePath = null )
         {
-            UseGraphicsTestCasesAttribute tmp = new UseGraphicsTestCasesAttribute( string.IsNullOrEmpty(referenceImagePath)? String.Empty : referenceImagePath);
+            UseGraphicsTestCasesAttribute tmp = new UseGraphicsTestCasesAttribute( string.IsNullOrEmpty(expectedImagePath)? String.Empty : expectedImagePath);
 
             var provider = tmp.Provider;
 

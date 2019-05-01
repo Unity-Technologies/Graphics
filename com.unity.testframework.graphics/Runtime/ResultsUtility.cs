@@ -78,7 +78,7 @@ namespace UnityEditor.TestTools.Graphics
 
             AssetDatabase.Refresh();
 
-            Utils.SetupReferenceImageImportSettings(imagesWritten);
+            Utils.SetupExpectedImageImportSettings(imagesWritten);
         }
 
         public static void ExtractImagesFromTestProperties(TestContext.TestAdapter test)
@@ -111,7 +111,7 @@ namespace UnityEditor.TestTools.Graphics
 
             AssetDatabase.Refresh();
 
-            Utils.SetupReferenceImageImportSettings(imagesWritten);
+            Utils.SetupExpectedImageImportSettings(imagesWritten);
         }
     }
 }

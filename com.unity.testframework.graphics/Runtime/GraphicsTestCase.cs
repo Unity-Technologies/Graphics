@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UnityEngine.TestTools.Graphics
 {
@@ -8,12 +8,12 @@ namespace UnityEngine.TestTools.Graphics
     public class GraphicsTestCase
     {
         private readonly string _scenePath;
-        private readonly Texture2D _referenceImage;
+        private readonly Texture2D _expectedImage;
 
-        public GraphicsTestCase(string scenePath, Texture2D referenceImage)
+        public GraphicsTestCase(string scenePath, Texture2D expectedImage)
         {
             _scenePath = scenePath;
-            _referenceImage = referenceImage;
+            _expectedImage = expectedImage;
         }
 
         /// <summary>
@@ -24,6 +24,6 @@ namespace UnityEngine.TestTools.Graphics
         /// <summary>
         /// The reference image that represents the expected output for this test case.
         /// </summary>
-        public Texture2D ReferenceImage {  get { return _referenceImage; } }
+        public Texture2D ExpectedImage {  get { return _expectedImage; } }
     }
 }

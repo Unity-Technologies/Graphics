@@ -24,7 +24,7 @@ public class ShaderGraphGraphicsTests
         for (int i = 0; i < settings.WaitFrames; i++)
             yield return null;
 
-        ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings.ImageComparisonSettings);
+        ImageAssert.AreEqual(testCase.ExpectedImage, camera, settings.ImageComparisonSettings);
     }
 
 #if UNITY_EDITOR

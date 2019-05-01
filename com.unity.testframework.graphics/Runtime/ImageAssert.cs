@@ -45,9 +45,21 @@ namespace UnityEngine.TestTools.Graphics
             if (settings == null)
                 settings = new ImageComparisonSettings();
 
+            Texture2D actual = null;
+            try {
+                actual = GetRenderTextureFromCameras(cameras, expected != null ? expected.format : TextureFormat.ARGB32, settings);
+                AreEqual(expected, actual, settings);
+            }
+            finally
+            {
+                if (actual != null)
+                    UnityEngine.Object.Destroy(actual);
+            }
+        }
+
+        public static Texture2D GetRenderTextureFromCameras(IEnumerable<Camera> cameras, TextureFormat format, ImageComparisonSettings settings) {
             int width = settings.TargetWidth;
             int height = settings.TargetHeight;
-            var format = expected != null ? expected.format : TextureFormat.ARGB32;
 
             // Some HDRP test fail with HDRP batcher because shaders variant are compiled "on the fly" in editor mode.
             // Persistent PerMaterial CBUFFER is build during culling, but some nodes could use new variants and CBUFFER will be up to date next frame.
@@ -57,38 +69,28 @@ namespace UnityEngine.TestTools.Graphics
 
             var rt = RenderTexture.GetTemporary(width, height, 24);
             Texture2D actual = null;
-            try
+            for (int i=0;i< dummyRenderedFrameCount+1;i++)        // x frame delay + the last one is the one really tested ( ie 5 frames delay means 6 frames are rendered )
             {
-                for (int i=0;i< dummyRenderedFrameCount+1;i++)        // x frame delay + the last one is the one really tested ( ie 5 frames delay means 6 frames are rendered )
+                foreach (var camera in cameras)
                 {
-                    foreach (var camera in cameras)
-                    {
-                        camera.targetTexture = rt;
-                        camera.Render();
-                        camera.targetTexture = null;
-                    }
-
-					// only proceed the test on the last renderered frame
-					if (dummyRenderedFrameCount == i)
-					{
-						actual = new Texture2D(width, height, format, false);
-						RenderTexture.active = rt;
-						actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-						RenderTexture.active = null;
-
-						actual.Apply();
-
-						AreEqual(expected, actual, settings);
-					}
+                    camera.targetTexture = rt;
+                    camera.Render();
+                    camera.targetTexture = null;
                 }
 
+				// only proceed the test on the last renderered frame
+				if (dummyRenderedFrameCount == i)
+				{
+					actual = new Texture2D(width, height, (TextureFormat)format, false);
+					RenderTexture.active = rt;
+					actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+					RenderTexture.active = null;
+
+					actual.Apply();
+                    RenderTexture.ReleaseTemporary(rt);
+				}
             }
-            finally
-            {
-                RenderTexture.ReleaseTemporary(rt);
-                if (actual != null)
-                    UnityEngine.Object.Destroy(actual);
-            }
+            return actual;
         }
 
         /// <summary>
@@ -110,7 +112,7 @@ namespace UnityEngine.TestTools.Graphics
 
             try
             {
-                Assert.That(expected, Is.Not.Null, "No reference image was provided.");
+                Assert.That(expected, Is.Not.Null, "No expected image was provided.");
 
                 Assert.That(actual.width, Is.EqualTo(expected.width),
                     "The expected image had width {0}px, but the actual image had width {1}px.", expected.width,
@@ -182,7 +184,7 @@ namespace UnityEngine.TestTools.Graphics
 
                     AssetDatabase.Refresh();
 
-                    UnityEditor.TestTools.Graphics.Utils.SetupReferenceImageImportSettings(imagesWritten);
+                    UnityEditor.TestTools.Graphics.Utils.SetupExpectedImageImportSettings(imagesWritten);
                 }
                 else
 #endif

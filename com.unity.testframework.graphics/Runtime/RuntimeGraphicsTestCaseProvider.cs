@@ -8,23 +8,23 @@ namespace UnityEngine.TestTools.Graphics
     {
        public IEnumerable<GraphicsTestCase> GetTestCases()
         {
-            AssetBundle referenceImagesBundle = null;
+            AssetBundle expectedImagesBundle = null;
 
-            var referenceImagesBundlePath = string.Format("{0}/referenceimages-{1}-{2}-{3}", Application.streamingAssetsPath, UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice);
-            if (File.Exists(referenceImagesBundlePath))
-                referenceImagesBundle = AssetBundle.LoadFromFile(referenceImagesBundlePath);
+            var expectedImagesBundlePath = string.Format("{0}/expectedimages-{1}-{2}-{3}", Application.streamingAssetsPath, UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice);
+            if (File.Exists(expectedImagesBundlePath))
+                expectedImagesBundle = AssetBundle.LoadFromFile(expectedImagesBundlePath);
 
             foreach (var scenePath in File.ReadAllLines(Application.streamingAssetsPath + "/SceneList.txt"))
             {
                 var imagePath = Path.GetFileNameWithoutExtension(scenePath);
 
-                Texture2D referenceImage = null;
+                Texture2D expectedImage = null;
 
                 // The bundle might not exist if there are no reference images for this configuration yet
-                if (referenceImagesBundle != null)
-                    referenceImage = referenceImagesBundle.LoadAsset<Texture2D>(imagePath);
+                if (expectedImagesBundle != null)
+                    expectedImage = expectedImagesBundle.LoadAsset<Texture2D>(imagePath);
 
-                yield return new GraphicsTestCase(scenePath, referenceImage);
+                yield return new GraphicsTestCase(scenePath, expectedImage);
             }
         }
 
@@ -35,21 +35,21 @@ namespace UnityEngine.TestTools.Graphics
 
             GraphicsTestCase output = null;
 
-            AssetBundle referenceImagesBundle = null;
+            AssetBundle expectedImagesBundle = null;
 
-            var referenceImagesBundlePath = string.Format("{0}/referenceimages-{1}-{2}-{3}", Application.streamingAssetsPath, UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice);
-            if (File.Exists(referenceImagesBundlePath))
-                referenceImagesBundle = AssetBundle.LoadFromFile(referenceImagesBundlePath);
+            var expectedImagesBundlePath = string.Format("{0}/expectedimages-{1}-{2}-{3}", Application.streamingAssetsPath, UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice);
+            if (File.Exists(expectedImagesBundlePath))
+                expectedImagesBundle = AssetBundle.LoadFromFile(expectedImagesBundlePath);
 
             var imagePath = Path.GetFileNameWithoutExtension(scenePath);
 
-            Texture2D referenceImage = null;
+            Texture2D expectedImage = null;
 
             // The bundle might not exist if there are no reference images for this configuration yet
-            if (referenceImagesBundle != null)
-                referenceImage = referenceImagesBundle.LoadAsset<Texture2D>(imagePath);
+            if (expectedImagesBundle != null)
+                expectedImage = expectedImagesBundle.LoadAsset<Texture2D>(imagePath);
 
-            output = new GraphicsTestCase( scenePath, referenceImage );
+            output = new GraphicsTestCase( scenePath, expectedImage );
 
             return output;
         }

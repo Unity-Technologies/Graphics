@@ -12,13 +12,14 @@ using UnityEditor.SceneManagement;
 using UnityEngine.Events;
 using UnityEngine.TestTools.Graphics;
 using UnityEditor.TestTools.Graphics;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Experimental.Rendering
 {
     public class TestResultWindow : EditorWindow
     {
-        private Texture2D templateImage;
-        private Texture2D resultImage;
+        private Texture2D expectedImage;
+        private Texture2D actualImage;
         private Texture2D diffImage;
 
         private Material m_displayMaterial;
@@ -48,10 +49,8 @@ namespace UnityEngine.Experimental.Rendering
 
         private GUIContent reloadContent = new GUIContent() {text = "Reload Results 🗘", tooltip = "Reload results."};
         private GUIContent wipeResultContent = new GUIContent() {text = "Wipe Results ⎚", tooltip = "Wipe results."};
-        private GUIContent deleteTemplateContent = new GUIContent() {text = "Delete Reference 🗑", tooltip = "Delete reference."};
-        private GUIContent updateTemplateContent = new GUIContent() {text = "Update Reference", tooltip = "Update reference with current result."};
-
-        // pouet
+        private GUIContent deleteTemplateContent = new GUIContent() {text = "Delete Expected 🗑", tooltip = "Delete expected."};
+        private GUIContent updateTemplateContent = new GUIContent() {text = "Update expected", tooltip = "Update expected with current result."};
 
         private TestResultTreeView _testResultTreeView;
 
@@ -69,7 +68,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        [MenuItem("Tests/Result Window")]
+        [MenuItem("Tests/Graphics Test Image Viewer")]
         public static void OpenWindow()
         {
             OpenWindow( null );
@@ -77,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void OpenWindow( GraphicsTestCase _testCase )
         {
-            TestResultWindow window = GetWindow<TestResultWindow>();
+            TestResultWindow window = GetWindow<TestResultWindow>(false, "Gfx Image Viewer");
             window.minSize = new Vector2(800f, 800f);
 
             window.Reload( _testCase );
@@ -94,11 +93,9 @@ namespace UnityEngine.Experimental.Rendering
 
             if (testCase == null) return;
 
-            //Debug.Log("Show result for : " + _testCase.ScenePath);
-
             GetImages();
 
-            if (templateImage == null || resultImage == null )
+            if (expectedImage == null || actualImage == null )
             {
                 testOKOrNotRun = true;
                 minDiff = maxDiff = 1f;
@@ -121,17 +118,17 @@ namespace UnityEngine.Experimental.Rendering
 
         private void OnGUI()
         {
-            //EditorGUILayout.ObjectField( displayMaterial, typeof(Material), false );
-
             // tree view
             testResultTreeView.OnGUI(new Rect(0, 0, leftBarWidth, position.height));
+
+            //Reload(testCase);
+            GetImages(testCase);
 
             if (testCase == null)
             {
                 GUI.Label(new Rect(leftBarWidth, 0, position.width - leftBarWidth, position.height), "Select a test to display");
             }
-            else
-            {
+            else if (testCase.ExpectedImage) {
                 // result view
                 GUILayout.BeginArea(new Rect(leftBarWidth, 0, position.width - leftBarWidth, position.height));
                 {
@@ -139,23 +136,23 @@ namespace UnityEngine.Experimental.Rendering
                     GUILayout.BeginHorizontal(GUILayout.Height(topBarHeight));
                     {
                         if (GUILayout.Button(reloadContent))
-                            Reload( testCase );
+                            Reload(testCase);
 
-                        if (GUILayout.Button(wipeResultContent))
-                        {
+                        if (GUILayout.Button(wipeResultContent)) {
                             DeleteResults();
                         }
 
-                        if (GUILayout.Button(deleteTemplateContent))
-                        {
-                            AssetDatabase.DeleteAsset( AssetDatabase.GetAssetPath(templateImage) );
+                        if (GUILayout.Button(deleteTemplateContent)) {
+                            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(expectedImage));
                         }
 
-                        if (GUILayout.Button(updateTemplateContent))
-                        {
-                            UpdateReference();
+                        if (GUILayout.Button(updateTemplateContent)) {
+                            UpdateExpected();
                         }
-
+                    }
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal(GUILayout.Height(topBarHeight));
+                    {
                         GUILayout.FlexibleSpace();
                         if (testOKOrNotRun)
                         {
@@ -212,7 +209,7 @@ namespace UnityEngine.Experimental.Rendering
                     float w = position.width - leftBarWidth;
                     Color c = GUI.color;
 
-                    Rect rect1 = new Rect(0, topBarHeight * 2, w * minDiff, topBarHeight);
+                    Rect rect1 = new Rect(0, topBarHeight * 3, w * minDiff, topBarHeight);
                     Rect rect2 = new Rect(rect1.max.x, rect1.y, w * (maxDiff - minDiff), topBarHeight);
                     Rect rect3 = new Rect(rect2.max.x, rect2.y, w * (1f - maxDiff), topBarHeight);
 
@@ -227,14 +224,90 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 GUILayout.EndArea();
 
-                Rect textureRect = new Rect(leftBarWidth, topBarHeight * 3, position.width - leftBarWidth,position.height - topBarHeight * 3);
+                Rect textureRect = new Rect(leftBarWidth, topBarHeight * 4, position.width - leftBarWidth,position.height - topBarHeight * 3);
                 GUI.enabled = true;
 
                 CheckDataObjects();
 
-                if (templateImage != null)
-                    EditorGUI.DrawPreviewTexture(textureRect, templateImage, displayMaterial, ScaleMode.ScaleToFit, 0, 0);
+                if (expectedImage != null)
+                    EditorGUI.DrawPreviewTexture(textureRect, expectedImage, displayMaterial, ScaleMode.ScaleToFit, 0, 0);
             }
+            else if (!actualImage){
+                GUILayout.BeginArea(new Rect(leftBarWidth, 0, position.width - leftBarWidth, position.height));
+                {
+                    if (GUILayout.Button("Generate Expected Image")) {
+                        GenerateExpectedImage(testCase);
+                        Reload(testCase);
+                    }
+                }
+                GUILayout.EndArea();
+            } else {
+                GUILayout.BeginArea(new Rect(leftBarWidth, 0, position.width - leftBarWidth, position.height));
+                {
+                    if (GUILayout.Button("Set expected image")) {
+                        SetExpectedImage(actualImage);
+                    }
+                    Rect textureRect = new Rect(0, topBarHeight * 4, position.width - leftBarWidth, position.height - topBarHeight * 3);
+                    GUI.enabled = true;
+
+                    EditorGUI.DrawPreviewTexture(textureRect, actualImage, displayMaterial, ScaleMode.ScaleToFit, 0, 0);
+                }
+                GUILayout.EndArea();
+            }
+        }
+
+        private void SetExpectedImage(Texture2D actualImage) {
+            var dirName = Path.Combine("Assets/ExpectedImages", string.Format("{0}/{1}/{2}", UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice));
+            var path = Path.Combine(dirName, actualImage.name + ".png");
+
+            var bytes = actualImage.EncodeToPNG();
+            File.WriteAllBytes(path, bytes);
+
+            AssetDatabase.Refresh();
+            Utils.SetupExpectedImageImportSettings(new string[] { path });
+
+            Reload(testCase);
+            Repaint();
+            OnGUI();
+        }
+
+        private Texture2D GetActualImage(GraphicsTestCase testCase) {
+            var dirName = Path.Combine("Assets/ActualImages", string.Format("{0}/{1}/{2}", UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice));
+            int lastSlashIndex = testCase.ScenePath.LastIndexOf('/') + 1;
+            var path = Path.Combine(dirName, testCase.ScenePath.Substring(lastSlashIndex,
+                testCase.ScenePath.LastIndexOf(".unity") - lastSlashIndex) + ".png");
+
+            Texture2D res =  AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+
+            return res;
+        }
+
+        private void GenerateExpectedImage(GraphicsTestCase testCase) {
+            string curScene = SceneManager.GetActiveScene().path;
+            EditorSceneManager.OpenScene(testCase.ScenePath);
+
+            IEnumerable<Camera> cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
+            GraphicsTestSettings settings = FindObjectOfType<GraphicsTestSettings>();
+            Texture2D referenceTexture = ImageAssert.GetRenderTextureFromCameras(cameras, TextureFormat.ARGB32, settings.ImageComparisonSettings);
+
+            var dirName = Path.Combine("Assets/ActualImages", string.Format("{0}/{1}/{2}", UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice));
+            var path = Path.Combine(dirName, SceneManager.GetActiveScene().name + ".png");
+
+            var bytes = referenceTexture.EncodeToPNG();
+            File.WriteAllBytes(path, bytes);
+
+            AssetDatabase.Refresh();
+            Utils.SetupExpectedImageImportSettings(new string[] { path });
+
+            EditorSceneManager.OpenScene(curScene);
+
+            Reload(testCase);
+            Repaint();
+            OnGUI();
+        }
+
+        private void SaveTempExpectedImage() {
+
         }
 
         private void ApplyValues()
@@ -243,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering
             float split = (minDiff + maxDiff) / 2f;
             split = (split - 0.5f * resultSplit) / (1 - resultSplit); //  inverse the lerp used in the shader
 
-            displayMaterial.SetTexture("_ResultTex", resultImage);
+            displayMaterial.SetTexture("_ResultTex", actualImage);
             displayMaterial.SetTexture("_DiffTex", diffImage);
 
             displayMaterial.SetFloat("_DiffA", minDiff);
@@ -252,17 +325,17 @@ namespace UnityEngine.Experimental.Rendering
 
         private void DeleteResults()
         {
-            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(resultImage));
+            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(actualImage));
             AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(diffImage));
         }
 
-        private void UpdateReference()
+        private void UpdateExpected()
         {
-            if(templateImage == null || resultImage == null)
+            if(expectedImage == null || actualImage == null)
                 return;
 
 
-            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(resultImage), AssetDatabase.GetAssetPath(templateImage));
+            AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(actualImage), AssetDatabase.GetAssetPath(expectedImage));
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
@@ -277,17 +350,17 @@ namespace UnityEngine.Experimental.Rendering
 
             if (tCase == null)
             {
-                templateImage = null;
-                resultImage = null;
+                expectedImage = null;
+                actualImage = null;
                 diffImage = null;
                 return false;
             }
 
-            if ( tCase.ReferenceImage == null )
+            if ( tCase.ExpectedImage == null )
             {
-                resultImage = null;
+                actualImage = null;
                 diffImage = null;
-                return false; // No reference image found
+                //return false; // No reference image found
             }
 
             var colorSpace = UseGraphicsTestCasesAttribute.ColorSpace;
@@ -298,11 +371,11 @@ namespace UnityEngine.Experimental.Rendering
 
             var sceneName = Path.GetFileNameWithoutExtension( tCase.ScenePath );
 
-            templateImage = tCase.ReferenceImage;
-            resultImage = AssetDatabase.LoadMainAssetAtPath( Path.Combine(actualImagesDir, sceneName + ".png") ) as Texture2D;
+            expectedImage = tCase.ExpectedImage;
+            actualImage = AssetDatabase.LoadMainAssetAtPath( Path.Combine(actualImagesDir, sceneName + ".png") ) as Texture2D;
             diffImage = AssetDatabase.LoadMainAssetAtPath( Path.Combine(actualImagesDir, sceneName + ".diff.png") ) as Texture2D;
 
-            foreach( Texture2D image in new Texture2D[]{templateImage, resultImage, diffImage})
+            foreach( Texture2D image in new Texture2D[]{expectedImage, actualImage, diffImage})
             {
                 if (image == null) continue;
                 image.filterMode = FilterMode.Point;
@@ -310,7 +383,7 @@ namespace UnityEngine.Experimental.Rendering
                 image.hideFlags = HideFlags.HideAndDontSave;
             }
 
-            if (resultImage == null && diffImage == null)
+            if (actualImage == null && diffImage == null)
                 return true;
             else
                 return false;
@@ -356,10 +429,6 @@ namespace UnityEngine.Experimental.Rendering
 
                 if ( item.hasChildren ) return; // not a scene (final) item
 
-                //TestResultViewItem testItem = (TestResultViewItem)item;
-
-                //if (testItem!=null) Debug.Log(item.displayName+" : "+testItem.sceneObject);
-
                 onSceneSelect( ( item as TestResultViewItem ).testCase );
             }
 
@@ -382,6 +451,8 @@ namespace UnityEngine.Experimental.Rendering
                 this.depth = depth;
                 this.displayName = displayName;
                 this.testCase = testCase;
+                if (!this.testCase.ExpectedImage)
+                    icon = Resources.Load <Texture2D>("X");
             }
         }
     }
