@@ -172,6 +172,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        void OnEnable()
+        {
+            this.SetAntiAliasing(4);
+        }
+
         void OnDisable()
         {
             graphEditorView = null;
