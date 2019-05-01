@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
             {
                 owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
-            
+
             base.ValidateNode();
         }
 
@@ -74,5 +74,9 @@ namespace UnityEditor.ShaderGraph
             ps.Add(new ReorderableSlotListView(this, SlotType.Input));
             return ps;
         }
+
+        public override bool canDeleteNode => false;
+
+        public override bool canCopyNode => false;
     }
 }
