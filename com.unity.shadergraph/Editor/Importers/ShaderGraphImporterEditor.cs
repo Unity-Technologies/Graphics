@@ -46,8 +46,8 @@ namespace UnityEditor.ShaderGraph
             if (!foundWindow)
             {
                 var window = CreateInstance<MaterialGraphEditWindow>();
-                window.Show();
                 window.Initialize(guid);
+                window.Show();
             }
 
             return true;
