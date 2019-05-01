@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When you rapidly perform an undo or redo, Shader Graph windows no longer break.
 - Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
 - You can now reference sub-assets such as Textures.
+- When you save a graph that contains a Sub Graph node, the Shader Graph window no longer freezes.
 
 ## [6.6.0] - 2019-04-01
 ### Added
