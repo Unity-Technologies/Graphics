@@ -122,7 +122,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CED.Group(
                 Drawer_Antialiasing,
                 Drawer_Dithering,
-                Drawer_StopNaNs
+                Drawer_StopNaNs,
+                Drawer_TAAReconstructionFilter,
+                Drawer_TAASharpness,
+                Drawer_TAAHistoryFeedback
                 ),
             CED.space,
             CED.Group(
@@ -174,7 +177,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer SectionFrameSettings = CED.Conditional(
             (serialized, owner) => k_ExpandedState[Expandable.General],
             CED.Group((serialized, owner) =>
-            { 
+            {
                 if (!serialized.passThrough.boolValue && serialized.customRenderingSettings.boolValue)
                     FrameSettingsUI.Inspector().Draw(serialized.frameSettings, owner);
                 else
@@ -449,6 +452,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUILayout.PropertyField(p.allowDynamicResolution, allowDynResContent);
             p.baseCameraSettings.allowDynamicResolution.boolValue = p.allowDynamicResolution.boolValue;
+        }
+
+        static void Drawer_TAAReconstructionFilter(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.taaReconstructionFilter, taaReconstructionFilterContent);
+        }
+
+        static void Drawer_TAASharpness(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.taaSharpness, taaSharpnessContent);
+        }
+
+        static void Drawer_TAAHistoryFeedback(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.taaHistoryFeedback, taaHistoryFeedbackContent);
         }
 
         static void Drawer_FieldRenderingPath(SerializedHDCamera p, Editor owner)
