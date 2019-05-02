@@ -1843,6 +1843,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             );
                         }
                         VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
+                        VolumeVoxelizationBlurPass(hdCamera, cmd, m_LightLoop);
                     }, !haveAsyncTaskWithShadows);
 
                     haveAsyncTaskWithShadows = true;
@@ -1959,6 +1960,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Perform the voxelization step which fills the density 3D texture.
                     // custom-begin:
                     VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes, m_LightLoop);
+                    VolumeVoxelizationBlurPass(hdCamera, cmd, m_LightLoop);
                     // custom-end
                 }
 
