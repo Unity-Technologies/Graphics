@@ -628,7 +628,57 @@ namespace UnityEditor.VFX
                 }
             }
 
-            int indirectBufferIndex = -1;
+            HashSet<string>[] writtenAttributes = new HashSet<string>[m_Contexts.Count];
+            HashSet<string>[] readAttributes = new HashSet<string>[m_Contexts.Count];
+            for (int i = 0; i < m_Contexts.Count; ++i)
+            {
+                var context = m_Contexts[i];
+                var contextData = contextToCompiledData[context];
+                var attributeData = m_ContextsToAttributes[context];
+                writtenAttributes[i] = new HashSet<string>();
+                readAttributes[i] = new HashSet<string>();
+
+                foreach(var attr in attributeData)
+                {
+                    if ((attr.Value & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
+                        readAttributes[i].Add(attr.Key.name);
+                    if ((attr.Value & VFXAttributeMode.Write) != 0)
+                        writtenAttributes[i].Add(attr.Key.name);
+                }
+            }
+
+            HashSet<string> uninitializedAttributes = new HashSet<string>();
+
+            for (int i = 0; i < m_Contexts.Count; ++i)
+            {
+                uninitializedAttributes.Clear();
+                foreach ( var attr in readAttributes[i])
+                {
+                    bool written = false;
+                    for (int j = 0; j <= i ; ++j)
+                    {
+                        if( writtenAttributes[j].Contains(attr))
+                        {
+                            written = true;
+                            break;
+                        }
+                    }
+                    if(!written)
+                    {
+                        uninitializedAttributes.Add(attr);
+                    }
+                }
+
+                foreach( string uninitilized in uninitializedAttributes)
+                {
+                    status.warnings.Add(new VFXCompilationLog() { model = m_Contexts[i], error = string.Format("This context use attribute {0} that is not yet written. The default value will be used.",uninitilized )});
+                }
+            }
+
+
+
+
+                int indirectBufferIndex = -1;
             bool needsIndirectBuffer = NeedsIndirectBuffer();
             if (needsIndirectBuffer)
             {
@@ -753,7 +803,7 @@ namespace UnityEditor.VFX
                 {
                     if (mapping.index < 0)
                     {
-                        status.errors.Add(new VFXCompilationLog() { model = context.inputSlots.FirstOrDefault(t => t.name == mapping.name), error = "Unable to compute CPU expression" });
+                        status.errors.Add(new VFXCompilationLog() { model = context.inputSlots.FirstOrDefault(t => t.name == mapping.name), error = "This slot value is system wide (CPU) and is linked to particle dependent (GPU) operators." });
                         throw new InvalidOperationException("Unable to compute CPU expression for mapping : " + mapping.name);
                     }
                 }

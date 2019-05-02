@@ -552,26 +552,26 @@ namespace UnityEditor.VFX.UI
         internal void UpdateStatus(VFXCompilationStatus status)
         {
 
-            foreach(var badge in m_ErrorBadges)
+            foreach(var badge in m_Badges)
             {
                 badge.Detach();
                 badge.RemoveFromHierarchy();
             }
 
-            m_ErrorBadges.Clear();
+            m_Badges.Clear();
 
             if (status == null)
                 return;
 
-            foreach( var error in status.errors)
+            foreach( var error in status.errors.Select(t=>new { value = t,error = true }).Concat( status.warnings.Select(t=> new { value = t, error = false})))
             {
                 VisualElement target = null;
                 VisualElement targetParent = null;
                 SpriteAlignment alignement = SpriteAlignment.TopLeft;
 
-                if( error.model is VFXSlot)
+                if( error.value.model is VFXSlot)
                 {
-                    var slot = (VFXSlot)error.model;
+                    var slot = (VFXSlot)error.value.model;
                     // todo manage parameter slot if they can have error
 
                     var nodeController = controller.GetNodeController(slot.owner as VFXModel, 0);
@@ -585,12 +585,23 @@ namespace UnityEditor.VFX.UI
                     target = (targetParent as VFXNodeUI).GetPorts(slot.direction == VFXSlot.Direction.kInput, slot.direction != VFXSlot.Direction.kInput).FirstOrDefault(t => t.controller == anchorController);
                     alignement = slot.direction == VFXSlot.Direction.kInput ? SpriteAlignment.LeftCenter : SpriteAlignment.RightCenter;
                 }
+                else if( error.value.model is VFXContext)
+                {
+                    var context = (VFXContext)error.value.model;
+                    var nodeController = controller.GetNodeController(context, 0);
+                    if (nodeController == null)
+                        continue;
+                    target = GetNodeByController(nodeController);
+                    target = (target as VFXContextUI).titleContainer;
+                    targetParent = target.parent;
+                    alignement = SpriteAlignment.TopLeft;
+                }
                 if( target != null)
                 {
-                    var badge = IconBadge.CreateError(error.error);
+                    var badge = error.error ? IconBadge.CreateError(error.value.error) : IconBadge.CreateComment(error.value.error);
                     targetParent.Add(badge);
                     badge.AttachTo(target, alignement);
-                    m_ErrorBadges.Add(badge);
+                    m_Badges.Add(badge);
                     badge.AddManipulator(new Clickable(() =>
                     {
                         badge.Detach();
