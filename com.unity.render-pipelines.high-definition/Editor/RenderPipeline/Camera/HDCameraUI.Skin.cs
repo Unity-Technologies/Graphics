@@ -52,6 +52,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly GUIContent ditheringContent = EditorGUIUtility.TrTextContent("Dithering", "Should we apply 8-bit dithering to the final render?");
         static readonly GUIContent stopNaNsContent = EditorGUIUtility.TrTextContent("Stop NaNs", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will slightly affect performances and should only be used if you experience NaN issues that you can't fix.");
+        static readonly GUIContent taaReconstructionFilterContent = EditorGUIUtility.TrTextContent("TAA Reconstruction Filter", "The filtering method to use when de-jittering the frame. Filters are loosely sorted softest to sharpest.");
+        static readonly GUIContent taaSharpnessContent = EditorGUIUtility.TrTextContent("TAA Sharpness", "");
+        static readonly GUIContent taaHistoryFeedbackContent = EditorGUIUtility.TrTextContent("TAA History Feedback", "");
 
         static readonly GUIContent allowDynResContent = EditorGUIUtility.TrTextContent("Allow Dynamic Resolution", "Whether to support dynamic resolution.");
 

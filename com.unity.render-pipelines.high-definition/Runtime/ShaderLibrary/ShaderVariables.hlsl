@@ -187,6 +187,10 @@ CBUFFER_START(UnityGlobal)
     // Current jitter strength (0 if TAA is disabled)
     float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
 
+    int _TAAReconstructionFilter;
+    float _TAASharpness;
+    float _TAAHistoryFeedback;
+
     // t = animateMaterials ? Time.realtimeSinceStartup : 0.
     // We keep all those time value for compatibility with legacy unity but prefer _TimeParameters instead.
     float4 _Time;                       // { t/20, t, t*2, t*3 }
