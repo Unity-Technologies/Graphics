@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved _XRViewConstants out of UnityPerPassStereo constant buffer to fix issues with PSSL
 - Removed GetPositionInput_Stereo() and single-pass (double-wide) rendering mode
 - Changed label width of the frame settings to accommodate better existing options. 
+- SSR's Default FrameSettings for camera is now enable.
 
 ## [6.6.0-preview] - 2019-04-01
 
