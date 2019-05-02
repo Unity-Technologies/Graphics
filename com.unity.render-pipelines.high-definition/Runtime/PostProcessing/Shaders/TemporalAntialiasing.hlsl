@@ -3,8 +3,8 @@
 #define RADIUS              0.75
 #define FEEDBACK_MIN        0.96
 #define FEEDBACK_MAX        0.91
-#define SHARPEN             0
-#define SHARPEN_STRENGTH    0.35
+#define SHARPEN             1
+#define SHARPEN_STRENGTH    0.6
 
 #define CLAMP_MAX       65472.0 // HALF_MAX minus one (2 - 2^-9) * 2^15
 
