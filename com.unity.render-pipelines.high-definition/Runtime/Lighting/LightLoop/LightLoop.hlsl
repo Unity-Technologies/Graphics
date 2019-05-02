@@ -419,4 +419,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         diffuseLighting, specularLighting);
 
     ApplyDebug(context, posInput, bsdfData, diffuseLighting, specularLighting);
+
+    // Sanitize any NaNs to zero so that they do not pollute neighboring pixels in color pyramid down the pipe.
+    // Needed to add this guard due to NaN tangent vectors in some Probuilder meshes resulting in NaN outgoing radiance.
+    // Ideally we would sanitize all model data before even pushing to the GPU.
+    // Hopefully can remove once we have production assets.
+    diffuseLighting = any(isnan(diffuseLighting)) ? 0.0 : diffuseLighting;
+    specularLighting = any(isnan(specularLighting)) ? 0.0 : specularLighting;
 }
