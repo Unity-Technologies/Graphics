@@ -225,7 +225,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             {
                 for (int i = 0; i < rendererData.lightBlendStyles.Length; ++i)
                 {
-                  blendStyleIndices.Add(i);
+                    blendStyleIndices.Add(i);
 
                     ref var blendStyle = ref rendererData.lightBlendStyles[i];
                     if (blendStyle.enabled)
@@ -434,7 +434,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             {
                 Light2D light = lights[i] as Light2D;
                 if (light.lightType == Light2D.LightType.Global)
-                  Light2D.RemoveGlobalLight(light.blendStyleIndex, light);
+                    Light2D.RemoveGlobalLight(light.blendStyleIndex, light);
             }
         }
 
