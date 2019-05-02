@@ -3362,5 +3362,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             throw new Exception("Only for AOT compilation, don't call in runtime.");
         }
+
+        // custom-begin:
+        public void PushGlobalParamsClusteredLightList(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            cmd.EnableShaderKeyword("LIGHTLOOP_TILE_PASS");
+            cmd.DisableShaderKeyword("LIGHTLOOP_SINGLE_PASS");
+            CoreUtils.SetKeyword(cmd, "USE_FPTL_LIGHTLIST", false);
+            CoreUtils.SetKeyword(cmd, "USE_CLUSTERED_LIGHTLIST", true);
+
+            cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClustScale);
+            cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
+            cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, hdCamera.camera.nearClipPlane);
+            cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, hdCamera.camera.farClipPlane);
+            cmd.SetGlobalInt(HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
+
+            cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, k_UseDepthBuffer ? 1 : 0);
+
+            cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, s_PerVoxelOffset);
+            if (k_UseDepthBuffer)
+            {
+                cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
+            }
+
+            // Set up clustered lighting for volumetrics.
+            cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_PerVoxelLightLists);
+        }
     }
+    // custom-end
 }
