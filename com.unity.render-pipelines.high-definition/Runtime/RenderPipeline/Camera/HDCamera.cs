@@ -741,7 +741,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
 
             return rtHandleSystem.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat,
-                                        enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, xrInstancing: true,
+                                        enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true, xrInstancing: true,
                                         name: string.Format("CameraColorBufferMipChain{0}", frameIndex));
         }
 
