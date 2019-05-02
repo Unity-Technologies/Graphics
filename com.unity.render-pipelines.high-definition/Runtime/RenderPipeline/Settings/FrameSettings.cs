@@ -198,6 +198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.Shadow,
                 (uint)FrameSettingsField.ContactShadows,
                 (uint)FrameSettingsField.ShadowMask,
+                (uint)FrameSettingsField.SSR,
                 (uint)FrameSettingsField.SSAO,
                 (uint)FrameSettingsField.SubsurfaceScattering,
                 (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
@@ -245,6 +246,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.Shadow,
                 //(uint)FrameSettingsField.ContactShadow,
                 //(uint)FrameSettingsField.ShadowMask,
+                //(uint)FrameSettingsField.SSR,
                 //(uint)FrameSettingsField.SSAO,
                 (uint)FrameSettingsField.SubsurfaceScattering,
                 (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
@@ -290,6 +292,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (uint)FrameSettingsField.Shadow,
                 (uint)FrameSettingsField.ContactShadows,
                 (uint)FrameSettingsField.ShadowMask,
+                //(uint)FrameSettingsField.SSR,
                 (uint)FrameSettingsField.SSAO,
                 (uint)FrameSettingsField.SubsurfaceScattering,
                 (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
