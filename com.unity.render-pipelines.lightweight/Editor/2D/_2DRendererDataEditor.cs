@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
+using System.Collections.Generic;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
@@ -34,8 +35,30 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_LightOperations;
         LightOperationProps[] m_LightOperationPropsArray;
 
+
+        Analytics.Analytics m_Analytics = Analytics.Analytics.instance;
+        bool m_WasModified;
+        bool m_WasBlendStyleModified;
+
+        
+        void SendModifiedAnalytics(Analytics.IAnalytics analytics)
+        {
+            if (m_WasModified)
+            {
+                Analytics.Renderer2DModifiedData modifiedData = new Analytics.Light2DModifiedData();
+                modifiedData.instance_id = 0;
+
+                analytics.SendData(Analytics.AnalyticsDataTypes.k_2DRendererDataModifiedString, modifiedData);
+            }
+            
+        }
+
         void OnEnable()
         {
+            Debug.Log("Enabled");
+
+            m_ModifiedRenderData = new HashSet<_2DRendererData>();
+
             m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
             m_LightOperations = serializedObject.FindProperty("m_LightOperations");
 
@@ -62,6 +85,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
         }
 
+        private void OnDestroy()
+        {
+            SendModifiedAnalytics(m_Analytics);
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -74,6 +102,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             EditorGUILayout.LabelField(Styles.lightOperations);
             EditorGUI.indentLevel++;
 
+
+            EditorGUI.BeginChangeCheck();
             int numLightOps = m_LightOperations.arraySize;
             for (int i = 0; i < numLightOps; ++i)
             {
@@ -125,6 +155,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             EditorGUI.indentLevel--;
+            m_WasBlendStyleModified = EditorGUI.EndChangeCheck();
+            m_WasModified = serializedObject.hasModifiedProperties;
 
             serializedObject.ApplyModifiedProperties();
         }

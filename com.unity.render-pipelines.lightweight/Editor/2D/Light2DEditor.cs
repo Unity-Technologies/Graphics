@@ -43,6 +43,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 for (var i = 0; i < shapeEditor.pointCount; ++i)
                     pointsProperty.GetArrayElementAtIndex(i).vector3Value = shapeEditor.GetPoint(i).position;
 
+                // This is untracked right now...
                 serializedObject.ApplyModifiedProperties();
             }
         }
@@ -145,6 +146,23 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         int m_LastLightType = 0;
 
         HeaderModifier m_HeaderModifier;
+
+        Analytics.Analytics m_Analytics = Analytics.Analytics.instance;
+        HashSet<Light2D> m_ModifiedLights;
+
+        private void AnalyticsTrackChanges(SerializedObject serializedObject)
+        {
+            if (serializedObject.hasModifiedProperties)
+            {
+                foreach (Object targetObj in serializedObject.targetObjects)
+                {
+                    Light2D light2d = (Light2D)targetObj;
+                    if(!m_ModifiedLights.Contains(light2d))
+                        m_ModifiedLights.Add(light2d);
+                }
+            }
+        }
+
         public override VisualElement CreateInspectorGUI()
         {
             m_HeaderModifier = new HeaderModifier(OnInspectorGUI, () =>
@@ -169,6 +187,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         void OnEnable()
         {
+            m_ModifiedLights = new HashSet<Light2D>();
             m_LightType = serializedObject.FindProperty("m_LightType");
             m_LightColor = serializedObject.FindProperty("m_Color");
             m_LightIntensity = serializedObject.FindProperty("m_Intensity");
@@ -241,6 +260,25 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 int layerID = m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue;
                 if (SortingLayer.IsValid(layerID))
                     m_ApplyToSortingLayersList.Add(layerID);
+            }
+        }
+
+        internal void SendModifiedAnalytics(Analytics.Analytics analytics, Light2D light)
+        {
+            Analytics.Light2DModifiedData modifiedData = new Analytics.Light2DModifiedData();
+            modifiedData.instance_id = 0;
+            modifiedData.type = light.lightType;
+            analytics.SendData(Analytics.AnalyticsDataTypes.k_LightModifiedString, modifiedData);
+        }
+
+        private void OnDestroy()
+        {
+            if(m_ModifiedLights.Count > 0)
+            {
+                foreach (Light2D light in m_ModifiedLights)
+                {
+                    SendModifiedAnalytics(m_Analytics, light);
+                }
             }
         }
 
@@ -317,6 +355,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             RemoveSelectedGlobalLights(targets);
+
+
+            AnalyticsTrackChanges(serializedObject);
             serializedObject.ApplyModifiedProperties();
             AddSelectedGlobalLights(targets);
         }
@@ -720,10 +761,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (updateGlobalLights)
                 RemoveSelectedGlobalLights(targets);
 
+            AnalyticsTrackChanges(serializedObject);
             serializedObject.ApplyModifiedProperties();
 
             if (updateGlobalLights)
                 AddSelectedGlobalLights(targets);
         }
+
     }
 }
