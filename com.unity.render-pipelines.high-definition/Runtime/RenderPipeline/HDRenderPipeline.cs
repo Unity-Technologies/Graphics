@@ -1851,6 +1851,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             );
                         }
                         m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
+                        m_VolumetricLightingSystem.VolumeVoxelizationBlurPass(hdCamera, cmd, m_LightLoop);
                     }, !haveAsyncTaskWithShadows);
 
                     haveAsyncTaskWithShadows = true;
@@ -1939,6 +1940,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Perform the voxelization step which fills the density 3D texture.
                     m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes, m_LightLoop);
+                    m_VolumetricLightingSystem.VolumeVoxelizationBlurPass(hdCamera, cmd, m_LightLoop);
                 }
 
                 // Render the volumetric lighting.

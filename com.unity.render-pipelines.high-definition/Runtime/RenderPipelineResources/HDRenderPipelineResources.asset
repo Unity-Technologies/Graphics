@@ -52,6 +52,8 @@ MonoBehaviour:
       type: 3}
     volumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a,
       type: 3}
+    volumeVoxelizationBlurCS: {fileID: 7200000, guid: b1999d15f18eba5488f756d1c8cc3a0b,
+      type: 3}
     volumetricLightingCS: {fileID: 7200000, guid: b4901a10df2d1e24282725e9fbc77c97,
       type: 3}
     deferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5, type: 3}
