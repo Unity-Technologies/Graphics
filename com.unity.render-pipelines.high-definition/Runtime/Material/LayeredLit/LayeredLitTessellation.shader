@@ -835,5 +835,9 @@ Shader "HDRP/LayeredLitTessellation"
         }
     }
 
+//forest-begin:
+    Dependency "BaseMapShader" = "Hidden/Forest/Standard_Terrain_BaseMap_DeferredShading_HDRenderLoop"
+//forest-end:
+
     CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.LayeredLitGUI"
 }
