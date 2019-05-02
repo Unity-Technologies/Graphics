@@ -5,9 +5,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [6.7.0] - 2019-XX-XX
-### Fixed
-- Fixed an error that occured when using multiple Sampler State nodes with different parameters.
-
 ### Changed
 - Anti-aliasing (4x) is now enabled on Shader Graph windows.
 
@@ -24,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the main preview was always redrawing.
 - When you set a Master Node as active, the Main Preview now shows the correct result.
 - When you save a graph that contains a Sub Graph node, the Shader Graph window no longer freezes.
+- Fixed an error that occured when using multiple Sampler State nodes with different parameters.
 
 ## [6.6.0] - 2019-04-01
 ### Added
