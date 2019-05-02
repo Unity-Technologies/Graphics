@@ -4,7 +4,7 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     [Serializable]
-    public struct _2DLightOperationDescription
+    public struct Light2DBlendStyle
     {
         internal enum TextureChannel
         {

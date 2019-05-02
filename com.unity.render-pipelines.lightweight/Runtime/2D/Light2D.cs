@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
+using UnityEngine.Serialization;
 #endif
 
 namespace UnityEngine.Experimental.Rendering.LWRP
@@ -29,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //                                      Static/Constants
         //------------------------------------------------------------------------------------------
 
-        const int k_LightOperationCount = 4;    // This must match the array size of m_LightOperations in _2DRendererData.
+        const int k_BlendStyleCount = 4;    // This must match the array size of m_LightBlendStyles in _2DRendererData.
         static List<Light2D>[] s_Lights = SetupLightArray();
         static CullingGroup s_CullingGroup;
         static BoundingSphere[] s_BoundingSpheres;
@@ -55,8 +56,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         LightType m_LightType = LightType.Parametric;
         LightType m_PreviousLightType = (LightType)LightType.Parametric;
 
-        [SerializeField]
-        int m_LightOperationIndex = 0;
+        [SerializeField, FormerlySerializedAs("m_LightOperationIndex")]
+        int m_BlendStyleIndex = 0;
 
         [SerializeField]
         float m_FalloffIntensity = 0.5f;
@@ -78,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] bool m_AlphaBlendOnOverlap = false; 
 
         int m_PreviousLightOrder = -1;
-        int m_PreviousLightOperationIndex;
+        int m_PreviousBlendStyleIndex;
         float       m_PreviousLightVolumeOpacity;
         Sprite      m_PreviousLightCookieSprite     = null;
         Mesh        m_Mesh;
@@ -104,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         /// <summary>
         /// The lights current operation index
         /// </summary>
-        public int lightOperationIndex => m_LightOperationIndex;
+        public int blendStyleIndex => m_BlendStyleIndex;
 
         /// <summary>
         /// The lights current color
@@ -165,8 +166,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal static Dictionary<int, Color>[] SetupGlobalClearColors()
         {
-            Dictionary<int,Color>[] globalClearColors = new Dictionary<int, Color>[k_LightOperationCount];
-            for(int i=0;i<k_LightOperationCount;i++)
+            Dictionary<int,Color>[] globalClearColors = new Dictionary<int, Color>[k_BlendStyleCount];
+            for(int i=0;i<k_BlendStyleCount;i++)
             {
                 globalClearColors[i] = new Dictionary<int, Color>();
             }
@@ -175,7 +176,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal static List<Light2D>[] SetupLightArray()
         {
-            List<Light2D>[] retArray = new List<Light2D>[k_LightOperationCount];
+            List<Light2D>[] retArray = new List<Light2D>[k_BlendStyleCount];
 
             for (int i = 0; i < retArray.Length; i++)
                 retArray[i] = new List<Light2D>();
@@ -191,8 +192,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             s_CullingGroup.targetCamera = camera;
 
             int totalLights = 0;
-            for (int lightOpIndex = 0; lightOpIndex < s_Lights.Length; ++lightOpIndex)
-                totalLights += s_Lights[lightOpIndex].Count;
+            for (int blendStyleIndex = 0; blendStyleIndex < s_Lights.Length; ++blendStyleIndex)
+                totalLights += s_Lights[blendStyleIndex].Count;
 
             if (s_BoundingSpheres == null)
                 s_BoundingSpheres = new BoundingSphere[Mathf.Max(1024, 2 * totalLights)];
@@ -200,13 +201,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 s_BoundingSpheres = new BoundingSphere[2 * totalLights];
 
             int currentLightCullingIndex = 0;
-            for (int lightOpIndex = 0; lightOpIndex < s_Lights.Length; ++lightOpIndex)
+            for (int blendStyleIndex = 0; blendStyleIndex < s_Lights.Length; ++blendStyleIndex)
             {
-                var lightsPerLightOp = s_Lights[lightOpIndex];
+                var lightsPerBlendStyle = s_Lights[blendStyleIndex];
 
-                for (int lightIndex = 0; lightIndex < lightsPerLightOp.Count; ++lightIndex)
+                for (int lightIndex = 0; lightIndex < lightsPerBlendStyle.Count; ++lightIndex)
                 {
-                    Light2D light = lightsPerLightOp[lightIndex];
+                    Light2D light = lightsPerBlendStyle[lightIndex];
                     if (light == null)
                         continue;
 
@@ -219,9 +220,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             s_CullingGroup.SetBoundingSphereCount(currentLightCullingIndex);
         }
 
-        internal static List<Light2D> GetLightsByLightOperation(int lightOpIndex)
+        internal static List<Light2D> GetLightsByBlendStyle(int blendStyleIndex)
         {
-            return s_Lights[lightOpIndex];
+            return s_Lights[blendStyleIndex];
         }
 
         internal int GetTopMostLitLayer()
@@ -262,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         void InsertLight()
         {
-            var lightList = s_Lights[m_LightOperationIndex];
+            var lightList = s_Lights[m_BlendStyleIndex];
             int index = 0;
 
             while (index < lightList.Count && m_LightOrder > lightList[index].m_LightOrder)
@@ -271,19 +272,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             lightList.Insert(index, this);
         }
 
-        void UpdateLightOperation()
+        void UpdateBlendStyle()
         {
-            if (m_LightOperationIndex == m_PreviousLightOperationIndex)
+            if (m_BlendStyleIndex == m_PreviousBlendStyleIndex)
                 return;
 
             if(m_LightType == LightType.Global)
             {
-                RemoveGlobalLight(m_PreviousLightOperationIndex, this);
+                RemoveGlobalLight(m_PreviousBlendStyleIndex, this);
                 AddGlobalLight(this);
             }
 
-            s_Lights[m_PreviousLightOperationIndex].Remove(this);
-            m_PreviousLightOperationIndex = m_LightOperationIndex;
+            s_Lights[m_PreviousBlendStyleIndex].Remove(this);
+            m_PreviousBlendStyleIndex = m_BlendStyleIndex;
             InsertLight();
         }
 
@@ -340,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
             {
                 int sortingLayer = light2D.m_ApplyToSortingLayers[i];
-                Dictionary<int, Color> globalColorOp = globalClearColors[light2D.m_LightOperationIndex];
+                Dictionary<int, Color> globalColorOp = globalClearColors[light2D.m_BlendStyleIndex];
                 if (!globalColorOp.ContainsKey(sortingLayer))
                 {
                     globalColorOp.Add(sortingLayer, light2D.m_Intensity * light2D.m_Color);
@@ -350,12 +351,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     if (overwriteColor)
                         globalColorOp[sortingLayer] = light2D.m_Intensity * light2D.m_Color;
                     else
-                        Debug.LogWarning("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light operation index " + light2D.m_LightOperationIndex);
+                        Debug.LogWarning("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light blend style index " + light2D.m_BlendStyleIndex);
                 }
             }
         }
 
-        static internal void RemoveGlobalLight(int lightOperationIndex, Light2D light2D)
+        static internal void RemoveGlobalLight(int blendStyleIndex, Light2D light2D)
         {
 #if UNITY_EDITOR
             if (PrefabStageUtility.GetPrefabStage(light2D.gameObject) != PrefabStageUtility.GetCurrentPrefabStage())
@@ -365,7 +366,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
             {
                 int sortingLayer = light2D.m_ApplyToSortingLayers[i];
-                Dictionary<int, Color> globalColorOp = globalClearColors[lightOperationIndex];
+                Dictionary<int, Color> globalColorOp = globalClearColors[blendStyleIndex];
                 if (globalColorOp.ContainsKey(sortingLayer))
                     globalColorOp.Remove(sortingLayer);
             }
@@ -388,10 +389,10 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 RenderPipeline.beginCameraRendering += SetupCulling;
             }
 
-            if (!s_Lights[m_LightOperationIndex].Contains(this))
+            if (!s_Lights[m_BlendStyleIndex].Contains(this))
                 InsertLight();
 
-            m_PreviousLightOperationIndex = m_LightOperationIndex;
+            m_PreviousBlendStyleIndex = m_BlendStyleIndex;
 
             if (m_LightType == LightType.Global)
                 AddGlobalLight(this);
@@ -419,7 +420,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             if (m_LightType == LightType.Global)
-                RemoveGlobalLight(m_LightOperationIndex, this);
+                RemoveGlobalLight(m_BlendStyleIndex, this);
         }
 
         internal List<Vector2> GetFalloffShape()
@@ -440,9 +441,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static internal LightStats GetLightStatsByLayer(int layer)
         {
             LightStats returnStats = new LightStats();
-            for(int lightOpIndex=0; lightOpIndex < s_Lights.Length; lightOpIndex++)
+            for(int blendStyleIndex = 0; blendStyleIndex < s_Lights.Length; blendStyleIndex++)
             {
-                List<Light2D> lights = s_Lights[lightOpIndex];
+                List<Light2D> lights = s_Lights[blendStyleIndex];
                 for (int lightIndex = 0; lightIndex < lights.Count; lightIndex++)
                 {
                     Light2D light = lights[lightIndex];
@@ -463,21 +464,21 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         private void LateUpdate()
         {
-            UpdateLightOperation();
+            UpdateBlendStyle();
 
             bool rebuildMesh = false;
 
             // Sorting. InsertLight() will make sure the lights are sorted.
             if (LightUtility.CheckForChange(m_LightOrder, ref m_PreviousLightOrder))
             {
-                s_Lights[(int)m_LightOperationIndex].Remove(this);
+                s_Lights[(int)m_BlendStyleIndex].Remove(this);
                 InsertLight();
             }
 
             if (m_LightType != m_PreviousLightType)
             {
                 if(m_PreviousLightType == LightType.Global)
-                    RemoveGlobalLight(m_LightOperationIndex, this);
+                    RemoveGlobalLight(m_BlendStyleIndex, this);
 
                 if (m_LightType == LightType.Global)
                     AddGlobalLight(this);

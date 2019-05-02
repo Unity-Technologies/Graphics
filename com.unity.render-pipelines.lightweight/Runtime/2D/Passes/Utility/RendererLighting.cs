@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static readonly string k_UseAdditiveBlendingKeyword = "USE_ADDITIVE_BLENDING";
         const int k_NumberOfLightMaterials = 1 << 5 + 3;  // 5 keywords +  volume bit, shape bit
 
-        static readonly string[] k_UseLightOperationKeywords =
+        static readonly string[] k_UseBlendStyleKeywords =
         {
             "USE_SHAPE_LIGHT_TYPE_0",
             "USE_SHAPE_LIGHT_TYPE_1",
@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         };
 
         static _2DRendererData s_RendererData;
-        static _2DLightOperationDescription[] s_LightOperations;
+        static Light2DBlendStyle[] s_BlendStyles;
         static RenderTargetHandle[] s_RenderTargets;
         static bool[] s_RenderTargetsDirty;
         static RenderTargetHandle s_NormalsTarget;
@@ -35,17 +35,17 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         static public void Setup(_2DRendererData rendererData)
         {
             s_RendererData = rendererData;
-            s_LightOperations = rendererData.lightOperations;
+            s_BlendStyles = rendererData.lightBlendStyles;
 
             if (s_RenderTargets == null)
             {
-                s_RenderTargets = new RenderTargetHandle[s_LightOperations.Length];
+                s_RenderTargets = new RenderTargetHandle[s_BlendStyles.Length];
                 s_RenderTargets[0].Init("_ShapeLightTexture0");
                 s_RenderTargets[1].Init("_ShapeLightTexture1");
                 s_RenderTargets[2].Init("_ShapeLightTexture2");
                 s_RenderTargets[3].Init("_ShapeLightTexture3");
 
-                s_RenderTargetsDirty = new bool[s_LightOperations.Length];
+                s_RenderTargetsDirty = new bool[s_BlendStyles.Length];
             }
 
             if (s_NormalsTarget.id == 0)
@@ -78,12 +78,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             descriptor.height = (int)(camera.pixelHeight);
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
 
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (!s_LightOperations[i].enabled)
+                if (!s_BlendStyles[i].enabled)
                     continue;
 
-                float renderTextureScale = Mathf.Clamp(s_LightOperations[i].renderTextureScale, 0.01f, 1.0f);
+                float renderTextureScale = Mathf.Clamp(s_BlendStyles[i].renderTextureScale, 0.01f, 1.0f);
                 descriptor.width = (int)(camera.pixelWidth * renderTextureScale);
                 descriptor.height = (int)(camera.pixelHeight * renderTextureScale);
                 cmd.GetTemporaryRT(s_RenderTargets[i].id, descriptor, FilterMode.Bilinear);
@@ -93,9 +93,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void ReleaseRenderTextures(CommandBuffer cmd)
         {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (!s_LightOperations[i].enabled)
+                if (!s_BlendStyles[i].enabled)
                     continue;
 
                 cmd.ReleaseTemporaryRT(s_RenderTargets[i].id);
@@ -104,13 +104,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
         }
 
-        static private bool RenderLightSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
+        static private bool RenderLightSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, List<Light2D> lights)
         {
             bool renderedAnyLight = false;
 
             foreach (var light in lights)
             {
-                if (light != null && light.lightType != Light2D.LightType.Global && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                if (light != null && light.lightType != Light2D.LightType.Global && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                 {
                     Material lightMaterial = GetLightMaterial(light, false);
                     if (lightMaterial != null)
@@ -152,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             return renderedAnyLight;
         }
 
-        static private void RenderLightVolumeSet(Camera camera, int lightOpIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        static private void RenderLightVolumeSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             if (lights.Count > 0)
             {
@@ -163,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     int topMostLayer = light.GetTopMostLitLayer();
                     if (layerToRender == topMostLayer)
                     {
-                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.lightOperationIndex == lightOpIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
+                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender) && light.IsLightVisible(camera))
                         {
                             Material lightVolumeMaterial = GetLightMaterial(light, true);
                             if (lightVolumeMaterial != null)
@@ -205,13 +205,13 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void SetShapeLightShaderGlobals(CommandBuffer cmdBuffer)
         {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (i >= k_UseLightOperationKeywords.Length)
+                if (i >= k_UseBlendStyleKeywords.Length)
                     break;
 
-                string keyword = k_UseLightOperationKeywords[i];
-                if (!s_LightOperations[i].enabled)
+                string keyword = k_UseBlendStyleKeywords[i];
+                if (!s_BlendStyles[i].enabled)
                 {
                     cmdBuffer.DisableShaderKeyword(keyword);
                     continue;
@@ -219,9 +219,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 else
                 {
                     cmdBuffer.EnableShaderKeyword(keyword);
-                    cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, s_LightOperations[i].blendFactors);
-                    cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_LightOperations[i].maskTextureChannelFilter.mask);
-                    cmdBuffer.SetGlobalVector("_ShapeLightInvertedFilter" + i, s_LightOperations[i].maskTextureChannelFilter.inverted);
+                    cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, s_BlendStyles[i].blendFactors);
+                    cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_BlendStyles[i].maskTextureChannelFilter.mask);
+                    cmdBuffer.SetGlobalVector("_ShapeLightInvertedFilter" + i, s_BlendStyles[i].maskTextureChannelFilter.inverted);
                 }
             }
 
@@ -303,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void ClearDirtyLighting(CommandBuffer cmdBuffer)
         {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
                 if (s_RenderTargetsDirty[i])
                 {
@@ -328,12 +328,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void RenderLights(Camera camera, CommandBuffer cmdBuffer, int layerToRender)
         {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (!s_LightOperations[i].enabled)
+                if (!s_BlendStyles[i].enabled)
                     continue;
 
-                string sampleName = "2D Lights - " + s_LightOperations[i].name;
+                string sampleName = "2D Lights - " + s_BlendStyles[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
                 cmdBuffer.SetRenderTarget(s_RenderTargets[i].Identifier());
@@ -353,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     i,
                     cmdBuffer,
                     layerToRender,
-                    Light2D.GetLightsByLightOperation(i)
+                    Light2D.GetLightsByBlendStyle(i)
                 );
 
                 s_RenderTargetsDirty[i] = rtDirty;
@@ -364,12 +364,12 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender)
         {
-            for (int i = 0; i < s_LightOperations.Length; ++i)
+            for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
-                if (!s_LightOperations[i].enabled)
+                if (!s_BlendStyles[i].enabled)
                     continue;
 
-                string sampleName = "2D Shape Light Volumes - " + s_LightOperations[i].name;
+                string sampleName = "2D Shape Light Volumes - " + s_BlendStyles[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
                 RenderLightVolumeSet(
@@ -378,7 +378,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                     cmdBuffer,
                     layerToRender,
                     s_RenderTargets[i].Identifier(),
-                    Light2D.GetLightsByLightOperation(i)                  
+                    Light2D.GetLightsByBlendStyle(i)                  
                 );
 
                 cmdBuffer.EndSample(sampleName);
