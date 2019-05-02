@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
 - Update Pyramid Spot Light to better match emitted light volume.
 - SSR's Default FrameSettings for camera is now enable.
+- Re-enabled the sharpening filter on Temporal Anti-aliasing
 
 ## [5.13.0-preview] - 2019-04-15
 
