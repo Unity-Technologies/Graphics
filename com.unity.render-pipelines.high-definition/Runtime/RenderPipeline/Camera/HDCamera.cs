@@ -244,6 +244,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
 
+        public HDAdditionalCameraData.TAAReconstructionFilter taaReconstructionFilter => m_AdditionalCameraData.taaReconstructionFilter;
+
+        public float taaSharpness => m_AdditionalCameraData.taaSharpness;
+        public float taaHistoryFeedback => m_AdditionalCameraData.taaHistoryFeedback;
+
         public HDPhysicalCamera physicalParameters => m_AdditionalCameraData?.physicalParameters;
 
         public bool invertFaceCulling

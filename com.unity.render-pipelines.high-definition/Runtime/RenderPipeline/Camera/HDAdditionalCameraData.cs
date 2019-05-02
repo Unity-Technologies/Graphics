@@ -141,6 +141,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool dithering = false;
         public bool stopNaNs = false;
 
+        // TAA additional parameters
+        public enum TAAReconstructionFilter
+        {
+            Unity = 0,
+            Gaussian,
+            BlackmanHarris,
+            DodgsonQuadratic,
+            Mitchell,
+            Roubidoux,
+            CatmullRom,
+            Lanczos2,
+            Lanczos3,
+            Lanczos4,
+            Lanczos5
+        }
+
+        public TAAReconstructionFilter taaReconstructionFilter = TAAReconstructionFilter.Unity;
+        public float taaSharpness = 0.0f;
+        public float taaHistoryFeedback = 0.94f;
+
         // Physical parameters
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
 

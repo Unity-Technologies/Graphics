@@ -122,7 +122,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CED.Group(
                 Drawer_Antialiasing,
                 Drawer_Dithering,
-                Drawer_StopNaNs
+                Drawer_StopNaNs,
+                Drawer_TAAReconstructionFilter,
+                Drawer_TAASharpness,
+                Drawer_TAAHistoryFeedback
                 ),
             CED.space,
             CED.Group(
@@ -439,6 +442,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_StopNaNs(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.stopNaNs, stopNaNsContent);
+        }
+
+        static void Drawer_TAAReconstructionFilter(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.taaReconstructionFilter, taaReconstructionFilterContent);
+        }
+
+        static void Drawer_TAASharpness(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.taaSharpness, taaSharpnessContent);
+        }
+
+        static void Drawer_TAAHistoryFeedback(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.taaHistoryFeedback, taaHistoryFeedbackContent);
         }
 
         static void Drawer_FieldRenderingPath(SerializedHDCamera p, Editor owner)

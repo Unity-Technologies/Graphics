@@ -23,6 +23,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty SMAAQuality;
         public SerializedProperty dithering;
         public SerializedProperty stopNaNs;
+        public SerializedProperty taaReconstructionFilter;
+        public SerializedProperty taaSharpness;
+        public SerializedProperty taaHistoryFeedback;
         public SerializedProperty clearColorMode;
         public SerializedProperty backgroundColorHDR;
         public SerializedProperty passThrough;
@@ -67,6 +70,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);
             stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
+            taaReconstructionFilter = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaReconstructionFilter);
+            taaSharpness = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpness);
+            taaHistoryFeedback = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaHistoryFeedback);
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);
             passThrough = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fullscreenPassthrough);

@@ -727,6 +727,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var historyScale = new Vector2(camera.actualWidth / (float)prevHistory.rt.width, camera.actualHeight / (float)prevHistory.rt.height);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ScreenToTargetScaleHistory, historyScale);
+            cmd.SetComputeIntParam(cs, HDShaderIDs._TAAReconstructionFilter, (int)camera.taaReconstructionFilter);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._TAASharpness, camera.taaSharpness);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._TAAHistoryFeedback, camera.taaHistoryFeedback);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryTexture, prevHistory);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputHistoryTexture, nextHistory);
