@@ -86,6 +86,10 @@ struct LightData
     float angleOffset;
     float3 forward;
     int lightType;
+    uint customFeatureFlags;
+    float customRadiusScale;
+    float customRadiusBias;
+    float customPadding;
     float3 right;
     float range;
     float3 up;
