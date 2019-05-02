@@ -123,7 +123,7 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
 
                 half4 Frag(Varyings input) : SV_Target
                 {
-                    return DoMotionBlur(input, 3);
+                    return DoMotionBlur(input, 2);
                 }
 
             ENDHLSL
@@ -140,7 +140,7 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
 
                 half4 Frag(Varyings input) : SV_Target
                 {
-                    return DoMotionBlur(input, 4);
+                    return DoMotionBlur(input, 3);
                 }
 
             ENDHLSL
@@ -157,7 +157,7 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
 
                 half4 Frag(Varyings input) : SV_Target
                 {
-                    return DoMotionBlur(input, 5);
+                    return DoMotionBlur(input, 4);
                 }
 
             ENDHLSL
