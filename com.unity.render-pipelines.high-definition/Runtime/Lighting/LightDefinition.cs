@@ -98,6 +98,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 forward;
         public GPULightType lightType;          // TODO: move this up?
 
+        public uint customFeatureFlags;
+        public float customRadiusScale;
+        public float customRadiusBias;
+        public float customPadding;
+
         public Vector3 right;                   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
         public float   range;
 

@@ -109,6 +109,7 @@ float GetRadius(SFiniteLightBound value)
 {
     return value.radius;
 }
+
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.LightVolumeData
 //
@@ -160,5 +161,6 @@ float GetUnused2(LightVolumeData value)
 {
     return value.unused2;
 }
+
 
 #endif
