@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
     {
         public int instance_id;
         public int number_of_blending_layers_enabled;
-        public int 
+        //public int 
     }
 
     interface IAnalytics

@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.LWRP;
-using System.Collections.Generic;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
@@ -10,17 +9,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         class Styles
         {
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
-            public static readonly GUIContent lightOperations = EditorGUIUtility.TrTextContent("Light Operations", "A Light Operation is a collection of properties that describe a particular way of applying lighting.");
+            public static readonly GUIContent lightBlendStyles = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent name = EditorGUIUtility.TrTextContent("Name");
-            public static readonly GUIContent maskTextureChannel = EditorGUIUtility.TrTextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Operation.");
+            public static readonly GUIContent maskTextureChannel = EditorGUIUtility.TrTextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Blend Style.");
             public static readonly GUIContent renderTextureScale = EditorGUIUtility.TrTextContent("Render Texture Scale", "The resolution of the lighting buffer relative to the screen resolution. 1.0 means full screen size.");
             public static readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "How the lighting should be blended with the main color of the objects.");
             public static readonly GUIContent customBlendFactors = EditorGUIUtility.TrTextContent("Custom Blend Factors");
             public static readonly GUIContent blendFactorMultiplicative = EditorGUIUtility.TrTextContent("Multiplicative");
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
         }
+        struct LightBlendStyleProps
 
-        struct LightOperationProps
         {
             public SerializedProperty enabled;
             public SerializedProperty name;
@@ -31,63 +30,58 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public SerializedProperty blendFactorAdditive;
         }
 
-        SerializedProperty m_HDREmulationScale;
-        SerializedProperty m_LightOperations;
-        LightOperationProps[] m_LightOperationPropsArray;
-
-
         Analytics.Analytics m_Analytics = Analytics.Analytics.instance;
         bool m_WasModified;
         bool m_WasBlendStyleModified;
 
-        
+
         void SendModifiedAnalytics(Analytics.IAnalytics analytics)
         {
             if (m_WasModified)
             {
-                Analytics.Renderer2DModifiedData modifiedData = new Analytics.Light2DModifiedData();
-                modifiedData.instance_id = 0;
+                //Analytics.Renderer2DModifiedData modifiedData = new Analytics.Light2DModifiedData();
+                //modifiedData.instance_id = 0;
 
-                analytics.SendData(Analytics.AnalyticsDataTypes.k_2DRendererDataModifiedString, modifiedData);
+                //analytics.SendData(Analytics.AnalyticsDataTypes.k_2DRendererDataModifiedString, modifiedData);
             }
-            
+
         }
+
+        SerializedProperty m_HDREmulationScale;
+
+
+        SerializedProperty m_LightBlendStyles;
+        LightBlendStyleProps[] m_LightBlendStylePropsArray;
 
         void OnEnable()
         {
-            Debug.Log("Enabled");
+            m_WasModified = false;
+            m_WasBlendStyleModified = false;
 
-            m_ModifiedRenderData = new HashSet<_2DRendererData>();
+           m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
+            m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
 
-            m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
-            m_LightOperations = serializedObject.FindProperty("m_LightOperations");
+            int numBlendStyles = m_LightBlendStyles.arraySize;
+            m_LightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
 
-            int numLightOps = m_LightOperations.arraySize;
-            m_LightOperationPropsArray = new LightOperationProps[numLightOps];
-
-            for (int i = 0; i < numLightOps; ++i)
+            for (int i = 0; i < numBlendStyles; ++i)
             {
-                SerializedProperty lightOpProp = m_LightOperations.GetArrayElementAtIndex(i);
-                ref LightOperationProps props = ref m_LightOperationPropsArray[i];
+                SerializedProperty blendStyleProp = m_LightBlendStyles.GetArrayElementAtIndex(i);
+                ref LightBlendStyleProps props = ref m_LightBlendStylePropsArray[i];
 
-                props.enabled = lightOpProp.FindPropertyRelative("enabled");
-                props.name = lightOpProp.FindPropertyRelative("name");
-                props.maskTextureChannel = lightOpProp.FindPropertyRelative("maskTextureChannel");
-                props.renderTextureScale = lightOpProp.FindPropertyRelative("renderTextureScale");
-                props.blendMode = lightOpProp.FindPropertyRelative("blendMode");
-                props.blendFactorMultiplicative = lightOpProp.FindPropertyRelative("customBlendFactors.multiplicative");
-                props.blendFactorAdditive = lightOpProp.FindPropertyRelative("customBlendFactors.additive");
+                props.enabled = blendStyleProp.FindPropertyRelative("enabled");
+                props.name = blendStyleProp.FindPropertyRelative("name");
+                props.maskTextureChannel = blendStyleProp.FindPropertyRelative("maskTextureChannel");
+                props.renderTextureScale = blendStyleProp.FindPropertyRelative("renderTextureScale");
+                props.blendMode = blendStyleProp.FindPropertyRelative("blendMode");
+                props.blendFactorMultiplicative = blendStyleProp.FindPropertyRelative("customBlendFactors.multiplicative");
+                props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additive");
 
                 if (props.blendFactorMultiplicative == null)
-                    props.blendFactorMultiplicative = lightOpProp.FindPropertyRelative("customBlendFactors.modulate");
+                    props.blendFactorMultiplicative = blendStyleProp.FindPropertyRelative("customBlendFactors.modulate");
                 if (props.blendFactorAdditive == null)
-                    props.blendFactorAdditive = lightOpProp.FindPropertyRelative("customBlendFactors.additve");
+                    props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additve");
             }
-        }
-
-        private void OnDestroy()
-        {
-            SendModifiedAnalytics(m_Analytics);
         }
 
         public override void OnInspectorGUI()
@@ -99,23 +93,22 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
                 m_HDREmulationScale.floatValue = 1.0f;
 
-            EditorGUILayout.LabelField(Styles.lightOperations);
+            EditorGUILayout.LabelField(Styles.lightBlendStyles);
             EditorGUI.indentLevel++;
 
-
             EditorGUI.BeginChangeCheck();
-            int numLightOps = m_LightOperations.arraySize;
-            for (int i = 0; i < numLightOps; ++i)
+            int numBlendStyles = m_LightBlendStyles.arraySize;
+            for (int i = 0; i < numBlendStyles; ++i)
             {
-                SerializedProperty lightOpProp = m_LightOperations.GetArrayElementAtIndex(i);
-                ref LightOperationProps props = ref m_LightOperationPropsArray[i];
+                SerializedProperty blendStyleProp = m_LightBlendStyles.GetArrayElementAtIndex(i);
+                ref LightBlendStyleProps props = ref m_LightBlendStylePropsArray[i];
                 
                 EditorGUILayout.BeginHorizontal();
-                lightOpProp.isExpanded = EditorGUILayout.Foldout(lightOpProp.isExpanded, props.name.stringValue, true);
+                blendStyleProp.isExpanded = EditorGUILayout.Foldout(blendStyleProp.isExpanded, props.name.stringValue, true);
                 props.enabled.boolValue = EditorGUILayout.Toggle(props.enabled.boolValue);
                 EditorGUILayout.EndHorizontal();
 
-                if (lightOpProp.isExpanded)
+                if (blendStyleProp.isExpanded)
                 {
                     EditorGUI.BeginDisabledGroup(!props.enabled.boolValue);
                     EditorGUI.indentLevel++;
@@ -125,7 +118,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                     EditorGUILayout.PropertyField(props.renderTextureScale, Styles.renderTextureScale);
                     EditorGUILayout.PropertyField(props.blendMode, Styles.blendMode);
 
-                    if (props.blendMode.intValue == (int)_2DLightOperationDescription.BlendMode.Custom)
+                    if (props.blendMode.intValue == (int)Light2DBlendStyle.BlendMode.Custom)
                     {
                         EditorGUILayout.BeginHorizontal();
 
@@ -155,6 +148,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             EditorGUI.indentLevel--;
+
             m_WasBlendStyleModified = EditorGUI.EndChangeCheck();
             m_WasModified = serializedObject.hasModifiedProperties;
 

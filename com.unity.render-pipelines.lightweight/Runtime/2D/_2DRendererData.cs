@@ -1,5 +1,11 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
+using UnityEngine.Serialization;
+
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.ProjectWindowCallback;
+#endif
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -13,8 +19,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField]
         float m_HDREmulationScale = 1;
 
-        [SerializeField]
-        _2DLightOperationDescription[] m_LightOperations = null;
+        [SerializeField, FormerlySerializedAs("m_LightOperations")]
+        Light2DBlendStyle[] m_LightBlendStyles = null;
 
         [SerializeField]
         Shader m_ShapeLightShader = null;
@@ -32,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         Shader m_BlitShader = null;
 
         public float hdrEmulationScale => m_HDREmulationScale;
-        public _2DLightOperationDescription[] lightOperations => m_LightOperations;
+        public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
 
         internal Shader shapeLightShader => m_ShapeLightShader;
         internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
@@ -65,19 +71,19 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         void OnCreate()
         {
-            m_LightOperations = new _2DLightOperationDescription[4];
+            m_LightBlendStyles = new Light2DBlendStyle[4];
 
-            m_LightOperations[0].enabled = true;
-            m_LightOperations[0].name = "Default";
-            m_LightOperations[0].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
-            m_LightOperations[0].renderTextureScale = 1.0f;
+            m_LightBlendStyles[0].enabled = true;
+            m_LightBlendStyles[0].name = "Default";
+            m_LightBlendStyles[0].blendMode = Light2DBlendStyle.BlendMode.Multiply;
+            m_LightBlendStyles[0].renderTextureScale = 1.0f;
 
-            for (int i = 1; i < m_LightOperations.Length; ++i)
+            for (int i = 1; i < m_LightBlendStyles.Length; ++i)
             {
-                m_LightOperations[i].enabled = false;
-                m_LightOperations[i].name = "Light Operation " + i;
-                m_LightOperations[i].blendMode = _2DLightOperationDescription.BlendMode.Multiply;
-                m_LightOperations[i].renderTextureScale = 1.0f;
+                m_LightBlendStyles[i].enabled = false;
+                m_LightBlendStyles[i].name = "Blend Style " + i;
+                m_LightBlendStyles[i].blendMode = Light2DBlendStyle.BlendMode.Multiply;
+                m_LightBlendStyles[i].renderTextureScale = 1.0f;
             }
 
             m_ShapeLightShader = Shader.Find("Hidden/Light2D-Shape");

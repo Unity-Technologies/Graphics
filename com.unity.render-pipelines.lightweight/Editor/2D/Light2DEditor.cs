@@ -70,9 +70,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light color's intensity");
             public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
             public static GUIContent generalVolumeOpacity = EditorGUIUtility.TrTextContent("Volume Opacity", "Specify the light's volumetric light volume opacity");
-            public static GUIContent generalLightOperation = EditorGUIUtility.TrTextContent("Light Operation", "Specify the light operation");
+            public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Specify the blend style");
             public static GUIContent generalLightOverlapMode = EditorGUIUtility.TrTextContent("Alpha Blend on Overlap", "Use alpha blending instead of additive blending when this light overlaps others");
-            public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same light operation get rendered.");
+            public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
 
             public static GUIContent pointLightQuality = EditorGUIUtility.TrTextContent("Quality", "Use accurate if there are noticeable visual issues");
             public static GUIContent pointLightInnerAngle =  EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light");
@@ -111,7 +111,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_UseNormalMap;
         SerializedProperty m_ApplyToSortingLayers;
         SerializedProperty m_VolumetricAlpha;
-        SerializedProperty m_LightOperationIndex;
+        SerializedProperty m_BlendStyleIndex;
         SerializedProperty m_FalloffIntensity;
         SerializedProperty m_PointZDistance;
         SerializedProperty m_LightOrder;
@@ -133,9 +133,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_ShapeLightFalloffOffset;
         SerializedProperty m_ShapeLightSprite;
 
-        int[]           m_LightOperationIndices;
-        GUIContent[]    m_LightOperationNames;
-        bool            m_AnyLightOperationEnabled  = false;
+        int[]           m_BlendStyleIndices;
+        GUIContent[]    m_BlendStyleNames;
+        bool            m_AnyBlendStyleEnabled  = false;
         Rect            m_SortingLayerDropdownRect  = new Rect();
         SortingLayer[]  m_AllSortingLayers;
         GUIContent[]    m_AllSortingLayerNames;
@@ -194,7 +194,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_UseNormalMap = serializedObject.FindProperty("m_UseNormalMap");
             m_ApplyToSortingLayers = serializedObject.FindProperty("m_ApplyToSortingLayers");
             m_VolumetricAlpha = serializedObject.FindProperty("m_LightVolumeOpacity");
-            m_LightOperationIndex = serializedObject.FindProperty("m_LightOperationIndex");
+            m_BlendStyleIndex = serializedObject.FindProperty("m_BlendStyleIndex");
             m_FalloffIntensity = serializedObject.FindProperty("m_FalloffIntensity");
             m_PointZDistance = serializedObject.FindProperty("m_PointLightDistance");
             m_LightOrder = serializedObject.FindProperty("m_LightOrder");
@@ -216,38 +216,38 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
 
-            m_AnyLightOperationEnabled = false;
-            var lightOperationIndices = new List<int>();
-            var lightOperationNames = new List<string>();
+            m_AnyBlendStyleEnabled = false;
+            var blendStyleIndices = new List<int>();
+            var blendStyleNames = new List<string>();
             var pipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as LightweightRenderPipelineAsset;
             var rendererData = pipelineAsset != null ? pipelineAsset.scriptableRendererData as _2DRendererData : null;
             if (rendererData != null)
             {
-                for (int i = 0; i < rendererData.lightOperations.Length; ++i)
+                for (int i = 0; i < rendererData.lightBlendStyles.Length; ++i)
                 {
-                    lightOperationIndices.Add(i);
+                  blendStyleIndices.Add(i);
 
-                    ref var lightOperation = ref rendererData.lightOperations[i];
-                    if (lightOperation.enabled)
+                    ref var blendStyle = ref rendererData.lightBlendStyles[i];
+                    if (blendStyle.enabled)
                     {
-                        lightOperationNames.Add(lightOperation.name);
-                        m_AnyLightOperationEnabled = true;
+                        blendStyleNames.Add(blendStyle.name);
+                        m_AnyBlendStyleEnabled = true;
                     }
                     else
-                        lightOperationNames.Add(lightOperation.name + " (Disabled)");
+                        blendStyleNames.Add(blendStyle.name + " (Disabled)");
                 }
             }
             else
             {
                 for (int i = 0; i < 4; ++i)
                 {
-                    lightOperationIndices.Add(i);
-                    lightOperationNames.Add("Operation" + i);
+                    blendStyleIndices.Add(i);
+                    blendStyleNames.Add("Operation" + i);
                 }
             }
 
-            m_LightOperationIndices = lightOperationIndices.ToArray();
-            m_LightOperationNames = lightOperationNames.Select(x => new GUIContent(x)).ToArray();
+            m_BlendStyleIndices = blendStyleIndices.ToArray();
+            m_BlendStyleNames = blendStyleNames.Select(x => new GUIContent(x)).ToArray();
 
             m_AllSortingLayers = SortingLayer.layers;
             m_AllSortingLayerNames = m_AllSortingLayers.Select(x => new GUIContent(x.name)).ToArray();
@@ -273,6 +273,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         private void OnDestroy()
         {
+
             if(m_ModifiedLights.Count > 0)
             {
                 foreach (Light2D light in m_ModifiedLights)
@@ -310,7 +311,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject)
         {
-            if (!m_AnyLightOperationEnabled)
+            if (!m_AnyBlendStyleEnabled)
                 EditorGUILayout.HelpBox(Styles.shapeLightNoLightDefined);
 
             if (lightType == Light2D.LightType.Sprite)
@@ -355,7 +356,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             RemoveSelectedGlobalLights(targets);
-
 
             AnalyticsTrackChanges(serializedObject);
             serializedObject.ApplyModifiedProperties();
@@ -434,7 +434,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             {
                 Light2D light = lights[i] as Light2D;
                 if (light.lightType == Light2D.LightType.Global)
-                    Light2D.RemoveGlobalLight(light.lightOperationIndex, light);
+                  Light2D.RemoveGlobalLight(light.blendStyleIndex, light);
             }
         }
 
@@ -723,7 +723,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             EditorGUI.BeginChangeCheck();
 
-            EditorGUILayout.IntPopup(m_LightOperationIndex, m_LightOperationNames, m_LightOperationIndices, Styles.generalLightOperation);
+            EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
 
             EditorGUI.BeginChangeCheck();
