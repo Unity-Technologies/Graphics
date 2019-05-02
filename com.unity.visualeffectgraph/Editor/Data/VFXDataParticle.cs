@@ -520,6 +520,9 @@ namespace UnityEditor.VFX
             return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting());
         }
 
+
+        readonly HashSet<string> attributesWithGoodDefaultValues = new HashSet<string>(new string[] {"alive","position", "size", "scaleX", "scaleY", "scaleZ", "axisX", "axisY", "axisZ", "angleX", "angleY", "angleZ", "pivotX", "pivotY", "pivotZ" });
+
         public override void FillDescs(
             VFXCompilationStatus status,
             List<VFXGPUBufferDesc> outBufferDescs,
@@ -627,58 +630,9 @@ namespace UnityEditor.VFX
                     systemValueMappings.Add(new VFXMapping("bounds_size", boundsSizeIndex));
                 }
             }
+            SearchForUninitilizedAttributes(status, contextToCompiledData);
 
-            HashSet<string>[] writtenAttributes = new HashSet<string>[m_Contexts.Count];
-            HashSet<string>[] readAttributes = new HashSet<string>[m_Contexts.Count];
-            for (int i = 0; i < m_Contexts.Count; ++i)
-            {
-                var context = m_Contexts[i];
-                var contextData = contextToCompiledData[context];
-                var attributeData = m_ContextsToAttributes[context];
-                writtenAttributes[i] = new HashSet<string>();
-                readAttributes[i] = new HashSet<string>();
-
-                foreach(var attr in attributeData)
-                {
-                    if ((attr.Value & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
-                        readAttributes[i].Add(attr.Key.name);
-                    if ((attr.Value & VFXAttributeMode.Write) != 0)
-                        writtenAttributes[i].Add(attr.Key.name);
-                }
-            }
-
-            HashSet<string> uninitializedAttributes = new HashSet<string>();
-
-            for (int i = 0; i < m_Contexts.Count; ++i)
-            {
-                uninitializedAttributes.Clear();
-                foreach ( var attr in readAttributes[i])
-                {
-                    bool written = false;
-                    for (int j = 0; j <= i ; ++j)
-                    {
-                        if( writtenAttributes[j].Contains(attr))
-                        {
-                            written = true;
-                            break;
-                        }
-                    }
-                    if(!written)
-                    {
-                        uninitializedAttributes.Add(attr);
-                    }
-                }
-
-                foreach( string uninitilized in uninitializedAttributes)
-                {
-                    status.warnings.Add(new VFXCompilationLog() { model = m_Contexts[i], error = string.Format("This context use attribute {0} that is not yet written. The default value will be used.",uninitilized )});
-                }
-            }
-
-
-
-
-                int indirectBufferIndex = -1;
+            int indirectBufferIndex = -1;
             bool needsIndirectBuffer = NeedsIndirectBuffer();
             if (needsIndirectBuffer)
             {
@@ -828,6 +782,121 @@ namespace UnityEditor.VFX
                 layer = m_Layer
             });
         }
+
+        private void SearchForUninitilizedAttributes(VFXCompilationStatus status, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        {
+            HashSet<string> writtenAttributes = new HashSet<string>();
+            for (int i = 0; i < m_Contexts.Count; ++i)
+            {
+                var context = m_Contexts[i];
+                var contextData = contextToCompiledData[context];
+
+
+                HashSet<string> uninitilizedAttributes = new HashSet<string>();
+
+                //Context internal attributes
+                //A add written attributes
+                foreach (var attr in context.attributes)
+                    if ((attr.mode & VFXAttributeMode.Write) != 0)
+                        writtenAttributes.Add(attr.attrib.name);
+
+                //B search for uninitilized attributes
+                foreach (var attr in context.attributes)
+                    if ((attr.mode & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
+                        if (!writtenAttributes.Contains(attr.attrib.name) && !attributesWithGoodDefaultValues.Contains(attr.attrib.name))
+                            uninitilizedAttributes.Add(attr.attrib.name);
+
+                //C add message if needed
+                if (uninitilizedAttributes.Count > 0)
+                {
+                    status.warnings.Add(new VFXCompilationLog() { model = context, error = string.Format("This context use attributes ({0}) that are not yet written. The default value will be used.", uninitilizedAttributes.Aggregate((s, t) => s + ", " + t)) });
+                    uninitilizedAttributes.Clear();
+                }
+
+                //Context linked attributes
+                var namedExprs = contextData.cpuMapper.CollectExpression(-1).Concat(contextData.gpuMapper.CollectExpression(-1));
+                //A
+                //unneeded : operators can't have attribute write expressions
+
+                //B
+                foreach (var slot in context.inputSlots)
+                {
+                    var exp = slot.GetExpression();
+                    if( exp != null)
+                    {
+                        var neededAttrs = GetAllExpressionNeededAttributes(exp);
+                        foreach (var attr in neededAttrs)
+                            if ((attr.mode & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
+                                if (!writtenAttributes.Contains(attr.attrib.name) && !attributesWithGoodDefaultValues.Contains(attr.attrib.name))
+                                    uninitilizedAttributes.Add(attr.attrib.name);
+
+                        //C
+                        if (uninitilizedAttributes.Count > 0)
+                        {
+                            status.warnings.Add(new VFXCompilationLog() { model = slot, error = string.Format("The operators linked to this slot use attributes ({0}) that are not yet written. The default value will be used.", uninitilizedAttributes.Aggregate((s, t) => s + ", " + t)) });
+                            uninitilizedAttributes.Clear();
+                        }
+                    }
+                }
+
+                foreach (var block in context.children)
+                {
+                    //Block internal attributes
+                    //A
+
+                    foreach (var attr in block.attributes)
+                        if ((attr.mode & VFXAttributeMode.Write) != 0)
+                            writtenAttributes.Add(attr.attrib.name);
+
+                    //B
+                    foreach (var attr in block.attributes)
+                        if ((attr.mode & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
+                            if (!writtenAttributes.Contains(attr.attrib.name) && !attributesWithGoodDefaultValues.Contains(attr.attrib.name))
+                                uninitilizedAttributes.Add(attr.attrib.name);
+                    //C
+                    if (uninitilizedAttributes.Count > 0)
+                    {
+                        status.warnings.Add(new VFXCompilationLog() { model = block, error = string.Format("This block use attributes ({0}) that are not yet written. The default value will be used.", uninitilizedAttributes.Aggregate((s, t) => s + ", " + t)) });
+                        uninitilizedAttributes.Clear();
+                    }
+
+                    //Block linked attributes
+                    //A
+                    //unneeded : operators can't have attribute write expressions
+                    //B
+                    foreach (var slot in block.inputSlots)
+                    {
+                        var exp = slot.GetExpression();
+                        if (exp != null)
+                        {
+                            foreach (var attr in GetAllExpressionNeededAttributes(exp))
+                                if ((attr.mode & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
+                                    if (!writtenAttributes.Contains(attr.attrib.name) && !attributesWithGoodDefaultValues.Contains(attr.attrib.name))
+                                        uninitilizedAttributes.Add(attr.attrib.name);
+                            //C
+                            if (uninitilizedAttributes.Count > 0)
+                            {
+                                status.warnings.Add(new VFXCompilationLog() { model = slot, error = string.Format("The operators linked to this slot use attributes ({0}) that are not yet written. The default value will be used.", uninitilizedAttributes.Aggregate((s, t) => s + ", " + t)) });
+                                uninitilizedAttributes.Clear();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        IEnumerable<VFXAttributeInfo> GetAllExpressionNeededAttributes(VFXExpression exp)
+        {
+            foreach (var attr in exp.GetNeededAttributes())
+                yield return attr;
+
+            foreach( var parentExp in exp.parents)
+            {
+                foreach (var attr in GetAllExpressionNeededAttributes(parentExp))
+                    yield return attr;
+            }
+        }
+
 
         public override void CopySettings<T>(T dst)
         {

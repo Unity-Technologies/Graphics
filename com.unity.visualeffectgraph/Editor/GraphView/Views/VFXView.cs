@@ -585,16 +585,16 @@ namespace UnityEditor.VFX.UI
                     target = (targetParent as VFXNodeUI).GetPorts(slot.direction == VFXSlot.Direction.kInput, slot.direction != VFXSlot.Direction.kInput).FirstOrDefault(t => t.controller == anchorController);
                     alignement = slot.direction == VFXSlot.Direction.kInput ? SpriteAlignment.LeftCenter : SpriteAlignment.RightCenter;
                 }
-                else if( error.value.model is VFXContext)
+                else if( error.value.model is IVFXSlotContainer)
                 {
-                    var context = (VFXContext)error.value.model;
+                    var context = (VFXModel)error.value.model;
                     var nodeController = controller.GetNodeController(context, 0);
                     if (nodeController == null)
                         continue;
                     target = GetNodeByController(nodeController);
-                    target = (target as VFXContextUI).titleContainer;
                     targetParent = target.parent;
-                    alignement = SpriteAlignment.TopLeft;
+                    target = (target as VFXNodeUI).titleContainer;
+                    alignement = SpriteAlignment.LeftCenter;
                 }
                 if( target != null)
                 {
