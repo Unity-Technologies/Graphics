@@ -1022,9 +1022,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
             var dynResHandler = HDDynamicResolutionHandler.instance;
-            dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () => { m_PostProcessSystem.ResetHistory(); });
-
-            RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
+            dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
+            {
+                m_PostProcessSystem.ResetHistory();
+                if(dynResHandler.DynamicResolutionEnabled())
+                {
+                    m_SharedRTManager.ComputeDepthBufferMipChainSize(dynResHandler.GetRTHandleScale(new Vector2Int(m_SharedRTManager.GetDepthStencilBuffer().rt.width, m_SharedRTManager.GetDepthStencilBuffer().rt.height)));
+                }
+            }
+            );
 
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
@@ -1038,6 +1044,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     if (camera == null)
                         continue;
+
+                    bool cameraRequestedDynamicRes = false;
+                    if (camera.GetComponent<HDAdditionalCameraData>() != null)
+                    {
+                        cameraRequestedDynamicRes = camera.GetComponent<HDAdditionalCameraData>().allowDynamicResolution;
+
+                        // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
+                        // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
+                        if (dynResHandler.RequestsHardwareDynamicResolution() && cameraRequestedDynamicRes && !camera.allowDynamicResolution)
+                        {
+                            dynResHandler.ForceSoftwareFallback();
+                        }
+                    }
+
+                    dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
+                    RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
                     // TODO: Very weird callbacks
                     //  They are called at the beginning of a camera render, but the very same camera may not end its rendering
@@ -1929,7 +1951,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
-                if (Debug.isDebugBuild || aovRequest.isValid)
+            if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid)
             {
                 hdCamera.ExecuteCaptureActions(m_IntermediateAfterPostProcessBuffer, cmd);
 
