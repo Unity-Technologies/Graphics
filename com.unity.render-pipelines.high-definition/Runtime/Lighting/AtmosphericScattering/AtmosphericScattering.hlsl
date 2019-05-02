@@ -64,6 +64,9 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V)
         }
         case FOGTYPE_VOLUMETRIC:
         {
+            const bool quadraticFilterXY = false;
+            const bool clampToBorder = false;
+            const bool cubicFilterXY = true;
             float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
                                          posInput.positionNDC,
                                          fragDist,
@@ -72,7 +75,9 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V)
                                          _VBufferUvScaleAndLimit.zw,
                                          _VBufferDistanceEncodingParams,
                                          _VBufferDistanceDecodingParams,
-                                         true, false);
+                                         quadraticFilterXY,
+                                         clampToBorder,
+                                         cubicFilterXY);
 
             // TODO: add some slowly animated noise (dither?) to the reconstructed value.
             // TODO: re-enable tone mapping after implementing pre-exposure.
