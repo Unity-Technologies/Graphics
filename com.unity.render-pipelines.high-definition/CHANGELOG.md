@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update Pyramid Spot Light to better match emitted light volume.
 - Moved _XRViewConstants out of UnityPerPassStereo constant buffer to fix issues with PSSL
 - Removed GetPositionInput_Stereo() and single-pass (double-wide) rendering mode
+- Changed label width of the frame settings to accommodate better existing options. 
 
 ## [6.6.0-preview] - 2019-04-01
 
