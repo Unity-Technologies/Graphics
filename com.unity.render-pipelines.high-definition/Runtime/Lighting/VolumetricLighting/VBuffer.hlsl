@@ -21,7 +21,8 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float4 VBufferDistanceEncodingParams,
                      float4 VBufferDistanceDecodingParams,
                      bool   quadraticFilterXY,
-                     bool   clampToBorder)
+                     bool   clampToBorder,
+                     bool   cubicFilterXY)
 {
     // These are the viewport coordinates.
     float2 uv = positionNDC;
@@ -65,6 +66,31 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                    + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[1].y)) * ssToUv, VBufferUvLimit), w), 0)  // Bottom left
                    + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[1].y)) * ssToUv, VBufferUvLimit), w), 0); // Bottom right
         }
+        else if (cubicFilterXY)
+        {
+            float2 positionPixels = uv * VBufferResolution.xy;
+
+            float2 weights[3], uvs[3];
+            const float BICUBIC_SHARPNESS_BSPLINE = 0.0f;
+            const float BICUBIC_SHARPNESS_MITCHELL = 1.0f / 3.0f;
+            const float BICUBIC_SHARPNESS_CATMULL_ROM = 0.5f;
+            BicubicFilterFromSharpness(positionPixels, weights, uvs, BICUBIC_SHARPNESS_MITCHELL); // Inverse-translate the filter centered around 0.5
+
+            // Apply the viewport scale right at the end.
+            const float2 ssToUv = VBufferResolution.zw * VBufferUvScale;
+
+            // Rather than taking the full 9 hardware-filtered taps to resolve our bicubic filter, we drop the (lowest weight) corner samples, computing our bicubic filter with only 5-taps.
+            // Visually, error is low enough to be visually indistinguishable in our test cases.
+            // Source:
+            // Filmic SMAA: Sharp Morphological and Temporal Antialiasing
+            // http://advances.realtimerendering.com/s2016/index.html
+            result =
+                     (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(float2(uvs[1].x, uvs[0].y) * ssToUv, VBufferUvLimit), w), 0)
+                   + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(float2(uvs[0].x, uvs[1].y) * ssToUv, VBufferUvLimit), w), 0)
+                   + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(float2(uvs[1].x, uvs[1].y) * ssToUv, VBufferUvLimit), w), 0)
+                   + (weights[2].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(float2(uvs[2].x, uvs[1].y) * ssToUv, VBufferUvLimit), w), 0)
+                   + (weights[1].x * weights[2].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(float2(uvs[1].x, uvs[2].y) * ssToUv, VBufferUvLimit), w), 0);
+        }
         else
         {
             // The sampler clamps to edge. This takes care of 4 frustum faces out of 6.
@@ -86,7 +112,8 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float4   VBufferDistanceEncodingParams,
                      float4   VBufferDistanceDecodingParams,
                      bool     quadraticFilterXY,
-                     bool     clampToBorder)
+                     bool     clampToBorder,
+                     bool     cubicFilterXY)
 {
     float2 positionNDC = ComputeNormalizedDeviceCoordinates(positionWS, viewProjMatrix);
     float  linearDistance = distance(positionWS, cameraPositionWS);
@@ -100,7 +127,8 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                          VBufferDistanceEncodingParams,
                          VBufferDistanceDecodingParams,
                          quadraticFilterXY,
-                         clampToBorder);
+                         clampToBorder,
+                         cubicFilterXY);
 }
 
 #endif // UNITY_VBUFFER_INCLUDED
