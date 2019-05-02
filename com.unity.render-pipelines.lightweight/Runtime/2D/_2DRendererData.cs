@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
 using UnityEngine.Serialization;
@@ -7,10 +8,6 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.ProjectWindowCallback;
-#endif
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
@@ -52,20 +49,25 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         }
 
 #if UNITY_EDITOR
-        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/2D Renderer", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
-        static void Create2DRendererData()
+        internal static void Create2DRendererData(Action<_2DRendererData> onCreatedCallback)
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<Create2DRendererDataAsset>(), "New 2D Renderer Data.asset", null, null);
+            var instance = CreateInstance<Create2DRendererDataAsset>();
+            instance.onCreated += onCreatedCallback;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, instance, "New 2D Renderer Data.asset", null, null);
         }
 
         class Create2DRendererDataAsset : EndNameEditAction
         {
+            public event Action<_2DRendererData> onCreated;
+
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<_2DRendererData>();
                 instance.OnCreate();
                 AssetDatabase.CreateAsset(instance, pathName);
                 Selection.activeObject = instance;
+
+                onCreated(instance);
             }
         }
 

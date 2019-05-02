@@ -265,10 +265,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         internal void SendModifiedAnalytics(Analytics.Analytics analytics, Light2D light)
         {
-            Analytics.Light2DModifiedData modifiedData = new Analytics.Light2DModifiedData();
-            modifiedData.instance_id = 0;
-            modifiedData.type = light.lightType;
-            analytics.SendData(Analytics.AnalyticsDataTypes.k_LightModifiedString, modifiedData);
+                //Analytics.Light2DModifiedData modifiedData = new Analytics.Light2DModifiedData();
+                //modifiedData.instance_id = 0;
+                //modifiedData.type = light.lightType;
+                //analytics.SendData(Analytics.AnalyticsDataTypes.k_LightModifiedString, modifiedData);
         }
 
         private void OnDestroy()

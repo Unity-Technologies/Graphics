@@ -30,35 +30,56 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             public SerializedProperty blendFactorAdditive;
         }
 
-        Analytics.Analytics m_Analytics = Analytics.Analytics.instance;
-        bool m_WasModified;
-        bool m_WasBlendStyleModified;
+        SerializedProperty m_HDREmulationScale;
+        SerializedProperty m_LightBlendStyles;
+        LightBlendStyleProps[] m_LightBlendStylePropsArray;
 
+        Analytics.Analytics m_Analytics = Analytics.Analytics.instance;
+        _2DRendererData m_2DRendererData;
+        bool m_WasModified;
+
+        int GetNumberOfUsedBlendingLayers(_2DRendererData rendererData)
+        {
+            int count = 0;
+            foreach (var lightBlendStyle in rendererData.lightBlendStyles)
+            {
+                if (lightBlendStyle.enabled)
+                    count++;
+            }
+
+            return count;
+        }
+
+        int GetBlendingModesUsed(_2DRendererData rendererData)
+        {
+            int modesUsed = 0;
+            foreach (var lightBlendStyle in rendererData.lightBlendStyles)
+            {
+                modesUsed |= 1 << (int)lightBlendStyle.blendMode;
+            }
+
+            return modesUsed;
+        }
 
         void SendModifiedAnalytics(Analytics.IAnalytics analytics)
         {
             if (m_WasModified)
             {
-                //Analytics.Renderer2DModifiedData modifiedData = new Analytics.Light2DModifiedData();
-                //modifiedData.instance_id = 0;
-
-                //analytics.SendData(Analytics.AnalyticsDataTypes.k_2DRendererDataModifiedString, modifiedData);
+                Analytics.RendererAssetData modifiedData = new Analytics.RendererAssetData();
+                modifiedData.instance_id = m_2DRendererData.GetInstanceID();
+                modifiedData.event_type = Analytics.RendererAssetData.EventType.Modified;
+                modifiedData.blending_layers_count = GetNumberOfUsedBlendingLayers(m_2DRendererData);
+                modifiedData.blending_modes_used = GetBlendingModesUsed(m_2DRendererData);
+                analytics.SendData(Analytics.AnalyticsDataTypes.k_2DRendererDataString, modifiedData);
             }
-
         }
-
-        SerializedProperty m_HDREmulationScale;
-
-
-        SerializedProperty m_LightBlendStyles;
-        LightBlendStyleProps[] m_LightBlendStylePropsArray;
 
         void OnEnable()
         {
             m_WasModified = false;
-            m_WasBlendStyleModified = false;
+            m_2DRendererData = (_2DRendererData)serializedObject.targetObject;
 
-           m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
+            m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
 
             int numBlendStyles = m_LightBlendStyles.arraySize;
@@ -82,6 +103,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 if (props.blendFactorAdditive == null)
                     props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additve");
             }
+        }
+
+        private void OnDestroy()
+        {
+            SendModifiedAnalytics(m_Analytics);
         }
 
         public override void OnInspectorGUI()
@@ -148,10 +174,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
 
             EditorGUI.indentLevel--;
-
-            m_WasBlendStyleModified = EditorGUI.EndChangeCheck();
-            m_WasModified = serializedObject.hasModifiedProperties;
-
+            m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
         }
     }

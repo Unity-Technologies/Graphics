@@ -3,6 +3,8 @@ using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.Rendering.LWRP;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEditor.ProjectWindowCallback;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
@@ -59,6 +61,12 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             var parent = menuCommand.context as GameObject;
             Place(go, parent);
+
+            Analytics.Light2DData lightData = new Analytics.Light2DData();
+            lightData.event_type = Analytics.Light2DData.EventType.Created;
+            lightData.instance_id = light2D.GetInstanceID();
+            lightData.light_type = light2D.lightType;
+            Analytics.Analytics.instance.SendData(Analytics.AnalyticsDataTypes.k_LightDataString, lightData);
         }
 
         static bool CreateLightValidation()
@@ -131,6 +139,20 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         static bool CreateGlobalLight2DValidation()
         {
             return CreateLightValidation();
+        }
+
+        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/2D Renderer", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
+        static void Create2DRendererData()
+        {
+            _2DRendererData.Create2DRendererData((instance) =>
+            {
+                Analytics.RendererAssetData modifiedData = new Analytics.RendererAssetData();
+                modifiedData.instance_id = instance.GetInstanceID();
+                modifiedData.event_type = Analytics.RendererAssetData.EventType.Created;
+                modifiedData.blending_layers_count = 1;
+                modifiedData.blending_modes_used = 2;
+                Analytics.Analytics.instance.SendData(Analytics.AnalyticsDataTypes.k_2DRendererDataString, modifiedData);
+            });
         }
     }
 }

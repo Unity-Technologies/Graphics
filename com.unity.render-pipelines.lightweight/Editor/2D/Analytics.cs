@@ -7,43 +7,42 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
 {
     struct AnalyticsDataTypes
     {
-        public const string k_LightCreatedString = "u2drendererlightsadded";
-        public const string k_LightModifiedString = "u2drendererlightsmodified";
-        public const string k_2DRendererDataCreatedString = "u2drendererdatacreated";
-        public const string k_2DRendererDataModifiedString = "u2drendererdatacreated";
-        public const string k_LightOperationModifiedString = "u2drendererblendstyleselected";
+        public const string k_LightDataString = "u2drendererlights";
+        public const string k_2DRendererDataString = "u2drendererdata";
     }
-
 
     internal interface IAnalyticsData { };
 
     [Serializable]
-    internal struct Light2DAddedData : IAnalyticsData
+    internal struct Light2DData : IAnalyticsData
     {
+        public enum EventType
+        {
+            Created,
+            Modified
+        }
+
         public int instance_id;
-        public Light2D.LightType type;
+        public EventType event_type;
+        public Light2D.LightType light_type;
     };
 
-    [Serializable]
-    internal struct Light2DModifiedData : IAnalyticsData
-    {
-        public int instance_id;
-        public Light2D.LightType type;
-    }
 
     [Serializable]
-    internal struct RendererDataCreatedData : IAnalyticsData
+    internal struct RendererAssetData : IAnalyticsData
     {
+        public enum EventType
+        {
+            Created,
+            Modified
+        }
+
+        public EventType event_type;
         public int instance_id;
+        public int blending_layers_count;
+        public int blending_modes_used;
     }
-    
-    [Serializable]
-    internal struct RendererModifiedData : IAnalyticsData
-    {
-        public int instance_id;
-        public int number_of_blending_layers_enabled;
-        //public int 
-    }
+
 
     interface IAnalytics
     {
@@ -76,8 +75,35 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
 
         public AnalyticsResult SendData(string eventString, IAnalyticsData data)
         {
+
+            if(data is Light2DData)
+            {
+                Light2DData lightData = (Light2DData)data;
+                if(lightData.event_type == Light2DData.EventType.Created)
+                {
+                    Debug.Log("Light Created Type = " + lightData.light_type);
+                }
+                else
+                {
+                    Debug.Log("Light Modified Type = " + lightData.light_type);
+                }
+                
+            }
+            else if(data is RendererAssetData)
+            {
+                RendererAssetData rendererAssetData = (RendererAssetData)data;
+                if (rendererAssetData.event_type == RendererAssetData.EventType.Created)
+                {
+                    Debug.Log("Renderer Assest Data Created - Blending Layer Count:" + rendererAssetData.blending_layers_count + " Blending Layer Used:" + rendererAssetData.blending_modes_used);
+                }
+                else
+                {
+                    Debug.Log("Renderer Assest Data Modified - Blending Layer Count:" + rendererAssetData.blending_layers_count + " Blending Layer Used:" + rendererAssetData.blending_modes_used);
+                }
+            }
+
             //return Edito1rAnalytics.SendEventWithLimit(eventString, data, k_Version);
-            Debug.Log("Light Modified");
+            
             return AnalyticsResult.Ok;
         }
     }
