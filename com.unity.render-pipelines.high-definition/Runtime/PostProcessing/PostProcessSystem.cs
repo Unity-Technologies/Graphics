@@ -718,6 +718,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             cmd.SetComputeVectorParam(cs, HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
+
+            // custom-begin:
+            cmd.SetComputeIntParam(cs, HDShaderIDs._TAAReconstructionFilter, (int)camera.taaReconstructionFilter);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._TAASharpness, camera.taaSharpness);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._TAAHistoryFeedback, camera.taaHistoryFeedback);
+            // custom-end
+
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryTexture, prevHistory);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputHistoryTexture, nextHistory);
