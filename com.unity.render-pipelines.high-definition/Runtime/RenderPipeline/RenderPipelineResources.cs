@@ -67,6 +67,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader volumeVoxelizationCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLighting.compute")]
             public ComputeShader volumetricLightingCS;
+            [Reload("Runtime/Lighting/VolumetricLighting/VolumeVoxelizationBlur.compute")]
+            public ComputeShader volumeVoxelizationBlurCS;
+
             [Reload("Runtime/Lighting/LightLoop/DeferredTile.shader")]
             public Shader deferredTilePS;
             [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
@@ -140,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
 
-            // Shadow            
+            // Shadow
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
             public Shader shadowClearPS;
             [Reload("Runtime/Lighting/Shadow/EVSMBlur.compute")]
