@@ -22,8 +22,8 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
             Modified
         }
 
-        public int instance_id;
         public EventType event_type;
+        public int instance_id;
         public Light2D.LightType light_type;
     };
 
@@ -102,7 +102,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
                 }
             }
 
-            //return Edito1rAnalytics.SendEventWithLimit(eventString, data, k_Version);
+            //return EditorAnalytics.SendEventWithLimit(eventString, data, k_Version);
             
             return AnalyticsResult.Ok;
         }
