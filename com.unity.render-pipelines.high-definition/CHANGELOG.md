@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed GetPositionInput_Stereo() and single-pass (double-wide) rendering mode
 - Changed label width of the frame settings to accommodate better existing options. 
 - SSR's Default FrameSettings for camera is now enable.
+- Re-enabled the sharpening filter on Temporal Anti-aliasing
 
 ## [6.6.0-preview] - 2019-04-01
 
