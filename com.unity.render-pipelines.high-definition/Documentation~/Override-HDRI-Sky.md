@@ -4,7 +4,16 @@ The **HDRI Sky Volume** component override controls settings you can use to set 
 
 Tip: [Unity HDRI Pack](https://assetstore.unity.com/packages/essentials/beta-projects/unity-hdri-pack-72511) is available on the Unity Asset Store and provides 7 pre-converted (1024×2014 resolution) HDR Cubemaps ready for use within your Project.
 
-To use this type of sky. You must first add it to a Volume and set that Volume’s **Visual Environment** component override’s **Sky Type** to **HDRI Sky.** For details on how to do this, see the [Visual Environment](Override-Visual-Environment.html) documentation.
+## Using HDRI Sky
+
+**HDRI Sky** uses the [Volume](Volumes.html) framework, so to enable and modify **HDRI Sky** properties, you must add an **HDRI Sky** override to a [Volume](Volumes.html) in your Scene. To add **HDRI Sky** to a Volume:
+
+1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+2. In the Inspector, navigate to **Add Override > Sky** and click on **HDRI Sky**.
+
+After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sky**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **HDRI Sky**. HDRP now renders an **HDRI Sky** for any Camera this Volume affects.
+
+## Properties
 
 ![](Images/Override-HDRISky1.png)
 

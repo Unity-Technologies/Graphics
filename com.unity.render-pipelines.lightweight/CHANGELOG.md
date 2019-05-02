@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - in the Shadergraph Unlit Master node, Premultiply no longer acts the same as Alpha. [case 1114708](https://fogbugz.unity3d.com/f/cases/1114708/)
 - Fixed an issue where Lightprobe data was missing if it was needed per-pixel and GPU instancing was enabled.
 - The Soft ScreenSpaceShadows Shader variant no longer gets stripped form builds. [case 1138236](https://fogbugz.unity3d.com/f/cases/1138236/)
+- Fixed a typo in the Particle Unlit Shader, so Soft Particles now work correctly.
 
 ## [6.6.0] - 2019-04-01
 ### Added

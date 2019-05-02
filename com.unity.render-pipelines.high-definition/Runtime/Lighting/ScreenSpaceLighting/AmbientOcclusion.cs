@@ -213,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext, uint frameCount)
+        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext, int frameCount)
         {
 
 #if ENABLE_RAYTRACING
@@ -253,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Grab current viewport scale factor - needed to handle RTHandle auto resizing
-                var viewport = camera.viewportScale;
+                var viewport = new Vector2(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y);
 
                 // Textures used for rendering
                 RTHandle depthMap, destination;
@@ -304,7 +304,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new ProfilingSample(cmd, "Resolve AO Buffer", CustomSamplerId.ResolveSSAO.GetSampler()))
                 {
-                    HDUtils.SetRenderTarget(cmd, camera, m_AmbientOcclusionTex);
+                    HDUtils.SetRenderTarget(cmd, m_AmbientOcclusionTex);
                     m_ResolvePropertyBlock.SetTexture(HDShaderIDs._DepthValuesTexture, sharedRTManager.GetDepthValuesTexture());
                     m_ResolvePropertyBlock.SetTexture(HDShaderIDs._MultiAmbientOcclusionTexture, m_MultiAmbientOcclusionTex);
                     cmd.DrawProcedural(Matrix4x4.identity, m_ResolveMaterial, 0, MeshTopology.Triangles, 3, 1, m_ResolvePropertyBlock);

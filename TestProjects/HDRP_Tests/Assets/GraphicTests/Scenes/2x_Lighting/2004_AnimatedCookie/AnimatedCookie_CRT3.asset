@@ -12,16 +12,19 @@ CustomRenderTexture:
     Hash: 00000000000000000000000000000000
   m_ForcedFallbackFormat: 4
   m_DownscaleFallback: 0
+  serializedVersion: 3
   m_Width: 64
   m_Height: 64
   m_AntiAliasing: 1
+  m_MipCount: -1
   m_DepthFormat: 0
-  m_ColorFormat: 0
+  m_ColorFormat: 8
   m_MipMap: 0
   m_GenerateMips: 1
   m_SRGB: 0
   m_UseDynamicScale: 0
   m_BindMS: 0
+  m_EnableCompatibleFormat: 1
   m_TextureSettings:
     serializedVersion: 2
     m_FilterMode: 0
@@ -37,7 +40,7 @@ CustomRenderTexture:
   m_InitMaterial: {fileID: 0}
   m_InitColor: {r: 1, g: 1, b: 1, a: 1}
   m_InitTexture: {fileID: 0}
-  m_UpdateMode: 1
+  m_UpdateMode: 2
   m_InitializationMode: 0
   m_UpdateZoneSpace: 0
   m_CurrentUpdateZoneSpace: 0
