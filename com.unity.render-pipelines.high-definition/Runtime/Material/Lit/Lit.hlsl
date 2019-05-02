@@ -653,6 +653,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 
     // Pre-expose lighting buffer
     outGBuffer3 *= GetCurrentExposureMultiplier();
+    outGBuffer3 = max(outGBuffer3, 0); // NaN guard
 
 #ifdef LIGHT_LAYERS
     OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, builtinData.renderingLayers / 255.0);
@@ -1052,7 +1053,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // We deem the intensity difference of a couple of percent for high values of roughness
     // to not be worth the cost of another precomputed table.
     // Note: this formulation bakes the BSDF non-symmetric!
-    preLightData.energyCompensation = 1.0 / specularReflectivity - 1.0;
+    preLightData.energyCompensation = 1.0 / max(specularReflectivity, 0.01) - 1.0;
 #else
     preLightData.energyCompensation = 0.0;
 #endif // LIT_USE_GGX_ENERGY_COMPENSATION
