@@ -1840,12 +1840,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {
-                    volumeVoxelizationTask.Start(cmd, renderContext, Callback, !haveAsyncTaskWithShadows);
+                    volumeVoxelizationTask.Start(cmd, renderContext, (CommandBuffer asyncCmd) => {
+                        if (OnCameraPreRenderVolumetrics != null)
+                        {
+                            OnCameraPreRenderVolumetrics(
+                                hdCamera,
+                                cmd,
+                                m_VolumetricLightingSystem.GetVolumeVoxelizationCS(),
+                                m_VolumetricLightingSystem.GetVolumeVoxelizationKernel(hdCamera, m_LightLoop)
+                            );
+                        }
+                        m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
+                    }, !haveAsyncTaskWithShadows);
 
                     haveAsyncTaskWithShadows = true;
-
-                    void Callback(CommandBuffer asyncCmd)
-                        => m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes, m_LightLoop);
                 }
 
                 if (hdCamera.frameSettings.SSRRunsAsync())
@@ -1919,6 +1927,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
+                    if (OnCameraPreRenderVolumetrics != null)
+                    {
+                        OnCameraPreRenderVolumetrics(
+                            hdCamera,
+                            cmd,
+                            m_VolumetricLightingSystem.GetVolumeVoxelizationCS(),
+                            m_VolumetricLightingSystem.GetVolumeVoxelizationKernel(hdCamera, m_LightLoop)
+                        );
+                    }
+
                     // Perform the voxelization step which fills the density 3D texture.
                     m_VolumetricLightingSystem.VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes, m_LightLoop);
                 }
