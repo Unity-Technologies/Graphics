@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.LWRP
         RenderTextureDescriptor m_Descriptor;
         RenderTargetHandle m_Source;
         RenderTargetHandle m_Destination;
+        RenderTargetHandle m_Depth;
         RenderTargetHandle m_InternalLut;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
@@ -72,11 +73,12 @@ namespace UnityEngine.Rendering.LWRP
             m_ResetHistory = true;
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle sourceHandle, in RenderTargetHandle destinationHandle, in RenderTargetHandle internalLut)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle sourceHandle, in RenderTargetHandle destinationHandle, in RenderTargetHandle depth, in RenderTargetHandle internalLut)
         {
             m_Descriptor = baseDescriptor;
             m_Source = sourceHandle;
             m_Destination = destinationHandle;
+            m_Depth = depth;
             m_InternalLut = internalLut;
         }
 
@@ -265,13 +267,13 @@ namespace UnityEngine.Rendering.LWRP
             cmd.SetViewport(camera.pixelRect);
 
             // Pass 1: Edge detection
-            cmd.SetRenderTarget(ShaderConstants._EdgeTexture, depthAttachment);
+            cmd.SetRenderTarget(ShaderConstants._EdgeTexture, m_Depth.Identifier());
             cmd.ClearRenderTarget(true, true, Color.clear); // TODO: Explicitly clearing depth/stencil here but we shouldn't have to, FIXME /!\
             cmd.SetGlobalTexture(ShaderConstants._InputTexture, source);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
 
             // Pass 2: Blend weights
-            cmd.SetRenderTarget(ShaderConstants._BlendTexture, depthAttachment);
+            cmd.SetRenderTarget(ShaderConstants._BlendTexture, m_Depth.Identifier());
             cmd.ClearRenderTarget(false, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._InputTexture, ShaderConstants._EdgeTexture);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
