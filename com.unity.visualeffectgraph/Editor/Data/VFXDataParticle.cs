@@ -521,7 +521,7 @@ namespace UnityEditor.VFX
         }
 
 
-        readonly HashSet<string> attributesWithGoodDefaultValues = new HashSet<string>(new string[] {"alive","position", "size", "scaleX", "scaleY", "scaleZ", "axisX", "axisY", "axisZ", "angleX", "angleY", "angleZ", "pivotX", "pivotY", "pivotZ" });
+        readonly HashSet<string> attributesWithGoodDefaultValues = new HashSet<string>(new string[] {"alive","position", "size","age", "scaleX", "scaleY", "scaleZ", "axisX", "axisY", "axisZ", "angleX", "angleY", "angleZ", "pivotX", "pivotY", "pivotZ" });
 
         public override void FillDescs(
             VFXCompilationStatus status,
