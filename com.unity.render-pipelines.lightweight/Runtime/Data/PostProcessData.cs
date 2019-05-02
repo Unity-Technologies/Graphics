@@ -6,6 +6,7 @@ using System;
 
 namespace UnityEngine.Rendering.LWRP
 {
+    [ReloadGroup]
     public class PostProcessData : ScriptableObject
     {
 #if UNITY_EDITOR
@@ -16,6 +17,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 var instance = CreateInstance<PostProcessData>();
                 AssetDatabase.CreateAsset(instance, pathName);
+                ResourceReloader.ReloadAllNullIn(instance, LightweightRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
             }
         }
@@ -87,12 +89,5 @@ namespace UnityEngine.Rendering.LWRP
 
         public ShaderResources shaders;
         public TextureResources textures;
-
-#if UNITY_EDITOR
-        void OnEnable()
-        {
-            ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
-        }
-#endif
     }
 }
