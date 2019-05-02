@@ -5,7 +5,7 @@ using UnityEngine.Rendering.LWRP;
 namespace UnityEditor.Rendering.LWRP
 {
     [CustomEditor(typeof(PostProcessData), true)]
-    public class PostProcessDataEditor : ScriptableRendererDataEditor
+    public class PostProcessDataEditor : Editor
     {
         SerializedProperty m_Shaders;
         SerializedProperty m_Textures;
