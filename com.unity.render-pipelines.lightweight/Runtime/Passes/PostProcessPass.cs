@@ -73,11 +73,11 @@ namespace UnityEngine.Rendering.LWRP
             m_ResetHistory = true;
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle sourceHandle, in RenderTargetHandle destinationHandle, in RenderTargetHandle depth, in RenderTargetHandle internalLut)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut)
         {
             m_Descriptor = baseDescriptor;
-            m_Source = sourceHandle;
-            m_Destination = destinationHandle;
+            m_Source = source;
+            m_Destination = destination;
             m_Depth = depth;
             m_InternalLut = internalLut;
         }
