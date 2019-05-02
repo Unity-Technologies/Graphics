@@ -133,6 +133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public VolumetricLightingPreset preset = VolumetricLightingPreset.Off;
 
         static ComputeShader          m_VolumeVoxelizationCS      = null;
+        static ComputeShader          m_VolumeVoxelizationBlurCS  = null;
         static ComputeShader          m_VolumetricLightingCS      = null;
 
         List<OrientedBBox>            m_VisibleVolumeBounds       = null;
@@ -145,6 +146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // These two buffers do not depend on the frameID and are therefore shared by all views.
         RTHandleSystem.RTHandle       m_DensityBufferHandle;
+        RTHandleSystem.RTHandle       m_DensityBufferBlurHandle;
         RTHandleSystem.RTHandle       m_LightingBufferHandle;
 
         // Is the feature globally disabled?
@@ -182,6 +184,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 : VolumetricLightingPreset.Medium;
 
             m_VolumeVoxelizationCS = asset.renderPipelineResources.shaders.volumeVoxelizationCS;
+            m_VolumeVoxelizationBlurCS = asset.renderPipelineResources.shaders.volumeVoxelizationBlurCS;
             m_VolumetricLightingCS = asset.renderPipelineResources.shaders.volumetricLightingCS;
 
             m_PackedCoeffs = new Vector4[7];
@@ -265,6 +268,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     /* useDynamicScale: true, // <- TODO */
                     name:              "VBufferDensity");
 
+            m_DensityBufferBlurHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
+                    slices:            d,
+                    dimension:         TextureDimension.Tex3D,
+                    colorFormat:       GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
+                    enableRandomWrite: true,
+                    enableMSAA:        false,
+                    /* useDynamicScale: true, // <- TODO */
+                    name:              "VBufferDensityBlur");
+
             m_LightingBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
                     slices:            d,
                     dimension:         TextureDimension.Tex3D,
@@ -341,6 +353,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_DensityBufferHandle != null)
                 RTHandles.Release(m_DensityBufferHandle);
+            if (m_DensityBufferBlurHandle != null)
+                RTHandles.Release(m_DensityBufferBlurHandle);
             if (m_LightingBufferHandle != null)
                 RTHandles.Release(m_LightingBufferHandle);
 
@@ -357,6 +371,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DestroyBuffers();
 
             m_VolumeVoxelizationCS = null;
+            m_VolumeVoxelizationBlurCS = null;
             m_VolumetricLightingCS = null;
         }
 
@@ -646,6 +661,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // The shader defines GROUP_SIZE_1D = 8.
                 cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.computePassCount);
+            }
+        }
+
+        public void VolumeVoxelizationBlurPass(HDCamera hdCamera, CommandBuffer cmd, LightLoop lightLoop)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
+                return;
+
+            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+            if (visualEnvironment.fogType.value != FogType.Volumetric)
+                return;
+
+            using (new ProfilingSample(cmd, "Volume Voxelization Blur"))
+            {
+                bool tiledLighting = lightLoop.HasLightToCull() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+                int kernel = GetVolumeVoxelizationKernel(hdCamera, lightLoop);
+
+                var currFrameParams = hdCamera.vBufferParams[0];
+                var cvp = currFrameParams.viewportSize;
+                Vector4 resolution  = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
+
+                if(hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
+                {
+                    // We explicitly set the big tile info even though it is set globally, since this could be running async before the PushGlobalParams
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationBlurCS, HDShaderIDs._NumTileBigTileX, lightLoop.GetNumTileBigTileX(hdCamera));
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationBlurCS, HDShaderIDs._NumTileBigTileY, lightLoop.GetNumTileBigTileY(hdCamera));
+                    if (tiledLighting)
+                        cmd.SetComputeBufferParam(m_VolumeVoxelizationBlurCS, kernel, HDShaderIDs.g_vBigTileLightList, lightLoop.GetBigTileLightList());
+                }
+
+                cmd.SetComputeTextureParam(m_VolumeVoxelizationBlurCS, kernel, HDShaderIDs._VBufferDensity,  m_DensityBufferHandle);
+                cmd.SetComputeTextureParam(m_VolumeVoxelizationBlurCS, kernel, HDShaderIDs._VBufferDensityBlur, m_DensityBufferBlurHandle);
+
+                // axis = {blurX, blurY, blurZ, blit}
+                for (int axis = 0; axis <= 3; ++axis)
+                {
+                    cmd.SetComputeIntParam(m_VolumeVoxelizationBlurCS, HDShaderIDs._VBufferDensityBlurAxis, axis);
+
+                    int w = (int)resolution.x;
+                    int h = (int)resolution.y;
+
+                    // The shader defines GROUP_SIZE_1D = 8.
+                    cmd.DispatchCompute(m_VolumeVoxelizationBlurCS, kernel, (w + 7) / 8, (h + 7) / 8, 1);
+                }
+
+                
             }
         }
 
