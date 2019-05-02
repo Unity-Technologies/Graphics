@@ -1357,12 +1357,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams1);
-                // XRTODO: handle XR instancing by looping over camera.xrViewConstants
                 cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, camera.mainViewConstants.prevViewProjMatrixNoCameraTrans);
 
                 threadGroupX = (camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
                 threadGroupY = (camera.actualHeight + (groupSizeY - 1)) / groupSizeY;
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.computePassCount);
             }
 
 
@@ -1423,7 +1422,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 groupSizeY = 8;
                 threadGroupX = (tileTexWidth + (groupSizeX - 1)) / groupSizeX;
                 threadGroupY = (tileTexHeight + (groupSizeY - 1)) / groupSizeY;
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.computePassCount);
             }
 
             // -----------------------------------------------------------------------------
@@ -1466,7 +1465,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 groupSizeY = 16;
                 threadGroupX = (camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
                 threadGroupY = (camera.actualHeight + (groupSizeY - 1)) / groupSizeY;
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, 1);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.computePassCount);
             }
 
 
