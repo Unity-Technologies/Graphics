@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.LWRP
             {
                 var instance = CreateInstance<ForwardRendererData>();
                 AssetDatabase.CreateAsset(instance, pathName);
+                ResourceReloader.ReloadAllNullIn(instance, LightweightRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
             }
         }
@@ -49,13 +50,6 @@ namespace UnityEngine.Rendering.LWRP
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
         [SerializeField] StencilStateData m_DefaultStencilState = null;
-
-#if UNITY_EDITOR
-        protected override void OnEnable()
-        {
-            ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
-        }
-#endif
 
         protected override ScriptableRenderer Create() => new ForwardRenderer(this);
 
