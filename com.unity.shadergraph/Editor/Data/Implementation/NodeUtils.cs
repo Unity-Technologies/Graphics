@@ -280,7 +280,12 @@ namespace UnityEditor.Graphing
         {
             char[] arr = input.ToCharArray();
             arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
-            return new string(arr);
+            var safeName = new string(arr);
+            if (char.IsDigit(safeName[0]))
+            {
+                safeName = $"var{safeName}";
+            }
+            return safeName;
         }
 
         public static string FloatToShaderValue(float value)
