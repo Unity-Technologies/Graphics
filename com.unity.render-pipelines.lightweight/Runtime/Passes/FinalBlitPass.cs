@@ -54,7 +54,8 @@ namespace UnityEngine.Rendering.LWRP
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
 
-            if (renderingData.cameraData.isStereoEnabled || renderingData.cameraData.isSceneViewCamera)
+            ref CameraData cameraData = ref renderingData.cameraData;
+            if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {
                 cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget);
             }
@@ -74,9 +75,11 @@ namespace UnityEngine.Rendering.LWRP
                     Color.black,
                     m_TargetDimension);
 
+                Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(renderingData.cameraData.camera.pixelRect);
+                cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
 
             context.ExecuteCommandBuffer(cmd);
