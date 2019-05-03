@@ -465,6 +465,12 @@ Shader "HDRP/LayeredLit"
     // Define
     //-------------------------------------------------------------------------------------
 
+    // sample-game begin: improve shader stripping
+    #ifdef LIGHTMAP_ON
+    #define DIRLIGHTMAP_COMBINED
+    #endif
+    // sample-game end
+    
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
 
@@ -565,14 +571,17 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
+            // sample-game begin: improve shader stripping
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            //#pragma multi_compile _ SHADOWS_SHADOWMASK
+            #define SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ LIGHT_LAYERS
+            // sample-game end
 
         #ifndef DEBUG_DISPLAY
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -751,13 +760,16 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
+            // sample-game begin: improve shader stripping
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            //#pragma multi_compile _ SHADOWS_SHADOWMASK
+            #define SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            // sample-game end
             
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH    

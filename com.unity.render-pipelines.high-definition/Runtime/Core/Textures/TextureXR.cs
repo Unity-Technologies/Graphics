@@ -12,12 +12,16 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
+                // sample-game begin: fix errors in Exposure by disabling conversions to texture array
+                /*
                 // XRTODO: Vulkan, PSVR, Mac with metal only for OS 10.14+, etc
                 switch (SystemInfo.graphicsDeviceType)
                 {
                     case GraphicsDeviceType.Direct3D11:
                         return SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne;
                 }
+                */
+                // sample-game end
 
                 return false;
             }
