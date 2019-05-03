@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added stadia to the supported platforms (2019.3)
 - Enabled cascade blends settings in the HD Shadow component
 - Added Hardware Dynamic Resolution support. 
+- Added MatCap debug view to replace the no scene lighting debug view. 
 
 ### Fixed
 - Fixed deserialization crash at runtime
