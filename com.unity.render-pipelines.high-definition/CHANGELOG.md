@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - SSR's Default FrameSettings for camera is now enable.
 - Re-enabled the sharpening filter on Temporal Anti-aliasing
 - Exposed HDEditorUtils.LightLayerMaskDrawer for integration in other packages and user scripting.
+- Rename atmospheric scattering in FrameSettings to Fog
 
 ## [5.13.0-preview] - 2019-04-15
 
