@@ -142,6 +142,7 @@ namespace UnityEngine.Rendering.LWRP
 
             instance.LoadBuiltinRendererData();
             instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
+            instance.m_Renderer = instance.m_RendererData.InternalCreateRenderer();
             return instance;
         }
 
