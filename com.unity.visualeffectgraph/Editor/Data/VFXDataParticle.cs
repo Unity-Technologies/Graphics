@@ -757,7 +757,7 @@ namespace UnityEditor.VFX
                 {
                     if (mapping.index < 0)
                     {
-                        status.errors.Add(new VFXCompilationLog() { model = context.inputSlots.FirstOrDefault(t => t.name == mapping.name), error = "This slot value is system wide (CPU) and is linked to particle dependent (GPU) operators." });
+                        status.errors.Add(new VFXCompilationLog() { model = context.inputSlots.FirstOrDefault(t => t.name == mapping.name), error = "Can not link a particle dependent (GPU) operator to a system wide (CPU) input." });
                         throw new InvalidOperationException("Unable to compute CPU expression for mapping : " + mapping.name);
                     }
                 }
