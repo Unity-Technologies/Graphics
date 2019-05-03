@@ -13,6 +13,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string k_ShaderTagName = "HDRenderPipeline";
         const string k_OldQualityShadowKey = "HDRP:oldQualityShadows";
 
+        // sample-game begin: debug layers
+        public delegate void RenderCallback(HDCamera hdCamera, CommandBuffer cmd);
+        public RenderCallback DebugLayer2DCallback;
+        public RenderCallback DebugLayer3DCallback;
+        // sample-game end
+
         enum ForwardPass
         {
             Opaque,
@@ -1863,6 +1869,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render pre refraction objects
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
 
+                // sample-game begin: debug layers
+                if (DebugLayer3DCallback != null)
+                    DebugLayer3DCallback(hdCamera, cmd);
+                // sample-game end
+
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction))
                 {
                     // First resolution of the color buffer for the color pyramid
@@ -1973,6 +1984,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     CoreUtils.DrawFullScreen(cmd, m_CopyDepth, m_CopyDepthPropertyBlock);
                 }
             }
+
+            // sample-game begin: debug layers
+            if (DebugLayer2DCallback != null)
+                DebugLayer2DCallback(hdCamera, cmd);
+            // sample-game end
 
 #if UNITY_EDITOR
             // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
