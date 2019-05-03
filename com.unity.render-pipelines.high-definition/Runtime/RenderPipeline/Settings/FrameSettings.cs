@@ -119,11 +119,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SubsurfaceScattering = 25,
         [FrameSettingsField(1, autoName: Transmission)]
         Transmission = 26,
-        [FrameSettingsField(1, autoName: AtmosphericScattering)]
+        [FrameSettingsField(1, displayedName: "Fog")]
         AtmosphericScattering = 27,
         [FrameSettingsField(1, autoName: Volumetrics, positiveDependencies: new[] { AtmosphericScattering })]
         Volumetrics = 28,
-        [FrameSettingsField(1, autoName: ReprojectionForVolumetrics, positiveDependencies: new[] { AtmosphericScattering })]
+        [FrameSettingsField(1, autoName: ReprojectionForVolumetrics, positiveDependencies: new[] { AtmosphericScattering, Volumetrics })]
         ReprojectionForVolumetrics = 29,
         [FrameSettingsField(1, autoName: LightLayers)]
         LightLayers = 30,
