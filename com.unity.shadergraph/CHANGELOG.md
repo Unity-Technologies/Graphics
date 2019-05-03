@@ -9,12 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Anti-aliasing (4x) is now enabled on Shader Graph windows.
 
 ### Fixed
+- Sub Graph Output and Custom Function Node now validate slot names, and display an appropriate error badge when needed.
 - Remaining outdated documentation has been removed. 
 - When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
 - When you rapidly perform an undo or redo, Shader Graph windows no longer break.
 - Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
 - You can now reference sub-assets such as Textures.
-- You can now reference Scene Color and Scene Depth correctly from within a Sub Graph. 
+- You can now reference Scene Color and Scene Depth correctly from within a Sub Graph.
 - When you create a new empty Sub Graph, it no longer shows a warning about a missing output.
 - When you create outputs that start with a digit, Shader generation no longer fails.
 - You can no longer add nodes that are not allowed into Sub Graphs.
