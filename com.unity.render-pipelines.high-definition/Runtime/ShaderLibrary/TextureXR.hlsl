@@ -5,9 +5,11 @@
 // XRTODO: update supported platforms based on Unity version (for required C++ fixes)
 
 // Must be in sync with C# with property useTexArray in TextureXR.cs
-#if defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE)
+// sample-game begin: fix errors in Exposure by disabling conversions to texture array
+#if defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE) && false
     #define UNITY_TEXTURE2D_X_ARRAY_SUPPORTED
 #endif
+// sample-game end
 
 // Validate supported platforms
 #if defined(STEREO_INSTANCING_ON) && !defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED)
