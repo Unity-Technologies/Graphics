@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Duplicate output names are now allowed.
 - Fixed an issue where the main preview was always redrawing.
 - When you set a Master Node as active, the Main Preview now shows the correct result.
+- Removed outdated documentation.
 
 ## [5.13.0] - 2019-04-15
 
