@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Inspector : Exposed parameters disregard the initial value [Case 1126471](https://issuetracker.unity3d.com/issues/parameters-exposed-parameters-disregard-the-initial-value)
 - Asset name now displayed in compile errors and output context shaders
 - Fix for linking spawner to spawner while first spawner is linked to initialize + test 
+- Fix space of spacable slot not copy pasted + test
 
 ## [6.6.0-preview] - 2019-04-01
 ### Added
