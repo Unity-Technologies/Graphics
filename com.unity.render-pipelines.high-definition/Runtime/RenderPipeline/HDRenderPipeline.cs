@@ -949,6 +949,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // sample-game begin: occlusion threshold
+        public static float s_OcclusionThreshold;
+        // sample-game end
+
         FrameSettings currentFrameSettings;
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
@@ -2261,8 +2265,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
                     hdProbeCullState = HDProbeSystem.PrepareCull(camera);
 
+                // sample-game begin: occlusion threshold
                 using (new ProfilingSample(null, "CullResults.Cull", CustomSamplerId.CullResultsCull.GetSampler()))
+                {
+                    cullingParams.accurateOcclusionThreshold = s_OcclusionThreshold;
                     cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
+                }
+                // sample-game end                    
+
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
                     HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
