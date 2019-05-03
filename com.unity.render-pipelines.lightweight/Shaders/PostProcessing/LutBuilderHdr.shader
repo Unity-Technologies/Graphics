@@ -39,8 +39,6 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderHdr"
         TEXTURE2D(_CurveSatVsSat);
         TEXTURE2D(_CurveLumVsSat);
 
-        SAMPLER(sampler_LinearClamp);
-
         float EvaluateCurve(TEXTURE2D(curve), float t)
         {
             float x = SAMPLE_TEXTURE2D(curve, sampler_LinearClamp, float2(t, 0.0)).x;

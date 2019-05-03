@@ -18,8 +18,6 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
         TEXTURE2D(_MainTex);
         TEXTURE2D(_MainTexLowMip);
 
-        SAMPLER(sampler_LinearClamp);
-
         float4 _MainTex_TexelSize;
         float4 _MainTexLowMip_TexelSize;
 

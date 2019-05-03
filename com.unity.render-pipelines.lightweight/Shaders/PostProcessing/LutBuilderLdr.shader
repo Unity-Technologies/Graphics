@@ -36,8 +36,6 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderLdr"
         TEXTURE2D(_CurveSatVsSat);
         TEXTURE2D(_CurveLumVsSat);
 
-        SAMPLER(sampler_LinearClamp);
-
         half EvaluateCurve(TEXTURE2D(curve), float t)
         {
             half x = SAMPLE_TEXTURE2D(curve, sampler_LinearClamp, float2(t, 0.0)).x;
@@ -48,6 +46,7 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderLdr"
         {
             float3 colorLinear = GetLutStripValue(input.uv, _Lut_Params);
 
+            /*
             // White balance in LMS space
             float3 colorLMS = LinearToLMS(colorLinear);
             colorLMS *= _ColorBalance.xyz;
@@ -141,7 +140,7 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderLdr"
                 float g = EvaluateCurve(_CurveGreen, c.g);
                 float b = EvaluateCurve(_CurveBlue, c.b);
                 colorLinear = float3(r, g, b);
-            }
+            }*/
 
             return half4(saturate(colorLinear), 1.0);
         }

@@ -16,8 +16,6 @@ Shader "Hidden/Lightweight Render Pipeline/PaniniProjection"
 
         TEXTURE2D(_MainTex);
 
-        SAMPLER(sampler_LinearClamp);
-
         float4 _Params;
 
         // Back-ported & adapted from the work of the Stockholm demo team - thanks Lasse

@@ -17,7 +17,6 @@ Shader "Hidden/Lightweight Render Pipeline/Stop NaN"
         #define NAN_COLOR half3(0.0, 0.0, 0.0)
 
         TEXTURE2D(_MainTex);
-        SAMPLER(sampler_PointClamp);
 
         half4 Frag(Varyings input) : SV_Target
         {

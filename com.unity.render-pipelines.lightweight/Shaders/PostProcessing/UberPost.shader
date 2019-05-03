@@ -36,9 +36,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
         TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_InternalLut);
         TEXTURE2D(_UserLut);
-
-        SAMPLER(sampler_LinearClamp);
-        SAMPLER(sampler_LinearRepeat);
+        TEXTURE2D(_BlueNoise_Texture);
 
         float4 _Lut_Params;
         float4 _UserLut_Params;
@@ -53,6 +51,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
         float2 _Grain_Params;
         float4 _Grain_TilingParams;
         float4 _Bloom_Texture_TexelSize;
+        float4 _Dithering_Params;
 
         #define DistCenter              _Distortion_Params1.xy
         #define DistAxis                _Distortion_Params1.zw
@@ -84,6 +83,9 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
         #define GrainResponse           _Grain_Params.y
         #define GrainScale              _Grain_TilingParams.xy
         #define GrainOffset             _Grain_TilingParams.zw
+
+        #define DitheringScale          _Dithering_Params.xy
+        #define DitheringOffset         _Dithering_Params.zw
 
         float2 DistortUV(float2 uv)
         {
@@ -127,9 +129,9 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
                 float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
                 float2 delta = (end - uv) / 3.0;
 
-                half r = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_LinearClamp, uvDistorted,                 0).x;
-                half g = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_LinearClamp, DistortUV(delta + uv),       0).y;
-                half b = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv), 0).z;
+                half r = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uvDistorted,                 0).x;
+                half g = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, DistortUV(delta + uv),       0).y;
+                half b = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv), 0).z;
 
                 color = half3(r, g, b);
             }
@@ -201,7 +203,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
 
             #if FINAL_PASS
             {
-                // TODO: Dithering goes here
+                color = ApplyDithering(color, uv, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
             }
             #endif
 

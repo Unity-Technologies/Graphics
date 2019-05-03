@@ -14,9 +14,6 @@ TEXTURE2D(_SearchTexture);
 
 float4 _Metrics;
 
-SAMPLER(sampler_LinearClamp);
-SAMPLER(sampler_PointClamp);
-
 #define SMAA_RT_METRICS _Metrics
 #define SMAA_AREATEX_SELECT(s) s.rg
 #define SMAA_SEARCHTEX_SELECT(s) s.a

@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.LWRP
     // TODO: FXAA, TAA
     // TODO: Motion blur
     // TODO: Depth of Field
-    // TODO: Final pass dithering
     internal class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
@@ -43,6 +42,7 @@ namespace UnityEngine.Rendering.LWRP
         readonly GraphicsFormat m_BloomFormat;
         Matrix4x4 m_PrevViewProjM = Matrix4x4.identity;
         bool m_ResetHistory;
+        int m_DitheringTextureIndex;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data)
         {
@@ -217,6 +217,9 @@ namespace UnityEngine.Rendering.LWRP
                 SetupVignette(cameraData.camera, m_Materials.uber);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
                 SetupGrain(cameraData.camera, m_Materials.uber, false);
+
+                //if (cameraData.isDitheringEnabled)
+                //    SetupDithering(cameraData.camera, m_Materials.uber);
 
                 // Done with Uber, blit it
                 Blit(cmd, GetSource(), m_Destination.Identifier(), m_Materials.uber);
@@ -642,6 +645,44 @@ namespace UnityEngine.Rendering.LWRP
 
         #endregion
 
+        #region 8-bit Dithering
+
+        void SetupDithering(Camera camera, Material material)
+        {
+            var blueNoise = m_Data.textures.blueNoise16LTex;
+
+            if (blueNoise == null || blueNoise.Length == 0)
+                return; // Safe guard
+
+            #if LWRP_DEBUG_STATIC_POSTFX // Used by QA for automated testing
+            m_DitheringTextureIndex = 0;
+            float rndOffsetX = 0f;
+            float rndOffsetY = 0f;
+            #else
+            if (++m_DitheringTextureIndex >= blueNoise.Length)
+                m_DitheringTextureIndex = 0;
+
+            float rndOffsetX = Random.value;
+            float rndOffsetY = Random.value;
+            #endif
+
+            // Ideally we would be sending a texture array once and an index to the slice to use
+            // on every frame but these aren't supported on all LWRP targets
+            var noiseTex = blueNoise[m_DitheringTextureIndex];
+
+            material.SetTexture(ShaderConstants._BlueNoise_Texture, noiseTex);
+            material.SetVector(ShaderConstants._Dithering_Params, new Vector4(
+                camera.pixelWidth / (float)noiseTex.width,
+                camera.pixelHeight / (float)noiseTex.height,
+                rndOffsetX,
+                rndOffsetY
+            ));
+
+            material.EnableKeyword("FINAL_PASS");
+        }
+
+        #endregion
+
         #region Internal utilities
 
         class MaterialLibrary
@@ -709,6 +750,8 @@ namespace UnityEngine.Rendering.LWRP
             public static readonly int _Grain_Texture      = Shader.PropertyToID("_Grain_Texture");
             public static readonly int _Grain_Params       = Shader.PropertyToID("_Grain_Params");
             public static readonly int _Grain_TilingParams = Shader.PropertyToID("_Grain_TilingParams");
+            public static readonly int _BlueNoise_Texture  = Shader.PropertyToID("_BlueNoise_Texture");
+            public static readonly int _Dithering_Params   = Shader.PropertyToID("_Dithering_Params");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;

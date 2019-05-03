@@ -12,11 +12,10 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
+        #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
 
         TEXTURE2D(_MainTex);
         TEXTURE2D_FLOAT(_CameraDepthTexture);
-
-        SAMPLER(sampler_PointClamp);
 
         float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;
@@ -24,21 +23,15 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
         float _Clamp;
         float4 _MainTex_TexelSize;
 
-        struct Attributes
-        {
-            float4 positionOS   : POSITION;
-            float2 uv           : TEXCOORD0;
-        };
-
-        struct Varyings
+        struct VaryingsCMB
         {
             float4 positionCS    : SV_POSITION;
             float4 uv            : TEXCOORD0;
         };
 
-        Varyings Vert(Attributes input)
+        VaryingsCMB VertCMB(Attributes input)
         {
-            Varyings output;
+            VaryingsCMB output;
             output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
 
             float4 projPos = output.positionCS * 0.5;
@@ -87,7 +80,7 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
             return SAMPLE_TEXTURE2D(_MainTex, sampler_PointClamp, sampleUV).xyz;
         }
 
-        half4 DoMotionBlur(Varyings input, int iterations)
+        half4 DoMotionBlur(VaryingsCMB input, int iterations)
         {
             float2 velocity = GetCameraVelocity(input.uv) * _Intensity;
             float randomVal = InterleavedGradientNoise(input.uv.xy * _MainTex_TexelSize.zw, 0);
@@ -118,10 +111,10 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
 
             HLSLPROGRAM
 
-                #pragma vertex Vert
+                #pragma vertex VertCMB
                 #pragma fragment Frag
 
-                half4 Frag(Varyings input) : SV_Target
+                half4 Frag(VaryingsCMB input) : SV_Target
                 {
                     return DoMotionBlur(input, 2);
                 }
@@ -135,10 +128,10 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
 
             HLSLPROGRAM
 
-                #pragma vertex Vert
+                #pragma vertex VertCMB
                 #pragma fragment Frag
 
-                half4 Frag(Varyings input) : SV_Target
+                half4 Frag(VaryingsCMB input) : SV_Target
                 {
                     return DoMotionBlur(input, 3);
                 }
@@ -152,10 +145,10 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
 
             HLSLPROGRAM
 
-                #pragma vertex Vert
+                #pragma vertex VertCMB
                 #pragma fragment Frag
 
-                half4 Frag(Varyings input) : SV_Target
+                half4 Frag(VaryingsCMB input) : SV_Target
                 {
                     return DoMotionBlur(input, 4);
                 }

@@ -27,6 +27,14 @@ Varyings Vert(Attributes input)
 }
 
 // ----------------------------------------------------------------------------------
+// Samplers
+
+SAMPLER(sampler_LinearClamp);
+SAMPLER(sampler_LinearRepeat);
+SAMPLER(sampler_PointClamp);
+SAMPLER(sampler_PointRepeat);
+
+// ----------------------------------------------------------------------------------
 // Utility functions
 
 // Soft-light blending mode use for split-toning. Works in HDR as long as `blend` is [0;1] which is
@@ -133,6 +141,21 @@ half3 ApplyGrain(half3 input, float2 uv, TEXTURE2D_PARAM(GrainTexture, GrainSamp
     lum = lerp(1.0, lum, response);
 
     return input + input * grain * intensity * lum;
+}
+
+half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, BlueNoiseSampler), float2 scale, float2 offset)
+{
+    // Symmetric triangular distribution on [-1,1] with maximal density at 0
+    float noise = SAMPLE_TEXTURE2D(BlueNoiseTexture, BlueNoiseSampler, uv * scale + offset).a * 2.0 - 1.0;
+    noise = FastSign(noise) * (1.0 - sqrt(1.0 - abs(noise)));
+
+#if UNITY_COLORSPACE_GAMMA
+    input += noise / 255.0;
+#else
+    input = SRGBToLinear(LinearToSRGB(input) + noise / 255.0);
+#endif
+
+    return input;
 }
 
 #endif // LIGHTWEIGHT_POSTPROCESSING_COMMON_INCLUDED
