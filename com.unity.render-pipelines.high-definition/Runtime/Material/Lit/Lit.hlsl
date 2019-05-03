@@ -653,7 +653,6 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 
     // Pre-expose lighting buffer
     outGBuffer3 *= GetCurrentExposureMultiplier();
-    outGBuffer3 = max(outGBuffer3, 0); // NaN guard
 
 #ifdef LIGHT_LAYERS
     OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, builtinData.renderingLayers / 255.0);
