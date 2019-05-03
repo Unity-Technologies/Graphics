@@ -2,6 +2,7 @@
 * Getting started
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
+  * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
   * [Advanced Properties](Advanced-Properties)
   * [VR in HDRP](VR-in-HDRP)
@@ -15,6 +16,7 @@
   * [Volume Overrides](Volume-Components)
 * Volume Overrides
   * [Diffusion Profile](Override-Diffusion-Profile)
+  * [Exposure](Override-Exposure)
   * Fog
     * [Exponential Fog](Override-Exponential-Fog)
     * [Linear Fog](Override-Linear-Fog)
@@ -45,7 +47,7 @@
   * Subsurface Scattering
     - [Subsurface Scattering Materials](Subsurface-Scattering)
     - [Diffusion Profile](Diffusion-Profile)
-  
+
   * [Decal Projector](Decal-Projector)
   * Shader List
     * [Lit Shader](Lit-Shader)
@@ -68,6 +70,7 @@
   * [Physical Light Units and Intensities](Physical-Light-Units)
 * Camera
   * [Dynamic Resolution](Dynamic-Resolution)
+  * [Motion Vectors](Motion-Vectors)
   * [Multisampling Anti-Aliasing](MSAA)
 * Debugging
   * Render Pipeline Debug
@@ -77,5 +80,8 @@
     * [Material](Render-Pipeline-Debug-Material)
     * [Rendering](Render-Pipeline-Debug-Rendering)
     * [Decals](Render-Pipeline-Debug-Decals)
+* Customizing HDRP
+  * [Camera-relative Rendering](Camera-Relative-Rendering)
+  * [Creating a Custom Sky ](Creating-a-Custom-Sky)
 * [HDRP Glossary](Glossary)
 
