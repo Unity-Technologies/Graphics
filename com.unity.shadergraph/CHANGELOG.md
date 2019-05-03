@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Anti-aliasing (4x) is now enabled on Shader Graph windows.
 
 ### Fixed
+- Remaining outdated documentation has been removed. 
 - When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
 - When you rapidly perform an undo or redo, Shader Graph windows no longer break.
 - Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
