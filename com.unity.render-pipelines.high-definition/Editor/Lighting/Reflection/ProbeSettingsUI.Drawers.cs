@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 GUI.enabled = hd.currentPlatformRenderPipelineSettings.supportLightLayers;
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, EditorGUIUtility.TrTextContent("Light Layer", "Specifies the Light Layer the Reflection Probe uses to capture its view of the Scene. The Probe only uses Lights on the Light Layer you specify."), @override.probe, displayedFields.probe, overridableFields.probe,
-                    (property, label) => HDLightUI.LightLayerMaskDrawer(label, property)
+                    (property, label) => LightLayerMaskPropertyDrawer(label, property)
                 );
 
                 GUI.enabled = true;
