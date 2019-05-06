@@ -294,7 +294,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             var hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
 
-            string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultScene.name + ".asset";
+            string defaultScenePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultScene.name + ".prefab";
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultScene), defaultScenePath);
             string defaultRenderSettingsProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.renderPipelineEditorResources.defaultRenderSettingsProfile.name + ".asset";
             AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(hdrpAsset.renderPipelineEditorResources.defaultRenderSettingsProfile), defaultRenderSettingsProfilePath);
