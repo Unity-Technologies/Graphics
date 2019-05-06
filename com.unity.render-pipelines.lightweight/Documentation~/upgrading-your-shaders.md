@@ -1,5 +1,3 @@
-**Note:** This page is subject to change during the 2019.1 beta cycle.
-
 # Upgrading your shaders
 
 If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Lightweight Render Pipeline instead](installing-lwrp-into-an-existing-project), you must convert those Shaders to the LWRP Shaders. This is because built-in Lit shaders are not compatible with LWRP Shaders. For an overview of the mapping between built-in shaders and LWRP Shaders, see [Shader mappings](#shader-mappings).
