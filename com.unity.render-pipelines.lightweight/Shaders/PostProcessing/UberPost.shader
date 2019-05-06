@@ -10,12 +10,12 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
         #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
         
-        #pragma multi_compile_local _ DISTORTION
-        #pragma multi_compile_local _ CHROMATIC_ABERRATION
-        #pragma multi_compile_local _ BLOOM_LQ BLOOM_HQ BLOOM_LQ_DIRT BLOOM_HQ_DIRT
-        #pragma multi_compile_local _ HDR_GRADING TONEMAP_ACES TONEMAP_NEUTRAL
-        #pragma multi_compile_local _ GRAIN
-        #pragma multi_compile_local _ FINAL_PASS
+        #pragma multi_compile_local _ _DISTORTION
+        #pragma multi_compile_local _ _CHROMATIC_ABERRATION
+        #pragma multi_compile_local _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
+        #pragma multi_compile_local _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL
+        #pragma multi_compile_local _ _FILM_GRAIN
+        #pragma multi_compile_local _ _DITHERING
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
@@ -23,9 +23,9 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
 
         // Hardcoded dependencies to reduce the number of variants
-        #if BLOOM_LQ || BLOOM_HQ || BLOOM_LQ_DIRT || BLOOM_HQ_DIRT
+        #if _BLOOM_LQ || _BLOOM_HQ || _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
             #define BLOOM
-            #if BLOOM_LQ_DIRT || BLOOM_HQ_DIRT
+            #if _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
                 #define BLOOM_DIRT
             #endif
         #endif
@@ -90,7 +90,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
         float2 DistortUV(float2 uv)
         {
             // Note: this variant should never be set with XR
-            #if DISTORTION
+            #if _DISTORTION
             {
                 uv = (uv - 0.5) * DistScale + 0.5;
                 float2 ruv = DistAxis * (uv - 0.5 - DistCenter);
@@ -121,7 +121,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
 
             half3 color = (0.0).xxx;
 
-            #if CHROMATIC_ABERRATION
+            #if _CHROMATIC_ABERRATION
             {
                 // Very fast version of chromatic aberration from HDRP using 3 samples and hardcoded
                 // spectral lut. Performs significantly better on lower end GPUs.
@@ -150,7 +150,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
 
             #if defined(BLOOM)
             {
-                #if BLOOM_HQ
+                #if _BLOOM_HQ
                 half3 bloom = SampleTexture2DBicubic(TEXTURE2D_ARGS(_Bloom_Texture, sampler_LinearClamp), uvDistorted, _Bloom_Texture_TexelSize.zwxy, (1.0).xx, 0).xyz;
                 #else
                 half3 bloom = SAMPLE_TEXTURE2D(_Bloom_Texture, sampler_LinearClamp, uvDistorted).xyz;
@@ -188,7 +188,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
                 color = ApplyColorGrading(color, PostExposure, TEXTURE2D_ARGS(_InternalLut, sampler_LinearClamp), LutParams, TEXTURE2D_ARGS(_UserLut, sampler_LinearClamp), UserLutParams, UserLutContribution);
             }
 
-            #if GRAIN
+            #if _FILM_GRAIN
             {
                 color = ApplyGrain(color, uv, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
             }
@@ -201,7 +201,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
             }
             #endif
 
-            #if FINAL_PASS
+            #if _DITHERING
             {
                 color = ApplyDithering(color, uv, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
             }

@@ -5,7 +5,7 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderHdr"
         #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
 
-        #pragma multi_compile_local _ TONEMAP_ACES TONEMAP_NEUTRAL
+        #pragma multi_compile_local _ _TONEMAP_ACES _TONEMAP_NEUTRAL
         
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
@@ -57,7 +57,7 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderHdr"
             colorLinear = LMSToLinear(colorLMS);
 
             // Do contrast in log after white balance
-            #if TONEMAP_ACES
+            #if _TONEMAP_ACES
             float3 colorLog = ACES_to_ACEScc(unity_to_ACES(colorLinear));
             #else
             float3 colorLog = LinearToLogC(colorLinear);
@@ -65,7 +65,7 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderHdr"
 
             colorLog = (colorLog - ACEScc_MIDGRAY) * _HueSatCon.z + ACEScc_MIDGRAY;
     
-            #if TONEMAP_ACES
+            #if _TONEMAP_ACES
             colorLinear = ACES_to_ACEScg(ACEScc_to_ACES(colorLog));
             #else
             colorLinear = LogCToLinear(colorLog);
@@ -166,11 +166,11 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderHdr"
 
         float3 Tonemap(float3 colorLinear)
         {
-            #if TONEMAP_NEUTRAL
+            #if _TONEMAP_NEUTRAL
             {
                 colorLinear = NeutralTonemap(colorLinear);
             }
-            #elif TONEMAP_ACES
+            #elif _TONEMAP_ACES
             {
                 // Note: input is actually ACEScg (AP1 w/ linear encoding)
                 float3 aces = ACEScg_to_ACES(colorLinear);

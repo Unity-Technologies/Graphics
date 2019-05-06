@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering.LWRP
                 // Only apply dithering if we're the final pass
                 if (m_IsFinalPass && cameraData.isDitheringEnabled)
                 {
-                    m_Materials.uber.EnableKeyword("FINAL_PASS");
+                    m_Materials.uber.EnableKeyword(ShaderKeywordStrings.Dithering);
                     m_DitheringTextureIndex = RenderingUtils.ConfigureDithering(
                         m_Data,
                         m_DitheringTextureIndex,
@@ -279,11 +279,11 @@ namespace UnityEngine.Rendering.LWRP
 
             switch (cameraData.antialiasingQuality)
             {
-                case AntialiasingQuality.Low: material.EnableKeyword("SMAA_PRESET_LOW");
+                case AntialiasingQuality.Low: material.EnableKeyword(ShaderKeywordStrings.SmaaLow);
                     break;
-                case AntialiasingQuality.Medium: material.EnableKeyword("SMAA_PRESET_MEDIUM");
+                case AntialiasingQuality.Medium: material.EnableKeyword(ShaderKeywordStrings.SmaaMedium);
                     break;
-                case AntialiasingQuality.High: material.EnableKeyword("SMAA_PRESET_HIGH");
+                case AntialiasingQuality.High: material.EnableKeyword(ShaderKeywordStrings.SmaaHigh);
                     break;
             }
 
@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.LWRP
             material.SetVector(ShaderConstants._Params, new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS));
             material.EnableKeyword(
                 1f - Mathf.Abs(paniniD) > float.Epsilon
-                ? "GENERIC" : "UNIT_DISTANCE"
+                ? ShaderKeywordStrings.PaniniGeneric : ShaderKeywordStrings.PaniniUnitDistance
             );
 
             cmd.Blit(source, destination, material);
@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.LWRP
             float scatter = Mathf.Lerp(0.05f, 0.95f, m_Bloom.scatter.value);
             var bloomMaterial = m_Materials.bloom;
             bloomMaterial.SetVector(ShaderConstants._Params, new Vector4(scatter, clamp, threshold, thresholdKnee));
-            CoreUtils.SetKeyword(bloomMaterial, "FILTERING_HQ", m_Bloom.highQualityFiltering.value);
+            CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.BloomHQ, m_Bloom.highQualityFiltering.value);
 
             // Prefilter
             cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], tw, th, 0, FilterMode.Bilinear, m_BloomFormat);
@@ -529,9 +529,9 @@ namespace UnityEngine.Rendering.LWRP
 
             // Keyword setup - a bit convoluted as we're trying to save some variants in Uber...
             if (m_Bloom.highQualityFiltering.value)
-                uberMaterial.EnableKeyword(dirtIntensity > 0f ? "BLOOM_HQ_DIRT" : "BLOOM_HQ");
+                uberMaterial.EnableKeyword(dirtIntensity > 0f ? ShaderKeywordStrings.BloomHQDirt : ShaderKeywordStrings.BloomHQ);
             else
-                uberMaterial.EnableKeyword(dirtIntensity > 0f ? "BLOOM_LQ_DIRT" : "BLOOM_LQ");
+                uberMaterial.EnableKeyword(dirtIntensity > 0f ? ShaderKeywordStrings.BloomLQDirt : ShaderKeywordStrings.BloomLQ);
         }
 
         #endregion
@@ -561,7 +561,7 @@ namespace UnityEngine.Rendering.LWRP
             material.SetVector(ShaderConstants._Distortion_Params2, p2);
 
             if (m_LensDistortion.IsActive() && !isSceneView)
-                material.EnableKeyword("DISTORTION");
+                material.EnableKeyword(ShaderKeywordStrings.Distortion);
         }
 
         #endregion
@@ -573,7 +573,7 @@ namespace UnityEngine.Rendering.LWRP
             material.SetFloat(ShaderConstants._Chroma_Params, m_ChromaticAberration.intensity.value * 0.05f);
 
             if (m_ChromaticAberration.IsActive())
-                material.EnableKeyword("CHROMATIC_ABERRATION");
+                material.EnableKeyword(ShaderKeywordStrings.ChromaticAberration);
         }
 
         #endregion
@@ -625,14 +625,14 @@ namespace UnityEngine.Rendering.LWRP
 
             if (hdr)
             {
-                material.EnableKeyword("HDR_GRADING");
+                material.EnableKeyword(ShaderKeywordStrings.HDRGrading);
             }
             else
             {
                 switch (m_Tonemapping.mode.value)
                 {
-                    case TonemappingMode.Neutral: material.EnableKeyword("TONEMAP_NEUTRAL"); break;
-                    case TonemappingMode.ACES: material.EnableKeyword("TONEMAP_ACES"); break;
+                    case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
+                    case TonemappingMode.ACES: material.EnableKeyword(ShaderKeywordStrings.TonemapACES); break;
                     default: break; // None
                 }
             }
@@ -666,7 +666,7 @@ namespace UnityEngine.Rendering.LWRP
             material.SetVector(ShaderConstants._Grain_TilingParams, tilingParams);
 
             if (!onTile && m_FilmGrain.IsActive())
-                material.EnableKeyword("GRAIN");
+                material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
         }
 
         #endregion

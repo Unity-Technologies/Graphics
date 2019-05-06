@@ -7,6 +7,14 @@
 
 #define SMAA_HLSL_4_1
 
+#if _SMAA_PRESET_LOW
+#define SMAA_PRESET_LOW
+#elif _SMAA_PRESET_MEDIUM
+#define SMAA_PRESET_MEDIUM
+#else
+#define SMAA_PRESET_HIGH
+#endif
+
 TEXTURE2D(_InputTexture);
 TEXTURE2D(_BlendTexture);
 TEXTURE2D(_AreaTexture);

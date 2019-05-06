@@ -95,7 +95,7 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
         {
             half3 highMip = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv).xyz;
 
-            #if FILTERING_HQ
+            #if _BLOOM_HQ
             half3 lowMip = SampleTexture2DBicubic(TEXTURE2D_ARGS(_MainTexLowMip, sampler_LinearClamp), input.uv, _MainTexLowMip_TexelSize.zwxy, (1.0).xx, 0).xyz;
             #else
             half3 lowMip = SAMPLE_TEXTURE2D(_MainTexLowMip, sampler_LinearClamp, input.uv).xyz;
@@ -150,7 +150,7 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragUpsample
-                #pragma multi_compile_local _ FILTERING_HQ
+                #pragma multi_compile_local _ _BLOOM_HQ
             ENDHLSL
         }
     }

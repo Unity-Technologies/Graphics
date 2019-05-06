@@ -8,7 +8,7 @@ Shader "Hidden/Lightweight Render Pipeline/SubpixelMorphologicalAntialiasing"
 
     HLSLINCLUDE
 
-        #pragma multi_compile_local SMAA_PRESET_LOW SMAA_PRESET_MEDIUM SMAA_PRESET_HIGH
+        #pragma multi_compile_local _SMAA_PRESET_LOW _SMAA_PRESET_MEDIUM _SMAA_PRESET_HIGH
 
     ENDHLSL
 

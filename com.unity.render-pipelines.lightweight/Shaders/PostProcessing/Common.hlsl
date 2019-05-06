@@ -49,7 +49,7 @@ float3 SoftLight(float3 base, float3 blend)
 
 float GetLuminance(float3 colorLinear)
 {
-    #if TONEMAP_ACES
+    #if _TONEMAP_ACES
     return AcesLuminance(colorLinear);
     #else
     return Luminance(colorLinear);
@@ -70,12 +70,12 @@ half3 ApplyVignette(half3 input, float2 uv, float2 center, float intensity, floa
 
 half3 ApplyTonemap(half3 input)
 {
-    #if TONEMAP_ACES
+    #if _TONEMAP_ACES
     {
         float3 aces = unity_to_ACES(input);
         input = AcesTonemap(aces);
     }
-    #elif TONEMAP_NEUTRAL
+    #elif _TONEMAP_NEUTRAL
     {
         input = NeutralTonemap(input);
     }
@@ -92,7 +92,7 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
     // HDR Grading:
     //   - Apply internal LogC LUT
     //   - (optional) Clamp result & apply user LUT
-    #if HDR_GRADING
+    #if _HDR_GRADING
     {
         float3 inputLutSpace = saturate(LinearToLogC(input)); // LUT space is in LogC
         input = ApplyLut2D(TEXTURE2D_ARGS(lutTex, lutSampler), inputLutSpace, lutParams);

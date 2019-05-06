@@ -9,7 +9,7 @@ Shader "Hidden/Lightweight Render Pipeline/PaniniProjection"
 
         #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
-        #pragma multi_compile_local GENERIC UNIT_DISTANCE
+        #pragma multi_compile_local _GENERIC _UNIT_DISTANCE
 
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
@@ -103,9 +103,9 @@ Shader "Hidden/Lightweight Render Pipeline/PaniniProjection"
 
         half4 Frag(Varyings input) : SV_Target
         {
-            #if GENERIC
+            #if _GENERIC
             float2 proj_pos = Panini_Generic((2.0 * input.uv - 1.0) * _Params.xy * _Params.w, _Params.z);
-            #else // UNIT_DISTANCE
+            #else // _UNIT_DISTANCE
             float2 proj_pos = Panini_UnitDistance((2.0 * input.uv - 1.0) * _Params.xy * _Params.w);
             #endif
 

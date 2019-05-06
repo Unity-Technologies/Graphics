@@ -151,8 +151,8 @@ namespace UnityEngine.Rendering.LWRP
 
                 switch (m_Tonemapping.mode.value)
                 {
-                    case TonemappingMode.Neutral: material.EnableKeyword("TONEMAP_NEUTRAL"); break;
-                    case TonemappingMode.ACES: material.EnableKeyword("TONEMAP_ACES"); break;
+                    case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
+                    case TonemappingMode.ACES: material.EnableKeyword(ShaderKeywordStrings.TonemapACES); break;
                     default: break; // None
                 }
             }
