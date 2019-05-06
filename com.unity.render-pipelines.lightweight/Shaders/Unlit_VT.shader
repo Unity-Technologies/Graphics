@@ -52,6 +52,7 @@ Shader "Lightweight Render Pipeline/Unlit VT"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
+            #define VT_ON 1
             #include "UnlitInput.hlsl"
 
             struct Attributes
@@ -70,16 +71,6 @@ Shader "Lightweight Render Pipeline/Unlit VT"
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
-
-            float4x4 _TextureStack_spaceparams[2];
-            float4   _TextureStack_atlasparams[2];
-            TEXTURE2D(_TextureStack_transtab);          SAMPLER(sampler_TextureStack_transtab);
-            TEXTURE2D(_TextureStack_cache0);            SAMPLER(sampler_TextureStack_cache0);
-
-			#define GRA_HLSL_5 1
-			#define GRA_ROW_MAJOR 1
-			#define GRA_TEXTURE_ARRAY_SUPPORT 0
-			#include "GraniteShaderLib3.cginc"
 
             Varyings vert(Attributes input)
             {
@@ -104,34 +95,9 @@ Shader "Lightweight Render Pipeline/Unlit VT"
 
                 half2 uv = input.uv;
 
-               // half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
-
-				GraniteStreamingTextureConstantBuffer textureParamBlock;
-				textureParamBlock.data[0] = _TextureStack_atlasparams[0];
-				textureParamBlock.data[1] = _TextureStack_atlasparams[1];
-
-				GraniteTilesetConstantBuffer graniteParamBlock;
-				graniteParamBlock.data[0] = _TextureStack_spaceparams[0];
-				graniteParamBlock.data[1] = _TextureStack_spaceparams[1];
-
-				GraniteConstantBuffers grCB;
-				grCB.tilesetBuffer = graniteParamBlock;
-				grCB.streamingTextureBuffer = textureParamBlock;
-
-				GraniteTranslationTexture translationTable;
-				translationTable.Texture = _TextureStack_transtab;
-				translationTable.Sampler = sampler_TextureStack_transtab;
-
-				GraniteCacheTexture cache;
-				cache.Texture = _TextureStack_cache0;
-				cache.Sampler = sampler_TextureStack_cache0;
-
-				GraniteLookupData graniteLookupData;
-				float4 resolve;
-				Granite_Lookup_Anisotropic(grCB, translationTable, uv, graniteLookupData, resolve);
-
-				half4 texColor;
-				Granite_Sample_HQ(grCB, graniteLookupData, cache, 0, texColor);
+                // half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+                StackInfo stackInfo = PrepareStack(uv, _TextureStack);
+                half4 texColor = SampleStack(stackInfo, _BaseMap);
 
                 half3 color = texColor.rgb * _BaseColor.rgb;
                 half alpha = texColor.a * _BaseColor.a;
@@ -172,6 +138,7 @@ Shader "Lightweight Render Pipeline/Unlit VT"
             // GPU Instancing
             #pragma multi_compile_instancing
 
+            #define VT_ON 1
             #include "UnlitInput.hlsl"
             #include "DepthOnlyPass.hlsl"
             ENDHLSL
@@ -192,6 +159,7 @@ Shader "Lightweight Render Pipeline/Unlit VT"
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMetaUnlit
 
+            #define VT_ON 1
             #include "UnlitInput.hlsl"
             #include "UnlitMetaPass.hlsl"
 
@@ -217,17 +185,8 @@ Shader "Lightweight Render Pipeline/Unlit VT"
             // Unity defined keywords
             #pragma multi_compile_instancing
 
+            #define VT_ON 1
             #include "UnlitInput.hlsl"
-
-			float4x4 _TextureStack_spaceparams[2];
-            float4   _TextureStack_atlasparams[2];
-         
-			float4 VT_ResolveConstantPatch;
-
-			#define GRA_HLSL_5 1
-			#define GRA_ROW_MAJOR 1
-			#define GRA_TEXTURE_ARRAY_SUPPORT 0
-			#include "GraniteShaderLib3.cginc"
 
             struct Attributes
             {
@@ -256,11 +215,7 @@ Shader "Lightweight Render Pipeline/Unlit VT"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
 
-				GraniteStreamingTextureConstantBuffer textureParamBlock;
-				textureParamBlock.data[0] = _TextureStack_atlasparams[0];
-				textureParamBlock.data[1] = _TextureStack_atlasparams[1];
-
-				output.uv = Granite_Transform(textureParamBlock, TRANSFORM_TEX(input.uv, _BaseMap));
+                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
 
                 return output;
             }
@@ -269,31 +224,7 @@ Shader "Lightweight Render Pipeline/Unlit VT"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
 
-				GraniteStreamingTextureConstantBuffer textureParamBlock;
-				textureParamBlock.data[0] = _TextureStack_atlasparams[0];
-				textureParamBlock.data[1] = _TextureStack_atlasparams[1];
-
-                //TODO(ddebaets) this should be part of the GraniteShaderLib
-#if GRA_ROW_MAJOR == 1
-	#define gra_CalcMiplevelDeltaScaleX 	_TextureStack_spaceparams[0][2][0]
-	#define gra_CalcMiplevelDeltaScaleY 	_TextureStack_spaceparams[0][3][0]
-#else
-	#define gra_CalcMiplevelDeltaScaleX 	_TextureStack_spaceparams[0][0][2]
-	#define gra_CalcMiplevelDeltaScaleY 	_TextureStack_spaceparams[0][0][3]
-#endif
-
-				gra_CalcMiplevelDeltaScaleX *= VT_ResolveConstantPatch.x;
-				gra_CalcMiplevelDeltaScaleY *= VT_ResolveConstantPatch.y;
-
-				GraniteTilesetConstantBuffer graniteParamBlock;
-				graniteParamBlock.data[0] = _TextureStack_spaceparams[0];
-				graniteParamBlock.data[1] = _TextureStack_spaceparams[1];
-
-				GraniteConstantBuffers grCB;
-				grCB.tilesetBuffer = graniteParamBlock;
-				grCB.streamingTextureBuffer = textureParamBlock;
-
-				return Granite_ResolverPixel_PreTransformed_Anisotropic(grCB, input.uv);
+                return ResolveStack(input.uv, _TextureStack);
             }
             ENDHLSL
         }

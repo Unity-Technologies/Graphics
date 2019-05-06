@@ -72,6 +72,12 @@ float4 _ZBufferParams;
 // z = unused
 // w = 1.0 if camera is ortho, 0.0 if perspective
 float4 unity_OrthoParams;
+
+// x = scale for x derivative
+// y = scale for y derivative
+// z = unused
+// w = unused
+float4 VT_ResolveConstantPatch;
 CBUFFER_END
 
 

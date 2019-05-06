@@ -54,6 +54,11 @@ namespace UnityEngine.Rendering.LWRP
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                if (m_VirtualConstantPatchID < 0)
+                {
+                    Debug.LogError("Material is used with VT feedback but did not expose the VT_ResolveConstantPatch variable.");
+                }
+
                 cmd.SetGlobalVector(m_VirtualConstantPatchID, m_Resolver.VirtualConstantPatch);
 
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
