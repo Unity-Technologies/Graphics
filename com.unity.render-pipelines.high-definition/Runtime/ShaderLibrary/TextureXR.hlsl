@@ -14,6 +14,10 @@
     #error Single-pass stereo instancing is not supported on this platform (see UNITY_TEXTURE2D_X_ARRAY_SUPPORTED).
 #endif
 
+#if defined(UNITY_SINGLE_PASS_STEREO)
+    #error Single-pass (double-wide) is not compatible with HDRP.
+#endif
+
 // Control if TEXTURE2D_X macros will expand to texture arrays
 #if defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED) && !defined(DISABLE_TEXTURE2D_X_ARRAY)
     #define USE_TEXTURE2D_X_AS_ARRAY
@@ -30,7 +34,7 @@
 #endif
 
 // Define to override default rendering matrices (used mostly in ShaderVariables.hlsl)
-#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED)
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
     #define USING_STEREO_MATRICES
 #endif
 
@@ -91,22 +95,8 @@
 // single-pass instancing is the default method
 // multi-view and multi-pass are not yet supported
 // see Unity\Shaders\Includes\UnityShaderVariables.cginc for impl used by the C++ renderer
-#if defined(USING_STEREO_MATRICES)
-
-    #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-        static uint unity_StereoEyeIndex;
-    #elif defined(UNITY_SINGLE_PASS_STEREO) // XRTODO: remove once SinglePassInstanced is working
-        // Workaround for lighting issues with double-wide
-        #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
-        #if SHADER_STAGE_COMPUTE
-        #else
-            CBUFFER_START(UnityStereoEyeIndex)
-                int unity_StereoEyeIndex;
-            CBUFFER_END
-        #endif
-    #endif
-
+#if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_INSTANCING_ENABLED)
+    static uint unity_StereoEyeIndex;
 #else
     #define unity_StereoEyeIndex 0
 #endif

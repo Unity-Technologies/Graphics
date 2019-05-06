@@ -57,7 +57,7 @@ void RaytracingIndirectDiffuseTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
-    PositionInputs posInputs = GetPositionInput_Stereo(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
     float2 closest = GetClosestFragment(posInputs);
 
@@ -146,8 +146,7 @@ BilateralData TapBilateralData(uint2 coordSS)
 
     if (PLANE_WEIGHT > 0.0)
     {
-        posInput = GetPositionInput_Stereo(coordSS, _ScreenSize.zw, posInput.deviceDepth,
-                                           UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+        posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         key.position = posInput.positionWS;
     }
 

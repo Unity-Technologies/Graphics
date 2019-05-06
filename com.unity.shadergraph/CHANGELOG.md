@@ -5,11 +5,26 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [6.7.0] - 2019-XX-XX
+### Changed
+- Anti-aliasing (4x) is now enabled on Shader Graph windows.
+
 ### Fixed
+- Sub Graph Output and Custom Function Node now validate slot names, and display an appropriate error badge when needed.
+- Remaining outdated documentation has been removed. 
 - When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
 - When you rapidly perform an undo or redo, Shader Graph windows no longer break.
 - Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
 - You can now reference sub-assets such as Textures.
+- You can now reference Scene Color and Scene Depth correctly from within a Sub Graph.
+- When you create a new empty Sub Graph, it no longer shows a warning about a missing output.
+- When you create outputs that start with a digit, Shader generation no longer fails.
+- You can no longer add nodes that are not allowed into Sub Graphs.
+- A graph must now always contain at least one Master Node.
+- Duplicate output names are now allowed.
+- Fixed an issue where the main preview was always redrawing.
+- When you set a Master Node as active, the Main Preview now shows the correct result.
+- When you save a graph that contains a Sub Graph node, the Shader Graph window no longer freezes.
+- Fixed an error that occured when using multiple Sampler State nodes with different parameters.
 
 ## [6.6.0] - 2019-04-01
 ### Added

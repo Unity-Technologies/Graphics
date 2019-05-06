@@ -45,6 +45,10 @@ CBUFFER_END
 #define _TileSize                           uint(_MotionBlurParams2.y)
 
 
+#if defined(USING_STEREO_MATRICES)
+#define _PrevVPMatrixNoTranslation          _XRViewConstants[unity_StereoEyeIndex].prevViewProjMatrixNoCameraTrans
+#endif
+
 
 // --------------------------------------
 // Functions that work on encoded representation

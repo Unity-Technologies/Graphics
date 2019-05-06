@@ -220,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LTCAreaLightCookieManager m_AreaLightCookieManager;
 
         // For now we don't use shadow cascade borders.
-        static public readonly bool s_UseCascadeBorders = false;
+        static public readonly bool s_UseCascadeBorders = true;
 
         // Keep sorting array around to avoid garbage
         uint[] m_SortKeys = null;
@@ -1816,6 +1816,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
 
+                    #if ENABLE_RAYTRACING
+                        if(additionalData.lightTypeExtent == LightTypeExtent.Rectangle && additionalLightData.useRayTracedShadows)
+                            continue;
+                    #endif
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         additionalData.ReserveShadows(camera, m_ShadowManager, m_ShadowInitParameters, cullResults, m_FrameSettings, lightIndex);
 
@@ -1951,7 +1955,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Manage shadow requests
                         #if ENABLE_RAYTRACING
-                        if (additionalLightData.WillRenderShadows() && !additionalLightData.useRayTracedShadows)
+                        if (additionalLightData.WillRenderShadows() && !(additionalLightData.useRayTracedShadows && gpuLightType == GPULightType.Rectangle))
                         #else
                         if (additionalLightData.WillRenderShadows())
                         #endif
@@ -2964,15 +2968,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void CopyStencilBufferForMaterialClassification(CommandBuffer cmd, RTHandleSystem.RTHandle depthStencilBuffer, RTHandleSystem.RTHandle stencilCopyBuffer, Material copyStencilMaterial)
         {
-#if UNITY_SWITCH
+#if (UNITY_SWITCH || UNITY_IPHONE)
             // Faster on Switch.
-            HDUtils.SetRenderTarget(cmd, hdCamera, sharedRTManager.GetStencilBufferCopy(), sharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+            HDUtils.SetRenderTarget(cmd, stencilCopyBuffer, depthStencilBuffer, ClearFlag.Color, Color.clear);
 
-            m_CopyStencil.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
-            m_CopyStencil.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.LightingMask);
+            copyStencilMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
+            copyStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
 
             // Use ShaderPassID 1 => "Pass 1 - Write 1 if value different from stencilRef to output"
-            CoreUtils.DrawFullScreen(cmd, m_CopyStencil, null, 1);
+            CoreUtils.DrawFullScreen(cmd, copyStencilMaterial, null, 1);
 #else
             HDUtils.SetRenderTarget(cmd, stencilCopyBuffer, ClearFlag.Color, Color.clear);
             HDUtils.SetRenderTarget(cmd, depthStencilBuffer);

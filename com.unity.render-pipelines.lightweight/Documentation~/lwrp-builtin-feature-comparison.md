@@ -10,7 +10,7 @@ This table provides an overview of the current features supported in the Lightwe
 | ***Camera***                                                 |                                                              |                                                              |
 | HDR                                                          | Yes                                                          | Yes                                                          |
 | MSAA                                                         | Yes                                                          | Yes                                                          |
-| Physical Camera                                              | Yes                                                          | Yes                                                |
+| Physical Camera                                              | Yes                                                          | Yes                                                          |
 | Dynamic Resolution                                           | Yes                                                          | Yes                                                          |
 | Multi Display                                                | Yes                                                          | Yes                                                          |
 | Stacking                                                     | Yes                                                          | In research                                                  |
@@ -141,7 +141,7 @@ This table provides an overview of the current features supported in the Lightwe
 | Distortion                                                   | Yes                                                          | Yes                                                          |
 | Flipbook Blending                                            | Yes                                                          | Yes                                                          |
 | ***Terrain***                                                |                                                              |                                                              |
-| *Shaders*<br/>Physically Based<br/>Simple Lighting (Blinn-Phong)<br/>Unlit<br/>Speed Tree<br/>Vegetation<br/>Detail | <br/>Yes<br/>Yes<br/>Not supported<br/>Yes<br/>Yes<br/>Yes   | <br/>Yes<br/>In research<br/>In research<br/>In research<br/>Yes<br/>Yes |
+| *Shaders*<br/>Physically Based<br/>Simple Lighting (Blinn-Phong)<br/>Unlit<br/>Speed Tree<br/>Vegetation<br/>Detail | <br/>Yes<br/>Yes<br/>Not supported<br/>Yes<br/>Yes<br/>Yes   | <br/>Yes<br/>In research<br/>In research<br/>Yes<br/>Yes<br/>Yes |
 | Wind Zone                                                    | Yes                                                          | Yes                                                          |
 | Number of Layers                                             | Unlimited                                                    | 4                                                            |
 | GPU Patch Generation                                         | Yes                                                          | Yes                                                          |
