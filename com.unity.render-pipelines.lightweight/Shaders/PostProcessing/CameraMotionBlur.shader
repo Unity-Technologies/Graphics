@@ -88,6 +88,7 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
 
             half3 color = 0.0;
 
+            UNITY_UNROLL
             for (int i = 0; i < iterations; i++)
             {
                 color += GatherSample(i, velocity, invSampleCount, input.uv.xy, randomVal, -1.0);
