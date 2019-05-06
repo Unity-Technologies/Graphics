@@ -147,7 +147,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         HeaderModifier m_HeaderModifier;
 
-        Analytics.Analytics m_Analytics = Analytics.Analytics.instance;
+        Analytics.Analytics m_Analytics;
         HashSet<Light2D> m_ModifiedLights;
 
         private void AnalyticsTrackChanges(SerializedObject serializedObject)
@@ -187,6 +187,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         void OnEnable()
         {
+            m_Analytics = Analytics.Analytics.instance;
             m_ModifiedLights = new HashSet<Light2D>();
             m_LightType = serializedObject.FindProperty("m_LightType");
             m_LightColor = serializedObject.FindProperty("m_Color");

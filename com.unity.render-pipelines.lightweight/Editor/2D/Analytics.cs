@@ -22,8 +22,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
             Modified
         }
 
+        [SerializeField]
         public EventType event_type;
+        [SerializeField]
         public int instance_id;
+        [SerializeField]
         public Light2D.LightType light_type;
     };
 
@@ -37,9 +40,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
             Modified
         }
 
+        [SerializeField]
         public EventType event_type;
+        [SerializeField]
         public int instance_id;
+        [SerializeField]
         public int blending_layers_count;
+        [SerializeField]
         public int blending_modes_used;
     }
 
@@ -49,10 +56,10 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
         AnalyticsResult SendData(string eventString, IAnalyticsData data);
     }
 
-    [UnityEditor.InitializeOnLoad]
+    [InitializeOnLoad]
     internal class Analytics : IAnalytics
     {
-        const int k_MaxEventsPerHour = 100;
+        const int k_MaxEventsPerHour = 1000;
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "Unity.RenderPipelines.Lightweight.Editor";
         const int k_Version = 1;
@@ -68,43 +75,17 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
             }
         }
 
-        private Analytics()
+        static Analytics()
         {
-            //EditorAnalytics.RegisterEventWithLimit(k_LightAddedEventString, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, k_Version);
+            Debug.Log("Registered Event");
+            EditorAnalytics.RegisterEventWithLimit(AnalyticsDataTypes.k_LightDataString, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, k_Version);
+            EditorAnalytics.RegisterEventWithLimit(AnalyticsDataTypes.k_2DRendererDataString, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, k_Version);
         }
 
         public AnalyticsResult SendData(string eventString, IAnalyticsData data)
         {
-
-            if(data is Light2DData)
-            {
-                Light2DData lightData = (Light2DData)data;
-                if(lightData.event_type == Light2DData.EventType.Created)
-                {
-                    Debug.Log("Light Created Type = " + lightData.light_type);
-                }
-                else
-                {
-                    Debug.Log("Light Modified Type = " + lightData.light_type);
-                }
-                
-            }
-            else if(data is RendererAssetData)
-            {
-                RendererAssetData rendererAssetData = (RendererAssetData)data;
-                if (rendererAssetData.event_type == RendererAssetData.EventType.Created)
-                {
-                    Debug.Log("Renderer Assest Data Created - Blending Layer Count:" + rendererAssetData.blending_layers_count + " Blending Layer Used:" + rendererAssetData.blending_modes_used);
-                }
-                else
-                {
-                    Debug.Log("Renderer Assest Data Modified - Blending Layer Count:" + rendererAssetData.blending_layers_count + " Blending Layer Used:" + rendererAssetData.blending_modes_used);
-                }
-            }
-
-            //return EditorAnalytics.SendEventWithLimit(eventString, data, k_Version);
-            
-            return AnalyticsResult.Ok;
+            Debug.Log("Sent Data " + JsonUtility.ToJson(data, true));
+            return EditorAnalytics.SendEventWithLimit(eventString, data, k_Version);
         }
     }
 }
