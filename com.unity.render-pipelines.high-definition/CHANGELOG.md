@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sorting priority on lit and unlit materials
 - Fixed dirty state of prefab using disabled ReflectionProbes
 - Fixed created default scene prefab non editable due to wrong file extension.
+- Fixed an issue where sky convolution was recomputed for nothing when a preview was visible (causing extreme slowness when fabric convolution is enabled)
 
 ### Changed
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
