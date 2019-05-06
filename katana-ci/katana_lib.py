@@ -62,7 +62,7 @@ def start_katana_build(project, properties):
         "owner": "GFX Foundation Yamato <sophia@unity3d.com>",
         "sources_stamps": [
     {     
-        "branch": "master",
+        "branch": "release/2019.2",
         "repository": "ScriptableRenderLoop",
         "revision": ""
     },
@@ -72,7 +72,7 @@ def start_katana_build(project, properties):
         "revision": ""
     },
     {
-        "branch": "trunk",
+        "branch": "2019.2/staging",
         "repository": "unity",
         "revision":""
     }
