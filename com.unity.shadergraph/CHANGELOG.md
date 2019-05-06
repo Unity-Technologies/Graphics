@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Anti-aliasing (4x) is now enabled on Shader Graph windows.
 
 ### Fixed
+- When you click on the gear icon, Shader Graph now focuses on the selected node, and brings the settings menu to front view.
 - Sub Graph Output and Custom Function Node now validate slot names, and display an appropriate error badge when needed.
 - Remaining outdated documentation has been removed. 
 - When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
