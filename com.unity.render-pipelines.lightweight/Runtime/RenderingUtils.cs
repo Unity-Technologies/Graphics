@@ -76,5 +76,39 @@ namespace UnityEngine.Rendering.LWRP
 
             context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
         }
+
+        public static int ConfigureDithering(PostProcessData data, int index, Camera camera, Material material, int textureShaderId, int paramShaderId)
+        {
+            var blueNoise = data.textures.blueNoise16LTex;
+
+            if (blueNoise == null || blueNoise.Length == 0)
+                return 0; // Safe guard
+
+            #if LWRP_DEBUG_STATIC_POSTFX // Used by QA for automated testing
+            index = 0;
+            float rndOffsetX = 0f;
+            float rndOffsetY = 0f;
+            #else
+            if (++index >= blueNoise.Length)
+                index = 0;
+
+            float rndOffsetX = Random.value;
+            float rndOffsetY = Random.value;
+            #endif
+
+            // Ideally we would be sending a texture array once and an index to the slice to use
+            // on every frame but these aren't supported on all LWRP targets
+            var noiseTex = blueNoise[index];
+
+            material.SetTexture(textureShaderId, noiseTex);
+            material.SetVector(paramShaderId, new Vector4(
+                camera.pixelWidth / (float)noiseTex.width,
+                camera.pixelHeight / (float)noiseTex.height,
+                rndOffsetX,
+                rndOffsetY
+            ));
+
+            return index;
+        }
     }
 }

@@ -129,9 +129,9 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
                 float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
                 float2 delta = (end - uv) / 3.0;
 
-                half r = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uvDistorted,                 0).x;
-                half g = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, DistortUV(delta + uv),       0).y;
-                half b = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv), 0).z;
+                half r = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uvDistorted                ).x;
+                half g = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, DistortUV(delta + uv)      ).y;
+                half b = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv)).z;
 
                 color = half3(r, g, b);
             }

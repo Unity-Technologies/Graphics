@@ -44,6 +44,9 @@ namespace UnityEngine.Rendering.LWRP
         bool m_ResetHistory;
         int m_DitheringTextureIndex;
 
+        // True when this is the very last pass in the pipeline
+        bool m_IsFinalPass;
+
         public PostProcessPass(RenderPassEvent evt, PostProcessData data)
         {
             renderPassEvent = evt;
@@ -73,13 +76,25 @@ namespace UnityEngine.Rendering.LWRP
             m_ResetHistory = true;
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool isFinalPass)
         {
             m_Descriptor = baseDescriptor;
             m_Source = source;
             m_Destination = destination;
             m_Depth = depth;
             m_InternalLut = internalLut;
+            m_IsFinalPass = isFinalPass;
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            if (m_IsFinalPass)
+                return;
+
+            var desc = cameraTextureDescriptor;
+            desc.msaaSamples = 1;
+            desc.depthBufferBits = 0;
+            cmd.GetTemporaryRT(m_Destination.id, desc, FilterMode.Point);
         }
 
         public void ResetHistory()
@@ -218,8 +233,19 @@ namespace UnityEngine.Rendering.LWRP
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
                 SetupGrain(cameraData.camera, m_Materials.uber, false);
 
-                //if (cameraData.isDitheringEnabled)
-                //    SetupDithering(cameraData.camera, m_Materials.uber);
+                // Only apply dithering if we're the final pass
+                if (m_IsFinalPass && cameraData.isDitheringEnabled)
+                {
+                    m_Materials.uber.EnableKeyword("FINAL_PASS");
+                    m_DitheringTextureIndex = RenderingUtils.ConfigureDithering(
+                        m_Data,
+                        m_DitheringTextureIndex,
+                        cameraData.camera,
+                        m_Materials.uber,
+                        ShaderConstants._BlueNoise_Texture,
+                        ShaderConstants._Dithering_Params
+                    );
+                }
 
                 // Done with Uber, blit it
                 Blit(cmd, GetSource(), m_Destination.Identifier(), m_Materials.uber);
@@ -641,44 +667,6 @@ namespace UnityEngine.Rendering.LWRP
 
             if (!onTile && m_FilmGrain.IsActive())
                 material.EnableKeyword("GRAIN");
-        }
-
-        #endregion
-
-        #region 8-bit Dithering
-
-        void SetupDithering(Camera camera, Material material)
-        {
-            var blueNoise = m_Data.textures.blueNoise16LTex;
-
-            if (blueNoise == null || blueNoise.Length == 0)
-                return; // Safe guard
-
-            #if LWRP_DEBUG_STATIC_POSTFX // Used by QA for automated testing
-            m_DitheringTextureIndex = 0;
-            float rndOffsetX = 0f;
-            float rndOffsetY = 0f;
-            #else
-            if (++m_DitheringTextureIndex >= blueNoise.Length)
-                m_DitheringTextureIndex = 0;
-
-            float rndOffsetX = Random.value;
-            float rndOffsetY = Random.value;
-            #endif
-
-            // Ideally we would be sending a texture array once and an index to the slice to use
-            // on every frame but these aren't supported on all LWRP targets
-            var noiseTex = blueNoise[m_DitheringTextureIndex];
-
-            material.SetTexture(ShaderConstants._BlueNoise_Texture, noiseTex);
-            material.SetVector(ShaderConstants._Dithering_Params, new Vector4(
-                camera.pixelWidth / (float)noiseTex.width,
-                camera.pixelHeight / (float)noiseTex.height,
-                rndOffsetX,
-                rndOffsetY
-            ));
-
-            material.EnableKeyword("FINAL_PASS");
         }
 
         #endregion

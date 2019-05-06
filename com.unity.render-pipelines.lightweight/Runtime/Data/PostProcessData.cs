@@ -55,6 +55,9 @@ namespace UnityEngine.Rendering.LWRP
 
             [Reload("Shaders/PostProcessing/UberPost.shader")]
             public Shader uberPostPS;
+
+            [Reload("Shaders/PostProcessing/FinalPost.shader")]
+            public Shader finalPostPassPS;
         }
 
         [Serializable, ReloadGroup]
