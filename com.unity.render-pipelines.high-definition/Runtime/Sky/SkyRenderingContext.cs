@@ -181,7 +181,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Sun could influence the sky (like for procedural sky). We need to handle this possibility. If sun property change, then we need to update the sky
                 int hash = 13;
-                hash = hash * 23 + (light.GetHashCode() * 23 + light.transform.position.GetHashCode()) * 23 + light.transform.rotation.GetHashCode();
+                hash = hash * 23 + light.transform.position.GetHashCode();
+                hash = hash * 23 + light.transform.rotation.GetHashCode();
                 hash = hash * 23 + light.color.GetHashCode();
                 hash = hash * 23 + light.colorTemperature.GetHashCode();
                 hash = hash * 23 + light.intensity.GetHashCode();
