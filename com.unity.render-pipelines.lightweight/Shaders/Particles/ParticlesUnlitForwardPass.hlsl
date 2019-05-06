@@ -126,7 +126,7 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     output.texcoord2AndBlend.z = input.texcoordBlend;
 #endif
     
-#if defined(SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
+#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
     output.projectedPosition = ComputeScreenPos(vertexInput.positionCS);
 #endif
 

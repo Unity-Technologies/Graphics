@@ -1741,7 +1741,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
         // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return lighting;
 
-    float hitDeviceDepth = LOAD_TEXTURE2D_X_LOD(_DepthPyramidTexture, TexCoordStereoOffset(hit.positionSS), 0).r;
+    float hitDeviceDepth = LOAD_TEXTURE2D_X_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
     float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
 
     // This is an empirically set hack/modifier to reduce haloes of objects visible in the refraction.
@@ -1752,11 +1752,6 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     refractionOffsetMultiplier *= (hitLinearDepth > posInput.linearDepth);
 
     float2 samplingPositionNDC = lerp(posInput.positionNDC, hit.positionNDC, refractionOffsetMultiplier);
-
-#ifdef UNITY_SINGLE_PASS_STEREO
-    samplingPositionNDC.x = 0.5f * (samplingPositionNDC.x + unity_StereoEyeIndex);
-#endif
-
     float3 preLD = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler,
                                         // Offset by half a texel to properly interpolate between this pixel and its mips
                                         samplingPositionNDC * _ColorPyramidScale.xy, preLightData.transparentSSMipLevel).rgb;

@@ -1,5 +1,3 @@
-**Important:** This page is subject to change during the 2019.1 beta cycle.
-
 # Simple Lit Shader 
 
 Use this Shader when performance is more important than photorealism. This Shader uses a simple approximation for lighting. Because this Shader [does not calculate for physical correctness and energy conservation](shading-model.md#simple-shading), it renders quickly. 

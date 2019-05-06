@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         bool m_HasError;
-        
+
         [NonSerialized]
         private List<ISlot> m_Slots = new List<ISlot>();
 
@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual bool canDeleteNode
         {
-            get { return true; }
+            get { return owner != null && guid != owner.activeOutputNodeGuid; }
         }
 
         public DrawState drawState
@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph
             get { return m_HasError; }
             protected set { m_HasError = value; }
         }
-        
+
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
         Guid m_GuidForDefaultVariableName;
@@ -446,6 +446,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public int version { get; set; }
+        public virtual bool canCopyNode => true;
 
         //True if error
         protected virtual bool CalculateNodeHasError(ref string errorMessage)
@@ -481,7 +482,7 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<MaterialSlot>(slotId);
             if (slot == null)
                 throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
-            return string.Format("_{0}_{1}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName));
+            return string.Format("_{0}_{1}_{2}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName), slotId);
         }
 
         public virtual string GetVariableNameForNode()
@@ -504,7 +505,7 @@ namespace UnityEditor.ShaderGraph
             slot.owner = this;
 
             OnSlotsChanged();
-            
+
             if (foundSlot == null)
                 return;
 

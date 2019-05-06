@@ -51,7 +51,7 @@ The following properties control the method that the Planar Reflection Probe use
 | -------------------------- | ------------------------------------------------------------ |
 | **Mirror Position**        | Offsets the position of the mirror from the Transform Position. |
 | **Mirror Rotation**        | Offsets the rotation of the mirror from the Transform Rotation. |
-| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />**Sky** uses the sky defined by the current [Volume](Volumes.html) settings to fill empty background areas.<br />**Background** uses the **Background Color** setting to fill empty background areas.<br />**None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
+| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](Volumes.html) settings to fill empty background areas.<br />&#8226; **Background** uses the **Background Color** setting to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
 | **Background Color**       | The color to fill empty background areas of the RenderTexture if you set the **Clear Mode** to **Background**. |
 | **Clear Depth**            | Choose whether the Planar Reflection Probe clears the Depth Buffer or not. |
 | **Volume Layer Mask**      | A LayerMask that defines which Volumes affect this Planar Reflection Probe’s capture. |

@@ -268,14 +268,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (evt.target is Node)
             {
-                var canViewShader = node.hasPreview || node is IMasterNode;
+                var isMaster = node is IMasterNode;
+                var isActive = node.guid == node.owner.activeOutputNodeGuid;
+                if (isMaster)
+                {
+                    evt.menu.AppendAction("Set Active", SetMasterAsActive,
+                        _ => isActive ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal);
+                }
+
+                var canViewShader = node.hasPreview || node is IMasterNode || node is SubGraphOutputNode;
                 evt.menu.AppendAction("Copy Shader", CopyToClipboard,
                     _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
                     GenerationMode.ForReals);
                 evt.menu.AppendAction("Show Generated Code", ShowGeneratedCode,
                     _ => canViewShader ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden,
                     GenerationMode.ForReals);
-                
+
                 if (Unsupported.IsDeveloperMode())
                 {
                     evt.menu.AppendAction("Show Preview Code", ShowGeneratedCode,
@@ -285,6 +293,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             base.BuildContextualMenu(evt);
+        }
+
+        void SetMasterAsActive(DropdownMenuAction action)
+        {
+            node.owner.activeOutputNodeGuid = node.guid;
         }
 
         void CopyToClipboard(DropdownMenuAction action)
@@ -420,7 +433,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         port.slot = newSlot;
                         var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(x => x.slot.id == currentSlot.id);
-                        portInputView.UpdateSlot(newSlot);
+                        if (newSlot.isConnected)
+                        {
+                            portInputView?.RemoveFromHierarchy();
+                        }
+                        else
+                        {
+                            portInputView?.UpdateSlot(newSlot);
+                        }
 
                         slots.Remove(newSlot);
                     }
@@ -484,18 +504,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var port in inputContainer.Children().OfType<ShaderPort>())
             {
-                if (!m_PortInputContainer.Children().OfType<PortInputView>().Any(a => Equals(a.slot, port.slot)))
+                if (port.slot.isConnected || m_PortInputContainer.Children().OfType<PortInputView>().Any(a => Equals(a.slot, port.slot)))
                 {
-                    var portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
-                    m_PortInputContainer.Add(portInputView);
-                    if (float.IsNaN(port.layout.width))
-                    {
-                        port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
-                    }
-                    else
-                    {
-                        SetPortInputPosition(port, portInputView);
-                    }
+                    continue;
+                }
+                
+                var portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
+                m_PortInputContainer.Add(portInputView);
+                if (float.IsNaN(port.layout.width))
+                {
+                    port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
+                }
+                else
+                {
+                    SetPortInputPosition(port, portInputView);
                 }
             }
         }
@@ -514,12 +536,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             inputView.parent.style.height = inputContainer.layout.height;
         }
 
-        public void UpdatePortInputVisibilities()
+        void UpdatePortInputVisibilities()
         {
-            foreach (var portInputView in m_PortInputContainer.Children().OfType<PortInputView>().ToList())
+            if (expanded)
             {
-                var slot = portInputView.slot;
-                portInputView.style.display = expanded && !node.owner.GetEdges(node.GetSlotReference(slot.id)).Any() ? DisplayStyle.Flex : DisplayStyle.None;
+                m_PortInputContainer.style.display = StyleKeyword.Null;
+            }
+            else
+            {
+                m_PortInputContainer.style.display = DisplayStyle.None;
             }
         }
 
