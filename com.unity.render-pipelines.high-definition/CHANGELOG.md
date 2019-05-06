@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed nan tracker not using the exposure 
 - Fixed sorting priority on lit and unlit materials
 - Fixed dirty state of prefab using disabled ReflectionProbes
+- Fixed created default scene prefab non editable due to wrong file extension.
 
 ### Changed
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
