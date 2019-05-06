@@ -47,6 +47,10 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
 #endif
 
+#if defined(SHADER_API_MOBILE)
+#define PLATFORM_LANE_COUNT 32
+#endif
+
 #ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
 #define NR_THREADS              PLATFORM_LANE_COUNT  
 #else

@@ -2968,15 +2968,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void CopyStencilBufferForMaterialClassification(CommandBuffer cmd, RTHandleSystem.RTHandle depthStencilBuffer, RTHandleSystem.RTHandle stencilCopyBuffer, Material copyStencilMaterial)
         {
-#if UNITY_SWITCH
+#if (UNITY_SWITCH || UNITY_IPHONE)
             // Faster on Switch.
-            HDUtils.SetRenderTarget(cmd, hdCamera, sharedRTManager.GetStencilBufferCopy(), sharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
+            HDUtils.SetRenderTarget(cmd, stencilCopyBuffer, depthStencilBuffer, ClearFlag.Color, Color.clear);
 
-            m_CopyStencil.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
-            m_CopyStencil.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.LightingMask);
+            copyStencilMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
+            copyStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
 
             // Use ShaderPassID 1 => "Pass 1 - Write 1 if value different from stencilRef to output"
-            CoreUtils.DrawFullScreen(cmd, m_CopyStencil, null, 1);
+            CoreUtils.DrawFullScreen(cmd, copyStencilMaterial, null, 1);
 #else
             HDUtils.SetRenderTarget(cmd, stencilCopyBuffer, ClearFlag.Color, Color.clear);
             HDUtils.SetRenderTarget(cmd, depthStencilBuffer);
