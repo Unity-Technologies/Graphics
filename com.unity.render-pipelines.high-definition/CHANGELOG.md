@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaN issue with refraction effect and IOR of 1 at extreme grazing angle
 - Fixed nan tracker not using the exposure 
 - Fixed sorting priority on lit and unlit materials
+- Fixed null pointer exception when there are no AOVRequests defined on a camera
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
