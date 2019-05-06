@@ -1,6 +1,4 @@
-- - **Note:** This page is subject to change during the 2019.1 beta cycle.
-
-    # Shading models in Lightweight Render Pipeline
+- - # Shading models in Lightweight Render Pipeline
 
     A shading model defines how a Material’s color varies depending on factors such as surface orientation, viewer direction, and lighting. Your choice of a shading model depends on the artistic direction and performance budget of your application. Lightweight Render Pipeline (LWRP) provides Shaders with the following shading models:
 
@@ -16,20 +14,20 @@
     This PBS model follows two principles: 
 
     _Energy conservation_ - Surfaces never reflect more light than the total incoming light. The only exception to this is when an object emits light. For example, a neon sign. 
-    _Microgeometry_ - Surfaces have geometry at a microscopic level. Some objects have smooth microgeometry, which gives them a mirror-like appearance. Other objects have rough microgeometry, which makes them look more dull. In LWRP, you can mimic the level of smoothness of an object’s surface. 
+    _Microgeometry_ - Surfaces have geometry at a microscopic level. Some objects have smooth microgeometry, which gives them a mirror-like appearance. Other objects have rough microgeometry, which makes them look more dull. In LWRP, you can mimic the level of smoothness of a rendered object’s surface. 
 
-
-    When light hits a GameObject’s surface, part of the light is reflected and part is refracted. The reflected light is called _specular reflection_. This varies depending on the camera direction and the point at which the light hits a surface, also called the [angle of incidence](<https://en.wikipedia.org/wiki/Angle_of_incidence_(optics)>). In this shading model, the shape of specular highlight is approximated with a [GGX function](https://blogs.unity3d.com/2016/01/25/ggx-in-unity-5-3/). 
+    When light hits a a rendered object's surface, part of the light is reflected and part is refracted. The reflected light is called _specular reflection_. This varies depending on the camera direction and the point at which the light hits a surface, also called the [angle of incidence](<https://en.wikipedia.org/wiki/Angle_of_incidence_(optics)>). In this shading model, the shape of specular highlight is approximated with a [GGX function](https://blogs.unity3d.com/2016/01/25/ggx-in-unity-5-3/). 
 
     For metal objects, the surface absorbs and changes the light. For non-metallic objects, also called [dialetic](<https://en.wikipedia.org/wiki/Dielectric>) objects, the surface reflects parts of the light.
-
 
     Light attenuation is only affected by the light intensity. This means that you don’t have to increase the range of your light to control the attenuation.
 
     The following LWRP Shaders use Physically Based Shading:
 
     - [Lit](lit-shader.md)
+
     - [Particles Lit](particles-lit-shader.md)
+
 
     **Note:** This shading model is not suitable for low-end mobile hardware. If you’re targeting this hardware, use Shaders with a [Simple Shading](#simple-shading) model.
 
@@ -61,3 +59,4 @@
     The following LWRP Shaders have no lighting:
     - [Unlit](unlit-shader.md)
     - [Particles Unlit](particles-unlit-shader.md)
+

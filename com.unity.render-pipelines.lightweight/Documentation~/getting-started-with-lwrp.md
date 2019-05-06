@@ -1,5 +1,3 @@
-**Note:** This page is subject to change during the 2019.1 beta cycle.
-
 # Getting started with LWRP
 
 To use the Lightweight Render Pipeline, you can either start a new Project or upgrade an existing one. 
