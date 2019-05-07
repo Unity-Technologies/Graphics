@@ -46,6 +46,7 @@ namespace UnityEditor.ShaderGraph
 
         AlphaTestSavedState,       // bookkeeping original toggle state to be able to unsplice and remove ourselves from the ShaderGraph
         DoubleSidedSavedState,
+        SurfaceTypeSavedState,
 
         // TODO: other input props to special case the cross section per shader graph:
 
@@ -73,6 +74,7 @@ namespace UnityEditor.ShaderGraph
         List<string> alphaTestTogglePropertyNames { get; }
         List<string> doubleSidedPropertyNames { get; }
         Dictionary<Type, int> doubleSidedEnabledAsIntValueByType { get; }
+        List<string> surfaceTypePropertyNames { get; }
     }
 
     // This class informs on our default cross section subgraph:
@@ -110,6 +112,7 @@ namespace UnityEditor.ShaderGraph
 
             { "AlphaTestSavedState",         GenericSlotNames.AlphaTestSavedState },
             { "DoubleSidedSavedState",       GenericSlotNames.DoubleSidedSavedState },
+            { "SurfaceTypeSavedState",       GenericSlotNames.SurfaceTypeSavedState },
 
             //
             { "CrossSectionEnable",          GenericSlotNames.CrossSectionEnable },
@@ -186,6 +189,14 @@ namespace UnityEditor.ShaderGraph
             { typeof(DoubleSidedMode), (int)DoubleSidedMode.Enabled},
         };
         public Dictionary<Type, int> doubleSidedEnabledAsIntValueByType { get => k_DoubleSidedEnabledAsIntValueByType; }
+
+        // List of possible property names for the SurfaceType property to check the transparency state of a material:
+        private static readonly List<string> k_SurfaceTypePropertyNames = new List<string>()
+        {
+            "surfaceType",
+        };
+        public List<string> surfaceTypePropertyNames { get => k_SurfaceTypePropertyNames; }
+
     }//CrossSectionEnablerConfig
 
     // This class discovers and configures some auxilliary data structures required to splice in a cross section subgraph
@@ -239,7 +250,7 @@ namespace UnityEditor.ShaderGraph
                 .Select(pair => pair.Key).ToList();
         }
 
-        //TODO removeme not really needed, could use the other dictionaries eg s_MasterNodeAlphaToggleAndSlotIds
+        //TODO removeme not really needed, could use the other dictionaries eg masterNodeTypeToNodeInfo
         private HashSet<Type> compatibleMasterNodesSet = new HashSet<Type>();
 
         private class MasterNodeInfo
@@ -247,6 +258,7 @@ namespace UnityEditor.ShaderGraph
             public PropertyInfo AlphaTestToggle;
             public PropertyInfo DoubleSidedProperty;
             public int DoubleSidedEnabledValue;
+            public PropertyInfo SurfaceTypeProperty;
             public Dictionary<GenericSlotNames, int> GenericSlotNamesToSlotId;
         }
         // Mapping giving per master node type, all basic info to manipulate and connect to it (value is a 2-tuple):
@@ -426,6 +438,8 @@ namespace UnityEditor.ShaderGraph
                         FindPropertyInfoMatch(type, mainConfig.alphaTestTogglePropertyNames, new List<Type>{ typeof(ToggleData) });
                     PropertyInfo doubleSidedPropertyInfo =
                         FindPropertyInfoMatch(type, mainConfig.doubleSidedPropertyNames, new List<Type> { typeof(ToggleData), typeof(DoubleSidedMode) });
+                    PropertyInfo surfaceTypePropertyInfo =
+                        FindPropertyInfoMatch(type, mainConfig.surfaceTypePropertyNames, new List<Type> { typeof(SurfaceType) });
 
                     // Store this master node info: the props (if any)
                     // and the mapping of generic input names that we know of to the slot ids used by it
@@ -449,6 +463,7 @@ namespace UnityEditor.ShaderGraph
                             AlphaTestToggle = alphaTogglePropertyInfo,
                             DoubleSidedProperty = doubleSidedPropertyInfo,
                             DoubleSidedEnabledValue = doubleSidedEnabledValue,
+                            SurfaceTypeProperty = surfaceTypePropertyInfo,
                             GenericSlotNamesToSlotId = genericSlotNamesToSlotId,
                         });
                 }
@@ -459,16 +474,32 @@ namespace UnityEditor.ShaderGraph
         // Actual per ShaderGraph surgery section
         //
 
-        private static bool GetMasterNodeAlphaTestToggle(MasterNodeInfo masterNodeInfo, IMasterNode masterNode)
+        private static bool GetMasterNodeAlphaTestToggle(MasterNodeInfo masterNodeInfo, IMasterNode masterNode, AbstractMaterialNode masterMatNode)
         {
             // We will need to save the alphaTest enabled state for the master node, we will need it.
-            // If the node doesn't have one but we've reached this point in the code (it is listed in the masterNodeAlphaToggleAndSlotIds
+            // If the node doesn't have one but we've reached this point in the code (it is listed in the masterNodeTypeToNodeInfo
             // table, thus an AlphaTreshold slot was found to be declared on it), it means the master node is something like PBRMasterNode,
-            // and we infer the alphaTest is always on.
+            // and we infer the alphaTest is on only if AlphaTreshold was connected:
+            // This is something specific to the PBRMasterNode:
+            // We can't trust the value set on the AlphaThreshold slot as this masternode ignores it when it is disconnected, and us splicing
+            // the node will suddenly enable the alpha test. So even if there's no property toggle for the PBRMasterNode, we return that the
+            // alphaTest was disabled when AlphaTreshold was disconnected. That way our code processing the mainConfig.alphaThresholdSlotsDependingOnAlphaClipEnable
+            // dependencies will properly overwrite the stale AlphaTreshold value with the "AlphaThreshold equivalent to alphatest disabled"
+            // value (k_AlphaThresholdDisabledEquivalent).
             bool alphaTestWasEnabled;
             if (masterNodeInfo.AlphaTestToggle == null)
             {
-                alphaTestWasEnabled = true;
+                if (masterNodeInfo.GenericSlotNamesToSlotId.TryGetValue(GenericSlotNames.AlphaThreshold, out int alphaThresholdSlotId)
+                    && ! masterMatNode.IsSlotConnected(alphaThresholdSlotId) )
+                {
+                    // Master node has no alphaTestToggle property and the alphaThreshold slot is not initially (before our splice) connected:
+                    // assume that alpha test is off (this is for the PBRMasterNode)
+                    alphaTestWasEnabled = false;
+                }
+                else
+                {
+                    alphaTestWasEnabled = true;
+                }
             }
             else
             {
@@ -944,8 +975,8 @@ namespace UnityEditor.ShaderGraph
             // Save the alphaTest enabled state for the master node, we will need it.
             // If the node doesn't have one but we've reached this point in the code (it is listed in the masterNodeAlphaToggleAndSlotIds
             // table, thus an AlphaTreshold slot was found to be declared on it), it means the master node is something like PBRMasterNode,
-            // and we infer the alphaTest is always on.
-            bool alphaTestWasEnabled = GetMasterNodeAlphaTestToggle(masterNodeInfo, masterNode);
+            // and we infer the alphaTest is on only if the alphaThreshold slot is connected.
+            bool alphaTestWasEnabled = GetMasterNodeAlphaTestToggle(masterNodeInfo, masterNode, masterMatNode);
 
             // Save the alphaTest state on our crossSection node
             // todotodo
@@ -961,11 +992,18 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Save and set the DoubleSidedMode / toggle
-            // TODOTODO: depending on the style wanted (filled or transparent cut), toggle back face or not
+            // See HLSL code and cross section subgraph: depending on the style wanted (filled or transparent cut), we will render backface fragments
+            // (see BackFacePassingCutterBehaviorControl_float)
             float doubleSidedSavedState = GetSimplePropertyAsFloat(masterNode, masterNodeInfo.DoubleSidedProperty);
             SetMaterialSlotValueByGenericName<float>(crossSectionSubGraphNode, GenericSlotNames.DoubleSidedSavedState, (CrossSectionNodeTranslator)genericSlotNamesToCrossSectionIOSlotIds,
                                                      doubleSidedSavedState);
-            SetSimplePropertyFromFloat(masterNode, masterNodeInfo.DoubleSidedProperty, masterNodeInfo.DoubleSidedEnabledValue); // see TODOTODO
+            SetSimplePropertyFromFloat(masterNode, masterNodeInfo.DoubleSidedProperty, masterNodeInfo.DoubleSidedEnabledValue);
+
+            // Save the surface type state (opaque or transparent): we don't manipulate it on the master node, this is just used as information
+            // for the cross section subgraph (see also how we use DoubleSidedSavedState in the HLSL code)
+            float surfaceTypeSavedState = GetSimplePropertyAsFloat(masterNode, masterNodeInfo.SurfaceTypeProperty);
+            SetMaterialSlotValueByGenericName<float>(crossSectionSubGraphNode, GenericSlotNames.SurfaceTypeSavedState, (CrossSectionNodeTranslator)genericSlotNamesToCrossSectionIOSlotIds,
+                                                     surfaceTypeSavedState);
 
             // Splice in our subgraph node.
             graphData.AddNode(crossSectionSubGraphNode);

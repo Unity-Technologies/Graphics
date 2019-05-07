@@ -30,33 +30,32 @@ void GlobalCuttingPlane_float(out float3 planePosition, out float3 planeTangent,
 // Note:
 //
 // To offer a "filled cross section" style, we're using backfaces to trick shading at the cutting shape (eg plane) position
-// even though the fragment is that actually generate the shading invocation could be far from it (it just wasn't rejected by
+// even though the fragment that actually generates the shading invocation could be far from it: it just wasn't rejected by
 // the cutter, and the fragment perspective projection of a backface falls into a pixel that also corresponds to the perspective
 // projection on screen of a fragment of the cutting shape itself.
-//
-// See HashPatternInPlane_float, that's why we manually do a perspective
-// ray intersection with the cutter - here a plane - to generate cutting-plane-relative UVs.
+// See HashPatternInPlane_float, that's why we manually do a perspective ray intersection with the cutter - here a plane - to
+// generate cutting-plane-relative UVs.
 //
 // Problem with already double-sided enabled shader graphs:
 //
 // If the original shader graph had back faces enabled, a legitimately visible back faced-generated fragment will be "reshaded"
 // by our alternate cross section style, whatever style we chose for the exposed cross section.
 //
-// A solution to this issue is:
+// Solution to this issue:
 //
 // For shader graph materials with such backface enabled and thus potentially attached to materials assigned to geometry that could
 // show backfaces, use a different cross section shader configuration, that allow clipping but don't allow any other style than to
 // pass through whatever wasn't clipped (ie show the original back face). This also makes sense from the point of view of a material
 // having such a double-sided rendering option enabled: it means it is used for thin objects represented by simple polygons (like folliage)
-// instead of the mesh representing the limits of a closed hull / volume.
+// instead of the mesh representing the limits of a closed hull / volume. We refer to this cross section style as transparent.
 //
-// The following node function allows to exposed what was enabled before the cross section subgraph splicing (modification) of the
+// The following node function allows to expose what was enabled before the cross section subgraph splicing (modification) of the
 // original shadergraph, based on the state of the master node that we saved on a property (input) port of our cross section subgraph.
 //
 // ! Note also that for another shader graph using the same cross section subgraph module to behave differently, use configuration
 // signals outside the subgraph (at the scope of the enclosing graph, ie the original shader graph) and connect them to input ports
 // on the cross section subgraph module and branch accordingly inside (remember that any modification inside the cross section subgraph
-// are shared for all shader graph using the same subgraph). An alternative is to use another (different subgraph guid) cross section
+// are shared for all shader graphs using the same subgraph). An alternative is to use another (different subgraph guid) cross section
 // subgraph for the material that needs a different behavior.
 //
 void BackFaceWasOriginallyEnabled_float(float doubleSidedSavedState,
@@ -72,28 +71,36 @@ void BackFaceWasOriginallyEnabled_float(float doubleSidedSavedState,
     else
     {
         doubleSidedWasEnabled = true;
-        backFaceUsedFlippedNormals = (backFaceUsedFlippedNormals == 2.0);
+        backFaceUsedFlippedNormals = (doubleSidedSavedState == 2.0);
         backFaceUsedMirroredNormals = (doubleSidedSavedState == 3.0);
     }
 }
 
+void SurfaceTypeIsTransparent_float(float surfaceTypeSavedState,
+                                    out bool surfaceTypeIsTransparent)
+{
+    surfaceTypeIsTransparent = (surfaceTypeSavedState == 1.0);
+}
+
 // See comments above BackFaceWasOriginallyEnabled_float:
-// These are suggested signals / behavior for combining the original state of the double sided mode that the master node had, with a
-// desired style for the cross section
+// These are suggested signals / behavior for combining the original state of the double sided mode or transparent surface type
+// that the master node had, with a desired style for the cross section
 void BackFacePassingCutterBehaviorControl_float(bool fixArtifactsFromMeshesNotClosed, bool doubleSidedWasEnabled, bool crossSectionStyleIsTransparent,
+                                                bool surfaceTypeIsTransparent,
                                                 out bool disableCrossSectionShadingOverride)
 {
     // fixArtifactsFromMeshesNotClosed is like saying "Even if the original shader graph material doesn't use double-sided mode, my mesh might
-    // have a malformed winding or is note even close and thus can show some backfaces."
-    // (Like explained above, normally such faces wouldn't even have been rasterized but we allowed it to show filled cross sections)
-    // -> This will produce the cross section appearance when it shouldn't, and thus the only
-    // cross section style available for such materials is simply to be transparent
+    // have a malformed winding or is not even closed and thus can show some backfaces."
+    // Like explained above, normally such faces wouldn't even have been rasterized but we allowed it to show filled cross sections:
+    // This will produce the cross section appearance when it shouldn't, and thus the only cross section style available for such materials 
+    // is simply to be transparent.
     //
     // Likewise, if doubleSidedWasEnabled, then the material already expects to render backfaces, thus we may presume that the mesh will show
     // some backfaces - ie will have some back faces that can be visible / non occluded from other front faces.
     //
     // So in those two situations, we need to use a cutting behavior like case (a) below:
-    disableCrossSectionShadingOverride = (doubleSidedWasEnabled || fixArtifactsFromMeshesNotClosed || crossSectionStyleIsTransparent);
+    disableCrossSectionShadingOverride = (doubleSidedWasEnabled || fixArtifactsFromMeshesNotClosed
+                                         || crossSectionStyleIsTransparent || surfaceTypeIsTransparent);
 
     //
     // Otherwise we have more appearance choices to show an "under a rejected front fragment because of the cutter test failing":
@@ -115,7 +122,7 @@ void HashPatternInPlane_float(float3 fragPosition,
                               out float amplitude, out float2 planeSpacePos)
 {
     // Orthogonal projection of the backfacing fragment on the plane: if the front is rejected, this will show.
-    // This is creates an hollowed out appearance. (Caveat with the normal used though)
+    // This creates an hollowed out appearance. (Caveat with the normal used though)
     //float3 tanDirVec = (fragPosition - planePosition);
     //tanDirVec = tanDirVec - dot(tanDirVec, planeNormal)*planeNormal;
     //tanDirVec *= scale;
