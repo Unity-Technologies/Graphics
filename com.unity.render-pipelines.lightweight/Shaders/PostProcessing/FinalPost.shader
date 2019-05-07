@@ -8,6 +8,7 @@ Shader "Hidden/Lightweight Render Pipeline/FinalPost"
     HLSLINCLUDE
 
         #pragma multi_compile_local _ _FXAA
+        #pragma multi_compile_local _ _FILM_GRAIN
         #pragma multi_compile_local _ _DITHERING
         
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -16,10 +17,18 @@ Shader "Hidden/Lightweight Render Pipeline/FinalPost"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
 
         TEXTURE2D(_MainTex);
+        TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_BlueNoise_Texture);
 
         float4 _MainTex_TexelSize;
+        float2 _Grain_Params;
+        float4 _Grain_TilingParams;
         float4 _Dithering_Params;
+
+        #define GrainIntensity          _Grain_Params.x
+        #define GrainResponse           _Grain_Params.y
+        #define GrainScale              _Grain_TilingParams.xy
+        #define GrainOffset             _Grain_TilingParams.zw
 
         #define DitheringScale          _Dithering_Params.xy
         #define DitheringOffset         _Dithering_Params.zw
@@ -101,6 +110,12 @@ Shader "Hidden/Lightweight Render Pipeline/FinalPost"
                 half lumaMax = Max3(lumaM, lumaNW, Max3(lumaNE, lumaSW, lumaSE));
 
                 color = ((lumaB < lumaMin) || (lumaB > lumaMax)) ? rgbA : rgbB;
+            }
+            #endif
+
+            #if _FILM_GRAIN
+            {
+                color = ApplyGrain(color, positionNDC, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
             }
             #endif
 

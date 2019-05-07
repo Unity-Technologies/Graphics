@@ -232,21 +232,10 @@ namespace UnityEngine.Rendering.LWRP
                 SetupChromaticAberration(m_Materials.uber);
                 SetupVignette(cameraData.camera, m_Materials.uber);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
-                SetupGrain(cameraData.camera, m_Materials.uber, false);
 
-                // Only apply dithering if we're the final pass
-                if (m_IsFinalPass && cameraData.isDitheringEnabled)
-                {
-                    m_Materials.uber.EnableKeyword(ShaderKeywordStrings.Dithering);
-                    m_DitheringTextureIndex = RenderingUtils.ConfigureDithering(
-                        m_Data,
-                        m_DitheringTextureIndex,
-                        cameraData.camera,
-                        m_Materials.uber,
-                        ShaderConstants._BlueNoise_Texture,
-                        ShaderConstants._Dithering_Params
-                    );
-                }
+                // Only apply dithering & grain if we're the final pass
+                SetupGrain(cameraData.camera, m_Materials.uber);
+                SetupDithering(ref cameraData, m_Materials.uber);
 
                 // Done with Uber, blit it
                 Blit(cmd, GetSource(), m_Destination.Identifier(), m_Materials.uber);
@@ -643,31 +632,36 @@ namespace UnityEngine.Rendering.LWRP
 
         #region Film Grain
 
-        void SetupGrain(Camera camera, Material material, bool onTile)
+        void SetupGrain(Camera camera, Material material)
         {
-            var texture = m_FilmGrain.texture.value;
-
-            if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
-                texture = m_Data.textures.filmGrainTex[(int)m_FilmGrain.type.value];
-
-            #if LWRP_DEBUG_STATIC_POSTFX
-            float offsetX = 0f;
-            float offsetY = 0f;
-            #else
-            float offsetX = Random.value;
-            float offsetY = Random.value;
-            #endif
-
-            var tilingParams = texture == null
-                ? Vector4.zero
-                : new Vector4(camera.pixelWidth / (float)texture.width, camera.pixelHeight / (float)texture.height, offsetX, offsetY);
-
-            material.SetTexture(ShaderConstants._Grain_Texture, texture);
-            material.SetVector(ShaderConstants._Grain_Params, new Vector2(m_FilmGrain.intensity.value * 4f, m_FilmGrain.response.value));
-            material.SetVector(ShaderConstants._Grain_TilingParams, tilingParams);
-
-            if (!onTile && m_FilmGrain.IsActive())
+            if (m_IsFinalPass && m_FilmGrain.IsActive())
+            {
                 material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
+                PostProcessUtils.ConfigureFilmGrain(
+                    m_Data,
+                    m_FilmGrain,
+                    camera,
+                    material
+                );
+            }
+        }
+
+        #endregion
+
+        #region 8-bit Dithering
+
+        void SetupDithering(ref CameraData cameraData, Material material)
+        {
+            if (m_IsFinalPass && cameraData.isDitheringEnabled)
+            {
+                material.EnableKeyword(ShaderKeywordStrings.Dithering);
+                m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
+                    m_Data,
+                    m_DitheringTextureIndex,
+                    cameraData.camera,
+                    material
+                );
+            }
         }
 
         #endregion
@@ -736,11 +730,6 @@ namespace UnityEngine.Rendering.LWRP
             public static readonly int _UserLut_Params     = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
-            public static readonly int _Grain_Texture      = Shader.PropertyToID("_Grain_Texture");
-            public static readonly int _Grain_Params       = Shader.PropertyToID("_Grain_Params");
-            public static readonly int _Grain_TilingParams = Shader.PropertyToID("_Grain_TilingParams");
-            public static readonly int _BlueNoise_Texture  = Shader.PropertyToID("_BlueNoise_Texture");
-            public static readonly int _Dithering_Params   = Shader.PropertyToID("_Dithering_Params");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;

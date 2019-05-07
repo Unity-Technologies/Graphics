@@ -1,5 +1,3 @@
-using UnityEngine.Experimental.Rendering;
-
 namespace UnityEngine.Rendering.LWRP
 {
     internal class FinalPostProcessPass : ScriptableRenderPass
@@ -38,38 +36,42 @@ namespace UnityEngine.Rendering.LWRP
         {
             ref var cameraData = ref renderingData.cameraData;
             var cmd = CommandBufferPool.Get(k_RenderPostProcessingTag);
+            var filmGrain = VolumeManager.instance.stack.GetComponent<FilmGrain>();
 
+            m_Material.shaderKeywords = null;
+
+            // FXAA setup
             if (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing)
                 m_Material.EnableKeyword(ShaderKeywordStrings.Fxaa);
-            else
-                m_Material.DisableKeyword(ShaderKeywordStrings.Fxaa);
 
+            // Film Grain setup
+            if (filmGrain.IsActive())
+            {
+                m_Material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
+                PostProcessUtils.ConfigureFilmGrain(
+                    m_Data,
+                    filmGrain,
+                    cameraData.camera,
+                    m_Material
+                );
+            }
+
+            // Dithering setup
             if (cameraData.isDitheringEnabled)
             {
-                m_DitheringTextureIndex = RenderingUtils.ConfigureDithering(
+                m_Material.EnableKeyword(ShaderKeywordStrings.Dithering);
+                m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
                     m_Data,
                     m_DitheringTextureIndex,
                     cameraData.camera,
-                    m_Material,
-                    ShaderConstants._BlueNoise_Texture,
-                    ShaderConstants._Dithering_Params
+                    m_Material
                 );
-                m_Material.EnableKeyword(ShaderKeywordStrings.Dithering);
             }
-            else
-                m_Material.DisableKeyword(ShaderKeywordStrings.Dithering);
 
             Blit(cmd, m_Source.Identifier(), RenderTargetHandle.CameraTarget.Identifier(), m_Material);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
-        static class ShaderConstants
-        {
-            public static readonly int _BlueNoise_Texture = Shader.PropertyToID("_BlueNoise_Texture");
-            public static readonly int _Dithering_Params  = Shader.PropertyToID("_Dithering_Params");
         }
     }
 }
