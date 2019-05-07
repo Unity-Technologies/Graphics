@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed created default scene prefab non editable due to wrong file extension.
 - Fixed an issue where sky convolution was recomputed for nothing when a preview was visible (causing extreme slowness when fabric convolution is enabled)
 - Fixed issue with decal that wheren't working currently in player
+- Fixed exposure for ReflectionProbe and PlanarReflectionProbe gizmos
 
 ### Changed
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
