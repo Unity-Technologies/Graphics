@@ -1817,8 +1817,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var additionalData = GetHDAdditionalLightData(lightComponent);
 
                     #if ENABLE_RAYTRACING
-                        if(additionalData.lightTypeExtent == LightTypeExtent.Rectangle && additionalLightData.useRayTracedShadows)
-                            continue;
+                        var additionalLightData = GetHDAdditionalLightData(lightComponent);
+                        if (!(additionalData.lightTypeExtent == LightTypeExtent.Rectangle && additionalLightData.useRayTracedShadows))
                     #endif
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         additionalData.ReserveShadows(camera, m_ShadowManager, m_ShadowInitParameters, cullResults, m_FrameSettings, lightIndex);
