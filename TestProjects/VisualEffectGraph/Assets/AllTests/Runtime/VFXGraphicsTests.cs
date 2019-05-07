@@ -77,7 +77,15 @@ namespace UnityEngine.VFX.Test
                 var vfxAssets = vfxComponents.Select(o => o.visualEffectAsset).Where(o => o != null).Distinct();
                 foreach (var vfx in vfxAssets)
                 {
-                    var graph = vfx.GetResource().GetOrCreateGraph();
+                    //Use Reflection as workaround of the access issue in .net 4 (TODO : Clean this as soon as possible)
+                    //var graph = vfx.GetResource().GetOrCreateGraph(); is possible with .net 3.5 but compilation fail with 4.0
+                    var visualEffectAssetExt = AppDomain.CurrentDomain.GetAssemblies().Select(o => o.GetType("UnityEditor.VFX.VisualEffectAssetExtensions"))
+                                                                                        .Where(o => o != null)
+                                                                                        .FirstOrDefault();
+                    var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
+                    var resource = fnGetResource.Invoke(null, new object[] { vfx });
+                    var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
+                    var graph = fnGetOrCreate.Invoke(null, new object[] { resource }) as VFXGraph;
                     graph.RecompileIfNeeded();
                 }
 #endif

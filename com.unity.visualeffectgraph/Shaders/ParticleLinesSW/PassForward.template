@@ -10,7 +10,7 @@ Pass
 	{
 		float4 pos : SV_POSITION;
 		#if IS_TRANSPARENT_PARTICLE
-		float pixelOffset : TEXCOORD0; // for AA
+		noperspective float pixelOffset : TEXCOORD0; // for AA
 		#endif
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;

@@ -1083,16 +1083,16 @@ namespace UnityEditor.VFX.UI
                     owner == startFlowAnchorController.owner)
                     continue;
 
-                var from = startFlowAnchorController.owner;
-                var to = owner;
                 if (startAnchorController.direction == Direction.Input)
                 {
-                    from = owner;
-                    to = startFlowAnchorController.owner;
+                    if (VFXFlowAnchorController.CanLink(anchorController, startFlowAnchorController))
+                        res.Add(anchorController);
                 }
-
-                if (VFXContext.CanLink(from, to))
-                    res.Add(anchorController);
+                else
+                {
+                    if (VFXFlowAnchorController.CanLink(startFlowAnchorController, anchorController))
+                        res.Add(anchorController);
+                }
             }
             return res;
         }
