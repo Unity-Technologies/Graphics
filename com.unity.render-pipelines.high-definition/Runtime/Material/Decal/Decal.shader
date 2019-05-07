@@ -89,7 +89,8 @@ Shader "HDRP/Decal"
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline"}
 
-		// c# code relies on the order in which the passes are declared, any change will need to be reflected in DecalUI.cs
+		// c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames and s_MaterialDecalSGNames array
+        // and DecalSet.InitializeMaterialValues()
 
 		// pass 0 is mesh 3RT mode
 		Pass
