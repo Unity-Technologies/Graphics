@@ -122,7 +122,7 @@ $include("SharedCode.template.hlsl")
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 
 #if _MATERIAL_AFFECTS_EMISSION
-        $SurfaceDescription.Emission:                   surfaceData.emissive = float4(surfaceDescription.Emission.xyz,1);
+        $SurfaceDescription.Emission:                   surfaceData.emissive = float4(surfaceDescription.Emission.xyz, 1.0);
 #endif
 
         // copy across graph values, if defined
@@ -130,12 +130,16 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Albedo:                     surfaceData.baseColor.xyz = surfaceDescription.Albedo;
 #endif
 #if _MATERIAL_AFFECTS_NORMAL
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
+    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
-#elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
+    #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
         // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.worldToTangent));
-#endif
+    #endif
+#else
+    #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
+        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.worldToTangent));
+    #endif
 #endif
 
         $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;
