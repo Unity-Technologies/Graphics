@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where sky convolution was recomputed for nothing when a preview was visible (causing extreme slowness when fabric convolution is enabled)
 - Fixed issue with decal that wheren't working currently in player
 - Fixed missing stereo rendering macros in some fragment shaders
+- Fixed exposure for ReflectionProbe and PlanarReflectionProbe gizmos
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
