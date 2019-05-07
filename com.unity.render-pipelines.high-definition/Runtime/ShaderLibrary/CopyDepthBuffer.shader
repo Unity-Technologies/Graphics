@@ -67,6 +67,7 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
 
             float Frag(Varyings input) : SV_Depth
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 uint2 coord = uint2(input.texcoord.xy * _ScreenSize.xy);
                 return LOAD_TEXTURE2D_X(_InputDepthTexture, coord).x;
             }
