@@ -187,79 +187,83 @@ void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uin
     if (depth == UNITY_RAW_FAR_CLIP_VALUE || posInput.linearDepth - _ContactShadowFadeEnd > 1)
     {
         _DeferredShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0;
-        return;
+
+        // TODO: investigate why the following return statement generates invalid glsl code when TEXTURE_2D_X is set to expand to Texture2DArray
+        //return;
     }
-
-    // store the 24 bit contact shadow mask mask (1: pixel is in contact shadow, 0: pixel is not shadowed)
-    uint    contactShadowMask = 0;
-    // the fade is combined for all lights and stored in the 8 remaining bits of the R32 target
-    float   globalFade = 0.0;
-
-    uint featureFlags = ~0;
-
-    // Do the contact shadow for the directional light
-    if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
+    else
     {
-        if (_DirectionalShadowIndex >= 0)
+        // store the 24 bit contact shadow mask mask (1: pixel is in contact shadow, 0: pixel is not shadowed)
+        uint    contactShadowMask = 0;
+        // the fade is combined for all lights and stored in the 8 remaining bits of the R32 target
+        float   globalFade = 0.0;
+
+        uint featureFlags = ~0;
+
+        // Do the contact shadow for the directional light
+        if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
         {
-            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
-            
-            if (light.contactShadowMask != 0)
+            if (_DirectionalShadowIndex >= 0)
             {
-                // We store the inverse of the contact shadow:
-                bool occluded = ComputeContactShadow(posInput, -light.forward, globalFade);
-                
+                DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+
+                if (light.contactShadowMask != 0)
+                {
+                    // We store the inverse of the contact shadow:
+                    bool occluded = ComputeContactShadow(posInput, -light.forward, globalFade);
+
+                    // light.contactShadowMask contains one bit at the position of the contact shadow index that will
+                    // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
+                    // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
+                    contactShadowMask |= light.contactShadowMask * occluded;
+                }
+            }
+        }
+
+        // iterate over all point/spot lights
+        if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
+        {
+            uint lightCount, lightStart;
+
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+            GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
+#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+            lightCount = _PunctualLightCount;
+            lightStart = 0;
+#endif
+            uint startFirstLane = 0;
+            bool fastPath;
+
+            fastPath = IsFastPath(lightStart, startFirstLane);
+            if (fastPath)
+            {
+                lightStart = startFirstLane;
+            }
+
+            for (uint lightListOffset = 0; lightListOffset < lightCount; lightListOffset++)
+            {
+                uint v_lightIdx = FetchIndex(lightStart, lightListOffset);
+                uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
+                if (s_lightIdx == -1)
+                    break;
+
+                LightData light = FetchLight(s_lightIdx); // Scalar load
+
+                if (light.contactShadowMask == 0)
+                    continue;
+
+                // Compute light ray direction:
+                float3 direction = normalize(light.positionRWS.xyz - posInput.positionWS);
+
+                bool occluded = ComputeContactShadow(posInput, direction, globalFade);
+
                 // light.contactShadowMask contains one bit at the position of the contact shadow index that will
                 // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
                 // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
                 contactShadowMask |= light.contactShadowMask * occluded;
             }
         }
+
+        _DeferredShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = PackContactShadowData(globalFade * _ContactShadowOpacity, contactShadowMask);
     }
-
-    // iterate over all point/spot lights
-    if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
-    {
-        uint lightCount, lightStart;
-
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
-#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        lightCount = _PunctualLightCount;
-        lightStart = 0;
-#endif
-        uint startFirstLane = 0;
-        bool fastPath;
-
-        fastPath = IsFastPath(lightStart, startFirstLane);
-        if (fastPath)
-        {
-            lightStart = startFirstLane;
-        }
-
-        for (uint lightListOffset = 0; lightListOffset < lightCount; lightListOffset++)
-        {
-            uint v_lightIdx = FetchIndex(lightStart, lightListOffset);
-            uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
-            if (s_lightIdx == -1)
-                break;
-
-            LightData light = FetchLight(s_lightIdx); // Scalar load
-
-            if (light.contactShadowMask == 0)
-                continue;
-
-            // Compute light ray direction:
-            float3 direction = normalize(light.positionRWS.xyz - posInput.positionWS);
-
-            bool occluded = ComputeContactShadow(posInput, direction, globalFade);
-
-            // light.contactShadowMask contains one bit at the position of the contact shadow index that will
-            // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
-            // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
-            contactShadowMask |= light.contactShadowMask * occluded;
-        }
-    }
-
-    _DeferredShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = PackContactShadowData(globalFade * _ContactShadowOpacity, contactShadowMask);
 }
