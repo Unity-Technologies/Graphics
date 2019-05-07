@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRP/DownsampleDepth"
+Shader "Hidden/HDRP/DownsampleDepth"
 {
     HLSLINCLUDE
 
@@ -51,6 +51,7 @@
 
         void Frag(Varyings input, out float outputDepth : SV_Depth)
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             uint2 fullResUpperCorner = uint2(input.positionCS.xy * 2.0);
             float4 depths;
             depths.x = LoadCameraDepth(fullResUpperCorner);

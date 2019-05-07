@@ -8,11 +8,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class DecalSubShader : IDecalSubShader
     {
-        // CAUTION: Render code in RenderIntoDBuffer() in DecalSystem relies on the order in which the passes are declared, any change will need to be reflected.
+        // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames and s_MaterialDecalSGNames array
+        // and DecalSet.InitializeMaterialValues()
+
         Pass m_PassProjector3RT = new Pass()
         {
-            Name = "ShaderGraph_DBufferProjector3RT",
-            LightMode = "ShaderGraph_DBufferProjector3RT",
+            Name = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT],
+            LightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT],
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_DBUFFER_PROJECTOR",
@@ -52,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -75,8 +77,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassProjector4RT = new Pass()
         {
-            Name = "ShaderGraph_DBufferProjector4RT",
-            LightMode = "ShaderGraph_DBufferProjector4RT",
+            Name = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT],
+            LightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT],
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_DBUFFER_PROJECTOR",
@@ -116,7 +118,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -141,8 +143,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassProjectorEmissive = new Pass()
         {
-            Name = "ShaderGraph_ProjectorEmissive",
-            LightMode = "ShaderGraph_ProjectorEmissive",
+            Name = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_ProjectorEmissive],
+            LightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_ProjectorEmissive],
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_FORWARD_EMISSIVE_PROJECTOR",
@@ -174,14 +176,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
         };
 
 
         Pass m_PassMesh3RT = new Pass()
         {
-            Name = "ShaderGraph_DBufferMesh3RT",
-            LightMode = "ShaderGraph_DBufferMesh3RT",
+            Name = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT],
+            LightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT],
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_DBUFFER_MESH",
@@ -227,7 +229,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -251,8 +253,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassMesh4RT = new Pass()
         {
-            Name = "ShaderGraph_DBufferMesh4RT",
-            LightMode = "ShaderGraph_DBufferMesh4RT",
+            Name = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT],
+            LightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT],
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_DBUFFER_MESH",
@@ -298,7 +300,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -324,8 +326,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         Pass m_PassMeshEmissive = new Pass()
         {
-            Name = "ShaderGraph_MeshEmissive",
-            LightMode = "ShaderGraph_MeshEmissive",
+            Name = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive],
+            LightMode = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive],
             TemplateName = "DecalPass.template",
             MaterialName = "Decal",
             ShaderPassName = "SHADERPASS_FORWARD_EMISSIVE_MESH",
@@ -333,6 +335,57 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZTestOverride = "ZTest LEqual",
             ZWriteOverride = "ZWrite Off",
             BlendOverride = "Blend 0 SrcAlpha One",
+
+            ExtraDefines = new List<string>()
+            {
+            },
+
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl\""
+            },
+
+            RequiredFields = new List<string>()
+            {
+                "AttributesMesh.normalOS",
+                "AttributesMesh.tangentOS",
+                "AttributesMesh.uv0",
+
+                "FragInputs.worldToTangent",
+                "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
+            },
+
+            PixelShaderSlots = new List<int>()
+            {
+                DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
+                DecalMasterNode.NormalSlotId,
+                DecalMasterNode.NormaOpacitySlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.MAOSOpacitySlotId,
+                DecalMasterNode.EmissionSlotId
+            },
+
+            VertexShaderSlots = new List<int>()
+            {
+            },
+
+            UseInPreview = false,
+        };
+
+        // Pass to have a preview
+        Pass m_PassPreview = new Pass()
+        {
+            Name = "ForwardOnly",
+            LightMode = "ForwardOnly",
+            TemplateName = "DecalPass.template",
+            MaterialName = "Decal",
+            ShaderPassName = "SHADERPASS_FORWARD_PREVIEW",
+
+            ZTestOverride = "ZTest LEqual",
 
             ExtraDefines = new List<string>()
             {
@@ -460,12 +513,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     subShader.AddShaderChunk(tagsVisitor.ToString(), false);
                 }
 
-                GenerateShaderPass(masterNode, m_PassProjector3RT, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(masterNode, m_PassProjector4RT, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(masterNode, m_PassProjectorEmissive, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(masterNode, m_PassMesh3RT, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(masterNode, m_PassMesh4RT, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(masterNode, m_PassMeshEmissive, mode, subShader, sourceAssetDependencyPaths);
+                // Caution: Order of GenerateShaderPass matter. Only generate required pass
+                if (masterNode.affectsAlbedo.isOn || masterNode.affectsNormal.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn || masterNode.affectsSmoothness.isOn)
+                {
+                    GenerateShaderPass(masterNode, m_PassProjector3RT, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPass(masterNode, m_PassProjector4RT, mode, subShader, sourceAssetDependencyPaths);
+                }
+                if (masterNode.affectsEmission.isOn)
+                {
+                    GenerateShaderPass(masterNode, m_PassProjectorEmissive, mode, subShader, sourceAssetDependencyPaths);
+                }
+                if (masterNode.affectsAlbedo.isOn || masterNode.affectsNormal.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn || masterNode.affectsSmoothness.isOn)
+                {
+                    GenerateShaderPass(masterNode, m_PassMesh3RT, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPass(masterNode, m_PassMesh4RT, mode, subShader, sourceAssetDependencyPaths);
+                }
+                if (masterNode.affectsEmission.isOn)
+                {
+                    GenerateShaderPass(masterNode, m_PassMeshEmissive, mode, subShader, sourceAssetDependencyPaths);
+                }
+
+                if (mode.IsPreview())
+                {
+                    GenerateShaderPass(masterNode, m_PassPreview, mode, subShader, sourceAssetDependencyPaths);
+                }
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

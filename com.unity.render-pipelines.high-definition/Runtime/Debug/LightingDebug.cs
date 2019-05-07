@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SpecularLighting,
         LuxMeter,
         LuminanceMeter,
+        MatcapView,
         VisualizeCascade,
         VisualizeShadowMasks,
         IndirectDiffuseOcclusion,
@@ -104,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsDebugDisplayRemovePostprocess()
         {
-            return debugLightingMode != DebugLightingMode.None;
+            return debugLightingMode != DebugLightingMode.None && debugLightingMode != DebugLightingMode.MatcapView;
         }
 
         public DebugLightFilterMode debugLightFilterMode = DebugLightFilterMode.None;

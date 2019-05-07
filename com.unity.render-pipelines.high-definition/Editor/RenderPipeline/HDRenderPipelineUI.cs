@@ -389,7 +389,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     using (new EditorGUI.DisabledGroupScope(true))
                         EditorGUILayout.LabelField(k_MultipleDifferenteValueMessage);
                 }
-                else if ((DynamicResolutionType)serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.intValue == DynamicResolutionType.Software)
+                else 
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter, k_UpsampleFilter);
 
                 if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues

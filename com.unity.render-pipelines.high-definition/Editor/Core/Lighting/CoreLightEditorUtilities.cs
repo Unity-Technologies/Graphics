@@ -237,7 +237,7 @@ namespace UnityEditor.Experimental.Rendering
             var startAngles = new Vector3[4];
             if (minRange > 0.0f)
             {
-                startAngles = GetProjectedRectAngles(minRange, aspect, tanfov);
+                startAngles = GetFrustrumProjectedRectAngles(minRange, aspect, tanfov);
                 Handles.DrawLine(startAngles[0], startAngles[1]);
                 Handles.DrawLine(startAngles[1], startAngles[2]);
                 Handles.DrawLine(startAngles[2], startAngles[3]);
@@ -246,14 +246,14 @@ namespace UnityEditor.Experimental.Rendering
 
             if (distanceTruncPlane > 0f)
             {
-                var truncAngles = GetProjectedRectAngles(distanceTruncPlane, aspect, tanfov);
+                var truncAngles = GetFrustrumProjectedRectAngles(distanceTruncPlane, aspect, tanfov);
                 Handles.DrawLine(truncAngles[0], truncAngles[1]);
                 Handles.DrawLine(truncAngles[1], truncAngles[2]);
                 Handles.DrawLine(truncAngles[2], truncAngles[3]);
                 Handles.DrawLine(truncAngles[3], truncAngles[0]);
             }
 
-            var endAngles = GetProjectedRectAngles(maxRange, aspect, tanfov);
+            var endAngles = GetFrustrumProjectedRectAngles(maxRange, aspect, tanfov);
             Handles.DrawLine(endAngles[0], endAngles[1]);
             Handles.DrawLine(endAngles[1], endAngles[2]);
             Handles.DrawLine(endAngles[2], endAngles[3]);
@@ -265,7 +265,71 @@ namespace UnityEditor.Experimental.Rendering
             Handles.DrawLine(startAngles[3], endAngles[3]);
         }
 
-        static Vector3[] GetProjectedRectAngles(float distance, float aspect, float tanFOV)
+        // Same as Gizmo.DrawFrustum except that when aspect is below one, fov represent fovX instead of fovY
+        // Use to match our light frustum pyramid behavior
+        public static void DrawSpherePortionWireframe(Vector4 aspectFovMaxRangeMinRange, float distanceTruncPlane = 0f)
+        {
+            float aspect = aspectFovMaxRangeMinRange.x;
+            float fov = aspectFovMaxRangeMinRange.y;
+            float maxRange = aspectFovMaxRangeMinRange.z;
+            float minRange = aspectFovMaxRangeMinRange.w;
+            float tanfov = Mathf.Tan(Mathf.Deg2Rad * fov * 0.5f);
+
+            var startAngles = new Vector3[4];
+            if (minRange > 0f)
+            {
+                startAngles = GetFrustrumProjectedRectAngles(minRange, aspect, tanfov);
+                Handles.DrawLine(startAngles[0], startAngles[1]);
+                Handles.DrawLine(startAngles[1], startAngles[2]);
+                Handles.DrawLine(startAngles[2], startAngles[3]);
+                Handles.DrawLine(startAngles[3], startAngles[0]);
+            }
+
+            if (distanceTruncPlane > 0f)
+            {
+                var truncAngles = GetFrustrumProjectedRectAngles(distanceTruncPlane, aspect, tanfov);
+                Handles.DrawLine(truncAngles[0], truncAngles[1]);
+                Handles.DrawLine(truncAngles[1], truncAngles[2]);
+                Handles.DrawLine(truncAngles[2], truncAngles[3]);
+                Handles.DrawLine(truncAngles[3], truncAngles[0]);
+            }
+
+            var endAngles = GetSphericalProjectedRectAngles(maxRange, aspect, tanfov);
+            var planProjectedCrossNormal0 = new Vector3(endAngles[0].y, -endAngles[0].x, 0).normalized;
+            var planProjectedCrossNormal1 = new Vector3(endAngles[1].y, -endAngles[1].x, 0).normalized;
+            Vector3[] faceNormals = new[] {
+                Vector3.right - Vector3.Dot((endAngles[3] + endAngles[0]).normalized, Vector3.right) * (endAngles[3] + endAngles[0]).normalized,
+                Vector3.up    - Vector3.Dot((endAngles[0] + endAngles[1]).normalized, Vector3.up)    * (endAngles[0] + endAngles[1]).normalized,
+                Vector3.left  - Vector3.Dot((endAngles[1] + endAngles[2]).normalized, Vector3.left)  * (endAngles[1] + endAngles[2]).normalized,
+                Vector3.down  - Vector3.Dot((endAngles[2] + endAngles[3]).normalized, Vector3.down)  * (endAngles[2] + endAngles[3]).normalized,
+                //cross
+                planProjectedCrossNormal0 - Vector3.Dot((endAngles[1] + endAngles[3]).normalized, planProjectedCrossNormal0)  * (endAngles[1] + endAngles[3]).normalized,
+                planProjectedCrossNormal1 - Vector3.Dot((endAngles[0] + endAngles[2]).normalized, planProjectedCrossNormal1)  * (endAngles[0] + endAngles[2]).normalized,
+            };
+
+            float[] faceAngles = new[] {
+                Vector3.Angle(endAngles[3], endAngles[0]),
+                Vector3.Angle(endAngles[0], endAngles[1]),
+                Vector3.Angle(endAngles[1], endAngles[2]),
+                Vector3.Angle(endAngles[2], endAngles[3]),
+                Vector3.Angle(endAngles[1], endAngles[3]),
+                Vector3.Angle(endAngles[0], endAngles[2]),
+            };
+
+            Handles.DrawWireArc(Vector3.zero, faceNormals[0], endAngles[0], faceAngles[0], maxRange);
+            Handles.DrawWireArc(Vector3.zero, faceNormals[1], endAngles[1], faceAngles[1], maxRange);
+            Handles.DrawWireArc(Vector3.zero, faceNormals[2], endAngles[2], faceAngles[2], maxRange);
+            Handles.DrawWireArc(Vector3.zero, faceNormals[3], endAngles[3], faceAngles[3], maxRange);
+            Handles.DrawWireArc(Vector3.zero, faceNormals[4], endAngles[0], faceAngles[4], maxRange);
+            Handles.DrawWireArc(Vector3.zero, faceNormals[5], endAngles[1], faceAngles[5], maxRange);
+
+            Handles.DrawLine(startAngles[0], endAngles[0]);
+            Handles.DrawLine(startAngles[1], endAngles[1]);
+            Handles.DrawLine(startAngles[2], endAngles[2]);
+            Handles.DrawLine(startAngles[3], endAngles[3]);
+        }
+
+        static Vector3[] GetFrustrumProjectedRectAngles(float distance, float aspect, float tanFOV)
         {
             Vector3 sizeX;
             Vector3 sizeY;
@@ -292,6 +356,14 @@ namespace UnityEditor.Experimental.Rendering
             return angles;
         }
 
+        static Vector3[] GetSphericalProjectedRectAngles(float distance, float aspect, float tanFOV)
+        {
+            var angles = GetFrustrumProjectedRectAngles(distance, aspect, tanFOV);
+            for (int index = 0; index < 4; ++index)
+                angles[index] = angles[index].normalized * distance;
+            return angles;
+        }
+
         public static Vector4 DrawPyramidFrustumHandle(Vector4 aspectFovMaxRangeMinRange, bool useNearPlane, float minAspect = 0.05f, float maxAspect = 20f, float minFov = 1f)
         {
             float aspect = aspectFovMaxRangeMinRange.x;
@@ -300,7 +372,7 @@ namespace UnityEditor.Experimental.Rendering
             float minRange = aspectFovMaxRangeMinRange.w;
             float tanfov = Mathf.Tan(Mathf.Deg2Rad * fov * 0.5f);
 
-            var e = GetProjectedRectAngles(maxRange, aspect, tanfov);
+            var e = GetFrustrumProjectedRectAngles(maxRange, aspect, tanfov);
             
             if (useNearPlane)
             {
@@ -332,6 +404,93 @@ namespace UnityEditor.Experimental.Rendering
             
             Vector2 send = e[pointIndex];
             Vector3 farEnd = new Vector3(0, 0, maxRange);
+            EditorGUI.BeginChangeCheck();
+            Vector2 received = SliderPlaneHandle(farEnd, Vector3.right, Vector3.up, send);
+            if (EditorGUI.EndChangeCheck())
+            {
+                bool fixedFov = Event.current.control && !Event.current.shift;
+                bool fixedAspect = Event.current.shift && !Event.current.control;
+
+                //work on positive quadrant
+                int xSign = send.x < 0f ? -1 : 1;
+                int ySign = send.y < 0f ? -1 : 1;
+                Vector2 corrected = new Vector2(received.x * xSign, received.y * ySign);
+
+                //fixed aspect correction
+                if (fixedAspect)
+                {
+                    corrected.x = corrected.y * aspect;
+                }
+
+                //remove aspect deadzone
+                if (corrected.x > maxAspect * corrected.y)
+                {
+                    corrected.y = corrected.x * minAspect;
+                }
+                if (corrected.x < minAspect * corrected.y)
+                {
+                    corrected.x = corrected.y / maxAspect;
+                }
+
+                //remove fov deadzone
+                float deadThresholdFoV = Mathf.Tan(Mathf.Deg2Rad * minFov * 0.5f) * maxRange;
+                corrected.x = Mathf.Max(corrected.x, deadThresholdFoV);
+                corrected.y = Mathf.Max(corrected.y, deadThresholdFoV, Mathf.Epsilon * 100); //prevent any division by zero
+
+                if (!fixedAspect)
+                {
+                    aspect = corrected.x / corrected.y;
+                }
+                float min = Mathf.Min(corrected.x, corrected.y);
+                if (!fixedFov && maxRange > Mathf.Epsilon * 100)
+                {
+                    fov = Mathf.Atan(min / maxRange) * 2f * Mathf.Rad2Deg;
+                }
+            }
+
+            return new Vector4(aspect, fov, maxRange, minRange);
+        }
+
+        public static Vector4 DrawSpherePortionHandle(Vector4 aspectFovMaxRangeMinRange, bool useNearPlane, float minAspect = 0.05f, float maxAspect = 20f, float minFov = 1f)
+        {
+            float aspect = aspectFovMaxRangeMinRange.x;
+            float fov = aspectFovMaxRangeMinRange.y;
+            float maxRange = aspectFovMaxRangeMinRange.z;
+            float minRange = aspectFovMaxRangeMinRange.w;
+            float tanfov = Mathf.Tan(Mathf.Deg2Rad * fov * 0.5f);
+
+            var endAngles = GetSphericalProjectedRectAngles(maxRange, aspect, tanfov);
+
+            if (useNearPlane)
+            {
+                minRange = SliderLineHandle(Vector3.zero, Vector3.forward, minRange);
+            }
+
+            maxRange = SliderLineHandle(Vector3.zero, Vector3.forward, maxRange);
+
+            float distanceRight = HandleUtility.DistanceToLine(endAngles[0], endAngles[3]);
+            float distanceLeft = HandleUtility.DistanceToLine(endAngles[1], endAngles[2]);
+            float distanceUp = HandleUtility.DistanceToLine(endAngles[0], endAngles[1]);
+            float distanceDown = HandleUtility.DistanceToLine(endAngles[2], endAngles[3]);
+
+            int pointIndex = 0;
+            if (distanceRight < distanceLeft)
+            {
+                if (distanceUp < distanceDown)
+                    pointIndex = 0;
+                else
+                    pointIndex = 3;
+            }
+            else
+            {
+                if (distanceUp < distanceDown)
+                    pointIndex = 1;
+                else
+                    pointIndex = 2;
+            }
+
+            Vector2 send = endAngles[pointIndex];
+            Vector3 farEnd = new Vector3(0, 0, endAngles[0].z);
             EditorGUI.BeginChangeCheck();
             Vector2 received = SliderPlaneHandle(farEnd, Vector3.right, Vector3.up, send);
             if (EditorGUI.EndChangeCheck())

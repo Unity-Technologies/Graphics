@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         MotionVectors
     }
 
-    /// <summary>Frame pass settings.</summary>
+    /// <summary>Use this request to define how to render an AOV.</summary>
     public unsafe struct AOVRequest
     {
         /// <summary>Default settings.</summary>
