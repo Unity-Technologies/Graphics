@@ -5,7 +5,8 @@ using UnityEditor.ProjectWindowCallback;
 using System;
 
 namespace UnityEngine.Rendering.LWRP
-{    
+{
+    [Serializable, ReloadGroup]
     public class ForwardRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR
