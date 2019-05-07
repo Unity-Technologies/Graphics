@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
         SerializedProperty m_LightBlendStyles;
         LightBlendStyleProps[] m_LightBlendStylePropsArray;
 
-        Analytics.Analytics m_Analytics = Analytics.Analytics.instance;
+        Analytics._2DRendererAnalytics m_Analytics = Analytics._2DRendererAnalytics.instance;
         _2DRendererData m_2DRendererData;
         bool m_WasModified;
 

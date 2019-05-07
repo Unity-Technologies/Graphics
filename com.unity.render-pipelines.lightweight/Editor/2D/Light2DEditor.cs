@@ -147,7 +147,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         HeaderModifier m_HeaderModifier;
 
-        Analytics.Analytics m_Analytics;
+        Analytics._2DRendererAnalytics m_Analytics;
         HashSet<Light2D> m_ModifiedLights;
 
         private void AnalyticsTrackChanges(SerializedObject serializedObject)
@@ -187,7 +187,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
         void OnEnable()
         {
-            m_Analytics = Analytics.Analytics.instance;
+            m_Analytics = Analytics._2DRendererAnalytics.instance;
             m_ModifiedLights = new HashSet<Light2D>();
             m_LightType = serializedObject.FindProperty("m_LightType");
             m_LightColor = serializedObject.FindProperty("m_Color");
@@ -264,12 +264,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             }
         }
 
-        internal void SendModifiedAnalytics(Analytics.Analytics analytics, Light2D light)
+        internal void SendModifiedAnalytics(Analytics._2DRendererAnalytics analytics, Light2D light)
         {
-                //Analytics.Light2DModifiedData modifiedData = new Analytics.Light2DModifiedData();
-                //modifiedData.instance_id = 0;
-                //modifiedData.type = light.lightType;
-                //analytics.SendData(Analytics.AnalyticsDataTypes.k_LightModifiedString, modifiedData);
+            Analytics.Light2DData lightData = new Analytics.Light2DData();
+            lightData.event_type = Analytics.Light2DData.EventType.Modified;
+            lightData.instance_id = light.GetInstanceID();
+            lightData.light_type = light.lightType;
+            Analytics._2DRendererAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_LightDataString, lightData);
         }
 
         private void OnDestroy()

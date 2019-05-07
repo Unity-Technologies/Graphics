@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
-    static class Lightweight2DUpgrader
+    static class _2DRendererUpgrader
     {
         static Material s_SpriteLitDefault = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.lightweight/Runtime/Materials/Sprite-Lit-Default.mat");
 
@@ -78,7 +78,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 return;
 
             ProcessAssetDatabaseObjects<GameObject>("t: Prefab", UpgradeGameObject);
-            //ProcessAssetDatabaseObjects<Material>("t: Material", UpgradeMaterial);
             AssetDatabase.SaveAssets();
             Resources.UnloadUnusedAssets();
         }

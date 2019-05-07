@@ -57,34 +57,35 @@ namespace UnityEditor.Experimental.Rendering.LWRP.Analytics
     }
 
     [InitializeOnLoad]
-    internal class Analytics : IAnalytics
+    internal class _2DRendererAnalytics : IAnalytics
     {
         const int k_MaxEventsPerHour = 1000;
         const int k_MaxNumberOfElements = 1000;
-        const string k_VendorKey = "Unity.RenderPipelines.Lightweight.Editor";
+        const string k_VendorKey = "unity.renderpipelines.lightweight.editor";
         const int k_Version = 1;
-        static Analytics m_Instance = new Analytics();
-        public static Analytics instance
+        static _2DRendererAnalytics m_Instance = new _2DRendererAnalytics();
+        static bool s_Initialize = false;
+        public static _2DRendererAnalytics instance
         {
             get
             {
                 if (m_Instance == null)
-                    m_Instance = new Analytics();
+                    m_Instance = new _2DRendererAnalytics();
 
                 return m_Instance;
             }
         }
 
-        static Analytics()
-        {
-            Debug.Log("Registered Event");
-            EditorAnalytics.RegisterEventWithLimit(AnalyticsDataTypes.k_LightDataString, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, k_Version);
-            EditorAnalytics.RegisterEventWithLimit(AnalyticsDataTypes.k_2DRendererDataString, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, k_Version);
-        }
-
         public AnalyticsResult SendData(string eventString, IAnalyticsData data)
         {
-            Debug.Log("Sent Data " + JsonUtility.ToJson(data, true));
+            //Debug.Log("Sent Data " + JsonUtility.ToJson(data));
+            if (false == s_Initialize)
+            {
+                EditorAnalytics.RegisterEventWithLimit(AnalyticsDataTypes.k_LightDataString, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, k_Version);
+                EditorAnalytics.RegisterEventWithLimit(AnalyticsDataTypes.k_2DRendererDataString, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, k_Version);
+                s_Initialize = true;
+            }
+
             return EditorAnalytics.SendEventWithLimit(eventString, data, k_Version);
         }
     }
