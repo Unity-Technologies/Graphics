@@ -47,7 +47,6 @@ float2 ComputeMotionVec(PositionInputs posInput, float2 sampledMotionVec)
     motionVecCameraRot.y = -motionVecCameraRot.y;
 #endif
 
-    motionVecCameraRot.x = motionVecCameraRot.x * _TextureWidthScaling.y;
     motionVecCameraRot *= 0.5f;
     float2 velWithoutRot = sampledMotionVec - motionVecCameraRot;
     motionVecCameraRot *= _MotionBlurIntensity;
@@ -78,7 +77,7 @@ void MotionVecPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         )
     {
         
-        PositionInputs posInput = GetPositionInput_Stereo(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+        PositionInputs posInput = GetPositionInput(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
         float2 finalMotionVec = ComputeMotionVec(posInput, motionVec);
         motionVecAndDepth.xy = EncodeMotionVector(finalMotionVec);

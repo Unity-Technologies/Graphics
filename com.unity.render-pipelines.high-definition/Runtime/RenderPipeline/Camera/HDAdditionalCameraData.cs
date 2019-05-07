@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [ColorUsage(true, true)]
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
         public bool clearDepth = true;
-        
+
 
         [Tooltip("LayerMask HDRP uses for Volume interpolation for this Camera.")]
         public LayerMask volumeLayerMask = 1;
@@ -149,6 +149,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video).")]
         public bool fullscreenPassthrough = false;
+
+        [Tooltip("Allows dynamic resolution on buffers linked to this camera.")]
+        public bool allowDynamicResolution = false;
 
         [Tooltip("Allows you to override the default settings for this Renderer.")]
         public bool customRenderingSettings = false;
@@ -242,11 +245,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ///     }
         /// }
         /// </code>
+        ///
+        /// Example use case:
+        /// * Export Normals: use MaterialSharedProperty.Normals and AOVBuffers.Color
+        /// * Export Color before post processing: use AOVBuffers.Color
+        /// * Export Color after post processing: use AOVBuffers.Output
+        /// * Export Depth stencil: use AOVBuffers.DepthStencil
+        /// * Export AO: use MaterialSharedProperty.AmbientOcclusion and AOVBuffers.Color
         /// </example>
         public void SetAOVRequests(AOVRequestDataCollection aovRequests)
             => m_AOVRequestDataCollection = aovRequests;
 
-        public IEnumerable<AOVRequestData> aovRequests => m_AOVRequestDataCollection;
+        /// <summary>
+        /// Use this property to get the aov requests.
+        ///
+        /// It is never null.
+        /// </summary>
+        public IEnumerable<AOVRequestData> aovRequests =>
+            m_AOVRequestDataCollection ?? (m_AOVRequestDataCollection = new AOVRequestDataCollection(null));
 
         // Use for debug windows
         // When camera name change we need to update the name in DebugWindows.

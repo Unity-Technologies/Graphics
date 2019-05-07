@@ -12,8 +12,8 @@ The HDRP Reflection Probe uses the [built-in render pipeline Reflection Probe](h
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
-| **Type**          | Use the drop-down to select the mode this Reflection Probe uses to capture a view of the Scene. Reflective Materials query this capture to process reflections for their surface.<br />**Realtime**: Makes the Reflection Probe capture a view of the Scene in real time. Use the **Realtime Mode** property to set the time period.<br />**Custom**: Allows you to assign a cubemap Texture to act as the Reflection Probe's captured view of the Scene. Use the **Texture** property to assign the cubemap.<br />**Baked**: Makes the Reflection Probe use a static cubemap Texture at runtime. You must bake this Texture before you build your Unity Project. |
-| **Realtime Mode** | Use the drop-down to select how often the Reflection Probe should capture a view of the Scene.<br />Select **Realtime** from the **Type** drop-down to expose this property.<br />**Every Frame**: Updates the Probe’s capture data every frame.<br />**On Enable**: Updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to. |
+| **Type**          | Use the drop-down to select the mode this Reflection Probe uses to capture a view of the Scene. Reflective Materials query this capture to process reflections for their surface.<br />&#8226; **Realtime**: Makes the Reflection Probe capture a view of the Scene in real time. Use the **Realtime Mode** property to set the time period.<br />&#8226; **Custom**: Allows you to assign a cubemap Texture to act as the Reflection Probe's captured view of the Scene. Use the **Texture** property to assign the cubemap.<br />&#8226; **Baked**: Makes the Reflection Probe use a static cubemap Texture at runtime. You must bake this Texture before you build your Unity Project. |
+| **Realtime Mode** | Use the drop-down to select how often the Reflection Probe should capture a view of the Scene.<br />&#8226;**Every Frame**: Updates the Probe’s capture data every frame.<br />&#8226; **On Enable**: Updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to.<br /><br />Select **Realtime** from the **Type** drop-down to expose this property. |
 | **Texture**       | Assign a Texture for the Reflection Probe to use as its captured view of the Scene.<br />Select **Custom** from the **Type** drop-down to expose this property. |
 
 ### Projection Settings
@@ -23,15 +23,15 @@ The following properties control the projection settings for this Reflection Pro
 | **Property**                             | **Description**                                              |
 | ---------------------------------------- | ------------------------------------------------------------ |
 | **Proxy Volume**                         | The [Reflection Proxy Volume](Reflection-Proxy-Volume.html) this Probe uses to correct displacement issues between the Probe’s capture point (**Mirror Position**) and the position of the reflective Material using the Texture this Probe captures. Note: The **Proxy Volume** you assign must be the same **Shape** as the Influence Volume. |
-| **Use Influence Volume As Proxy Volume** | Enable this checkbox to use the boundaries of the Influence Volume as the Proxy Volume. Do not assign the **Proxy Volume** property to expose this property. |
+| **Use Influence Volume As Proxy Volume** | Enable the checkbox to use the boundaries of the Influence Volume as the Proxy Volume. Do not assign the **Proxy Volume** property to expose this property. |
 
-<a name=”InfluenceVolume”></a>
+<a name="InfluenceVolume"></a>
 
 ### Influence Volume
 
 The Influence Volume defines the area around the Probe in which reflective Materials use the results that the Probe captures to influence the reflective behavior of their surface. The Probe also uses the bounds of the Influence Volume to calculate **Field Of View** if you don’t provide an override value.
 
-<a name=”Workflows”></a>
+<a name="Workflows"></a>
 
 There are two workflows you can use to edit your Reflection Probe’s Influence Volume: **Normal** mode and **Advanced** mode. The two buttons in the top right of the **Influence Volume** section allow you to select which mode to use.
 
@@ -54,7 +54,7 @@ The following properties control the method that the Reflection Probe uses to ca
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
 | **Capture Position**       | The position, relative to the Transform Position, from which the Reflection Probe captures its surroundings. |
-| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />**Sky** uses the sky defined by the current [Volume](Volumes.html) settings to fill empty background areas.<br />**Background** uses the **Background Color** setting to fill empty background areas.<br />**None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
+| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](Volumes.html) settings to fill empty background areas.<br />&#8226; **Background** uses the **Background Color** property to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
 | **Background Color**       | The color to fill empty background areas of the RenderTexture if you set the **Clear Mode** to **Background**. |
 | **Clear Depth**            | Choose whether the Reflection Probe clears the Depth Buffer or not. |
 | **Volume Layer Mask**      | A LayerMask that defines which Volumes affect this Reflection Probe’s capture. |

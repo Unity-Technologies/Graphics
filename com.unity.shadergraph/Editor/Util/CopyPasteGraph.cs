@@ -55,6 +55,10 @@ namespace UnityEditor.Graphing.Util
 
             foreach (var node in nodes)
             {
+                if (!node.canCopyNode)
+                {
+                    throw new InvalidOperationException($"Cannot copy node {node.name} ({node.guid}).");
+                }
                 AddNode(node);
                 foreach (var edge in NodeUtils.GetAllEdges(node))
                     AddEdge(edge);

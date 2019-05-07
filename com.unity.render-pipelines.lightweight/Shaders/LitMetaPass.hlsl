@@ -6,9 +6,9 @@
 Varyings LightweightVertexMeta(Attributes input)
 {
     Varyings output;
-    
-    output.positionCS = MetaVertexPosition(input.positionOS, input.uvLM, input.uvDLM, unity_LightmapST);
-    output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+    output.positionCS = MetaVertexPosition(input.positionOS, input.uv1, input.uv2,
+        unity_LightmapST, unity_DynamicLightmapST);
+    output.uv = TRANSFORM_TEX(input.uv0, _BaseMap);
     return output;
 }
 
