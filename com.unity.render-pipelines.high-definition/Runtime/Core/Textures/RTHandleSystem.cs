@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering
             m_ScaledRTSupportsMSAA = scaledRTsupportsMSAA;
             m_ScaledRTCurrentMSAASamples = scaledRTMSAASamples;
 
-            m_HardwareDynamicResRequested = HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+            m_HardwareDynamicResRequested = HDDynamicResolutionHandler.instance.RequestsHardwareDynamicResolution();
         }
 
         public void Release(RTHandle rth)

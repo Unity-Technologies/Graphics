@@ -22,12 +22,24 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - Texture2D_189C8E90:
+        m_Texture: {fileID: 2800000, guid: e0d86873105ce774d8fa34942fc1e8fc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_6C0DA6CC:
+        m_Texture: {fileID: 2800000, guid: 66171ce41a2b74140b03d4b2781a85bf, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_9D58E1D1:
+        m_Texture: {fileID: 2800000, guid: f71a4355f2f772b4b99ed08b8d564c3c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _AnisotropyMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 2800000, guid: 90211cb33911a5346b1918ff093f2915, type: 3}
+        m_Texture: {fileID: 2800000, guid: f71a4355f2f772b4b99ed08b8d564c3c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMap:
@@ -71,11 +83,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
-        m_Texture: {fileID: 2800000, guid: 1469983536e0d8e41b141090ff959e44, type: 3}
+        m_Texture: {fileID: 2800000, guid: cbd88c0d1d791c044950d2a6b99b7db5, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 0cab4e03d1f554345bd61c08389b7a01, type: 3}
+        m_Texture: {fileID: 2800000, guid: f75fdfd95ada34844997dda9b91794b8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMapOS:
@@ -107,15 +119,18 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - Boolean_F987B642: 0
+    - Vector1_7D9AC3D3: 0.36
+    - Vector1_901E5FC2: 1
     - _AORemapMax: 1
-    - _AORemapMin: 0.303
+    - _AORemapMin: 0
     - _ATDistance: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.25
     - _AlphaCutoffPrepass: 0.96
-    - _AlphaCutoffShadows: 0.8
+    - _AlphaCutoffShadows: 0.75
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
@@ -185,18 +200,19 @@ Material:
     - _PreRefractionPass: 0
     - _ReceivesSSR: 1
     - _RefractionModel: 0
+    - _RimTransmissionIntensity: 0
     - _SSRefractionProjectionModel: 0
     - _SecondarySpecularMultiplier: 1
-    - _SecondarySpecularShift: 0.97
+    - _SecondarySpecularShift: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _Smoothness: 0.5
     - _SmoothnessRemapMax: 0.89
-    - _SmoothnessRemapMin: 0.302
+    - _SmoothnessRemapMin: 0.547
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
-    - _SpecularMultiplier: 0.5
-    - _SpecularShift: 0.45
+    - _SpecularMultiplier: 0.348
+    - _SpecularShift: 0.125
     - _SrcBlend: 1
     - _StencilRef: 2
     - _StencilRefMV: 128
@@ -226,7 +242,8 @@ Material:
     - _ZTestModeDistortion: 8
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - Color_6FC6C3A4: {r: 0.29999998, g: 0.19499996, b: 0.089999996, a: 1}
+    - _BaseColor: {r: 0.5, g: 0.34403664, b: 0.24770638, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
@@ -240,6 +257,6 @@ Material:
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
     - _uvBaseMask: {r: 1, g: 0, b: 0, a: 0}
-    - _uvBaseST: {r: 6, g: 2, b: 0, a: -0.9}
+    - _uvBaseST: {r: 0.5, g: 0.5, b: 0, a: 0}
     - _uvDetailMask: {r: 1, g: 0, b: 0, a: 0}
     - _uvDetailST: {r: 1, g: 1, b: 0, a: 0}

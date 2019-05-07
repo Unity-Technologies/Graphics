@@ -1,15 +1,15 @@
 // this produces an orthonormal basis of the tangent and bitangent WITHOUT vertex level tangent/bitangent for any UV including procedurally generated
 // method released with the demo for publication of "bump mapping unparametrized surfaces on the GPU"
 // http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
-void SurfaceGradientGenBasisTB(real3 nrmVertexNormal, real3 sigmaX, real3 sigmaY, real flipSign, real2 texST, out real3 vT, out real3 vB)
+void SurfaceGradientGenBasisTB(float3 nrmVertexNormal, float3 sigmaX, float3 sigmaY, float flipSign, float2 texST, out float3 vT, out float3 vB)
 {
-    real2 dSTdx = ddx_fine(texST), dSTdy = ddy_fine(texST);
+    float2 dSTdx = ddx_fine(texST), dSTdy = ddy_fine(texST);
 
-    real det = dot(dSTdx, real2(dSTdy.y, -dSTdy.x));
-    real sign_det = det < 0 ? -1 : 1;
+    float det = dot(dSTdx, float2(dSTdy.y, -dSTdy.x));
+    float sign_det = det < 0 ? -1 : 1;
 
     // invC0 represents (dXds, dYds); but we don't divide by determinant (scale by sign instead)
-    real2 invC0 = sign_det * real2(dSTdy.y, -dSTdx.y);
+    float2 invC0 = sign_det * float2(dSTdy.y, -dSTdx.y);
     vT = sigmaX * invC0.x + sigmaY * invC0.y;
     if (abs(det) > 0.0)
         vT = normalize(vT);
