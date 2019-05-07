@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.LWRP
     // TODO: TAA
     // TODO: Motion blur
     // TODO: Depth of Field
-    // TODO: Grain should be done in the final pass if FXAA is enabled
     internal class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
