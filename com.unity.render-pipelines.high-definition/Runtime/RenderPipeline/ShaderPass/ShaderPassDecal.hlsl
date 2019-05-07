@@ -89,11 +89,11 @@ void Frag(  PackedVaryingsToPS packedInput,
 #elif (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Only used for preview in shader graph
     outColor = 0;
     // Evaluate directional light from the preview
-    int i;
+    uint i;
     for (i = 0; i < _DirectionalLightCount; ++i)
     {
         DirectionalLightData light = _DirectionalLightDatas[i];
-        outColor.rgb += surfaceData.baseColor.rgb * light.color * saturate(dot(surfaceData.normalWS, -light.forward));
+        outColor.rgb += surfaceData.baseColor.rgb * light.color * saturate(dot(surfaceData.normalWS.xyz, -light.forward.xyz));
     }
 
     outColor.rgb += surfaceData.emissive.rgb;
