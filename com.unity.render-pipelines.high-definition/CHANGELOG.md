@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed dirty state of prefab using disabled ReflectionProbes
 - Fixed created default scene prefab non editable due to wrong file extension.
 - Fixed an issue where sky convolution was recomputed for nothing when a preview was visible (causing extreme slowness when fabric convolution is enabled)
+- Fixed issue with decal that wheren't working currently in player
 
 ### Changed
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Re-enabled the sharpening filter on Temporal Anti-aliasing
 - Exposed HDEditorUtils.LightLayerMaskDrawer for integration in other packages and user scripting.
 - Rename atmospheric scattering in FrameSettings to Fog
+- ShaderGraph Decal that affect only emissive, only draw in emissive pass (was drawing in dbuffer pass too)
 
 ## [5.13.0-preview] - 2019-04-15
 
