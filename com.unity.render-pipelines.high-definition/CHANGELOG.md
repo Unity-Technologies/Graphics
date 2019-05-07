@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Enabled cascade blends settings in the HD Shadow component
+- Added clear GBuffer option in FrameSettings (default to false)
+- Added preview for decal shader graph (Only albedo, normal and emission)
 
 ### Fixed
 - Fixed TerrainLit basemap texture generation

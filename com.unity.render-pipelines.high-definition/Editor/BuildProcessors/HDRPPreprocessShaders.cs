@@ -85,11 +85,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 isDecalPass = true;
 
-                // All decal pass name can be see in Decalsystem.s_MaterialDecalSGNames and Decalsystem.s_MaterialDecalNames
+                // All decal pass name can be see in Decalsystem.s_MaterialDecalPassNames and Decalsystem.s_MaterialSGDecalPassNames
                 // All pass that have 3RT in named are use when perChannelMask is false. All 4RT are used when perChannelMask is true.
                 // There is one exception, it is DBufferProjector_S that is used for both 4RT and 3RT as mention in Decal.shader
                 // there is a multi-compile to handle this pass, so it will be correctly removed by testing m_Decals3RT or m_Decals4RT
-                if (snippet.passName != "DBufferProjector_S")
+                if (snippet.passName != DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector_S])
                 {
                     isDecal3RTPass = snippet.passName.Contains("3RT");
                     isDecal4RTPass = !isDecal3RTPass;
