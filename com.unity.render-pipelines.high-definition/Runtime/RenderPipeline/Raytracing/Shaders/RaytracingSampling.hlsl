@@ -1,5 +1,5 @@
 // We need a noise texture for sampling
-Texture2D<float>                        _OwenScrambledTexture;
+Texture2D<float4>                       _OwenScrambledTexture;
 Texture2D<float4>                       _ScramblingTexture;
 
 // TODO: Use the tangent to create the local orthobasis
@@ -23,10 +23,10 @@ float GetRaytracingNoiseSample(uint sampleIndex, uint sampleDimension, uint scra
 {
     // Make sure arguments are in the right range
     sampleIndex = sampleIndex % 256;
-    sampleDimension = sampleDimension % 256;
+    sampleDimension = sampleDimension % 4;
 
     // Fetch the matching Value sequence
-    uint value = clamp((uint)(_OwenScrambledTexture[uint2(sampleIndex, sampleDimension)] * 256.0f), 0, 255);
+    uint value = clamp((uint)(_OwenScrambledTexture[uint2(sampleIndex, 0)][sampleDimension] * 256.0f), 0, 255);
 
     // Scramble the value
     value = value ^ scramblingValue;
