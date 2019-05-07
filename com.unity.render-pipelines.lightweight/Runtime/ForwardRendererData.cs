@@ -66,14 +66,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             base.OnEnable();
 #if UNITY_EDITOR
-            foreach (var shader in shaders.GetType().GetFields())
-            {
-                if (shader.GetValue(shaders) == null)
-                {
-                    ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
-                    break;
-                }
-            }
+            ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
 #endif
         }
     }
