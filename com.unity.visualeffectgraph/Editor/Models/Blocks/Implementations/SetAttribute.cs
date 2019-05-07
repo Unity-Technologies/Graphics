@@ -99,6 +99,16 @@ namespace UnityEditor.VFX.Block
                 Invalidate(InvalidationCause.kSettingChanged);
 
             base.Sanitize(version);
+            if (version <= 1 && inputSlots.Any(o => o.spaceable))
+            {
+                //Space has been added with on a few specific attributes, automatically copying space from context
+                var contextSpace = GetParent().space;
+                foreach (var slot in inputSlots.Where(o => o.spaceable))
+                {
+                    slot.space = contextSpace;
+                }
+                Debug.Log(string.Format("Sanitizing attribute {0} : settings space to {1} (retrieved from context)", attribute, contextSpace));
+            }
         }
 
         protected override IEnumerable<string> filteredOutSettings
@@ -266,6 +276,20 @@ namespace UnityEditor.VFX.Block
 
                         Type slotType = VFXExpression.TypeToType(attrib.type);
                         object content = attrib.value.GetContent();
+
+                        if (attrib.space != SpaceableType.None)
+                        {
+                            var contentAsVector3 = (Vector3)content;
+                            switch (attrib.space)
+                            {
+                                case SpaceableType.Position: content = (Position)contentAsVector3; break;
+                                case SpaceableType.Direction: content = (DirectionType)contentAsVector3; break;
+                                case SpaceableType.Vector: content = (Vector)contentAsVector3; break;
+                                default: throw new InvalidOperationException("Space is not handled for attribute : " + attrib.name + " space : " + attrib.space);
+                            }
+                            slotType = content.GetType();
+                        }
+
                         if (attrib.variadic == VFXVariadic.True)
                         {
                             string channelsString = channels.ToString();

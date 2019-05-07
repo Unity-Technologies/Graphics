@@ -132,8 +132,19 @@ namespace UnityEditor.VFX.UI
             SyncControllers();
         }
 
-        public void AddBlock(int index, VFXBlock block)
+        public void AddBlock(int index, VFXBlock block, bool initSpace = false)
         {
+            if (initSpace)
+            {
+                if (model.spaceable && block.inputSlots.Any(o => o.spaceable))
+                {
+                    var contextSpace = model.space;
+                    foreach (var inputSlot in block.inputSlots)
+                    {
+                        inputSlot.space = contextSpace;
+                    }
+                }
+            }
             model.AddChild(block, index);
         }
 
