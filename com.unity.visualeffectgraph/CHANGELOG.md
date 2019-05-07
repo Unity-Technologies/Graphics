@@ -6,7 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.7.0-preview] - 2019-XX-XX
 ### Added
+- Distortion Outputs (Quad / Mesh)
+- Color mapping mode for unlit outputs (Textured/Gradient Mapped)
 - Add Triangle and Octagon primitives for particle outputs
+- Set Attribute is now spaceable on a specific set of attributes (position, velocity, axis...)
 
 ### Fixed
 - Fix shader compilation error with debug views

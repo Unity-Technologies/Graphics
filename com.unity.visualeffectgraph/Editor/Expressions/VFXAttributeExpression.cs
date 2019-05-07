@@ -21,10 +21,10 @@ namespace UnityEditor.VFX
         public static readonly float kDefaultSize = 0.1f;
 
         public static readonly VFXAttribute Seed                = new VFXAttribute("seed", VFXValueType.Uint32);
-        public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.Float3);
-        public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.Float3);
-        public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.Float3);
-        public static readonly VFXAttribute Direction           = new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f)));
+        public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.Float3, VFXVariadic.False, SpaceableType.Position);
+        public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.Float3, VFXVariadic.False, SpaceableType.Position);
+        public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.Float3, VFXVariadic.False, SpaceableType.Vector);
+        public static readonly VFXAttribute Direction           = new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f)), VFXVariadic.False, SpaceableType.Vector);
         public static readonly VFXAttribute Color               = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
         public static readonly VFXAttribute Alpha               = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
         public static readonly VFXAttribute Size                = new VFXAttribute("size", VFXValue.Constant(kDefaultSize));
@@ -44,12 +44,12 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute PivotY              = new VFXAttribute("pivotY", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute PivotZ              = new VFXAttribute("pivotZ", VFXValue.Constant(0.0f), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.Uint32);
-        public static readonly VFXAttribute AxisX               = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right));
-        public static readonly VFXAttribute AxisY               = new VFXAttribute("axisY", VFXValue.Constant(Vector3.up));
-        public static readonly VFXAttribute AxisZ               = new VFXAttribute("axisZ", VFXValue.Constant(Vector3.forward));
+        public static readonly VFXAttribute AxisX               = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right), VFXVariadic.False, SpaceableType.Vector);
+        public static readonly VFXAttribute AxisY               = new VFXAttribute("axisY", VFXValue.Constant(Vector3.up), VFXVariadic.False, SpaceableType.Vector);
+        public static readonly VFXAttribute AxisZ               = new VFXAttribute("axisZ", VFXValue.Constant(Vector3.forward), VFXVariadic.False, SpaceableType.Vector);
         public static readonly VFXAttribute Alive               = new VFXAttribute("alive", VFXValue.Constant(true));
         public static readonly VFXAttribute Mass                = new VFXAttribute("mass", VFXValue.Constant(1.0f));
-        public static readonly VFXAttribute TargetPosition      = new VFXAttribute("targetPosition", VFXValueType.Float3);
+        public static readonly VFXAttribute TargetPosition      = new VFXAttribute("targetPosition", VFXValueType.Float3, VFXVariadic.False, SpaceableType.Position);
         public static readonly VFXAttribute EventCount          = new VFXAttribute("eventCount", VFXValueType.Uint32);
         public static readonly VFXAttribute SpawnTime           = new VFXAttribute("spawnTime", VFXValueType.Float);
 
@@ -98,18 +98,21 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXAttribute(string name, VFXValueType type, VFXVariadic variadic = VFXVariadic.False)
+        public VFXAttribute(string name, VFXValueType type, VFXVariadic variadic = VFXVariadic.False, SpaceableType space = SpaceableType.None)
+            : this(name, GetValueFromType(type), variadic, space)
         {
-            this.name = name;
-            this.value = GetValueFromType(type);
-            this.variadic = variadic;
         }
 
-        public VFXAttribute(string name, VFXValue value, VFXVariadic variadic = VFXVariadic.False)
+        public VFXAttribute(string name, VFXValue value, VFXVariadic variadic = VFXVariadic.False, SpaceableType space = SpaceableType.None)
         {
             this.name = name;
             this.value = value;
             this.variadic = variadic;
+            this.space = space;
+            if (space != SpaceableType.None && variadic != VFXVariadic.False)
+            {
+                throw new InvalidOperationException("Can't mix spaceable and variadic attributes : " + name);
+            }
         }
 
         public static VFXAttribute Find(string attributeName)
@@ -138,6 +141,7 @@ namespace UnityEditor.VFX
         public string name;
         public VFXValue value;
         public VFXVariadic variadic;
+        public SpaceableType space;
 
         public VFXValueType type
         {

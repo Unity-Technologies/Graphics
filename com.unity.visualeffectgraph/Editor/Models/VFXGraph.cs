@@ -126,8 +126,9 @@ namespace UnityEditor.VFX
     class VFXGraph : VFXModel
     {
         // Please add increment reason for each version below
-        // size refactor
-        public static readonly int CurrentVersion = 1;
+        // 1: Size refactor
+        // 2: Change some SetAttribute to spaceable slot
+        public static readonly int CurrentVersion = 2;
 
         public override void OnEnable()
         {
