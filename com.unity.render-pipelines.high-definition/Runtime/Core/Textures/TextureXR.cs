@@ -12,12 +12,15 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
-                // XRTODO: Vulkan, PSVR, Mac with metal only for OS 10.14+, etc
+                // XRTODO: Vulkan, Mac with metal only for OS 10.14+, etc
                 switch (SystemInfo.graphicsDeviceType)
                 {
                     case GraphicsDeviceType.Direct3D11:
                     case GraphicsDeviceType.Direct3D12:
                         return SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne;
+
+                    case GraphicsDeviceType.PlayStation4:
+                        return true;
                 }
 
                 return false;
