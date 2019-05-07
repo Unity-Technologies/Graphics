@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled cascade blends settings in the HD Shadow component
 - Added Hardware Dynamic Resolution support. 
 - Added MatCap debug view to replace the no scene lighting debug view. 
+- Added clear GBuffer option in FrameSettings (default to false)
+- Added preview for decal shader graph (Only albedo, normal and emission)
 
 ### Fixed
 - Fixed deserialization crash at runtime
