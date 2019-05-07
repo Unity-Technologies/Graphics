@@ -71,7 +71,7 @@ Shader "Debug/PlanarReflectionProbePreview"
                 color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
                 color.rgb *= color.a;
 
-                color = color * exp2(_Exposure);
+                color = color * exp2(_Exposure) * GetCurrentExposureMultiplier();
 
                 return float4(color);
             }
