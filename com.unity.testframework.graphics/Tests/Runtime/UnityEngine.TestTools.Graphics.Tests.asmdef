@@ -1,0 +1,14 @@
+{
+    "name": "UnityEngine.TestTools.Graphics.Tests",
+    "references": [
+        "UnityEngine.TestTools.Graphics"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": []
+}
