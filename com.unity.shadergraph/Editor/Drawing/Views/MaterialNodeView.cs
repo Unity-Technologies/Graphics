@@ -510,21 +510,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var port in inputContainer.Children().OfType<ShaderPort>())
             {
-                if (port.slot.isConnected || m_PortInputContainer.Children().OfType<PortInputView>().Any(a => Equals(a.slot, port.slot)))
+                if (port.slot.isConnected)
                 {
                     continue;
                 }
+
+                var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(a => Equals(a.slot, port.slot));
+                if (portInputView == null)
+                {
+                    portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
+                    m_PortInputContainer.Add(portInputView);
+                }
                 
-                var portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
-                m_PortInputContainer.Add(portInputView);
-                if (float.IsNaN(port.layout.width))
-                {
-                    port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
-                }
-                else
-                {
-                    SetPortInputPosition(port, portInputView);
-                }
+                port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
             }
         }
 

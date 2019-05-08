@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When you set a Master Node as active, the Main Preview now shows the correct result.
 - When you save a graph that contains a Sub Graph node, the Shader Graph window no longer freezes.
 - Fixed an error that occured when using multiple Sampler State nodes with different parameters.
-- Sub Graph input slots no longer produce errors when you generate preview shaders.
+- Fixed an issue causing default inputs to be misaligned in certain cases.
 
 ## [6.6.0] - 2019-04-01
 ### Added
