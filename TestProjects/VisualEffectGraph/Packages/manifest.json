@@ -3,7 +3,7 @@
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-    "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
+    "com.unity.testframework.graphics": "ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testframework.graphics.git",
 	"com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
     "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph"
   },
@@ -11,5 +11,11 @@
     "com.unity.testing.visualeffectgraph",
     "com.unity.render-pipelines.visualeffectgraph",
     "com.unity.testframework.graphics"
-  ]
+  ],
+  "lock": {
+    "com.unity.testframework.graphics": {
+      "hash": "b0e2026794f5e51fc9e49db4c2e41346ee5e35df",
+      "revision": "HEAD"
+    }
+  }
 }
