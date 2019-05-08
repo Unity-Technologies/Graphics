@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEditor.VFX.Block;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
@@ -49,18 +50,20 @@ namespace UnityEditor.VFX.Operator
 
         [VFXSetting]
         [Tooltip("Specifies which Camera to use to project particles onto its depth. Can use the camera tagged 'Main', or a custom camera.")]
-        public Block.CameraMode camera;
+        public Block.CameraMode camera = CameraMode.Main;
 
         [VFXSetting]
         [Tooltip("Specifies how particles are positioned on the screen. They can be placed sequentially in an even grid, randomly, or with a custom UV position.")]
-        public PositionMode mode;
+        public PositionMode mode = PositionMode.Random;
 
         [VFXSetting]
         [Tooltip("Specifies how to determine whether the particle should be alive. A particle can be culled when it is projected on the far camera plane, between a specific range, or culling can be disabled.")]
-        public CullMode cullMode;
+        public CullMode cullMode = CullMode.None;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool inheritSceneColor = false;
+
+        private int _customCameraOffset = 0;
 
         public class OutputPropertiesCommon
         {
@@ -93,15 +96,20 @@ namespace UnityEditor.VFX.Operator
             get
             {
                 var inputs = Enumerable.Empty<VFXPropertyWithValue>();
+
                 if (camera == Block.CameraMode.Custom)
                     inputs = inputs.Concat(PropertiesFromType(typeof(Block.CameraHelper.CameraProperties)));
+
                 inputs = inputs.Concat(PropertiesFromType("InputProperties"));
+
                 if (mode == PositionMode.Sequential)
                     inputs = inputs.Concat(PropertiesFromType("SequentialInputProperties"));
                 else if (mode == PositionMode.Custom)
                     inputs = inputs.Concat(PropertiesFromType("CustomInputProperties"));
+
                 if (cullMode == CullMode.Range)
                     inputs = inputs.Concat(PropertiesFromType("RangeInputProperties"));
+
                 return inputs;
             }
         }
@@ -117,27 +125,35 @@ namespace UnityEditor.VFX.Operator
 
                 if (cullMode != CullMode.None)
                     properties = properties.Concat(PropertiesFromType(nameof(OutputPropertiesCull)));
-                
+
                 return properties;
             }
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+
+            // Offset to compensate for the numerous custom camera generated expressions
+            _customCameraOffset = 0;
+
+            // Get the extra number of expressions if a custom camera input is used
+            if (camera == CameraMode.Custom)
+                _customCameraOffset = GetInputSlot(0).children.Count() - 1;
+
             // List to gather all output expressions as their number can vary
             List<VFXExpression> outputs = new List<VFXExpression>();
 
             // Camera expressions
-            VFXExpression Camera_depthBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Depth);
-            VFXExpression CamPixDim = new VFXExpressionExtractPixelDimensionsFromMainCamera();
-
-            // Camera matrices
             var expressions = Block.CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this), camera);
             Block.CameraMatricesExpressions camMatrices = Block.CameraHelper.GetMatricesExpressions(expressions);
+
+            var Camera_depthBuffer = expressions.First(e => e.name == "Camera_depthBuffer").exp;
+            var CamPixDim = expressions.First(e => e.name == "Camera_pixelDimensions").exp;
 
             // Set uvs
             VFXExpression uv = VFXValue.Constant<Vector2>();
 
+            // Determine how the particles are spawned on the screen
             switch (mode)
             {
                 case PositionMode.Random:
@@ -147,7 +163,7 @@ namespace UnityEditor.VFX.Operator
 
                 case PositionMode.Sequential:
                     // Pixel perfect spawn
-                    VFXExpression gridStep = inputExpression[inputSlots.IndexOf(inputSlots.First(o => o.name == "GridStep"))];
+                    VFXExpression gridStep = inputExpression[inputSlots.IndexOf(inputSlots.First(o => o.name == "GridStep")) + _customCameraOffset];
 
                     VFXExpression sSizeX = new VFXExpressionCastFloatToUint(CamPixDim.x / new VFXExpressionCastUintToFloat(gridStep));
                     VFXExpression sSizeY = new VFXExpressionCastFloatToUint(CamPixDim.y / new VFXExpressionCastUintToFloat(gridStep));
@@ -168,7 +184,7 @@ namespace UnityEditor.VFX.Operator
 
                 case PositionMode.Custom:
                     // Custom UVs
-                    uv = inputExpression[inputSlots.IndexOf(inputSlots.First(o => o.name == "UVSpawn"))];
+                    uv = inputExpression[inputSlots.IndexOf(inputSlots.FirstOrDefault(o => o.name == "UVSpawn")) + _customCameraOffset];
                     break;
             }
 
@@ -177,10 +193,15 @@ namespace UnityEditor.VFX.Operator
 
             // Get depth
             VFXExpression depth = new VFXExpressionExtractComponent(new VFXExpressionLoadTexture2D(Camera_depthBuffer, uvs), 0);
-            VFXExpression inverseDepth = VFXOperatorUtility.OneExpression[depth.valueType] - depth;
+
+            if (SystemInfo.usesReversedZBuffer)
+            {
+                depth = VFXOperatorUtility.OneExpression[depth.valueType] - depth;
+            }
 
             VFXExpression isAlive = VFXValue.Constant(true);
 
+            // Determine how the particles are culled
             switch (cullMode)
             {
                 case CullMode.None:
@@ -189,7 +210,7 @@ namespace UnityEditor.VFX.Operator
 
                 case CullMode.Range:
 
-                    VFXExpression depthRange = inputExpression[inputSlots.IndexOf(inputSlots.First(o => o.name == "DepthRange"))];
+                    VFXExpression depthRange = inputExpression[inputSlots.IndexOf(inputSlots.LastOrDefault(o => o.name == "DepthRange")) + _customCameraOffset];
 
                     VFXExpression nearRangeCheck = new VFXExpressionCondition(VFXCondition.Less, depth, depthRange.x);
                     VFXExpression farRangeCheck = new VFXExpressionCondition(VFXCondition.Greater, depth, depthRange.y);
@@ -203,8 +224,10 @@ namespace UnityEditor.VFX.Operator
                     break;
             }
 
+            VFXExpression zMultiplier = inputExpression[inputSlots.IndexOf(inputSlots.First(o => o.name == "ZMultiplier")) + _customCameraOffset];
+
             VFXExpression clipPos = new VFXExpressionCombine(projpos.x, projpos.y,
-                inverseDepth * inputExpression[inputSlots.IndexOf(inputSlots.First(o => o.name == "ZMultiplier"))] * VFXValue.Constant(2f) - VFXValue.Constant(1f),
+                depth * zMultiplier * VFXValue.Constant(2f) - VFXValue.Constant(1f),
                 VFXValue.Constant(1f)
                 );
 
@@ -214,9 +237,10 @@ namespace UnityEditor.VFX.Operator
 
             VFXExpression color = VFXValue.Constant<Vector4>();
 
+            // Assigning the color output to the corresponding color buffer value
             if (inheritSceneColor)
             {
-                VFXExpression Camera_colorBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Color);
+                VFXExpression Camera_colorBuffer = expressions.First(e => e.name == "Camera_colorBuffer").exp;
                 VFXExpression tempColor = new VFXExpressionLoadTexture2D(Camera_colorBuffer, uvs);
                 color = new VFXExpressionCombine(tempColor.x, tempColor.y, tempColor.z, VFXValue.Constant(1.0f));
             }
