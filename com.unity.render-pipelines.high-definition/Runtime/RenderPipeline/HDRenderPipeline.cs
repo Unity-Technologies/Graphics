@@ -435,7 +435,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if(m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
             {
-                // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing. 
+                // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
                 m_LowResTransparentBuffer = RTHandles.Alloc(Vector2.one * 0.5f, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "Low res transparent");
             }
 
@@ -1629,7 +1629,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // For material classification we use compute shader and so can't read into the stencil, so prepare it.
                     using (new ProfilingSample(cmd, "Clear and copy stencil texture for material classification", CustomSamplerId.ClearAndCopyStencilTexture.GetSampler()))
                     {
-#if UNITY_SWITCH
+#if (UNITY_SWITCH || UNITY_IPHONE)
                         // Faster on Switch.
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_SharedRTManager.GetStencilBufferCopy(), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
 
@@ -2271,7 +2271,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cullingParams.accurateOcclusionThreshold = s_OcclusionThreshold;
                     cullingResults.cullingResults = renderContext.Cull(ref cullingParams);
                 }
-                // sample-game end                    
+                // sample-game end
 
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includeEnvLights)
@@ -2909,9 +2909,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // It doesn't really matter what gets bound here since the color mask state set will prevent this from ever being written to. However, we still need to bind something
                             // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent, here the normal buffer
                             // as it is guaranteed to exist and to have the same size.
-                            // to avoid warnings about unbound render targets. 
+                            // to avoid warnings about unbound render targets.
                             : m_SharedRTManager.GetNormalBuffer();
-                                                    
+
 
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_MRTTransparentMotionVec, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
                         if ((hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
@@ -3252,7 +3252,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_UpsampleTransparency.EnableKeyword("NEAREST_DEPTH");
                 }
                 m_UpsampleTransparency.SetTexture(HDShaderIDs._LowResTransparent, m_LowResTransparentBuffer);
-                m_UpsampleTransparency.SetTexture(HDShaderIDs._LowResDepthTexture, m_SharedRTManager.GetLowResDepthBuffer());               
+                m_UpsampleTransparency.SetTexture(HDShaderIDs._LowResDepthTexture, m_SharedRTManager.GetLowResDepthBuffer());
                 cmd.DrawProcedural(Matrix4x4.identity, m_UpsampleTransparency, 0, MeshTopology.Triangles, 3, 1, null);
             }
         }
