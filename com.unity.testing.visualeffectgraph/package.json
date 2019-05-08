@@ -6,12 +6,6 @@
     "description": "This package contains common graphics tests from several scriptable renderpipeline",
     "dependencies": {
         "com.unity.visualeffectgraph": "6.7.0-preview",
-        "com.unity.testframework.graphics": "https://github.com/Unity-Technologies/com.unity.testframework.graphics.git"
-    },
-  "lock": {
-    "com.unity.testframework.graphics": {
-      "hash": "b0e2026794f5e51fc9e49db4c2e41346ee5e35df",
-      "revision": "HEAD"
+        "com.unity.testframework.graphics": "6.7.0"
     }
-  }
 }

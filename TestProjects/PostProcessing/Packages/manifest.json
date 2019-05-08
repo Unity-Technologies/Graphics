@@ -1,7 +1,7 @@
 {
     "dependencies": {
-        "com.unity.testframework.graphics": "ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testframework.graphics.git",
         "com.unity.postprocessing": "2.1.6",
+        "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
         "com.unity.modules.animation": "1.0.0",
         "com.unity.modules.assetbundle": "1.0.0",
         "com.unity.modules.audio": "1.0.0",
@@ -19,12 +19,6 @@
     },
     "testables": [
         "com.unity.postprocessing",
-    "com.unity.testframework.graphics"
-    ],
-  "lock": {
-    "com.unity.testframework.graphics": {
-      "hash": "b0e2026794f5e51fc9e49db4c2e41346ee5e35df",
-      "revision": "HEAD"
-    }
-  }
+        "com.unity.testframework.graphics"
+    ]
 }
