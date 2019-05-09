@@ -92,6 +92,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 
 float4 VFXApplyPreExposure(float4 color)
 {
-    color.xyz = color.xyz * GetCurrentExposureMultiplier();
+	// TODO Use a weight for the pre-exposure
+    //color.xyz = color.xyz * GetCurrentExposureMultiplier();
     return color;
 }
