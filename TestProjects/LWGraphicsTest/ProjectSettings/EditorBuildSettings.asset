@@ -32,7 +32,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/012_PBS_EnvironmentBRDF_Spheres.unity
     guid: fddcdd964deca1d42b2952f32f67f694
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/013_CameraMulti_Splitscreen.unity
     guid: 061267518b02f411c9c75f6b52f6d333
   - enabled: 1
