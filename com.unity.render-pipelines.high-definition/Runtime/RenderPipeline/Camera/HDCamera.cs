@@ -833,6 +833,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalInt(HDShaderIDs._FrameCount,        frameCount);
 
             // TODO: qualify this code with xrInstancingEnabled when compute shaders can use keywords
+            cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
             cmd.SetGlobalBuffer(HDShaderIDs._XRViewConstants, xrViewConstantsGpu);
         }
 
