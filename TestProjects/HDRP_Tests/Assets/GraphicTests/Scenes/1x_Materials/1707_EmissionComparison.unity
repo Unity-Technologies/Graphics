@@ -368,7 +368,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &156921401
 Transform:
   m_ObjectHideFlags: 0
@@ -834,7 +834,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &253549206
 Transform:
   m_ObjectHideFlags: 0
@@ -1632,7 +1632,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &444046121
 Transform:
   m_ObjectHideFlags: 0
@@ -1872,7 +1872,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &563981239
 Transform:
   m_ObjectHideFlags: 0
@@ -2059,7 +2059,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &621931809
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -2246,7 +2246,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &713524251
 Transform:
   m_ObjectHideFlags: 0
@@ -2951,7 +2951,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1034226488
 Transform:
   m_ObjectHideFlags: 0
@@ -3045,7 +3045,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1150307811
 Transform:
   m_ObjectHideFlags: 0
@@ -3232,7 +3232,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1169560699
 Transform:
   m_ObjectHideFlags: 0
@@ -3419,7 +3419,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1231724235
 Transform:
   m_ObjectHideFlags: 0
@@ -4686,7 +4686,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1849180484
 Transform:
   m_ObjectHideFlags: 0
@@ -4780,7 +4780,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &1949751686
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -5003,7 +5003,7 @@ PrefabInstance:
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.size
-      value: 42
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -5069,157 +5069,157 @@ PrefabInstance:
         type: 3}
       propertyPath: multiObjectsTest.Array.data[10]
       value: 
-      objectReference: {fileID: 621931808}
+      objectReference: {fileID: 383359478}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[11]
       value: 
-      objectReference: {fileID: 156921400}
+      objectReference: {fileID: 274318453}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[12]
       value: 
-      objectReference: {fileID: 1849180483}
+      objectReference: {fileID: 81842756}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[13]
       value: 
-      objectReference: {fileID: 1949751685}
+      objectReference: {fileID: 687012164}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[14]
       value: 
-      objectReference: {fileID: 383359478}
+      objectReference: {fileID: 747483787}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[15]
       value: 
-      objectReference: {fileID: 274318453}
+      objectReference: {fileID: 271251171}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[16]
       value: 
-      objectReference: {fileID: 81842756}
+      objectReference: {fileID: 984438871}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[17]
       value: 
-      objectReference: {fileID: 687012164}
+      objectReference: {fileID: 762973958}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[18]
       value: 
-      objectReference: {fileID: 747483787}
+      objectReference: {fileID: 1282706119}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[19]
       value: 
-      objectReference: {fileID: 271251171}
+      objectReference: {fileID: 1711967098}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[20]
       value: 
-      objectReference: {fileID: 984438871}
+      objectReference: {fileID: 1485356058}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[21]
       value: 
-      objectReference: {fileID: 762973958}
+      objectReference: {fileID: 1976998211}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[22]
       value: 
-      objectReference: {fileID: 1282706119}
+      objectReference: {fileID: 256291427}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[23]
       value: 
-      objectReference: {fileID: 1711967098}
+      objectReference: {fileID: 584663540}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[24]
       value: 
-      objectReference: {fileID: 1231724234}
+      objectReference: {fileID: 219185568}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[25]
       value: 
-      objectReference: {fileID: 563981238}
+      objectReference: {fileID: 274382110}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[26]
       value: 
-      objectReference: {fileID: 713524250}
+      objectReference: {fileID: 1258587772}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[27]
       value: 
-      objectReference: {fileID: 444046120}
+      objectReference: {fileID: 791407624}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[28]
       value: 
-      objectReference: {fileID: 1485356058}
+      objectReference: {fileID: 1409453865}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[29]
       value: 
-      objectReference: {fileID: 1976998211}
+      objectReference: {fileID: 198347441}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[30]
       value: 
-      objectReference: {fileID: 256291427}
+      objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[31]
       value: 
-      objectReference: {fileID: 584663540}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[32]
       value: 
-      objectReference: {fileID: 219185568}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[33]
       value: 
-      objectReference: {fileID: 274382110}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[34]
       value: 
-      objectReference: {fileID: 1258587772}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[35]
       value: 
-      objectReference: {fileID: 791407624}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[36]
       value: 
-      objectReference: {fileID: 1409453865}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[37]
       value: 
-      objectReference: {fileID: 198347441}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[38]
       value: 
-      objectReference: {fileID: 253549205}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[39]
       value: 
-      objectReference: {fileID: 1034226487}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[40]
       value: 
-      objectReference: {fileID: 1169560698}
+      objectReference: {fileID: 1150307810}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: multiObjectsTest.Array.data[41]
