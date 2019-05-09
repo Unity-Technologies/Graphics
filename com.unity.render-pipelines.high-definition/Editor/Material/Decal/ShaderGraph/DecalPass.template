@@ -1,5 +1,5 @@
 Pass
-{
+{ 
     // based on DecalPass.template
     Name "$splice(PassName)"
     Tags { "LightMode" = "$splice(LightMode)" }
@@ -109,12 +109,15 @@ $include("SharedCode.template.hlsl")
     {
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
         float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+        float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f);
         float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
         float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
         fragInputs.texCoord0.xy = fragInputs.texCoord0.xy * scale + offset;
         fragInputs.texCoord1.xy = fragInputs.texCoord1.xy * scale + offset;
         fragInputs.texCoord2.xy = fragInputs.texCoord2.xy * scale + offset;
         fragInputs.texCoord3.xy = fragInputs.texCoord3.xy * scale + offset;
+#else
+        float fadeFactor = 1.0;
 #endif
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
@@ -123,13 +126,13 @@ $include("SharedCode.template.hlsl")
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 
 #if _MATERIAL_AFFECTS_EMISSION
-        $SurfaceDescription.Emission:                   surfaceData.emissive = float4(surfaceDescription.Emission.xyz, 1.0);
+        $SurfaceDescription.Emission:                   surfaceData.emissive.rgb = surfaceDescription.Emission.rgb * fadeFactor;
 #endif
 
         // copy across graph values, if defined
 #if _MATERIAL_AFFECTS_ALBEDO
         $SurfaceDescription.Albedo:                     surfaceData.baseColor.xyz = surfaceDescription.Albedo;
-        $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo;
+        $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo * fadeFactor;
         $SurfaceDescription.Albedo:                     surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
 #endif
 
@@ -140,7 +143,7 @@ $include("SharedCode.template.hlsl")
         // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.worldToTangent));
     #endif
-        $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal;
+        $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal * fadeFactor;
         $SurfaceDescription.Normal:                     surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
 #else
     #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
@@ -155,10 +158,10 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Occlusion:                  surfaceData.mask.y = surfaceDescription.Occlusion;
     #endif
 
-        $SurfaceDescription.MAOSOpacity:                surfaceData.mask.w = surfaceDescription.MAOSOpacity;
+        $SurfaceDescription.MAOSOpacity:                surfaceData.mask.w = surfaceDescription.MAOSOpacity * fadeFactor;
     #ifdef DECALS_4RT
-        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.x = surfaceDescription.MAOSOpacity;
-        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.y = surfaceDescription.MAOSOpacity;
+        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.x = surfaceDescription.MAOSOpacity * fadeFactor;
+        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.y = surfaceDescription.MAOSOpacity * fadeFactor;
     #endif
 
                                                         surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
