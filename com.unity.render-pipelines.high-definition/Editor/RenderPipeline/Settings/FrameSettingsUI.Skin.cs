@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent depthPrepassWithDeferredRenderingContent = EditorGUIUtility.TrTextContent("Depth Prepass With Deferred Rendering", "When enabled, HDRP processes a depth prepass for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.");
         static readonly GUIContent opaqueObjectsContent = EditorGUIUtility.TrTextContent("Opaque Objects", "When enabled, Cameras using these Frame Settings render opaque GameObjects.");
         static readonly GUIContent transparentObjectsContent = EditorGUIUtility.TrTextContent("Transparent Objects", "When enabled, Cameras using these Frame Settings render Transparent GameObjects.");
-        static readonly GUIContent realtimePlanarReflectionContent = EditorGUIUtility.TrTextContent("Enable Realtime Planar Reflection", "When enabled, HDRP updates Planar Reflection Probes every frame for Cameras using these Frame Settings."); 
+        static readonly GUIContent realtimePlanarReflectionContent = EditorGUIUtility.TrTextContent("Enable Realtime Planar Reflection", "When enabled, HDRP updates Planar Reflection Probes every frame for Cameras using these Frame Settings.");
         static readonly GUIContent msaaContent = EditorGUIUtility.TrTextContent("MSAA", "When enabled, Cameras using these Frame Settings calculate MSAA when they render the Scene. Set Lit Shader Mode to Forward to access this option.");
         static readonly GUIContent shadowContent = EditorGUIUtility.TrTextContent("Shadow", "When enabled, Cameras using these Frame Settings render shadows.");
         static readonly GUIContent contactShadowContent = EditorGUIUtility.TrTextContent("Contact Shadows", "When enabled, Cameras using these Frame Settings render Contact Shadows.");
@@ -47,7 +47,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent volumeVoxelizationAsyncContent = EditorGUIUtility.TrTextContent("Volumetrics Voxelization in Async", "When enabled, HDRP calculates volumetric voxelization asynchronously.");
 
         const string lightLoopSettingsHeaderContent = "Light Loop";
-        const string otherSettingsHeaderContent = "Other";
 
 
         static readonly GUIContent exposureControlContent = EditorGUIUtility.TrTextContent("Exposure Control");

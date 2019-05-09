@@ -15,7 +15,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LightingSettings = 1 << 2,
             AsynComputeSettings = 1 << 3,
             LightLoop = 1 << 4,
-            OtherSettings = 1 << 5,
         }
 
         readonly static ExpandedState<Expandable, FrameSettings> k_ExpandedState = new ExpandedState<Expandable, FrameSettings>(~(-1), "HDRP");
@@ -43,9 +42,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     ),
                 CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
                     CED.Group(194, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
-                    )
-                    , CED.FoldoutGroup(otherSettingsHeaderContent, Expandable.OtherSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                        CED.Group(194, (serialized, owner) => Drawer_SectionOtherSettings(serialized, owner, withOverride))
                     )
                 );
 
@@ -151,6 +147,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);
             area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
+
+            area.AmmendInfo(
+                FrameSettingsField.LODBiasMode,
+                overridedDefaultValue: LODBiasMode.FromQualitySettings,
+                customGetter: () => (LODBiasMode)serialized.lodBiasMode.enumValueIndex,
+                customSetter: v => serialized.lodBiasMode.enumValueIndex = (int)v
+            );
+            area.AmmendInfo(FrameSettingsField.LODBias,
+                overridedDefaultValue: QualitySettings.lodBias,
+                customGetter: () => serialized.lodBias.floatValue,
+                customSetter: v => serialized.lodBias.floatValue = (float)v,
+                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.FromQualitySettings);
+
+            area.AmmendInfo(
+                FrameSettingsField.MaximumLODLevelMode,
+                overridedDefaultValue: MaximumLODLevelMode.FromQualitySettings,
+                customGetter: () => (MaximumLODLevelMode)serialized.maximumLODLevelMode.enumValueIndex,
+                customSetter: v => serialized.maximumLODLevelMode.enumValueIndex = (int)v
+            );
+            area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
+                overridedDefaultValue: QualitySettings.maximumLODLevel,
+                customGetter: () => serialized.maximumLODLevel.intValue,
+                customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
+                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.FromQualitySettings);
+
             area.Draw(withOverride);
         }
 
@@ -178,35 +199,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_SectionLightLoopSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
         {
             var area = GetFrameSettingSectionContent(3, serialized, owner);
-            area.Draw(withOverride);
-        }
-
-        static void Drawer_SectionOtherSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
-        {
-            var area = GetFrameSettingSectionContent(4, serialized, owner);
-            area.AmmendInfo(
-                FrameSettingsField.LODBiasMode,
-                overridedDefaultValue: LODBiasMode.FromQualitySettings,
-                customGetter: () => (LODBiasMode)serialized.lodBiasMode.enumValueIndex,
-                customSetter: v => serialized.lodBiasMode.enumValueIndex = (int)v
-            );
-            area.AmmendInfo(FrameSettingsField.LODBias,
-                overridedDefaultValue: QualitySettings.lodBias,
-                customGetter: () => serialized.lodBias.floatValue,
-                customSetter: v => serialized.lodBias.floatValue = (float)v,
-                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.FromQualitySettings);
-
-            area.AmmendInfo(
-                FrameSettingsField.MaximumLODLevelMode,
-                overridedDefaultValue: MaximumLODLevelMode.FromQualitySettings,
-                customGetter: () => (MaximumLODLevelMode)serialized.maximumLODLevelMode.enumValueIndex,
-                customSetter: v => serialized.maximumLODLevelMode.enumValueIndex = (int)v
-            );
-            area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
-                overridedDefaultValue: QualitySettings.maximumLODLevel,
-                customGetter: () => serialized.maximumLODLevel.intValue,
-                customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
-                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.FromQualitySettings);
             area.Draw(withOverride);
         }
 
