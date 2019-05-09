@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed htile synchronization issue with shader graph decal
 - Fixed Gizmos are not drawn in Camera preview
 - Fixed pre-exposure for emissive decal
+- Fixed NaNs arising during the hair lighting pass
+
 
 ### Changed
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
