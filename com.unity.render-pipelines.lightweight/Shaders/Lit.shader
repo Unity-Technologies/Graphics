@@ -22,6 +22,7 @@ Shader "Lightweight Render Pipeline/Lit"
 
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
         [ToggleOff] _EnvironmentReflections("Environment Reflections", Float) = 1.0
+        [Toggle(VT_ON)] _VirtualTexturing("Virtual Texturing", Float) = 1.0
 
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
@@ -51,6 +52,8 @@ Shader "Lightweight Render Pipeline/Lit"
         [HideInInspector] _GlossMapScale("Smoothness", Float) = 0.0
         [HideInInspector] _Glossiness("Smoothness", Float) = 0.0
         [HideInInspector] _GlossyReflections("EnvironmentReflections", Float) = 0.0
+
+        _TextureStack("_TextureStack", Stack) = { _BaseMap _BumpMap _MetallicGlossMap }
     }
 
     SubShader
@@ -114,7 +117,13 @@ Shader "Lightweight Render Pipeline/Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            
+
+            //--------------------------------------
+            // Virtual Texturing
+            #pragma shader_feature VT_ON
+            //define VT_ON 1
+
+
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 

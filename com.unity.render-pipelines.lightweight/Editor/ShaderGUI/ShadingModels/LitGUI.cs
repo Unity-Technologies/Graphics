@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -43,6 +43,10 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 new GUIContent("Environment Reflections",
                     "When enabled, the Material samples reflections from the nearest Reflection Probes or Lighting Probe.");
 
+            public static GUIContent vtText =
+                new GUIContent("Virtual Texturing",
+                    "When enabled, use virtual texturing instead of regular textures.");
+
             public static GUIContent occlusionText = new GUIContent("Occlusion Map",
                 "Sets an occlusion map to simulate shadowing from ambient lighting.");
 
@@ -70,6 +74,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             // Advanced Props
             public MaterialProperty highlights;
             public MaterialProperty reflections;
+            public MaterialProperty vt;
 
             public LitProperties(MaterialProperty[] properties)
             {
@@ -89,6 +94,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 // Advanced Props
                 highlights = BaseShaderGUI.FindProperty("_SpecularHighlights", properties, false);
                 reflections = BaseShaderGUI.FindProperty("_EnvironmentReflections", properties, false);
+                vt = BaseShaderGUI.FindProperty("_VirtualTexturing", properties, false);
             }
         }
 
@@ -208,6 +214,12 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             {
                 CoreUtils.SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
                     GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha && opaque);
+            }
+
+            if (material.HasProperty("_VirtualTexturing"))
+            {
+                CoreUtils.SetKeyword(material, "VT_ON",
+                    material.GetFloat("_VirtualTexturing") == 1.0f);
             }
         }
     }

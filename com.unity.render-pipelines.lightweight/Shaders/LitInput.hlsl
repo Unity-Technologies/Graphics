@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.cginc"
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/SurfaceInput.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
@@ -15,24 +16,29 @@ half _Smoothness;
 half _Metallic;
 half _BumpScale;
 half _OcclusionStrength;
+DECLARE_STACK_CB(_TextureStack);
 CBUFFER_END
 
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 
+DECLARE_STACK3(_TextureStack, _BaseMap, _BumpMap, _MetallicGlossMap);
+
 #ifdef _SPECULAR_SETUP
-    #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)
+    // TODO VT: We always put the _MetallicGlossMap in VT but never _SpecGlossMap need a way to be able to toggle
+    // this based on defines !?
+    #define SAMPLE_METALLICSPECULAR(info) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, info.uv)
 #else
-    #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, uv)
+    #define SAMPLE_METALLICSPECULAR(info) SampleStack(info, _MetallicGlossMap)
 #endif
 
-half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
+half4 SampleMetallicSpecGloss(StackInfo info, half albedoAlpha)
 {
     half4 specGloss;
 
 #ifdef _METALLICSPECGLOSSMAP
-    specGloss = SAMPLE_METALLICSPECULAR(uv);
+    specGloss = SAMPLE_METALLICSPECULAR(info);
     #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
         specGloss.a = albedoAlpha * _Smoothness;
     #else
@@ -72,10 +78,19 @@ half SampleOcclusion(float2 uv)
 
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
-    half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
+    StackInfo info = PrepareStack(uv, _TextureStack);
+
+    float4 rawAlbedoAlpha = SampleStack(info, _BaseMap);
+#ifdef _NORMALMAP
+    float4 rawNormal = SampleStack(info, _BumpMap);
+#else
+    float4 rawNormal = float4(0,0,0,0);
+#endif
+
+    half4 albedoAlpha = ProcessAlbedoAlpha(rawAlbedoAlpha);
     outSurfaceData.alpha = Alpha(albedoAlpha.a, _BaseColor, _Cutoff);
 
-    half4 specGloss = SampleMetallicSpecGloss(uv, albedoAlpha.a);
+    half4 specGloss = SampleMetallicSpecGloss(info, albedoAlpha.a);
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;
 
 #if _SPECULAR_SETUP
@@ -87,7 +102,7 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #endif
 
     outSurfaceData.smoothness = specGloss.a;
-    outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
+    outSurfaceData.normalTS = ProcessNormal(rawNormal, _BumpScale);
     outSurfaceData.occlusion = SampleOcclusion(uv);
     outSurfaceData.emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
 }

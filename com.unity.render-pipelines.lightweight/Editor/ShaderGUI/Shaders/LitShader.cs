@@ -61,12 +61,13 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         // material main advanced options
         public override void DrawAdvancedOptions(Material material)
         {
-            if (litProperties.reflections != null && litProperties.highlights != null)
+            if (litProperties.reflections != null && litProperties.highlights != null && litProperties.vt != null)
             {
                 EditorGUI.BeginChangeCheck();
                 {
                     materialEditor.ShaderProperty(litProperties.highlights, LitGUI.Styles.highlightsText);
                     materialEditor.ShaderProperty(litProperties.reflections, LitGUI.Styles.reflectionsText);
+                    materialEditor.ShaderProperty(litProperties.vt, LitGUI.Styles.vtText);
                     EditorGUI.BeginChangeCheck();
                 }
             }

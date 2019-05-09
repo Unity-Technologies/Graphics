@@ -182,13 +182,25 @@ float4 ResolveVT_##stackName(float2 uv)\
 #define DECLARE_STACK_CB(stackName)
 
 // Info is just the uv's
-#define StackInfo float2
+// We could do a straight #defube StackInfo float2 but this makes it a bit more type safe
+// and allows us to do things like function overloads,...
+struct StackInfo
+{
+    float2 uv;
+};
+
+StackInfo MakeStackInfo(float2 uv)
+{
+    StackInfo result;
+    result.uv = uv;
+    return result;
+}
 
 // Prepare just passes the texture coord around
-#define PrepareStack(uv, stackName) uv
+#define PrepareStack(uv, stackName) MakeStackInfo(uv)
 
 // Sample just samples the texture
-#define SampleStack(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info)
+#define SampleStack(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info.uv)
 
 // Resolve does nothing
 #define ResolveStack(uv, stackName)
