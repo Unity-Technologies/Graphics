@@ -387,6 +387,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
+                    m_Blend = 1.0f;
                     // With ShaderGraph m_cachedProjectorPassValue is setup to -1 if the pass isn't generated, thus we can create emissive only decal if required
                     m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)(perChannelMask ? MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT : MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT)]);
                     m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)MaterialSGDecalPass.ShaderGraph_ProjectorEmissive]);

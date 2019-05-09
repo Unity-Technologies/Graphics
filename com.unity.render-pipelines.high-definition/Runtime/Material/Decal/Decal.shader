@@ -29,6 +29,7 @@ Shader "HDRP/Decal"
         [HideInInspector] _EmissiveIntensityUnit("Emissive Mode", Int) = 0
         [ToggleUI] _UseEmissiveIntensity("Use Emissive Intensity", Int) = 0
         _EmissiveIntensity("Emissive Intensity", Float) = 1
+        _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
 
         // Stencil state
