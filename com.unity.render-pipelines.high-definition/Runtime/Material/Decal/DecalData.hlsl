@@ -39,12 +39,9 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 	albedoMapBlend = surfaceData.baseColor.w;   
 // outside _COLORMAP because we still have base color
 #ifdef _ALBEDOCONTRIBUTION
-    if (surfaceData.baseColor.w > 0.0)
-    {
-        surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
-    }	
+	surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
 #else
-	surfaceData.baseColor.w = 0.0;	// dont blend any albedo
+	surfaceData.baseColor.w = 0;	// dont blend any albedo
 #endif
 
 #ifdef _MASKMAP
@@ -54,18 +51,14 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     surfaceData.mask.x = _MetallicScale * surfaceData.mask.x;
     surfaceData.mask.y = lerp(_AORemapMin, _AORemapMax, surfaceData.mask.y);
     surfaceData.mask.z = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, surfaceData.mask.w);
+	surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
 	surfaceData.mask.w = _MaskBlendSrc ? maskMapBlend : albedoMapBlend;
-
-    if (surfaceData.mask.w > 0.0)
-    {
-        surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-    }
 #endif
 
 	// needs to be after mask, because blend source could be in the mask map blue
 #ifdef _NORMALMAP
 	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
-    float3 normalWS = float3(0.0, 0.0, 0.0);
+    float3 normalWS = float3(0, 0, 0);
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 	normalWS = mul((float3x3)normalToWorld, normalTS);
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
@@ -73,11 +66,8 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
 #endif
 	surfaceData.normalWS.xyz = normalWS;
+	surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
-    if (surfaceData.normalWS.w > 0.0)
-    {
-        surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
-    }
 #endif
 	surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
 }
