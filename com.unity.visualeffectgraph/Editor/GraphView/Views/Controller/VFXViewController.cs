@@ -1517,6 +1517,9 @@ namespace UnityEditor.VFX.UI
                 if (!graph.UIInfos.categories.Any(t => t.name == newName))
                 {
                     var oldName = graph.UIInfos.categories[category].name;
+                    var catInfo = graph.UIInfos.categories[category];
+                    catInfo.name = newName;
+                    graph.UIInfos.categories[category] = catInfo;
 
                     foreach (var parameter in m_ParameterControllers)
                     {
@@ -1526,9 +1529,6 @@ namespace UnityEditor.VFX.UI
                         }
                     }
 
-                    var catInfo = graph.UIInfos.categories[category];
-                    catInfo.name = newName;
-                    graph.UIInfos.categories[category] = catInfo;
 
                     graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                     return true;
