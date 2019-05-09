@@ -279,7 +279,7 @@ namespace UnityEditor.VFX
             // Handle constraints on connections
             foreach (var link in from.m_OutputFlowSlot[fromIndex].link.ToArray())
             {
-                if (!link.context.CanLinkFromMany() || IsExclusiveLink(link.context.contextType, to.contextType))
+                if (!link.context.CanLinkFromMany() || (IsExclusiveLink(link.context.contextType, to.contextType) && from.contextType == link.context.contextType))
                 {
                     InnerUnlink(from, link.context, fromIndex, toIndex, notify);
                 }
