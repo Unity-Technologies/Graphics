@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with decal that wheren't working currently in player
 - Fixed exposure for ReflectionProbe and PlanarReflectionProbe gizmos
 - Fixed htile synchronization issue with shader graph decal [case 1140750](https://fogbugz.unity3d.com/f/cases/1136655/)
+- Fixed Gizmos are not drawn in Camera preview
 
 ### Changed
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
