@@ -303,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Texture2D debugFontTex;
             [Reload("Runtime/Debug/ColorGradient.png")]
             public Texture2D colorGradient;
-            [Reload("Runtime/RenderPipelineResources/Texture/DefaultMatcap.png")]
+            [Reload("Runtime/RenderPipelineResources/Texture/Matcap/DefaultMatcap.png")]
             public Texture2D matcapTex;
 
             // Pre-baked noise
