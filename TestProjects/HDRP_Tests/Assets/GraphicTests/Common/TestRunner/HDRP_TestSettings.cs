@@ -21,6 +21,9 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
     public RenderPipelineAsset renderPipelineAsset;
 
+    [Tooltip("List of objects to render and test individually. Will probably not work with animated and times tests.")]
+    public GameObject[] multiObjectsTest;
+
     void Awake()
     {
         if (renderPipelineAsset == null)
