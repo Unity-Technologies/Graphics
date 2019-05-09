@@ -105,6 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_CameraColorBuffer;
         RTHandleSystem.RTHandle m_CameraSssDiffuseLightingBuffer;
 
+        RTHandleSystem.RTHandle m_ContactShadowBuffer;
         RTHandleSystem.RTHandle m_ScreenSpaceShadowsBuffer;
         RTHandleSystem.RTHandle m_DistortionBuffer;
 
@@ -444,11 +445,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), xrInstancing: true, useDynamicScale: true, name: "Distortion");
 
-            // TODO: For MSAA, we'll need to add a Draw path in order to support MSAA properly
-            // Use RG16 as we only have one deferred directional and one screen space shadow light currently
-            m_ScreenSpaceShadowsBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "ScreenSpaceShadowsBuffer");
+            m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "ContactShadowsBuffer");
+            m_ScreenSpaceShadowsBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: false, xrInstancing: true, useDynamicScale: true, name: "ScreenSpaceShadowsBuffer");
 
-            if(m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
+            if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
             {
                 // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
                 m_LowResTransparentBuffer = RTHandles.Alloc(Vector2.one * 0.5f, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "Low res transparent");
@@ -486,6 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
 
             RTHandles.Release(m_DistortionBuffer);
+            RTHandles.Release(m_ContactShadowBuffer);
             RTHandles.Release(m_ScreenSpaceShadowsBuffer);
 
             RTHandles.Release(m_LowResTransparentBuffer);
@@ -1693,7 +1694,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // When debug is enabled we need to clear otherwise we may see non-shadows areas with stale values.
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ContactShadows) && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows)
                 {
-                    HDUtils.SetRenderTarget(cmd, m_ScreenSpaceShadowsBuffer, ClearFlag.Color, Color.clear);
+                    HDUtils.SetRenderTarget(cmd, m_ContactShadowBuffer, ClearFlag.Color, Color.clear);
                 }
 
 #if ENABLE_RAYTRACING
@@ -1795,7 +1796,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_LightLoop.PushGlobalParams(hdCamera, cmd);
 
                         // Run the contact shadow as they now need the light list
-                        RenderScreenSpaceShadows();
+                        RenderContactShadows();
                     }
                 }
                 else
@@ -1805,11 +1806,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_LightLoop.BuildGPULightLists(hdCamera, cmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetStencilBufferCopy(), m_SkyManager.IsLightingSkyValid());
                     }
                     
-                    RenderScreenSpaceShadows();
+                    RenderContactShadows();
                 }
                 
                 // Contact shadows needs the light loop so we do them after the build light list
-                void RenderScreenSpaceShadows()
+                void RenderContactShadows()
                 {
                     if (hdCamera.frameSettings.ContactShadowsRunAsync())
                     {
@@ -1820,18 +1821,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         void ContactShadowStartCallback(CommandBuffer asyncCmd)
                         {
                             var firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
-                            m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), firstMipOffsetY, asyncCmd);
+                            m_LightLoop.RenderContactShadows(hdCamera, m_ContactShadowBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), firstMipOffsetY, asyncCmd);
                         }
                     }
                     else
                     {
-                        HDUtils.CheckRTCreated(m_ScreenSpaceShadowsBuffer);
+                        HDUtils.CheckRTCreated(m_ContactShadowBuffer);
 
                         int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
-                        m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), firstMipOffsetY, cmd);
-                        m_LightLoop.SetScreenSpaceShadowsTexture(hdCamera, m_ScreenSpaceShadowsBuffer, cmd);
+                        m_LightLoop.RenderContactShadows(hdCamera, m_ContactShadowBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), firstMipOffsetY, cmd);
+                        m_LightLoop.SetContactShadowsTexture(hdCamera, m_ContactShadowBuffer, cmd);
 
-                        PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ContactShadows);
+                        PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
                     }
                 }
 
@@ -1855,6 +1856,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // The pass requires the volume properties, the light list and the shadows, and can run async.
                 m_VolumetricLightingSystem.VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
 
+                m_LightLoop.RenderScreenSpaceShadows(hdCamera, m_ScreenSpaceShadowsBuffer, cmd);
+
                 SetMicroShadowingSettings(cmd);
 
                 if (hdCamera.frameSettings.SSAORunsAsync())
@@ -1869,8 +1872,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     void Callback()
                     {
-                        m_LightLoop.SetScreenSpaceShadowsTexture(hdCamera, m_ScreenSpaceShadowsBuffer, cmd);
-                        PushFullScreenDebugTexture(hdCamera, cmd, m_ScreenSpaceShadowsBuffer, FullScreenDebugMode.ContactShadows);
+                        m_LightLoop.SetContactShadowsTexture(hdCamera, m_ContactShadowBuffer, cmd);
+                        PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
                     }
                 }
 
@@ -2502,7 +2505,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
                 var currentColorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
-
 
                 HDUtils.SetRenderTarget(cmd, m_CameraColorBuffer);
                 // TODO: Set stencil stuff via parameters rather than hardcoding it in shader.

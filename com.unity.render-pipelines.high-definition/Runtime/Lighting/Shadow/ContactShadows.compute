@@ -26,7 +26,7 @@
     TEXTURE2D_X(_CameraDepthValues);
 #endif
 
-RW_TEXTURE2D_X(uint, _DeferredShadowTextureUAV);
+RW_TEXTURE2D_X(uint, _ContactShadowTextureUAV);
 
 CBUFFER_START(DeferredShadowParameters)
 float4  _ContactShadowParamsParameters;
@@ -186,7 +186,7 @@ void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uin
     // discard the shadow if we're on the sky or outside of the contact shadow range
     if (depth == UNITY_RAW_FAR_CLIP_VALUE || posInput.linearDepth - _ContactShadowFadeEnd > 1)
     {
-        _DeferredShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0;
+        _ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0;
 
         // TODO: investigate why the following return statement generates invalid glsl code when TEXTURE_2D_X is set to expand to Texture2DArray
         //return;
@@ -264,6 +264,6 @@ void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uin
             }
         }
 
-        _DeferredShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = PackContactShadowData(globalFade * _ContactShadowOpacity, contactShadowMask);
+        _ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = PackContactShadowData(globalFade * _ContactShadowOpacity, contactShadowMask);
     }
 }

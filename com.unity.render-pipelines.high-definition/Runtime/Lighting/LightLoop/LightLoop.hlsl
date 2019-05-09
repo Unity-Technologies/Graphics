@@ -4,6 +4,12 @@
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
 #define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
 
+// SCREEN_SPACE_SHADOWS needs to be defined in all cases in which they need to run. IMPORTANT: If this is activated, the light loop function WillRenderScreenSpaceShadows on C# MUST return true.
+#if SHADEROPTIONS_RAYTRACING
+// TODO: This will need to be a multi_compile when we'll have them on compute shaders.
+#define SCREEN_SPACE_SHADOWS 1
+#endif
+
 //-----------------------------------------------------------------------------
 // LightLoop
 // ----------------------------------------------------------------------------
@@ -101,6 +107,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Evaluate sun shadows.
         if (_DirectionalShadowIndex >= 0)
         {
+#if (SHADERPASS == SHADERPASS_FORWARD) || !defined(SCREEN_SPACE_SHADOWS)
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
             // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
@@ -133,6 +140,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
             }
+#else
+        context.shadowValue = GetScreenSpaceShadow(posInput);
+#endif
         }
     }
 
