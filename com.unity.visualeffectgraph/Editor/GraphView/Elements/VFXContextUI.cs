@@ -695,6 +695,7 @@ namespace UnityEditor.VFX.UI
             foreach (var block in controller.model.children.ToArray()) // To array needed as the IEnumerable content will change
                 newContextController.AddBlock(-1, block);
 
+
             //transfer settings
             var contextType = controller.model.GetType();
             foreach (var setting in newContextController.model.GetSettings(true))
@@ -705,35 +706,43 @@ namespace UnityEditor.VFX.UI
 
                 object value;
                 if (VFXConverter.TryConvertTo(myField.GetValue(controller.model), setting.FieldType, out value))
-                {
                     newContextController.model.SetSettingValue(setting.Name, value);
-                }
             }
 
             //transfer flow edges
             if (controller.flowInputAnchors.Count == 1)
             {
                 foreach (var output in controller.flowInputAnchors[0].connections.Select(t => t.output).ToArray())
-                {
                     newContextController.model.LinkFrom(output.context.model, output.slotIndex);
-                }
             }
 
             // Apply the slot changes that can be the result of settings changes
             newContextController.ApplyChanges();
+
+            VFXSlot firstTextureSlot = null;
 
             //transfer master slot values
             foreach (var slot in newContextController.model.inputSlots)
             {
                 VFXSlot mySlot = controller.model.inputSlots.FirstOrDefault(t => t.name == slot.name);
                 if (mySlot == null)
+                {
+                    if(slot.valueType == VFXValueType.Texture2D && firstTextureSlot == null)
+                        firstTextureSlot = slot;
                     continue;
-
+                }
+                    
                 object value;
                 if (VFXConverter.TryConvertTo(mySlot.value, slot.property.type, out value))
-                {
                     slot.value = value;
-                }
+            }
+            //Hack to copy the first texture in the first texture slot if not found by name
+            if( firstTextureSlot != null)
+            {
+                VFXSlot mySlot = controller.model.inputSlots.FirstOrDefault(t => t.valueType == VFXValueType.Texture2D);
+
+                if(mySlot != null)
+                    firstTextureSlot.value = mySlot.value;
             }
 
             foreach (var anchor in newContextController.inputPorts)
