@@ -133,10 +133,7 @@ $include("SharedCode.template.hlsl")
 #if _MATERIAL_AFFECTS_ALBEDO
         $SurfaceDescription.Albedo:                     surfaceData.baseColor.xyz = surfaceDescription.Albedo;
         $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo * fadeFactor;
-        if(surfaceData.baseColor.w > 0)
-        {
-            surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
-        }
+        $SurfaceDescription.Albedo:                     surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
 #endif
 
 #if _MATERIAL_AFFECTS_NORMAL
@@ -147,10 +144,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.worldToTangent));
     #endif
         $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal * fadeFactor;
-        if(surfaceData.normalWS.w > 0)
-        {
-            surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
-        }
+        $SurfaceDescription.Normal:                     surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
 #else
     #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
         $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.worldToTangent));
@@ -170,10 +164,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.y = surfaceDescription.MAOSOpacity * fadeFactor;
     #endif
 
-    if (surfaceData.mask.w > 0)
-    {
-        surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-    }                                                        
+                                                        surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
 #endif
 
     }
