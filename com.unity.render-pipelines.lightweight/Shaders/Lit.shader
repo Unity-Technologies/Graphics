@@ -226,6 +226,68 @@ Shader "Lightweight Render Pipeline/Lit"
             ENDHLSL
         }
 
+        // This pass it not used during regular rendering, only for finding out which VT tiles to load
+        Pass
+        {
+            Name "VTFeedback"
+            Tags{"LightMode" = "VTFeedback"}
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_instancing
+            #pragma shader_feature VT_ON
+
+            #include "LitInput.hlsl"
+
+            struct Attributes
+            {
+                float4 positionOS       : POSITION;
+                float2 uv               : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float2 uv        : TEXCOORD0;
+                float4 vertex : SV_POSITION;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output = (Varyings)0;
+
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+                output.vertex = vertexInput.positionCS;
+
+                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+
+                return output;
+            }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+
+                return ResolveStack(input.uv, _TextureStack);
+            }
+            ENDHLSL
+        }
+
     }
     FallBack "Hidden/InternalErrorShader"
     CustomEditor "UnityEditor.Rendering.LWRP.ShaderGUI.LitShader"

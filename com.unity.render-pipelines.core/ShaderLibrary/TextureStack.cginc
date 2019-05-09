@@ -203,6 +203,6 @@ StackInfo MakeStackInfo(float2 uv)
 #define SampleStack(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info.uv)
 
 // Resolve does nothing
-#define ResolveStack(uv, stackName)
+#define ResolveStack(uv, stackName) float4(1,1,1,1);
 
 #endif
