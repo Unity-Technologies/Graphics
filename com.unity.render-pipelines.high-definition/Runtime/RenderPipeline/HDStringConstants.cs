@@ -234,8 +234,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _LtcDisneyDiffuseMatrix = Shader.PropertyToID("_LtcDisneyDiffuseMatrix");
         public static readonly int _LtcMultiGGXFresnelDisneyDiffuse = Shader.PropertyToID("_LtcMultiGGXFresnelDisneyDiffuse");
 
-        public static readonly int _DeferredShadowTexture = Shader.PropertyToID("_DeferredShadowTexture");
-        public static readonly int _DeferredShadowTextureUAV = Shader.PropertyToID("_DeferredShadowTextureUAV");
+        public static readonly int _ScreenSpaceShadowsTexture = Shader.PropertyToID("_ScreenSpaceShadowsTexture");
+        public static readonly int _ContactShadowTexture = Shader.PropertyToID("_ContactShadowTexture");
+        public static readonly int _ContactShadowTextureUAV = Shader.PropertyToID("_ContactShadowTextureUAV");
         public static readonly int _DirectionalShadowIndex = Shader.PropertyToID("_DirectionalShadowIndex");
         public static readonly int _ContactShadowParamsParameters = Shader.PropertyToID("_ContactShadowParamsParameters");
         public static readonly int _ContactShadowParamsParameters2 = Shader.PropertyToID("_ContactShadowParamsParameters2");
