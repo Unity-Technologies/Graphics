@@ -290,6 +290,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
 
+        public static readonly int _XRViewCount = Shader.PropertyToID("_XRViewCount");
         public static readonly int _XRViewConstants = Shader.PropertyToID("_XRViewConstants");
 
         public static readonly int _DepthTexture                   = Shader.PropertyToID("_DepthTexture");

@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ShaderGraph Decal that affect only emissive, only draw in emissive pass (was drawing in dbuffer pass too)
 - Apply decal projector fade factor correctly on all attribut and for shader graph decal
 - Move RenderTransparentDepthPostpass after all transparent
+- Update exposure prepass to interleave XR single-pass instancing views in a checkerboard pattern
 
 ## [6.6.0-preview] - 2019-04-01
 
