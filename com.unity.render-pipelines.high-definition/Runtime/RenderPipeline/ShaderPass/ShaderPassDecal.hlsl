@@ -96,9 +96,11 @@ void Frag(  PackedVaryingsToPS packedInput,
         outColor.rgb += surfaceData.baseColor.rgb * light.color * saturate(dot(surfaceData.normalWS.xyz, -light.forward.xyz));
     }
 
-    outColor.rgb += surfaceData.emissive.rgb;
+    outColor.rgb += surfaceData.emissive;
     outColor.w = 1.0;
 #else
-    outEmissive = surfaceData.emissive;
+    // Emissive need to be pre-exposed
+    outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
+    outEmissive.a = 1.0;
 #endif
 }

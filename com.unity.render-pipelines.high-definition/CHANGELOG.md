@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled cascade blends settings in the HD Shadow component
 - Added clear GBuffer option in FrameSettings (default to false)
 - Added preview for decal shader graph (Only albedo, normal and emission)
+- Added exposure weight control for decal
 
 ### Fixed
 - Fixed TerrainLit basemap texture generation
@@ -34,8 +35,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where sky convolution was recomputed for nothing when a preview was visible (causing extreme slowness when fabric convolution is enabled)
 - Fixed issue with decal that wheren't working currently in player
 - Fixed exposure for ReflectionProbe and PlanarReflectionProbe gizmos
-- Fixed htile synchronization issue with shader graph decal [case 1140750](https://fogbugz.unity3d.com/f/cases/1136655/)
+- Fixed htile synchronization issue with shader graph decal
 - Fixed Gizmos are not drawn in Camera preview
+- Fixed pre-exposure for emissive decal
 
 ### Changed
 - Improve the ray biasing code to avoid self-intersections during the SSR traversal
@@ -45,6 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed HDEditorUtils.LightLayerMaskDrawer for integration in other packages and user scripting.
 - Rename atmospheric scattering in FrameSettings to Fog
 - ShaderGraph Decal that affect only emissive, only draw in emissive pass (was drawing in dbuffer pass too)
+- Apply decal projector fade factor correctly on all attribut and for shader graph decal
+- Move RenderTransparentDepthPostpass after all transparent
 
 ## [5.13.0-preview] - 2019-04-15
 

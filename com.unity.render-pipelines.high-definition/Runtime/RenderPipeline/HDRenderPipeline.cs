@@ -1912,14 +1912,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render All forward error
                 RenderForwardError(cullingResults, hdCamera, renderContext, cmd);
 
-                // Fill depth buffer to reduce artifact for transparent object during postprocess
-                RenderTransparentDepthPostpass(cullingResults, hdCamera, renderContext, cmd);
-
                 DownsampleDepthForLowResTransparency(hdCamera, cmd);
 
                 RenderLowResTransparent(cullingResults, hdCamera, renderContext, cmd);
 
                 UpsampleTransparent(hdCamera, cmd);
+
+                // Fill depth buffer to reduce artifact for transparent object during postprocess
+                RenderTransparentDepthPostpass(cullingResults, hdCamera, renderContext, cmd);
 
                 RenderColorPyramid(hdCamera, cmd, false);
 
