@@ -41,7 +41,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
 	float depth = LoadCameraDepth(input.positionSS.xy);
-	PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
     positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);
@@ -96,9 +96,11 @@ void Frag(  PackedVaryingsToPS packedInput,
         outColor.rgb += surfaceData.baseColor.rgb * light.color * saturate(dot(surfaceData.normalWS.xyz, -light.forward.xyz));
     }
 
-    outColor.rgb += surfaceData.emissive.rgb;
+    outColor.rgb += surfaceData.emissive;
     outColor.w = 1.0;
 #else
-    outEmissive = surfaceData.emissive;
+    // Emissive need to be pre-exposed
+    outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
+    outEmissive.a = 1.0;
 #endif
 }

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added MatCap debug view to replace the no scene lighting debug view. 
 - Added clear GBuffer option in FrameSettings (default to false)
 - Added preview for decal shader graph (Only albedo, normal and emission)
+- Added exposure weight control for decal
 
 ### Fixed
 - Fixed deserialization crash at runtime
@@ -50,8 +51,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Vulkan shader issue with Texture2DArray in ScreenSpaceShadow.compute by re-arranging code (workaround)
 - Fixed camera-relative issue with lights and XR single-pass instancing
 - Fixed single-pass instancing on Vulkan
-- Fixed htile synchronization issue with shader graph decal [case 1140750](https://fogbugz.unity3d.com/f/cases/1136655/)
+- Fixed htile synchronization issue with shader graph decal
 - Fixed Gizmos are not drawn in Camera preview
+- Fixed pre-exposure for emissive decal
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
@@ -67,6 +69,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename atmospheric scattering in FrameSettings to Fog
 - The size modifier in the override for the culling sphere in Shadow Cascades now defaults to 0.6, which is the same as the formerly hardcoded value.
 - ShaderGraph Decal that affect only emissive, only draw in emissive pass (was drawing in dbuffer pass too)
+- Apply decal projector fade factor correctly on all attribut and for shader graph decal
+- Move RenderTransparentDepthPostpass after all transparent
 
 ## [6.6.0-preview] - 2019-04-01
 
