@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added clear GBuffer option in FrameSettings (default to false)
 - Added preview for decal shader graph (Only albedo, normal and emission)
 - Added exposure weight control for decal
+- Screen Space Directional Shadow under a define option. Activated for ray tracing 
 
 ### Fixed
 - Fixed deserialization crash at runtime
