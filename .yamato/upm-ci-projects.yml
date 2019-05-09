@@ -23,8 +23,8 @@ projects:
     folder: ShaderGraph
   - name: PostProcessing
     folder: PostProcessing
-  - name: HDRP
-    folder: HDRP_Tests
+#  - name: HDRP
+#    folder: HDRP_Tests
   - name: VFXMain
     folder: VisualEffectGraph
 ---
