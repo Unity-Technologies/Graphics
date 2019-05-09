@@ -28,10 +28,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_MeshDecalsAOSStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_AOS];
         public static readonly string s_MeshDecalsMAOSStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_MAOS];
         public static readonly string s_MeshDecals3RTStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh_3RT];
-        public static readonly string s_ShaderGraphMeshDecals4RT = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT];
-        public static readonly string s_ShaderGraphMeshDecals3RT = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT];
+        public static readonly string s_ShaderGraphMeshDecals4RT = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT];
+        public static readonly string s_ShaderGraphMeshDecals3RT = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT];
         public static readonly string s_MeshDecalsForwardEmissive = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.Mesh_Emissive];
-        public static readonly string s_ShaderGraphMeshDecalForwardEmissive = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive];
+        public static readonly string s_ShaderGraphMeshDecalForwardEmissive = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive];
 
         // ShaderPass name
         public static readonly ShaderTagId s_EmptyName = new ShaderTagId(s_EmptyStr);

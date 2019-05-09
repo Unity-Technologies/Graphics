@@ -9,27 +9,33 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
     // With inspector version of decal we can use instancing to get normal to world access
     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-    float albedoMapBlend = clamp(normalToWorld[0][3], 0.0f, 1.0f);
+    float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f);
     float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
     float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
 	float2 texCoords = input.texCoord0.xy * scale + offset;
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_MESH)
-	float albedoMapBlend = _DecalBlend;
+	float fadeFactor = _DecalBlend;
 	float2 texCoords = input.texCoord0.xy;
 #endif
-         
+
+    float albedoMapBlend = fadeFactor;
+    float maskMapBlend = fadeFactor;
+
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
     surfaceData.baseColor = _BaseColor;
-    surfaceData.emissive = _EmissiveColor * albedoMapBlend;
-
+    surfaceData.emissive = _EmissiveColor * fadeFactor;
 #ifdef _EMISSIVEMAP
     surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords);
 #endif
 
+    // Inverse pre-expose using _EmissiveExposureWeight weight
+    float3 emissiveRcpExposure = surfaceData.emissive * GetInverseCurrentExposureMultiplier();
+    surfaceData.emissive = lerp(emissiveRcpExposure, surfaceData.emissive, _EmissiveExposureWeight);
+
 #ifdef _COLORMAP
     surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
 #endif
-	surfaceData.baseColor.w *= albedoMapBlend;
+	surfaceData.baseColor.w *= fadeFactor;
 	albedoMapBlend = surfaceData.baseColor.w;   
 // outside _COLORMAP because we still have base color
 #ifdef _ALBEDOCONTRIBUTION
@@ -37,9 +43,6 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 #else
 	surfaceData.baseColor.w = 0;	// dont blend any albedo
 #endif
-
-    // Default to _DecalBlend, if we use _NormalBlendSrc as maskmap and there is no maskmap, it mean we have 1
-	float maskMapBlend = _DecalBlend;
 
 #ifdef _MASKMAP
     surfaceData.mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, texCoords);
