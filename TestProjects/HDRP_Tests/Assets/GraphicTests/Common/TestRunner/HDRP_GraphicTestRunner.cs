@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -46,8 +47,53 @@ public class HDRP_GraphicTestRunner
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
-            // Standard Test
-            ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+            if (settings.multiObjectsTest != null && settings.multiObjectsTest.Length > 0)
+            {
+                // Multiple captures against same reference image
+
+                // Hide all objects
+                foreach (var obj in settings.multiObjectsTest)
+                    if (obj != null) obj.SetActive(false);
+
+                string baseException = null;
+                string failedObjects = "";
+
+                // Hide the previous one, and show the current one, then do a capture and test.
+                for (int i = 0; i < settings.multiObjectsTest.Length; ++i)
+                {
+                    if (i>0 && settings.multiObjectsTest[i-1]!=null) settings.multiObjectsTest[i-1].SetActive(false);
+                    if (settings.multiObjectsTest[i] == null ) continue;
+
+                    settings.multiObjectsTest[i].SetActive(true);
+
+                    // Catch if the image comparison failed.
+                    try
+                    {
+                        ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
+                    }
+                    catch (AssertionException e)
+                    {
+                        var objectHierarchyName = settings.multiObjectsTest[i].name;
+                        var parent = settings.multiObjectsTest[i].transform.parent;
+                        while (parent != null)
+                        {
+                            objectHierarchyName = parent.gameObject.name + "/" + objectHierarchyName;
+                            parent = parent.parent;
+                        }
+
+                        if ( baseException == null) baseException = e.Message;
+                        failedObjects += Environment.NewLine + objectHierarchyName;
+                    }
+                }
+
+                if ( baseException != null)
+                    throw new AssertionException( baseException + Environment.NewLine + "Image comparison failed on:" + failedObjects);
+            }
+            else
+            {
+                // Standard Test
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
+            }
         }
         else
         {
