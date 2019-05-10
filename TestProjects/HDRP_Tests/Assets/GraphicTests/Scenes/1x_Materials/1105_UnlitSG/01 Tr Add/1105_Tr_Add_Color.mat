@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 1105_Transparent_Add_Color
+  m_Name: 1105_Tr_Add_Color
   m_Shader: {fileID: -6465566751694194690, guid: e1da7f67b203dd144958a81d68364e9e,
     type: 3}
   m_ShaderKeywords: 
