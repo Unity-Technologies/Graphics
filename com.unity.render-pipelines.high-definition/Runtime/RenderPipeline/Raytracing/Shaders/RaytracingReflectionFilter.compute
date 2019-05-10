@@ -244,7 +244,6 @@ void RaytracingReflectionTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 group
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * RAYTRACING_REFLECTION_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);

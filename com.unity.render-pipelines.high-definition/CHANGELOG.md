@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled cascade blends settings in the HD Shadow component
 - Added Hardware Dynamic Resolution support. 
 - Added MatCap debug view to replace the no scene lighting debug view. 
+- Added clear GBuffer option in FrameSettings (default to false)
+- Added preview for decal shader graph (Only albedo, normal and emission)
+- Added exposure weight control for decal
+- Screen Space Directional Shadow under a define option. Activated for ray tracing 
+- Added a new abstraction for RendererList that will help transition to Render Graph and future RendererList API
+- Added multipass support for VR
+- Added XR SDK integration (multipass only)
+- Added Shader Graph samples for Hair, Fabric and Decal master nodes.
 
 ### Fixed
 - Fixed deserialization crash at runtime
@@ -41,6 +49,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where gizmos and editor grid were not correctly depth tested
 - Fixed created default scene prefab non editable due to wrong file extension.
 - Fixed an issue where sky convolution was recomputed for nothing when a preview was visible (causing extreme slowness when fabric convolution is enabled)
+- Fixed issue with decal that wheren't working currently in player
+- Fixed missing stereo rendering macros in some fragment shaders
+- Fixed exposure for ReflectionProbe and PlanarReflectionProbe gizmos
+- Fixed single-pass instancing on PSVR
+- Fixed Vulkan shader issue with Texture2DArray in ScreenSpaceShadow.compute by re-arranging code (workaround)
+- Fixed camera-relative issue with lights and XR single-pass instancing
+- Fixed single-pass instancing on Vulkan
+- Fixed htile synchronization issue with shader graph decal
+- Fixed Gizmos are not drawn in Camera preview
+- Fixed pre-exposure for emissive decal
+- Fixed wrong values computed in PreIntegrateFGD and in the generation of volumetric lighting data by forcing the use of fp32.
+- Fixed NaNs arising during the hair lighting pass
+- Fixed synchronization issue in decal HTile that occasionally caused rendering artifacts around decal borders
+- Fixed QualitySettings getting marked as modified by HDRP (and thus checked out in Perforce)
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
@@ -55,6 +77,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed HDEditorUtils.LightLayerMaskDrawer for integration in other packages and user scripting.
 - Rename atmospheric scattering in FrameSettings to Fog
 - The size modifier in the override for the culling sphere in Shadow Cascades now defaults to 0.6, which is the same as the formerly hardcoded value.
+- Moved LOD Bias and Maximum LOD Level from Frame Setting section `Other` to `Rendering`
+- ShaderGraph Decal that affect only emissive, only draw in emissive pass (was drawing in dbuffer pass too)
+- Apply decal projector fade factor correctly on all attribut and for shader graph decal
+- Move RenderTransparentDepthPostpass after all transparent
+- Update exposure prepass to interleave XR single-pass instancing views in a checkerboard pattern
 
 ## [6.6.0-preview] - 2019-04-01
 

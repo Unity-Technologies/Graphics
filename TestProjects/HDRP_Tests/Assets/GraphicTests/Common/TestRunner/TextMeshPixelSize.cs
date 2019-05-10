@@ -106,10 +106,13 @@ public class TextMeshPixelSize : MonoBehaviour
     }
 
 
-    Vector3 prevPos = Vector3.zero;
-    int prevSize = 8;
 
 #if UNITY_EDITOR
+
+    [System.NonSerialized]
+    Vector3 prevPos = Vector3.zero;
+    [System.NonSerialized]
+    int prevSize = 8;
 
     void Start()
     {

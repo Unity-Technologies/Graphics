@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 1105_Opaque_DoubleSided_AlphaClip
+  m_Name: 1105_Op_DblSi_AlphaClip
   m_Shader: {fileID: -6465566751694194690, guid: cd07265c7eab47e4aa1dccbe5444fa29,
     type: 3}
   m_ShaderKeywords: 
@@ -83,6 +83,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_A20C78E9_Texture:
+        m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_A20C78E9_Texture_1:
         m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}

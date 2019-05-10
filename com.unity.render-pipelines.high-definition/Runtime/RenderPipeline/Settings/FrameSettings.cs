@@ -72,6 +72,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         LitShaderMode = 0,
         [FrameSettingsField(0, displayedName: "Depth Prepass within Deferred", positiveDependencies: new[] { LitShaderMode })]
         DepthPrepassWithDeferredRendering = 1,
+        [FrameSettingsField(0, displayedName: "Clear GBuffers", positiveDependencies: new[] { LitShaderMode }, customOrderInGroup: 2)]
+        ClearGBuffers = 5,
         [FrameSettingsField(0, displayedName: "MSAA within Forward", negativeDependencies: new[] { LitShaderMode }, customOrderInGroup: 2)]
         MSAA = 31,
         [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 3)]
@@ -147,16 +149,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         //from 60 to 119 : space for new scopes
         // true <=> Fixed, false <=> FromQualitySettings (default)
-        [FrameSettingsField(4, autoName: LODBiasMode, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(LODBiasMode))]
+        [FrameSettingsField(0, autoName: LODBiasMode, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(LODBiasMode))]
         LODBiasMode = 60,
         /// <summary>Set the LOD Bias with the value in <see cref="FrameSettings.lodBias"/>.</summary>
-        [FrameSettingsField(4, autoName: LODBias, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[]{ LODBiasMode })]
+        [FrameSettingsField(0, autoName: LODBias, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[]{ LODBiasMode })]
         LODBias = 61,
         // true <=> Fixed, false <=> FromQualitySettings (default)
-        [FrameSettingsField(4, autoName: MaximumLODLevelMode, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MaximumLODLevelMode))]
+        [FrameSettingsField(0, autoName: MaximumLODLevelMode, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MaximumLODLevelMode))]
         MaximumLODLevelMode = 62,
         /// <summary>Set the LOD Bias with the value in <see cref="FrameSettings.maximumLODLevel"/>.</summary>
-        [FrameSettingsField(4, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[]{ MaximumLODLevelMode })]
+        [FrameSettingsField(0, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[]{ MaximumLODLevelMode })]
         MaximumLODLevel = 63,
 
         //lightLoop settings from 120 to 127
@@ -468,7 +470,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= !reflection && renderPipelineSettings.supportDistortion && !msaa && !preview;
-            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled; 
+            sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled;
 
             bool async = sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
             sanitazedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;

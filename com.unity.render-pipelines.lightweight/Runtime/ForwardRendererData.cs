@@ -58,5 +58,20 @@ namespace UnityEngine.Rendering.LWRP
         public LayerMask transparentLayerMask => m_TransparentLayerMask;
 
         public StencilStateData defaultStencilState => m_DefaultStencilState;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+#if UNITY_EDITOR
+            foreach (var shader in shaders.GetType().GetFields())
+            {
+                if (shader.GetValue(shaders) == null)
+                {
+                    ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
+                    break;
+                }
+            }
+#endif
+        }
     }
 }

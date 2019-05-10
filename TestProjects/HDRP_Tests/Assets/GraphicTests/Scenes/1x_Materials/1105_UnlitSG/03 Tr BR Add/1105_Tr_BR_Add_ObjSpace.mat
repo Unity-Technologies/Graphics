@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 1105_Transparent_BeforeRefraction_Add_ObjectSpace
+  m_Name: 1105_Tr_BR_Add_ObjSpace
   m_Shader: {fileID: -6465566751694194690, guid: 8ce693efd64d7db43bc65ffa1c16b960,
     type: 3}
   m_ShaderKeywords: 

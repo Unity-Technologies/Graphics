@@ -33,7 +33,7 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
         if (currentRP != renderPipelineAsset)
         {
-            quitDebug.AppendLine($"{SceneManager.GetActiveScene().name} RP asset change: {( (currentRP)?AssetDatabase.GetAssetPath(currentRP):"null" )} => {AssetDatabase.GetAssetPath(renderPipelineAsset)}");
+            quitDebug.AppendLine($"{SceneManager.GetActiveScene().name} RP asset change: {((currentRP==null)?"null": currentRP.name)} => {renderPipelineAsset.name}");
 
             GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
         }

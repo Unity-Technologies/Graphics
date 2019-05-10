@@ -304,7 +304,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private ComputeShader buildDispatchIndirectShader { get { return m_Resources.shaders.buildDispatchIndirectCS; } }
         private ComputeShader clearDispatchIndirectShader { get { return m_Resources.shaders.clearDispatchIndirectCS; } }
         private ComputeShader deferredComputeShader { get { return m_Resources.shaders.deferredCS; } }
-        private ComputeShader screenSpaceShadowComputeShader { get { return m_Resources.shaders.screenSpaceShadowCS; } }
+        private ComputeShader contactShadowComputeShader { get { return m_Resources.shaders.contactShadowCS; } }
+        private Shader screenSpaceShadowsShader { get { return m_Resources.shaders.screenSpaceShadowPS; } }
 
         private Shader deferredTilePixelShader { get { return m_Resources.shaders.deferredTilePS; } }
 
@@ -360,6 +361,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static ComputeBuffer s_GlobalLightListAtomic = null;
 
         static DebugLightVolumes s_lightVolumes = null;
+
+        static Material s_ScreenSpaceShadowsMat;
 
         static Material s_DeferredTileRegularLightingMat;   // stencil-test set to touch regular pixels only
         static Material s_DeferredTileSplitLightingMat;     // stencil-test set to touch split-lighting pixels only
@@ -595,8 +598,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_shadeOpaqueDirectShadowMaskFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl");
             s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_ShadowMask_Fptl_DebugDisplay");
 
-            s_deferredContactShadowKernel = screenSpaceShadowComputeShader.FindKernel("DeferredContactShadow");
-            s_deferredContactShadowKernelMSAA = screenSpaceShadowComputeShader.FindKernel("DeferredContactShadowMSAA");
+            s_deferredContactShadowKernel = contactShadowComputeShader.FindKernel("DeferredContactShadow");
+            s_deferredContactShadowKernelMSAA = contactShadowComputeShader.FindKernel("DeferredContactShadowMSAA");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
@@ -615,6 +618,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_LightList = null;
             s_TileList = null;
             s_TileFeatureFlags = null;
+
+            s_ScreenSpaceShadowsMat = CoreUtils.CreateEngineMaterial(screenSpaceShadowsShader);
 
             // OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_DISABLE_TILE_AND_CLUSTER - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
             m_deferredLightingMaterial = new Material[16];
@@ -912,22 +917,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return s_FlipMatrixLHSRHS * camera.worldToCameraMatrix;
         }
 
-        static Matrix4x4 WorldToViewStereo(Camera camera, Camera.StereoscopicEye eyeIndex)
-        {
-            return s_FlipMatrixLHSRHS * camera.GetStereoViewMatrix(eyeIndex);
-        }
-
         // For light culling system, we need non oblique projection matrices
         static Matrix4x4 CameraProjectionNonObliqueLHS(HDCamera camera)
         {
             // camera.projectionMatrix expect RHS data and Unity's transforms are LHS
             // We need to flip it to work with transforms
             return camera.nonObliqueProjMatrix * s_FlipMatrixLHSRHS;
-        }
-
-        static Matrix4x4 CameraProjectionStereoLHS(Camera camera, Camera.StereoscopicEye eyeIndex)
-        {
-            return camera.GetStereoProjectionMatrix(eyeIndex) * s_FlipMatrixLHSRHS;
         }
 
         public Vector3 GetLightColor(VisibleLight light)
@@ -1659,7 +1654,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, bool stereoEnabled)
+        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, bool xrInstancingEnabled)
         {
             var bound      = new SFiniteLightBound();
             var volumeData = new LightVolumeData();
@@ -1696,7 +1691,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_lightList.lightVolumes.Add(volumeData);
 
             // XRTODO: use rightEyeWorldToView here too?
-            if (stereoEnabled)
+            if (xrInstancingEnabled)
             {
                 m_lightList.rightEyeBounds.Add(bound);
                 m_lightList.rightEyeLightVolumes.Add(volumeData);
@@ -1775,18 +1770,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 int decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
 
-                var stereoEnabled = hdCamera.camera.stereoEnabled;
-
                 var hdShadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
 
+                var viewMatrix = (hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(0) : camera.worldToCameraMatrix);
                 Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
-                var worldToView = WorldToCamera(camera);
+                // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS, we need to flip it to work with transforms
+                var worldToView = s_FlipMatrixLHSRHS * viewMatrix;
                 var rightEyeWorldToView = Matrix4x4.identity;
-                if (stereoEnabled)
+
+                if (hdCamera.xr.instancingEnabled)
                 {
-                    worldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Left);
-                    rightEyeWorldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Right);
+                    if (hdCamera.xr.viewCount == 2)
+                        rightEyeWorldToView = s_FlipMatrixLHSRHS * hdCamera.xr.GetViewMatrix(1);
+                    else
+                        throw new NotImplementedException();
                 }
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
@@ -1817,8 +1815,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var additionalData = GetHDAdditionalLightData(lightComponent);
 
                     #if ENABLE_RAYTRACING
-                        if(additionalData.lightTypeExtent == LightTypeExtent.Rectangle && additionalLightData.useRayTracedShadows)
-                            continue;
+                        var additionalLightData = GetHDAdditionalLightData(lightComponent);
+                        if (!(additionalData.lightTypeExtent == LightTypeExtent.Rectangle && additionalLightData.useRayTracedShadows))
                     #endif
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         additionalData.ReserveShadows(camera, m_ShadowManager, m_ShadowInitParameters, cullResults, m_FrameSettings, lightIndex);
@@ -2019,7 +2017,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // Then culling side. Must be call in this order as we pass the created Light data to the function
                             GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
-                            if (stereoEnabled)
+                            if (hdCamera.xr.instancingEnabled)
                                 GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, rightEyeWorldToView, Camera.StereoscopicEye.Right);
 
                             // We make the light position camera-relative as late as possible in order
@@ -2155,7 +2153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings))
                         {
                             GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
-                            if (stereoEnabled)
+                            if (hdCamera.xr.instancingEnabled)
                                 GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, rightEyeWorldToView, Camera.StereoscopicEye.Right);
 
                             // We make the light position camera-relative as late as possible in order
@@ -2181,7 +2179,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_lightList.bounds.Add(DecalSystem.m_Bounds[i]);
                         m_lightList.lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
 
-                        if (camera.stereoEnabled)
+                        if (hdCamera.xr.instancingEnabled)
                         {
                             m_lightList.rightEyeBounds.Add(DecalSystem.m_Bounds[i]);
                             m_lightList.rightEyeLightVolumes.Add(DecalSystem.m_LightVolumes[i]);
@@ -2204,14 +2202,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Density volumes are not lights and therefore should not affect light classification.
                     LightFeatureFlags featureFlags = 0;
-                    AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, camera.stereoEnabled);
+                    AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, hdCamera.xr.instancingEnabled);
                 }
 
                 m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
                 Debug.Assert(m_lightCount == m_lightList.bounds.Count);
                 Debug.Assert(m_lightCount == m_lightList.lightVolumes.Count);
 
-                if (stereoEnabled)
+                if (hdCamera.xr.instancingEnabled)
                 {
                     // TODO: Proper decal + stereo cull management
 
@@ -2362,8 +2360,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // real projection space.  We just use screen space to figure out what is proximal
                 // to a cluster or tile.
                 // Once we generate this non-oblique projection matrix, it can be shared across both eyes (un-array)
-                if (camera.stereoEnabled)
-                    proj = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)viewIndex);
+                if (hdCamera.xr.enabled)
+                    proj = hdCamera.xr.GetProjMatrix(viewIndex);
 
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
                 m_LightListProjscrMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
@@ -2383,6 +2381,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_hasRunLightListPrevFrame = runLightList;
             }
+
+            // Always build the light list in XR mode to avoid issues with multi-pass
+            if (hdCamera.xr.enabled)
+                runLightList = true;
 
             // generate screen-space AABBs (used for both fptl and clustered).
             if (m_lightCount != 0)
@@ -2698,14 +2700,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_EnableContactShadow && m_ContactShadowIndex != 0;
         }
 
-        public void SetScreenSpaceShadowsTexture(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, CommandBuffer cmd)
+        public bool WillRenderScreenSpaceShadows()
+        {
+            // For now this is only for DXR. 
+#if ENABLE_RAYTRACING
+            return true;
+#else
+            return false;
+#endif
+        }
+
+
+        public void SetContactShadowsTexture(HDCamera hdCamera, RTHandleSystem.RTHandle contactShadowsRT, CommandBuffer cmd)
         {
             if (!WillRenderContactShadow())
             {
-                cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, TextureXR.GetBlackTexture());
+                cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, TextureXR.GetBlackTexture());
                 return;
             }
-            cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, deferredShadowRT);
+            cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, contactShadowsRT);
         }
 
         // The first rendered 24 lights that have contact shadow enabled have a mask used to select the bit that contains
@@ -2722,28 +2735,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return 1 << m_ContactShadowIndex++;
         }
 
-        public void RenderScreenSpaceShadows(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, int firstMipOffsetY, CommandBuffer cmd)
+        public void RenderContactShadows(HDCamera hdCamera, RTHandleSystem.RTHandle contactShadowRT, RenderTargetIdentifier depthTexture, int firstMipOffsetY, CommandBuffer cmd)
         {
             // if there is no need to compute contact shadows, we just quit
             if (!WillRenderContactShadow())
                 return;
 
-            using (new ProfilingSample(cmd, "Screen Space Shadow", CustomSamplerId.TPScreenSpaceShadows.GetSampler()))
+            using (new ProfilingSample(cmd, "Contact Shadows", CustomSamplerId.TPScreenSpaceShadows.GetSampler()))
             {
-                Vector4         lightDirection = Vector4.zero;
-                Vector4         lightPosition = Vector4.zero;
-                int             kernel;
-
                 // Pick the adequate kenel
-                kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
-
-                // We use the .w component of the direction/position vectors to choose in the shader the
-                // light direction of the contact shadows (direction light direction or (pixel position - light position))
-                if (m_CurrentSunLight != null)
-                {
-                    lightDirection = -m_CurrentSunLight.transform.forward;
-                    lightDirection.w = 1;
-                }
+                int kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
 
                 m_ShadowManager.BindResources(cmd);
 
@@ -2752,25 +2753,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 float contactShadowOneOverFadeRange = 1.0f / Math.Max(1e-6f, contactShadowRange);
                 Vector4 contactShadowParams = new Vector4(m_ContactShadows.length.value, m_ContactShadows.distanceScaleFactor.value, contactShadowFadeEnd, contactShadowOneOverFadeRange);
                 Vector4 contactShadowParams2 = new Vector4(m_ContactShadows.opacity.value, firstMipOffsetY, 0.0f, 0.0f);
-                cmd.SetComputeVectorParam(screenSpaceShadowComputeShader, HDShaderIDs._ContactShadowParamsParameters, contactShadowParams);
-                cmd.SetComputeVectorParam(screenSpaceShadowComputeShader, HDShaderIDs._ContactShadowParamsParameters2, contactShadowParams2);
-                cmd.SetComputeIntParam(screenSpaceShadowComputeShader, HDShaderIDs._DirectionalContactShadowSampleCount, m_ContactShadows.sampleCount.value);
-                cmd.SetComputeBufferParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs._DirectionalLightDatas, m_DirectionalLightDatas);
+                cmd.SetComputeVectorParam(contactShadowComputeShader, HDShaderIDs._ContactShadowParamsParameters, contactShadowParams);
+                cmd.SetComputeVectorParam(contactShadowComputeShader, HDShaderIDs._ContactShadowParamsParameters2, contactShadowParams2);
+                cmd.SetComputeIntParam(contactShadowComputeShader, HDShaderIDs._DirectionalContactShadowSampleCount, m_ContactShadows.sampleCount.value);
+                cmd.SetComputeBufferParam(contactShadowComputeShader, kernel, HDShaderIDs._DirectionalLightDatas, m_DirectionalLightDatas);
 
                 // Send light list to the compute 
-                cmd.SetComputeBufferParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs._LightDatas, m_LightDatas);
-                cmd.SetComputeBufferParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, s_LightList);
+                cmd.SetComputeBufferParam(contactShadowComputeShader, kernel, HDShaderIDs._LightDatas, m_LightDatas);
+                cmd.SetComputeBufferParam(contactShadowComputeShader, kernel, HDShaderIDs.g_vLightListGlobal, s_LightList);
 
                 // Inject the texture in the adequate slot
-                cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);
+                cmd.SetComputeTextureParam(contactShadowComputeShader, kernel, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? HDShaderIDs._CameraDepthValuesTexture : HDShaderIDs._CameraDepthTexture, depthTexture);
 
-                cmd.SetComputeTextureParam(screenSpaceShadowComputeShader, kernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
+                cmd.SetComputeTextureParam(contactShadowComputeShader, kernel, HDShaderIDs._ContactShadowTextureUAV, contactShadowRT);
 
                 int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
                 int numTilesX = (hdCamera.actualWidth  + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 int numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
-                cmd.DispatchCompute(screenSpaceShadowComputeShader, kernel, numTilesX, numTilesY, hdCamera.computePassCount);
+                cmd.DispatchCompute(contactShadowComputeShader, kernel, numTilesX, numTilesY, hdCamera.computePassCount);
+            }
+        }
+
+        public void RenderScreenSpaceShadows(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, CommandBuffer cmd)
+        {
+            if(WillRenderScreenSpaceShadows())
+            {
+                using (new ProfilingSample(cmd, "Screen Space Shadows", CustomSamplerId.TPScreenSpaceShadows.GetSampler()))
+                {
+                    HDUtils.SetRenderTarget(cmd, deferredShadowRT);
+                    HDUtils.DrawFullScreen(cmd, s_ScreenSpaceShadowsMat, deferredShadowRT);
+                }
+                cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, deferredShadowRT);
+            }
+            else
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, TextureXR.GetBlackTexture());
             }
         }
 

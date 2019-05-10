@@ -486,7 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,  currFrameParams.depthEncodingParams);
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceDecodingParams,  currFrameParams.depthDecodingParams);
             cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,           currFrameParams.ComputeLastSliceDistance());
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,   1.0f / hdCamera.viewCount);
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,   1.0f / hdCamera.xr.viewCount);
 
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevResolution,          new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y));
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevUvScaleAndLimit,     prevFrameParams.ComputeUvScaleAndLimit(bufferSize));
@@ -537,7 +537,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: account for custom near and far planes of the V-Buffer's frustum.
                     // It's typically much shorter (along the Z axis) than the camera's frustum.
                     // XRTODO: fix combined frustum culling
-                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8) || hdCamera.camera.stereoEnabled)
+                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8) || hdCamera.xr.instancingEnabled)
                     {
                         // TODO: cache these?
                         var data = volume.parameters.ConvertToEngineData();

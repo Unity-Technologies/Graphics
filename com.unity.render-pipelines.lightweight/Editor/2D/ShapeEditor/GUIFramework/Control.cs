@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
 {
     internal abstract class Control
     {
@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 
         public string name
         {
-            get { return name; }
+            get { return m_Name; }
         }
 
         public int ID

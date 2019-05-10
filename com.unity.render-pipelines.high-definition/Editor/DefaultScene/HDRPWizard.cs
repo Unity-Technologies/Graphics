@@ -331,7 +331,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             DrawConfigInfoLine(Style.scriptingRuntimeVersionLabel, Style.scriptingRuntimeVersionError, Style.ok, Style.resolve, IsScriptRuntimeVersionCorrect, FixScriptRuntimeVersion);
             DrawConfigInfoLine(Style.colorSpaceLabel, Style.colorSpaceError, Style.ok, Style.resolve, IsColorSpaceCorrect, FixColorSpace);
             DrawConfigInfoLine(Style.lightmapLabel, Style.lightmapError, Style.ok, Style.resolveAllBuildTarget, IsLightmapCorrect, FixLightmap);
-            DrawConfigInfoLine(Style.shadowLabel, Style.shadowError, Style.ok, Style.resolveAllQuality, IsShadowCorrect, FixShadow);
             DrawConfigInfoLine(Style.shadowMaskLabel, Style.shadowMaskError, Style.ok, Style.resolveAllQuality, IsShadowmaskCorrect, FixShadowmask);
             DrawConfigInfoLine(Style.hdrpAssetLabel, Style.hdrpAssetError, Style.ok, Style.resolveAll, IsHdrpAssetCorrect, FixHdrpAsset);
             ++EditorGUI.indentLevel;
@@ -420,7 +419,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         bool IsAllCorrect() =>
             IsScriptRuntimeVersionCorrect()
             && IsLightmapCorrect()
-            && IsShadowCorrect()
             && IsShadowmaskCorrect()
             && IsColorSpaceCorrect()
             && IsHdrpAssetCorrect()
@@ -444,11 +442,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!IsLightmapCorrect())
             {
                 FixLightmap();
-                return;
-            }
-            if (!IsShadowCorrect())
-            {
-                FixShadow();
                 return;
             }
             if (!IsShadowmaskCorrect())
@@ -520,22 +513,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Android, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Lumin, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA, LightmapEncodingQualityCopy.High);
-        }
-
-        bool IsShadowCorrect()
-        {
-            //QualitySettings.SetQualityLevel.set quality is too costy to be use at frame
-            return QualitySettings.shadows == ShadowQuality.All;
-        }
-        void FixShadow()
-        {
-            int currentQuality = QualitySettings.GetQualityLevel();
-            for (int i = 0; i < QualitySettings.names.Length; ++i)
-            {
-                QualitySettings.SetQualityLevel(i, applyExpensiveChanges: false);
-                QualitySettings.shadows = ShadowQuality.All;
-            }
-            QualitySettings.SetQualityLevel(currentQuality, applyExpensiveChanges: false);
         }
 
         bool IsShadowmaskCorrect()
