@@ -24,7 +24,9 @@ public class HDRP_GraphicTestRunner
         // Load the test settings
         var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
 
-        var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        // Search for a valid camera
+        var camera = (settings != null)? settings.GetComponent<Camera>() : null;
+        if (camera == null) camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
         if (camera == null)
         {
