@@ -141,7 +141,8 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     float2 historyLuma = history;
     float2 diff = abs(colorLuma - historyLuma) / Max3(colorLuma, historyLuma, 0.2);
     float2 weight = 1.0 - diff;
-    float2 feedback = lerp(FEEDBACK_MIN, FEEDBACK_MAX, weight * weight);
+    weight = weight * weight;
+    float2 feedback = (1.0 - weight) * FEEDBACK_MIN + weight * FEEDBACK_MAX;
 
     color = UnmapPerChannel(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);
