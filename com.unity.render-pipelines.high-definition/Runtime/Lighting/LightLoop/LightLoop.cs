@@ -917,22 +917,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return s_FlipMatrixLHSRHS * camera.worldToCameraMatrix;
         }
 
-        static Matrix4x4 WorldToViewStereo(Camera camera, Camera.StereoscopicEye eyeIndex)
-        {
-            return s_FlipMatrixLHSRHS * camera.GetStereoViewMatrix(eyeIndex);
-        }
-
         // For light culling system, we need non oblique projection matrices
         static Matrix4x4 CameraProjectionNonObliqueLHS(HDCamera camera)
         {
             // camera.projectionMatrix expect RHS data and Unity's transforms are LHS
             // We need to flip it to work with transforms
             return camera.nonObliqueProjMatrix * s_FlipMatrixLHSRHS;
-        }
-
-        static Matrix4x4 CameraProjectionStereoLHS(Camera camera, Camera.StereoscopicEye eyeIndex)
-        {
-            return camera.GetStereoProjectionMatrix(eyeIndex) * s_FlipMatrixLHSRHS;
         }
 
         public Vector3 GetLightColor(VisibleLight light)
@@ -1664,7 +1654,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, bool stereoEnabled)
+        public void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, bool xrInstancingEnabled)
         {
             var bound      = new SFiniteLightBound();
             var volumeData = new LightVolumeData();
@@ -1701,7 +1691,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_lightList.lightVolumes.Add(volumeData);
 
             // XRTODO: use rightEyeWorldToView here too?
-            if (stereoEnabled)
+            if (xrInstancingEnabled)
             {
                 m_lightList.rightEyeBounds.Add(bound);
                 m_lightList.rightEyeLightVolumes.Add(volumeData);
@@ -1780,18 +1770,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 int decalDatasCount = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
 
-                var stereoEnabled = hdCamera.camera.stereoEnabled;
-
                 var hdShadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
 
+                var viewMatrix = (hdCamera.xr.enabled ? hdCamera.xr.GetViewMatrix(0) : camera.worldToCameraMatrix);
                 Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
-                var worldToView = WorldToCamera(camera);
+                // camera.worldToCameraMatrix is RHS and Unity's transforms are LHS, we need to flip it to work with transforms
+                var worldToView = s_FlipMatrixLHSRHS * viewMatrix;
                 var rightEyeWorldToView = Matrix4x4.identity;
-                if (stereoEnabled)
+
+                if (hdCamera.xr.instancingEnabled)
                 {
-                    worldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Left);
-                    rightEyeWorldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Right);
+                    if (hdCamera.xr.viewCount == 2)
+                        rightEyeWorldToView = s_FlipMatrixLHSRHS * hdCamera.xr.GetViewMatrix(1);
+                    else
+                        throw new NotImplementedException();
                 }
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
@@ -2024,7 +2017,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // Then culling side. Must be call in this order as we pass the created Light data to the function
                             GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
-                            if (stereoEnabled)
+                            if (hdCamera.xr.instancingEnabled)
                                 GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, rightEyeWorldToView, Camera.StereoscopicEye.Right);
 
                             // We make the light position camera-relative as late as possible in order
@@ -2160,7 +2153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (GetEnvLightData(cmd, hdCamera, probeWrapper, debugDisplaySettings))
                         {
                             GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
-                            if (stereoEnabled)
+                            if (hdCamera.xr.instancingEnabled)
                                 GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, rightEyeWorldToView, Camera.StereoscopicEye.Right);
 
                             // We make the light position camera-relative as late as possible in order
@@ -2186,7 +2179,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_lightList.bounds.Add(DecalSystem.m_Bounds[i]);
                         m_lightList.lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
 
-                        if (camera.stereoEnabled)
+                        if (hdCamera.xr.instancingEnabled)
                         {
                             m_lightList.rightEyeBounds.Add(DecalSystem.m_Bounds[i]);
                             m_lightList.rightEyeLightVolumes.Add(DecalSystem.m_LightVolumes[i]);
@@ -2209,14 +2202,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Density volumes are not lights and therefore should not affect light classification.
                     LightFeatureFlags featureFlags = 0;
-                    AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, camera.stereoEnabled);
+                    AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, hdCamera.xr.instancingEnabled);
                 }
 
                 m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
                 Debug.Assert(m_lightCount == m_lightList.bounds.Count);
                 Debug.Assert(m_lightCount == m_lightList.lightVolumes.Count);
 
-                if (stereoEnabled)
+                if (hdCamera.xr.instancingEnabled)
                 {
                     // TODO: Proper decal + stereo cull management
 
@@ -2367,8 +2360,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // real projection space.  We just use screen space to figure out what is proximal
                 // to a cluster or tile.
                 // Once we generate this non-oblique projection matrix, it can be shared across both eyes (un-array)
-                if (camera.stereoEnabled)
-                    proj = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)viewIndex);
+                if (hdCamera.xr.enabled)
+                    proj = hdCamera.xr.GetProjMatrix(viewIndex);
 
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
                 m_LightListProjscrMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
@@ -2388,6 +2381,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_hasRunLightListPrevFrame = runLightList;
             }
+
+            // Always build the light list in XR mode to avoid issues with multi-pass
+            if (hdCamera.xr.enabled)
+                runLightList = true;
 
             // generate screen-space AABBs (used for both fptl and clustered).
             if (m_lightCount != 0)
