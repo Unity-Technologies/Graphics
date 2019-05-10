@@ -4,11 +4,10 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
-using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public class HDRenderPipeline : UnityEngine.Rendering.RenderPipeline
+    public partial class HDRenderPipeline : UnityEngine.Rendering.RenderPipeline
     {
         public const string k_ShaderTagName = "HDRenderPipeline";
 
@@ -3642,6 +3641,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 VFX.VFXManager.SetCameraBuffer(hdCamera.camera, VFX.VFXCameraBufferTypes.Color, colorBuffer, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight);
             }
         }
-
     }
 }
