@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return PropertyType.Vector4; }
         }
+        public override bool isGpuInstanceable => true;
 
         public override Vector4 defaultValue
         {

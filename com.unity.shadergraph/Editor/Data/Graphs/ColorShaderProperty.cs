@@ -56,6 +56,10 @@ namespace UnityEditor.ShaderGraph
         {
             get { return true; }
         }
+        public override bool isGpuInstanceable
+        {
+            get { return true; }
+        }
 
         public override bool isRenamable
         {

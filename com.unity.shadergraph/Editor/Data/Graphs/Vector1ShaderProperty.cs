@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
         {
             displayName = "Vector1";
         }
+        public override bool isGpuInstanceable => true;
 
         public override PropertyType propertyType
         {
