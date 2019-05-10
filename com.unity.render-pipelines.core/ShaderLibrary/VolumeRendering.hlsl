@@ -190,7 +190,8 @@ real HenyeyGreensteinPhasePartConstant(real anisotropy)
 real HenyeyGreensteinPhasePartVarying(real anisotropy, real cosTheta)
 {
     real g = anisotropy;
-    real f = rsqrt(saturate(1 + g * g - 2 * g * cosTheta)); // x^(-1/2)
+    real x = 1 + g * g - 2 * g * cosTheta;
+    real f = rsqrt(max(x, FLT_EPS)); // x^(-1/2)
 
     return f * f * f; // x^(-3/2)
 }
@@ -211,7 +212,8 @@ real CornetteShanksPhasePartConstant(real anisotropy)
 real CornetteShanksPhasePartVarying(real anisotropy, real cosTheta)
 {
     real g = anisotropy;
-    real f = rsqrt(saturate(1 + g * g - 2 * g * cosTheta)); // x^(-1/2)
+    real x = 1 + g * g - 2 * g * cosTheta;
+    real f = rsqrt(max(x, FLT_EPS)); // x^(-1/2)
     real h = (1 + cosTheta * cosTheta);
 
     // Note that this function is not perfectly isotropic for (g = 0).

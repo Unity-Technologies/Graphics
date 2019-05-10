@@ -62,10 +62,10 @@ To change which filter HDRP uses, change the **Filtering Quality** property in y
 
 | **Filtering Quality** | **Algorithm**                                                |
 | --------------------- | ------------------------------------------------------------ |
-| **Low**               | **Point/Spot Lights**: Percentage Closer Filtering (PCF) 3x3 (4 taps).<br />**Directional Lights**: PCF Tent 5x5 (9 taps). |
-| **Medium**            | **Point/Spot Lights**: PCF 5x5 (9 taps).<br />**Directional Lights**: PCF Tent 5x5 (9 taps). |
-| **High**              | **Point/Spot/Directional Lights**: Percentage Closer Soft Shadow (PCSS). You can change the sample count to decrease the quality of these shadows. This decreases the resource intensity of this algorithm. To change the sample count for shadows cast by that Light, set the **Filter Sample Count** in the Inspector of each Light component. |
-| **Very High**         | **Point/Spot**: Use **High** for their **Filtering Quality**.<br />**Directional Lights**: Improve Moment Shadows. |
+| **Low**               | &#8226; **Point/Spot Lights**: Percentage Closer Filtering (PCF) 3x3 (4 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps). |
+| **Medium**            | &#8226; **Point/Spot Lights**: PCF 5x5 (9 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps). |
+| **High**              | &#8226;**Point/Spot/Directional Lights**: Percentage Closer Soft Shadow (PCSS). You can change the sample count to decrease the quality of these shadows. This decreases the resource intensity of this algorithm. To change the sample count for shadows cast by that Light, set the **Filter Sample Count** in the Inspector of each Light component. |
+| **Very High**         | &#8226;**Point/Spot**: Use **High** for their **Filtering Quality**.<br />&#8226; **Directional Lights**: Improve Moment Shadows. |
 
 The PCF algorithm applies a fixed size blur. PCSS and Improved Moment Shadows algorithms apply a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow, that is also more resource intensive to compute.
 
@@ -106,6 +106,6 @@ Directional Lights do not use **Fade Distance**. Instead they use the **Max Dist
 
 Contact Shadows are shadows that HDRP [ray marches](Glossary.html#RayMarching) in screen space, inside the depth buffer, at a close range. They provide small, detailed, shadows for details in geometry that shadow maps cannot usually capture.
 
-For details on how to enable and customize Contact Shadows, see the [Contact Shadows documentation](Override-Contact-Shadows.html).
+For details on how to enable and customize Contact Shadows, see the [Contact Shadows override documentation](Override-Contact-Shadows.html).
 
 Only one Light can cast Contact Shadows at a time. This means that, if you have more than one Light that casts Contact Shadows visible on the screen, only the dominant Light renders Contact Shadows. HDRP chooses the dominant Light using the screen space size of the Light’s bounding box. A Direction Light that casts Contact Shadows is always the dominant Light.

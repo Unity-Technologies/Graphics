@@ -60,32 +60,35 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddRow("Exposed", m_ExposedToogle);
                 }
 
-                m_ReferenceNameField = new TextField(512, false, false, ' ');
-                m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
-                AddRow("Reference", m_ReferenceNameField);
-                m_ReferenceNameField.value = property.referenceName;
-                m_ReferenceNameField.isDelayed = true;
-                m_ReferenceNameField.RegisterValueChangedCallback(newName =>
-                    {
-                        m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
-                        if (m_ReferenceNameField.value != m_Property.referenceName)
+                if(property.isExposable)
+                {
+                    m_ReferenceNameField = new TextField(512, false, false, ' ');
+                    m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
+                    AddRow("Reference", m_ReferenceNameField);
+                    m_ReferenceNameField.value = property.referenceName;
+                    m_ReferenceNameField.isDelayed = true;
+                    m_ReferenceNameField.RegisterValueChangedCallback(newName =>
                         {
-                            string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue, property.guid);
-                            property.overrideReferenceName = newReferenceName;
-                        }
-                        m_ReferenceNameField.value = property.referenceName;
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
+                            if (m_ReferenceNameField.value != m_Property.referenceName)
+                            {
+                                string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue, property.guid);
+                                property.overrideReferenceName = newReferenceName;
+                            }
+                            m_ReferenceNameField.value = property.referenceName;
 
-                        if (string.IsNullOrEmpty(property.overrideReferenceName))
-                            m_ReferenceNameField.RemoveFromClassList("modified");
-                        else
-                            m_ReferenceNameField.AddToClassList("modified");
+                            if (string.IsNullOrEmpty(property.overrideReferenceName))
+                                m_ReferenceNameField.RemoveFromClassList("modified");
+                            else
+                                m_ReferenceNameField.AddToClassList("modified");
 
-                        DirtyNodes(ModificationScope.Graph);
-                        UpdateReferenceNameResetMenu();
-                    });
+                            DirtyNodes(ModificationScope.Graph);
+                            UpdateReferenceNameResetMenu();
+                        });
 
-                if (!string.IsNullOrEmpty(property.overrideReferenceName))
-                    m_ReferenceNameField.AddToClassList("modified");
+                    if (!string.IsNullOrEmpty(property.overrideReferenceName))
+                        m_ReferenceNameField.AddToClassList("modified");
+                }
             }
 
             // Key Undo callbacks for input fields

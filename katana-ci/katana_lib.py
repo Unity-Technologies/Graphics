@@ -101,6 +101,7 @@ def has_katana_finished(build_info, project):
     build_status = get_build_status(build_number, project)
 
     build_result_code = get_result_code(build_status)
+    print("Build status: %s" % build_result_code)
     return build_result_code != KatanaResults.UNKNOWN
 
 
@@ -113,6 +114,7 @@ def get_build_status(build_number, project):
 
 
 def process_running_builds(build_info, project):
+    print("processing build results");
     build_number = get_build_number(build_info)
 
     if build_number == "null":
@@ -122,7 +124,12 @@ def process_running_builds(build_info, project):
     build_status = get_build_status(build_number, project)
 
     build_result_code = get_result_code(build_status)
+    print("Processing. Build status: %s" % build_result_code)
     if build_result_code == KatanaResults.UNKNOWN:
+        print("The build is still going on...")
+        if isinstance(build_status['eta'], float):
+            print("The eta for build completion is %s min" % (build_status['eta'] / 60))
+    elif build_result_code == KatanaResults.RESUME:
         print("The build is still going on...")
         if isinstance(build_status['eta'], float):
             print("The eta for build completion is %s min" % (build_status['eta'] / 60))

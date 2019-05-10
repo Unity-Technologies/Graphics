@@ -262,9 +262,6 @@ float2 EvalShadow_SampleBias_Ortho(float3 normalWS)                             
 //
 float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
-    /* in stereo, translate input position to the same space as shadows for proper sampling and bias */
-    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
-
     /* bias the world position */
     float recvBiasWeight = EvalShadow_ReceiverBiasWeight(sd, _ShadowAtlasSize.zw, sd.atlasOffset, sd.viewBias, sd.edgeTolerance, sd.flags, tex, samp, positionWS, normalWS, L, L_dist, perspective);
     positionWS = EvalShadow_ReceiverBias(sd.viewBias, sd.normalBias, positionWS, normalWS, L, L_dist, recvBiasWeight, perspective);
@@ -281,9 +278,6 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
 //
 float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
-    /* in stereo, translate input position to the same space as shadows for proper sampling and bias */
-    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
-
     /* get shadowmap texcoords */
     float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _AreaShadowAtlasSize.zw, positionWS, perspective);
 
@@ -359,9 +353,6 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
 
 float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
 {
-    // In stereo, translate input position to the same space as shadows for proper sampling and bias
-    positionWS = StereoCameraRelativeEyeToCenter(positionWS);
-
     float   alpha;
     int     cascadeCount;
     float   shadow = 1.0;

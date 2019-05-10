@@ -23,8 +23,8 @@ projects:
     folder: ShaderGraph
   - name: PostProcessing
     folder: PostProcessing
-  - name: HDRP
-    folder: HDRP_Tests
+#  - name: HDRP
+#    folder: HDRP_Tests
   - name: VFXMain
     folder: VisualEffectGraph
   - name: VFX_LWRP
@@ -45,7 +45,15 @@ all_project_ci:
   {% for editor in editors %}
   #{% for platform in platforms %}
   {% for testplatform in testplatforms %}
+  {% if project.name == "VFX_LWRP" %}
+    {% if testplatform.name == "editmode" %}
+      #skip
+    {% else %}
+    - .yamato/upm-ci-vfx_lwrp.yml#VFX_LWRP_Windows64_{{ testplatform.name }}_{{ editor.version }}
+    {% endif %}
+  {% else %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Windows64_{{ testplatform.name }}_{{ editor.version }}
+  {% endif %}
   {% endfor %}
   {% endfor %}
   {% endfor %}

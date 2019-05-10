@@ -17,7 +17,7 @@ The **Shadows** override comes as default when you create a **Scene Settings** G
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
-| **Working Unit**  | Use the drop-down to select the unit that you want to use to define the cascade splits.<br />**Metric**: Defines cascade splits in meters.<br />**Percent**: Defines cascade splits as a percentage of **Max Distance**. |
+| **Working Unit**  | Use the drop-down to select the unit that you want to use to define the cascade splits.<br />&#8226; **Metric**: Defines cascade splits in meters.<br />&#8226; **Percent**: Defines cascade splits as a percentage of **Max Distance**. |
 | **Max Distance**  | The maximum distance (in meters) at which HDRP renders shadows. HDRP uses this for punctual Lights and as the last boundary for the final cascade. |
 | **Cascade Count** | The number of cascades for Direction Lights that can cast shadows. Cascades work as levels of detail (LOD) for shadows. Each cascade has its own shadow map, and the cascade area gets progressively larger as they get further from the Camera. HDRP spreads the same resolution shadow map over each cascade area, so cascades closer to the Camera have higher quality shadows than those further from the Camera. |
 | **Split 1**       | The distance of the split between the first and second cascades. The **Working Unit** defines the unit this property uses. |

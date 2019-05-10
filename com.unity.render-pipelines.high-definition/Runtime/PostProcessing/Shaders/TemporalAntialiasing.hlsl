@@ -3,8 +3,8 @@
 #define RADIUS              0.75
 #define FEEDBACK_MIN        0.96
 #define FEEDBACK_MAX        0.91
-#define SHARPEN             0
-#define SHARPEN_STRENGTH    0.35
+#define SHARPEN             1
+#define SHARPEN_STRENGTH    0.6
 
 #define CLAMP_MAX       65472.0 // HALF_MAX minus one (2 - 2^-9) * 2^15
 
@@ -33,6 +33,12 @@ float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
     float2 uv = (coords + offset * _ScreenSize.zw) * scale;
     return SAMPLE_TEXTURE2D_X_LOD(tex, sampler_LinearClamp, uv, 0);
+}
+
+float2 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, float2 scale)
+{
+    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, sampler_LinearClamp, uv, slot, 0);
 }
 
 float3 Map(float3 x)
