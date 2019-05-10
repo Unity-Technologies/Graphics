@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
 {
     internal struct SliderData
     {
@@ -35,5 +35,9 @@ namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
         bool IsEventOutsideWindow();
         bool IsViewToolActive();
         bool HasCurrentCamera();
+        float GetHandleSize(Vector3 position);
+        float DistanceToSegment(Vector3 p1, Vector3 p2);
+        float DistanceToCircle(Vector3 center, float radius);
+        Vector3 GUIToWorld(Vector2 guiPosition, Vector3 planeNormal, Vector3 planePos);
     }
 }

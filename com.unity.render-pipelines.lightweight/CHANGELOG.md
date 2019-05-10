@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.7.0] - 2019-XX-XX
 ### Added
 - Added SpeedTree Shaders.
+- Added two Shader Graph master nodes: Lit Sprite and Unlit Sprite. They only work with the 2D renderer.
+
+### Changed
+- The 2D renderer and Light2D component received a number of improvements and are now ready to try as experimental features.
 
 ### Fixed
 - When in playmode, the error 'Non matching Profiler.EndSample' no longer appears. [case 1140750](https://fogbugz.unity3d.com/f/cases/1140750/)

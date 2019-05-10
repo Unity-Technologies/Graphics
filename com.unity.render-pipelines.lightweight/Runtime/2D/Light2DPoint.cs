@@ -13,6 +13,8 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         [SerializeField] float m_PointLightInnerRadius = 0.0f;
         [SerializeField] float m_PointLightOuterRadius = 1.0f;
         [SerializeField] float m_PointLightDistance = 3.0f;
+
+        [UnityEngine.Animations.NotKeyable]
         [SerializeField] PointLightQuality m_PointLightQuality = PointLightQuality.Accurate;
 
         public float pointLightInnerAngle
