@@ -5,7 +5,7 @@
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
     "com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
-    "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
+    "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph"
   },
   "testables": [
     "com.unity.testing.visualeffectgraph",
