@@ -14,13 +14,21 @@ namespace UnityEditor.ShaderGraph
         private bool m_GeneratePropertyBlock = true;
 
         [SerializeField]
+        private bool m_GPUInstanced = false;
+
+        [SerializeField]
         private SerializableGuid m_Guid = new SerializableGuid();
 
         public Guid guid
         {
             get { return m_Guid.guid; }
         }
-        
+        public bool gpuInstanced
+        {
+            get { return m_GPUInstanced; }
+            set { m_GPUInstanced = value; }
+        }
+
         public string displayName
         {
             get
@@ -69,7 +77,8 @@ namespace UnityEditor.ShaderGraph
         public abstract Vector4 defaultValue { get; }
         public abstract bool isBatchable { get; }
         public abstract bool isExposable { get; }
-        public abstract bool isRenamable { get; }
+        public virtual bool isGpuInstanceable => false;
+		public abstract bool isRenamable { get; }
         public abstract string GetPropertyBlockString();
         public abstract string GetPropertyDeclarationString(string delimiter = ";");
 
