@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added exposure weight control for decal
 - Screen Space Directional Shadow under a define option. Activated for ray tracing 
 - Added a new abstraction for RendererList that will help transition to Render Graph and future RendererList API
+- Added Shader Graph samples for Hair, Fabric and Decal master nodes.
 
 ### Fixed
 - Fixed deserialization crash at runtime
