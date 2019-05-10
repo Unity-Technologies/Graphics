@@ -14,8 +14,8 @@ testplatforms:
     args: --suite=playmode --platform=Standalone
   - name: playmode
     args: --suite=playmode
-  - name: editmode
-    args: --suite=editor --platform=editmode
+#  - name: editmode
+#    args: --suite=editor --platform=editmode
 projects:
   - name: VFX_LWRP
     folder: VisualEffectGraph_LWRP

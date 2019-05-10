@@ -245,6 +245,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ///     }
         /// }
         /// </code>
+        ///
+        /// Example use case:
+        /// * Export Normals: use MaterialSharedProperty.Normals and AOVBuffers.Color
+        /// * Export Color before post processing: use AOVBuffers.Color
+        /// * Export Color after post processing: use AOVBuffers.Output
+        /// * Export Depth stencil: use AOVBuffers.DepthStencil
+        /// * Export AO: use MaterialSharedProperty.AmbientOcclusion and AOVBuffers.Color
         /// </example>
         public void SetAOVRequests(AOVRequestDataCollection aovRequests)
             => m_AOVRequestDataCollection = aovRequests;

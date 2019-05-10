@@ -63,8 +63,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
         public int  colorPyramidHistoryMipCount = 0;
         public VolumetricLightingSystem.VBufferParameters[] vBufferParams; // Double-buffered
-
-        // XR instanced views (hardware-accelerated single-pass instancing or multiview)
+        
+        // XR multipass and instanced views are supported (see XRSystem)
+        XRPass m_XRPass;
+        public XRPass xr { get { return m_XRPass; } }
         ViewConstants[] xrViewConstants;
         ComputeBuffer   xrViewConstantsGpu;
 
@@ -123,16 +125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool isMainGameView { get { return camera.cameraType == CameraType.Game && camera.targetTexture == null; } }
 
         // Helper property to inform how many views are rendered simultaneously
-        public int viewCount
-        {
-            get
-            {
-                if (camera.stereoEnabled && XRGraphics.stereoRenderingMode != XRGraphics.StereoRenderingMode.MultiPass)
-                    return 2;
-
-                return 1;
-            }
-        }
+        public int viewCount { get => Math.Max(1, xr.viewCount); }
 
         // XRTODO: remove and replace occurences by viewCount
         public int computePassCount { get => viewCount; }
@@ -216,10 +209,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ? m_AdditionalCameraData.probeLayerMask
             : (LayerMask)~0;
 
-        static Dictionary<Camera, HDCamera> s_Cameras = new Dictionary<Camera, HDCamera>();
-        static List<Camera> s_Cleanup = new List<Camera>(); // Recycled to reduce GC pressure
+        static Dictionary<(Camera, int), HDCamera> s_Cameras = new Dictionary<(Camera, int), HDCamera>();
+        static List<(Camera, int)> s_Cleanup = new List<(Camera, int)>(); // Recycled to reduce GC pressure
 
-        HDAdditionalCameraData m_AdditionalCameraData;
+        HDAdditionalCameraData m_AdditionalCameraData = null; // Init in Update
 
         BufferedRTHandleSystem m_HistoryRTSystem = new BufferedRTHandleSystem();
 
@@ -236,8 +229,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             frustumPlaneEquations = new Vector4[6];
 
-            m_AdditionalCameraData = null; // Init in Update
-
             Reset();
         }
 
@@ -250,12 +241,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
         // Otherwise, previous frame view constants will be wrong.
-        public void Update(FrameSettings currentFrameSettings, VolumetricLightingSystem vlSys, MSAASamples msaaSamples, int frameIndex)
+        public void Update(FrameSettings currentFrameSettings, VolumetricLightingSystem vlSys, MSAASamples msaaSamples, int frameIndex, XRPass xrPass)
         {
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
             m_AdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
+            m_XRPass = xrPass;
             m_frameSettings = currentFrameSettings;
 
             UpdateAntialiasing();
@@ -296,6 +288,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Update viewport
             {
                 finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+
+                if (xr.enabled)
+                {
+                    // XRTODO: update viewport code once XR SDK is working
+                    if (xr.xrSdkEnabled)
+                    {
+                        finalViewport.x = 0;
+                        finalViewport.y = 0;
+                        finalViewport.width = xr.renderTargetDesc.width;
+                        finalViewport.height = xr.renderTargetDesc.height;
+                    }
+                    else
+                    {
+                        // XRTODO: support instanced views with different viewport
+                        finalViewport = xr.GetViewport();
+                    }
+                }
 
                 m_ActualWidth = Math.Max((int)finalViewport.size.x, 1);
                 m_ActualHeight = Math.Max((int)finalViewport.size.y, 1);
@@ -392,8 +401,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void GetXrViewParameters(int xrViewIndex, out Matrix4x4 proj, out Matrix4x4 view, out Vector3 cameraPosition)
         {
-            proj = camera.GetStereoProjectionMatrix((Camera.StereoscopicEye)xrViewIndex);
-            view = camera.GetStereoViewMatrix((Camera.StereoscopicEye)xrViewIndex);
+            proj = xr.GetProjMatrix(xrViewIndex);
+            view = xr.GetViewMatrix(xrViewIndex);
             cameraPosition = view.inverse.GetColumn(3);
         }
 
@@ -423,13 +432,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var cameraPosition = camera.transform.position;
 
             // XR multipass support
-            if (camera.stereoEnabled && viewCount == 1)
+            if (xr.enabled && viewCount == 1)
                 GetXrViewParameters(0, out proj, out view, out cameraPosition);
 
             UpdateViewConstants(ref mainViewConstants, proj, view, cameraPosition, jitterProjectionMatrix, updatePreviousFrameConstants);
 
             // XR instancing support
-            if (camera.stereoEnabled && viewCount > 1)
+            if (xr.instancingEnabled)
             {
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
@@ -606,7 +615,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void UpdateStereoDependentState(ref ScriptableCullingParameters cullingParams)
         {
             // XRTODO: remove this after culling management is finished
-            if (camera.stereoEnabled && viewCount > 1)
+            if (xr.instancingEnabled)
             {
                 var view = cullingParams.stereoViewMatrix;
                 var proj = cullingParams.stereoProjectionMatrix;
@@ -615,6 +624,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // XRTODO: this function should not rely on camera.pixelWidth and camera.pixelHeight
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
             // The variance between 0 and the actual halton sequence values reveals noticeable
@@ -669,8 +679,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
-            //XRTODO: if (xr.enabled)
-            if (camera.stereoEnabled)
+            if (xr.enabled)
             {
                 var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
                 transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
@@ -721,19 +730,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // Will return NULL if the camera does not exist.
-        public static HDCamera Get(Camera camera)
-        {
-            HDCamera hdCamera;
-
-            if (!s_Cameras.TryGetValue(camera, out hdCamera))
-            {
-                hdCamera = null;
-            }
-
-            return hdCamera;
-        }
-
         // BufferedRTHandleSystem API expects an allocator function. We define it here.
         static RTHandleSystem.RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
@@ -747,10 +743,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
-        public static HDCamera Create(Camera camera)
+        public static HDCamera GetOrCreate(Camera camera, XRPass xrPass)
         {
-            HDCamera hdCamera = new HDCamera(camera);
-            s_Cameras.Add(camera, hdCamera);
+            HDCamera hdCamera;
+
+            if (!s_Cameras.TryGetValue((camera, xrPass.multipassId), out hdCamera))
+            {
+                hdCamera = new HDCamera(camera);
+                s_Cameras.Add((camera, xrPass.multipassId), hdCamera);
+            }
 
             return hdCamera;
         }
@@ -833,6 +834,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalInt(HDShaderIDs._FrameCount,        frameCount);
 
             // TODO: qualify this code with xrInstancingEnabled when compute shaders can use keywords
+            cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
             cmd.SetGlobalBuffer(HDShaderIDs._XRViewConstants, xrViewConstantsGpu);
         }
 
