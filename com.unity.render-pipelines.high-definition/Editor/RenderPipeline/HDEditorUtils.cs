@@ -247,6 +247,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             EditorGUI.showMixedValue = false;
         }
+
+        /// <summary>Provide a specific property drawer for LightLayer (without label)</summary>
+        /// <param name="rect">The rect where to draw</param>
+        /// <param name="property">The SerializedProperty (representing an int that should be displayed as a LightLayer)</param>
+        public static void LightLayerMaskPropertyDrawer(Rect rect, SerializedProperty property)
+        {
+            var renderingLayerMask = property.intValue;
+            int lightLayer;
+            if (property.hasMultipleDifferentValues)
+            {
+                EditorGUI.showMixedValue = true;
+                lightLayer = 0;
+            }
+            else
+                lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
+            EditorGUI.BeginChangeCheck();
+            lightLayer = System.Convert.ToInt32(EditorGUI.EnumFlagsField(rect, (LightLayerEnum)lightLayer));
+            if (EditorGUI.EndChangeCheck())
+            {
+                lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
+                property.intValue = lightLayer;
+            }
+            EditorGUI.showMixedValue = false;
+        }
     }
 
     public static partial class SerializedPropertyExtention
