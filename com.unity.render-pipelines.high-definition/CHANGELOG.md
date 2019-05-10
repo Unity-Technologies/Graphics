@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed pre-exposure for emissive decal
 - Fixed wrong values computed in PreIntegrateFGD and in the generation of volumetric lighting data by forcing the use of fp32.
 - Fixed NaNs arising during the hair lighting pass
-
+- Fixed synchronization issue in decal HTile that occasionally caused rendering artifacts around decal borders
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
