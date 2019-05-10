@@ -482,7 +482,7 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<MaterialSlot>(slotId);
             if (slot == null)
                 throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
-            return string.Format("_{0}_{1}_{2}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName), slotId);
+            return string.Format("_{0}_{1}_{2}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName), unchecked((uint)slotId));
         }
 
         public virtual string GetVariableNameForNode()

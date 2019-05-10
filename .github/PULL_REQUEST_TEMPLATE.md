@@ -15,6 +15,7 @@ Please add any useful notes about the feature/fix that might be helpful for othe
 - [ ] Checked new UI names with UX convention
 - [ ] Tested UI multi-edition + Undo/Redo
 - [ ] C# and shader warnings (supress shader cache to see them)
+- [ ] Checked new resources path for the reloader (in devloper mode, you have a button at end of resources that check the pathes)
 - Other: 
 
 **Automated Tests**: What did you setup? (Add a screenshot or the reference image of the test please)

@@ -5,10 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [6.7.0] - 2019-XX-XX
+### Added
+- Added a hidden path namespace for Sub Graphs to prevent certain Sub Graphs from populating the Create Node menu.
+
 ### Changed
 - Anti-aliasing (4x) is now enabled on Shader Graph windows.
 
 ### Fixed
+- When you click on the gear icon, Shader Graph now focuses on the selected node, and brings the settings menu to front view.
 - Sub Graph Output and Custom Function Node now validate slot names, and display an appropriate error badge when needed.
 - Remaining outdated documentation has been removed. 
 - When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
@@ -25,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When you set a Master Node as active, the Main Preview now shows the correct result.
 - When you save a graph that contains a Sub Graph node, the Shader Graph window no longer freezes.
 - Fixed an error that occured when using multiple Sampler State nodes with different parameters.
+- Fixed an issue causing default inputs to be misaligned in certain cases.
 
 ## [6.6.0] - 2019-04-01
 ### Added

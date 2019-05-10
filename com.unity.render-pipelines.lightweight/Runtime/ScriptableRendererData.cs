@@ -47,6 +47,11 @@ namespace UnityEngine.Rendering.LWRP
         {
             return null;
         }
+
+        internal virtual Shader GetDefaultShader()
+        {
+            return null;
+        }
 #endif
     }
 }

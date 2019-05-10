@@ -647,5 +647,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return color;
         }
+
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            if (rendererList.stateBlock == null)
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
+            else
+            {
+                var renderStateBlock = rendererList.stateBlock.Value;
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
+            }
+        }
     }
 }
