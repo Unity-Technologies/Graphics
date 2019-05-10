@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added preview for decal shader graph (Only albedo, normal and emission)
 - Added exposure weight control for decal
 - Screen Space Directional Shadow under a define option. Activated for ray tracing 
+- Added a new abstraction for RendererList that will help transition to Render Graph and future RendererList API
 
 ### Fixed
 - Fixed deserialization crash at runtime
