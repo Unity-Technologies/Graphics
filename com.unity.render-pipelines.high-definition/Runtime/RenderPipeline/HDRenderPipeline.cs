@@ -1823,7 +1823,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
                         m_LightLoop.RenderContactShadows(hdCamera, m_ContactShadowBuffer, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture(), firstMipOffsetY, cmd);
-                        m_LightLoop.SetContactShadowsTexture(hdCamera, m_ContactShadowBuffer, cmd);
 
                         PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
                     }
@@ -1869,6 +1868,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
                     }
                 }
+                else
+                {
+                    m_LightLoop.SetContactShadowsTexture(hdCamera, m_ContactShadowBuffer, cmd);
+                }
+
 
                 if (hdCamera.frameSettings.SSRRunsAsync())
                 {
