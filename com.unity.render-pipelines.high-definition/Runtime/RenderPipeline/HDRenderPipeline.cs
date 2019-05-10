@@ -11,7 +11,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDRenderPipeline : UnityEngine.Rendering.RenderPipeline
     {
         public const string k_ShaderTagName = "HDRenderPipeline";
-        const string k_OldQualityShadowKey = "HDRP:oldQualityShadows";
 
         enum ForwardPass
         {
@@ -562,23 +561,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
             }
 
-#if UNITY_EDITOR
-            //force shadow mode to HardAndSoft while in HDRP context and save legacy settings
-            // /!\ it is important to do it there as we only want to do it if we truly go in hdrp
-            int currentQuality = QualitySettings.GetQualityLevel();
-            int length = QualitySettings.names.Length;
-            string[] oldShadowQuality = new string[length];
-            for(int i = 0; i < QualitySettings.names.Length; ++i)
-            {
-                //the only way to get/set a shadow quality is to change the quality level first with current API
-                QualitySettings.SetQualityLevel(i, applyExpensiveChanges: false);
-                oldShadowQuality[i] = QualitySettings.shadows.ToString();
-                QualitySettings.shadows = ShadowQuality.All;
-            }
-            QualitySettings.SetQualityLevel(currentQuality, applyExpensiveChanges: false);
-            UnityEditor.EditorPrefs.SetString(k_OldQualityShadowKey, string.Join(",", oldShadowQuality));
-#endif
-
             return true;
         }
 
@@ -676,24 +658,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!m_ValidAPI)
                 return;
-
-#if UNITY_EDITOR
-            //restore shadow mode for all legacy quality settings
-            if (UnityEditor.EditorPrefs.HasKey(k_OldQualityShadowKey))
-            {
-                int currentQuality = QualitySettings.GetQualityLevel();
-                int length = QualitySettings.names.Length;
-                string[] oldShadowQuality = UnityEditor.EditorPrefs.GetString(k_OldQualityShadowKey).Split(',');
-                for (int i = 0; i < QualitySettings.names.Length; ++i)
-                {
-                    //the only way to get/set a shadow quality is to change the quality level first with current API
-                    QualitySettings.SetQualityLevel(i, applyExpensiveChanges: false);
-                    QualitySettings.shadows = (ShadowQuality)Enum.Parse(typeof(ShadowQuality), oldShadowQuality[i]);
-                }
-                QualitySettings.SetQualityLevel(currentQuality, applyExpensiveChanges: false);
-                UnityEditor.EditorPrefs.DeleteKey(k_OldQualityShadowKey);
-            }
-#endif
 
             base.Dispose(disposing);
 
