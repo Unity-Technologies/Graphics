@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering
     public static class TextureXR
     {
         // Limit memory usage of default textures
-        const int kMaxSliceCount = 2;
+        public const int kMaxSliceCount = 2;
 
         // Must be in sync with shader define in TextureXR.hlsl
         public static bool useTexArray
