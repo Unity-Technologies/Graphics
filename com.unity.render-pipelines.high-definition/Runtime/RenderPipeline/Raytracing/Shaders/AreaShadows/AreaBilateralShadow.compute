@@ -76,7 +76,6 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Compute the world space coordinate of this pixel
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
@@ -154,7 +153,6 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
 void AreaShadowApplyTAA2(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     uint2 coordSS = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
-    coordSS.x = coordSS.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     PositionInputs posInput = GetPositionInput(coordSS, _ScreenSize.zw, uint2(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE));
 
@@ -259,7 +257,6 @@ void AreaShadowEstimateNoise(uint2 groupThreadId : SV_GroupThreadID, uint2 group
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     if(LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).z < 0.0)
     {
@@ -395,7 +392,6 @@ void AREA_SHADOW_DENOISE(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float2 SU = 0.0;
     float wSum = 0.0;
@@ -448,7 +444,6 @@ void WriteShadowTextureDebug(uint2 groupThreadId : SV_GroupThreadID, uint2 group
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Store the intermediate result
     float shadowValue = _AreaShadowTextureRW[uint3(centerCoord, _RaytracingShadowSlot)];
