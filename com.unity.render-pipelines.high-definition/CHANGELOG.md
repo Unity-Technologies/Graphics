@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed QualitySettings getting marked as modified by HDRP (and thus checked out in Perforce)
 - Fixed a bug with uninitialized values in light explorer
 - Fixed issue with LOD transition
+- Fixed shader warnings related to raytracing and TEXTURE2D_X
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
