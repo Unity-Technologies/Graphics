@@ -17,9 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added preview for decal shader graph (Only albedo, normal and emission)
 - Added exposure weight control for decal
 - Screen Space Directional Shadow under a define option. Activated for ray tracing 
+- Added a new abstraction for RendererList that will help transition to Render Graph and future RendererList API
 - Added multipass support for VR
 - Added XR SDK integration (multipass only)
-- Added a new abstraction for RendererList that will help transition to Render Graph and future RendererList API
 - Added Shader Graph samples for Hair, Fabric and Decal master nodes.
 - Add fade distance, shadow fade distance and light layers to light explorer
 - Add method to draw light layer drawer in a rect to HDEditorUtils
