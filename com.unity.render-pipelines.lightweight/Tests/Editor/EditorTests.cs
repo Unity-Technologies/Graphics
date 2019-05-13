@@ -1,9 +1,53 @@
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
+using UnityEngine.TestTools;
 
 class EditorTests
 {
+    // When creating a new render pipeline asset it should not log any errors or throw exceptions.
+    [Test]
+    public void CreatePipelineAssetWithoutErrors()
+    {
+        // Test without any render pipeline assigned to GraphicsSettings.
+        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+        GraphicsSettings.renderPipelineAsset = null;
+
+        try
+        {
+            LightweightRenderPipelineAsset asset = LightweightRenderPipelineAsset.Create();
+            LogAssert.NoUnexpectedReceived();
+            ScriptableObject.DestroyImmediate(asset);
+        }
+        // Makes sure the render pipeline is restored in case of a NullReference exception.
+        finally
+        {
+            GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+        }
+    }
+
+    // When creating a new forward renderer asset it should not log any errors or throw exceptions.
+    [Test]
+    public void CreateForwardRendererAssetWithoutErrors()
+    {
+        // Test without any render pipeline assigned to GraphicsSettings.
+        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+        GraphicsSettings.renderPipelineAsset = null;
+
+        try
+        {
+            var asset = ScriptableObject.CreateInstance<ForwardRendererData>();
+            LogAssert.NoUnexpectedReceived();
+            ScriptableObject.DestroyImmediate(asset);
+        }
+        // Makes sure the render pipeline is restored in case of a NullReference exception.
+        finally
+        {
+            GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+        }
+    }
+
     // When creating LWRP all required resources should be initialized.
     [Test]
     public void ValidateNewAssetResources()
