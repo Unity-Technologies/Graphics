@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         AbstractShaderProperty m_Property;
         Toggle m_ExposedToogle;
+        Toggle m_GPUInstancedToogle;
         TextField m_ReferenceNameField;
 
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
@@ -60,6 +61,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddRow("Exposed", m_ExposedToogle);
                 }
 
+                if (property.isGpuInstanceable)
+                {
+                    m_GPUInstancedToogle = new Toggle { value = property.gpuInstanced };
+                    m_GPUInstancedToogle.OnToggleChanged(evt =>
+                    {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change GPU Instanced Toggle");
+                        property.gpuInstanced = evt.newValue;
+                        DirtyNodes(ModificationScope.Graph);
+                    });
+                    AddRow("GPU Instanced", m_GPUInstancedToogle);
+                }
+				
                 if(property.isExposable)
                 {
                     m_ReferenceNameField = new TextField(512, false, false, ' ');

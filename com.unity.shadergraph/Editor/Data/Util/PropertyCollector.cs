@@ -48,10 +48,26 @@ namespace UnityEditor.ShaderGraph
         {
             var batchAll = mode == GenerationMode.Preview;
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
+            int instancedCount = 0;
             foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
             {
-                builder.AppendLine(prop.GetPropertyDeclarationString());
+                if (!prop.gpuInstanced)
+                    builder.AppendLine(prop.GetPropertyDeclarationString());
+                else
+                    instancedCount++;
             }
+
+            if ( instancedCount > 0 )
+            {
+                builder.AppendLine("#ifndef UNITY_DOTS_INSTANCING_ENABLED");
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                        builder.AppendLine(prop.GetPropertyDeclarationString());
+                }
+                builder.AppendLine("#endif");
+            }
+
             builder.AppendLine("CBUFFER_END");
             builder.AppendNewLine();
 
@@ -62,6 +78,51 @@ namespace UnityEditor.ShaderGraph
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
             }
+        }
+
+        public  int GetDotsInstancingPropertiesCount(GenerationMode mode)
+        {
+            var batchAll = mode == GenerationMode.Preview;
+            return properties.Where(n => (batchAll || (n.generatePropertyBlock && n.isBatchable)) && n.gpuInstanced).Count();
+        }
+
+        public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)
+        {
+            var builder = new ShaderStringBuilder();
+            var batchAll = mode == GenerationMode.Preview;
+
+            int instancedCount = GetDotsInstancingPropertiesCount(mode);
+
+            if ( instancedCount > 0 )
+            {
+                builder.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
+                builder.AppendLine("#define SHADER_GRAPH_GENERATED");
+                builder.Append("#define DOTS_CUSTOM_ADDITIONAL_MATERIAL_VARS\t");
+
+                int count = 0;
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                    {
+                        string varName = $"{prop.referenceName}_Array";
+                        string sType = prop.propertyType.GetHLSLType();
+                        builder.Append("UNITY_DEFINE_INSTANCED_PROP({0}, {1})", sType, varName);
+                        if ( count < instancedCount-1)
+                            builder.Append("\\");
+                        builder.AppendLine("");
+                    }
+                }
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                    {
+                        string varName = $"{prop.referenceName}_Array";
+                        builder.AppendLine("#define {0} UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, {1})", prop.referenceName, varName);
+                    }
+                }
+            }
+            builder.AppendLine("#endif");
+            return builder.ToString();
         }
 
         public List<TextureInfo> GetConfiguredTexutres()
