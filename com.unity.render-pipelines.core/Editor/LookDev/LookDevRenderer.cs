@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.LookDev
         public Rect viewPort;
         public RenderTexture output;
     }
-    
+
     public class Renderer
     {
         public bool pixelPerfect { get; set; }
@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.LookDev
                 data.resized = true;
                 return;
             }
-            
+
             BeginRendering(data);
             data.stage.camera.Render();
             EndRendering(data);
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.LookDev
             data.stage.camera.enabled = false;
             data.stage.SetGameObjectVisible(false);
         }
-        
+
         internal static void DrawFullScreenQuad(Rect rect)
         {
             GL.PushMatrix();
