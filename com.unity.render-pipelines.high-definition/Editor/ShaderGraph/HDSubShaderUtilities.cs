@@ -609,7 +609,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var zClipCode = new ShaderStringBuilder();
             var stencilCode = new ShaderStringBuilder();
             var colorMaskCode = new ShaderStringBuilder();
+            var dotsInstancingCode = new ShaderStringBuilder();
             HDSubShaderUtilities.BuildRenderStatesFromPassAndMaterialOptions(pass, materialOptions, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
+
+            int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
+
+            if ( instancedCount > 0 )
+            {
+                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                dotsInstancingCode.AppendLine("// Dots Instancing vars");
+                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                dotsInstancingCode.AppendLine("");
+
+                dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
+            }
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
 
@@ -644,10 +657,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderGenerator instancingOptions = new ShaderGenerator();
             {
                 instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
-                if (pass.ExtraInstancingOptions != null)
+                if ( instancedCount > 0 )
                 {
-                    foreach (var instancingOption in pass.ExtraInstancingOptions)
-                        instancingOptions.AddShaderChunk(instancingOption);
+                    instancingOptions.AddShaderChunk("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
+                    instancingOptions.AddShaderChunk("#define UNITY_SUPPORT_INSTANCING");
+                    instancingOptions.AddShaderChunk("#endif");
+                    instancingOptions.AddShaderChunk("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
+                    instancingOptions.AddShaderChunk("#define UNITY_DOTS_INSTANCING_ENABLED");
+                    instancingOptions.AddShaderChunk("#endif");
+                    instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
+                    instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
+                }
+                else
+                {
+                    if (pass.ExtraInstancingOptions != null)
+                    {
+                        foreach (var instancingOption in pass.ExtraInstancingOptions)
+                            instancingOptions.AddShaderChunk(instancingOption);
+                    }
                 }
             }
 
@@ -734,6 +761,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             namedFragments.Add("Stencil", stencilCode.ToString());
             namedFragments.Add("ColorMask", colorMaskCode.ToString());
             namedFragments.Add("LOD", materialOptions.lod.ToString());
+            namedFragments.Add("DotsInstancedVars", dotsInstancingCode.ToString());
 
             // this is the format string for building the 'C# qualified assembly type names' for $buildType() commands
             string buildTypeAssemblyNameFormat = "UnityEditor.Experimental.Rendering.HDPipeline.HDRPShaderStructs+{0}, " + typeof(HDSubShaderUtilities).Assembly.FullName.ToString();
