@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.LookDev
 
             public float longitude
             {
-                get => m_Longitude; 
+                get => m_Longitude;
                 set { m_Longitude = value; ConformLatLong(); }
             }
 
@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.LookDev
                     m_Longitude = 360.0f + m_Longitude;
             }
         }
-        
+
         [Serializable]
         public class Sky
         {
@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.LookDev
         {
             height = height >> 1; //quick *.5
             Environment environment = (target as Environment);
-            
+
             RenderTexture oldActive = RenderTexture.active;
             //[TODO: optimize RenderTexture creation]
             RenderTexture temporaryRT = new RenderTexture(width, height, 0);

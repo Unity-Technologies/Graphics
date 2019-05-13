@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.LookDev
 #if TEMPORARY_RENDERDOC_INTEGRATION
         bool m_RenderDocAcquisitionRequested;
 #endif
-        
+
         public Compositer(
             IViewDisplayer displayer,
             Context contexts,
