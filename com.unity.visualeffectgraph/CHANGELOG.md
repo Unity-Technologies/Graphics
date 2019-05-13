@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Asset name now displayed in compile errors and output context shaders
 - Fix for linking spawner to spawner while first spawner is linked to initialize + test 
 - Fix space of spacable slot not copy pasted + test
-- Position (Circle) does not take the Center Z value into account [Case 1146850](https://issuetracker.unity3d.com/issues/blocks-position-circle-does-not-take-the-center-z-value-into-account)
 
 ## [6.6.0-preview] - 2019-04-01
 ### Added
