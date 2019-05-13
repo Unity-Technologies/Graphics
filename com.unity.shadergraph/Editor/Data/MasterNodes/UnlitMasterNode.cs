@@ -35,6 +35,9 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_SurfaceType = value;
+
+                shadowCast = new ToggleData(m_shadowCast, m_SurfaceType == SurfaceType.Opaque);
+
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -70,9 +73,28 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        bool m_shadowCast;
+        bool m_shadowCastEnabled;
+
+        public ToggleData shadowCast
+        {
+            get { return new ToggleData(m_shadowCast, m_shadowCastEnabled); }
+            set
+            {
+                m_shadowCastEnabled = value.isEnabled;
+
+                if (m_shadowCast == value.isOn)
+                    return;
+                m_shadowCast = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public UnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
+            m_shadowCastEnabled = true;
         }
 
 

@@ -99,12 +99,23 @@ namespace UnityEngine.Rendering.LWRP
                         mode,
                         materialOptions));
 
-                subShader.AppendLines(GetShaderPassFromTemplate(
-                        extraTemplate,
-                        unlitMasterNode,
-                        m_DepthShadowPass,
-                        mode,
-                        materialOptions));
+                bool includeExtras = true;
+                UnlitMasterNode unlitMaster = masterNode as UnlitMasterNode;
+                if (unlitMaster != null)
+                {
+                    Debug.Log("e");
+                    includeExtras = unlitMaster.shadowCast.isEnabled && unlitMaster.shadowCast.isOn;
+                }
+
+                if (includeExtras)
+                    subShader.AppendLines(GetShaderPassFromTemplate(
+                            extraTemplate,
+                            unlitMasterNode,
+                            m_DepthShadowPass,
+                            mode,
+                            materialOptions));
+
+                Debug.Log("includeExtras = "+includeExtras);
             }
 
             return subShader.ToString();
