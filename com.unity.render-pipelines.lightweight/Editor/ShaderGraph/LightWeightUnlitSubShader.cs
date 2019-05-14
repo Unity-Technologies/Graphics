@@ -103,7 +103,6 @@ namespace UnityEngine.Rendering.LWRP
                 UnlitMasterNode unlitMaster = masterNode as UnlitMasterNode;
                 if (unlitMaster != null)
                 {
-                    Debug.Log("e");
                     includeExtras = unlitMaster.shadowCast.isEnabled && unlitMaster.shadowCast.isOn;
                 }
 
@@ -114,8 +113,6 @@ namespace UnityEngine.Rendering.LWRP
                             m_DepthShadowPass,
                             mode,
                             materialOptions));
-
-                Debug.Log("includeExtras = "+includeExtras);
             }
 
             return subShader.ToString();
