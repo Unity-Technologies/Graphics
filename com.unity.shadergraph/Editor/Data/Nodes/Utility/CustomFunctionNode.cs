@@ -247,33 +247,18 @@ namespace UnityEditor.ShaderGraph
             {
                 owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
-
-            if(functionName == m_DefaultFunctionName)
+            if(sourceType == HlslSourceType.File)
             {
-                owner.AddValidationError(tempId, s_NoFunctionNameSet, ShaderCompilerMessageSeverity.Warning);
-            }
-
-            if(sourceType == HlslSourceType.String)
-            {
-                if(functionBody == m_DefaultFunctionBody)
+                if(!string.IsNullOrEmpty(functionSource))
                 {
-                    owner.AddValidationError(tempId, s_NoFunctionBodySet, ShaderCompilerMessageSeverity.Warning);
-                }
-            }
-            else
-            {
-                if(string.IsNullOrEmpty(functionSource))
-                {
-                    owner.AddValidationError(tempId, s_NoFileSelected, ShaderCompilerMessageSeverity.Warning);
-                }
-
-                string path = AssetDatabase.GUIDToAssetPath(functionSource);
-                if(!string.IsNullOrEmpty(path))
-                {
-                    string extension = path.Substring(path.LastIndexOf('.'));
-                    if(!s_ValidExtensions.Contains(extension))
+                    string path = AssetDatabase.GUIDToAssetPath(functionSource);
+                    if(!string.IsNullOrEmpty(path))
                     {
-                        owner.AddValidationError(tempId, s_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                        string extension = path.Substring(path.LastIndexOf('.'));
+                        if(!s_ValidExtensions.Contains(extension))
+                        {
+                            owner.AddValidationError(tempId, s_InvalidFileType, ShaderCompilerMessageSeverity.Error);
+                        }
                     }
                 }
             }
