@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added SpeedTree Shaders.
 - Added two Shader Graph master nodes: Lit Sprite and Unlit Sprite. They only work with the 2D renderer.
+- Added documentation for the 2D renderer.
 
 ### Changed
 - The 2D renderer and Light2D component received a number of improvements and are now ready to try as experimental features.
