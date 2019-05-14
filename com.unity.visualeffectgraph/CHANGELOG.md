@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Color mapping mode for unlit outputs (Textured/Gradient Mapped)
 - Add Triangle and Octagon primitives for particle outputs
 - Set Attribute is now spaceable on a specific set of attributes (position, velocity, axis...)
+- Trigger : GPUEvent Rate (Over time or Distance)
 
 ### Fixed
 - Fix shader compilation error with debug views
