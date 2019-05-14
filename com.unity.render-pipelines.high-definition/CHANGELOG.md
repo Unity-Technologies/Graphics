@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.7.0-preview] - 2019-XX-XX
 
+### Fixed
+- Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
+
 ### Added
 - Added ViewConstants StructuredBuffer to simplify XR rendering
 - Added API to render specific settings during a frame
