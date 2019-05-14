@@ -13,9 +13,6 @@ namespace UnityEditor.ShaderGraph
     class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IHasSettings
     {
         static string[] s_ValidExtensions = { ".hlsl", ".cginc" };
-        static string s_NoFunctionNameSet = "A Custom Function Node requires a function name to be set.";
-        static string s_NoFunctionBodySet = "String mode requires a function body to be set.";
-        static string s_NoFileSelected = "File mode requires a Source file to be selected.";
         static string s_InvalidFileType = "Source file is not a valid file type. Valid file extensions are .hlsl and .cginc";
         static string s_MissingOutputSlot = "A Custom Function Node must have at least one output slot";
 
