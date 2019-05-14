@@ -88,7 +88,7 @@ void RaytracingReflectionFilter(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     float3 normalWS = normalData.normalWS;
 
     // Compute the world space position
-    PositionInputs posInput = GetPositionInput_Stereo(fullResCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+    PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Compute the view in world space
@@ -127,7 +127,7 @@ void RaytracingReflectionFilter(uint3 dispatchThreadId : SV_DispatchThreadID, ui
             continue;
             
             // Fetch the target color
-            float4 sampleColor = LOAD_TEXTURE2D_X(_SsrLightingTextureRW, sourceCoord);
+            float4 sampleColor = _SsrLightingTextureRW[COORD_TEXTURE2D_X(sourceCoord)];
 
             // Compute the position of the actual source pixel
             uint subPixel =  clamp(floor(sampleColor.w * 4.0f), 0, 3);
@@ -147,7 +147,7 @@ void RaytracingReflectionFilter(uint3 dispatchThreadId : SV_DispatchThreadID, ui
 
             // Let's fetch the half res sample's properties
             // Get the direction and pdf
-            float4 directionPDF = LOAD_TEXTURE2D_X(_SsrHitPointTexture, sourceCoord);
+            float4 directionPDF = _SsrHitPointTexture[COORD_TEXTURE2D_X(sourceCoord)];
 
             // If this direction is under the candidate surface, then it is not valid
             if(dot(directionPDF.xyz, normalWS) <= 0.0f) continue;
@@ -204,12 +204,13 @@ void TemporalAccumulationFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     uint2 currentCoord = groupId * RAYTRACING_REFLECTION_TILE_SIZE + groupThreadId;
 
     // Fetch the previous color
-    float3 previousColor = LOAD_TEXTURE2D_X(_AccumulatedFrameTexture, currentCoord).xyz;
-    bool previousValidityFlag = LOAD_TEXTURE2D_X(_AccumulatedFrameTexture, currentCoord).w > 0.0f;
+    float4 accumulatedFrame = _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentCoord)];
+    float3 previousColor = accumulatedFrame.xyz;
+    bool previousValidityFlag = accumulatedFrame.w > 0.0f;
 
     // Fetch the color range that we need to check before using
-    float3 colorMinBound = LOAD_TEXTURE2D_X(_MinColorRangeTexture, currentCoord).xyz;
-    float3 colorMaxBound = LOAD_TEXTURE2D_X(_MaxColorRangeTexture, currentCoord).xyz;
+    float3 colorMinBound = _MinColorRangeTexture[COORD_TEXTURE2D_X(currentCoord)].xyz;
+    float3 colorMaxBound = _MaxColorRangeTexture[COORD_TEXTURE2D_X(currentCoord)].xyz;
 
     // check if the previous color is in the bounds
     // TODO: Try to do the comparison in Lab for better results http://www.brucelindbloom.com/index.html?Math.html
@@ -221,18 +222,18 @@ void TemporalAccumulationFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 gr
     float validityFlag = all(colorMinBound < colorMaxBound);
     
     float3 combinedColor = float3(0.0f, 0.0f, 0.0f);
-    if(previousValidityFlag && colorInBound)
+    if (previousValidityFlag && colorInBound)
     {
-        // Compute the accumulation factor for this surface (using the user parameter and the rouhgness of the surface)
-        float accumulationFactor = LOAD_TEXTURE2D_X(_CurrentFrameTexture, currentCoord).w < 0.001f ? 1.0 : _TemporalAccumuationWeight;  
+        // Compute the accumulation factor for this surface (using the user parameter and the roughness of the surface)
+        float accumulationFactor = _CurrentFrameTexture[COORD_TEXTURE2D_X(currentCoord)].w < 0.001f ? 1.0 : _TemporalAccumuationWeight;  
 
         // Previous pixel is valid
-        combinedColor = LOAD_TEXTURE2D_X(_CurrentFrameTexture, currentCoord).xyz * accumulationFactor + LOAD_TEXTURE2D_X(_AccumulatedFrameTexture, currentCoord).xyz * (1.0 - accumulationFactor);
+        combinedColor = _CurrentFrameTexture[COORD_TEXTURE2D_X(currentCoord)].xyz * accumulationFactor + previousColor * (1.0 - accumulationFactor);
     }
     else
     {
         // Previous pixel is invalid, override it
-        combinedColor = LOAD_TEXTURE2D_X(_CurrentFrameTexture, currentCoord).xyz;
+        combinedColor = _CurrentFrameTexture[COORD_TEXTURE2D_X(currentCoord)].xyz;
     }
     
     _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentCoord)] = float4(combinedColor, validityFlag);
@@ -244,10 +245,9 @@ void RaytracingReflectionTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 group
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * RAYTRACING_REFLECTION_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
-    PositionInputs posInputs = GetPositionInput_Stereo(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
     float2 closest = GetClosestFragment(posInputs);
 
@@ -337,8 +337,7 @@ BilateralData TapBilateralData(uint2 coordSS)
 
     if (PLANE_WEIGHT > 0.0)
     {
-        posInput = GetPositionInput_Stereo(coordSS, _ScreenSize.zw, posInput.deviceDepth,
-                                           UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+        posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         key.position = posInput.positionWS;
     }
 
@@ -397,7 +396,6 @@ void ReflBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * RAYTRACING_REFLECTION_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float3 reflSum = 0.0;
     float wSum = 0.0;

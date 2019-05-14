@@ -142,6 +142,7 @@ namespace UnityEngine.Rendering.LWRP
 
             instance.LoadBuiltinRendererData();
             instance.m_EditorResourcesAsset = LoadResourceFile<LightweightRenderPipelineEditorResources>();
+            instance.m_Renderer = instance.m_RendererData.InternalCreateRenderer();
             return instance;
         }
 
@@ -239,12 +240,12 @@ namespace UnityEngine.Rendering.LWRP
         Material GetMaterial(DefaultMaterialType materialType)
         {
 #if UNITY_EDITOR
+            if (scriptableRendererData == null || editorResources == null)
+                return null;
+
             var material = scriptableRendererData.GetDefaultMaterial(materialType);
             if (material != null)
                 return material;
-
-            if (editorResources == null)
-                return null;
 
             switch (materialType)
             {
@@ -465,8 +466,15 @@ namespace UnityEngine.Rendering.LWRP
         {
             get
             {
+#if UNITY_EDITOR
+                Shader defaultShader = scriptableRendererData.GetDefaultShader();
+                if (defaultShader != null)
+                    return defaultShader;
+#endif
+
                 if (m_DefaultShader == null)
                     m_DefaultShader = Shader.Find(ShaderUtils.GetShaderPath(ShaderPathID.Lit));
+
                 return m_DefaultShader;
             }
         }

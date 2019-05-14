@@ -125,7 +125,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1706_DecalsSG.unity
     guid: 4ead319809e7c8544ad909dcf8fa3c4c
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
   - enabled: 1
@@ -155,9 +155,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2103_GI_BakeMixed.unity
     guid: d8cfa4fd9319d2444b3bf6dd836ffe31
-  - enabled: 0
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2104_GI_LightProbeInstancing.unity
-    guid: d841ad64fdc2ae14ba996e30fe86b901
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2104_GI_Instancing.unity
+    guid: 9fdfbe7bced924d4791cf6fa031218d2
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2105_GI_BakedSpotShape.unity
     guid: c034386e3fb58f44783743edf9b0f4a4
@@ -213,11 +213,11 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2306_Contact_Shadow_SpotLight.unity
     guid: a8ecf1e3cee864a48bd6bca2c797fdb3
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2308_Microshadows.unity
-    guid: 6250123484c56d544a5c1cbd20fd6bb2
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2307_Shadow_VeryHigh.unity
     guid: c110cc3f909bb664b82eb554f0494597
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2308_Microshadows.unity
+    guid: 6250123484c56d544a5c1cbd20fd6bb2
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
@@ -254,7 +254,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4011_MotionBlur_PerObject.unity
     guid: bfedb7e76d6153a4896b9d61a8d826af
   - enabled: 0

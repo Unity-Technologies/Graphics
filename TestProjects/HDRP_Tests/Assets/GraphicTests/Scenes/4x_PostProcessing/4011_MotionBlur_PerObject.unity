@@ -678,7 +678,7 @@ MonoBehaviour:
   length: 1.25
   type: 1
   axisSide: {x: 0, y: 1, z: 0}
-  perFrame: 0
+  perFrame: 1
 --- !u!65 &428956471
 BoxCollider:
   m_ObjectHideFlags: 0
