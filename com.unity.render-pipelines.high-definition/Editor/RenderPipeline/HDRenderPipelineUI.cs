@@ -406,7 +406,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     
                     EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.hasMultipleDifferentValues;
                     EditorGUI.BeginChangeCheck();
-                    maxPercentage = EditorGUILayout.DelayedFloatField(k_MinPercentage, maxPercentage);
+                    maxPercentage = EditorGUILayout.DelayedFloatField(k_MaxPercentage, maxPercentage);
                     if (EditorGUI.EndChangeCheck())
                         serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, 0.0f, 100.0f);
 
