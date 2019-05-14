@@ -224,8 +224,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ScriptableCullingParameters frozenCullingParams;
         bool frozenCullingParamAvailable = false;
 
-        bool sceneLightingWasDisabled = false;
-
         public bool showCascade
         {
             get => m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
@@ -1535,11 +1533,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                if(sceneLightingWasDisabled && !CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
+                if(hdCamera.sceneLightingWasDisabledForCamera && !CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
                 {
                     m_CurrentDebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
                 }
-                sceneLightingWasDisabled = sceneLightingIsDisabled;
+                hdCamera.sceneLightingWasDisabledForCamera = sceneLightingIsDisabled;
             }
 
             aovRequest.SetupDebugData(ref m_CurrentDebugDisplaySettings);
