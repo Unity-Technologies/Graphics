@@ -22,8 +22,6 @@ New Scene Settings GameObjects come with some default Volume Overrides, includin
 
 4. Add a Collider to this GameObject (open the GameObject in the Inspector, navigate to __Add Component > Physics__ and select one of the 3D Colliders from the list). 
 
-5. Enable __Is Trigger__ on your Collider. 
-
-6. Override the values of the Exponential Fog Volume Override. 
+5. Override the values of the Exponential Fog Volume Override. 
 
 Now, whenever your Camera is within the bounds of this Collider, HDRP uses the Exponential Fog values from the Volume Override on the GameObject with that Collider.
