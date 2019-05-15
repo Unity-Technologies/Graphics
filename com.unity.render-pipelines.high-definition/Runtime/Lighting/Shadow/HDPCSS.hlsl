@@ -93,6 +93,23 @@ real2 ComputeFibonacciSpiralDiskSample(const in int sampleIndex, const in real d
     return sampleDirection * sampleRadius;
 }
 
+// custom-begin
+#define PCSS_SAMPLE_JITTER_MODE_INTERLEAVED_GRADIENT_NOISE 0
+#define PCSS_SAMPLE_JITTER_MODE_BLUE_NOISE 1
+#define PCSS_SAMPLE_JITTER_IMPLEMENTATION PCSS_SAMPLE_JITTER_MODE_BLUE_NOISE
+
+real2 ComputePCSSSampleJitter(real2 positionSS, uint taaFrameIndex)
+{
+#if PCSS_SAMPLE_JITTER_IMPLEMENTATION == PCSS_SAMPLE_JITTER_MODE_BLUE_NOISE
+    real sampleJitterAngle = LoadBlueNoiseRGB((uint2)positionSS).x * 2.0 * PI;
+#else
+    real sampleJitterAngle = InterleavedGradientNoise(positionSS, taaFrameIndex) * 2.0 * PI;
+#endif
+    return real2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+}
+// custom-end
+
+
 real PenumbraSize(real Reciever, real Blocker)
 {
     return abs((Reciever - Blocker) / Blocker);

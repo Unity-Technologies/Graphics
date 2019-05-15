@@ -898,6 +898,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
                 cmd.SetGlobalFloat(HDShaderIDs._ReplaceDiffuseForIndirect, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f);
                 cmd.SetGlobalInt(HDShaderIDs._EnableSkyLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.EnableSkyLighting) ? 1 : 0);
+
+                // custom-begin
+                cmd.SetGlobalTexture(HDShaderIDs._BlueNoiseRGBTexture, m_BlueNoise.textures16RGB[m_FrameCount % m_BlueNoise.textures16RGB.Length]);
+                cmd.SetGlobalInt(HDShaderIDs._BlueNoiseRGBTextureResolutionMinusOne, m_BlueNoise.textures16RGB[m_FrameCount % m_BlueNoise.textures16RGB.Length].width - 1);
+                // custom-end
             }
         }
 
