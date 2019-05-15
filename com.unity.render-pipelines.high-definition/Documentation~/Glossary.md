@@ -86,33 +86,3 @@ A function that describes a wave that represents the human eye’s relative sens
 #### punctual lights: 
 A light is considered to be punctual if it emits light from a single point. HDRPs Spot and Point Lights are punctual.
 
-<a name="LightIntensityUnits"></a>
-
-
-### Light intensity units
-
-<a name="Candela"></a>
-#### candela:
-The base unit of [luminous intensity](#LuminousIntensity) in the International System of Units. For reference, a common wax candle emits light with a luminous intensity of roughly 1 candela.
-
-<a name="Lumen"></a>
-#### lumen:
-The unit of [luminous flux](#LuminousFlux). Measures the total quantity of visible light a source emits. A light source emitting 1 [candela](#Candela) of luminous intensity from an area of 1 steradian has a luminous flux of 1 lumen.
-
-<a name="Lux"></a>
-#### lux (lumen per square meter):
-
-The unit of [illuminance](#Illuminance). A light source that emits 1 lumen of [luminous flux](#LuminousFlux) onto an area of 1 square meter has an illuminance of 1 lux.
-
-<a name="Luminance"></a>
-#### luminance (candela per square meter):
-
-Measures the apparent brightness of light either emitted from a light source, or reflected off a surface, to the human eye. A light source that emits 1 candela of [luminous intensity](#LuminousIntensity) onto an area of 1 square meter has a luminance of 1 candela per square meter.
-
-<a name="EV"></a>
-#### exposure value (EV):
-
-A value that represents a combination of a camera's shutter speed and f-number. It is essentially a measurement of exposure such that all combinations of shutter speed and f-number that yield the same level of exposure have the same EV. HDRP Lights can use **EV<sub>100</sub>**, which is EV with a 100 International Standards Organisation (ISO) film.
-
-
-
