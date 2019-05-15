@@ -29,7 +29,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         protected override bool canCopySelection
         {
-            get { return selection.OfType<Node>().Any() || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
+            get 
+            {
+                return selection.OfType<Node>().Where(v => (v.title != SubGraphOutputNode.kNodeName)).Any() || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); 
+            }
+        }
+
+        protected override bool canCutSelection
+        {
+            get
+            {
+                return selection.OfType<Node>().Where(v => (v.title != SubGraphOutputNode.kNodeName)).Any() || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any();
+            }
         }
 
         public MaterialGraphView(GraphData graph) : this()

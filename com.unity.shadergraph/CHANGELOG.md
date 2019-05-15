@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
 - You can now reference sub-assets such as Textures.
 - Remaining outdated documentation has been removed. 
+- You can no longer duplicate the Sub Graph Outputs node.
 
 ## [6.6.0] - 2019-04-01
 ### Added
