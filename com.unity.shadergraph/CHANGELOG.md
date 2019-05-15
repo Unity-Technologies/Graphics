@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.7.0] - 2019-XX-XX
 ### Fixed
+- Fixed an error that occured when using multiple Sampler State nodes with different parameters.
 - When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
 - When you rapidly perform an undo or redo, Shader Graph windows no longer break.
 - Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
