@@ -318,7 +318,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // Deferred Only mode does not allow to change filtering quality, but rather it is hardcoded.
                 if (isDeferredOnly)
-                    serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality.intValue = (int)HDShadowQuality.Low;
+                {
+                    // custom-begin:
+                    serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality.intValue = (int)HDShadowQuality.High;
+                    //serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality.intValue = (int)HDShadowQuality.Low;
+                    // custom-end
+                }
 
                 using (new EditorGUI.DisabledScope(isDeferredOnly))
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality, k_FilteringQuality);

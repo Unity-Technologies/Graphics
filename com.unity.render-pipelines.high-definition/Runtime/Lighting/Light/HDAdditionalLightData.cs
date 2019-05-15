@@ -225,11 +225,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // PCSS settings
         [Range(0, 1.0f)]
-        public float    shadowSoftness = .5f;
+        public float    shadowSoftness = .125f;
         [Range(1, 64)]
-        public int      blockerSampleCount = 24;
+        public int      blockerSampleCount = 2;
         [Range(1, 64)]
-        public int      filterSampleCount = 16;
+        public int      filterSampleCount = 4;
         [Range(0, 0.001f)]
         public float minFilterSize = 0.00001f;
 
