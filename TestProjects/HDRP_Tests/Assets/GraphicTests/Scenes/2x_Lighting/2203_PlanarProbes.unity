@@ -94,8 +94,8 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaDirect: 0.5
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
-    m_ShowResolutionOverlay: 1
     m_ExportTrainingData: 0
+    m_TrainingDataDestination: TrainingData
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -177,6 +177,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -254,6 +255,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -331,6 +333,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -408,6 +411,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -485,6 +489,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -562,6 +567,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -718,6 +724,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -741,6 +748,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -789,8 +799,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -808,9 +822,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -818,10 +835,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -872,7 +892,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 85142021}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -918,12 +937,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 85142021}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
-  m_Version: 3
+  version: 4
+  m_Version: 4
   directionalIntensity: 3.1415927
   punctualIntensity: 4000
   areaIntensity: 200
@@ -940,7 +958,7 @@ MonoBehaviour:
   affectSpecular: 0
   nonLightmappedOnly: 0
   lightTypeExtent: 0
-  spotLightShape: 0
+  m_SpotLightShape: 0
   shapeWidth: 0.5
   shapeHeight: 0.5
   aspectRatio: 1
@@ -953,12 +971,16 @@ MonoBehaviour:
   showAdditionalSettings: 1
   displayLightIntensity: 4000
   displayAreaLightEmissiveMesh: 0
+  areaLightCookie: {fileID: 0}
   lightLayers: 1
   shadowNearPlane: 0.2
   shadowSoftness: 0.5
   blockerSampleCount: 24
   filterSampleCount: 16
   minFilterSize: 0.00001
+  kernelSize: 5
+  lightAngle: 1
+  maxDepthBias: 0.001
 --- !u!108 &85142025
 Light:
   m_ObjectHideFlags: 0
@@ -983,6 +1005,24 @@ Light:
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
   m_Cookie: {fileID: 0}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
@@ -990,12 +1030,15 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!21 &110679494
@@ -1134,6 +1177,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -1157,6 +1201,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -1205,8 +1252,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -1224,9 +1275,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -1234,10 +1288,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -1303,6 +1360,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1380,6 +1438,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1536,6 +1595,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -1559,6 +1619,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -1607,8 +1670,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -1626,9 +1693,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -1636,10 +1706,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -1705,6 +1778,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -1766,11 +1840,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 146111315}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -1799,68 +1877,32 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 0, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 0, y: 1, z: 0}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: 5, y: -7.6400003, z: -2}
+      mirrorPositionProxySpace: {x: 5, y: -7, z: -2}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -1903,7 +1945,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -1912,7 +2000,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -1929,7 +2017,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -1946,9 +2034,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -1965,7 +2053,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -1982,8 +2070,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 0
@@ -2022,6 +2110,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -2046,7 +2135,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -2078,7 +2167,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -2140,6 +2229,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2217,6 +2307,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2294,6 +2385,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2376,6 +2468,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2453,6 +2546,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -2499,11 +2593,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 210271684}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 1
+      viewerScale: 1
     type: 1
     mode: 1
     realtimeMode: 0
@@ -2532,14 +2630,14 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
@@ -2550,50 +2648,14 @@ MonoBehaviour:
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -2636,7 +2698,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -2645,7 +2753,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -2662,7 +2770,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -2679,9 +2787,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -2698,7 +2806,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -2715,8 +2823,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 0
@@ -2755,6 +2863,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -2779,7 +2888,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -2811,7 +2920,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -2968,6 +3077,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -2991,6 +3101,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -3039,8 +3152,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -3058,9 +3175,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -3068,10 +3188,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -3216,6 +3339,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -3239,6 +3363,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -3287,8 +3414,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -3306,9 +3437,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -3316,10 +3450,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -3385,6 +3522,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3462,6 +3600,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3539,6 +3678,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3616,6 +3756,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3693,6 +3834,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -3754,11 +3896,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 299053101}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -3801,54 +3947,18 @@ MonoBehaviour:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: -5, y: -7.6400003, z: -2}
+      mirrorPositionProxySpace: {x: -5, y: -7, z: -2}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -3863,7 +3973,7 @@ MonoBehaviour:
         aspect: 1
         farClipPlane: 1000
         nearClipPlane: 1
-        fieldOfView: 95.7
+        fieldOfView: 90
         projectionMatrix:
           e00: 1
           e01: 0
@@ -3891,7 +4001,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -3900,7 +4056,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -3917,7 +4073,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -3934,9 +4090,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -3953,7 +4109,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -3970,8 +4126,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 0
@@ -4010,6 +4166,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -4034,7 +4191,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -4066,7 +4223,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -4207,6 +4364,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -4230,6 +4388,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -4278,8 +4439,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -4297,9 +4462,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -4307,10 +4475,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -4376,6 +4547,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4453,6 +4625,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -4499,7 +4672,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 336692500}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: d5c61b7a04f29ad49a0985f4fb6c436d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -4660,6 +4832,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -4683,6 +4856,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -4731,8 +4907,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -4750,9 +4930,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -4760,10 +4943,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -4813,11 +4999,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 369900500}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -4846,68 +5036,32 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: 1, y: -7.6400003, z: 0}
+      mirrorPositionProxySpace: {x: 1, y: -7, z: 0}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -4950,7 +5104,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -4959,7 +5159,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -4976,7 +5176,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -4993,9 +5193,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -5012,7 +5212,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -5029,8 +5229,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 1
@@ -5069,6 +5269,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -5093,7 +5294,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -5125,7 +5326,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -5192,6 +5393,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -5269,6 +5471,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -5346,6 +5549,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -5423,6 +5627,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -5579,6 +5784,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -5602,6 +5808,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -5650,8 +5859,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -5669,9 +5882,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -5679,10 +5895,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -5748,6 +5967,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -5809,11 +6029,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 424433999}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -5842,68 +6066,32 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: -1, y: -7.6400003, z: 0}
+      mirrorPositionProxySpace: {x: -1, y: -7, z: 0}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -5946,7 +6134,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -5955,7 +6189,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -5972,7 +6206,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -5989,9 +6223,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -6008,7 +6242,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -6025,8 +6259,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 1
@@ -6065,6 +6299,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -6089,7 +6324,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -6121,7 +6356,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -6183,6 +6418,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -6265,6 +6501,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -6311,7 +6548,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 474101918}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: d5c61b7a04f29ad49a0985f4fb6c436d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -6472,6 +6708,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -6495,6 +6732,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -6543,8 +6783,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -6562,9 +6806,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -6572,10 +6819,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -6720,6 +6970,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -6743,6 +6994,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -6791,8 +7045,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -6810,9 +7068,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -6820,10 +7081,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -6889,6 +7153,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -6966,6 +7231,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7043,6 +7309,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7120,6 +7387,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7197,6 +7465,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7274,6 +7543,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7356,6 +7626,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7433,6 +7704,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7510,6 +7782,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7592,6 +7865,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7669,6 +7943,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -7730,11 +8005,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 676192091}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -7763,68 +8042,32 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: 1, y: -7.6400003, z: -2}
+      mirrorPositionProxySpace: {x: 1, y: -7, z: -2}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -7867,7 +8110,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -7876,7 +8165,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -7893,7 +8182,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -7910,9 +8199,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -7929,7 +8218,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -7946,8 +8235,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 0
@@ -7986,6 +8275,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -8010,7 +8300,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -8042,7 +8332,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -8127,6 +8417,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -8148,7 +8439,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 681941806}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -8213,6 +8503,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -8276,6 +8567,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -8367,6 +8659,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -8444,6 +8737,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -8521,6 +8815,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -8598,6 +8893,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -8754,6 +9050,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -8777,6 +9074,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -8825,8 +9125,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -8844,9 +9148,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -8854,10 +9161,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -9002,6 +9312,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -9025,6 +9336,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -9073,8 +9387,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -9092,9 +9410,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -9102,10 +9423,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -9198,6 +9522,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -9219,7 +9544,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 784445598}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -9307,6 +9631,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -9328,7 +9653,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 799155407}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -9393,6 +9717,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -9454,11 +9779,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 856637267}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -9487,68 +9816,32 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: 3, y: -7.6400003, z: -2}
+      mirrorPositionProxySpace: {x: 3, y: -7, z: -2}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -9591,7 +9884,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -9600,7 +9939,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -9617,7 +9956,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -9634,9 +9973,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -9653,7 +9992,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -9670,8 +10009,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 0
@@ -9710,6 +10049,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -9734,7 +10074,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -9766,7 +10106,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -9907,6 +10247,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -9930,6 +10271,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -9978,8 +10322,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -9997,9 +10345,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -10007,10 +10358,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -10081,6 +10435,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -10193,6 +10548,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -10349,6 +10705,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -10372,6 +10729,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -10420,8 +10780,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -10439,9 +10803,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -10449,10 +10816,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -10597,6 +10967,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -10620,6 +10991,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -10668,8 +11042,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -10687,9 +11065,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -10697,10 +11078,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -10766,6 +11150,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -10884,6 +11269,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -11040,6 +11426,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -11063,6 +11450,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -11111,8 +11501,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -11130,9 +11524,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -11140,10 +11537,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -11209,6 +11609,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -11286,6 +11687,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -11363,6 +11765,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -11519,6 +11922,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -11542,6 +11946,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -11590,8 +11997,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -11609,9 +12020,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -11619,10 +12033,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -11724,6 +12141,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -11801,6 +12219,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -11878,6 +12297,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -11955,6 +12375,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12032,6 +12453,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12109,6 +12531,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12186,6 +12609,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12263,6 +12687,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12340,6 +12765,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12411,7 +12837,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1200557908}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 66d6c688291ac8b48adc878e4fc4d29d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -12509,6 +12934,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12586,6 +13012,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12692,6 +13119,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12713,7 +13141,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1227157678}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -12747,7 +13174,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1276593602}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: d5c61b7a04f29ad49a0985f4fb6c436d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -12829,6 +13255,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -12906,6 +13333,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13010,6 +13438,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13031,7 +13460,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1297907279}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -13123,6 +13551,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13144,7 +13573,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1324140067}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -13209,6 +13637,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13286,6 +13715,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13363,6 +13793,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13440,6 +13871,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13517,6 +13949,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13673,6 +14106,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -13696,6 +14130,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -13744,8 +14181,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -13763,9 +14204,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -13773,10 +14217,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -13867,6 +14314,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13888,7 +14336,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1394639333}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -13953,6 +14400,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -13999,7 +14447,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1440252058}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 66d6c688291ac8b48adc878e4fc4d29d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -14122,6 +14569,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -14199,6 +14647,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -14326,6 +14775,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -14403,6 +14853,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -14485,6 +14936,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -14562,6 +15014,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -14639,6 +15092,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -14700,11 +15154,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1585182138}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -14733,68 +15191,32 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 0, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 0, y: 1, z: 0}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: -3, y: -7.6400003, z: -2}
+      mirrorPositionProxySpace: {x: -3, y: -7, z: -2}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -14837,7 +15259,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -14846,7 +15314,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -14863,7 +15331,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -14880,9 +15348,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -14899,7 +15367,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -14916,8 +15384,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 0
@@ -14956,6 +15424,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -14980,7 +15449,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -15012,7 +15481,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -15074,6 +15543,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -15230,6 +15700,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -15253,6 +15724,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -15301,8 +15775,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -15320,9 +15798,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -15330,10 +15811,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -15399,6 +15883,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -15476,6 +15961,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -15553,6 +16039,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -15630,6 +16117,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -15707,6 +16195,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -15807,6 +16296,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -15828,7 +16318,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1641932329}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -15893,6 +16382,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -16049,6 +16539,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -16072,6 +16563,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -16120,8 +16614,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -16139,9 +16637,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -16149,10 +16650,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -16202,11 +16706,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1680141092}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -16226,77 +16734,41 @@ MonoBehaviour:
       m_SphereRadius: 1
       m_SphereBlendDistance: 0
       m_SphereBlendNormalDistance: 0
-      m_EditorAdvancedModeBlendDistancePositive: {x: 0, y: 0, z: 0}
-      m_EditorAdvancedModeBlendDistanceNegative: {x: 0, y: 0, z: 0}
-      m_EditorSimplifiedModeBlendDistance: 0
+      m_EditorAdvancedModeBlendDistancePositive: {x: 0.5, y: 0.5, z: 0.5}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 0.5, y: 0.5, z: 0.5}
+      m_EditorSimplifiedModeBlendDistance: 0.5
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_EditorSimplifiedModeBlendNormalDistance: 0
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: -1, y: -7.6400003, z: -2}
+      mirrorPositionProxySpace: {x: -1, y: -7, z: -2}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -16339,7 +16811,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -16348,7 +16866,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -16365,7 +16883,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -16382,9 +16900,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -16401,7 +16919,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -16418,8 +16936,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 0
@@ -16458,6 +16976,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -16482,7 +17001,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -16514,7 +17033,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -16576,6 +17095,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -16637,11 +17157,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1696916251}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -16670,68 +17194,32 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: 3, y: -7.6400003, z: 0}
+      mirrorPositionProxySpace: {x: 3, y: -7, z: 0}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -16774,7 +17262,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -16783,7 +17317,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -16800,7 +17334,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -16817,9 +17351,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -16836,7 +17370,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -16853,8 +17387,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 1
@@ -16893,6 +17427,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -16917,7 +17452,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -16949,7 +17484,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -16997,6 +17532,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -17098,6 +17634,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -17175,6 +17712,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -17252,6 +17790,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -17357,6 +17896,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -17378,7 +17918,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1748651252}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -17443,6 +17982,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -17599,6 +18139,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -17622,6 +18163,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -17670,8 +18214,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -17689,9 +18237,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -17699,10 +18250,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.7294118, g: 0.7294118, b: 0.7294118, a: 1}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -17768,6 +18322,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -17845,6 +18400,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -17911,11 +18467,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1864371383}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -17944,68 +18504,32 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: -5, y: -7.6400003, z: 0}
+      mirrorPositionProxySpace: {x: -5, y: -7, z: 0}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -18048,7 +18572,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -18057,7 +18627,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -18074,7 +18644,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -18091,9 +18661,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -18110,7 +18680,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -18127,8 +18697,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 1
@@ -18167,6 +18737,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -18191,7 +18762,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -18223,7 +18794,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -18254,7 +18825,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1873406018}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: d5c61b7a04f29ad49a0985f4fb6c436d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -18336,6 +18906,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -18533,6 +19104,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -18556,6 +19128,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -18604,8 +19179,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -18623,9 +19202,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -18633,10 +19215,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -18781,6 +19366,7 @@ Material:
     - _DetailNormalScale: 1
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
+    - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -18804,6 +19390,9 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
+    - _EmissiveExposureWeight: 1
+    - _EmissiveIntensity: 1
+    - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
@@ -18852,8 +19441,12 @@ Material:
     - _SpecularAAThreshold: 0.2
     - _SrcBlend: 1
     - _StencilRef: 2
+    - _StencilRefDepth: 0
+    - _StencilRefGBuffer: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
+    - _StencilWriteMaskDepth: 32
+    - _StencilWriteMaskGBuffer: 3
     - _StencilWriteMaskMV: 128
     - _Stiffness: 1
     - _SubsurfaceMask: 1
@@ -18871,9 +19464,12 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
+    - _TransparentWritingVelocity: 0
     - _UVBase: 4
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _UseEmissiveIntensity: 0
+    - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZTestMode: 8
@@ -18881,10 +19477,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
@@ -18950,6 +19549,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -19027,6 +19627,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -19054,36 +19655,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: thingToDoBeforeTest.m_PersistentCalls.m_Calls.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: width
-      value: 1920
-      objectReference: {fileID: 0}
-    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: height
-      value: 1080
-      objectReference: {fileID: 0}
-    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: thingToDoBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: thingToDoBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: waitForFrames
-      value: 30
-      objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.4
@@ -19145,27 +19716,6 @@ PrefabInstance:
       propertyPath: near clip plane
       value: 0.1
       objectReference: {fileID: 0}
-    - target: {fileID: 114270329781043846, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: width
-      value: 853
-      objectReference: {fileID: 0}
-    - target: {fileID: 114270329781043846, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: height
-      value: 480
-      objectReference: {fileID: 0}
-    - target: {fileID: 114482499083377642, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: renderingPath
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114939049756762976, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: renderPipelineAsset
-      value: 
-      objectReference: {fileID: 11400000, guid: 4c3f2dc6704fdf94689eac2292e12d30,
-        type: 2}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: ImageComparisonSettings.TargetWidth
@@ -19176,6 +19726,57 @@ PrefabInstance:
       propertyPath: ImageComparisonSettings.TargetHeight
       value: 720
       objectReference: {fileID: 0}
+    - target: {fileID: 114482499083377642, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: renderingPath
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: thingToDoBeforeTest.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: width
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: height
+      value: 1080
+      objectReference: {fileID: 0}
+    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: thingToDoBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: thingToDoBeforeTest.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114733060649624252, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: waitForFrames
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 114270329781043846, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: width
+      value: 853
+      objectReference: {fileID: 0}
+    - target: {fileID: 114270329781043846, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: height
+      value: 480
+      objectReference: {fileID: 0}
+    - target: {fileID: 114939049756762976, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: renderPipelineAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 4c3f2dc6704fdf94689eac2292e12d30,
+        type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!20 &1965177828 stripped
@@ -19193,7 +19794,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 9459100e7946cb84eb53a26a14473032, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -19254,6 +19854,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -19315,11 +19916,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1998491042}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: a4ee7c3a3b205a14a94094d01ff91d6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProbeSettings:
+    frustum:
+      fieldOfViewMode: 2
+      fixedValue: 59.5
+      automaticScale: 5
+      viewerScale: 1.66
     type: 1
     mode: 1
     realtimeMode: 0
@@ -19348,68 +19953,32 @@ MonoBehaviour:
       m_EditorAdvancedModeEnabled: 0
       m_EditorAdvancedModeFaceFadePositive: {x: 1, y: 1, z: 1}
       m_EditorAdvancedModeFaceFadeNegative: {x: 1, y: 1, z: 1}
-      m_Version: 0
+      m_Version: 1
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
     proxy:
       m_Shape: 0
       m_BoxSize: {x: 1, y: 1, z: 1}
       m_SphereRadius: 1
-      m_CSVersion: 0
+      m_CSVersion: 1
       m_ObsoleteSphereInfiniteProjection: 0
       m_ObsoleteBoxInfiniteProjection: 0
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 0
       capturePositionProxySpace: {x: 0, y: 0, z: 0}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
-      mirrorPositionProxySpace: {x: -3, y: -7.6400003, z: 0}
+      mirrorPositionProxySpace: {x: -3, y: -7, z: 0}
       mirrorRotationProxySpace: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
     camera:
       customRenderingSettings: 0
-      frameSettings:
-        overrides: 0
-        enableShadow: 1
-        enableContactShadows: 1
-        enableShadowMask: 1
-        enableSSR: 0
-        enableSSAO: 1
-        enableSubsurfaceScattering: 1
-        enableTransmission: 1
-        enableAtmosphericScattering: 1
-        enableVolumetrics: 1
-        enableReprojectionForVolumetrics: 1
-        enableLightLayers: 1
-        diffuseGlobalDimmer: 1
-        specularGlobalDimmer: 1
-        shaderLitMode: 1
-        enableDepthPrepassWithDeferredRendering: 0
-        enableTransparentPrepass: 1
-        enableMotionVectors: 1
-        enableObjectMotionVectors: 1
-        enableDecals: 1
-        enableRoughRefraction: 1
-        enableTransparentPostpass: 1
-        enableDistortion: 1
-        enablePostprocess: 1
-        enableOpaqueObjects: 1
-        enableTransparentObjects: 1
-        enableRealtimePlanarReflection: 1
-        enableMSAA: 0
-        enableAsyncCompute: 1
-        runLightListAsync: 1
-        runSSRAsync: 1
-        runSSAOAsync: 1
-        runContactShadowsAsync: 1
-        runVolumeVoxelizationAsync: 1
-        lightLoopSettings:
-          overrides: 0
-          enableTileAndCluster: 1
-          enableComputeLightEvaluation: 1
-          enableComputeLightVariants: 1
-          enableComputeMaterialVariants: 1
-          enableFptlForForwardOpaque: 1
-          enableBigTilePrepass: 1
-          isFptlEnabled: 1
+      renderingPathCustomFrameSettings:
+        bitDatas:
+          data1: 69275665825565
+          data2: 4539628424389459968
+      renderingPathCustomFrameSettingsOverrideMask:
+        mask:
+          data1: 0
+          data2: 0
       bufferClearing:
         clearColorMode: 0
         backgroundColorHDR: {r: 0.023529412, g: 0.07058824, b: 0.1882353, a: 0}
@@ -19452,7 +20021,53 @@ MonoBehaviour:
       probeLayerMask:
         serializedVersion: 2
         m_Bits: 4294967295
+      defaultFrameSettings: 0
       m_ObsoleteRenderingPath: 0
+      m_ObsoleteFrameSettings:
+        overrides: 0
+        enableShadow: 0
+        enableContactShadows: 0
+        enableShadowMask: 0
+        enableSSR: 0
+        enableSSAO: 0
+        enableSubsurfaceScattering: 0
+        enableTransmission: 0
+        enableAtmosphericScattering: 0
+        enableVolumetrics: 0
+        enableReprojectionForVolumetrics: 0
+        enableLightLayers: 0
+        enableExposureControl: 1
+        diffuseGlobalDimmer: 0
+        specularGlobalDimmer: 0
+        shaderLitMode: 0
+        enableDepthPrepassWithDeferredRendering: 0
+        enableTransparentPrepass: 0
+        enableMotionVectors: 0
+        enableObjectMotionVectors: 0
+        enableDecals: 0
+        enableRoughRefraction: 0
+        enableTransparentPostpass: 0
+        enableDistortion: 0
+        enablePostprocess: 0
+        enableOpaqueObjects: 0
+        enableTransparentObjects: 0
+        enableRealtimePlanarReflection: 0
+        enableMSAA: 0
+        enableAsyncCompute: 0
+        runLightListAsync: 0
+        runSSRAsync: 0
+        runSSAOAsync: 0
+        runContactShadowsAsync: 0
+        runVolumeVoxelizationAsync: 0
+        lightLoopSettings:
+          overrides: 0
+          enableDeferredTileAndCluster: 0
+          enableComputeLightEvaluation: 0
+          enableComputeLightVariants: 0
+          enableComputeMaterialVariants: 0
+          enableFptlForForwardOpaque: 0
+          enableBigTilePrepass: 0
+          isFptlEnabled: 0
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -19461,7 +20076,7 @@ MonoBehaviour:
   m_BakedTexture: {fileID: 0}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -19478,7 +20093,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -19495,9 +20110,9 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
+    m_CapturePosition: {x: 0, y: 0, z: 0}
   m_CustomRenderData:
-    worldToCameraRHS:
+    m_WorldToCameraRHS:
       e00: 0
       e01: 0
       e02: 0
@@ -19514,7 +20129,7 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    projectionMatrix:
+    m_ProjectionMatrix:
       e00: 0
       e01: 0
       e02: 0
@@ -19531,8 +20146,8 @@ MonoBehaviour:
       e31: 0
       e32: 0
       e33: 0
-    capturePosition: {x: 0, y: 0, z: 0}
-  m_HDProbeVersion: 2
+    m_CapturePosition: {x: 0, y: 0, z: 0}
+  m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
     m_Shape: 1
@@ -19571,6 +20186,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     enableReprojectionForVolumetrics: 1
     enableLightLayers: 1
+    enableExposureControl: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     shaderLitMode: 1
@@ -19595,7 +20211,7 @@ MonoBehaviour:
     runVolumeVoxelizationAsync: 1
     lightLoopSettings:
       overrides: 0
-      enableTileAndCluster: 1
+      enableDeferredTileAndCluster: 1
       enableComputeLightEvaluation: 1
       enableComputeLightVariants: 1
       enableComputeMaterialVariants: 1
@@ -19627,7 +20243,7 @@ MonoBehaviour:
     renderingPath: 0
     shadowDistance: 100
   m_LocalReferencePosition: {x: 0, y: 0.99999994, z: 0.000000059604645}
-  m_PlanarProbeVersion: 5
+  m_PlanarProbeVersion: 6
   m_ObsoleteCaptureNearPlane: 1
   m_ObsoleteCaptureFarPlane: 1000
   m_ObsoleteOverrideFieldOfView: 0
@@ -19689,6 +20305,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -19766,6 +20383,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -19843,6 +20461,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -19945,6 +20564,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -19966,7 +20586,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 2024496926}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 1843972f86a70ad4f9ac115809638244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -20036,6 +20655,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -20113,6 +20733,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -20190,6 +20811,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -20267,6 +20889,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
