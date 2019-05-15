@@ -536,7 +536,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             settings,
                             positionSettings,
                             planarRT,
-                            out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
+                            out var cameraSettings, out var cameraPositionSettings
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
                         if (Provider.isActive && HDEditorUtils.IsAssetPath(targetFile))
