@@ -2,6 +2,8 @@
 
 The Unlit Shader lets you create Materials that are not affected by lighting. It includes options for the Surface Type, Emissive Color, and GPU Instancing. For more information about Materials, Shaders and Textures, see the [Unity User Manual](https://docs.unity3d.com/Manual/Shaders.html).
 
+![](Images/HDRPFeatures-UnlitShader.png)
+
 ## Creating an Unlit Material
 
 New Materials in HDRP use the [Lit Shader](Lit-Shader.html) by default. To create an Unlit Shader, you need to create a Material and then make it use the Unlit Shader. To do this:
@@ -22,41 +24,36 @@ Surface options control the overall look of your Material's surface and how Unit
 
 | Property| Description |
 |:---|:---|
-| **Surface type** | Controls whether your Shader supports transparency or not. HDRP exposes more properties depending on the Surface Type you select. See the [Surface Type](Surface-Type.html) documentation for more information. |
-| **Render Pass** | Controls when objects using this shader will be rendered during the frame. See [Render Pass](Render-Pass.html) documentation for more information. Behavior and available option will depend on the shader type (Lit or Unlit). |
-| **Alpha Cutoff Enable** | Controls whether your Material acts like a [Cutout Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html) or not. Enabling this feature exposes more properties. See the [Alpha Clipping](Alpha-Clipping.html) documentation for more information. |
-| **Double Sided** | Controls whether HDRP renders both faces of the polygons in your geometry, or just the side defined by the normal. See the [Double Sided](Double-Sided.html) documentation for more information. |
+| **Surface type** | Use the drop-down to define whether your Material supports transparency or not. Materials with a **Transparent Surface Type** are more resource intensive to render than Materials with an **Opaque** **Surface Type**. HDRP exposes more properties, depending on the **Surface Type** you select. For more information about the feature and for the list of properties each **Surface Type** exposes, see the [Surface Type documentation](Surface-Type.html). |
+| **- Render Pass** | Use the drop-down to set the rendering pass that HDRP processes this Material in. For information on this property, see the [Surface Type documentation](Surface-Type.html). |
+| **Double-Sided**   | Enable the checkbox to make HDRP render both faces of the polygons in your geometry. For more information about the feature and for the  list of properties enabling this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
+| **Alpha Clipping** | Enable the checkbox to make this Material act like a Cutout Shader. Enabling this feature exposes more properties. For more information about the feature and for the  list of properties enabling this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
 
 
-### Inputs
+### Surface Inputs
 
 | Property| Description |
 |:---|:---|
 | **Color** | The texture and base color of the Material. The RGB values define the color and the alpha channel defines the opacity. If you set a texture to this field, HDRP multiplies the texture by the color. If you do not set a texture in this field then HDRP only uses the base color to draw Meshes that use this Material.|
 | **- Tiling** | HDRP uses the **X** and **Y** values of this property to tile the texture from the **Color** property on the object space x-axis and y-axis respectively. |
 | **- Offset** | HDRP uses the **X** and **Y** values of this property to offset the texture from the **Color** property on the object space x-axis and y-axis respectively. |
-| **Emissive Color** | The emission texture and HDR color this Material uses for emission. If you set an emission texture in this field then HDRP multiplies the emission texture by the HDR color. If you do not set an emission texture then HDRP only uses the HDR color to calculate the final emissive color of the Material. You can set the intensity of the HDR color within the HDR color picker. |
-| **- Tiling** | HDRP uses the **X** and **Y** values of this property to tile the emissive texture from the **Emissive Color** property on the object space x-axis and y-axis respectively. |
-| **- Offset** | HDRP uses the **X** and **Y** values of this property to offset the emissive texture from the **Emissive Color** property on the object space x-axis and y-axis respectively. |
 
+### Emission Inputs
 
+| **Property**               | **Description**                                              |
+| -------------------------- | ------------------------------------------------------------ |
+| **Use Emission Intensity** | Enable the checkbox to use a separate LDR color and intensity value to set the emission color for this Material. Disable this checkbox to only use an HDR color to handle the color and emission color intensity. When enabled, this exposes the **Emission Intensity** property. |
+| **Emissive Color**         | Assign a Texture that this Material uses for emission. You can also use the color picker to select a color that HDRP multiplies by the Texture. If you do not set an emission texture then HDRP only uses the HDR color to calculate the final emissive color of the Material. You can set the intensity of the HDR color within the HDR color picker. |
+| **- Tiling**               | Set an **X** and **Y** tile rate for the **Emissive Color** UV. HDRP uses the **X** and **Y** values to tile the Texture assigned to the **Emissive Color** across the Material’s surface, in object space. |
+| **- Offset**               | Set an **X** and **Y** offset for the **Emissive Color** UV. HDRP uses the **X** and **Y** values to offset the Texture assigned to the **Emissive Color** across the Material’s surface, in object space. |
+| **Emission Intensity**     | Set the overall strength of the emission effect for this Material.<br />Use the drop-down to select one of the following [physical light units](Physical-Light-Units.html) to use for intensity:<br />&#8226; [Luminance](Physical-Light-Units.html#Luminance)<br />&#8226; [EV<sub>100</sub>](Physical-Light-Units.html#EV) |
+| **Exposure Weight**        | Use the slider to set how much effect the exposure has on the emission power. For example, if you create a neon tube, you would want to apply the emissive glow effect at every exposure. |
+| **Emission**               | Enable the checkbox to make the emission color affect global illumination. |
+| **- Global Illumination**  | Use the drop-down to choose how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 
 ### Transparency Inputs
 
-Set the __Surface Type__ to __Transparent__ to expose the __Transparency Inputs__ section in the Material Inspector.
-
-| Property| Description |
-|:---|:---|
-| **Distortion** | Enable the checkbox to distort the light passing through this transparent Material. Checking this box exposes the following properties. |
-| **- Distortion Blend Mode** | Set the mode HDRP uses to blend overlayed distortion surfaces. |
-| **- Distortion Only** | Enable the checkbox to only show the distortion effect and set all other inputs to have no effect. |
-| **- Distortion Depth Test** | Enable the checkbox to make closer GameObjects hide the distortion effect, otherwise you can always see the effect. If you do not enable this feature, then the distortion appears on top of the rendering. |
-| **- Distortion Vector Map** | HDRP uses the red and green channels of this texture to calculate distortion. It also uses the blue channel to manage the blur intensity between 0 and 1. By default, a texture has values between 0 and 1. To be able to produce distortion in either direction, you must remap the distortion texture between -1 and 1. HDRP provides two values you can use to remap the distortion texture. It takes the original value from the map and multiplies it by the value on the left then adds the value on the right. For example, to remap original values of 0 to 1 to be  -1 to 1, enter 2 for the first value and -1 for the second value. |
-| **- Distortion Scale** | A multiplier for the distortion effect. Set this to a value higher than 1 to amplify the effect. |
-| **- Distortion Blur Scale** | A multiplier for the distortion blur. Set this to a value higher than 1 to amplify the blur. |
-| **- Distortion Blur Remapping** | This handle clamps the values of the blue channel of the **Distortion Vector Map**. Use this to refine the blur setting. |
-
-
+Unity exposes this section if you select **Transparent** from the **Surface Type** drop-down. For information on the properties in this section, see the [Surface Type documentation](Surface-Type.html#TransparencyInputs).
 
 ### Advanced Options
 

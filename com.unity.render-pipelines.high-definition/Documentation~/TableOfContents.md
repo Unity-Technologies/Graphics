@@ -4,50 +4,47 @@
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
-  * [Advanced Properties](Advanced-Properties)
+  * [Exposing Advanced Properties](Advanced-Properties)
   * [VR in HDRP](VR-in-HDRP)
-  * Overviews
-    * [Materials Overview](Materials-Shaders-Overview)
-    * [Fog Overview](Fog-Overview)
-    * [Sky Overview](Sky-Overview)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
   * [Volume Overrides](Volume-Components)
-* Volume Overrides
-  * [Diffusion Profile](Override-Diffusion-Profile)
-  * [Exposure](Override-Exposure)
-  * Fog
-    * [Exponential Fog](Override-Exponential-Fog)
-    * [Linear Fog](Override-Linear-Fog)
-    * [Volumetric Fog](Override-Volumetric-Fog)
-  * Lighting
-    * [Ambient Occlusion](Override-Ambient-Occlusion)
-    * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
-    * [Volumetric Fog Quality](Override-Volumetric-Fog-Quality)
-  * Shadowing
-    * [Contact Shadows](Override-Contact-Shadows)
-    * [Micro Shadows](Override-Micro-Shadows)
-    * [Shadows](Override-Shadows)
-  * Sky
-    * [Gradient Sky](Override-Gradient-Sky)
-    * [HDRI Sky](Override-HDRI-Sky)
-    * [Procedural Sky](Override-Procedural-Sky)
-  * [Visual Environment](Override-Visual-Environment)
+  * Volume Overrides List
+    * [Diffusion Profile](Override-Diffusion-Profile)
+    * [Exposure](Override-Exposure)
+    * Fog
+      * [Exponential Fog](Override-Exponential-Fog)
+      * [Linear Fog](Override-Linear-Fog)
+      * [Volumetric Fog](Override-Volumetric-Fog)
+    * Lighting
+      * [Ambient Occlusion](Override-Ambient-Occlusion)
+      * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
+      * [Volumetric Fog Quality](Override-Volumetric-Fog-Quality)
+    * Shadowing
+      * [Contact Shadows](Override-Contact-Shadows)
+      * [Micro Shadows](Override-Micro-Shadows)
+      * [Shadows](Override-Shadows)
+    * Sky
+      * [Gradient Sky](Override-Gradient-Sky)
+      * [HDRI Sky](Override-HDRI-Sky)
+      * [Procedural Sky](Override-Procedural-Sky)
+    * [Visual Environment](Override-Visual-Environment)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
 * Materials
-  * [Surface Type](Surface-Type)
-  * [Double Sided](Double-Sided)
-  * [Ambient Occlusion](Ambient-Occlusion)
   * [Alpha Clipping](Alpha-Clipping)
+  * [Ambient Occlusion](Ambient-Occlusion)
+  * [Displacement Mode](Displacement-Mode)
+  * [Double Sided](Double-Sided)
+  * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing)
   * [Material Type](Material-Type)
   * [Renderer and Material Priority](Renderer-And-Material-Priority)
+  * [Surface Type](Surface-Type)
   * Subsurface Scattering
     - [Subsurface Scattering Materials](Subsurface-Scattering)
     - [Diffusion Profile](Diffusion-Profile)
-
   * [Decal Projector](Decal-Projector)
   * Shader List
     * [Lit Shader](Lit-Shader)

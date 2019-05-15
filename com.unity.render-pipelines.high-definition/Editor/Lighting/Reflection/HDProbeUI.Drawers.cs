@@ -25,7 +25,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal interface IProbeUISettingsProvider
         {
             ProbeSettingsOverride displayedCaptureSettings { get; }
+            ProbeSettingsOverride displayedAdvancedCaptureSettings { get; }
             ProbeSettingsOverride overrideableCaptureSettings { get; }
+            ProbeSettingsOverride overrideableAdvancedCaptureSettings { get; }
             ProbeSettingsOverride displayedAdvancedSettings { get; }
             ProbeSettingsOverride overrideableAdvancedSettings { get; }
             Type customTextureType { get; }
@@ -202,6 +204,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     serialized.probeSettings, owner,
                     serialized.probeSettingsOverride,
                     provider.displayedCaptureSettings, provider.overrideableCaptureSettings
+                );
+            }
+
+            public static void DrawAdvancedCaptureSettings(SerializedHDProbe serialized, Editor owner)
+            {
+                var provider = new TProvider();
+                ProbeSettingsUI.Draw(
+                    serialized.probeSettings, owner,
+                    serialized.probeSettingsOverride,
+                    provider.displayedAdvancedCaptureSettings, provider.overrideableAdvancedCaptureSettings
                 );
             }
 

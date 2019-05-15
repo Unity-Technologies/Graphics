@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new GradientMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
+            AddSlot(new GradientMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
