@@ -8,7 +8,10 @@
 
 // We can't use multi_compile for compute shaders so we force the shadow algorithm
 #if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING || SHADERPASS == SHADERPASS_VOLUMETRIC_LIGHTING || SHADERPASS == SHADERPASS_VOLUME_VOXELIZATION)
-#define SHADOW_LOW 
+// custom-begin:
+#define SHADOW_HIGH
+// #define SHADOW_LOW
+// custom-end
 #endif
 
 #ifdef SHADOW_LOW
@@ -287,7 +290,7 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
     /* get shadowmap texcoords */
     float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _AreaShadowAtlasSize.zw, positionWS, perspective);
 
-    int blurPassesScale = (1 + min(4, sd.shadowFilterParams0.w) * 4.0f);// This is needed as blurring might cause some leaks. It might be overclipping, but empirically is a good value. 
+    int blurPassesScale = (1 + min(4, sd.shadowFilterParams0.w) * 4.0f);// This is needed as blurring might cause some leaks. It might be overclipping, but empirically is a good value.
     float2 maxCoord = (sd.shadowMapSize.xy - 0.5f * blurPassesScale) * _AreaShadowAtlasSize.zw + sd.atlasOffset;
     float2 minCoord = sd.atlasOffset + _AreaShadowAtlasSize.zw * blurPassesScale;
 
@@ -298,7 +301,7 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
     else
     {
         float2 exponents = sd.shadowFilterParams0.xx;
-        float lightLeakBias = sd.shadowFilterParams0.y; 
+        float lightLeakBias = sd.shadowFilterParams0.y;
         float varianceBias = sd.shadowFilterParams0.z;
         return SampleShadow_EVSM_1tap(posTC, lightLeakBias, varianceBias, exponents, false, tex, s_linear_clamp_sampler);
 
@@ -371,24 +374,24 @@ float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D te
     {
         HDShadowData sd = shadowContext.shadowDatas[index];
         LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
-    
+
         /* normal based bias */
         float3 orig_pos = positionWS;
         float recvBiasWeight = EvalShadow_ReceiverBiasWeight(sd, _CascadeShadowAtlasSize.zw, sd.atlasOffset, sd.viewBias, sd.edgeTolerance, sd.flags, tex, samp, positionWS, normalWS, L, 1.0, false);
         positionWS = EvalShadow_ReceiverBias(sd.viewBias, sd.normalBias, positionWS, normalWS, L, 1.0, recvBiasWeight, false);
-    
+
         /* get shadowmap texcoords */
         float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, positionWS, false);
         /* evalute the first cascade */
         float2 sampleBias = EvalShadow_SampleBias_Ortho(normalWS);
         shadow            = DIRECTIONAL_FILTER_ALGORITHM(sd, positionSS, posTC, sampleBias, tex, samp);
         float  shadow1    = 1.0;
-    
+
         shadowSplitIndex++;
         if (shadowSplitIndex < cascadeCount)
         {
             shadow1 = shadow;
-    
+
             if (alpha > 0.0)
             {
                 LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
@@ -397,7 +400,7 @@ float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D te
                 posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, positionWS, posNDC, false);
                 /* sample the texture */
                 sampleBias = EvalShadow_SampleBias_Ortho(normalWS);
-    
+
                 UNITY_BRANCH
                 if (all(abs(posNDC.xy) <= (1.0 - sd.shadowMapSize.zw * 0.5)))
                     shadow1 = DIRECTIONAL_FILTER_ALGORITHM(sd, positionSS, posTC, sampleBias, tex, samp);
