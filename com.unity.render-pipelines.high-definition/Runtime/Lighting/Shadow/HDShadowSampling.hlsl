@@ -272,9 +272,9 @@ float SampleShadow_MSM_1tap(float3 tcs, float lightLeakBias, float momentBias, f
 //
 float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float2 sampleBias, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp)
 {
-    uint taaFrameIndex = _TaaFrameInfo.z;
-    float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
-    float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+    // custom-begin
+    float2 sampleJitter = ComputePCSSSampleJitter(posSS.xy, _TaaFrameInfo.z);
+    // custom-end
 
     //1) Blocker Search
     float averageBlockerDepth = 0.0;

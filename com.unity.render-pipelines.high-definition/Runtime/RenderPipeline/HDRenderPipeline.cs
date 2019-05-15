@@ -952,6 +952,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Off screen rendering is disabled for most of the frame by default.
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
                 cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.SpecularLighting) ? 1 : 0);
+
+                // custom-begin
+                cmd.SetGlobalTexture(HDShaderIDs._BlueNoiseRGBTexture, m_BlueNoise.textures16RGB[m_FrameCount % m_BlueNoise.textures16RGB.Length]);
+                cmd.SetGlobalInt(HDShaderIDs._BlueNoiseRGBTextureResolutionMinusOne, m_BlueNoise.textures16RGB[m_FrameCount % m_BlueNoise.textures16RGB.Length].width - 1);
+                // custom-end
             }
         }
 
