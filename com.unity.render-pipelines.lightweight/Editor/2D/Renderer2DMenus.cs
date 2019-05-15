@@ -83,65 +83,64 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             return false;
         }
 
-        //[MenuItem("GameObject/Light/2D/Freeform Light 2D", false, -100, true)]
-        [MenuItem("GameObject/Light/2D/Freeform Light 2D", false, -100)]
+        [MenuItem("GameObject/Light/2D/Freeform Light 2D (Experimental)", false, -100)]
         static void CreateFreeformLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, "Freeform Light 2D", Light2D.LightType.Freeform);
         }
 
-        [MenuItem("GameObject/Light/2D/Freeform Light 2D", true, -100)]
+        [MenuItem("GameObject/Light/2D/Freeform Light 2D (Experimental)", true, -100)]
         static bool CreateFreeformLight2DValidation()
         {
             return CreateLightValidation();
         }
 
-        [MenuItem("GameObject/Light/2D/Sprite Light 2D", false, -100)]
+        [MenuItem("GameObject/Light/2D/Sprite Light 2D (Experimental)", false, -100)]
         static void CreateSpriteLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, "Sprite Light 2D", Light2D.LightType.Sprite);
         }
-        [MenuItem("GameObject/Light/2D/Sprite Light 2D", true, -100)]
+        [MenuItem("GameObject/Light/2D/Sprite Light 2D (Experimental)", true, -100)]
         static bool CreateSpriteLight2DValidation()
         {
             return CreateLightValidation();
         }
 
-        [MenuItem("GameObject/Light/2D/Parametric Light 2D", false, -100)]
+        [MenuItem("GameObject/Light/2D/Parametric Light 2D (Experimental)", false, -100)]
         static void CreateParametricLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, "Parametric Light 2D", Light2D.LightType.Parametric);
         }
-        [MenuItem("GameObject/Light/2D/Parametric Light 2D", true, -100)]
+        [MenuItem("GameObject/Light/2D/Parametric Light 2D (Experimental)", true, -100)]
         static bool CreateParametricLight2DValidation()
         {
             return CreateLightValidation();
         }
 
-        [MenuItem("GameObject/Light/2D/Point Light 2D", false, -100)]
+        [MenuItem("GameObject/Light/2D/Point Light 2D (Experimental)", false, -100)]
         static void CreatePointLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, "Point Light 2D", Light2D.LightType.Point);
         }
 
-        [MenuItem("GameObject/Light/2D/Point Light 2D", true, -100)]
+        [MenuItem("GameObject/Light/2D/Point Light 2D (Experimental)", true, -100)]
         static bool CreatePointLight2DValidation()
         {
             return CreateLightValidation();
         }
 
-        [MenuItem("GameObject/Light/2D/Global Light 2D", false, -100)]
+        [MenuItem("GameObject/Light/2D/Global Light 2D (Experimental)", false, -100)]
         static void CreateGlobalLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, "Global Light 2D", Light2D.LightType.Global);
         }
-        [MenuItem("GameObject/Light/2D/Global Light 2D", true, -100)]
+        [MenuItem("GameObject/Light/2D/Global Light 2D (Experimental)", true, -100)]
         static bool CreateGlobalLight2DValidation()
         {
             return CreateLightValidation();
         }
 
-        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/2D Renderer", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
+        [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/2D Renderer (Experimental)", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
         static void Create2DRendererData()
         {
             Renderer2DData.Create2DRendererData((instance) =>
