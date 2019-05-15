@@ -1041,9 +1041,12 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
-// LOD1 must use this function with ditherFactor 0..1
+// LOD1 must use this function with ditherFactor -1..0
+// This is what is provided by unity_LODFade
 void LODDitheringTransition(uint3 fadeMaskSeed, float ditherFactor)
 {
+    ditherFactor = ditherFactor < 0.0 ? 1 + ditherFactor : ditherFactor;
+
     // Generate a spatially varying pattern.
     // Unfortunately, varying the pattern with time confuses the TAA, increasing the amount of noise.
     float p = GenerateHashedRandomFloat(fadeMaskSeed);
