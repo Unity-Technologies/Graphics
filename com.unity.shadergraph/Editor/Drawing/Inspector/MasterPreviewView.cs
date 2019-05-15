@@ -172,6 +172,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
             {
                 m_Graph.previewData.rotation = Quaternion.identity;
+                m_PreviewScrollPosition = Vector2.zero;
             }
 
             m_Graph.previewData.serializedMesh.mesh = changedMesh;

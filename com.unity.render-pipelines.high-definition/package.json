@@ -8,5 +8,17 @@
         "com.unity.render-pipelines.core": "7.0.0",
         "com.unity.shadergraph": "7.0.0",
 		"com.unity.ugui" : "1.0.0"
-    }
+    },
+	"samples" : [
+		{
+			"displayName" : "Additional Post-processing Data",
+			"description" : "Adds additional post-processing data to your project, such as Lens Dirt textures.",
+			"path" : "Samples~/PostProcessingData"
+		},
+		{
+			"displayName" : "Shader Graph Samples",
+			"description" : "Adds Shader Graph samples to your project. Open the SampleScene to see typical use cases for the Hair, Fabric, and Decal Master Nodes for Shader Graph.",
+			"path" : "Samples~/ShaderGraphSamples"
+		}
+	]
 }
