@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.LWRP
             public Shader samplingPS;
         }
 
-        public ShaderResources shaders;
+        public ShaderResources shaders = null;
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
@@ -58,5 +58,28 @@ namespace UnityEngine.Rendering.LWRP
         public LayerMask transparentLayerMask => m_TransparentLayerMask;
 
         public StencilStateData defaultStencilState => m_DefaultStencilState;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            // Upon asset creation, OnEnable is called and `shaders` reference is not yet initialized
+            // We need to call the OnEnable for data migration when updating from old versions of LWRP that
+            // serialized resources in a different format. Early returning here when OnEnable is called
+            // upon asset creation is fine because we guarantee new assets get created with all resources initialized.
+            if (shaders == null)
+                return;
+
+#if UNITY_EDITOR
+            foreach (var shader in shaders.GetType().GetFields())
+            {
+                if (shader.GetValue(shaders) == null)
+                {
+                    ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
+                    break;
+                }
+            }
+#endif
+        }
     }
 }

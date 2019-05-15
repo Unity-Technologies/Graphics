@@ -40,6 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent useEmissionIntensityText = new GUIContent("Use Emission Intensity", "When enabled, this Material separates emission color and intensity. This makes the Emission Map into an LDR color and exposes the Emission Intensity property.");
             public static GUIContent emissionMapText = new GUIContent("Emission Map", "Specifies a map (RGB) that the Material uses for emission.");
             public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "Sets the overall strength of the emission effect.");
+            public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Control the percentage of emission to expose.");
 
 
             public static GUIContent[] maskMapText =
@@ -151,6 +152,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty emissiveColorHDR = null;
         protected const string kEmissiveColorHDR = "_EmissiveColorHDR";
 
+        protected MaterialProperty emissiveExposureWeight = null;
+        protected const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
+
         protected MaterialEditor m_MaterialEditor;
 
         void FindMaterialProperties(MaterialProperty[] props)
@@ -183,7 +187,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
             emissiveColorLDR = FindProperty(kEmissiveColorLDR, props);
             emissiveColorHDR = FindProperty(kEmissiveColorHDR, props);
-
+            emissiveExposureWeight = FindProperty(kEmissiveExposureWeight, props);
+            
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
             instancing.boolValue = true;
@@ -345,7 +350,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         {
                             m_MaterialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissionIntensityText);
                             
-                            if(useEmissiveIntensity.floatValue == 1.0f)
+                            if (useEmissiveIntensity.floatValue == 1.0f)
                             {
                                 m_MaterialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorLDR);
                                 using (new EditorGUILayout.HorizontalScope())
@@ -367,6 +372,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             {
                                 m_MaterialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorHDR);
                             }
+
+                            m_MaterialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
                         }
 
                         EditorGUI.indentLevel--;

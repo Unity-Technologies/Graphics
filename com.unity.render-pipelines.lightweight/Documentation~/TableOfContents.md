@@ -17,6 +17,15 @@
   * [Particles Simple Lit](particles-simple-lit-shader.md)
   * [Particles Unlit](particles-unlit-shader.md)
   * [Upgrading shaders](upgrading-your-shaders.md)
-
+* [2D in LWRP](2d-index.md)
+  * [Requirements and setup](Setup.md)
+  * [Preparing and upgrading](PrepShader.md)
+  * [Normal map and mask Textures](SecondaryTextures.md)
+  * [2D Lights Properties](2DLightProperties.md)
+  * [Light Types](LightTypes.md)
+  * [Configuring the 2D Renderer Asset](2DRendererConfig.md)
+    * [HDR Emulation Scale](HDREmulationScale.md)
+    * [Light Blend Styles](LightBlendStyles.md)
+  * [2D with Shader Graph](ShaderGraph.md)
 * [Frequently asked questions (FAQ)](faq.md)
 

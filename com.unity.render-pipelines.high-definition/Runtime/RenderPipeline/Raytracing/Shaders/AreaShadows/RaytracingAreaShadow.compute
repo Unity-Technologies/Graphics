@@ -53,7 +53,6 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 {
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_AREA_SHADOW_TILE_SIZE + groupThreadId;
-    currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // The value -1.0 is used to identify an invalid pixel
     _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)] = float2(-1.0, -1.0);
@@ -225,11 +224,10 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
 {
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_AREA_SHADOW_TILE_SIZE + groupThreadId;
-    currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Read the depth value
     float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || LOAD_TEXTURE2D_X(_AnalyticProbBuffer, currentCoord).x < 0.0)
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)].x < 0.0)
     {
         _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
         return;
@@ -270,7 +268,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
 
     // Our shader only processes luminance
-    float U = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, currentCoord).x;
+    float U = _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)].x;
 
     // Structure that holds all the input data for the MIS
     MISSamplingInput misInput;
@@ -280,7 +278,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     misInput.positionWS = positionWS;
     misInput.rectDimension = lightData.size.xy;
     misInput.rectWSPos = GetAbsolutePositionWS(lightData.positionRWS);
-    misInput.brdfProb = LOAD_TEXTURE2D_X(_AnalyticProbBuffer, currentCoord).y;
+    misInput.brdfProb = _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)].y;
 
     // Setup and check the spherical rectangle
     SphQuad squad;

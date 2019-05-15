@@ -14,8 +14,8 @@ testplatforms:
     args: --suite=playmode --platform=Standalone
   - name: playmode
     args: --suite=playmode
-  - name: editmode
-    args: --suite=editor --platform=editmode
+#  - name: editmode
+#    args: --suite=editor --platform=editmode
 projects:
   - name: VFX_LWRP
     folder: VisualEffectGraph_LWRP
@@ -41,9 +41,9 @@ projects:
       - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
       - cd TestProjects/{{ project.folder }} && unity-downloader-cli -u {{ editor.version }} -c editor --wait --published
       {% if testplatform.name == "Standalone" %}
-        - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
+      - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }}{{ platform.name }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
       {% else %}
-        - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
+      - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results || powershell -command "utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
       {% endif %}
             
   artifacts:

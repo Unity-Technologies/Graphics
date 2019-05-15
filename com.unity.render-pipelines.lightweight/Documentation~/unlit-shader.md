@@ -1,5 +1,3 @@
-**Important:** This page is subject to change during the 2019.1 beta cycle.
-
 # Unlit Shader 
 
 Use this Shader for effects or unique objects in your visuals that don’t need lighting. Because there are no time-consuming lighting calculations or lookups, this Shader is optimal for lower-end hardware. The Unlit Shader uses the most simple [shading model](shading-model.md) in LWRP. 
