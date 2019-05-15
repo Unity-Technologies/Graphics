@@ -208,7 +208,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CosTime             = Shader.PropertyToID("_CosTime");
         public static readonly int unity_DeltaTime      = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int _TimeParameters      = Shader.PropertyToID("_TimeParameters");
-        public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");        
+        public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");
 
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
         public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
@@ -472,7 +472,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _OffScreenRendering             = Shader.PropertyToID("_OffScreenRendering");
         public static readonly int _OffScreenDownsampleFactor      = Shader.PropertyToID("_OffScreenDownsampleFactor");
         public static readonly int _ReplaceDiffuseForIndirect      = Shader.PropertyToID("_ReplaceDiffuseForIndirect");
-        public static readonly int _EnableSkyLighting               = Shader.PropertyToID("_EnableSkyLighting");        
+        public static readonly int _EnableSkyLighting               = Shader.PropertyToID("_EnableSkyLighting");
 
 
 #if ENABLE_RAYTRACING
@@ -686,6 +686,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _GrainParams                    = Shader.PropertyToID("_GrainParams");
         public static readonly int _GrainTextureParams             = Shader.PropertyToID("_GrainTextureParams");
         public static readonly int _BlueNoiseTexture               = Shader.PropertyToID("_BlueNoiseTexture");
+
         public static readonly int _OwenScrambledTexture           = Shader.PropertyToID("_OwenScrambledTexture");
         public static readonly int _ScramblingTexture              = Shader.PropertyToID("_ScramblingTexture");
         public static readonly int _AfterPostProcessTexture        = Shader.PropertyToID("_AfterPostProcessTexture");
@@ -723,6 +724,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AODepthToViewParams            = Shader.PropertyToID("_AODepthToViewParams");
         public static readonly int _AOPackedBlurred                = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
+
+        // custom-begin
+        public static readonly int _BlueNoiseRGBTexture            = Shader.PropertyToID("_BlueNoiseRGBTexture");
+        public static readonly int _BlueNoiseRGBTextureResolutionMinusOne = Shader.PropertyToID("_BlueNoiseRGBTextureResolutionMinusOne");
+        // custom-end
     }
 
     // Shared material property names
@@ -740,7 +746,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kStencilRefDistortionVec = "_StencilRefDistortionVec";
         public const string kStencilWriteMaskDistortionVec = "_StencilWriteMaskDistortionVec";
         public const string kUseSplitLighting = "_RequireSplitLighting";
-        
+
         public const string kZWrite = "_ZWrite";
         public const string kTransparentCullMode = "_TransparentCullMode";
         public const string kZTestTransparent = "_ZTestTransparent";
@@ -756,7 +762,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
 
         public const string kLayerCount = "_LayerCount";
-        
+
         public const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         public const string kZTestGBuffer = "_ZTestGBuffer";
         public const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
@@ -784,7 +790,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kUVDetail = "_UVDetail";
         public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         public const string kReceivesSSR = "_ReceivesSSR";
-    
+
         public static readonly Color[] kLayerColors =
         {
             Color.white,

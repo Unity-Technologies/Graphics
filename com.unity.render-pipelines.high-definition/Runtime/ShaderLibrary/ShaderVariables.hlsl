@@ -111,6 +111,13 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 TEXTURE2D(_ExposureTexture);
 TEXTURE2D(_PrevExposureTexture);
 
+// custom-begin
+// 3-Channel (RGB) noise look up texture for high quality, high frequency (low clumping) noise.
+// Cycles to new lut every frame (on a 16-frame loop).
+// Useful for monte-carlo integration over time.
+TEXTURE2D(_BlueNoiseRGBTexture);
+// custom-end
+
 // ----------------------------------------------------------------------------
 
 // Define that before including all the sub systems ShaderVariablesXXX.hlsl files in order to include constant buffer properties.
@@ -245,6 +252,10 @@ CBUFFER_START(UnityGlobal)
 
     uint _XRViewCount;
     int  _FrameCount;
+
+    // custom-begin
+    uint _BlueNoiseRGBTextureResolutionMinusOne;
+    // custom-end
 
 CBUFFER_END
 
@@ -414,5 +425,16 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/ShaderVariablesSubsurfaceScattering.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+
+
+// custom-begin
+float3 LoadBlueNoiseRGB(uint2 pixelCoords)
+{
+    // Tile-texture across screen.
+    uint2 textureCoords = uint2(pixelCoords.x & _BlueNoiseRGBTextureResolutionMinusOne, pixelCoords.y & _BlueNoiseRGBTextureResolutionMinusOne);
+    float4 blueNoiseSample = LOAD_TEXTURE2D_LOD(_BlueNoiseRGBTexture, textureCoords, 0);
+    return blueNoiseSample.xyz;
+}
+// custom-end
 
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

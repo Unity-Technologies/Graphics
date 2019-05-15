@@ -898,8 +898,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
                 cmd.SetGlobalFloat(HDShaderIDs._ReplaceDiffuseForIndirect, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f);
                 cmd.SetGlobalInt(HDShaderIDs._EnableSkyLighting, hdCamera.frameSettings.IsEnabled(FrameSettingsField.EnableSkyLighting) ? 1 : 0);
+
+                // custom-begin
+                Texture2D blueNoiseTexture = GetBlueNoiseTextureForCurrentFrame();
+                cmd.SetGlobalTexture(HDShaderIDs._BlueNoiseRGBTexture, blueNoiseTexture);
+                cmd.SetGlobalInt(HDShaderIDs._BlueNoiseRGBTextureResolutionMinusOne, blueNoiseTexture.width - 1);
+                // custom-end
             }
         }
+
+        // custom-begin:
+        public Texture2D GetBlueNoiseTextureForCurrentFrame()
+        {
+            return m_BlueNoise.textures16RGB[m_FrameCount % m_BlueNoise.textures16RGB.Length];
+        }
+        // custom-end
 
         void CopyDepthBufferIfNeeded(CommandBuffer cmd)
         {
