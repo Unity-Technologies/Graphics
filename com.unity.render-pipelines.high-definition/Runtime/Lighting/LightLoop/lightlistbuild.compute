@@ -47,6 +47,10 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
 #endif
 
+#if defined(SHADER_API_MOBILE)
+#define PLATFORM_LANE_COUNT 32
+#endif
+
 #ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
 #define NR_THREADS              PLATFORM_LANE_COUNT  
 #else
@@ -58,13 +62,10 @@ StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't sup
 // output buffer
 RWStructuredBuffer<uint> g_vLightList : register( u0 );             // don't support RWBuffer yet in unity
 
-
-#define MAX_NR_COARSE_ENTRIES       64
-#define MAX_NR_PRUNED_ENTRIES       24
 #define CATEGORY_LIST_SIZE          (LIGHTCATEGORY_COUNT - 1) // Skip density volumes
 
-groupshared unsigned int coarseList[MAX_NR_COARSE_ENTRIES];
-groupshared unsigned int prunedList[MAX_NR_COARSE_ENTRIES];     // temporarily support room for all 64 while in LDS
+groupshared unsigned int coarseList[LIGHT_LIST_MAX_COARSE_ENTRIES];
+groupshared unsigned int prunedList[LIGHT_LIST_MAX_COARSE_ENTRIES];     // temporarily support room for all 64 while in LDS
 
 groupshared uint ldsZMin;
 groupshared uint ldsZMax;
@@ -153,7 +154,7 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
     uint2 tileIDX = u3GroupID.xy;
     uint t=threadID;
 
-    if(t<MAX_NR_COARSE_ENTRIES)
+    if(t<LIGHT_LIST_MAX_COARSE_ENTRIES)
         prunedList[t]=0;
 
     uint iWidth = g_viDimensions.x;
@@ -245,7 +246,7 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
             unsigned int uInc = 1;
             unsigned int uIndex;
             InterlockedAdd(lightOffs, uInc, uIndex);
-            if(uIndex<MAX_NR_COARSE_ENTRIES) coarseList[uIndex] = l;        // add to light list
+            if(uIndex<LIGHT_LIST_MAX_COARSE_ENTRIES) coarseList[uIndex] = l;        // add to light list
         }
     }
 
@@ -257,7 +258,7 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    int iNrCoarseLights = min(lightOffs,MAX_NR_COARSE_ENTRIES);
+    int iNrCoarseLights = min(lightOffs,LIGHT_LIST_MAX_COARSE_ENTRIES);
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
     iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
@@ -286,7 +287,7 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
 #endif
 
 
-    int nrLightsCombinedList = min(ldsNrLightsFinal,MAX_NR_COARSE_ENTRIES);
+    int nrLightsCombinedList = min(ldsNrLightsFinal,LIGHT_LIST_MAX_COARSE_ENTRIES);
     for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS)
     {
         const int lightBoundIndex = GenerateLightCullDataIndex(prunedList[i], g_iNrVisibLights, unity_StereoEyeIndex);
@@ -299,7 +300,7 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
 
     // sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
 #if NR_THREADS > PLATFORM_LANE_COUNT
-    SORTLIST(prunedList, nrLightsCombinedList, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
+    SORTLIST(prunedList, nrLightsCombinedList, LIGHT_LIST_MAX_COARSE_ENTRIES, t, NR_THREADS);
     //MERGESORTLIST(prunedList, coarseList, nrLightsCombinedList, t, NR_THREADS);
 #endif
 
@@ -337,7 +338,7 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
     for(int category=0; category<CATEGORY_LIST_SIZE; category++)
     {
         int nrLightsFinal = ldsCategoryListCount[category];
-        int nrLightsFinalClamped = nrLightsFinal<MAX_NR_PRUNED_ENTRIES ? nrLightsFinal : MAX_NR_PRUNED_ENTRIES;
+        int nrLightsFinalClamped = nrLightsFinal<LIGHT_LIST_MAX_PRUNED_ENTRIES ? nrLightsFinal : LIGHT_LIST_MAX_PRUNED_ENTRIES;
 
         const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
         for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
@@ -527,7 +528,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         unsigned int uInc = 1;
         unsigned int uIndex;
         InterlockedAdd(ldsNrLightsFinal, uInc, uIndex);
-        if(uIndex<MAX_NR_COARSE_ENTRIES) prunedList[uIndex] = coarseList[t];        // we allow up to 64 pruned lights while stored in LDS.
+        if(uIndex<LIGHT_LIST_MAX_COARSE_ENTRIES) prunedList[uIndex] = coarseList[t];        // we allow up to 64 pruned lights while stored in LDS.
     }
 }
 #endif

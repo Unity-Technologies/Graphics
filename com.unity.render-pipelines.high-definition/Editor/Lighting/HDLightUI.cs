@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         enum Advanceable
         {
             General = 1 << 0,
-            Shape = 1 << 1,
+            //Shape = 1 << 1, //not used anymore
             Emission = 1 << 2,
             Shadow = 1 << 3,
         }
@@ -116,12 +116,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     DrawGeneralContent,
                     DrawGeneralAdvancedContent
                     ),
-                CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
-                    (serialized, owner) => GetAdvanced(Advanceable.Shape, serialized, owner),
-                    (serialized, owner) => SwitchAdvanced(Advanceable.Shape, serialized, owner),
-                    DrawShapeContent,
-                    DrawShapeAdvancedContent
-                    ),
+                CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
                 CED.AdvancedFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState,
                     (serialized, owner) => GetAdvanced(Advanceable.Emission, serialized, owner),
                     (serialized, owner) => SwitchAdvanced(Advanceable.Emission, serialized, owner),
@@ -207,24 +202,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
-                var renderingLayerMask = serialized.serializedLightData.renderingLayerMask.intValue;
-                int lightLayer;
-                if (serialized.serializedLightData.renderingLayerMask.hasMultipleDifferentValues)
-                {
-                    EditorGUI.showMixedValue = true;
-                    lightLayer = 0;
-                }
-                else
-                    lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
-                EditorGUI.BeginChangeCheck();
-                lightLayer = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)lightLayer));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    // Overwrite only first byte
-                    lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
-                    serialized.serializedLightData.renderingLayerMask.intValue = lightLayer;
-                }
-                EditorGUI.showMixedValue = false;
+                HDEditorUtils.LightLayerMaskPropertyDrawer(s_Styles.lightLayer, serialized.serializedLightData.renderingLayerMask);
             }
         }
 
@@ -334,25 +312,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
                 ((Light)owner.target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
-        }
-
-        static void DrawShapeAdvancedContent(SerializedHDLight serialized, Editor owner)
-        {
-            switch (serialized.editorLightShape)
-            {
-                case LightShape.Spot:
-                case LightShape.Directional:
-                case LightShape.Point:
-                case LightShape.Rectangle:
-                case LightShape.Tube:
-                // no advanced parameters
-                case (LightShape)(-1):
-                    // don't do anything, this is just to handle multi selection
-                    break;
-                default:
-                    Debug.Assert(false, "Not implemented light type");
-                    break;
-            }              
         }
 
         static void UpdateLightIntensityUnit(SerializedHDLight serialized, Editor owner)
@@ -638,14 +597,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
                         {
+                            EditorGUI.showMixedValue = serialized.serializedLightData.nonLightmappedOnly.hasMultipleDifferentValues;
                             EditorGUI.BeginChangeCheck();
                             ShadowmaskMode shadowmask = serialized.serializedLightData.nonLightmappedOnly.boolValue ? ShadowmaskMode.ShadowMask : ShadowmaskMode.DistanceShadowmask;
                             shadowmask = (ShadowmaskMode)EditorGUILayout.EnumPopup(s_Styles.nonLightmappedOnly, shadowmask);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 serialized.serializedLightData.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
-                                ((Light)owner.target).lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                                foreach (Light target in owner.targets)
+                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
                             }
+                            EditorGUI.showMixedValue = false;
                         }
                     }
                     if (serialized.editorLightShape == LightShape.Rectangle)
@@ -738,6 +700,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Draw shadow settings using the current shadow algorithm
             HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams;
+            LightType lightType = (LightType)serialized.settings.lightType.enumValueIndex;
+
+            if (hdShadowInitParameters.shadowQuality == HDShadowQuality.VeryHigh)
+            {
+                // For very high settings shadow punctial lights we do not use the Very high settings but rather the High
+                if (quality == HDShadowQuality.High && lightType != LightType.Directional)
+                    return true;
+                // Only the directional can access the very high shadow settings
+                else if (quality == HDShadowQuality.VeryHigh && lightType == LightType.Directional)
+                    return true;
+                return false;
+            }
+
             return hdShadowInitParameters.shadowQuality == quality;
         }
 

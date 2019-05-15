@@ -92,6 +92,11 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 VaryingsParticle vertParticleUnlit(AttributesParticle input)
 {
     VaryingsParticle output = (VaryingsParticle)0;
+    
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+    
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
 
@@ -114,10 +119,6 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     output.normalWS = normalInput.normalWS;
     output.viewDirWS = viewDirWS;
 #endif
-
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     
     output.texcoord = input.texcoords.xy;
 #ifdef _FLIPBOOKBLENDING_ON
@@ -125,7 +126,7 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     output.texcoord2AndBlend.z = input.texcoordBlend;
 #endif
     
-#if defined(SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
+#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
     output.projectedPosition = ComputeScreenPos(vertexInput.positionCS);
 #endif
 
@@ -135,6 +136,8 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
 half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    
     float2 uv = input.texcoord;
     float3 blendUv = float3(0, 0, 0);
 #if defined(_FLIPBOOKBLENDING_ON)

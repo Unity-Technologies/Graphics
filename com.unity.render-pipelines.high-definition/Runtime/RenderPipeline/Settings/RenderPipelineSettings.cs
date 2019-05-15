@@ -55,7 +55,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             hdShadowInitParams = HDShadowInitParameters.@default,
             decalSettings = GlobalDecalSettings.@default,
             postProcessSettings = GlobalPostProcessSettings.@default,
-            dynamicResolutionSettings = GlobalDynamicResolutionSettings.@default
+            dynamicResolutionSettings = GlobalDynamicResolutionSettings.@default,
+            lowresTransparentSettings = GlobalLowResolutionTransparencySettings.@default
         };
 
         // Lighting
@@ -96,5 +97,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public GlobalDecalSettings decalSettings;
         public GlobalPostProcessSettings postProcessSettings;
         public GlobalDynamicResolutionSettings dynamicResolutionSettings;
+        public GlobalLowResolutionTransparencySettings lowresTransparentSettings;
     }
 }

@@ -32,16 +32,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //separated to add enum popup on default frame settings
         internal static CED.IDrawer InspectorInnerbox(bool withOverride = true) => CED.Group(
                 CED.FoldoutGroup(renderingSettingsHeaderContent, Expandable.RenderingPasses, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(190, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
+                    CED.Group(194, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
                     ),
                 CED.FoldoutGroup(lightSettingsHeaderContent, Expandable.LightingSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(190, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
+                    CED.Group(194, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
                     ),
                 CED.FoldoutGroup(asyncComputeSettingsHeaderContent, Expandable.AsynComputeSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(190, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
+                    CED.Group(194, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
                     ),
                 CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(190, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
+                    CED.Group(194, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
                     )
                 );
 
@@ -147,6 +147,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);
             area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
+
+            area.AmmendInfo(
+                FrameSettingsField.LODBiasMode,
+                overridedDefaultValue: LODBiasMode.FromQualitySettings,
+                customGetter: () => (LODBiasMode)serialized.lodBiasMode.enumValueIndex,
+                customSetter: v => serialized.lodBiasMode.enumValueIndex = (int)v
+            );
+            area.AmmendInfo(FrameSettingsField.LODBias,
+                overridedDefaultValue: QualitySettings.lodBias,
+                customGetter: () => serialized.lodBias.floatValue,
+                customSetter: v => serialized.lodBias.floatValue = (float)v,
+                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.FromQualitySettings);
+
+            area.AmmendInfo(
+                FrameSettingsField.MaximumLODLevelMode,
+                overridedDefaultValue: MaximumLODLevelMode.FromQualitySettings,
+                customGetter: () => (MaximumLODLevelMode)serialized.maximumLODLevelMode.enumValueIndex,
+                customSetter: v => serialized.maximumLODLevelMode.enumValueIndex = (int)v
+            );
+            area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
+                overridedDefaultValue: QualitySettings.maximumLODLevel,
+                customGetter: () => serialized.maximumLODLevel.intValue,
+                customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
+                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.FromQualitySettings);
+
             area.Draw(withOverride);
         }
 

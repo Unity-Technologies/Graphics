@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             rootSubGraphData.isRecursive = true;
                         }
-                        else
+                        else if (subGraphMap.ContainsKey(childSubGraphGuid))
                         {
                             stack.Push(childSubGraphGuid);
                         }
@@ -298,7 +298,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Now generate outputs
                 foreach (var output in subGraphData.outputs)
-                    arguments.Add($"out {output.concreteValueType.ToString(outputNode.precision)} {output.shaderOutputName}");
+                    arguments.Add($"out {output.concreteValueType.ToString(outputNode.precision)} {output.shaderOutputName}_{output.id}");
 
                 // Create the function prototype from the arguments
                 sb.AppendLine("void {0}({1})"
@@ -317,7 +317,9 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     foreach (var slot in subGraphData.outputs)
-                        bodyGenerator.AddShaderChunk($"{slot.shaderOutputName} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals)};");
+                    {
+                        bodyGenerator.AddShaderChunk($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals)};");
+                    }
 
                     sb.Append(bodyGenerator.GetShaderString(1));
                 }

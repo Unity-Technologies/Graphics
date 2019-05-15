@@ -4,7 +4,32 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.6.0] - 2019-XX-XX
+## [6.7.0] - 2019-XX-XX
+### Added
+- Added SpeedTree Shaders.
+- Added two Shader Graph master nodes: Lit Sprite and Unlit Sprite. They only work with the 2D renderer.
+
+### Changed
+- The 2D renderer and Light2D component received a number of improvements and are now ready to try as experimental features.
+
+### Fixed
+- When in playmode, the error 'Non matching Profiler.EndSample' no longer appears. [case 1140750](https://fogbugz.unity3d.com/f/cases/1140750/)
+- LWRP Particle Shaders now correctly render in stereo rendering modes. [case 1106699](https://fogbugz.unity3d.com/f/cases/1106699/)
+- Shaders with 'debug' in the name are no longer stripped automatically. [case 1112983](https://fogbugz.unity3d.com/f/cases/1112983/)
+- Fixed tiling issue with selection outline and baked cutout shadows.
+- in the Shadergraph Unlit Master node, Premultiply no longer acts the same as Alpha. [case 1114708](https://fogbugz.unity3d.com/f/cases/1114708/)
+- Fixed an issue where Lightprobe data was missing if it was needed per-pixel and GPU instancing was enabled.
+- The Soft ScreenSpaceShadows Shader variant no longer gets stripped form builds. [case 1138236](https://fogbugz.unity3d.com/f/cases/1138236/)
+- Fixed a typo in the Particle Unlit Shader, so Soft Particles now work correctly.
+- Fixed emissive Materials not being baked for some meshes. [case 1145297](https://issuetracker.unity3d.com/issues/lwrp-emissive-materials-are-not-baked)
+- Camera matrices are now correctly set up when you call rendering functions in EndCameraRendering. [case 1146586](https://issuetracker.unity3d.com/issues/lwrp-drawmeshnow-returns-wrong-positions-slash-scales-when-called-from-endcamerarendering-hook)
+- Fixed GI not baking correctly while in gamma color space.
+- Fixed a NullReference exception when adding a renderer feature that is contained in a global namespace. [case 1147068](https://issuetracker.unity3d.com/issues/scriptablerenderpipeline-inspector-ui-crashes-when-a-scriptablerenderfeature-is-not-in-a-namespace)
+- Shaders are now set up for VR stereo instancing on Vulkan. [case 1142952](https://fogbugz.unity3d.com/f/cases/1142952/).
+- VR stereo matrices and vertex inputs are now set up on Vulkan. [case 1142952](https://fogbugz.unity3d.com/f/cases/1142952/).
+- Fixed the Material Upgrader so it's now run upon updating the LWRP package. [1148764](https://issuetracker.unity3d.com/product/unity/issues/guid/1148764/)
+
+## [6.6.0] - 2019-04-01
 ### Added
 - Added support for Baked Indirect mixed lighting.
 - You can now use Light Probes for occlusion. This means that baked lights can now occlude dynamic objects.
@@ -18,9 +43,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light attenuation precision on mobile platforms.
 - Fixed split-screen rendering on mobile platforms.
 - Fixed rendering when using an off-screen camera that renders to a depth texture.
-- Exposed stencil render state in the renderer.
-- The default layer mask is now applied to a depth pre-pass.
-- Several improvements and fixes to the render pass UI.
+- Fixed the exposed stencil render state in the renderer.
+- Fixed the default layer mask so it's now applied to a depth pre-pass.
+- Made several improvements and fixes to the render pass UI.
+- Fixed artifacts that appeared due to precision errors in large scaled objects.
 - Fixed an XR rendering issue where Unity required a depth texture.
 - Fixed an issue that caused transparent objects to sort incorrectly.
 

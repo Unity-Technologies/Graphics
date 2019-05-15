@@ -114,7 +114,7 @@ Shader "Lightweight Render Pipeline/Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-
+            
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
@@ -193,7 +193,7 @@ Shader "Lightweight Render Pipeline/Lit"
             Name "Meta"
             Tags{"LightMode" = "Meta"}
 
-            Cull[_Cull]
+            Cull Off
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library

@@ -183,6 +183,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (settings.mode)
             {
                 case ProbeSettings.Mode.Baked:
+                    // TODO: Remove the duplicate check
+                    // In theory, register/unregister are called by pair, never twice register in a row
+                    // So there should not any "duplicate" calls. still it happens and we must prevent
+                    // duplicate entries.
                     if (!m_BakedProbes.Contains(probe))
                         m_BakedProbes.Add(probe);
                     break;
@@ -204,18 +208,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (settings.type)
             {
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    {
-                        // Grow the arrays
-                        if (m_PlanarProbeCount == m_PlanarProbes.Length)
-                        {
-                            Array.Resize(ref m_PlanarProbes, m_PlanarProbes.Length * 2);
-                            Array.Resize(ref m_PlanarProbeBounds, m_PlanarProbeBounds.Length * 2);
-                        }
-                        m_PlanarProbes[m_PlanarProbeCount] = (PlanarReflectionProbe)probe;
-                        m_PlanarProbeBounds[m_PlanarProbeCount] = ((PlanarReflectionProbe)probe).boundingSphere;
-                        ++m_PlanarProbeCount;
+                {
+                    // TODO: Remove the duplicate check
+                    // In theory, register/unregister are called by pair, never twice register in a row
+                    // So there should not any "duplicate" calls. still it happens and we must prevent
+                    // duplicate entries.
+                    if (Array.IndexOf(m_PlanarProbes, (PlanarReflectionProbe) probe) != -1)
                         break;
+
+                    // Grow the arrays
+                    if (m_PlanarProbeCount == m_PlanarProbes.Length)
+                    {
+                        Array.Resize(ref m_PlanarProbes, m_PlanarProbes.Length * 2);
+                        Array.Resize(ref m_PlanarProbeBounds, m_PlanarProbeBounds.Length * 2);
                     }
+                    m_PlanarProbes[m_PlanarProbeCount] = (PlanarReflectionProbe)probe;
+                    m_PlanarProbeBounds[m_PlanarProbeCount] = ((PlanarReflectionProbe)probe).boundingSphere;
+                    ++m_PlanarProbeCount;
+                    break;
+                }
             }
         }
 

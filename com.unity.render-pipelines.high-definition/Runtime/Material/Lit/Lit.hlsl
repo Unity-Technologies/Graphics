@@ -1580,8 +1580,16 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             // Evaluate the coat part
             if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
             {
-                ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
+                float4x3 LSCC = mul(lightVerts, preLightData.ltcTransformCoat);
+                ltcValue = PolygonIrradiance(LSCC);
                 ltcValue *= lightData.specularDimmer;
+                // Only apply cookie if there is one
+                if ( lightData.cookieIndex >= 0 )
+                {
+                    // Compute the cookie data for the specular term
+                    float3 formFactorS =  PolygonFormFactor(LSCC);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieIndex, LSCC, formFactorS);
+                }
                 // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
                 lighting.diffuse *= (1.0 - preLightData.coatIblF);
                 lighting.specular *= (1.0 - preLightData.coatIblF);
@@ -1617,12 +1625,9 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #endif
 
 #if SUPPORTS_RAYTRACED_AREA_SHADOWS
-    // We are using the contact shadow index for area light shadow index in case of ray tracing.
-    // This should be safe as contact shadows are disabled in area lights and contactShadowIndex
-    int rayTracedAreaShadowIndex =  -lightData.contactShadowIndex;
-    if( (_RaytracedAreaShadow == 1 && rayTracedAreaShadowIndex >= 0))
+    if( (_RaytracedAreaShadow == 1 && lightData.rayTracedAreaShadowIndex >= 0))
     {
-        shadow = LOAD_TEXTURE2D_ARRAY(_AreaShadowTexture, posInput.positionSS, rayTracedAreaShadowIndex).x;
+        shadow = LOAD_TEXTURE2D_ARRAY(_AreaShadowTexture, posInput.positionSS, lightData.rayTracedAreaShadowIndex).x;
     }
     else
 #endif // ENABLE_RAYTRACING
@@ -1733,7 +1738,7 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
         // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return lighting;
 
-    float hitDeviceDepth = LOAD_TEXTURE2D_X_LOD(_DepthPyramidTexture, TexCoordStereoOffset(hit.positionSS), 0).r;
+    float hitDeviceDepth = LOAD_TEXTURE2D_X_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
     float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
 
     // This is an empirically set hack/modifier to reduce haloes of objects visible in the refraction.
@@ -1744,11 +1749,6 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     refractionOffsetMultiplier *= (hitLinearDepth > posInput.linearDepth);
 
     float2 samplingPositionNDC = lerp(posInput.positionNDC, hit.positionNDC, refractionOffsetMultiplier);
-
-#ifdef UNITY_SINGLE_PASS_STEREO
-    samplingPositionNDC.x = 0.5f * (samplingPositionNDC.x + unity_StereoEyeIndex);
-#endif
-
     float3 preLD = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler,
                                         // Offset by half a texel to properly interpolate between this pixel and its mips
                                         samplingPositionNDC * _ColorPyramidScale.xy, preLightData.transparentSSMipLevel).rgb;

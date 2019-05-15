@@ -918,8 +918,10 @@ namespace UnityEditor.ShaderGraph
             using (vertexInputs.BlockSemicolonScope())
             {
                 vertexInputs.AppendLine("float4 vertex : POSITION;");
-                vertexInputs.AppendLine("float3 normal : NORMAL;");
-                vertexInputs.AppendLine("float4 tangent : TANGENT;");
+                if(graphRequiements.requiresNormal != NeededCoordinateSpace.None)
+                    vertexInputs.AppendLine("float3 normal : NORMAL;");
+                if(graphRequiements.requiresTangent != NeededCoordinateSpace.None)
+                    vertexInputs.AppendLine("float4 tangent : TANGENT;");
                 if (graphRequiements.requiresVertexColor)
                 {
                     vertexInputs.AppendLine("float4 color : COLOR;");
@@ -980,7 +982,11 @@ namespace UnityEditor.ShaderGraph
             if (node is IMasterNode || node is SubGraphOutputNode)
                 slots.AddRange(node.GetInputSlots<MaterialSlot>());
             else
-                slots.AddRange(node.GetOutputSlots<MaterialSlot>());
+            {
+                var outputSlots = node.GetOutputSlots<MaterialSlot>().ToList();
+                if (outputSlots.Count > 0)
+                    slots.Add(outputSlots[0]);
+            }
 
             // -------------------------------------
             // Get Requirements
@@ -1023,7 +1029,7 @@ namespace UnityEditor.ShaderGraph
             // -------------------------------------
             // Generate Output structure for Surface Description function
 
-            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots);
+            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, useIdsInNames: !(node is IMasterNode));
 
             // -------------------------------------
             // Generate Surface Description function
@@ -1066,7 +1072,6 @@ namespace UnityEditor.ShaderGraph
                 finalShader.AppendNewLine();
 
                 finalShader.AppendLine(@"HLSLINCLUDE");
-                finalShader.AppendLine("#define USE_LEGACY_UNITY_MATRIX_VARIABLES");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl""");
@@ -1161,7 +1166,7 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine($"{variableName}.{channel.GetUVName()} = IN.{channel.GetUVName()};");
         }
 
-        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", HashSet<string> activeFields = null)
+        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", HashSet<string> activeFields = null, bool useIdsInNames = false)
         {
             surfaceDescriptionStruct.AppendLine("struct {0}", structName);
             using (surfaceDescriptionStruct.BlockSemicolonScope())
@@ -1169,6 +1174,10 @@ namespace UnityEditor.ShaderGraph
                 foreach (var slot in slots)
                 {
                     string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                    if (useIdsInNames)
+                    {
+                        hlslName = $"{hlslName}_{slot.id}";
+                    }
                     surfaceDescriptionStruct.AppendLine("{0} {1};",
                         NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float,
                             slot.concreteValueType), hlslName);
@@ -1235,25 +1244,34 @@ namespace UnityEditor.ShaderGraph
                         if (input != null)
                         {
                             var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                            var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
+                            if (rootNode is SubGraphOutputNode)
+                            {
+                                hlslName = $"{hlslName}_{input.id}";
+                            }
                             if (foundEdges.Any())
                             {
                                 surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                    NodeUtils.GetHLSLSafeName(input.shaderOutputName),
+                                    hlslName,
                                     rootNode.GetSlotValue(input.id, mode));
                             }
                             else
                             {
                                 surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                    NodeUtils.GetHLSLSafeName(input.shaderOutputName), input.GetDefaultValue(mode));
+                                    hlslName, input.GetDefaultValue(mode));
                             }
                         }
                     }
                 }
                 else if (rootNode.hasPreview)
                 {
-                    foreach (var slot in rootNode.GetOutputSlots<MaterialSlot>())
+                    var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                    if (slot != null)
+                    {
+                        var hlslSafeName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
                         surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                            NodeUtils.GetHLSLSafeName(slot.shaderOutputName), rootNode.GetSlotValue(slot.id, mode));
+                            hlslSafeName, rootNode.GetSlotValue(slot.id, mode));
+                    }
                 }
 
                 surfaceDescriptionFunction.AppendLine("return surface;");

@@ -22,7 +22,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
         {
-            return new HDRenderPipeline(this);
+            // safe: When we return a null render pipline it will do nothing in the rendering
+            HDRenderPipeline pipeline = null;
+
+            // We need to do catch every errors that happend during the HDRP build, when we upgrade the
+            // HDRP package, some required assets are not yet imported by the package manager when the
+            // pipeline is created so in that case, we just return a null pipeline. Some error may appear
+            // when we upgrade the pipeline but it's better than breaking HDRP resources an causing more
+            // errors.
+            try
+            {
+                pipeline = new HDRenderPipeline(this);
+            } catch (Exception e) {
+                UnityEngine.Debug.LogError(e);
+            }
+
+            return pipeline;
+        }
+
+        protected override void OnValidate()
+        {
+            //Do not reconstruct the pipeline if we modify other assets.
+            //OnValidate is called once at first selection of the asset.
+            if (GraphicsSettings.renderPipelineAsset == this)
+                base.OnValidate();
         }
 
         [SerializeField]
@@ -120,21 +143,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [SerializeField]
         public DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
-
-        [NonSerialized]
-        DiffusionProfileSettings m_DefaultDiffusionProfileSettings;
-        public DiffusionProfileSettings defaultDiffusionProfileSettings
-        {
-            get
-            {
-                if (m_DefaultDiffusionProfileSettings == null)
-                {
-                    m_DefaultDiffusionProfileSettings = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
-                    m_DefaultDiffusionProfileSettings.SetDefaultParams();
-                }
-                return m_DefaultDiffusionProfileSettings;
-            }
-        }
 
         // HDRP use GetRenderingLayerMaskNames to create its light linking system
         // Mean here we define our name for light linking.

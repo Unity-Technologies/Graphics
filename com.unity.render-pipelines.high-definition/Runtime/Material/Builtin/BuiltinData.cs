@@ -1,6 +1,8 @@
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
+using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
+
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class Builtin // Note: This particular class doesn't derive from RenderPipelineMaterial
@@ -14,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false, false, true, 100)]
         public struct BuiltinData
         {
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Alpha)]
             [SurfaceDataAttributes("Opacity")]
             public float opacity;
 

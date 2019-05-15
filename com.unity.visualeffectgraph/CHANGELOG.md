@@ -4,13 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.6.0-preview] - 2019-XX-XX
+## [6.7.0-preview] - 2019-XX-XX
+### Added
+- Add Triangle and Octagon primitives for particle outputs
+
+### Fixed
+- Fix shader compilation error with debug views
+
+## [6.6.0-preview] - 2019-04-01
 ### Added
 - Addressing mode for Sequential blocks
 - Invert transform available on GPU
 - Add automatic depth buffer reference for main camera (for position and collision blocks)
 - Total Time for PreWarm in Visual Effect Asset inspector
 - Support for unlit output with LWRP
+- Add Terrain Parameter Binder + Terrain Type
+- Add UI Parameter Binders : Slider, Toggle
+- Add Input Parameter Binders : Axis, Button, Key, Mouse, Touch
+- Add Other Parameter Binders : Previous Position, Hierarchy Attribute Map, Multi-Position, Enabled
 
 ### Fixed
 - Undo Redo while changing space
@@ -24,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue that remove the edge when dragging an edge from slot to the same slot.
 - Exception when undoing an edge deletion on a dynamic operator. 
 - Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
+- Exception while removing a sub-slot of a dynamic operator
 
 ## [6.5.0-preview] - 2019-03-07
 
@@ -37,6 +49,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Better Handling of Null or Missing Parameter Binders (Editor + Runtime)
+- Fixes in VFX Raycast Binder
+- Fixes in VFX Parameter Binder Editor
 
 ## [6.1.0-preview] - 2019-02-13
 

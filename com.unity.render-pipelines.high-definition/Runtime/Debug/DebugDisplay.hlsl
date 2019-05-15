@@ -13,7 +13,7 @@ CBUFFER_START(UnityDebugDisplay)
 // Set of parameters available when switching to debug shader mode
 int _DebugLightingMode; // Match enum DebugLightingMode
 int _DebugShadowMapMode;
-int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
+float _DebugViewMaterialArray[11]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
 int _DebugMipMapMode; // Match enum DebugMipMapMode
 int _DebugMipMapModeTerrainTexture; // Match enum DebugMipMapModeTerrainTexture
 int _ColorPickerMode; // Match enum ColorPickerDebugMode
@@ -31,6 +31,9 @@ float4 _DebugLightingMaterialValidatePureMetalColor;
 float4 _MousePixelCoord;  // xy unorm, zw norm
 float4 _MouseClickPixelCoord;  // xy unorm, zw norm
 float _DebugExposure;
+int _MatcapMixAlbedo;
+int _MatcapViewScale;
+uint _DebugContactShadowLightIndex;
 CBUFFER_END
 
 // Local shader variables
@@ -45,6 +48,7 @@ StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 #define LUXMETER_COMPRESSION_RATIO  4
 
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
+TEXTURE2D(_DebugMatCapTexture);
 
 void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLinearToSRGB)
 {

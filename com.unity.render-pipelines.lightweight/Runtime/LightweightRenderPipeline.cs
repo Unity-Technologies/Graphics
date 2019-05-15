@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             CommandBuffer cmd = CommandBufferPool.Get(camera.name);
-            using (new ProfilingSample(cmd, k_RenderCameraTag))
+            using (new ProfilingSample(cmd, camera.name))
             {
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.LWRP
         {
             const float kRenderScaleThreshold = 0.05f;
             cameraData.camera = camera;
+            cameraData.isStereoEnabled = IsStereoEnabled(camera);
 
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
@@ -201,18 +202,26 @@ namespace UnityEngine.Rendering.LWRP
 
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
             {
+                bool msaaSampleCountHasChanged = false;
+                int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
+                if (currentQualitySettingsSampleCount != msaaSamples &&
+                    !(currentQualitySettingsSampleCount == 0 && msaaSamples == 1))
+                {
+                    msaaSampleCountHasChanged = true;
+                }
+
                 // There's no exposed API to control how a backbuffer is created with MSAA
                 // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
                 // We only do this for the main camera and this only takes effect in the beginning of next frame.
                 // This settings should not be changed on a frame basis so that's fine.
                 QualitySettings.antiAliasing = msaaSamples;
+
+                if (cameraData.isStereoEnabled && msaaSampleCountHasChanged)
+                    XR.XRDevice.UpdateEyeTextureMSAASetting();
             }
             
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            cameraData.isStereoEnabled = IsStereoEnabled(camera);
-
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
-
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
 

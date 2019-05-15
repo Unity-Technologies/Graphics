@@ -257,8 +257,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 cmd.SetViewport(shadowRequest.atlasViewport);
 
-                cmd.SetViewProjectionMatrices(shadowRequest.view, shadowRequest.projection);
-
                 cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
                 if (!m_LightingDebugSettings.clearShadowAtlas)
                 {
@@ -267,6 +265,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 dss.lightIndex = shadowRequest.lightIndex;
                 dss.splitData = shadowRequest.splitData;
+
+                // Setup matrices for shadow rendering:
+                Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
+                cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix, shadowRequest.view);
+                cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix, shadowRequest.view.inverse);
+                cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix, shadowRequest.deviceProjectionYFlip);
+                cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix, shadowRequest.deviceProjectionYFlip.inverse);
+                cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjection);
+                cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjection.inverse);
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowClipPlanes, shadowRequest.frustumPlanes);
 
                 // TODO: remove this execute when DrawShadows will use a CommandBuffer
                 renderContext.ExecuteCommandBuffer(cmd);
@@ -308,7 +316,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector4[] blurWeights = new Vector4[2];
 
-                // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts 
+                // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts
                 // the tail of the gaussian a bit too much, and it is a very fat curve, but it seems to work fine for our use case.
                 blurWeights[0].x = 0.1531703f;
                 blurWeights[0].y = 0.1448929f;
@@ -396,9 +404,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int summedAreaVerticalKernel = momentCS.FindKernel("MomentSummedAreaTableVertical");
 
                 // First of all let's clear the moment shadow map
-                HDUtils.SetRenderTarget(cmd, hdCamera, GetMomentRT(), ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_IntermediateSummedAreaTexture, ClearFlag.Color, Color.black);
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_SummedAreaTexture, ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, GetMomentRT(), ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, m_IntermediateSummedAreaTexture, ClearFlag.Color, Color.black);
+                HDUtils.SetRenderTarget(cmd, m_SummedAreaTexture, ClearFlag.Color, Color.black);
 
                 var atlasMoment = GetMomentRT();
 

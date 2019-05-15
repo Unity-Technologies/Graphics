@@ -64,6 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 projection = ExtractBoxLightProjectionMatrix(visibleLight.range, shapeWidth, shapeHeight, nearPlane);
                 deviceProjection = GL.GetGPUProjectionMatrix(projection, false);
+                projection = GL.GetGPUProjectionMatrix(projection, true);
                 InvertOrthographic(ref projection, ref view, out invViewProjection);
             }
         }
@@ -76,6 +77,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             splitData = new ShadowSplitData();
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
             splitData.cullingPlaneCount = 0;
+
+#if UNITY_2019_3_OR_NEWER
+            // This used to be fixed to .6f, but is now configureable.
+            splitData.shadowCascadeBlendCullingFactor = .6f;
+#endif
+
             // get lightDir
             lightDir = visibleLight.light.transform.forward;
             // TODO: At some point this logic should be moved to C#, then the parameters cullResults and lightIndex can be removed as well
@@ -87,6 +94,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, (int)cascadeIndex, cascadeCount, ratios, (int)viewportSize.x, nearPlaneOffset, out view, out projection, out splitData);
             // and the compound (deviceProjection will potentially inverse-Z)
             deviceProjection = GL.GetGPUProjectionMatrix(projection, false);
+            projection = GL.GetGPUProjectionMatrix(projection, true);
             InvertOrthographic(ref deviceProjection, ref view, out invViewProjection);
         }
 
@@ -229,6 +237,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             proj = ExtractSpotLightProjectionMatrix(vl.range, vl.spotAngle, nearPlane, aspectRatio, guardAngle);
             // and the compound (deviceProj will potentially inverse-Z)
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
+            proj = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
             return deviceProj * view;
         }
@@ -253,6 +262,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             proj = Matrix4x4.Perspective(90.0f + guardAngle, 1.0f, nearZ, vl.range);
             // and the compound (deviceProj will potentially inverse-Z)
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
+            proj = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
 
             GeometryUtility.CalculateFrustumPlanes(proj * view, s_CachedPlanes);

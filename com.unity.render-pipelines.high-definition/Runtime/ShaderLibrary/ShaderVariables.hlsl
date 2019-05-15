@@ -11,47 +11,14 @@
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
 // This need to be fixed.
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Camera/HDCamera.cs.hlsl"
 #if defined(USING_STEREO_MATRICES)
-    #define glstate_matrix_projection unity_StereoMatrixP[unity_StereoEyeIndex]
-    #define unity_MatrixV unity_StereoMatrixV[unity_StereoEyeIndex]
-    #define unity_MatrixInvV unity_StereoMatrixInvV[unity_StereoEyeIndex]
-    #define unity_MatrixVP unity_StereoMatrixVP[unity_StereoEyeIndex]
-
-    #define unity_CameraProjection unity_StereoCameraProjection[unity_StereoEyeIndex]
-    #define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
-    #define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
-    #define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
-    #define _WorldSpaceCameraPos _WorldSpaceCameraPosStereo[unity_StereoEyeIndex].xyz
-    #define _WorldSpaceCameraPosEyeOffset _WorldSpaceCameraPosStereoEyeOffset[unity_StereoEyeIndex].xyz
-    #define _PrevCamPosRWS _PrevCamPosRWSStereo[unity_StereoEyeIndex].xyz
+    #define _WorldSpaceCameraPos            _XRViewConstants[unity_StereoEyeIndex].worldSpaceCameraPos
+    #define _WorldSpaceCameraPosViewOffset  _XRViewConstants[unity_StereoEyeIndex].worldSpaceCameraPosViewOffset
+    #define _PrevCamPosRWS                  _XRViewConstants[unity_StereoEyeIndex].prevWorldSpaceCameraPos
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
-
-// ----------------------------------------------------------------------------
-
-//  *********************************************************
-//  *                                                       *
-//  *  UnityPerCameraRare has been deprecated. Do NOT use!  *
-//  *         Please refer to UnityPerView instead.         *
-//  *                                                       *
-//  *********************************************************
-
-CBUFFER_START(UnityPerCameraRare)
-    // DEPRECATED: use _FrustumPlanes
-    float4 unity_CameraWorldClipPlanes[6];
-
-#if !defined(USING_STEREO_MATRICES)
-    // Projection matrices of the camera. Note that this might be different from projection matrix
-    // that is set right now, e.g. while rendering shadows the matrices below are still the projection
-    // of original camera.
-    // DEPRECATED: use _ProjMatrix, _InvProjMatrix, _ViewMatrix, _InvViewMatrix
-    float4x4 unity_CameraProjection;
-    float4x4 unity_CameraInvProjection;
-    float4x4 unity_WorldToCamera;
-    float4x4 unity_CameraToWorld;
-#endif
-CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
@@ -96,23 +63,6 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_MotionVectorsParams;
 
 CBUFFER_END
-
-#if defined(USING_STEREO_MATRICES)
-CBUFFER_START(UnityStereoGlobals)
-    float4x4 unity_StereoMatrixP[2];
-    float4x4 unity_StereoMatrixV[2];
-    float4x4 unity_StereoMatrixInvV[2];
-    float4x4 unity_StereoMatrixVP[2];
-
-    float4x4 unity_StereoCameraProjection[2];
-    float4x4 unity_StereoCameraInvProjection[2];
-    float4x4 unity_StereoWorldToCamera[2];
-    float4x4 unity_StereoCameraToWorld[2];
-
-    float3 unity_StereoWorldSpaceCameraPos[2];
-    float4 unity_StereoScaleOffset[2];
-CBUFFER_END
-#endif
 
 CBUFFER_START(UnityPerDrawRare)
     float4x4 glstate_matrix_transpose_modelview0;
@@ -170,17 +120,6 @@ TEXTURE2D(_PrevExposureTexture);
 // The member names and data layout can (and will) change!
 CBUFFER_START(UnityGlobal)
     // ================================
-    //     PER FRAME CONSTANTS
-    // ================================
-    #if !defined(USING_STEREO_MATRICES)
-        float4x4 glstate_matrix_projection;
-        float4x4 unity_MatrixV;
-        float4x4 unity_MatrixInvV;
-        float4x4 unity_MatrixVP;
-        float4 unity_StereoScaleOffset;
-    #endif
-
-    // ================================
     //     PER VIEW CONSTANTS
     // ================================
     // TODO: all affine matrices should be 3x4.
@@ -189,11 +128,10 @@ CBUFFER_START(UnityGlobal)
     float4x4 _ProjMatrix;
     float4x4 _InvProjMatrix;
     float4x4 _ViewProjMatrix;
+    float4x4 _CameraViewProjMatrix;
     float4x4 _InvViewProjMatrix;
     float4x4 _NonJitteredViewProjMatrix;
     float4x4 _PrevViewProjMatrix;       // non-jittered
-
-    float4 _TextureWidthScaling; // 0.5 for SinglePassDoubleWide (stereo) and 1.0 otherwise
 
     // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
     // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
@@ -204,7 +142,10 @@ CBUFFER_START(UnityGlobal)
     float  _Pad1;
 #endif
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
-    float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+
+    // Those two uniforms are specific to the RTHandle system
+    float4 _RTHandleScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+    float4 _RTHandleScaleHistory; // Same as above but the RTHandle handle size is that of the history buffer
 
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
     // x = 1 - f/n
@@ -237,6 +178,7 @@ CBUFFER_START(UnityGlobal)
     float4 _ScreenParams;
 
     float4 _FrustumPlanes[6];           // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
+    float4 _ShadowFrustumPlanes[6];     // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
     // TAA Frame Index ranges from 0 to 7.
     // First two channels of this gives you two rotations per cycle.
@@ -251,7 +193,6 @@ CBUFFER_START(UnityGlobal)
     float4 _SinTime;                    // { sin(t/8), sin(t/4), sin(t/2), sin(t) }
     float4 _CosTime;                    // { cos(t/8), cos(t/4), cos(t/2), cos(t) }
     float4 unity_DeltaTime;             // { dt, 1/dt, smoothdt, 1/smoothdt }
-    int _FrameCount;
 
     // Volumetric lighting.
     float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
@@ -266,9 +207,9 @@ CBUFFER_START(UnityGlobal)
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
     uint   _VBufferSliceCount;
     float  _VBufferRcpSliceCount;
-    float  _Pad2;
+    float  _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
     float  _Pad3;
-    float4 _VBufferUvScaleAndLimit;     // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+    float4 _VBufferUvScaleAndLimit;        // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
     float4 _VBufferDistanceEncodingParams; // See the call site for description
     float4 _VBufferDistanceDecodingParams; // See the call site for description
 
@@ -293,26 +234,17 @@ CBUFFER_START(UnityGlobal)
     uint _EnableSSRefraction;
 
     uint _OffScreenRendering;
+    uint _OffScreenDownsampleFactor;
+
+    uint _XRViewCount;
+    int  _FrameCount;
 
 CBUFFER_END
 
 // Custom generated by HDRP, not from Unity Engine (passed in via HDCamera)
 #if defined(USING_STEREO_MATRICES)
-
-CBUFFER_START(UnityPerPassStereo)
-float4x4 _ViewMatrixStereo[2];
-float4x4 _ProjMatrixStereo[2];
-float4x4 _ViewProjMatrixStereo[2];
-float4x4 _InvViewMatrixStereo[2];
-float4x4 _InvProjMatrixStereo[2];
-float4x4 _InvViewProjMatrixStereo[2];
-float4x4 _PrevViewProjMatrixStereo[2];
-float4   _WorldSpaceCameraPosStereo[2];
-float4   _WorldSpaceCameraPosStereoEyeOffset[2];
-float4   _PrevCamPosRWSStereo[2];
-CBUFFER_END
-
-#endif // USING_STEREO_MATRICES
+    StructuredBuffer<ViewConstants> _XRViewConstants;
+#endif
 
 // Note: To sample camera depth in HDRP we provide these utils functions because the way we store the depth mips can change
 // Currently it's an atlas and it's layout can be found at ComputePackedMipChainInfo in HDUtils.cs
@@ -333,7 +265,7 @@ float3 LoadCameraColor(uint2 pixelCoords, uint lod)
 
 float3 SampleCameraColor(float2 uv, float lod)
 {
-    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv, lod).rgb;
+    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _RTHandleScaleHistory.xy, lod).rgb;
 }
 
 float3 LoadCameraColor(uint2 pixelCoords)
@@ -419,7 +351,7 @@ float GetInversePreviousExposureMultiplier()
 float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels)
 {
     float2 maxCoord = 1.0f - numberOfTexels * texelSize;
-    return min(UV, maxCoord) * _ScreenToTargetScale.xy;
+    return min(UV, maxCoord) * _RTHandleScale.xy;
 }
 
 // This is assuming half a texel offset in the clamp.
@@ -436,7 +368,7 @@ float2 ClampAndScaleUVForBilinear(float2 UV)
 
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
-    return min(UV, 1.0f) * _ScreenToTargetScale.xy;
+    return min(UV, 1.0f) * _RTHandleScale.xy;
 }
 
 bool ReplaceDiffuseForReflectionPass(float3 fresnel0)
@@ -460,11 +392,7 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 
 // Define View/Projection matrix macro
-#ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsLegacyUnity.hlsl"
-#else
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"
-#endif
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"
 
 // This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING

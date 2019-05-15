@@ -3,7 +3,10 @@ The Contact Shadows [Volume Override](Volume-Components.html) specifies properti
 
 To use Contact Shadows in your Scene, you must first enable them for your Cameras. In the Inspector for your HDRP Asset, go to the **Default Frame Settings > Lighting** section and enable the **Contact Shadows** checkbox. All Cameras can now render Contact Shadows unless you override a Camera’s individual [Frame Settings](Frame-Settings.html).
 
-Contact Shadows use the [Volume](Volumes.html) framework, which means that, to enable and modify Contact Shadow properties, you must add a **Contact Shadows** override to a [Volume](Volumes.html) in your Scene. To add **Contact Shadows** to a Volume, select the Volume component in the Scene or Hierarchy to view it in the Inspector, then navigate to **Add Override > Shadowing** and click on **Contact Shadows**. HDRP now applies **Contact Shadows** to any Camera this Volume affects.
+**Contact Shadows** use the [Volume](Volumes.html) framework, so to enable and modify **Contact Shadow** properties, you must add a **Contact Shadows** override to a [Volume](Volumes.html) in your Scene. To add **Contact Shadows** to a Volume:
+
+1. Select the Volume component in the Scene or Hierarchy to view it in the Inspector.
+2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Contact Shadows**. HDRP now applies **Contact Shadows** to any Camera this Volume affects.
 
 You can enable Contact Shadows on a per Light basis for Directional, Point, and Spot Lights. Tick the **Enable** checkbox under the **Contact Shadows** drop-down in the **Shadows** section of each Light to indicate that HDRP should calculate Contact Shadows for that Light.
 
@@ -17,13 +20,13 @@ Only one Light can cast Contact Shadows at a time. This means that, if you have 
 
 | Property                  | Description                                                    |
 | :------------------------ | :----------------------------------------------------------- |
-| __Enable__                | Enable this checkbox to make HDRP process Contact Shadows for this [Volume](Volumes.html).       |
-| __Length__                | Use this slider to set the length of the rays, in meters, that HDRP uses for tracing. It also functions as the maximum distance at which the rays can captures details. |
-| __Distance Scale Factor__ | HDRP scales Contact Shadows up with distance. Use this slider to set the value that HDRP uses to dampen the scale to avoid biasing artifacts with distance. |
+| __Enable__                | Enable the checkbox to make HDRP process Contact Shadows for this [Volume](Volumes.html).       |
+| __Length__                | Use the slider to set the length of the rays, in meters, that HDRP uses for tracing. It also functions as the maximum distance at which the rays can captures details. |
+| __Distance Scale Factor__ | HDRP scales Contact Shadows up with distance. Use the slider to set the value that HDRP uses to dampen the scale to avoid biasing artifacts with distance. |
 | __Max Distance__          | The distance from the Camera, in Unity units, at which HDRP begins to fade Contact Shadows out to zero. |
 | __Fade Distance__         | The distance, in Unity units, over which HDRP fades Contact Shadows out when at the __Max Distance__. |
-| __Sample Count__          | Use this slider to set the number of samples HDRP uses for ray casting. Increasing this increases quality at the cost of performance. |
-| __Opacity__ |   Use this slider to set the opacity of the Contact Shadows. Lower values result in softer, less prominent shadows.   |
+| __Sample Count__          | Use the slider to set the number of samples HDRP uses for ray casting. Increasing this increases quality at the cost of performance. |
+| __Opacity__ |   Use the slider to set the opacity of the Contact Shadows. Lower values result in softer, less prominent shadows.   |
 
 ## Details
 

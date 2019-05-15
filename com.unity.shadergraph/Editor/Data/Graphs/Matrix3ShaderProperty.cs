@@ -28,6 +28,11 @@ namespace UnityEditor.ShaderGraph
             get { return false; }
         }
 
+        public override bool isRenamable
+        {
+            get { return true; }
+        }
+
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return "float4x4 " + referenceName + delimiter;

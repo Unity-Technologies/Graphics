@@ -27,7 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Shadow = 1 << 11,
             Decal = 1 << 12,
             PostProcess = 1 << 13,
-            DynamicResolution = 1 << 14
+            DynamicResolution = 1 << 14,
+            LowResTransparency = 1 << 15
         }
 
         readonly static ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -53,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal static DiffusionProfileSettingsListUI diffusionProfileUI = new DiffusionProfileSettingsListUI();
 
-        internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
+        internal static SelectedFrameSettings selectedFrameSettings;
 
         static HDRenderPipelineUI()
         {
@@ -64,7 +65,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.FoldoutGroup(k_RenderingSectionTitle, Expandable.Rendering, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionRenderingUnsorted),
                     CED.FoldoutGroup(k_DecalsSubTitle, Expandable.Decal, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
-                    CED.FoldoutGroup(k_DynamicResolutionSubTitle, Expandable.DynamicResolution, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings)
+                    CED.FoldoutGroup(k_DynamicResolutionSubTitle, Expandable.DynamicResolution, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDynamicResolutionSettings),
+                    CED.FoldoutGroup(k_LowResTransparencySubTitle, Expandable.LowResTransparency, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLowResTransparentSettings)
                     ),
                 CED.FoldoutGroup(k_LightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
@@ -77,6 +79,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.FoldoutGroup(k_MaterialSectionTitle, Expandable.Material, k_ExpandedState, Drawer_SectionMaterialUnsorted),
                 CED.FoldoutGroup(k_PostProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings)
             );
+
+            // fix init of selection along what is serialized
+            if (k_ExpandedState[Expandable.BakedOrCustomProbeFrameSettings])
+                selectedFrameSettings = SelectedFrameSettings.BakedOrCustomReflection;
+            else if (k_ExpandedState[Expandable.RealtimeProbeFrameSettings])
+                selectedFrameSettings = SelectedFrameSettings.RealtimeReflection;
+            else //default value: camera
+                selectedFrameSettings = SelectedFrameSettings.Camera;
         }
         
         public static readonly CED.IDrawer Inspector;
@@ -285,7 +295,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(k_ShadowPunctualLightAtlasSubTitle);
             ++EditorGUI.indentLevel;
             CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), k_ResolutionContent);
-            EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_DirectionalShadowPrecisionContent);
+            EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_PrecisionContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.useDynamicViewportRescale, k_DynamicRescaleContent);
             --EditorGUI.indentLevel;
 
@@ -379,7 +389,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     using (new EditorGUI.DisabledGroupScope(true))
                         EditorGUILayout.LabelField(k_MultipleDifferenteValueMessage);
                 }
-                else if ((DynamicResolutionType)serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.intValue == DynamicResolutionType.Software)
+                else 
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter, k_UpsampleFilter);
 
                 if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
@@ -425,7 +435,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             --EditorGUI.indentLevel;
         }
-        
+
+        static void Drawer_SectionLowResTransparentSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.enabled, k_LowResTransparentEnabled);
+
+            /* For the time being we don't enable the option control and default to nearest depth. This might change in a close future. 
+            ++EditorGUI.indentLevel;
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.lowresTransparentSettings.enabled.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer, k_CheckerboardDepthBuffer);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.upsampleType, k_UpsampleFilter);
+            }
+            --EditorGUI.indentLevel;
+            */
+        }
+
         static void Drawer_SectionPostProcessSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();

@@ -20,7 +20,7 @@ The unit of illuminance. A light source that emits 1 lumen of luminous flux onto
 
 ### Exposure value (EV)
 
-A value that represents a combination of a camera's shutter speed and f-number. It is essentially a measurement of exposure such that all combinations of shutter speed and f-number that yield the same level of exposure have the same EV. HDRP Lights can use Ev 100, which is Ev with a 100 International Standards Organisation (ISO) film.
+A value that represents a combination of a camera's shutter speed and f-number. It is essentially a measurement of exposure such that all combinations of shutter speed and f-number that yield the same level of exposure have the same EV. HDRP Lights can use EV<sub>100</sub>, which is Ev with a 100 International Standards Organisation (ISO) film.
 
 ## Natural light levels
 

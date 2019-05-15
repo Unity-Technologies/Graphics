@@ -79,10 +79,6 @@ Shader "Hidden/HDRP/FinalPass"
             float2 positionNDC = input.texcoord;
             uint2 positionSS = input.texcoord * _ScreenSize.xy;
 
-            #if UNITY_SINGLE_PASS_STEREO
-                positionNDC.x = (positionNDC.x + unity_StereoEyeIndex) * 0.5;
-            #endif
-
             // Flip logic
             positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
             positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
@@ -136,7 +132,7 @@ Shader "Hidden/HDRP/FinalPass"
 
             // Apply AfterPostProcess target
             #if APPLY_AFTER_POST
-            float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _ScreenToTargetScale.xy, 0);
+            float4 afterPostColor = SAMPLE_TEXTURE2D_X_LOD(_AfterPostProcessTexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
+  m_Version: 4
   shaders:
     defaultPS: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
     debugDisplayLatlongPS: {fileID: 4800000, guid: c1d1d149a043a5349ba367da6c2051ba,
@@ -27,7 +28,6 @@ MonoBehaviour:
     debugLightVolumeCS: {fileID: 7200000, guid: f5d5d21faef5cf445ac2c5d8ff9c4184,
       type: 3}
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
-    colorPyramidCS: {fileID: 7200000, guid: 4e3267a1135742441a14298d8dcac04a, type: 3}
     colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
     depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
     copyChannelCS: {fileID: 7200000, guid: a4d45eda75e8e474dbe24a31f741f3b4, type: 3}
@@ -64,6 +64,9 @@ MonoBehaviour:
       type: 3}
     copyDepthBufferPS: {fileID: 4800000, guid: 42dfcc8fe803ece4096c58630689982f, type: 3}
     blitPS: {fileID: 4800000, guid: 370f7a9cc4e362d488af024d371091e8, type: 3}
+    downsampleDepthPS: {fileID: 4800000, guid: 67d6171b0acc6554aad48c845ec7e67f, type: 3}
+    upsampleTransparentPS: {fileID: 4800000, guid: 2ad7ce40f0dbaf64dadef1f58d8524d3,
+      type: 3}
     blitCubemapPS: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
     buildProbabilityTablesCS: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c,
       type: 3}
@@ -155,6 +158,7 @@ MonoBehaviour:
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
     colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}
+    matcapTex: {fileID: 2800000, guid: e655445a13b501944a2641ea144edda5, type: 3}
     blueNoise16LTex:
     - {fileID: 2800000, guid: efa2ea5416a18da46b64f1266464ffc7, type: 3}
     - {fileID: 2800000, guid: 0330b95d1d741fc4281eac4aec9d2eae, type: 3}
@@ -236,4 +240,6 @@ MonoBehaviour:
     - {fileID: 2800000, guid: a35bdcb2008832646b3c8d2eb11e38a9, type: 3}
     SMAASearchTex: {fileID: 2800000, guid: dc95d70472e232b438d0fd38651e7ec2, type: 3}
     SMAAAreaTex: {fileID: 2800000, guid: 92e0d85ab4eca874098e7fcf6f8f674e, type: 3}
-  m_Version: 4
+  assets:
+    defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e,
+      type: 2}

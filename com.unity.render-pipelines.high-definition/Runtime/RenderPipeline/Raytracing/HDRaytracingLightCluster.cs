@@ -77,6 +77,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Texture used to output debug information
             m_DebugLightClusterTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DebugLightClusterTexture");
+
+            // Pre allocate the cluster with a dummy size
+            m_LightCluster = new ComputeBuffer(1, sizeof(uint));
         }
 
         public void ReleaseResources()
@@ -284,7 +287,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Make sure the Cluster buffer has the right size
                 int bufferSize = 64 * 64 * 32 * (currentEnv.maxNumLightsPercell + 3);
-                if (m_LightCluster == null || m_LightCluster.count != bufferSize)
+                if (m_LightCluster.count != bufferSize)
                 {
                     ResizeClusterBuffer(bufferSize);
                 }
@@ -450,12 +453,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                Color finalColor = Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
-                GlobalIllumination.LinearColor converted = GlobalIllumination.LinearColor.Convert(light.color, light.intensity);
-                finalColor.r *= converted.red;
-                finalColor.g *= converted.green;
-                finalColor.b *= converted.blue;
-                lightData.color = new Vector3(finalColor.r, finalColor.g, finalColor.b) * light.intensity;
+                Color value = light.color.linear * light.intensity;
+                if (additionalLightData.useColorTemperature)
+                    value *= Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+                lightData.color = new Vector3(value.r, value.g, value.b);
 
                 lightData.forward = light.transform.forward;
                 lightData.up = light.transform.up;
@@ -531,8 +532,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.specularDimmer = lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
                 lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.volumetricDimmer);
 
+                lightData.contactShadowMask = 0;
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
+                lightData.rayTracedAreaShadowIndex = -1;
 
                 if (light != null && light.cookie != null)
                 {
@@ -578,9 +581,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightData.shadowMaskSelector.x = -1.0f;
                     lightData.nonLightMappedOnly = 0;
                 }
-
-                // No contact shadows for us
-                lightData.contactShadowIndex = -1;
 
                 // Set the data for this light
                 m_LightDataCPUArray[lightIdx]= lightData;
@@ -661,16 +661,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void EvaluateLightClusters(CommandBuffer cmd, HDCamera hdCamera, List<HDAdditionalLightData> lightArray)
         {
-            // If there is no area light to process, nothing to do here
-            if (lightArray.Count == 0)
-                return;
-
             // Grab the current ray-tracing environment, if no environment available stop right away
             HDRaytracingEnvironment currentEnv = m_RaytracingManager.CurrentEnvironment();
-            if (currentEnv == null) return;
-
             ComputeShader lightClusterCS = m_RenderPipelineResources.shaders.lightClusterBuildCS;
-            if (lightClusterCS == null) return;
+            // If there is no area light to process or no environment not the shader is missing
+            if (currentEnv == null || lightClusterCS == null || lightArray.Count == 0)
+            {
+                // Invalidate the cluster's bounds so that we never access the buffer
+                minClusterPos.Set(float.MaxValue, float.MaxValue, float.MaxValue);
+                maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
+                punctualLightCount = 0;
+                areaLightCount = 0;
+
+                // Make sure the buffer is at least of size 1
+                if (m_LightCluster.count != 1)
+                {
+                    ResizeClusterBuffer(1);
+                }
+                return;
+            }
 
             // Build the Light volumes
             BuildGPULightVolumes(lightArray);

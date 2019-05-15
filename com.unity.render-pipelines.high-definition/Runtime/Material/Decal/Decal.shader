@@ -29,6 +29,7 @@ Shader "HDRP/Decal"
         [HideInInspector] _EmissiveIntensityUnit("Emissive Mode", Int) = 0
         [ToggleUI] _UseEmissiveIntensity("Use Emissive Intensity", Int) = 0
         _EmissiveIntensity("Emissive Intensity", Float) = 1
+        _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
 
         // Stencil state
@@ -89,7 +90,8 @@ Shader "HDRP/Decal"
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline"}
 
-		// c# code relies on the order in which the passes are declared, any change will need to be reflected in DecalUI.cs
+		// c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames and s_MaterialDecalSGNames array
+        // and DecalSet.InitializeMaterialValues()
 
 		// pass 0 is mesh 3RT mode
 		Pass

@@ -14,6 +14,7 @@
 TEXTURE2D(_ExposureCurveTexture);
 TEXTURE2D(_PreviousExposureTexture);
 TEXTURE2D(_InputTexture);
+TEXTURE2D_X(_SourceTexture);
 
 RW_TEXTURE2D(float2, _OutputTexture);
 
@@ -120,6 +121,9 @@ void KManualCameraExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
+    // For XR, interleave single-pass instancing views in a checkerboard pattern
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX((dispatchThreadId.x + dispatchThreadId.y) % _XRViewCount)
+
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), 1.0 / 1024.0, uint2(8u, 8u));
     float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC);
     float luma;
@@ -131,7 +135,7 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
         {
             // Color buffer
             float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100());
-            float3 color = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_LinearClamp, uv, 0.0).xyz;
+            float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, sampler_LinearClamp, uv, 0.0).xyz;
             luma = Luminance(color / prevExposure);
             break;
         }

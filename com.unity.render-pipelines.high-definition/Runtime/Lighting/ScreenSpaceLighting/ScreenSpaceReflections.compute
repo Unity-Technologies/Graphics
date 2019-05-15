@@ -111,15 +111,22 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
     float  deviceDepth = LOAD_TEXTURE2D_X(_DepthPyramidTexture, positionSS).r;
-           deviceDepth = (deviceDepth - _SsrThicknessBias) / _SsrThicknessScale; // Apply a small bias. TODO: precompute
-    float3 positionWS  = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP); // Jittered
-    float3 V           = GetWorldSpaceNormalizeViewDir(positionWS);
 
     bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
+
+    float3 positionWS = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP); // Jittered
+    float3 V          = GetWorldSpaceNormalizeViewDir(positionWS);
 
     float3 N;
     float perceptualRoughness;
     GetNormalAndPerceptualRoughness(positionSS, N, perceptualRoughness);
+
+    float3 camPosWS = GetCurrentViewPosition();
+
+    // Apply normal bias with the magnitude dependent on the distance from the camera.
+    // Unfortunately, we only have access to the shading normal, which is less than ideal...
+    positionWS  = camPosWS + (positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(N, V), FLT_EPS)));
+    deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
 
     // Ref. #1: Michal Drobot - Quadtree Displacement Mapping with Height Blending.
     // Ref. #2: Yasin Uludag  - Hi-Z Screen-Space Cone-Traced Reflections.
@@ -207,14 +214,14 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
         rayPos.xy += raySign.xy * satEdgeDist;
 
         int2 mipCoord  = (int2)rayPos.xy >> mipLevel;
-        int2 mipOffset = _SsrDepthPyramidMipLevelOffsets[mipLevel]; 
+        int2 mipOffset = _SsrDepthPyramidMipLevelOffsets[mipLevel];
         // Bounds define 4 faces of a cube:
         // 2 walls in front of the ray, and a floor and a base below it.
         float4 bounds;
 
         bounds.xy = (mipCoord + rayStep) << mipLevel;
         bounds.z  = LOAD_TEXTURE2D_X(_DepthPyramidTexture, mipOffset + mipCoord).r;
-        rayPos.z  = bounds.z;
+
         // We define the depth of the base as the depth value as:
         // b = DeviceDepth((1 + thickness) * LinearDepth(d))
         // b = ((f - n) * d + n * (1 - (1 + thickness))) / ((f - n) * (1 + thickness))
@@ -232,8 +239,13 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
         // - above or exactly on the floor
         // - inside the floor (between the floor and the base)
         // - below the base
+    #if 0
         bool belowFloor  = (raySign.z * (t - distFloor)) <  0;
         bool aboveBase   = (raySign.z * (t - distBase )) >= 0;
+    #else
+        bool belowFloor  = rayPos.z  < bounds.z;
+        bool aboveBase   = rayPos.z >= bounds.w;
+    #endif
         bool insideFloor = belowFloor && aboveBase;
         bool hitFloor    = (t <= distFloor) && (distFloor <= distWall);
 
@@ -252,12 +264,12 @@ void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
         hit       = (mipLevel == 0) && (hitFloor || insideFloor);
         belowMip0 = (mipLevel == 0) && belowFloor;
 
-
         // 'distFloor' can be smaller than the current distance 't'.
         // We can also safely ignore 'distBase'.
         // If we hit the floor, it's always safe to jump there.
         // If we are at (mipLevel != 0) and we are below the floor, we should not move.
         t = hitFloor ? distFloor : (((mipLevel != 0) && belowFloor) ? t : distWall);
+        rayPos.z = bounds.z; // Retain the depth of the potential intersection
 
         // Warning: both rays towards the eye, and tracing behind objects has linear
         // rather than logarithmic complexity! This is due to the fact that we only store
@@ -313,7 +325,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     // TODO: it's important to account for occlusion/disocclusion to avoid artifacts in motion.
     // This would require keeping the depth buffer from the previous frame.
     float2 motionVectorNDC;
-    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.zw, 0), motionVectorNDC);
+    DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
     float2 prevFrameNDC = hitPositionNDC - motionVectorNDC;
     float2 prevFrameUV  = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
@@ -340,6 +352,13 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     // Inverse pre-exposure
     float prevExposure = GetPreviousExposureMultiplier();
     color /= prevExposure + (prevExposure == 0.0); // zero-div guard
+    
+    // Disable SSR for negative, infinite and NaN history values.
+    uint3 intCol   = asuint(color);
+    bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
+
+    color   = isPosFin ? color   : 0;
+    opacity = isPosFin ? opacity : 0;
 
     // Use premultiplied alpha.
     _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = float4(color, 1) * opacity;

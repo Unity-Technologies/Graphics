@@ -26,20 +26,20 @@ These settings determine the method that the Cameras and Reflection Probes using
 | --------------------------------- | ------------------------------------------------------------ |
 | **Lit Shader Mode**               | Select the Shader Mode HDRP uses for the Lit Shader when the rendering component using these Frame Settings renders the Scene. |
 | **Depth Prepass Within Deferred** | Only available when the Lit Shader Mode is set to Deferred. If you enable Decals then HDRP forces a depth prepass and you can not disable this feature. This feature fills the depth buffer with all Meshes, without rendering any color. It is an optimization option that depends on the Unity Project you are creating, meaning that you should measure the performance before and after you enable this feature to make sure it benefits your Project. |
-| **MSAA within Forward**           | Only available when the Lit Shader Mode is set to Forward. Enable this checkbox to enable MSAA for the rendering components using these Frame Settings. |
-| **Opaque Objects**                | Enable this checkbox to make HDRP render Materials that have their **Surface Type** set to **Opaque**. If you disable this settings, Cameras/Reflection Probes using these Frame Settings do not render any opaque GameObjects. |
-| **Transparent Objects**           | Enable this checkbox to make HDRP render Materials that have their **Surface Type** set to **Transparent**. If you disable this setting, Cameras/Reflection Probes using these Frame Settings do not render any transparent GameObjects. |
-| **Realtime Planar Reflection**    | Enable this checkbox to make HDRP support real-time [Planar Reflection Probe](Planar-Reflection-Probe.html) updates. HDRP updates Planar Reflection Probes every frame, because they are view dependent. Disabling this feature causes HDRP to stop updating Planar Reflection Probes every frame, but they still render in the Scene. |
-| **Transparent Prepass**           | Enable this checkbox to make HDRP perform a Transparent Prepass. Enabling this feature causes HDRP to add polygons from transparent Materials to the depth buffer to improve sorting. |
-| **Transparent Postpass**          | Enable this checkbox to make HDRP perform a Transparent Postpass. Enabling this feature causes HDRP to add polygons to the depth buffer that postprocessing uses. |
-| **Transparents Write Velocity**   | Enable this checkbox to allow HDRP to write the velocity of transparent GameObjects to the velocity buffer. To make HDRP write transparent GameObjects to the velocity buffer, you must also enable the **Transparent Writes Velocity** checkbox on each transparent Material. Enabling this feature means that effects, such as motion blur, affect transparent GameObjects.  This is useful for alpha blended objects like hair. |
-| **Motion Vectors**                | Enable this checkbox to make HDRP perform a Motion Vectors pass, allowing Cameras using these Frame Settings to use Motion Vectors. Disabling this feature means the Cameras using these Frame Settings do not calculate object motion vectors or camera motion vectors. |
-| **Object Motion Vectors**         | Enable this checkbox to make HDRP support object motion vectors. Enabling this feature causes HDRP to calculate motion vectors for moving objects and objects with vertex animations. HDRP Cameras using these Frame Settings still calculate camera motion vectors if you disable this feature. |
-| **Decals**                        | Enable this checkbox to make HDRP process decals. Enable this on cameras that you want to render decals. |
-| **Rough Refraction**              | Enable this checkbox to make HDRP process Rough Refraction for Cameras/Reflection Probes using these Frame Settings. |
-| **Distortion**                    | Enable this checkbox to make HDRP process Distortion. Enabling this feature causes HDRP to calculate a distortion pass. This allows Meshes with transparent Materials to distort the light that enters them. |
-| **Postprocess**                   | Enable this checkbox to make HDRP perform a Postprocessing pass. Disable this feature to remove all postprocessing effects from this Camera/Reflection Probe. |
-| **After Postprocess**             | Enable this checkbox to make HDRP render GameObjects that use an Unlit Material and have their **Render Pass** set to **After Postprocess**. This is useful to render GameObjects that are not affected by Post-processing effects. Disable this checkbox to make HDRP not render these GameObjects at all. |
+| **MSAA within Forward**           | Only available when the Lit Shader Mode is set to Forward. Enable the checkbox to enable MSAA for the rendering components using these Frame Settings. |
+| **Opaque Objects**                | Enable the checkbox to make HDRP render Materials that have their **Surface Type** set to **Opaque**. If you disable this settings, Cameras/Reflection Probes using these Frame Settings do not render any opaque GameObjects. |
+| **Transparent Objects**           | Enable the checkbox to make HDRP render Materials that have their **Surface Type** set to **Transparent**. If you disable this setting, Cameras/Reflection Probes using these Frame Settings do not render any transparent GameObjects. |
+| **Realtime Planar Reflection**    | Enable the checkbox to make HDRP support real-time [Planar Reflection Probe](Planar-Reflection-Probe.html) updates. HDRP updates Planar Reflection Probes every frame, because they are view dependent. Disabling this feature causes HDRP to stop updating Planar Reflection Probes every frame, but they still render in the Scene. |
+| **Transparent Prepass**           | Enable the checkbox to make HDRP perform a Transparent Prepass. Enabling this feature causes HDRP to add polygons from transparent Materials to the depth buffer to improve sorting. |
+| **Transparent Postpass**          | Enable the checkbox to make HDRP perform a Transparent Postpass. Enabling this feature causes HDRP to add polygons to the depth buffer that postprocessing uses. |
+| **Transparents Write Velocity**   | Enable the checkbox to allow HDRP to write the velocity of transparent GameObjects to the velocity buffer. To make HDRP write transparent GameObjects to the velocity buffer, you must also enable the **Transparent Writes Velocity** checkbox on each transparent Material. Enabling this feature means that effects, such as motion blur, affect transparent GameObjects.  This is useful for alpha blended objects like hair. |
+| **Motion Vectors**                | Enable the checkbox to make HDRP perform a Motion Vectors pass, allowing Cameras using these Frame Settings to use Motion Vectors. Disabling this feature means the Cameras using these Frame Settings do not calculate object motion vectors or camera motion vectors. |
+| **Object Motion Vectors**         | Enable the checkbox to make HDRP support object motion vectors. Enabling this feature causes HDRP to calculate motion vectors for moving objects and objects with vertex animations. HDRP Cameras using these Frame Settings still calculate camera motion vectors if you disable this feature. |
+| **Decals**                        | Enable the checkbox to make HDRP process decals. Enable this on cameras that you want to render decals. |
+| **Rough Refraction**              | Enable the checkbox to make HDRP process Rough Refraction for Cameras/Reflection Probes using these Frame Settings. |
+| **Distortion**                    | Enable the checkbox to make HDRP process Distortion. Enabling this feature causes HDRP to calculate a distortion pass. This allows Meshes with transparent Materials to distort the light that enters them. |
+| **Postprocess**                   | Enable the checkbox to make HDRP perform a Postprocessing pass. Disable this feature to remove all postprocessing effects from this Camera/Reflection Probe. |
+| **After Postprocess**             | Enable the checkbox to make HDRP render GameObjects that use an Unlit Material and have their **Render Pass** set to **After Postprocess**. This is useful to render GameObjects that are not affected by Post-processing effects. Disable this checkbox to make HDRP not render these GameObjects at all. |
 
 ### Lighting
 
@@ -47,18 +47,18 @@ These settings control lighting features for your rendering components. Here you
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **Shadow**                       | Enable this checkbox to make HDRP process Shadows. This makes this Camera/Reflection Probe capture shadows. |
-| **Contact Shadows**              | Enable this checkbox to make HDRP process [Contact Shadows](Override-Contact-Shadows.html). Enabling this feature causes HDRP to calculate Contact Shadows for this Camera/Reflection Probe. |
-| **Shadow Masks**                 | Enable this checkbox to make HDRP support Shadow Masks.      |
-| **SSR**                          | Enable this checkbox to make HDRP process Screen Space Reflections (SSR). This allows HDRP to calculate SSR for this Camera/Reflection Probe. |
-| **SSAO**                         | Enable this checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |
-| **Subsurface Scattering**        | Enable this checkbox to make HDRP process subsurface scattering. Enabling this feature causes HDRP to simulate how light penetrates surfaces of translucent GameObjects, scatters inside them, and exits from different locations. |
-| **Transmission**                 | Enable this checkbox to make HDRP process the transmission effect. This allows subsurface scattering Materials to use transmission, for example, light transmits through a leaf with a subsurface scattering Material. |
-| **Atmospheric Scattering**       | Enable this checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the [fog](Fog-Overview.html) from your Scene’s Volumes. |
-| **Volumetrics**                  | Enable this checkbox to make HDRP process Volumetrics. Enabling this setting allows your rendering component to render volumetric fog and lighting. |
-| **Reprojection For Volumetrics** | Enable this checkbox to improve the quality of volumetrics at runtime. Enabling this feature causes HDRP to use several previous frames to calculate the volumetric effects. Using these previous frames helps to reduce noise and smooth out the effects. |
-| **Light Layers**                 | Enable this checkbox to make HDRP process Light Layers.      |
-| **Exposure Control**             | Enable this checkbox to use the exposure values you can set on relevant components in HDRP. Disable this checkbox to use a neutral value (0) instead. |
+| **Shadow**                       | Enable the checkbox to make HDRP process Shadows. This makes this Camera/Reflection Probe capture shadows. |
+| **Contact Shadows**              | Enable the checkbox to make HDRP process [Contact Shadows](Override-Contact-Shadows.html). Enabling this feature causes HDRP to calculate Contact Shadows for this Camera/Reflection Probe. |
+| **Shadow Masks**                 | Enable the checkbox to make HDRP support Shadow Masks.      |
+| **SSR**                          | Enable the checkbox to make HDRP process Screen Space Reflections (SSR). This allows HDRP to calculate SSR for this Camera/Reflection Probe. |
+| **SSAO**                         | Enable the checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |
+| **Subsurface Scattering**        | Enable the checkbox to make HDRP process subsurface scattering. Enabling this feature causes HDRP to simulate how light penetrates surfaces of translucent GameObjects, scatters inside them, and exits from different locations. |
+| **Transmission**                 | Enable the checkbox to make HDRP process the transmission effect. This allows subsurface scattering Materials to use transmission, for example, light transmits through a leaf with a subsurface scattering Material. |
+| **Atmospheric Scattering**       | Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the [fog](Fog-Overview.html) from your Scene’s Volumes. |
+| **Volumetrics**                  | Enable the checkbox to make HDRP process Volumetrics. Enabling this setting allows your rendering component to render volumetric fog and lighting. |
+| **Reprojection For Volumetrics** | Enable the checkbox to improve the quality of volumetrics at runtime. Enabling this feature causes HDRP to use several previous frames to calculate the volumetric effects. Using these previous frames helps to reduce noise and smooth out the effects. |
+| **Light Layers**                 | Enable the checkbox to make HDRP process Light Layers.      |
+| **Exposure Control**             | Enable the checkbox to use the exposure values you can set on relevant components in HDRP. Disable this checkbox to use a neutral value (0) instead. |
 
 ### Async Compute
 
@@ -66,12 +66,12 @@ These settings control which effects, if any, can make use execute compute Shade
 
 | **Property**                       | **Description**                                              |
 | ---------------------------------- | ------------------------------------------------------------ |
-| **Async Compute**                  | Enable this checkbox to allow HDRP to execute certain compute Shader commands in parallel. |
-| **Light List Async**               | Enable this checkbox to allow HDRP to build the Light List asynchronously. |
-| **SSR Async**                      | Enable this checkbox to allow HDRP to calculate screen space reflection asynchronously. |
-| **SSAO Async**                     | Enable this checkbox to allow HDRP to calculate screen space ambient occlusion asynchronously. |
-| **Contact Shadows Async**          | Enable this checkbox to allow HDRP to calculate Contact Shadows asynchronously. |
-| **Volumetrics Voxelization Async** | Enable this checkbox to allow HDRP to calculate volumetric voxelization asynchronously. |
+| **Async Compute**                  | Enable the checkbox to allow HDRP to execute certain compute Shader commands in parallel. |
+| **Light List Async**               | Enable the checkbox to allow HDRP to build the Light List asynchronously. |
+| **SSR Async**                      | Enable the checkbox to allow HDRP to calculate screen space reflection asynchronously. |
+| **SSAO Async**                     | Enable the checkbox to allow HDRP to calculate screen space ambient occlusion asynchronously. |
+| **Contact Shadows Async**          | Enable the checkbox to allow HDRP to calculate Contact Shadows asynchronously. |
+| **Volumetrics Voxelization Async** | Enable the checkbox to allow HDRP to calculate volumetric voxelization asynchronously. |
 
 ### Light Loop
 
@@ -81,31 +81,13 @@ Note: These settings are for debugging purposes only so do not alter these value
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
-| **FPTL For Forward Opaque**   | Enable this checkbox to make HDRP use Fine Pruned Tiled Lighting for Forward rendered opaque GameObjects. |
-| **Big Tile Prepass**          | Enable this checkbox to make HDRP use an optimization using a prepass with bigger tiles for tile lighting computation. |
-| **Deferred Tile**             | Enable this checkbox to make HDRP use tiles to calculate deferred lighting. Disable this checkbox to use a full-screen brute force pixel Shader instead. |
-| **Compute Light Evaluation**  | Enable this checkbox to make HDRP compute lighting using a compute Shader and tile classification. Otherwise HDRP uses a generic pixel Shader. |
-| **Compute Light Variants**    | Enable this checkbox to classify tiles by light type combinations. Enable Compute Light Evaluation to access this property. |
-| **Compute Material Variants** | Enable this checkbox to classify tiles by Material variant combinations. Enable Compute Light Evaluation to access this property. |
+| **FPTL For Forward Opaque**   | Enable the checkbox to make HDRP use Fine Pruned Tiled Lighting for Forward rendered opaque GameObjects. |
+| **Big Tile Prepass**          | Enable the checkbox to make HDRP use an optimization using a prepass with bigger tiles for tile lighting computation. |
+| **Deferred Tile**             | Enable the checkbox to make HDRP use tiles to calculate deferred lighting. Disable this checkbox to use a full-screen brute force pixel Shader instead. |
+| **Compute Light Evaluation**  | Enable the checkbox to make HDRP compute lighting using a compute Shader and tile classification. Otherwise HDRP uses a generic pixel Shader. |
+| **Compute Light Variants**    | Enable the checkbox to classify tiles by light type combinations. Enable Compute Light Evaluation to access this property. |
+| **Compute Material Variants** | Enable the checkbox to classify tiles by Material variant combinations. Enable Compute Light Evaluation to access this property. |
 
 ## Debugging Frame Settings
 
-To open the **Debug** window, go to **Window > Analysis > Render Pipeline Debug**. This window allows you to debug the Frame Settings for each Camera. A list of every Camera in your Scene is on the left side of the window. Click on a Camera  to select it and view its Frame Settings.
-
-![](Images/FrameSettings2.png)This window of the selected Camera’s Frame Settings helps you understand why a feature may not work correctly. Here, you can access all of the information that HDRP uses to render the Camera you select.
-
-Note: The debug menu is currently only accessible for Cameras and not for Reflection Probes.
-
-| **Column**     | **Description**                                              |
-| -------------- | ------------------------------------------------------------ |
-| **Debug**      | Displays modifiable Frame Setting values for the selected Camera. You can use these to temporarily alter the Camera’s Frame Settings for debugging purposes. Note that you can not enable Frame Setting features that your HDRP Asset does not support. |
-| **Sanitized**  | Displays the Frame Setting values that the selected Camera uses after Unity checks to see if your HDRP Asset supports them. |
-| **Overridden** | Displays the Frame Setting values that the selected Camera overrides. If you do not check the **Custom Frame Settings** checkbox, or do check it and do not override any settings, this column is identical to the **Default** column. |
-| **Default**    | Displays the default Frame Setting values in your current [HDRP Asset](HDRP-Asset.html). |
-
-Unity processes **Sanitized**, **Overridden**, and **Default** in a specific order. First it checks the **Default** Frame Settings, then checks the selected Camera’s **Overridden** Frame Settings. Finally, it checks whether the HDRP Asset supports the selected Camera’s Frame Settings and displays that result in the **Sanitized** column.
-
-### Interpreting the Debug Window
-
-- In the image above, you can see that the **Light Layers** checkbox is disabled at the **Sanitized** step. This means that, although you enabled **Light Layers** in the Frame Settings this Camera uses, you did not enable it in your HDRP Asset’s **Render Pipeline Supported Features**.
-- Also in the image above, you can also see that the **Decals** checkbox is disabled at the **Overridden** step. This means that you enabled **Decals** in the default Camera Frame Settings and then disabled **Decals** for that specific Camera’s **Custom Frame Settings**.
+Frame Settings can be changed on the fly without altering the actual camera data by using the Render Pipeline Debug in the editor and the player. See the [corresponding page](Render-Pipeline-Debug-Camera).

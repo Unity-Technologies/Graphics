@@ -453,7 +453,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (1.0f / (4.0f * Mathf.PI)) * 1.5f * (1.0f - g * g) / (2.0f + g * g);
         }
 
-        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex)
+        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
 
@@ -468,7 +468,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Get the interpolated anisotropy value.
             var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
 
-            SetPreconvolvedAmbientLightProbe(cmd, fog.globalLightProbeDimmer, fog.anisotropy);
+            SetPreconvolvedAmbientLightProbe(cmd, fog.globalLightProbeDimmer.value, fog.anisotropy.value);
 
             var currFrameParams = hdCamera.vBufferParams[0];
             var prevFrameParams = hdCamera.vBufferParams[1];
@@ -486,6 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,  currFrameParams.depthEncodingParams);
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceDecodingParams,  currFrameParams.depthDecodingParams);
             cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,           currFrameParams.ComputeLastSliceDistance());
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,   1.0f / hdCamera.xr.viewCount);
 
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevResolution,          new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y));
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevUvScaleAndLimit,     prevFrameParams.ComputeUvScaleAndLimit(bufferSize));
@@ -536,7 +537,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: account for custom near and far planes of the V-Buffer's frustum.
                     // It's typically much shorter (along the Z axis) than the camera's frustum.
                     // XRTODO: fix combined frustum culling
-                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8) || hdCamera.camera.stereoEnabled)
+                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8) || hdCamera.xr.instancingEnabled)
                     {
                         // TODO: cache these?
                         var data = volume.parameters.ConvertToEngineData();
@@ -557,7 +558,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes, LightLoop lightLoop)
+        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex, DensityVolumeList densityVolumes, LightLoop lightLoop)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -587,7 +588,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
 
                 // Compose the matrix which allows us to compute the world space view direction.
-                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.viewMatrix, false);
+                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.mainViewConstants.viewMatrix, false);
 
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
@@ -631,7 +632,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int h = (int)resolution.y;
 
                 // The shader defines GROUP_SIZE_1D = 8.
-                cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, XRGraphics.computePassCount);
+                cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.computePassCount);
             }
         }
 
@@ -671,7 +672,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex)
+        public void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -689,7 +690,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 bool tiledLighting      = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
                 bool enableReprojection = Application.isPlaying && hdCamera.camera.cameraType == CameraType.Game &&
                                           hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
-                bool enableAnisotropy   = fog.anisotropy != 0;
+                bool enableAnisotropy   = fog.anisotropy.value != 0;
                 bool highQuality        = preset == VolumetricLightingPreset.High;
 
                 int kernel = (tiledLighting ? 1 : 0) | (enableReprojection ? 2 : 0) | (enableAnisotropy ? 4 : 0) | (highQuality ? 8 : 0);
@@ -706,14 +707,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var lensShift   = Vector2.zero;
 #endif
                 // Compose the matrix which allows us to compute the world space view direction.
-                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.viewMatrix, false);
+                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.mainViewConstants.viewMatrix, false);
 
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
 
                 GetHexagonalClosePackedSpheres7(m_xySeq);
 
-                int sampleIndex = (int)frameIndex % 7;
+                int sampleIndex = frameIndex % 7;
 
                 // TODO: should we somehow reorder offsets in Z based on the offset in XY? S.t. the samples more evenly cover the domain.
                 // Currently, we assume that they are completely uncorrelated, but maybe we should correlate them somehow.
@@ -724,7 +725,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // TODO: set the constant buffer data only once.
                 cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS,      transform);
                 cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._VBufferUnitDepthTexelSpacing, unitDepthTexelSpacing);
-                cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,       CornetteShanksPhasePartConstant(fog.anisotropy));
+                cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,       CornetteShanksPhasePartConstant(fog.anisotropy.value));
                 cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,          m_xySeqOffset);
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,               m_DensityBufferHandle);  // Read
                 cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral,      m_LightingBufferHandle); // Write
@@ -745,7 +746,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int h = (int)resolution.y;
 
                 // The shader defines GROUP_SIZE_1D = 8.
-                cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 7) / 8, (h + 7) / 8, XRGraphics.computePassCount);
+                cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.computePassCount);
             }
         }
     } // class VolumetricLightingModule

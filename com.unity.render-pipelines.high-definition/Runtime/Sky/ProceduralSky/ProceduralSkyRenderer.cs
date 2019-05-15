@@ -37,17 +37,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
             {
-                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.hdCamera, builtinParams.colorBuffer);
+                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
             }
             else
             {
-                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.hdCamera, builtinParams.colorBuffer, builtinParams.depthBuffer);
+                HDUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
             }
         }
 
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
-            CoreUtils.SetKeyword(m_ProceduralSkyMaterial, "_ENABLE_SUN_DISK", m_ProceduralSkyParams.enableSunDisk);
+            CoreUtils.SetKeyword(m_ProceduralSkyMaterial, "_ENABLE_SUN_DISK", m_ProceduralSkyParams.enableSunDisk.value);
 
             // Default values when no sun is provided
             Color sunColor = Color.white;
@@ -58,18 +58,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 sunColor = builtinParams.sunLight.color * builtinParams.sunLight.intensity;
                 sunDirection = -builtinParams.sunLight.transform.forward;
-                sunSize = m_ProceduralSkyParams.sunSize;
+                sunSize = m_ProceduralSkyParams.sunSize.value;
             }
 
             if (!renderSunDisk)
                 sunSize = 0.0f;
 
-            m_PropertyBlock.SetVector(HDShaderIDs._SkyParam, new Vector4(GetExposure(m_ProceduralSkyParams, builtinParams.debugSettings), m_ProceduralSkyParams.multiplier, 0.0f, 0.0f));
+            m_PropertyBlock.SetVector(HDShaderIDs._SkyParam, new Vector4(GetExposure(m_ProceduralSkyParams, builtinParams.debugSettings), m_ProceduralSkyParams.multiplier.value, 0.0f, 0.0f));
             m_PropertyBlock.SetFloat(_SunSizeParam, sunSize);
-            m_PropertyBlock.SetFloat(_SunSizeConvergenceParam, m_ProceduralSkyParams.sunSizeConvergence);
-            m_PropertyBlock.SetFloat(_AtmoshpereThicknessParam, m_ProceduralSkyParams.atmosphereThickness);
-            m_PropertyBlock.SetColor(_SkyTintParam, m_ProceduralSkyParams.skyTint);
-            m_PropertyBlock.SetColor(_GroundColorParam, m_ProceduralSkyParams.groundColor);
+            m_PropertyBlock.SetFloat(_SunSizeConvergenceParam, m_ProceduralSkyParams.sunSizeConvergence.value);
+            m_PropertyBlock.SetFloat(_AtmoshpereThicknessParam, m_ProceduralSkyParams.atmosphereThickness.value);
+            m_PropertyBlock.SetColor(_SkyTintParam, m_ProceduralSkyParams.skyTint.value);
+            m_PropertyBlock.SetColor(_GroundColorParam, m_ProceduralSkyParams.groundColor.value);
             m_PropertyBlock.SetColor(_SunColorParam, sunColor);
             m_PropertyBlock.SetVector(_SunDirectionParam, sunDirection);
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);

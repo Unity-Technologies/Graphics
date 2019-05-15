@@ -113,21 +113,7 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
 // It will account for the fact that the textures it samples are not necesarry using the full space of the render texture but only a partial viewport.
 float2 GetNormalizedFullScreenTriangleTexCoord(uint vertexID)
 {
-    return GetFullScreenTriangleTexCoord(vertexID) * _ScreenToTargetScale.xy;
-}
-
-// The size of the render target can be larger than the size of the viewport.
-// This function returns the fraction of the render target covered by the viewport:
-// ViewportScale = ViewportResolution / RenderTargetResolution.
-// Do not assume that their size is the same, or that sampling outside of the viewport returns 0.
-float2 GetViewportScaleCurrentFrame()
-{
-    return _ScreenToTargetScale.xy;
-}
-
-float2 GetViewportScalePreviousFrame()
-{
-    return _ScreenToTargetScale.zw;
+    return GetFullScreenTriangleTexCoord(vertexID) * _RTHandleScale.xy;
 }
 
 float4 SampleSkyTexture(float3 texCoord, int sliceIndex)
@@ -138,26 +124,6 @@ float4 SampleSkyTexture(float3 texCoord, int sliceIndex)
 float4 SampleSkyTexture(float3 texCoord, float lod, int sliceIndex)
 {
     return SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, texCoord, sliceIndex, lod);
-}
-
-float2 TexCoordStereoOffset(float2 texCoord)
-{
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    return texCoord + float2(unity_StereoEyeIndex * _ScreenSize.x, 0.0);
-#else
-    return texCoord;
-#endif
-}
-
-// In stereo, shadowmaps are generated only once for all eyes from the combined center view (original camera matrix)
-// For camera-relative code to work in stereo, we need to translate input position from eye-relative to camera-relative
-float3 StereoCameraRelativeEyeToCenter(float3 pos)
-{
-#if defined(USING_STEREO_MATRICES) && (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    return pos + _WorldSpaceCameraPosEyeOffset;
-#else
-    return pos;
-#endif
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w

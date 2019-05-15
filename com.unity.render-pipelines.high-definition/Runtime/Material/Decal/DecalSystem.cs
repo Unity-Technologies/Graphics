@@ -9,6 +9,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class DecalSystem
     {
+        // Relies on the order shader passes are declared in Decal.shader and DecalSubshader.cs
+        public enum MaterialDecalPass
+        {
+            DBufferMesh_3RT = 0,
+            DBufferProjector_M = 1,
+            DBufferProjector_AO = 2,
+            DBufferProjector_MAO = 3,
+            DBufferProjector_S = 4,
+            DBufferProjector_MS = 5,
+            DBufferProjector_AOS = 6,
+            DBufferProjector_MAOS = 7,
+            DBufferMesh_M = 8,
+            DBufferMesh_AO = 9,
+            DBufferMesh_MAO = 10,
+            DBufferMesh_S = 11,
+            DBufferMesh_MS = 12,
+            DBufferMesh_AOS = 13,
+            DBufferMesh_MAOS = 14,
+            Projector_Emissive = 15,
+            Mesh_Emissive = 16
+        };
+
+        public enum MaterialSGDecalPass
+        {
+            ShaderGraph_DBufferProjector3RT = 0,
+            ShaderGraph_DBufferProjector4RT = 1,
+            ShaderGraph_ProjectorEmissive = 2,
+            ShaderGraph_DBufferMesh3RT = 3,
+            ShaderGraph_DBufferMesh4RT = 4,
+            ShaderGraph_MeshEmissive = 5
+        };
+
+        public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
+        public static readonly string[] s_MaterialSGDecalPassNames = Enum.GetNames(typeof(MaterialSGDecalPass));
+
         public class CullResult : IDisposable, IEnumerable<KeyValuePair<int, CullResult.Set>>
         {
             public class Set : IDisposable
@@ -230,8 +265,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        private static MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
-
         private const int kDecalBlockSize = 128;
 
         // to work on Vulkan Mobile?
@@ -327,6 +360,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_Material == null)
                     return;
+
+                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
                 m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material.shader.name);
 
                 if (m_IsHDRenderPipelineDecal)
@@ -340,7 +376,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));
                     m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
                     m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
-                    m_IsEmissive = m_Material.GetFloat("_Emissive") == 1.0f;
+
+                    // For HDRP/Decal, all projector pass are always present and always enabled. We can't do emissive only decal but can discard the emissive pass
+                    int initialPassIndex = perChannelMask ? MaskBlendMode : (int)Decal.MaskBlendFlags.Smoothness;
+                    m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialDecalPassNames[initialPassIndex]);
+
+                    m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.Projector_Emissive]);
+                    if (m_Material.GetFloat("_Emissive") != 1.0f) // Emissive is disabled, discard
+                        m_cachedProjectorEmissivePassValue = -1;
+                }
+                else
+                {
+                    m_Blend = 1.0f;
+                    // With ShaderGraph m_cachedProjectorPassValue is setup to -1 if the pass isn't generated, thus we can create emissive only decal if required
+                    m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)(perChannelMask ? MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT : MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT)]);
+                    m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)MaterialSGDecalPass.ShaderGraph_ProjectorEmissive]);
                 }
             }
 
@@ -398,7 +448,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (m_Material == null)
                     return;
-                UpdateCachedData(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle, layerMask, fadeFactor);                
+                UpdateCachedData(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle, layerMask, fadeFactor);
             }
 
             public DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, int materialID, int layerMask, float fadeFactor)
@@ -568,6 +618,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, batchCount);
 
+                // XRTODO: investigate if instancing is working with the following code
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 Matrix4x4 worldToView = LightLoop.WorldToCamera(instance.CurrentCamera);
                 bool perChannelMask = instance.perChannelMask;
@@ -662,71 +713,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void RenderIntoDBuffer(CommandBuffer cmd)
             {
-                if (m_Material == null)
+                if (m_Material == null || m_cachedProjectorPassValue == -1 || (m_NumResults == 0))
                     return;
-                if (m_NumResults == 0)
-                    return;
-                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-                bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
                 int batchIndex = 0;
                 int totalToDraw = m_InstanceCount;
-                int shaderPass = 0;
-                if (m_IsHDRenderPipelineDecal)
-                {
-                    shaderPass = perChannelMask ? MaskBlendMode : (int)Decal.MaskBlendFlags.Smoothness; // relies on the order shader passes are declared in decal.shader and decalUI.cs
-                }
-                else
-                {
-                    shaderPass = perChannelMask ? 1 : 0; // relies on the order shader passes are declared in DecalSubShader.cs
-                }
-                                      
+
                 for (; batchIndex < m_InstanceCount / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorPassValue, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
 
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorPassValue, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }
 
             public void RenderForwardEmissive(CommandBuffer cmd)
             {
-                if (m_Material == null)
+                if (m_Material == null || m_cachedProjectorEmissivePassValue == -1 || m_NumResults == 0)
                     return;
-                if ((m_IsHDRenderPipelineDecal) && (!m_IsEmissive)) // in shader graph emissive will be toggled by #define
-                    return;
-                if (m_NumResults == 0)
-                    return;
-                
+
                 int batchIndex = 0;
                 int totalToDraw = m_InstanceCount;
-                int shaderPass = 0;
-                if (m_IsHDRenderPipelineDecal)
-                {
-                    shaderPass = 15; // relies on the order shader passes are declared in decal.shader and decalUI.cs
-                }
-                else
-                {
-                    shaderPass = 2; // relies on the order shader passes are declared in DecalSubShader.cs
-                }
 
                 for (; batchIndex < m_InstanceCount / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorEmissivePassValue, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
 
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, m_cachedProjectorEmissivePassValue, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }
 
@@ -786,15 +811,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private int[] m_CachedLayerMask = new int[kDecalBlockSize];
             private float[] m_CachedFadeFactor = new float[kDecalBlockSize];
             private Material m_Material;
+            private MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
             private float m_Blend = 0;
             private float m_AlbedoContribution = 0;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
             private Vector4 m_ScalingMAB; // metal, base color alpha, mask map blue
             private Vector3 m_BlendParams;
-            private bool m_IsEmissive;
 
             private bool m_IsHDRenderPipelineDecal;
+            // Cached value for pass index. If -1 no pass exist
+            // The projector decal rendering code relies on the order shader passes that are declared in Decal.shader and DecalSubshader.cs
+            // At the init of material we look for pass index by name and cached the result.
+            private int m_cachedProjectorPassValue;
+            private int m_cachedProjectorEmissivePassValue;
 
             TextureScaleBias m_Diffuse = new TextureScaleBias();
             TextureScaleBias m_Normal = new TextureScaleBias();
@@ -806,7 +836,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_ResultIndices.Length < m_NumResults)
                     Array.Resize(ref m_ResultIndices, m_NumResults);
                 Array.Copy(value.resultIndices, m_ResultIndices, m_NumResults);
-        }
+            }
         }
 
         DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material, int layerMask, float fadeFactor)
