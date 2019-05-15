@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.0.0-preview] - 2019-XX-XX
 ### Added
-- You can now use the `SHADERGRAPH_PREVIEW` keyword in `Custom Function Node` to generate different code for preview shaders.
+- You can now use the `SHADERGRAPH_PREVIEW` keyword in `Custom Function Node` to generate different code for preview Shaders.
 
 ### Changed
 - The `Custom Function Node` now uses an object field to reference its source when using `File` mode.
