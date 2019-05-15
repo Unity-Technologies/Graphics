@@ -83,7 +83,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 )
             }
         };
+
+        public ProbeSettingsOverride displayedAdvancedCaptureSettings => new ProbeSettingsOverride();
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.overrideableCaptureSettings => new ProbeSettingsOverride();
+        public ProbeSettingsOverride overrideableAdvancedCaptureSettings => new ProbeSettingsOverride();
+
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedAdvancedSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.lightingLightLayer

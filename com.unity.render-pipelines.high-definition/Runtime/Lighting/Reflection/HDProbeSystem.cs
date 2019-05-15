@@ -38,7 +38,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static void Render(
             HDProbe probe, Transform viewerTransform,
             Texture outTarget, out HDProbe.RenderData outRenderData,
-            bool forceFlipY = false
+            bool forceFlipY = false,
+            float referenceFieldOfView = 90
         )
         {
             var positionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, viewerTransform);
@@ -46,8 +47,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 probe.settings,
                 positionSettings,
                 outTarget,
-                out CameraSettings cameraSettings, out CameraPositionSettings cameraPosition,
-                forceFlipY: forceFlipY
+                out var cameraSettings, out var cameraPosition,
+                forceFlipY,
+                referenceFieldOfView: referenceFieldOfView
             );
 
             outRenderData = new HDProbe.RenderData(cameraSettings, cameraPosition);
