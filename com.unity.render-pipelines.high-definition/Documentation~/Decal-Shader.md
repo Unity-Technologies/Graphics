@@ -2,9 +2,9 @@
 
 The High Definition Render Pipeline (HDRP) includes the [Decal Projector](Decal-Projector.html) component, which you can use to project specific Materials into your Scene to create realistic-looking decals. These Materials must use the **HDRP/Decal** Shader. Use this Shader to create decal Materials that you can place, or project, into your Scene.
 
-## Properties
+![](Images/HDRPFeatures-DecalShader.png)
 
- ![](Images/DecalShader1.png)
+## Properties
 
 ### Surface Inputs
 
@@ -29,7 +29,7 @@ These properties allow you to set the inputs that affect the behavior of the dec
 | **Emissive**                    | Enable the checkbox to make this decal emissive. When enabled, this Material appears self-illuminated and acts as a visible source of light. |
 | **Use Emission Intensity**      | Enable the checkbox to use a separate LDR color and intensity value to set the emission color for this Material. Disable this checkbox to only use an HDR color to handle the color and emission color intensity. |
 | **Emission Map**                | Assign a Texture that this Material uses for emission. You can also use the color picker to select a color that HDRP multiplies by the Texture. If you do not set an emission texture then HDRP only uses the HDR color to calculate the final emissive color of the Material. You can set the intensity of the HDR color within the HDR color picker. |
-| **Emission Intensity**          | Set the overall strength of the emission effect for this Material. Use the drop-down to select one of the following [physical light units](Physical-Light-Units.html) to use for intensity:<br />&#8226; [Luminance](Glossary.html#Luminance)<br />&#8226; [EV<sub>100</sub>](Glossary.html#EV)<br />To expose this property, enable the **Use Emission Intensity** checkbox. |
+| **Emission Intensity**          | Set the overall strength of the emission effect for this Material. Use the drop-down to select one of the following [physical light units](Physical-Light-Units.html) to use for intensity:<br />&#8226; [Luminance](Physical-Light-Units.html#Luminance)<br />&#8226; [EV<sub>100</sub>](Physical-Light-Units.html#EV)<br />To expose this property, enable the **Use Emission Intensity** checkbox. |
 
 **Note:** To alter the **Affect Metal**, **Affect AO**, and **Affect Smoothness** properties, you must enable the **Metal and Ambient Occlusion properties** in your Unity Project’s [HDRP Asset](HDRP-Asset.html). Navigate to **HDRP Asset** > **Decals** and tick the **Metal and AO properties** checkbox. Otherwise, the decal only affects smoothness.
 
