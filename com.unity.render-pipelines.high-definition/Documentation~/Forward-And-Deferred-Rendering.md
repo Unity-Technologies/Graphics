@@ -30,7 +30,7 @@ HDRP forces Forward rendering for the following types of Shaders:
 
 If you set the __Lit Shader Mode__ to __Deferred__ in your HDRP Asset, HDRP uses deferred rendering to render all Materials that use an Opaque Lit Material.
 
-Forward and Deferred rendering both implement the same features, but the quality can differ between them. This means that HDRP works with all features for whichever __Lit Shader Mode __you select. For example, Screen Space Reflection, Screen Space Ambient Occlusion, Decals, and Contact Shadows work with a Deferred or Forward __Lit Shader Mode__. Although feature parity is core to HDRP, the quality and accuracy of these effects may vary between __Lit Shader Modes__ due to technical restraints.
+Forward and Deferred rendering both implement the same features, but the quality can differ between them. This means that HDRP works with all features for whichever __Lit Shader Mode__ you select. For example, Screen Space Reflection, Screen Space Ambient Occlusion, Decals, and Contact Shadows work with a Deferred or Forward __Lit Shader Mode__. Although feature parity is core to HDRP, the quality and accuracy of these effects may vary between __Lit Shader Modes__ due to technical restraints.
 
 ## Differences between Forward and Deferred rendering in HDRP
 

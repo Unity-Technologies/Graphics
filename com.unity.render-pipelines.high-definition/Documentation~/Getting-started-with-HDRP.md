@@ -43,11 +43,11 @@ The HDRP Visual Environment component enables you to change the type of sky and 
 
 ![](Images/GettingStarted3.png)
 
-For more information, see [Visual Environment](Override-Visual-Environment.html), [Sky overview](Sky-Overview.html) and [Fog overview](Fog-Overview.html).
+For more information, see [Visual Environment](Override-Visual-Environment.html), [Sky overview](HDRP-Features.html#SkyOverview.html) and [Fog overview](HDRP-Features.html#FogOverview.html).
 
 ## Materials and Shaders
 
-HDRP enables you to create materials like glass that refracts light based on definable options. The options for a Material depend on which Shader the Material is using. HDRP shares Material properties across Shaders. For more information, see [Materials and Shaders overview](Materials-Shaders-Overview.html).
+HDRP enables you to create materials like glass that refracts light based on definable options. The options for a Material depend on which Shader the Material is using. HDRP shares Material properties across Shaders.
 
 ## Lighting
 
