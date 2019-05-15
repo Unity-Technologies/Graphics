@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -217,7 +218,7 @@ namespace UnityEditor.ShaderGraph
                 if(string.IsNullOrEmpty(path))
                     path = functionSource;
 
-                string extension = path.Substring(path.LastIndexOf('.'));
+                string extension = Path.GetExtension(path);
                 return s_ValidExtensions.Contains(extension);
             }
         }
@@ -282,6 +283,28 @@ namespace UnityEditor.ShaderGraph
             ps.Add(new ReorderableSlotListView(this, SlotType.Output));
             ps.Add(new HlslFunctionView(this));
             return ps;
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+
+            // Handle upgrade from legacy asset path version
+            // If functionSource is not empty or a guid then assume it is legacy version
+            // If asset can be loaded from path then get its guid
+            // Otherwise it was the default string so set to empty
+            Guid guid;
+            if(!string.IsNullOrEmpty(functionSource) && !Guid.TryParse(functionSource, out guid))
+            {
+                string guidString = string.Empty;
+                TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
+                if(textAsset != null)
+                {
+                    long localId;
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(textAsset, out guidString, out localId);
+                }
+                functionSource = guidString;
+            }
         }
     }
 }
