@@ -26,16 +26,16 @@ namespace UnityEditor.VFX
         public static readonly Dictionary<Type, Type[]> kTypeAffinity = new Dictionary<Type, Type[]>
         {
             { typeof(Matrix4x4), new Type[] {} },
-            { typeof(Vector4), new[] {typeof(Color), typeof(Vector3), typeof(Position), typeof(DirectionType), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
-            { typeof(Color), new[] {typeof(Vector4), typeof(Vector3), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
+            { typeof(Vector4), new[] {typeof(Color), typeof(Vector3), typeof(Position), typeof(DirectionType), typeof(Vector), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
+            { typeof(Color), new[] {typeof(Vector4), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
             { typeof(Vector3), new[] {typeof(Position), typeof(DirectionType), typeof(Vector), typeof(Color), typeof(Vector2), typeof(float), typeof(int), typeof(uint)} },
             { typeof(Position), new[] {typeof(Vector3), typeof(Vector)} },
-            { typeof(DirectionType), new[] {typeof(Vector3), typeof(Vector) } },
+            { typeof(DirectionType), new[] {typeof(Vector3), typeof(Position), typeof(Vector)} },
             { typeof(Vector), new[] {typeof(Vector3), typeof(Position), typeof(DirectionType) } },
             { typeof(Vector2), new[] {typeof(float), typeof(int), typeof(uint)} },
-            { typeof(float), new[] {typeof(int), typeof(uint), typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Color)} },
-            { typeof(int), new[] {typeof(uint), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Color)} },
-            { typeof(uint), new[] {typeof(int), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Color)} },
+            { typeof(float), new[] {typeof(int), typeof(uint), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
+            { typeof(int), new[] {typeof(uint), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
+            { typeof(uint), new[] {typeof(int), typeof(float), typeof(Vector2), typeof(Vector3), typeof(Position), typeof(Vector), typeof(Vector4), typeof(Color)} },
         };
 
         public sealed override void OnEnable()
