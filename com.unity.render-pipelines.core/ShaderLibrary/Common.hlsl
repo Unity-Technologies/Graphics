@@ -68,13 +68,13 @@
 // precision is suitable for its needs.  The shader
 // API (for now) can indicate whether half is possible.
 #ifdef SHADER_API_MOBILE
-#define HAS_HALF 1
+#define HAS_HALF 0
 #else
 #define HAS_HALF 0
 #endif
 
 #ifndef PREFER_HALF
-#define PREFER_HALF 1
+#define PREFER_HALF 0
 #endif
 
 #if HAS_HALF && PREFER_HALF
