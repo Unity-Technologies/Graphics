@@ -486,7 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,  currFrameParams.depthEncodingParams);
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceDecodingParams,  currFrameParams.depthDecodingParams);
             cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,           currFrameParams.ComputeLastSliceDistance());
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,   1.0f / hdCamera.xr.viewCount);
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,   1.0f / hdCamera.viewCount);
 
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevResolution,          new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y));
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevUvScaleAndLimit,     prevFrameParams.ComputeUvScaleAndLimit(bufferSize));
