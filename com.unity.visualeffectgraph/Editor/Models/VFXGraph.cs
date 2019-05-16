@@ -310,6 +310,7 @@ namespace UnityEditor.VFX
 
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
+            UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
         }
 
         public void ClearCompileData()
