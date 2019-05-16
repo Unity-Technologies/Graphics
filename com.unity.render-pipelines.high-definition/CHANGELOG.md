@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
 - The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
+- Fixed volumetric rendering with camera-relative code and XR stereo instancing
 
 ## [6.7.0-preview] - 2019-05-16
 

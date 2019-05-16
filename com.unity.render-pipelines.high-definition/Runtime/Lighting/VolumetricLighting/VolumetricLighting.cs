@@ -169,6 +169,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // | x | x | x | x | x | x | x |
         float[] m_zSeq = { 7.0f / 14.0f, 3.0f / 14.0f, 11.0f / 14.0f, 5.0f / 14.0f, 9.0f / 14.0f, 1.0f / 14.0f, 13.0f / 14.0f };
 
+        Matrix4x4[] m_PixelCoordToViewDirWS;
 
         public void Build(HDRenderPipelineAsset asset)
         {
@@ -190,6 +191,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_xySeq = new Vector2[7];
             m_xySeqOffset = new Vector4();
+
+            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.kMaxSliceCount];
 
             CreateBuffers();
         }
@@ -581,14 +584,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Vector4 resolution  = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
 #if UNITY_2019_1_OR_NEWER
                 var vFoV        = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-                var lensShift = hdCamera.camera.GetGateFittedLensShift();
 #else
                 var vFoV        = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
-                var lensShift = Vector2.zero;
 #endif
-
                 // Compose the matrix which allows us to compute the world space view direction.
-                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.mainViewConstants.viewMatrix, false);
+                hdCamera.GetPixelCoordToViewDirWS(resolution, ref m_PixelCoordToViewDirWS);
 
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
@@ -608,7 +608,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     volumeAtlas = CoreUtils.blackVolumeTexture;
                 }
 
-                if(hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
+                if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {
                     // We explicitly set the big tile info even though it is set globally, since this could be running async before the PushGlobalParams
                     cmd.SetComputeIntParam(m_VolumeVoxelizationCS, HDShaderIDs._NumTileBigTileX, lightLoop.GetNumTileBigTileX(hdCamera));
@@ -623,10 +623,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeMaskAtlas, volumeAtlas);
 
                 // TODO: set the constant buffer data only once.
-                cmd.SetComputeMatrixParam(m_VolumeVoxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS,      transform);
-                cmd.SetComputeFloatParam( m_VolumeVoxelizationCS, HDShaderIDs._VBufferUnitDepthTexelSpacing, unitDepthTexelSpacing);
-                cmd.SetComputeIntParam(   m_VolumeVoxelizationCS, HDShaderIDs._NumVisibleDensityVolumes,     numVisibleVolumes);
-                cmd.SetComputeVectorParam(m_VolumeVoxelizationCS, HDShaderIDs._VolumeMaskDimensions,         volumeAtlasDimensions);
+                cmd.SetComputeMatrixArrayParam(m_VolumeVoxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS,      m_PixelCoordToViewDirWS);
+                cmd.SetComputeFloatParam(      m_VolumeVoxelizationCS, HDShaderIDs._VBufferUnitDepthTexelSpacing, unitDepthTexelSpacing);
+                cmd.SetComputeIntParam(        m_VolumeVoxelizationCS, HDShaderIDs._NumVisibleDensityVolumes,     numVisibleVolumes);
+                cmd.SetComputeVectorParam(     m_VolumeVoxelizationCS, HDShaderIDs._VolumeMaskDimensions,         volumeAtlasDimensions);
 
                 int w = (int)resolution.x;
                 int h = (int)resolution.y;
@@ -700,14 +700,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector4 resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
 #if UNITY_2019_1_OR_NEWER
-                var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-                var lensShift = hdCamera.camera.GetGateFittedLensShift();
+                var vFoV        = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
 #else
                 var vFoV        = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
-                var lensShift   = Vector2.zero;
 #endif
                 // Compose the matrix which allows us to compute the world space view direction.
-                Matrix4x4 transform = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, lensShift, resolution, hdCamera.mainViewConstants.viewMatrix, false);
+                hdCamera.GetPixelCoordToViewDirWS(resolution, ref m_PixelCoordToViewDirWS);
 
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
@@ -723,12 +721,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: set 'm_VolumetricLightingPreset'.
                 // TODO: set the constant buffer data only once.
-                cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS,      transform);
-                cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._VBufferUnitDepthTexelSpacing, unitDepthTexelSpacing);
-                cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,       CornetteShanksPhasePartConstant(fog.anisotropy.value));
-                cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,          m_xySeqOffset);
-                cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,               m_DensityBufferHandle);  // Read
-                cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral,      m_LightingBufferHandle); // Write
+                cmd.SetComputeMatrixArrayParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS,      m_PixelCoordToViewDirWS);
+                cmd.SetComputeFloatParam(       m_VolumetricLightingCS,         HDShaderIDs._VBufferUnitDepthTexelSpacing, unitDepthTexelSpacing);
+                cmd.SetComputeFloatParam(       m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,       CornetteShanksPhasePartConstant(fog.anisotropy.value));
+                cmd.SetComputeVectorParam(      m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,          m_xySeqOffset);
+                cmd.SetComputeTextureParam(     m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,               m_DensityBufferHandle);  // Read
+                cmd.SetComputeTextureParam(     m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral,      m_LightingBufferHandle); // Write
 
                 if (enableReprojection)
                 {

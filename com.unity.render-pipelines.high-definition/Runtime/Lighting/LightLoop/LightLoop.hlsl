@@ -94,9 +94,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // With XR single-pass instancing and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
-    posInput.positionWS += _WorldSpaceCameraPosViewOffset;
-#endif
+    ApplyCameraRelativeXR(posInput.positionWS);
     
     // Initialize the contactShadow and contactShadowFade fields
     InitContactShadow(posInput, context);
