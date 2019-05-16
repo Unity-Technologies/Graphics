@@ -4012,6 +4012,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -4671,7 +4672,7 @@ VisualEffectResource:
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float3 position
       = float3(0,0,0);\n        uint seed = (uint)0;\n        float3 direction = float3(0,0,1);\n
-      \       float lifetime = (float)0;\n        bool alive = (bool)true;\n        float3
+      \       float lifetime = (float)1;\n        bool alive = (bool)true;\n        float3
       velocity = float3(0,0,0);\n        float age = (float)0;\n        float3 oldPosition
       = float3(0,0,0);\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n         particleId
       = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex
@@ -4805,15 +4806,16 @@ VisualEffectResource:
     name: '[System 1]Point Output'
     source: "Shader \"Hidden/VFX/System 1/Point Output\"\n{\n\tSubShader\n\t{\t\n\t\tTags
       { \"Queue\"=\"AlphaTest\" \"IgnoreProjector\"=\"False\" \"RenderType\"=\"Opaque\"
-      }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
+      }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tZTest
       LEqual\n\t\tZWrite On\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_POSITION_CURRENT
       1\n\t\t#define VFX_USE_LIFETIME_CURRENT 1\n\t\t#define VFX_USE_ALIVE_CURRENT
       1\n\t\t#define VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define
       VFX_USE_ALPHA_CURRENT 1\n\t\t#define VFX_USE_OLDPOSITION_CURRENT 1\n\t\t#define
-      IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST 1\n\t\t#define USE_MOTION_VECTORS_PASS
-      1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_OPAQUE_PARTICLE 1\n\t\t#define USE_ALPHA_TEST
+      1\n\t\t#define USE_MOTION_VECTORS_PASS 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
+      1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float gradient_a;\n\t\t    uint3 PADDING_0;\n\t\tCBUFFER_END\n\t\t\n\n\t\t\n\t\t#define
       VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t\n\t\tByteAddressBuffer
       attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
@@ -4928,7 +4930,11 @@ VisualEffectResource:
       defined(VFX_VARYING_POSWS)\n\t\t\t\t\t\to.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\treturn
       o;\n\t\t\t}\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.cginc\"\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
       fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tps_output
-      o = (ps_output)0;\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t        o.color
+      o = (ps_output)0;\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tfloat4 color = VFXGetFragmentColor(i);\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifndef
+      VFX_TEXTURE_COLOR\n\t\t\t\t\t\t\t#define VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_COLORMAPPING_DEFAULT\n\t\t\t\t\t\t\to.color = color * VFX_TEXTURE_COLOR;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_COLORMAPPING_GRADIENTMAPPED\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\to.color = SampleGradient(gradient,
+      VFX_TEXTURE_COLOR.a * color.a) * float4(color.rgb,1.0);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\to.color
       = VFXApplyPreExposure(o.color);\n\t\t\t\to.color = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\t\to.color.a
       = saturate(o.color.a);\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
       Motion Vectors pass\n\t\tPass\n\t\t{\t\t\n\t\t\tName \"MOTIONVECTORS\"\n\t\t\tTags

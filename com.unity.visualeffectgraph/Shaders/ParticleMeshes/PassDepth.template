@@ -23,6 +23,11 @@ Pass
 		// z: alpha
 		nointerpolation float3 builtInInterpolants : TEXCOORD1;
 		#endif
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		// x: motion vectors scale X
+		// y: motion vectors scale Y
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		#endif
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -30,6 +35,7 @@ Pass
 #define VFX_VARYING_ALPHA builtInInterpolants.z
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.y
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 				
 	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	

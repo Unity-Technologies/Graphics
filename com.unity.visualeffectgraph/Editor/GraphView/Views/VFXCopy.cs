@@ -286,6 +286,8 @@ namespace UnityEditor.VFX.UI
             for (int i = 0; i < inputSlots.Count; i++)
             {
                 node.inputSlots[i].name = inputSlots[i].name;
+                if (inputSlots[i].spaceable)
+                    node.inputSlots[i].space = inputSlots[i].space;
                 node.inputSlots[i].value = new VFXSerializableObject(inputSlots[i].property.type, inputSlots[i].value);
             }
 

@@ -824,7 +824,7 @@ VisualEffectResource:
       += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\n
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
-      = (float)0;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
+      = (float)1;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
       \       bool alive = (bool)true;\n        float age = (float)0;\n        \n\n#if
       VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
       VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n
@@ -881,7 +881,7 @@ VisualEffectResource:
     name: '[System 1]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 1/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -893,11 +893,11 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT 1\n\t\t#define
-      HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define HDRP_ENABLE_COOKIE
-      1\n\t\t#define HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
+      1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define
+      HDRP_ENABLE_COOKIE 1\n\t\t#define HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP
       1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA
       1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
       VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
@@ -931,10 +931,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -948,12 +950,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -1012,11 +1015,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -1041,7 +1044,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -1108,7 +1113,7 @@ VisualEffectResource:
     name: '[System 1]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 1/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -1120,13 +1125,13 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT 1\n\t\t#define HDRP_ENABLE_SHADOWS
-      1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define
-      HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define
-      HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT
+      1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define
+      HDRP_ENABLE_COOKIE 1\n\t\t#define HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP
+      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA
+      1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
       VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
@@ -1158,10 +1163,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -1175,12 +1182,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -1239,11 +1247,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -1268,7 +1276,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -1369,7 +1379,7 @@ VisualEffectResource:
       += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\n
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
-      = (float)0;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
+      = (float)1;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
       \       bool alive = (bool)true;\n        float age = (float)0;\n        \n\n#if
       VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
       VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n
@@ -1426,7 +1436,7 @@ VisualEffectResource:
     name: '[System 2]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 2/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -1438,14 +1448,14 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT 1\n\t\t#define
-      HDRP_ENABLE_SPECULAR 1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define HDRP_ENABLE_ENV_LIGHT
-      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR
-      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR
-      1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
-      1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
+      1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define
+      HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define
+      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define
+      HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
@@ -1476,10 +1486,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -1493,12 +1505,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -1557,11 +1570,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -1586,7 +1599,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -1653,7 +1668,7 @@ VisualEffectResource:
     name: '[System 2]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 2/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -1665,14 +1680,14 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT 1\n\t\t#define HDRP_ENABLE_SPECULAR
-      1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t#define
-      VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT
+      1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define
+      HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define
+      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define
+      HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
@@ -1703,10 +1718,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -1720,12 +1737,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -1784,11 +1802,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -1813,7 +1831,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -1914,7 +1934,7 @@ VisualEffectResource:
       += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\n
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
-      = (float)0;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
+      = (float)1;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
       \       bool alive = (bool)true;\n        float age = (float)0;\n        \n\n#if
       VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
       VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n
@@ -1971,7 +1991,7 @@ VisualEffectResource:
     name: '[System 3]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 3/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -1983,14 +2003,14 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT 1\n\t\t#define
-      HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define HDRP_ENABLE_ENV_LIGHT
-      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR
-      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR
-      1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
-      1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
+      1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define
+      HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define
+      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define
+      HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
@@ -2021,10 +2041,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -2038,12 +2060,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -2102,11 +2125,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -2131,7 +2154,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -2198,7 +2223,7 @@ VisualEffectResource:
     name: '[System 3]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 3/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -2210,14 +2235,14 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT 1\n\t\t#define HDRP_ENABLE_SHADOWS
-      1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t#define
-      VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT
+      1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define
+      HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define
+      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define
+      HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
@@ -2248,10 +2273,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -2265,12 +2292,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -2329,11 +2357,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -2358,7 +2386,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -2459,7 +2489,7 @@ VisualEffectResource:
       += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\n
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
-      = (float)0;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
+      = (float)1;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
       \       bool alive = (bool)true;\n        float age = (float)0;\n        \n\n#if
       VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
       VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n
@@ -2516,7 +2546,7 @@ VisualEffectResource:
     name: '[System 4]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 4/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -2528,14 +2558,14 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT 1\n\t\t#define
-      HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define HDRP_ENABLE_ENV_LIGHT
-      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR
-      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR
-      1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
-      1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
+      1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define
+      HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define
+      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define
+      HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
@@ -2566,10 +2596,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -2583,12 +2615,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -2647,11 +2680,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -2676,7 +2709,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -2743,7 +2778,7 @@ VisualEffectResource:
     name: '[System 4]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 4/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -2755,14 +2790,14 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT 1\n\t\t#define HDRP_ENABLE_SHADOWS
-      1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t#define
-      VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT
+      1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define
+      HDRP_ENABLE_ENV_LIGHT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define
+      HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define
+      HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
@@ -2793,10 +2828,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -2810,12 +2847,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -2874,11 +2912,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -2903,7 +2941,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -3004,7 +3044,7 @@ VisualEffectResource:
       += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\n
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
-      = (float)0;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
+      = (float)1;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
       \       bool alive = (bool)true;\n        float age = (float)0;\n        \n\n#if
       VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
       VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n
@@ -3061,7 +3101,7 @@ VisualEffectResource:
     name: '[System 5]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 5/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -3073,11 +3113,11 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT 1\n\t\t#define
-      HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define HDRP_ENABLE_COOKIE
-      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
+      1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define
+      HDRP_ENABLE_COOKIE 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR
       1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR
       1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
@@ -3111,10 +3151,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -3128,12 +3170,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -3192,11 +3235,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -3221,7 +3264,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -3288,7 +3333,7 @@ VisualEffectResource:
     name: '[System 5]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 5/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -3300,14 +3345,14 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT 1\n\t\t#define HDRP_ENABLE_SHADOWS
-      1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define HDRP_ENABLE_COOKIE 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t#define
-      VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT
+      1\n\t\t#define HDRP_ENABLE_SHADOWS 1\n\t\t#define HDRP_ENABLE_SPECULAR 1\n\t\t#define
+      HDRP_ENABLE_COOKIE 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR
+      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR
+      1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
+      1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
@@ -3338,10 +3383,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -3355,12 +3402,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -3419,11 +3467,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -3448,7 +3496,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -3549,7 +3599,7 @@ VisualEffectResource:
       += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex * 0x1 + 0x0) << 2)));\n
       \           if (id < currentSumSpawnCount)\n            {\n                break;\n
       \           }\n        }\n        */\n        \n\n#endif\n        float lifetime
-      = (float)0;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
+      = (float)1;\n        uint seed = (uint)0;\n        float3 position = float3(0,0,0);\n
       \       bool alive = (bool)true;\n        float age = (float)0;\n        \n\n#if
       VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
       VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n
@@ -3606,7 +3656,7 @@ VisualEffectResource:
     name: '[System 6]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 6/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -3618,13 +3668,13 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define
-      HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t#define
-      VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#include
-      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT_TRANSLUCENT
+      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR
+      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR
+      1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
+      1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
@@ -3655,10 +3705,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -3672,12 +3724,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -3736,11 +3789,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -3765,7 +3818,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -3832,7 +3887,7 @@ VisualEffectResource:
     name: '[System 6]Lit Quad Output'
     source: "Shader \"Hidden/VFX/System 6/Lit Quad Output\"\n{\n\tSubShader\n\t{\t\n\t\tCull
       Off\n\t\t\n\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\"
-      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
       One OneMinusSrcAlpha\n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Off\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t#if
       !defined(VFX_WORLD_SPACE) && !defined(VFX_LOCAL_SPACE)\n\t\t#define VFX_LOCAL_SPACE
       1\n\t\t#endif\n\t\t\n\t\t#define NB_THREADS_PER_GROUP 64\n\t\t#define VFX_USE_LIFETIME_CURRENT
@@ -3844,12 +3899,13 @@ VisualEffectResource:
       1\n\t\t#define VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT
       1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_SCALEX_CURRENT 1\n\t\t#define
       VFX_USE_SCALEY_CURRENT 1\n\t\t#define VFX_USE_SCALEZ_CURRENT 1\n\t\t#define
-      VFX_USE_AGE_CURRENT 1\n\t\t#define IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA
-      1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
-      HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP
-      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA
-      1\n\t\t#define HDRP_USE_BASE_COLOR 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define
-      VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
+      VFX_USE_AGE_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define IS_TRANSPARENT_PARTICLE
+      1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW 1\n\t\t#define
+      USE_DEAD_LIST_COUNT 1\n\t\t#define HDRP_LIT 1\n\t\t#define HDRP_MATERIAL_TYPE_SIMPLELIT
+      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP 1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_COLOR
+      1\n\t\t#define HDRP_USE_BASE_COLOR_MAP_ALPHA 1\n\t\t#define HDRP_USE_BASE_COLOR
+      1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE
+      1\n\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t
       \   float4 uniform_c;\n\t\t    float uniform_b;\n\t\t    float uniform_d;\n\t\t
       \   uint2 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D baseColorMap;\n\t\tSamplerState
       samplerbaseColorMap;\n\t\t\n\n\t\t\n\t\t#define VFX_NEEDS_COLOR_INTERPOLATOR
@@ -3880,10 +3936,12 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t//
       x: inverse soft particles fade distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t//
       z: frame blending factor\n\t\t\t\tnointerpolation float3 builtInInterpolants
-      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tnointerpolation float3 normal
-      : TEXCOORD3;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
-      float3 tangent : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
-      bentFactors : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD6;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vector scale u\n\t\t\t\t// y: motion vector scale v\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD3;\n\t\t\t\t#endif\n\t\t\n\t\t\t\tnointerpolation
+      float3 normal : TEXCOORD4;\n\t\t\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t\t\tnointerpolation
+      float3 tangent : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_NORMAL_BENDING\n\t\t\t\tfloat2
+      bentFactors : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\tfloat3 posWS : TEXCOORD7;\n\t\t\t};\n\t\t\t\n\t\t\n\t\t\t\t\t#if
       (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR\n\t\t\t\t\t#define
       VFX_VARYING_COLOR color.rgb\n\t\t\t\t\t#define VFX_VARYING_ALPHA color.a\n\t\t\t\t\t#endif\n\t\t\t\t\t\n\t\t\t\t\t#define
       VFX_VARYING_SMOOTHNESS materialProperties.x\n\t\t\t\t\t\n\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t#define
@@ -3897,12 +3955,13 @@ VisualEffectResource:
       VFX_VARYING_PS_INPUTS ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define
       VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD
       builtInInterpolants.y\n\t\t#define VFX_VARYING_FRAMEBLEND builtInInterpolants.z\n\t\t#define
-      VFX_VARYING_UV uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP
-      || USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if
-      USE_NORMAL_BENDING\n\t\t#define VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define
-      VFX_VARYING_POSWS posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
-      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
-      and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\n\t\t#define VFX_VARYING_UV
+      uv\n\t\t#define VFX_VARYING_NORMAL normal\n\t\t#if USE_NORMAL_MAP || USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_TANGENT tangent\n\t\t#endif\n\t\t#if USE_NORMAL_BENDING\n\t\t#define
+      VFX_VARYING_BENTFACTORS bentFactors\n\t\t#endif\n\t\t#define VFX_VARYING_POSWS
+      posWS\n\t\t\n\t\t\n\t\t\t\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n\t\t\t#error
+      VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/HDRP/VFXCommon.cginc\"\n\t\t\t#include
       \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.cginc\"\n\t\t\t\n\n\t\t\tvoid
       Orient_0(inout float3 axisX, inout float3 axisY, inout float3 axisZ) /*mode:FaceCameraPlane
       */\n\t\t\t{\n\t\t\t    \n\t\t\t    float3x3 viewRot = GetVFXToViewRotMatrix();\n\t\t\t
@@ -3961,11 +4020,11 @@ VisualEffectResource:
       float2 kOffsets[] = {\n\t\t\t\t\tfloat2(-0.5f, \t-0.288675129413604736328125f),\n\t\t\t\t\tfloat2(0.0f,
       \t0.57735025882720947265625f),\n\t\t\t\t\tfloat2(0.5f,\t-0.288675129413604736328125f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\tconst
       float kUVScale = 0.866025388240814208984375f;\n\t\t\t\t\n\t\t\t\tconst float2
-      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV = (vOffsets * kUVScale)
+      vOffsets = kOffsets[id % 3];\n\t\t\t\to.VFX_VARYING_UV.xy = (vOffsets * kUVScale)
       + 0.5f;\n\t\t\t\t\n\t\t\t#elif VFX_PRIMITIVE_OCTAGON\t\n\t\t\t\t\n\t\t\t\tconst
       float2 kUvs[8] = \n\t\t\t\t{\n\t\t\t\t\tfloat2(-0.5f,\t0.0f),\n\t\t\t\t\tfloat2(-0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.0f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.5f),\n\t\t\t\t\tfloat2(0.5f,\t0.0f),\n\t\t\t\t\tfloat2(0.5f,\t-0.5f),\n\t\t\t\t\tfloat2(0.0f,\t-0.5f),\n\t\t\t\t\tfloat2(-0.5f,\t-0.5f),\n\t\t\t\t};\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tcropFactor
       = id & 1 ? 1.0f - cropFactor : 1.0f;\n\t\t\t\tconst float2 vOffsets = kUvs[id
-      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
+      & 7] * cropFactor;\n\t\t\t\to.VFX_VARYING_UV.xy = vOffsets + 0.5f;\n\t\t\t\t\n\t\t\t#endif\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3
       size3 = float3(size,size,size);\n\t\t\t\t\t\t#if VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x
       *= scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y
       *= scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z
@@ -3990,7 +4049,9 @@ VisualEffectResource:
       USE_FLIPBOOK\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tVFXUVData uvData = GetUVData(flipBookSize,
       invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);\n\t\t\t\t\t\to.VFX_VARYING_UV.xy
       = uvData.uvs.xy;\n\t\t\t\t\t\t#if USE_FLIPBOOK_INTERPOLATION\n\t\t\t\t\t\to.VFX_VARYING_UV.zw
-      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
+      = uvData.uvs.zw;\n\t\t\t\t\t\to.VFX_VARYING_FRAMEBLEND = uvData.blend;\n\t\t\t\t\t\t#if
+      USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t#ifdef
       VFX_VARYING_SMOOTHNESS\n\t\t\t\t\t\t\t\t\tfloat smoothness = (float)0;\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t
       \   \n\t\t\t\t\t\t\t\t\t    smoothness = (float)0.5;\n\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\to.VFX_VARYING_SMOOTHNESS
       = smoothness;\n\t\t\t\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\t\t#if HDRP_MATERIAL_TYPE_STANDARD\n\t\t\t\t\t\t\t\t\t#ifdef
@@ -6488,6 +6549,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -6924,6 +6986,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -8676,6 +8739,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -8905,6 +8969,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -9987,6 +10052,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -10216,6 +10282,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -11298,6 +11365,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -11527,6 +11595,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -12609,6 +12678,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -12838,6 +12908,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -13920,6 +13991,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -14149,6 +14221,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
+  colorMappingMode: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0

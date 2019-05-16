@@ -101,11 +101,21 @@ namespace UnityEditor.VFX
                 throw new ArgumentException(string.Format("Illegal context type: {0}", invalidContext));
             }
 
+            int nbRemoved = 0;
             if (m_InputFlowSlot == null)
                 m_InputFlowSlot = Enumerable.Range(0, inputFlowCount).Select(_ => new VFXContextSlot()).ToArray();
+            else
+                for (int i = 0; i < m_InputFlowSlot.Length; ++i)
+                    nbRemoved += m_InputFlowSlot[i].link.RemoveAll(s => s.context == null);
 
             if (m_OutputFlowSlot == null)
                 m_OutputFlowSlot = Enumerable.Range(0, outputFlowCount).Select(_ => new VFXContextSlot()).ToArray();
+            else
+                for (int i = 0; i < m_OutputFlowSlot.Length; ++i)
+                    nbRemoved += m_OutputFlowSlot[i].link.RemoveAll(s => s.context == null);
+
+            if (nbRemoved > 0)
+                Debug.LogWarningFormat("Remove {0} linked context(s) that could not be deserialized from {1} of type {2}", nbRemoved, name, GetType());
 
             if (m_Data == null)
                 SetDefaultData(false);
@@ -200,7 +210,9 @@ namespace UnityEditor.VFX
             if (fromIndex >= from.outputFlowSlot.Length || toIndex >= to.inputFlowSlot.Length)
                 return false;
 
-            if (from.m_OutputFlowSlot[fromIndex].link.Any(o => o.context == to) || to.m_InputFlowSlot[toIndex].link.Any(o => o.context == from))
+            //If link already present, returns false
+            if (    from.m_OutputFlowSlot[fromIndex].link   .Any(o => o.context == to   && o.slotIndex == toIndex)
+                ||  to.m_InputFlowSlot[toIndex].link        .Any(o => o.context == from && o.slotIndex == fromIndex))
                 return false;
 
             return true;
@@ -277,7 +289,7 @@ namespace UnityEditor.VFX
             // Handle constraints on connections
             foreach (var link in from.m_OutputFlowSlot[fromIndex].link.ToArray())
             {
-                if (!link.context.CanLinkFromMany() || IsExclusiveLink(link.context.contextType, to.contextType))
+                if (!link.context.CanLinkFromMany() || (IsExclusiveLink(link.context.contextType, to.contextType) && from.contextType == link.context.contextType))
                 {
                     InnerUnlink(from, link.context, fromIndex, toIndex, notify);
                 }
