@@ -494,7 +494,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-
             viewConstants.viewMatrix = gpuView;
             viewConstants.invViewMatrix = gpuView.inverse;
             viewConstants.projMatrix = gpuProj;
@@ -504,7 +503,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
-            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants);
+            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize);
 
             if (updatePreviousFrameConstants)
             {
@@ -605,6 +604,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 volumeAnchor = camera.transform;
         }
 
+        public void GetPixelCoordToViewDirWS(Vector4 resolution, ref Matrix4x4[] transforms)
+        {
+            if (xr.instancingEnabled)
+            {
+                for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
+                {
+                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(xrViewConstants[viewIndex], resolution);
+                }
+            }
+            else
+            {
+                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution);
+            }
+        }
+
         // Stopgap method used to extract stereo combined matrix state.
         public void UpdateStereoDependentState(ref ScriptableCullingParameters cullingParams)
         {
@@ -670,7 +684,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return proj;
         }
 
-        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants)
+        public Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
             if (xr.enabled)
@@ -678,7 +692,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
                 transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
                 transform = transform * Matrix4x4.Translate(new Vector3(-1.0f, -1.0f, 0.0f));
-                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * screenSize.z, 2.0f * screenSize.w, 1.0f));
+                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * resolution.z, 2.0f * resolution.w, 1.0f));
 
                 return transform.transpose;
             }
@@ -691,7 +705,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2 lensShift = Vector2.zero;
 #endif
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, screenSize, viewConstants.viewMatrix, false);
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false);
         }
 
         // Warning: different views can use the same camera!

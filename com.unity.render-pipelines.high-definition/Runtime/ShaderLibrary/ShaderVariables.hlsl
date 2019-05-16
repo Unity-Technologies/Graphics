@@ -315,6 +315,12 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 #endif
 }
 
+void ApplyCameraRelativeXR(inout float3 positionWS)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
+    positionWS += _WorldSpaceCameraPosViewOffset;
+#endif
+}
 
 float GetCurrentExposureMultiplier()
 {
