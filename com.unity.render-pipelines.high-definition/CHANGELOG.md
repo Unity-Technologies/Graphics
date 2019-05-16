@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader warnings related to raytracing and TEXTURE2D_X
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
 - The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
+- Fixed volumetric rendering with camera-relative code and XR stereo instancing
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
