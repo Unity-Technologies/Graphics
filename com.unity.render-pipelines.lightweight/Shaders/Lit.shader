@@ -22,7 +22,7 @@ Shader "Lightweight Render Pipeline/Lit"
 
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
         [ToggleOff] _EnvironmentReflections("Environment Reflections", Float) = 1.0
-        [Toggle(VT_ON)] _VirtualTexturing("Virtual Texturing", Float) = 1.0
+        [Toggle] _VirtualTexturing("Virtual Texturing", Float) = 0.0
 
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
