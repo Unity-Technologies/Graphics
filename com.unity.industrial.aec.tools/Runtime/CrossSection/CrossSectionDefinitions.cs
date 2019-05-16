@@ -1,8 +1,9 @@
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Experimental.Rendering
 {
     public class CrossSectionDefinitions
     {
-        [GenerateHLSL(PackingRules.Exact)]
+        // todo: need to manage HLSL dependencies accross shadergraph, HDRP and others
+        // [GenerateHLSL(PackingRules.Exact)]
         public enum CutMainStyle
         {
             Transparent = 0,

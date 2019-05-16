@@ -1,6 +1,6 @@
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering
 {
     public class CrossSectionEnablerConfigDefault : CrossSectionEnablerConfig
     {

@@ -1,0 +1,17 @@
+{
+    "name": "com.unity.industrial.aec.tools",
+    "description": "Contains industrial and AEC related tools that work with the rest of the SRP modules and materials.",
+    "version": "0.1.0-preview",
+    "unity": "2019.3",
+    "displayName": "Industrial AEC Tools",
+    "dependencies": {
+        "com.unity.shadergraph": "7.0.0"
+    },
+    "samples" : [
+        {
+            "displayName" : "Cross Section Samples",
+            "description" : "Adds Cross Section samples and examples to your project. Requires HDRP package as material graphs are required to demo the splicing and cross section tool.",
+            "path" : "Samples~/CrossSectionSamples"
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+{
+    "displayName":"Cross Section Samples",
+    "description": "Adds Cross Section samples to your project. Open the sample scene (requires HDRP) to see typical use cases for the cutting tool and material splicer.",
+    "createSeparatePackage": false
+}

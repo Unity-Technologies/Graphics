@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Rendering;
 
 #if UNITY_2018_3_OR_NEWER
 [ExecuteAlways]

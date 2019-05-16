@@ -3,16 +3,16 @@ using UnityEngine.Rendering;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering
 {
     public class SpliceShaderGraphsForCrossSection
     {
-        [MenuItem("Edit/Render Pipeline/Splice CrossSection Tool In ShaderGraphs", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/Splice CrossSection Tool In ShaderGraphs" /*, priority = CoreUtils.editMenuPriority2*/)]
         static void CrossSectionInstallSelection()
         {
             CrossSectionShaderGraphsEditor.SpliceShaderGraphsForCrossSectionOnSelected("Splicing CrossSection Tool in ShaderGraphs", removeSplice: false, new CrossSectionEnablerConfigDefault());
         }
-        [MenuItem("Edit/Render Pipeline/UnSplice CrossSection Tool In ShaderGraphs", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/UnSplice CrossSection Tool In ShaderGraphs" /*, priority = CoreUtils.editMenuPriority2*/)]
         static void CrossSectionUninstallSelection()
         {
             CrossSectionShaderGraphsEditor.SpliceShaderGraphsForCrossSectionOnSelected("UnSplicing CrossSection Tool in ShaderGraphs", removeSplice:true, new CrossSectionEnablerConfigDefault());
