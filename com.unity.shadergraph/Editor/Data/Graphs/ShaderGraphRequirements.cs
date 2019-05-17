@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
         public bool requiresDepthTexture;
         public bool requiresCameraOpaqueTexture;
         public bool requiresTime;
+        public bool requiresPixelCoordinate;
 
         public static ShaderGraphRequirements none
         {
@@ -54,6 +55,7 @@ namespace UnityEditor.ShaderGraph
             newReqs.requiresDepthTexture = other.requiresDepthTexture | requiresDepthTexture;
             newReqs.requiresCameraOpaqueTexture = other.requiresCameraOpaqueTexture | requiresCameraOpaqueTexture;
             newReqs.requiresTime = other.requiresTime | requiresTime;
+            newReqs.requiresPixelCoordinate = other.requiresPixelCoordinate | requiresPixelCoordinate;
 
             newReqs.requiresMeshUVs = new List<UVChannel>();
             if (requiresMeshUVs != null)
@@ -77,6 +79,7 @@ namespace UnityEditor.ShaderGraph
             bool requiresDepthTexture = nodes.OfType<IMayRequireDepthTexture>().Any(x => x.RequiresDepthTexture());
             bool requiresCameraOpaqueTexture = nodes.OfType<IMayRequireCameraOpaqueTexture>().Any(x => x.RequiresCameraOpaqueTexture());
             bool requiresTime = nodes.OfType<IMayRequireTime>().Any(x => x.RequiresTime());
+            bool requiresPixelCoordinate = nodes.OfType<IMayRequireRequirePixelCoordinate>().Any(x => x.RequiresPixelCoordinate());
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
@@ -116,7 +119,8 @@ namespace UnityEditor.ShaderGraph
                 requiresMeshUVs = meshUV,
                 requiresDepthTexture = requiresDepthTexture,
                 requiresCameraOpaqueTexture = requiresCameraOpaqueTexture,
-                requiresTime = requiresTime
+                requiresTime = requiresTime,
+                requiresPixelCoordinate = requiresPixelCoordinate
             };
 
             return reqs;

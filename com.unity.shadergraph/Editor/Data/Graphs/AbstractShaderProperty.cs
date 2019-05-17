@@ -72,6 +72,39 @@ namespace UnityEditor.ShaderGraph
         public abstract string GetPropertyBlockString();
         public abstract string GetPropertyDeclarationString(string delimiter = ";");
 
+        public enum GenerationMode
+        {
+            InConstantBuffer,
+            InRoot
+        };
+
+        // Most properties just go either in the constant buffer or in the root. So we just delegate to the function
+        // and make the other path return null so nothing gets included in the other.
+        // Some properties must go in both root and cb so these will need to override this function 
+        public virtual string GetPropertyDeclarationStringForBatchMode(GenerationMode mode, string delimiter = ";")
+        {
+            if (mode == GenerationMode.InConstantBuffer)
+            {
+                if (isBatchable && generatePropertyBlock)
+                {
+                    return GetPropertyDeclarationString(delimiter);
+                }
+            }
+            else if (mode == GenerationMode.InRoot)
+            {
+                if (!isBatchable || !generatePropertyBlock)
+                {
+                    return GetPropertyDeclarationString(delimiter);
+                }
+            }
+            else
+            {
+                throw new Exception("Bad Generation Mode");
+            }
+
+            return null;
+        }
+
         public virtual string GetPropertyAsArgumentString()
         {
             return GetPropertyDeclarationString(string.Empty);

@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph
         Matrix2,
         Matrix3,
         Matrix4,
-        SamplerState
+        SamplerState,
+        Stack
     }
 }

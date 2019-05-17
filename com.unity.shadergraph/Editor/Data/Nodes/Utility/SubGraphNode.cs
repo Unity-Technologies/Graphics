@@ -21,6 +21,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireVertexColor
         , IMayRequireTime
         , IMayRequireFaceSign
+        , IMayRequireRequirePixelCoordinate
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -501,6 +502,14 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return subGraphData.requirements.requiresFaceSign;
+        }
+
+        public bool RequiresPixelCoordinate(ShaderStageCapability stageCapability)
+        {
+            if (subGraphData == null)
+                return false;
+
+            return subGraphData.requirements.requiresPixelCoordinate;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)

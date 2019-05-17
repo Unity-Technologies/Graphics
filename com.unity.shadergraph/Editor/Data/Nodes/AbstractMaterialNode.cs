@@ -254,6 +254,11 @@ namespace UnityEditor.ShaderGraph
             return inputSlot.GetDefaultValue(generationMode);
         }
 
+        public virtual void CollectShaderPragmas(PragmaCollector pragmas, GenerationMode generationMode)
+        {
+            // None by default
+        }
+
         public static bool ImplicitConversionExists(ConcreteSlotValueType from, ConcreteSlotValueType to)
         {
             if (from == to)

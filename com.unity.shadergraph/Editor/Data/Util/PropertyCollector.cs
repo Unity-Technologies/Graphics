@@ -46,11 +46,21 @@ namespace UnityEditor.ShaderGraph
 
         public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode)
         {
+            // In preview we ignore the isBatchable of the properties and always bundle them in a constant buffer
+            // not sure why...
             var batchAll = mode == GenerationMode.Preview;
+
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-            foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+            foreach (var prop in properties)
             {
-                builder.AppendLine(prop.GetPropertyDeclarationString());
+                string s = prop.GetPropertyDeclarationStringForBatchMode(AbstractShaderProperty.GenerationMode.InConstantBuffer);
+                if (s != null) builder.AppendLine(s);
+                if (batchAll)
+                {
+                    // BatchAll means BatchAll, so even things that would go in the root normally get batched in the CBUFFER
+                    string s2 = prop.GetPropertyDeclarationStringForBatchMode(AbstractShaderProperty.GenerationMode.InRoot);
+                    if (s2 != null) builder.AppendLine(s2);
+                }
             }
             builder.AppendLine("CBUFFER_END");
             builder.AppendNewLine();
@@ -58,9 +68,10 @@ namespace UnityEditor.ShaderGraph
             if (batchAll)
                 return;
             
-            foreach (var prop in properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
+            foreach (var prop in properties)
             {
-                builder.AppendLine(prop.GetPropertyDeclarationString());
+                string s = prop.GetPropertyDeclarationStringForBatchMode(AbstractShaderProperty.GenerationMode.InRoot);
+                if ( s != null) builder.AppendLine(s);
             }
         }
 

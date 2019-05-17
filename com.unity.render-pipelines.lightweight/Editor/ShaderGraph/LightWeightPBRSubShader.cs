@@ -79,6 +79,23 @@ namespace UnityEditor.Rendering.LWRP
             }
         };
 
+        Pass m_StreamFeedbackPass = new Pass
+        {
+            Name = "VtFeedback",
+            PixelShaderSlots = new List<int>
+            {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId,
+                PBRMasterNode.FeedbackSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            }
+        };
+
         public int GetPreviewPassIndex() { return 0; }
 
         public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
@@ -91,13 +108,15 @@ namespace UnityEditor.Rendering.LWRP
 
             var templatePath = GetTemplatePath("lightweightPBRForwardPass.template");
             var extraPassesTemplatePath = GetTemplatePath("lightweightPBRExtraPasses.template");
-            if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
+            var feedbackPassTemplatePath = GetTemplatePath("lightweightPBRStreamFeedbackPass.template");
+            if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath) || !File.Exists(feedbackPassTemplatePath))
                 return string.Empty;
 
             if (sourceAssetDependencyPaths != null)
             {
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+                sourceAssetDependencyPaths.Add(feedbackPassTemplatePath);
 
                 var relativePath = "Packages/com.unity.render-pipelines.lightweight/";
                 var fullPath = Path.GetFullPath(relativePath);
@@ -107,6 +126,7 @@ namespace UnityEditor.Rendering.LWRP
 
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
+            string feedbackTemplate = File.ReadAllText(feedbackPassTemplatePath);
 
             var pbrMasterNode = masterNode as PBRMasterNode;
             var pass = pbrMasterNode.model == PBRMasterNode.Model.Metallic ? m_ForwardPassMetallic : m_ForwardPassSpecular;
@@ -124,6 +144,13 @@ namespace UnityEditor.Rendering.LWRP
                         forwardTemplate,
                         pbrMasterNode,
                         pass,
+                        mode,
+                        materialOptions));
+
+                subShader.AppendLines(GetShaderPassFromTemplate(
+                        feedbackTemplate,
+                        pbrMasterNode,
+                        m_StreamFeedbackPass,
                         mode,
                         materialOptions));
 
@@ -157,14 +184,20 @@ namespace UnityEditor.Rendering.LWRP
 
         static string GetShaderPassFromTemplate(string template, PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
         {
+
+
             // ----------------------------------------------------- //
             //                         SETUP                         //
             // ----------------------------------------------------- //
+
+            // Do all work on a duplicate of the graph so we can locally modify it without affecting the gui, undo-system, ... in any way
+            masterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid) as PBRMasterNode;
 
             // -------------------------------------
             // String builders
 
             var shaderProperties = new PropertyCollector();
+            var shaderPragmas = new PragmaCollector();
             var functionBuilder = new ShaderStringBuilder(1);
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -189,6 +222,10 @@ namespace UnityEditor.Rendering.LWRP
             var pixelShader = new ShaderStringBuilder(2);
             var pixelShaderSurfaceInputs = new ShaderStringBuilder(2);
             var pixelShaderSurfaceRemap = new ShaderStringBuilder(2);
+
+            // -------------------------------------
+            // Is this a VT feedback gathering pass inject the extra feedback shader node
+            AggregateFeedbackNode.AutoInjectFeedbackNode(masterNode);
 
             // -------------------------------------
             // Get Slot and Node lists per stage
@@ -294,6 +331,7 @@ namespace UnityEditor.Rendering.LWRP
                 masterNode.owner as GraphData,
                 vertexDescriptionFunction,
                 functionRegistry,
+                shaderPragmas,
                 shaderProperties,
                 mode,
                 vertexNodes,
@@ -325,6 +363,9 @@ namespace UnityEditor.Rendering.LWRP
                 if (surfaceRequirements.requiresFaceSign)
                     surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
 
+                if (surfaceRequirements.requiresPixelCoordinate)
+                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.PixelCoordinate);
+
                 foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
             }
@@ -343,6 +384,7 @@ namespace UnityEditor.Rendering.LWRP
                 masterNode.owner as GraphData,
                 surfaceDescriptionFunction,
                 functionRegistry,
+                shaderPragmas,
                 shaderProperties,
                 pixelRequirements,
                 mode,
@@ -395,6 +437,10 @@ namespace UnityEditor.Rendering.LWRP
             if (pixelRequirements.requiresFaceSign)
                 faceSign.AppendLine(", half FaceSign : VFACE");
 
+            // The template has this semantic hardcoded in already...
+            /*if (pixelRequirements.requiresPixelCoordinate)
+                faceSign.AppendLine(", float4 PixelCoordinate : VPOS");*/
+
             // ----------------------------------------------------- //
             //                      FINALIZE                         //
             // ----------------------------------------------------- //
@@ -426,6 +472,7 @@ namespace UnityEditor.Rendering.LWRP
             resultPass = resultPass.Replace("${ZTest}", zTestBuilder.ToString());
             resultPass = resultPass.Replace("${ZWrite}", zWriteBuilder.ToString());
             resultPass = resultPass.Replace("${Defines}", defines.ToString());
+            resultPass = resultPass.Replace("${Pragmas}", shaderPragmas.ToString());
 
             resultPass = resultPass.Replace("${Graph}", graph.ToString());
             resultPass = resultPass.Replace("${VertexOutputStruct}", vertexOutputStruct.ToString());
