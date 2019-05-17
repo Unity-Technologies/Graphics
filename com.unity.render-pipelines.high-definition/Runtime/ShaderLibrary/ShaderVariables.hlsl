@@ -443,6 +443,9 @@ float3 LoadBlueNoiseRGB(uint2 pixelCoords)
     // Tile-texture across screen.
     return LOAD_TEXTURE2D_X_LOD(_BlueNoiseRGBTexture, pixelCoords & _BlueNoiseRGBTextureResolutionMinusOne, 0).rgb;
 }
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/DissolveOccluders/DissolveOccluders.hlsl"
+
 // custom-end
 
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

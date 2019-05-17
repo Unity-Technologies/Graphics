@@ -43,6 +43,14 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+// custom-begin:
+#ifdef _ENABLE_DISSOLVE_ON_OCCLUSION
+#if (SHADERPASS != SHADERPASS_SHADOWS)
+        ClipFromDissolveOccluders(posInput, _ScreenSize);
+#endif
+#endif
+// custom-end
+
 #ifdef _DOUBLESIDED_ON
     float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
 #else

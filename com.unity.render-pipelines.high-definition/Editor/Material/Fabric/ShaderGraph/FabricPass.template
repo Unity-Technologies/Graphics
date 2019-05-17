@@ -51,6 +51,10 @@ Pass
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DoubleSided:                       #define _DOUBLESIDED_ON 1
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
+    // custom-begin:
+    $DissolveOnOcclusion:               #define _ENABLE_DISSOLVE_ON_OCCLUSION 1
+    // custom-end
+
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
     //-------------------------------------------------------------------------------------
@@ -273,6 +277,14 @@ $include("SharedCode.template.hlsl")
         uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
         LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
+
+// custom-begin:
+#ifdef _ENABLE_DISSOLVE_ON_OCCLUSION
+#if (SHADERPASS != SHADERPASS_SHADOWS)
+        ClipFromDissolveOccluders(posInput, _ScreenSize);
+#endif
+#endif
+// custom-end
 
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
         $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
