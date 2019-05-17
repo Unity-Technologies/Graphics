@@ -216,7 +216,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-        
+
         [SerializeField]
         HDRenderQueue.RenderQueueType m_RenderingPass = HDRenderQueue.RenderQueueType.Opaque;
 
@@ -262,7 +262,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-        
+
         [SerializeField, Obsolete("Kept for data migration")]
         internal bool m_DrawBeforeRefraction;
 
@@ -640,7 +640,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Topological);
             }
         }
-        
+
         [SerializeField]
         bool m_depthOffset;
 
@@ -686,7 +686,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-        
+
         [SerializeField]
         TransparentCullMode m_transparentCullMode = TransparentCullMode.Back;
         public TransparentCullMode transparentCullMode
@@ -719,6 +719,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // custom-begin:
+        [SerializeField]
+        bool m_DissolveOnOcclusion = false;
+
+        public ToggleData dissolveOnOcclusion
+        {
+            get { return new ToggleData(m_DissolveOnOcclusion); }
+            set
+            {
+                if (m_DissolveOnOcclusion == value.isOn)
+                    return;
+                m_DissolveOnOcclusion = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+        // custom-end
+
         public HDLitMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -728,7 +746,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/HD-Lit-Master-Node"; }
         }
-        
+
         public bool HasRefraction()
         {
             return (surfaceType == SurfaceType.Transparent && renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && refractionModel != ScreenSpaceRefraction.RefractionModel.None);
@@ -998,7 +1016,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 hidden = true,
                 value = (int)renderingPass,
             });
-            
+
             if (addPrecomputedVelocity.isOn)
             {
                 collector.AddShaderProperty(new BooleanShaderProperty

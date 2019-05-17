@@ -384,6 +384,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            // custom-begin:
+            ps.Add(new PropertyRow(CreateLabel("Dissolve On Occlusion", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.dissolveOnOcclusion.isOn;
+                    toggle.OnToggleChanged(ChangeDissolveOnOcclusion);
+                });
+            });
+            // custom-end
+
             Add(ps);
         }
 
@@ -595,7 +606,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             td.isOn = evt.newValue;
             m_Node.receiveSSR = td;
         }
-        
+
         void ChangeAddPrecomputedVelocity(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
@@ -660,7 +671,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             td.isOn = evt.newValue;
             m_Node.zWrite = td;
         }
-        
+
         void ChangeTransparentCullMode(ChangeEvent<Enum> evt)
         {
             if (Equals(m_Node.transparentCullMode, evt.newValue))
@@ -669,7 +680,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Cull Mode Change");
             m_Node.transparentCullMode = (TransparentCullMode)evt.newValue;
         }
-        
+
         void ChangeZTest(ChangeEvent<Enum> evt)
         {
             if (Equals(m_Node.zTest, evt.newValue))
@@ -678,6 +689,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
             m_Node.zTest = (CompareFunction)evt.newValue;
         }
+
+        // custom-begin:
+        void ChangeDissolveOnOcclusion(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Dissolve On Occlusion Change");
+            ToggleData td = m_Node.dissolveOnOcclusion;
+            td.isOn = evt.newValue;
+            m_Node.dissolveOnOcclusion = td;
+        }
+        // custom-end
 
         public AlphaMode GetAlphaMode(HDLitMasterNode.AlphaModeLit alphaModeLit)
         {

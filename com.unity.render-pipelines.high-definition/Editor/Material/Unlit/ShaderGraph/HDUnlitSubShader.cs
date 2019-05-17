@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
-            },            
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "#pragma multi_compile _ WRITE_MSAA_DEPTH"
                 // Note we don't need to define WRITE_NORMAL_BUFFER
-            },            
+            },
 
             Includes = new List<string>()
             {
@@ -310,6 +310,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("AddPrecomputedVelocity");
             }
+
+            // custom-begin:
+            if (masterNode.dissolveOnOcclusion.isOn)
+            {
+                activeFields.Add("DissolveOnOcclusion");
+            }
+            // custom-end
 
             return activeFields;
         }
