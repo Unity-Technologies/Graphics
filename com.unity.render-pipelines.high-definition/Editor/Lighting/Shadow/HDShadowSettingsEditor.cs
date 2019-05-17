@@ -81,7 +81,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     PropertyField(m_CascadeShadowSplits[i], EditorGUIUtility.TrTextContent(string.Format("Split {0}", i + 1)));
                 }
 
-                if (LightLoop.s_UseCascadeBorders)
+                if (HDRenderPipeline.s_UseCascadeBorders)
                 {
                     EditorGUILayout.Space();
 
@@ -94,14 +94,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
 
                 GUILayout.Label("Cascade splits");
-                ShadowCascadeGUI.DrawCascadeSplitGUI(m_CascadeShadowSplits, LightLoop.s_UseCascadeBorders ? m_CascadeShadowBorders : null, (uint)cascadeCount, blendLastCascade: true, useMetric: unit == Unit.Metric, baseMetric: m_MaxShadowDistance.value.floatValue);
+                ShadowCascadeGUI.DrawCascadeSplitGUI(m_CascadeShadowSplits, HDRenderPipeline.s_UseCascadeBorders ? m_CascadeShadowBorders : null, (uint)cascadeCount, blendLastCascade: true, useMetric: unit == Unit.Metric, baseMetric: m_MaxShadowDistance.value.floatValue);
                 EditorGUI.indentLevel--;
             }
 
             HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdrp == null)
                 return;
-            
+
             Rect visualizeCascade = firstLine;
             visualizeCascade.y -= EditorGUIUtility.singleLineHeight;
             visualizeCascade.height -= 2;

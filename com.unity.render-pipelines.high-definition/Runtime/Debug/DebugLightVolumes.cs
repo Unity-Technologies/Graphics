@@ -188,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Define which kernel to use based on the lightloop options
-                int targetKernel = lightDebugSettings.lightVolumeDebugByCategory == LightLoop.LightVolumeDebug.ColorAndEdge ? m_DebugLightVolumeColorsKernel : m_DebugLightVolumeGradientKernel;
+                int targetKernel = lightDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.ColorAndEdge ? m_DebugLightVolumeColorsKernel : m_DebugLightVolumeGradientKernel;
 
                 // Set the input params for the compute
                 cmd.SetComputeTextureParam(m_DebugLightVolumeCompute, targetKernel, _DebugLightCountBufferShaderID, m_LightCountBuffer);
