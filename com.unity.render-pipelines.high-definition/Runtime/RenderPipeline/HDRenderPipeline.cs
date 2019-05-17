@@ -312,6 +312,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // custom-begin:
+        ComputeBuffer dissolveOccludersCylindersBufferFallback = null;
+        // custom-end
+
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             m_Asset = asset;
@@ -558,6 +562,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, xrInstancing: true, useDynamicScale: true, name: "CameraColorMSAA");
                 m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, xrInstancing: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
             }
+
+            // custom-begin:
+            dissolveOccludersCylindersBufferFallback = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DissolveOccludersData.DissolveOccludersCylinder)));
+            // custom-end
         }
 
         void DestroyRenderTextures()
@@ -956,6 +964,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Initialize dissolve occluders to zero count and allow callbacks to override.
                 cmd.SetGlobalInt(HDShaderIDs._DissolveOccludersCylindersCount, 0);
+                cmd.SetGlobalBuffer(HDShaderIDs._DissolveOccludersCylinders, dissolveOccludersCylindersBufferFallback);
                 {
                     Vector2 dissolveOccludersAspectScale = (hdCamera.actualWidth > hdCamera.actualHeight)
                         ? new Vector2((float)hdCamera.actualWidth / (float)hdCamera.actualHeight, 1.0f)
