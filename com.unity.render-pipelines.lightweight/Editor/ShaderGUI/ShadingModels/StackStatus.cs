@@ -91,7 +91,8 @@ public class StackStatus
             }
             else
             {
-                UnityEngine.Debug.Log("Texture settings don't match on all layers of StackedTexture");
+                if( wrapMode != tex2D.wrapMode || textureScaling != textureImporter.npotScale ) 
+                    UnityEngine.Debug.LogError("Texture settings don't match on all layers of StackedTexture");
             }
 
         }
@@ -100,9 +101,10 @@ public class StackStatus
 
         //todo: ignoring overall settings in hash for now
         //TileSetBuildSettings tileSetBuildSettings = new TileSetBuildSettings(ts);
-        String settingsHash = ""; // tileSetBuildSettings.GetHashString();
+        String settingsHash = "";
+        
 
-        return ("version_1_" + texturesHash + assetHash + settingsHash).GetHashCode().ToString("X");
+        return ("version_1_" + textureProperties.Length + texturesHash + assetHash + settingsHash).GetHashCode().ToString("X");
     }
 
 

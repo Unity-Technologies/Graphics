@@ -6,6 +6,8 @@ Shader "Lightweight Render Pipeline/Unlit"
         _BaseColor("Color", Color) = (1, 1, 1, 1)
         _Cutoff("AlphaCutout", Range(0.0, 1.0)) = 0.5
 
+        [Toggle] _VirtualTexturing("Virtual Texturing", Float) = 0.0
+
         // BlendMode
         [HideInInspector] _Surface("__surface", Float) = 0.0
         [HideInInspector] _Blend("__blend", Float) = 0.0
@@ -22,6 +24,8 @@ Shader "Lightweight Render Pipeline/Unlit"
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
         [HideInInspector] _Color("Base Color", Color) = (0.5, 0.5, 0.5, 1)
         [HideInInspector] _SampleGI("SampleGI", float) = 0.0 // needed from bakedlit
+
+        _TextureStack("_TextureStack", Stack) = { _BaseMap }
     }
     SubShader
     {
@@ -49,6 +53,11 @@ Shader "Lightweight Render Pipeline/Unlit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+
+            //--------------------------------------
+            // Virtual Texturing
+            #pragma shader_feature VT_ON
+
 
             #include "UnlitInput.hlsl"
 
@@ -91,7 +100,10 @@ Shader "Lightweight Render Pipeline/Unlit"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 half2 uv = input.uv;
-                half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+
+                StackInfo stackInfo = PrepareStack(uv, _TextureStack);
+                half4 texColor = SampleStack(stackInfo, _BaseMap);
+
                 half3 color = texColor.rgb * _BaseColor.rgb;
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
@@ -154,6 +166,68 @@ Shader "Lightweight Render Pipeline/Unlit"
             #include "UnlitInput.hlsl"
             #include "UnlitMetaPass.hlsl"
 
+            ENDHLSL
+        }
+
+        // This pass it not used during regular rendering, only for finding out which VT tiles to load
+        Pass
+        {
+            Name "VTFeedback"
+            Tags{"LightMode" = "VTFeedback"}
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_instancing
+            #pragma shader_feature VT_ON
+
+            #include "LitInput.hlsl"
+
+            struct Attributes
+            {
+                float4 positionOS       : POSITION;
+                float2 uv               : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float2 uv        : TEXCOORD0;
+                float4 vertex : SV_POSITION;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output = (Varyings)0;
+
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+                output.vertex = vertexInput.positionCS;
+
+                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+
+                return output;
+            }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+
+                return ResolveStack(input.uv, _TextureStack);
+            }
             ENDHLSL
         }
     }

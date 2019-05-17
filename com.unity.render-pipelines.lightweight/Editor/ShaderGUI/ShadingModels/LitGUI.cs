@@ -43,10 +43,6 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 new GUIContent("Environment Reflections",
                     "When enabled, the Material samples reflections from the nearest Reflection Probes or Lighting Probe.");
 
-            public static GUIContent vtText =
-                new GUIContent("Virtual Texturing",
-                    "When enabled, use virtual texturing instead of regular textures.");
-
             public static GUIContent occlusionText = new GUIContent("Occlusion Map",
                 "Sets an occlusion map to simulate shadowing from ambient lighting.");
 
@@ -74,7 +70,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             // Advanced Props
             public MaterialProperty highlights;
             public MaterialProperty reflections;
-            public MaterialProperty vt;
+            
 
             public LitProperties(MaterialProperty[] properties)
             {
@@ -93,8 +89,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 occlusionMap = BaseShaderGUI.FindProperty("_OcclusionMap", properties, false);
                 // Advanced Props
                 highlights = BaseShaderGUI.FindProperty("_SpecularHighlights", properties, false);
-                reflections = BaseShaderGUI.FindProperty("_EnvironmentReflections", properties, false);
-                vt = BaseShaderGUI.FindProperty("_VirtualTexturing", properties, false);
+                reflections = BaseShaderGUI.FindProperty("_EnvironmentReflections", properties, false);            
             }
         }
 
@@ -216,17 +211,6 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                     GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha && opaque);
             }
             
-            if (material.HasProperty("_VirtualTexturing"))
-            {
-                if (material.GetFloat("_VirtualTexturing") == 0.0f)
-                {
-                    CoreUtils.SetKeyword(material, "VT_ON", false);
-                }
-                else if (StackStatus.AllStacksValid(material))
-                {
-                    CoreUtils.SetKeyword(material, "VT_ON", true);
-                }
-            }
         }
     }
 }
