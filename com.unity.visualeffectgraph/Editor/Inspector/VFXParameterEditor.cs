@@ -47,7 +47,9 @@ public class VFXParameterEditor : VFXSlotContainerEditor
         if (serializedObject.isEditingMultipleObjects)
         {
             GUI.enabled = false; // no sense to change the name in multiple selection because the name must be unique
+            EditorGUI.showMixedValue = true;
             EditorGUILayout.TextField("Exposed Name", "-");
+            EditorGUI.showMixedValue = false;
             GUI.enabled = true;
         }
         else
@@ -55,7 +57,7 @@ public class VFXParameterEditor : VFXSlotContainerEditor
             VFXParameter parameter = (VFXParameter)target;
 
             GUI.enabled = controller != null;
-            string newName = EditorGUILayout.TextField("Exposed Name", parameter.exposedName);
+            string newName = EditorGUILayout.DelayedTextField("Exposed Name", parameter.exposedName);
             GUI.enabled = true;
             if (GUI.changed)
             {
