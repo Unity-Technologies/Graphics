@@ -17,6 +17,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Controls how much the ambient light affects occlusion.")]
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
 
+        [Tooltip("Enable raytraced ambient occlusion.")]
+        public BoolParameter enableRaytracing = new BoolParameter(false);
+
+        [Tooltip("Controls the length of ambient occlusion rays.")]
+        public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+
+        [Tooltip("Enable Filtering on the raytraced ambient occlusion.")]
+        public BoolParameter enableFilter = new BoolParameter(false);
+
+        [Tooltip("Controls the length of ambient occlusion rays.")]
+        public ClampedIntParameter numSamples = new ClampedIntParameter(4, 1, 64);
+
+        [Tooltip("Controls the length of ambient occlusion rays.")]
+        public ClampedIntParameter filterRadius = new ClampedIntParameter(16, 1, 32);
+
         // Hidden parameters
         [HideInInspector] public ClampedFloatParameter noiseFilterTolerance = new ClampedFloatParameter(0f, -8f, 0f);
         [HideInInspector] public ClampedFloatParameter blurTolerance = new ClampedFloatParameter(-4.6f, -8f, 1f);
@@ -28,6 +43,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         enum MipLevel { Original, L1, L2, L3, L4, L5, L6, Count }
 
         RenderPipelineResources m_Resources;
+#if ENABLE_RAYTRACING
+        HDRenderPipelineRayTracingResources m_RTResources;
+#endif
         RenderPipelineSettings m_Settings;
 
         // The arrays below are reused between frames to reduce GC allocation.
@@ -94,6 +112,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
             m_Resources = hdAsset.renderPipelineResources;
+#if ENABLE_RAYTRACING
+            m_RTResources = hdAsset.renderPipelineRayTracingResources;
+#endif
 
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
@@ -207,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void InitRaytracing(HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
         {
             m_RayTracingManager = raytracingManager;
-            m_RaytracingAmbientOcclusion.Init(m_Resources, m_Settings, m_RayTracingManager, sharedRTManager);
+            m_RaytracingAmbientOcclusion.Init(m_Resources, m_RTResources, m_Settings, m_RayTracingManager, sharedRTManager);
         }
 #endif
 
@@ -215,16 +236,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext, int frameCount)
         {
+            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
-#if ENABLE_RAYTRACING
-            HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-            if (rtEnvironement != null && rtEnvironement.raytracedAO)
-                m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
-            else
-#endif
+            if (!IsActive(camera, settings))
             {
-                Dispatch(cmd, camera, sharedRTManager);
-                PostDispatchWork(cmd, camera, sharedRTManager);
+                // No AO applied - neutral is black, see the comment in the shaders
+                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, TextureXR.GetBlackTexture());
+                cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
+                return;
+            }
+            else
+            {
+#if ENABLE_RAYTRACING
+                if (settings.enableRaytracing.value)
+                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
+                else
+#endif
+                {
+                    Dispatch(cmd, camera, sharedRTManager);
+                    PostDispatchWork(cmd, camera, sharedRTManager);
+                }
             }
         }
 
@@ -232,9 +263,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Grab current settings
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-
-            if (!IsActive(camera, settings))
-                return;
 
             using (new ProfilingSample(cmd, "Render SSAO", CustomSamplerId.RenderSSAO.GetSampler()))
             {
@@ -290,14 +318,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Grab current settings
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-
-            if (!IsActive(camera, settings))
-            {
-                // No AO applied - neutral is black, see the comment in the shaders
-                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, TextureXR.GetBlackTexture());
-                cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
-                return;
-            }
 
             // MSAA Resolve
             if (camera.frameSettings.IsEnabled(FrameSettingsField.MSAA))

@@ -185,6 +185,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if ENABLE_RAYTRACING
         public bool useRayTracedShadows = false;
+        [Range(1, 32)]
+        public int numRayTracingSamples = 4;
+        public bool filterTracedShadow = true;
+        [Range(1, 32)]
+        public int filterSizeTraced = 16;
 #endif
 
         [Range(0.0f, 42.0f)]
