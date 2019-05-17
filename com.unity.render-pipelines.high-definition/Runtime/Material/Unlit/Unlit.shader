@@ -89,6 +89,10 @@ Shader "HDRP/Unlit"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+        // custom-begin:
+        [ToggleUI] _EnableDissolveOnOcclusion("Enable Dissolve on Occlusion", Float) = 0
+        // custom-end
     }
 
     HLSLINCLUDE
@@ -110,6 +114,11 @@ Shader "HDRP/Unlit"
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
+
+    // custom-begin:
+    #pragma shader_feature_local _ENABLE_DISSOLVE_ON_OCCLUSION
+    // custom-end
+
     //enable GPU instancing support
     #pragma multi_compile_instancing
 
@@ -423,7 +432,7 @@ Shader "HDRP/Unlit"
             Tags{ "LightMode" = "ForwardDXR" }
 
             HLSLPROGRAM
-            
+
             #pragma raytracing test
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD

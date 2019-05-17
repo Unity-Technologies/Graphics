@@ -241,6 +241,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
+            // custom-begin:
+            ps.Add(new PropertyRow(CreateLabel("Dissolve On Occlusion", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.dissolveOnOcclusion.isOn;
+                    toggle.OnToggleChanged(ChangeDissolveOnOcclusion);
+                });
+            });
+            // custom-end
+
             Add(ps);
         }
 
@@ -432,6 +443,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
             m_Node.zTest = (CompareFunction)evt.newValue;
         }
+
+        // custom-begin:
+        void ChangeDissolveOnOcclusion(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Dissolve On Occlusion Change");
+            ToggleData td = m_Node.dissolveOnOcclusion;
+            td.isOn = evt.newValue;
+            m_Node.dissolveOnOcclusion = td;
+        }
+        // custom-end
 
         public AlphaMode GetAlphaMode(FabricMasterNode.AlphaModeFabric alphaModeLit)
         {

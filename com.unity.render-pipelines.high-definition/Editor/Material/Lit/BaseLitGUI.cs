@@ -27,6 +27,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Decal
         protected const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
 
+        // custom-begin:
+        protected const string kEnableDissolveOnOcclusion = "_EnableDissolveOnOcclusion";
+        // custom-end
+
         // SSR
         protected MaterialProperty receivesSSR = null;
 
@@ -95,6 +99,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0);
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0);
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
+
+            // custom-begin:
+            CoreUtils.SetKeyword(material, "_ENABLE_DISSOLVE_ON_OCCLUSION", material.HasProperty(kEnableDissolveOnOcclusion) && material.GetFloat(kEnableDissolveOnOcclusion) == 1.0);
+            // custom-end
         }
 
         static public void SetupStencil(Material material, bool receivesSSR, bool useSplitLighting)

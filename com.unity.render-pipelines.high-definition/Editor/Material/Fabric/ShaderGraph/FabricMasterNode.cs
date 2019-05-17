@@ -72,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public const string BentNormalSlotName = "BentNormal";
         public const int BentNormalSlotId = 15;
-        
+
         public const int LightingSlotId = 16;
         public const string BakedGISlotName = "BakedGI";
 
@@ -462,7 +462,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-        
+
         [SerializeField]
         TransparentCullMode m_transparentCullMode = TransparentCullMode.Back;
         public TransparentCullMode transparentCullMode
@@ -494,6 +494,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
+
+        // custom-begin:
+        [SerializeField]
+        bool m_DissolveOnOcclusion = false;
+
+        public ToggleData dissolveOnOcclusion
+        {
+            get { return new ToggleData(m_DissolveOnOcclusion); }
+            set
+            {
+                if (m_DissolveOnOcclusion == value.isOn)
+                    return;
+                m_DissolveOnOcclusion = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+        // custom-end
 
         public FabricMasterNode()
         {
@@ -624,7 +642,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 AddSlot(new Vector1MaterialSlot(AlphaClipThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
                 validSlots.Add(AlphaClipThresholdSlotId);
             }
-            
+
             if (MaterialTypeUsesSlotMask(SlotMask.BakedGI) && overrideBakedGI.isOn)
             {
                 AddSlot(new DefaultMaterialSlot(LightingSlotId, BakedGISlotName, BakedGISlotName, ShaderStageCapability.Fragment));
@@ -632,7 +650,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 AddSlot(new DefaultMaterialSlot(BackLightingSlotId, BakedBackGISlotName, BakedBackGISlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(BackLightingSlotId);
             }
-            
+
             if (depthOffset.isOn)
             {
                 AddSlot(new Vector1MaterialSlot(DepthOffsetSlotId, DepthOffsetSlotName, DepthOffsetSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));

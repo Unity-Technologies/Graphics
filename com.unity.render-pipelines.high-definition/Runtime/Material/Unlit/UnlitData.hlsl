@@ -9,6 +9,14 @@
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+// custom-begin:
+#ifdef _ENABLE_DISSOLVE_ON_OCCLUSION
+#if (SHADERPASS != SHADERPASS_SHADOWS)
+        ClipFromDissolveOccluders(posInput, _ScreenSize);
+#endif
+#endif
+// custom-end
+
     float2 unlitColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _UnlitColorMap);
     surfaceData.color = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).rgb * _UnlitColor.rgb;
     float alpha = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).a * _UnlitColor.a;
