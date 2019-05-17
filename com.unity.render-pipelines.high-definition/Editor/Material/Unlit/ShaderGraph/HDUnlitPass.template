@@ -35,6 +35,9 @@ Pass
     $BlendMode.Add:                      #define _BLENDMODE_ADD 1
     $BlendMode.Premultiply:              #define _BLENDMODE_PRE_MULTIPLY 1
     $AlphaFog:                           #define _ENABLE_FOG_ON_TRANSPARENT 1
+    // custom-begin:
+    $DissolveOnOcclusion:                #define _ENABLE_DISSOLVE_ON_OCCLUSION 1
+    // custom-end
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -125,6 +128,14 @@ $include("SharedCode.template.hlsl")
 
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
+// custom-begin:
+#ifdef _ENABLE_DISSOLVE_ON_OCCLUSION
+#if (SHADERPASS != SHADERPASS_SHADOWS)
+        ClipFromDissolveOccluders(posInput, _ScreenSize);
+#endif
+#endif
+// custom-end
+
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 

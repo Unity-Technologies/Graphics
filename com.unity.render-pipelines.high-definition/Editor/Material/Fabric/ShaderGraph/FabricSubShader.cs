@@ -449,6 +449,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(FabricMasterNode.DepthOffsetSlotId))
                 activeFields.Add("DepthOffset");
 
+            // custom-begin:
+            if (masterNode.dissolveOnOcclusion.isOn)
+            {
+                activeFields.Add("DissolveOnOcclusion");
+            }
+            // custom-end
+
             return activeFields;
         }
 

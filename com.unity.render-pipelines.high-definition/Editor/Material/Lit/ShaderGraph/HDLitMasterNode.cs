@@ -653,6 +653,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // custom-begin:
+        [SerializeField]
+        bool m_DissolveOnOcclusion = false;
+
+        public ToggleData dissolveOnOcclusion
+        {
+            get { return new ToggleData(m_DissolveOnOcclusion); }
+            set
+            {
+                if (m_DissolveOnOcclusion == value.isOn)
+                    return;
+                m_DissolveOnOcclusion = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+        // custom-end
+
         public HDLitMasterNode()
         {
             UpdateNodeAfterDeserialization();

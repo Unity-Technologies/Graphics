@@ -904,9 +904,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
-                if (OnPushGlobalParameters != null)
-                    OnPushGlobalParameters(hdCamera, cmd);
-
                 // Set up UnityPerFrame CBuffer.
                 m_SSSBufferManager.PushGlobalParams(hdCamera, cmd);
 
@@ -956,6 +953,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // custom-begin
                 cmd.SetGlobalTexture(HDShaderIDs._BlueNoiseRGBTexture, m_BlueNoise.textures16RGB[m_FrameCount % m_BlueNoise.textures16RGB.Length]);
                 cmd.SetGlobalInt(HDShaderIDs._BlueNoiseRGBTextureResolutionMinusOne, m_BlueNoise.textures16RGB[m_FrameCount % m_BlueNoise.textures16RGB.Length].width - 1);
+
+                // Initialize dissolve occluders to zero count and allow callbacks to override.
+                cmd.SetGlobalInt(HDShaderIDs._DissolveOccludersCylindersCount, 0);
+                {
+                    Vector2 dissolveOccludersAspectScale = (hdCamera.actualWidth > hdCamera.actualHeight)
+                        ? new Vector2((float)hdCamera.actualWidth / (float)hdCamera.actualHeight, 1.0f)
+                        : new Vector2(1.0f, (float)hdCamera.actualHeight / (float)hdCamera.actualWidth);
+                    cmd.SetGlobalVector(HDShaderIDs._DissolveOccludersAspectScale, dissolveOccludersAspectScale);
+                }
+
+                if (OnPushGlobalParameters != null)
+                    OnPushGlobalParameters(hdCamera, cmd);
                 // custom-end
             }
         }

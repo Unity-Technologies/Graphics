@@ -76,6 +76,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
 
+            // custom-begin:
+            public static GUIContent enableDissolveOnOcclusionText = new GUIContent("Dissolve on Occlusion", "Enable or Disable");
+            // custom-end
+
         }
 
         public enum DoubleSidedNormalMode
@@ -193,6 +197,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty receivesSSR = null;
         protected const string kReceivesSSR = "_ReceivesSSR";
 
+        // custom-begin:
+        protected MaterialProperty enableDissolveOnOcclusion = null;
+        protected const string kEnableDissolveOnOcclusion = "_EnableDissolveOnOcclusion";
+        // custom-end
+
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
@@ -244,6 +253,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // SSR
             receivesSSR = FindProperty(kReceivesSSR, props, false);
+
+            // custom-begin:
+            enableDissolveOnOcclusion = FindProperty(kEnableDissolveOnOcclusion, props, false);
+            // custom-end
         }
 
         void TessellationModePopup()
@@ -267,7 +280,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void BaseMaterialPropertiesGUI()
         {
             base.BaseMaterialPropertiesGUI();
-            
+
+            // custom-begin:
+            if (enableDissolveOnOcclusion != null)
+            {
+                m_MaterialEditor.ShaderProperty(enableDissolveOnOcclusion, StylesBaseLit.enableDissolveOnOcclusionText);
+            }
+            // custom-end
+
             // This follow double sided option
             if (doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
             {
@@ -584,6 +604,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0);
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0);
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
+
+            // custom-begin:
+            CoreUtils.SetKeyword(material, "_ENABLE_DISSOLVE_ON_OCCLUSION", material.HasProperty(kEnableDissolveOnOcclusion) && material.GetFloat(kEnableDissolveOnOcclusion) == 1.0);
+            // custom-end
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

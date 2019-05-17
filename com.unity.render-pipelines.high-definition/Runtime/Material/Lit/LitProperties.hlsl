@@ -152,6 +152,10 @@ float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
+// custom-begin
+float _EnableDissolveOnOcclusion;
+// custom-end
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables

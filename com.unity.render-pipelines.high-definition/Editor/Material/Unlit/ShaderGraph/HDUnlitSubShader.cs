@@ -323,6 +323,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
+            // custom-begin:
+            if (masterNode.dissolveOnOcclusion.isOn)
+            {
+                activeFields.Add("DissolveOnOcclusion");
+            }
+            // custom-end
+
             return activeFields;
         }
 
