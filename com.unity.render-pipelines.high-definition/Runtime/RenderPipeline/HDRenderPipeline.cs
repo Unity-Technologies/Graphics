@@ -596,6 +596,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_CameraColorMSAABuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
 
+            // custom-begin:
+            dissolveOccludersCylindersBufferFallback.Release();
+            // custom-end
+
             HDCamera.ClearAll();
         }
 
