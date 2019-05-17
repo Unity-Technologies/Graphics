@@ -362,9 +362,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
 #if ENABLE_RAYTRACING
-            m_RayTracingManager.Init(m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources, m_BlueNoise, m_LightLoop, m_SharedRTManager, m_DebugDisplaySettings);
+            m_RayTracingManager.Init(m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_BlueNoise, this, m_SharedRTManager, m_DebugDisplaySettings);
             m_RaytracingReflections.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager, m_GbufferManager);
-            m_RaytracingShadows.Init(m_Asset, m_RayTracingManager, m_SharedRTManager, m_LightLoop, m_GbufferManager);
+            m_RaytracingShadows.Init(m_Asset, m_RayTracingManager, m_SharedRTManager, this, m_GbufferManager);
             m_RaytracingRenderer.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager);
             m_AmbientOcclusionSystem.InitRaytracing(m_RayTracingManager, m_SharedRTManager);
             m_RaytracingIndirectDiffuse.Init(m_Asset, m_SkyManager, m_RayTracingManager, m_SharedRTManager, m_GbufferManager);
@@ -384,6 +384,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
 			ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
+
+#if ENABLE_RAYTRACING
+            if ((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources == null)
+                (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources
+                    = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
+            ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+#endif
 
             if ((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources == null)
                 (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineEditorResources
@@ -1691,8 +1698,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We only request the light cluster if we are gonna use it for debug mode
                 if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
                 {
+                    var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
                     HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
-                    if(rtEnv != null && rtEnv.raytracedReflections)
+                    if(settings.enableRaytracing.value && rtEnv != null)
                     {
                         HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
                         PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
@@ -3032,9 +3040,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
                 return;
 
+
 #if ENABLE_RAYTRACING
-            HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-            if (rtEnvironement != null && rtEnvironement.raytracedReflections)
+            var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+            if (settings.enableRaytracing.value)
             {
                 m_RaytracingReflections.RenderReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
             }

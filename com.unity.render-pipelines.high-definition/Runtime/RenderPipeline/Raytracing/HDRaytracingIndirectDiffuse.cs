@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
-            RaytracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineResources.shaders.indirectDiffuseRaytracing;
+            RaytracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseRaytracing;
 
             return !(rtEnvironement == null || !rtEnvironement.raytracedIndirectDiffuse
                 || indirectDiffuseShader == null
@@ -89,8 +89,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // First thing to check is: Do we have a valid ray-tracing environment?
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
-            RaytracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineResources.shaders.indirectDiffuseRaytracing;
-            ComputeShader indirectDiffuseAccumulation = m_PipelineAsset.renderPipelineResources.shaders.indirectDiffuseAccumulation;
+            RaytracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseRaytracing;
+            ComputeShader indirectDiffuseAccumulation = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseAccumulation;
 
             bool invalidState = rtEnvironement == null || !rtEnvironement.raytracedIndirectDiffuse
                 || indirectDiffuseShader == null || indirectDiffuseAccumulation == null
