@@ -8,9 +8,8 @@ StructuredBuffer<DissolveOccludersCylinder> _DissolveOccludersCylinders;
 int _DissolveOccludersCylindersCount;
 float2 _DissolveOccludersAspectScale;
 
-void ClipFromDissolveOccluders(const in PositionInputs posInput, const in float4 screenSize)
+float ComputeAlphaFromDissolveOccluders(const in PositionInputs posInput, const in float4 screenSize)
 {
-    float dither = LoadBlueNoiseRGB((uint2)posInput.positionSS.xy).z;
     float alphaMin = 1.0f;
     for (int i = 0; i < _DissolveOccludersCylindersCount; ++i)
     {
@@ -27,7 +26,14 @@ void ClipFromDissolveOccluders(const in PositionInputs posInput, const in float4
         alphaMin = min(alphaMin, alpha);
         if (alphaMin < 1e-5f) { break; }
     }
-    clip(alphaMin - max(1e-5f, dither));
+    return alphaMin;
+}
+
+void ClipFromDissolveOccluders(const in PositionInputs posInput, const in float4 screenSize)
+{
+    float dither = LoadBlueNoiseRGB((uint2)posInput.positionSS.xy).z;
+    float alpha = ComputeAlphaFromDissolveOccluders(posInput, screenSize);
+    clip(alpha - max(1e-5f, dither));
 }
 
 // custom-end
