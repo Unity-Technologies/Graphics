@@ -215,11 +215,17 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 CoreUtils.SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
                     GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha && opaque);
             }
-
+            
             if (material.HasProperty("_VirtualTexturing"))
             {
-                CoreUtils.SetKeyword(material, "VT_ON",
-                    material.GetFloat("_VirtualTexturing") == 1.0f);
+                if (material.GetFloat("_VirtualTexturing") == 0.0f)
+                {
+                    CoreUtils.SetKeyword(material, "VT_ON", false);
+                }
+                else if (StackStatus.AllStacksValid(material))
+                {
+                    CoreUtils.SetKeyword(material, "VT_ON", true);
+                }
             }
         }
     }

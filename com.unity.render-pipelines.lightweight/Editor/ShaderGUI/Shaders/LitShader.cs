@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
 {
     internal class LitShader : BaseShaderGUI
     {
+
         // Properties
         private LitGUI.LitProperties litProperties;
         
@@ -24,6 +25,18 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 throw new ArgumentNullException("material");
             
             SetMaterialKeywords(material, LitGUI.SetMaterialKeywords);
+
+            if( litProperties.vt != null )
+            {
+                if (litProperties.vt.floatValue == 0.0)
+                {
+                    material.DisableKeyword("VT_ON");
+                }
+                else if (StackStatus.AllStacksValid(material))
+                {
+                    material.EnableKeyword("VT_ON");
+                }
+            }            
         }
         
         // material main surface options
@@ -58,22 +71,30 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             DrawTileOffset(materialEditor, baseMapProp);
         }
 
+
+
         // material main advanced options
         public override void DrawAdvancedOptions(Material material)
         {
             if (litProperties.reflections != null && litProperties.highlights != null && litProperties.vt != null)
             {
                 EditorGUI.BeginChangeCheck();
-                {
+                {                    
                     materialEditor.ShaderProperty(litProperties.highlights, LitGUI.Styles.highlightsText);
                     materialEditor.ShaderProperty(litProperties.reflections, LitGUI.Styles.reflectionsText);
                     materialEditor.ShaderProperty(litProperties.vt, LitGUI.Styles.vtText);
-                    EditorGUI.BeginChangeCheck();
+                    
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                       
+                    }
                 }
             }
 
             base.DrawAdvancedOptions(material);
         }
+
+
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
