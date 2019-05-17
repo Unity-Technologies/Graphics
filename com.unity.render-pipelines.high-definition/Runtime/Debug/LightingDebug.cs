@@ -133,9 +133,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 displaySkyReflection = false;
         public float                skyReflectionMipmap = 0.0f;
 
-        public bool                         displayLightVolumes = false;
-        public LightLoop.LightVolumeDebug   lightVolumeDebugByCategory = LightLoop.LightVolumeDebug.Gradient;
-        public uint                         maxDebugLightCount = 24;
+        public bool                 displayLightVolumes = false;
+        public LightVolumeDebug     lightVolumeDebugByCategory = LightVolumeDebug.Gradient;
+        public uint                 maxDebugLightCount = 24;
 
         public float                environmentProxyDepthScale = 20;
 
@@ -146,7 +146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 showAreaLight = true;
         public bool                 showReflectionProbe = true;
 
-        public LightLoop.TileClusterDebug tileClusterDebug = LightLoop.TileClusterDebug.None;
-        public LightLoop.TileClusterCategoryDebug tileClusterDebugByCategory = LightLoop.TileClusterCategoryDebug.Punctual;
+        public TileClusterDebug tileClusterDebug = TileClusterDebug.None;
+        public TileClusterCategoryDebug tileClusterDebugByCategory = TileClusterCategoryDebug.Punctual;
     }
 }

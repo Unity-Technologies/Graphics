@@ -37,6 +37,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedProperty proxyCaptureRotationProxySpace;
         internal SerializedProperty proxyMirrorPositionProxySpace;
         internal SerializedProperty proxyMirrorRotationProxySpace;
+        internal SerializedProperty frustumFieldOfViewMode;
+        internal SerializedProperty frustumFixedValue;
+        internal SerializedProperty frustumViewerScale;
+        internal SerializedProperty frustumAutomaticScale;
+
 
         internal SerializedProbeSettings(SerializedProperty root)
         {
@@ -53,6 +58,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             proxyCaptureRotationProxySpace = root.FindPropertyRelative("proxySettings.captureRotationProxySpace");
             proxyMirrorPositionProxySpace = root.FindPropertyRelative("proxySettings.mirrorPositionProxySpace");
             proxyMirrorRotationProxySpace = root.FindPropertyRelative("proxySettings.mirrorRotationProxySpace");
+            frustumFieldOfViewMode = root.FindPropertyRelative("frustum.fieldOfViewMode");
+            frustumFixedValue = root.FindPropertyRelative("frustum.fixedValue");
+            frustumViewerScale = root.FindPropertyRelative("frustum.viewerScale");
+            frustumAutomaticScale = root.FindPropertyRelative("frustum.automaticScale");
 
             cameraSettings = new SerializedCameraSettings(root.Find((ProbeSettings p) => p.camera));
             influence = new SerializedInfluenceVolume(root.Find((ProbeSettings p) => p.influence));
