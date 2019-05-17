@@ -435,6 +435,9 @@ float3 LoadBlueNoiseRGB(uint2 pixelCoords)
     float4 blueNoiseSample = LOAD_TEXTURE2D_LOD(_BlueNoiseRGBTexture, textureCoords, 0);
     return blueNoiseSample.xyz;
 }
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/DissolveOccluders/DissolveOccluders.hlsl"
+
 // custom-end
 
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

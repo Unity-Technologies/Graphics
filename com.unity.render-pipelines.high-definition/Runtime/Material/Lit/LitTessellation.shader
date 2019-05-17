@@ -232,6 +232,10 @@ Shader "HDRP/LitTessellation"
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
+
+        // custom-begin:
+        [ToggleUI] _EnableDissolveOnOcclusion("Enable Dissolve on Occlusion", Float) = 0
+        // custom-end
     }
 
     HLSLINCLUDE
@@ -277,6 +281,10 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
+
+    // custom-begin:
+    #pragma shader_feature_local _ENABLE_DISSOLVE_ON_OCCLUSION
+    // custom-end
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
@@ -653,7 +661,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            
+
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
@@ -719,7 +727,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            
+
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 

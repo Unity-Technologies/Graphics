@@ -237,7 +237,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Dirty(ModificationScope.Graph);
             }
         }
-        
+
         [SerializeField]
         TransparentCullMode m_transparentCullMode = TransparentCullMode.Back;
         public TransparentCullMode transparentCullMode
@@ -285,6 +285,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // custom-begin:
+        [SerializeField]
+        bool m_DissolveOnOcclusion = false;
+
+        public ToggleData dissolveOnOcclusion
+        {
+            get { return new ToggleData(m_DissolveOnOcclusion); }
+            set
+            {
+                if (m_DissolveOnOcclusion == value.isOn)
+                    return;
+                m_DissolveOnOcclusion = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+        // custom-end
+
         public HDUnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
@@ -294,7 +312,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             get { return null; }
         }
-        
+
         public bool HasDistortion()
         {
             return (surfaceType == SurfaceType.Transparent && distortion.isOn);
@@ -366,7 +384,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             HDUnlitGUI.SetupMaterialKeywordsAndPass(previewMaterial);
         }
-        
+
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             // Trunk currently relies on checking material property "_EmissionColor" to allow emissive GI. If it doesn't find that property, or it is black, GI is forced off.

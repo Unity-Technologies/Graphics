@@ -294,6 +294,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        // custom-begin:
+        ComputeBuffer computeBufferFallback = null;
+        // custom-end
+
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
             m_Asset = asset;
@@ -544,6 +548,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraColorMSAA");
                 m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
             }
+
+            // custom-begin:
+            computeBufferFallback = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DissolveOccludersData.DissolveOccludersCylinder)));
+            // custom-end
         }
 
         void DestroyRenderTextures()
@@ -574,6 +582,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_CameraColorMSAABuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
+
+            // custom-begin:
+            computeBufferFallback.Release();
+            // custom-end
         }
 
         bool SetRenderingFeatures()
@@ -853,9 +865,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
-                if (OnPushGlobalParameters != null)
-                    OnPushGlobalParameters(hdCamera, cmd);
-
                 // Set up UnityPerFrame CBuffer.
                 PushSubsurfaceScatteringGlobalParams(hdCamera, cmd);
 
@@ -907,6 +916,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Texture2D blueNoiseTexture = GetBlueNoiseTextureForCurrentFrame();
                 cmd.SetGlobalTexture(HDShaderIDs._BlueNoiseRGBTexture, blueNoiseTexture);
                 cmd.SetGlobalInt(HDShaderIDs._BlueNoiseRGBTextureResolutionMinusOne, blueNoiseTexture.width - 1);
+
+                // Initialize dissolve occluders to zero count and allow callbacks to override.
+                cmd.SetGlobalInt(HDShaderIDs._DissolveOccludersCylindersCount, 0);
+                cmd.SetGlobalBuffer(HDShaderIDs._DissolveOccludersCylinders, computeBufferFallback);
+                {
+                    Vector2 dissolveOccludersAspectScale = (hdCamera.actualWidth > hdCamera.actualHeight)
+                        ? new Vector2((float)hdCamera.actualWidth / (float)hdCamera.actualHeight, 1.0f)
+                        : new Vector2(1.0f, (float)hdCamera.actualHeight / (float)hdCamera.actualWidth);
+                    cmd.SetGlobalVector(HDShaderIDs._DissolveOccludersAspectScale, dissolveOccludersAspectScale);
+                }
+                cmd.SetGlobalBuffer(HDShaderIDs._DissolveOccludersCylinders, computeBufferFallback);
+
+                if (OnPushGlobalParameters != null)
+                    OnPushGlobalParameters(hdCamera, cmd);
                 // custom-end
             }
         }

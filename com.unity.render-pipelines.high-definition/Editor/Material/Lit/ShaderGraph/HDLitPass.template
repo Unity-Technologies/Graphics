@@ -56,6 +56,9 @@ Pass
     $TransparentWritesMotionVec:         #define _WRITE_TRANSPARENT_MOTION_VECTOR 1
     $DepthOffset:                        #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+    // custom-begin:
+    $DissolveOnOcclusion:                #define _ENABLE_DISSOLVE_ON_OCCLUSION 1
+    // custom-end
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -208,7 +211,7 @@ $include("SharedCode.template.hlsl")
         surfaceData.atDistance = 1.0;
         surfaceData.transmittanceMask = 0.0;
 #endif
-        
+
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
@@ -309,6 +312,14 @@ $include("SharedCode.template.hlsl")
     float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
 #endif
 
+// custom-begin:
+#ifdef _ENABLE_DISSOLVE_ON_OCCLUSION
+#if (SHADERPASS != SHADERPASS_SHADOWS)
+        ClipFromDissolveOccluders(posInput, _ScreenSize);
+#endif
+#endif
+// custom-end
+
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
@@ -320,14 +331,14 @@ $include("SharedCode.template.hlsl")
         $AlphaTestPrepass:  DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
         $AlphaTestPostpass: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
         $AlphaTestShadow:   DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
-        
+
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
 
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
 
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
+        // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:

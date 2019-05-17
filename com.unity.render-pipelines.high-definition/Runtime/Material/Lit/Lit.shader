@@ -225,6 +225,10 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
+
+        // custom-begin:
+        [ToggleUI] _EnableDissolveOnOcclusion("Enable Dissolve on Occlusion", Float) = 0
+        // custom-end
     }
 
     HLSLINCLUDE
@@ -276,6 +280,10 @@ Shader "HDRP/Lit"
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
+
+    // custom-begin:
+    #pragma shader_feature_local _ENABLE_DISSOLVE_ON_OCCLUSION
+    // custom-end
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

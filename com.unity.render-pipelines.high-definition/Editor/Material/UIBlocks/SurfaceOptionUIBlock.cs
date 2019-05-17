@@ -25,7 +25,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BackThenFrontRendering      = 1 << 7,
             ReceiveSSR                  = 1 << 8,
             ShowAfterPostProcessPass    = 1 << 9,
-            Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass,
+            // custom-begin:
+            DissolveOccluders           = 1 << 10,
+            Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | DissolveOccluders,
+            // custom-end
             Lit                         = All,
             All                         = ~0,
         }
@@ -92,16 +95,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent enableGeometricSpecularAAText = new GUIContent("Geometric Specular AA", "When enabled, HDRP reduces specular aliasing on high density meshes (particularly useful when the not using a normal map).");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Controls the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
-            
+
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
 
             public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
+
+            // custom-begin:
+            public static GUIContent enableDissolveOnOcclusionText = new GUIContent("Dissolve on Occlusion", "Enable or Disable");
+            // custom-end
         }
-   
+
         // Properties common to Unlit and Lit
         MaterialProperty surfaceType = null;
-        
+
         MaterialProperty alphaCutoffEnable = null;
         const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         MaterialProperty useShadowThreshold = null;
@@ -164,6 +171,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // SSR
         MaterialProperty receivesSSR = null;
         const string kReceivesSSR = "_ReceivesSSR";
+
+        // custom-begin:
+        MaterialProperty enableDissolveOnOcclusion = null;
+        protected const string kEnableDissolveOnOcclusion = "_EnableDissolveOnOcclusion";
+        // custom-end
 
         MaterialProperty displacementMode = null;
         const string kDisplacementMode = "_DisplacementMode";
@@ -278,13 +290,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             transparentSortPriority = FindProperty(kTransparentSortPriority);
 
             transparentWritingMotionVec = FindProperty(kTransparentWritingMotionVec);
-            
+
             enableBlendModePreserveSpecularLighting = FindProperty(kEnableBlendModePreserveSpecularLighting);
             enableFogOnTransparent = FindProperty(kEnableFogOnTransparent);
 
             if ((m_Features & Features.DoubleSided) != 0)
                 doubleSidedEnable = FindProperty(kDoubleSidedEnable);
-            
+
             // Height
             heightMap = FindPropertyLayered(kHeightMap, m_LayerCount);
             heightAmplitude = FindPropertyLayered(kHeightAmplitude, m_LayerCount);
@@ -336,6 +348,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if ((m_Features & Features.ReceiveSSR) != 0)
                 receivesSSR = FindProperty(kReceivesSSR);
 
+            // custom-begin:
+            if ((m_Features & Features.DissolveOccluders) != 0)
+                enableDissolveOnOcclusion = FindProperty(kEnableDissolveOnOcclusion);
+            // custom-end
+
             zWrite = FindProperty(kZWrite);
             zTest = FindProperty(kZTestTransparent);
             transparentCullMode = FindProperty(kTransparentCullMode);
@@ -362,6 +379,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if ((m_Features & Features.DoubleSided) != 0)
                 DrawDoubleSidedGUI();
+
+            // custom-begin:
+            if ((m_Features & Features.DissolveOccluders) != 0)
+                DrawDissolveOccludersGUI();
+            // custom-end
 
             DrawLitSurfaceOptions();
         }
@@ -404,7 +426,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 EditorGUI.indentLevel--;
             }
-            
+
             // Update the renderqueue when we change the alphaTest
             if (EditorGUI.EndChangeCheck())
             {
@@ -413,6 +435,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 renderQueue = HDRenderQueue.ChangeType(renderQueueType, (int)transparentSortPriority.floatValue, alphaCutoffEnable.floatValue == 1);
             }
         }
+
+        // custom-begin:
+        void DrawDissolveOccludersGUI()
+        {
+            if (enableDissolveOnOcclusion != null)
+            {
+                materialEditor.ShaderProperty(enableDissolveOnOcclusion, Styles.enableDissolveOnOcclusionText);
+            }
+        }
+        // custom-end
 
         void DrawDoubleSidedGUI()
         {
@@ -484,10 +516,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (transparentWritingMotionVec != null)
                     materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
-                
+
                 if (zWrite != null)
                     materialEditor.ShaderProperty(zWrite, Styles.zWriteEnableText);
-                
+
                 if (zTest != null)
                     materialEditor.ShaderProperty(zTest, Styles.transparentZTestText);
 
@@ -507,7 +539,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
         }
-        
+
         void ShowAfterPostProcessZTestInfoBox()
         {
             EditorGUILayout.HelpBox(Styles.afterPostProcessZTestInfoBox, MessageType.Info);
@@ -517,14 +549,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (surfaceType == null)
                 return;
-                
+
             // TODO: does not work with multi-selection
             Material material = materialEditor.target as Material;
 
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
-            
+
             // Shader graph only property, used to transfer the render queue from the shader graph to the material,
             // because we can't use the renderqueue from the shader as we have to keep the renderqueue on the material side.
             if (material.HasProperty("_RenderQueueType"))
@@ -593,7 +625,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             --EditorGUI.indentLevel;
             EditorGUI.showMixedValue = false;
-        
+
             if (material.HasProperty("_RenderQueueType"))
                 material.SetFloat("_RenderQueueType", (float)renderQueueType);
         }

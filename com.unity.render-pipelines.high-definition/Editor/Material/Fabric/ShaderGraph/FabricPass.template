@@ -52,6 +52,10 @@ Pass
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
 
+    // custom-begin:
+    $DissolveOnOcclusion:               #define _ENABLE_DISSOLVE_ON_OCCLUSION 1
+    // custom-end
+
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
     //-------------------------------------------------------------------------------------
@@ -287,6 +291,14 @@ $include("SharedCode.template.hlsl")
     float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
 #endif
 
+// custom-begin:
+#ifdef _ENABLE_DISSOLVE_ON_OCCLUSION
+#if (SHADERPASS != SHADERPASS_SHADOWS)
+        ClipFromDissolveOccluders(posInput, _ScreenSize);
+#endif
+#endif
+// custom-end
+
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
@@ -302,7 +314,7 @@ $include("SharedCode.template.hlsl")
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
 
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
+        // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
         // override sampleBakedGI:
