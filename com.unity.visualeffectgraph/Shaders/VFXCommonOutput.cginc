@@ -6,6 +6,12 @@ VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i) // uvs are provided from interpolan
 #if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_FRAMEBLEND)
     data.uvs.zw = i.VFX_VARYING_UV.zw;
     data.blend = i.VFX_VARYING_FRAMEBLEND;
+#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
+    float2 mvPrev = -(SampleTexture(VFX_SAMPLER(motionVectorMap), data.uvs.xy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * data.blend;
+    float2 mvNext = (SampleTexture(VFX_SAMPLER(motionVectorMap), data.uvs.zy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * (1.0-data.blend);
+    data.mvs.xy = mvPrev;
+    data.mvs.zw = mvNext;
+#endif
 #endif
 #endif
     return data;

@@ -740,7 +740,12 @@ namespace UnityEditor.VFX
             }
             catch (Exception e)
             {
-                Debug.LogError(string.Format("Exception while compiling expression graph: {0}: {1}", e, e.StackTrace));
+                VisualEffectAsset asset = null;
+
+                if(m_Graph.visualEffectResource != null)
+                    asset = m_Graph.visualEffectResource.asset;
+
+                Debug.LogError(string.Format("{2} : Exception while compiling expression graph: {0}: {1}", e, e.StackTrace, (asset != null)? asset.name:"(Null Asset)"), asset);
 
                 // Cleaning
                 if (m_Graph.visualEffectResource != null)

@@ -1,0 +1,66 @@
+.container {
+    margin: 0px;
+    flex: 1;
+    flex-direction: row;
+}
+
+/* override as later in document */
+.verticalSplit {
+    flex-direction: column;
+}
+
+#viewContainer {
+    flex-shrink: 0;
+}
+
+#firstView,
+#secondView {
+    flex: 0;
+}
+
+/* override as later in document */
+.firstView > #firstView,
+.secondView > #secondView {
+    flex: 1;
+}
+
+.showEnvironmentPanel > #environmentContainer {
+	width: 200px;
+}
+
+#toolbar {
+    flex-direction: row;
+}
+
+#toolbar > #toolbarRadio {
+    flex-direction: row;
+}
+
+.unity-toggle__input > .unity-image {
+    padding-top: 2px;
+    padding-right: 2px;
+    padding-bottom: 2px;
+    padding-left: 1px;
+}
+
+#toolbar > .unity-label {
+    padding-top: 3px;
+    padding-bottom: 0px;
+}
+
+#toolbarEnvironment {
+    width: 200px;
+}
+
+/* TEST UNDER THIS LINE */
+#firstView {
+    background-color: rgb(255, 0, 0);
+}
+
+#secondView {
+    background-color: rgb(0, 255, 0);
+}
+
+#environmentContainer {
+    background-color: rgb(0, 0, 255);
+}
