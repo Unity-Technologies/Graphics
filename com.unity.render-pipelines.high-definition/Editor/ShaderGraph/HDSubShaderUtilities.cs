@@ -363,6 +363,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 activeFields.Add("SurfaceDescriptionInputs.FaceSign");
             }
 
+            if (requirements.requiresPixelCoordinate)
+            {
+                activeFields.Add(string.Format("SurfaceDescriptionInputs.{0}", ShaderGeneratorNames.PixelCoordinate));
+            }
+
             if (requirements.requiresNormal != 0)
             {
                 if ((requirements.requiresNormal & NeededCoordinateSpace.Object) > 0)
@@ -561,6 +566,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 masterNode.owner as GraphData,
                 pixelGraphEvalFunction,
                 functionRegistry,
+                new PragmaCollector(), // TODO: Fix for HDRP
                 sharedProperties,
                 pixelRequirements,  // TODO : REMOVE UNUSED
                 mode,
@@ -593,6 +599,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     masterNode.owner as GraphData,
                     vertexGraphEvalFunction,
                     functionRegistry,
+                    new PragmaCollector(), // TODO: Fix for HDRP
                     sharedProperties,
                     mode,
                     vertexNodes,

@@ -42,15 +42,30 @@ namespace UnityEngine.Rendering.LWRP
             Name = "",
             PixelShaderSlots = new List<int>()
             {
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId
+                UnlitMasterNode.AlphaSlotId,
+                UnlitMasterNode.AlphaThresholdSlotId
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                UnlitMasterNode.PositionSlotId
             }
         };
-        
+
+        Pass m_StreamingFeedbackPass = new Pass()
+        {
+            Name = "",
+            PixelShaderSlots = new List<int>()
+            {
+                UnlitMasterNode.AlphaSlotId,
+                UnlitMasterNode.AlphaThresholdSlotId,
+                UnlitMasterNode.FeedBackSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                UnlitMasterNode.PositionSlotId
+            }
+        };
+
         public int GetPreviewPassIndex() { return 0; }
 
         public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
@@ -63,13 +78,15 @@ namespace UnityEngine.Rendering.LWRP
 
             var templatePath = GetTemplatePath("lightweightUnlitPass.template");
             var extraPassesTemplatePath = GetTemplatePath("lightweightUnlitExtraPasses.template");
-            if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
+            var feedbackPassesTemplatePath = GetTemplatePath("lightweightUnlitStreamFeedbackPass.template");
+            if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath) || !File.Exists(feedbackPassesTemplatePath))
                 return string.Empty;
 
             if (sourceAssetDependencyPaths != null)
             {
                 sourceAssetDependencyPaths.Add(templatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+                sourceAssetDependencyPaths.Add(feedbackPassesTemplatePath);
 
                 var relativePath = "Packages/com.unity.render-pipelines.lightweight/";
                 var fullPath = Path.GetFullPath(relativePath);
@@ -79,6 +96,7 @@ namespace UnityEngine.Rendering.LWRP
 
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
+            string feedbackTemplate = File.ReadAllText(feedbackPassesTemplatePath);
 
             var unlitMasterNode = masterNode as UnlitMasterNode;
             var pass = m_UnlitPass;
@@ -100,12 +118,20 @@ namespace UnityEngine.Rendering.LWRP
                         materialOptions));
 
                 subShader.AppendLines(GetShaderPassFromTemplate(
+                        feedbackTemplate,
+                        unlitMasterNode,
+                        m_StreamingFeedbackPass,
+                        mode,
+                        materialOptions));
+
+                subShader.AppendLines(GetShaderPassFromTemplate(
                         extraTemplate,
                         unlitMasterNode,
                         m_DepthShadowPass,
                         mode,
                         materialOptions));
             }
+            subShader.Append("CustomEditor \"UnityEditor.ShaderGraph.UnlitMasterGUI\"");
 
             return subShader.ToString();
         }
@@ -132,10 +158,14 @@ namespace UnityEngine.Rendering.LWRP
             //                         SETUP                         //
             // ----------------------------------------------------- //
 
+            // Do all work on a duplicate of the graph so we can locally modify it without affecting the gui, undo-system, ... in any way
+            masterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid) as UnlitMasterNode;
+
             // -------------------------------------
             // String builders
 
             var shaderProperties = new PropertyCollector();
+            var shaderPragmas = new PragmaCollector();
             var functionBuilder = new ShaderStringBuilder(1);
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -160,6 +190,10 @@ namespace UnityEngine.Rendering.LWRP
             var pixelShader = new ShaderStringBuilder(2);
             var pixelShaderSurfaceInputs = new ShaderStringBuilder(2);
             var pixelShaderSurfaceRemap = new ShaderStringBuilder(2);
+
+            // -------------------------------------
+            // Pre-compilation graph modifications
+            AggregateFeedbackNode.AutoInjectFeedbackNode(masterNode);
 
             // -------------------------------------
             // Get Slot and Node lists per stage
@@ -259,6 +293,7 @@ namespace UnityEngine.Rendering.LWRP
                 masterNode.owner as GraphData,
                 vertexDescriptionFunction,
                 functionRegistry,
+                shaderPragmas,
                 shaderProperties,
                 mode,
                 vertexNodes,
@@ -290,6 +325,9 @@ namespace UnityEngine.Rendering.LWRP
                 if (surfaceRequirements.requiresFaceSign)
                     surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
 
+                if (surfaceRequirements.requiresPixelCoordinate)
+                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.PixelCoordinate);
+
                 foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
             }
@@ -308,6 +346,7 @@ namespace UnityEngine.Rendering.LWRP
                 masterNode.owner as GraphData,
                 surfaceDescriptionFunction,
                 functionRegistry,
+                shaderPragmas,
                 shaderProperties,
                 pixelRequirements,
                 mode,
@@ -360,6 +399,11 @@ namespace UnityEngine.Rendering.LWRP
             if (pixelRequirements.requiresFaceSign)
                 faceSign.AppendLine(", half FaceSign : VFACE");
 
+            // The template has this semantic hardcoded in already...
+            /*if (pixelRequirements.requiresPixelCoordinate)
+                faceSign.AppendLine(", float4 PixelCoordinate : VPOS");*/
+
+
             // ----------------------------------------------------- //
             //                      FINALIZE                         //
             // ----------------------------------------------------- //
@@ -391,6 +435,7 @@ namespace UnityEngine.Rendering.LWRP
             resultPass = resultPass.Replace("${ZTest}", zTestBuilder.ToString());
             resultPass = resultPass.Replace("${ZWrite}", zWriteBuilder.ToString());
             resultPass = resultPass.Replace("${Defines}", defines.ToString());
+            resultPass = resultPass.Replace("${Pragmas}", shaderPragmas.ToString());
 
             resultPass = resultPass.Replace("${Graph}", graph.ToString());
             resultPass = resultPass.Replace("${VertexOutputStruct}", vertexOutputStruct.ToString());

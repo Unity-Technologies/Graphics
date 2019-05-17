@@ -685,6 +685,9 @@ namespace UnityEditor.ShaderGraph
             if (pixelRequirements.requiresFaceSign)
                 pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.FaceSign);
 
+            if (pixelRequirements.requiresPixelCoordinate)
+                pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.PixelCoordinate);
+
             foreach (var channel in pixelRequirements.requiresMeshUVs.Distinct())
                 pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.GetUVName(channel));
 
@@ -788,7 +791,7 @@ namespace UnityEditor.ShaderGraph
                     DimensionToSwizzle(dimension));
         }
 
-        public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
+        public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements, PragmaCollector pragmas)
         {
             // Should never be called without a node
             Debug.Assert(node != null);
@@ -849,12 +852,16 @@ namespace UnityEditor.ShaderGraph
             if (shaderGraphRequirements.requiresFaceSign)
                 faceSign.AppendLine(", half FaceSign : VFACE");
 
+            if (shaderGraphRequirements.requiresPixelCoordinate)
+                faceSign.AppendLine(", half PixelCoordinate : VPOS");
+
             var res = subShaderTemplate.Replace("${Interpolators}", vertexOutputStruct.ToString());
             res = res.Replace("${VertexShader}", vertexShader.ToString());
             res = res.Replace("${FaceSign}", faceSign.ToString());
             res = res.Replace("${LocalPixelShader}", pixelShader.ToString());
             res = res.Replace("${SurfaceInputs}", pixelShaderSurfaceInputs.ToString());
             res = res.Replace("${SurfaceOutputRemap}", pixelShaderSurfaceRemap.ToString());
+            res = res.Replace("${Pragmas}", pragmas.ToString());
             return res;
         }
 
@@ -968,6 +975,8 @@ SubShader
         HLSLPROGRAM
         #pragma vertex vert
         #pragma fragment frag
+
+    ${Pragmas}
 
         struct GraphVertexOutput
         {

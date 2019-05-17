@@ -78,6 +78,7 @@ ${VertexShaderOutputs}
     {
         UNITY_SETUP_INSTANCE_ID(IN);
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+        float4 PixelCoordinate = IN.clipPos;
 
         // Pixel transformations performed by graph
 ${PixelShader}
@@ -168,6 +169,7 @@ ${VertexShaderOutputs}
     {
         UNITY_SETUP_INSTANCE_ID(IN);
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+        float4 PixelCoordinate = IN.clipPos;
 
         // Pixel transformations performed by graph
 ${PixelShader}
