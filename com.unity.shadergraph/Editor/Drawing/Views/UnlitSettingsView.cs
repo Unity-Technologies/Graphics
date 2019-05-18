@@ -45,6 +45,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
                 });
 
+            ps.Add(new PropertyRow(new Label("Cast Shadow")), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.shadowCast.isOn;
+                        toggle.OnToggleChanged(ChangeShadowCast);
+                    });
+                });
+
             Add(ps);
         }
 
@@ -72,6 +81,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             ToggleData td = m_Node.twoSided;
             td.isOn = evt.newValue;
             m_Node.twoSided = td;
+        }
+
+        void ChangeShadowCast(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Shadow Cast Change");
+            ToggleData td = m_Node.shadowCast;
+            td.isOn = evt.newValue;
+            m_Node.shadowCast = td;
         }
     }
 }

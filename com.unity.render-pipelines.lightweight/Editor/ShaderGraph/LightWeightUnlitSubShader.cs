@@ -15,16 +15,16 @@ namespace UnityEngine.Rendering.LWRP
     {
         static readonly NeededCoordinateSpace k_PixelCoordinateSpace = NeededCoordinateSpace.World;
 
-        struct Pass
+        private struct Pass
         {
             public string Name;
             public List<int> VertexShaderSlots;
             public List<int> PixelShaderSlots;
         }
 
-        Pass m_UnlitPass = new Pass
+        private Pass m_UnlitPass = new Pass
         {
-            Name = "Pass",
+            Name = "UnlitPass",
             PixelShaderSlots = new List<int>
             {
                 UnlitMasterNode.ColorSlotId,
@@ -37,20 +37,34 @@ namespace UnityEngine.Rendering.LWRP
             }
         };
 
-        Pass m_DepthShadowPass = new Pass()
+        private Pass m_ShadowPass = new Pass()
         {
-            Name = "",
+            Name = "ShadowPass",
             PixelShaderSlots = new List<int>()
             {
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId
+                UnlitMasterNode.AlphaSlotId,
+                UnlitMasterNode.AlphaThresholdSlotId
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                UnlitMasterNode.PositionSlotId
             }
         };
-        
+
+        private Pass m_DepthPass = new Pass()
+        {
+            Name = "DepthPass",
+            PixelShaderSlots = new List<int>()
+            {
+                UnlitMasterNode.AlphaSlotId,
+                UnlitMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                UnlitMasterNode.PositionSlotId
+            }
+        };
+
         public int GetPreviewPassIndex() { return 0; }
 
         public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
@@ -62,14 +76,20 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             var templatePath = GetTemplatePath("lightweightUnlitPass.template");
-            var extraPassesTemplatePath = GetTemplatePath("lightweightUnlitExtraPasses.template");
-            if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
+            var shadowPassTemplatePath = GetTemplatePath("lightweightUnlitShadowPass.template");
+            var depthPassTemplatePath = GetTemplatePath("lightweightUnlitDepthPass.template");
+
+            if (!File.Exists(templatePath) || !File.Exists(shadowPassTemplatePath) || !File.Exists(depthPassTemplatePath))
+            {
+                Debug.LogError("One or more LW Unlit template files not found.");
                 return string.Empty;
+            }
 
             if (sourceAssetDependencyPaths != null)
             {
                 sourceAssetDependencyPaths.Add(templatePath);
-                sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+                sourceAssetDependencyPaths.Add(shadowPassTemplatePath);
+                sourceAssetDependencyPaths.Add(depthPassTemplatePath);
 
                 var relativePath = "Packages/com.unity.render-pipelines.lightweight/";
                 var fullPath = Path.GetFullPath(relativePath);
@@ -78,10 +98,10 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             string forwardTemplate = File.ReadAllText(templatePath);
-            string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
+            string shadowPassTemplate = File.ReadAllText(shadowPassTemplatePath);
+            string depthPassTemplate = File.ReadAllText(depthPassTemplatePath);
 
             var unlitMasterNode = masterNode as UnlitMasterNode;
-            var pass = m_UnlitPass;
             var subShader = new ShaderStringBuilder();
             subShader.AppendLine("SubShader");
             using (subShader.BlockScope())
@@ -92,17 +112,34 @@ namespace UnityEngine.Rendering.LWRP
                 subShader.AppendLines(tagsBuilder.ToString());
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(unlitMasterNode.surfaceType, unlitMasterNode.alphaMode, unlitMasterNode.twoSided.isOn);
+
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         forwardTemplate,
                         unlitMasterNode,
-                        pass,
+                        m_UnlitPass,
                         mode,
                         materialOptions));
 
+                // Only include shadow pass if the bool is checked
+                bool includeShadowPass = true;
+                UnlitMasterNode unlitMaster = masterNode as UnlitMasterNode;
+                if (unlitMaster != null)
+                {
+                    includeShadowPass = unlitMaster.shadowCast.isEnabled && unlitMaster.shadowCast.isOn;
+                }
+
+                if (includeShadowPass)
+                    subShader.AppendLines(GetShaderPassFromTemplate(
+                            shadowPassTemplate,
+                            unlitMasterNode,
+                            m_ShadowPass,
+                            mode,
+                            materialOptions));
+
                 subShader.AppendLines(GetShaderPassFromTemplate(
-                        extraTemplate,
+                        depthPassTemplate,
                         unlitMasterNode,
-                        m_DepthShadowPass,
+                        m_DepthPass,
                         mode,
                         materialOptions));
             }

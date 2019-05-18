@@ -70,6 +70,22 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        bool m_shadowCast;
+
+        public ToggleData shadowCast
+        {
+            get { return new ToggleData(m_shadowCast); }
+            set
+            {
+                if (m_shadowCast == value.isOn)
+                    return;
+
+                m_shadowCast = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
         public UnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
