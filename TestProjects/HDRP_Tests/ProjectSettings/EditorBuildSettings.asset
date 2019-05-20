@@ -78,6 +78,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1219_Lit_Light_on_Tesselation.unity
     guid: 3f6529c22f7d2ca46814b2e7afd04ef9
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1220_Sorting.unity
+    guid: 5c1bc003f0b8e6648a7860ad9ae82213
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1
