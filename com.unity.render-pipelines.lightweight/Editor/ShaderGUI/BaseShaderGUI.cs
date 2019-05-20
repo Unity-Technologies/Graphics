@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering;
 
+using UnityEditor.ShaderGraph; //remove when StackStatus is in core unity
+
 namespace UnityEditor
 {
     public abstract class BaseShaderGUI : ShaderGUI
@@ -225,20 +227,7 @@ namespace UnityEditor
             DrawAdditionalFoldouts(material);
             
             if (EditorGUI.EndChangeCheck())
-            {  
-                //Based on user setting disable VT or enable VT. Only enable when the stacks are up to date.
-                if (vtProp != null)
-                {
-                    if (vtProp.floatValue == 0.0)
-                    {
-                        material.DisableKeyword("VT_ON");
-                    }
-                    else if (StackStatus.AllStacksValid(material))
-                    {
-                        material.EnableKeyword("VT_ON");
-                    }
-                }
-
+            { 
                 foreach (var obj in materialEditor.targets)
                     MaterialChanged((Material)obj);
             }
@@ -427,13 +416,13 @@ namespace UnityEditor
 
             if (material.HasProperty("_VirtualTexturing"))
             {
-                if (material.GetFloat("_VirtualTexturing") == 0.0f)
+                if (material.GetFloat("_VirtualTexturing") == 0.0f || !StackStatus.AllStacksValid(material))
                 {
-                    CoreUtils.SetKeyword(material, "VT_ON", false);
+                    material.DisableKeyword("VT_ON");
                 }
-                else if (StackStatus.AllStacksValid(material))
+                else
                 {
-                    CoreUtils.SetKeyword(material, "VT_ON", true);
+                    material.EnableKeyword("VT_ON");
                 }
             }
         }
