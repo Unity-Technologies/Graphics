@@ -350,13 +350,13 @@ float4 SampleGradient(float v,float u)
 float SampleCurve(float4 curveData,float u)
 {
     float uNorm = (u * curveData.x) + curveData.y;
-    switch(asuint(curveData.w) >> 2)
+    switch(asint(curveData.w) >> 2)
     {
         case 1: uNorm = HalfTexelOffset(frac(min(1.0f - 1e-10f,uNorm))); break; // clamp end. Dont clamp at 1 or else the frac will make it 0...
         case 2: uNorm = HalfTexelOffset(frac(max(0.0f,uNorm))); break; // clamp start
         case 3: uNorm = HalfTexelOffset(saturate(uNorm)); break; // clamp both
     }
-    return bakedTexture.SampleLevel(samplerbakedTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
+    return bakedTexture.SampleLevel(samplerbakedTexture,float2(uNorm,curveData.z),0)[asint(curveData.w) & 0x3];
 }
 
 ///////////
