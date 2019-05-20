@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
+- Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
 
 ## [6.7.0-preview] - 2019-05-21
 
