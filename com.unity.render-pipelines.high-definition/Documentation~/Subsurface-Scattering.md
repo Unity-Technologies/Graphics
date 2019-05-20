@@ -27,6 +27,6 @@ For the __Subsurface Scattering__ material type, uncheck the __Transmission__ ch
 
 ### Customizing Subsurface Scattering behavior 
 
-When you select __Subsurface Scattering__ or __Translucent__ from the __Material Type__ drop-down, Unity exposes several new properties in the Material UI. For information on how to use these properties to customize the behavior of the subsurface scattering effect, see the [Material Type documentation](Material-Type.html#SubsurfaceScatteringProperties).
+When you select __Subsurface Scattering__ or __Translucent__ from the __Material Type__ drop-down, Unity exposes several new properties in the Material UI. For information on how to use these properties to customize the behavior of the subsurface scattering effect, see the [Material Type documentation](Material-Type.html).
 
 You can learn more about HDRP’s implementation in our [Efficient Screen-Space Subsurface Scattering](http://advances.realtimerendering.com/s2018/Efficient%20screen%20space%20subsurface%20scattering%20Siggraph%202018.pdf) presentation.

@@ -123,7 +123,7 @@
 .propertyrm .fieldContainer, .propertyrm .unity-float-field
 {
     flex-direction:row;
-    flex:1 1 0;
+    flex:1 1 auto;
 
     margin-left:0;
     margin-right:0;

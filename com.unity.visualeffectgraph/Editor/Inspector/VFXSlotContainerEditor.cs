@@ -237,16 +237,6 @@ public class VFXSlotContainerEditor : Editor
             letter.fontSize = 36;
         }
 
-        static Dictionary<VFXAttributeMode, Color> attributeModeColors = new Dictionary<VFXAttributeMode, Color>()
-        {
-            { VFXAttributeMode.None, new Color32(160, 160, 160, 255) },
-            { VFXAttributeMode.Read, new Color32(160, 160, 255, 255) },
-            { VFXAttributeMode.ReadSource, new Color32(160, 160, 255, 255) },
-            { VFXAttributeMode.ReadWrite, new Color32(160, 255, 160, 255) },
-            { VFXAttributeMode.Write, new Color32(255, 160, 160, 255) },
-            { VFXAttributeMode.Write | VFXAttributeMode.ReadSource, new Color32(255, 160, 255, 255) },
-        };
-
         static Dictionary<VFXValueType, Color> valueTypeColors = new Dictionary<VFXValueType, Color>()
         {
             { VFXValueType.Boolean, new Color32(125, 110, 191, 255) },
@@ -288,8 +278,17 @@ public class VFXSlotContainerEditor : Editor
         internal static void AttributeModeLabel(string Label, VFXAttributeMode mode, GUIStyle style, params GUILayoutOption[] options)
         {
             Color backup = GUI.color;
-            GUI.color = attributeModeColors[mode];
-            EditorGUILayout.LabelField(Label, style, options);
+
+            var c = new Color32(160,160,160,255);
+            if ((mode & VFXAttributeMode.Read) != 0)
+                c.b = 255;
+            if ((mode & VFXAttributeMode.Write) != 0)
+                c.r = 255;
+            if ((mode & VFXAttributeMode.ReadSource) != 0)
+                c.g = 255;
+
+            GUI.color = c;
+            GUILayout.Label(Label, style, options);
             GUI.color = backup;
         }
 

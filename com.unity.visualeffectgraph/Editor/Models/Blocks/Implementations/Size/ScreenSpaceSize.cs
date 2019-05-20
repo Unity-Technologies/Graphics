@@ -88,16 +88,14 @@ namespace UnityEditor.VFX.Block
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
-
                 yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.ReadWrite);
 
-                if (GetData().IsCurrentAttributeWritten(VFXAttribute.ScaleY) || sizeMode == SizeMode.RatioRelativeToHeightAndWidth || sizeMode == SizeMode.PixelRelativeToResolution)
-                    yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Write);
 
                 // if ScaleZ is used, we need to scale it too, in an uniform way.
-                if (GetData().IsCurrentAttributeRead(VFXAttribute.ScaleZ) && sizeZMode != SizeZMode.Ignore)
-                    yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.ReadWrite);
+                if (sizeZMode != SizeZMode.Ignore)
+                    yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Write);
             }
         }
 
@@ -117,27 +115,23 @@ namespace UnityEditor.VFX.Block
                 }
 
                 string Source = string.Format(@"
-float2 localSize = {0};
 float clipPosW = TransformPositionVFXToClip(position).w;
-float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)); // max size in one pixel
-float2 scale = {2};
-localSize = minSize * scale;
-{1}
+float2 newScale = ({0} * clipPosW) / (size * 0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y));
+scaleX = newScale.x;
+scaleY = newScale.y;
 ",
-                    VFXBlockUtility.GetSizeVector(GetParent(), 2),
-                    VFXBlockUtility.SetSizesFromVector(GetParent(), "localSize", 2),
                     sizeString);
 
-                if (GetData().IsCurrentAttributeRead(VFXAttribute.ScaleZ) && sizeZMode != SizeZMode.Ignore)
+                if (sizeZMode != SizeZMode.Ignore)
                 {
                     switch (sizeZMode)
                     {
                         case SizeZMode.Ignore: break; // should not happen
-                        case SizeZMode.SameAsSizeX:     Source += "scaleZ = localSize.x;"; break;
-                        case SizeZMode.SameAsSizeY:     Source += "scaleZ = localSize.y;"; break;
-                        case SizeZMode.MinOfSizeXY:     Source += "scaleZ = min(localSize.x,localSize.y);"; break;
-                        case SizeZMode.MaxOfSizeXY:     Source += "scaleZ = max(localSize.x,localSize.y);"; break;
-                        case SizeZMode.AverageOfSizeXY: Source += "scaleZ = (localSize.x + localSize.y) * 0.5;"; break;
+                        case SizeZMode.SameAsSizeX:     Source += "scaleZ = scaleX;"; break;
+                        case SizeZMode.SameAsSizeY:     Source += "scaleZ = scaleY;"; break;
+                        case SizeZMode.MinOfSizeXY:     Source += "scaleZ = min(scaleX,scaleY);"; break;
+                        case SizeZMode.MaxOfSizeXY:     Source += "scaleZ = max(scaleX,scaleY);"; break;
+                        case SizeZMode.AverageOfSizeXY: Source += "scaleZ = (scaleX + scaleY) * 0.5;"; break;
                     }
                 }
                 return Source;

@@ -14,15 +14,13 @@ namespace UnityEditor.VFX
 
         protected override bool CanConvertFrom(Type type)
         {
-            return base.CanConvertFrom(type) || type == typeof(Vector4) || type == typeof(Vector3) || type == typeof(Vector);
+            return base.CanConvertFrom(type)
+                || VFXSlotFloat3.CanConvertFromVector3(type);
         }
 
-        sealed protected override VFXExpression ConvertExpression(VFXExpression expresssion, VFXSlot sourceSlot)
+        sealed protected override VFXExpression ConvertExpression(VFXExpression expression, VFXSlot sourceSlot)
         {
-            if (expresssion.valueType == VFXValueType.Float3)
-                return expresssion;
-
-            return VFXOperatorUtility.CastFloat(expresssion, VFXValueType.Float3);
+            return VFXSlotFloat3.ConvertExpressionToVector3(expression);
         }
     }
 }

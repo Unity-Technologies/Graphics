@@ -11,7 +11,7 @@ using UnityEditor.ShaderGraph;
 namespace UnityEditor.Experimental.Rendering.LWRP
 {
     [Serializable]
-    [Title("Master", "Sprite Unlit")]
+    [Title("Master", "Sprite Unlit (Experimental)")]
     class SpriteUnlitMasterNode : MasterNode<ISpriteUnlitSubShader>, IMayRequirePosition
     {
         public const string PositionName = "Position";

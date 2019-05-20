@@ -582,8 +582,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LightVolumes[m_DecalDatasCount].lightAxisX = influenceRightVS;
                 m_LightVolumes[m_DecalDatasCount].lightAxisY = influenceUpVS;
                 m_LightVolumes[m_DecalDatasCount].lightAxisZ = influenceForwardVS;
-                m_LightVolumes[m_DecalDatasCount].boxInnerDist = influenceExtents - LightLoop.k_BoxCullingExtentThreshold;
-                m_LightVolumes[m_DecalDatasCount].boxInvRange.Set(1.0f / LightLoop.k_BoxCullingExtentThreshold.x, 1.0f / LightLoop.k_BoxCullingExtentThreshold.y, 1.0f / LightLoop.k_BoxCullingExtentThreshold.z);
+                m_LightVolumes[m_DecalDatasCount].boxInnerDist = influenceExtents - HDRenderPipeline.k_BoxCullingExtentThreshold;
+                m_LightVolumes[m_DecalDatasCount].boxInvRange.Set(1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.x, 1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.y, 1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.z);
             }
 
             private void AssignCurrentBatches(ref Matrix4x4[] decalToWorldBatch, ref Matrix4x4[] normalToWorldBatch, int batchCount)
@@ -620,7 +620,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // XRTODO: investigate if instancing is working with the following code
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
-                Matrix4x4 worldToView = LightLoop.WorldToCamera(instance.CurrentCamera);
+                Matrix4x4 worldToView = HDRenderPipeline.WorldToCamera(instance.CurrentCamera);
                 bool perChannelMask = instance.perChannelMask;
                 for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
                 {
