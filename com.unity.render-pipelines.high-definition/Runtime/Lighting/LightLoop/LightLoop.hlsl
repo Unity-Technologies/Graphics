@@ -37,7 +37,7 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
             float3(1.0, 1.0, 1.0)
         };
 
-        diffuseLighting = float3(1.0, 1.0, 1.0);
+        diffuseLighting = Luminance(diffuseLighting);
         if (_DirectionalShadowIndex >= 0)
         {
             real alpha;
@@ -57,10 +57,17 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
                 float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
                 // We can't mix with the lighting as it can be HDR and it is hard to find a good lerp operation for this case that is still compliant with
                 // exposure. So disable exposure instead and replace color.
-                diffuseLighting = cascadeShadowColor * shadow;
+                diffuseLighting = cascadeShadowColor * Luminance(diffuseLighting) * shadow;
             }
 
         }
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_MATCAP_VIEW)
+    {
+        specularLighting = 0.0f;
+        float3 normalVS = mul((float3x3)UNITY_MATRIX_V, bsdfData.normalWS).xyz;
+        float2 UV = saturate(normalVS.xy * 0.5f + 0.5f);
+        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0) * (_MatcapMixAlbedo > 0  ? bsdfData.diffuseColor * _MatcapViewScale : 1.0f);
     }
 
     // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.

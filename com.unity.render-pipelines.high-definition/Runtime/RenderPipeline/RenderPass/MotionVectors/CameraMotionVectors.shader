@@ -38,7 +38,7 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
             float depth = LoadCameraDepth(input.positionCS.xy);
 
-            PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
             float4 worldPos = float4(posInput.positionWS, 1.0);
             float4 prevPos = worldPos;
@@ -54,8 +54,6 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 #if UNITY_UV_STARTS_AT_TOP
             motionVector.y = -motionVector.y;
 #endif
-
-            motionVector.x = motionVector.x * _TextureWidthScaling.y; // _TextureWidthScaling = (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
 
             // Convert motionVector from Clip space (-1..1) to NDC 0..1 space
             // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.

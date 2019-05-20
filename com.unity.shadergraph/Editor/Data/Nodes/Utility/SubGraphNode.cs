@@ -21,7 +21,9 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireVertexColor
         , IMayRequireTime
         , IMayRequireFaceSign
-        , IMayRequireRequirePixelCoordinate
+        , IMayRequireCameraOpaqueTexture
+        , IMayRequireDepthTexture
+		, IMayRequireRequirePixelCoordinate
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -526,6 +528,22 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return subGraphData.requirements.requiresVertexColor;
+        }
+
+        public bool RequiresCameraOpaqueTexture(ShaderStageCapability stageCapability)
+        {
+            if (subGraphData == null)
+                return false;
+
+            return subGraphData.requirements.requiresCameraOpaqueTexture;
+        }
+
+        public bool RequiresDepthTexture(ShaderStageCapability stageCapability)
+        {
+            if (subGraphData == null)
+                return false;
+
+            return subGraphData.requirements.requiresDepthTexture;
         }
 
         public override void GetSourceAssetDependencies(List<string> paths)

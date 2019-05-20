@@ -11,9 +11,9 @@ To use Light Layers, you must enable them in your Project’s [HDRP Asset](HDRP-
 
 To override the Frame Settings for Cameras and set Light Layers on an individual basis:
 
-1. 1. Click on a Camera in the Scene view or Hierarchy window to view its properties in the Inspector. 
-   2. Go to the **General** section and enable the **Custom Frame Settings** checkbox. This exposes the **Frame Settings Overrides,** which you can use to customize this Camera only. 
-   3. In the **Lighting** section, enable the **Light Layers** checkbox to make this Camera use Light Layers.
+1. Click on a Camera in the Scene view or Hierarchy window to view its properties in the Inspector. 
+2. Go to the **General** section and enable the **Custom Frame Settings** checkbox. This exposes the **Frame Settings Overrides,** which you can use to customize this Camera only. 
+3. In the **Lighting** section, enable the **Light Layers** checkbox to make this Camera use Light Layers.
 
 ## Using Light Layers
 
@@ -42,3 +42,4 @@ To restore the transmission effect, create a Point Light and assign it to the sa
 ![](Images/LightLayers3.png)
 
 For more information on this process, see Pierre Donzallaz’s [expert guide](https://docs.unity3d.com/uploads/ExpertGuides/Create_High-Quality_Light_Fixtures_in_Unity.pdf) on creating high quality light fixtures in Unity.
+

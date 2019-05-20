@@ -795,7 +795,7 @@ namespace UnityEditor.ShaderGraph
         {
             // Should never be called without a node
             Debug.Assert(node != null);
-            
+
             var vertexOutputStruct = new ShaderStringBuilder(2);
 
             var vertexShader = new ShaderStringBuilder(2);
@@ -833,7 +833,7 @@ namespace UnityEditor.ShaderGraph
 
             if (outputSlot != null)
             {
-                var result = string.Format("surf.{0}", NodeUtils.GetHLSLSafeName(outputSlot.shaderOutputName));
+                var result = $"surf.{NodeUtils.GetHLSLSafeName(outputSlot.shaderOutputName)}_{outputSlot.id}";
                 pixelShaderSurfaceRemap.AppendLine("return all(isfinite({0})) ? {1} : {2};",
                     result, AdaptNodeOutputForPreview(node, outputSlot.id, result), nanOutput);
             }

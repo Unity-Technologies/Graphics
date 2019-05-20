@@ -150,6 +150,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Skips rendering settings to directly render in fullscreen (Useful for video).")]
         public bool fullscreenPassthrough = false;
 
+        [Tooltip("Allows dynamic resolution on buffers linked to this camera.")]
+        public bool allowDynamicResolution = false;
+
         [Tooltip("Allows you to override the default settings for this Renderer.")]
         public bool customRenderingSettings = false;
 
