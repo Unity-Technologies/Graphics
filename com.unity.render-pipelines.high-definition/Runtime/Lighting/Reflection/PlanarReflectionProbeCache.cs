@@ -31,9 +31,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
 
-            // BC6H requires CPP feature not yet available
-            probeFormat = TextureFormat.RGBAHalf;
-
             Debug.Assert(probeFormat == TextureFormat.BC6H || probeFormat == TextureFormat.RGBAHalf, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
 
             m_ProbeSize = probeSize;
@@ -190,7 +187,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (m_PerformBC6HCompression)
                         {
-                            throw new NotImplementedException("BC6H Support not implemented for PlanarReflectionProbeCache");
+                            cmd.BC6HEncodeFastTex2D(
+                                result, new Vector2Int(m_ProbeSize, m_ProbeSize), m_TextureCache.GetTexCache(),
+                                0, int.MaxValue, sliceIndex);
+                            m_TextureCache.SetSliceHash(sliceIndex, m_TextureCache.GetTextureHash(texture));
                         }
                         else
                         {
@@ -210,14 +210,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_TextureCache.GetTexCache();
         }
 
-        internal static long GetApproxCacheSizeInByte(int nbElement, int resolution, int sliceSize)
+        internal static long GetApproxCacheSizeInByte(int nbElement, int resolution, int sliceSize, bool isCompressed)
         {
-            return TextureCache2D.GetApproxCacheSizeInByte(nbElement, resolution, sliceSize);
+            var uncompressed = TextureCache2D.GetApproxCacheSizeInByte(nbElement, resolution, sliceSize);
+            if (isCompressed)
+                uncompressed >>= 4; // BC6H encode 4x4 texels in a single element
+            return uncompressed;
         }
 
-        internal static int GetMaxCacheSizeForWeightInByte(int weight, int resolution, int sliceSize)
+        internal static int GetMaxCacheSizeForWeightInByte(int weight, int resolution, int sliceSize, bool isCompressed)
         {
-            return TextureCache2D.GetMaxCacheSizeForWeightInByte(weight, resolution, sliceSize);
+            var uncompressed =  TextureCache2D.GetMaxCacheSizeForWeightInByte(weight, resolution, sliceSize);
+            if (isCompressed)
+                uncompressed >>= 4; // BC6H encode 4x4 texels in a single element
+            return uncompressed;
         }
     }
 }

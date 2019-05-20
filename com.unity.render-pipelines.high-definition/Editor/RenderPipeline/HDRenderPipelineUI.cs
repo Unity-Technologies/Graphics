@@ -228,10 +228,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.HelpBox(k_MultipleDifferenteValueMessage, MessageType.Info);
             else
             {
-                long currentCache = ReflectionProbeCache.GetApproxCacheSizeInByte(serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1);
+                var isCompressed = serialized.renderPipelineSettings.lightLoopSettings.reflectionCacheCompressed
+                    .boolValue;
+                long currentCache = ReflectionProbeCache.GetApproxCacheSizeInByte(
+                    serialized.renderPipelineSettings.lightLoopSettings.reflectionProbeCacheSize.intValue,
+                    serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1,
+                    isCompressed
+                );
                 if (currentCache > LightLoop.k_MaxCacheSize)
                 {
-                    int reserved = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1);
+                    int reserved = ReflectionProbeCache.GetMaxCacheSizeForWeightInByte(
+                        LightLoop.k_MaxCacheSize,
+                        serialized.renderPipelineSettings.lightLoopSettings.reflectionCubemapSize.intValue,
+                        serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution.boolValue ? 2 : 1,
+                        isCompressed
+                    );
                     string message = string.Format(k_CacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
                     EditorGUILayout.HelpBox(message, MessageType.Error);
                 }
@@ -254,10 +265,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.HelpBox(k_MultipleDifferenteValueMessage, MessageType.Info);
             else
             {
-                long currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize.intValue, serialized.renderPipelineSettings.lightLoopSettings.planarReflectionCubemapSize.intValue, 1);
+                var isCompressed = serialized.renderPipelineSettings.lightLoopSettings.planarReflectionCacheCompressed
+                    .boolValue;
+                long currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(
+                    serialized.renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize.intValue,
+                    serialized.renderPipelineSettings.lightLoopSettings.planarReflectionCubemapSize.intValue,
+                    1,
+                    isCompressed
+                    );
                 if (currentCache > LightLoop.k_MaxCacheSize)
                 {
-                    int reserved = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(LightLoop.k_MaxCacheSize, serialized.renderPipelineSettings.lightLoopSettings.planarReflectionCubemapSize.intValue, 1);
+                    int reserved = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(
+                        LightLoop.k_MaxCacheSize,
+                        serialized.renderPipelineSettings.lightLoopSettings.planarReflectionCubemapSize.intValue,
+                        1,
+                        isCompressed
+                    );
                     string message = string.Format(k_CacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
                     EditorGUILayout.HelpBox(message, MessageType.Error);
                 }
