@@ -44,6 +44,22 @@ namespace UnityEditor.ShaderGraph
                 slot.stageCapability = effectiveStage;
         }
 
+        void ValidateSlotName()
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetInputSlots(slots);
+
+            foreach (var slot in slots)
+            {
+                var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
+                if (error)
+                {
+                    owner.AddValidationError(tempId, errorMessage);
+                    break;
+                }
+            }
+        }
+
         public override void ValidateNode()
         {
             ValidateShaderStage();
@@ -52,7 +68,9 @@ namespace UnityEditor.ShaderGraph
             {
                 owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
-            
+
+            ValidateSlotName();
+
             base.ValidateNode();
         }
 
@@ -66,7 +84,8 @@ namespace UnityEditor.ShaderGraph
         {
             var index = this.GetInputSlots<ISlot>().Count() + 1;
             string name = string.Format("Out_{0}", NodeUtils.GetDuplicateSafeNameForSlot(this, index, concreteValueType.ToString()));
-            AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name, NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
+            AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name,
+                NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
             return index;
         }
 
