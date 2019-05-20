@@ -77,7 +77,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/028_PostProcessing_Custom.unity
     guid: e563e287471b641a88f8cfdb13746b1a
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/029_Particles.unity
     guid: 65d99b408a8134214906126ccdea532f
   - enabled: 1
