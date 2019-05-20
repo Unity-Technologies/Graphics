@@ -226,11 +226,26 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MetallicTex, IN.uvMainAndLM.xy).r;
     half alpha = 1;
 #else
+
+#ifdef VT_ON
+    StackInfo stackInfo = PrepareStack(IN.uvMainAndLM.xy, _TextureStack);
+    half4 mixedDiffuse = SampleStack(stackInfo, _MainTex);
+
+    //TODO(ddebaets) this is a bit stupid but atm we only have diffuse
+    half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
+    half weight = dot(splatControl, 1.0h);
+#if !defined(SHADER_API_MOBILE) && defined(TERRAIN_SPLAT_ADDPASS)
+    clip(weight == 0.0h ? -1.0h : 1.0h);
+#endif
+    splatControl /= (weight + HALF_MIN);
+
+ #else
     half4 splatControl;
     half weight;
     half4 mixedDiffuse;
     half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
     SplatmapMix(IN, defaultSmoothness, splatControl, weight, mixedDiffuse, normalTS);
+#endif
 
     half3 albedo = mixedDiffuse.rgb;
     half smoothness = mixedDiffuse.a;
