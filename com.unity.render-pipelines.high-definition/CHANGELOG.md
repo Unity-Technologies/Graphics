@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Apply decal projector fade factor correctly on all attribut and for shader graph decal
 - Move RenderTransparentDepthPostpass after all transparent
 - Update exposure prepass to interleave XR single-pass instancing views in a checkerboard pattern
+- Removed ScriptRuntimeVersion check in wizard.
 
 ## [6.6.0-preview] - 2019-04-01
 
