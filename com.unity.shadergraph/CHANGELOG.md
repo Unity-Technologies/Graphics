@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now reference sub-assets such as Textures.
 - Remaining outdated documentation has been removed. 
 - You can no longer duplicate the Sub Graph Outputs node.
+- When you click on the gear icon, Shader Graph now focuses on the selected node, and brings the settings menu to front view.
 
 ## [6.6.0] - 2019-04-01
 ### Added
