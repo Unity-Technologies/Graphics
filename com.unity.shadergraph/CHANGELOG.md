@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can no longer duplicate the Sub Graph Outputs node.
 - When you click on the gear icon, Shader Graph now focuses on the selected node, and brings the settings menu to front view.
 - Sub Graph Output and Custom Function Node now validate slot names, and display an appropriate error badge when needed.
+- You can now reference Scene Color and Scene Depth correctly from within a Sub Graph.
 
 ## [6.6.0] - 2019-04-01
 ### Added
