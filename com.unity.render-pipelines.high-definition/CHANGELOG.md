@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
 - Fixed volumetric rendering with camera-relative code and XR stereo instancing
 
+### Changed
+- Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
+
 ## [6.7.0-preview] - 2019-05-16
 
 ### Added

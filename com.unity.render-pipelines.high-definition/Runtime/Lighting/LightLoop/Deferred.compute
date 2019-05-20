@@ -122,18 +122,20 @@ CBUFFER_END
 RW_TEXTURE2D_X(float3, diffuseLightingUAV);
 RW_TEXTURE2D_X(float4, specularLightingUAV);
 
-
+#define GROUP_SIZE (TILE_SIZE_FPTL / 2) // 4x 8x8 groups per a 16x16 tile
 
 #ifdef USE_INDIRECT
 
 StructuredBuffer<uint> g_TileList;
 // Indirect
-[numthreads(TILE_SIZE_FPTL, TILE_SIZE_FPTL, 1)]
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
 {
-    uint  tileIndex   = g_TileList[g_TileListOffset + groupId];
+    uint  tileIndex   = g_TileList[g_TileListOffset + (groupId / 4)];
     uint2 tileCoord   = uint2((tileIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tileIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK); // see builddispatchindirect.compute
-    uint2 pixelCoord  = tileCoord * GetTileSize() + groupThreadId;
+    uint2 pixelCoord  = tileCoord * GetTileSize()
+                      + uint2(groupId & 1, (groupId >> 1) & 1) * GROUP_SIZE
+                      + groupThreadId;
 
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(tileIndex >> TILE_INDEX_SHIFT_EYE);
 
@@ -151,12 +153,12 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
 #else
 
 // Direct
-[numthreads(TILE_SIZE_FPTL, TILE_SIZE_FPTL, 1)]
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
 
-    uint2 tileCoord    = (TILE_SIZE_FPTL * groupId) / GetTileSize();
+    uint2 tileCoord    = (GROUP_SIZE * groupId) / GetTileSize();
     uint2 pixelCoord   = dispatchThreadId.xy;
     uint  featureFlags = UINT_MAX;
 
