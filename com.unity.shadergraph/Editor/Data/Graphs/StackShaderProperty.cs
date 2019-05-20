@@ -42,6 +42,11 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        public override bool isRenamable
+        {
+            get { return true; }
+        }
+
         public override bool isExposable
         {
             get { return true; }
