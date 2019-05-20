@@ -83,6 +83,9 @@ namespace UnityEditor
 
             public static readonly GUIContent queueSlider = new GUIContent("Priority",
                 "Determines the chronological rendering order for a Material. High values are rendered first.");
+
+            public static GUIContent vtText =  new GUIContent("Virtual Texturing",
+                "When enabled, use virtual texturing instead of regular textures.");
         }
 
         #endregion
@@ -114,6 +117,8 @@ namespace UnityEditor
         protected MaterialProperty emissionColorProp { get; set; }
 
         protected MaterialProperty queueOffsetProp { get; set; }
+
+        protected MaterialProperty vtProp { get; set; }
 
         public bool m_FirstTimeApply = true;
 
@@ -152,6 +157,7 @@ namespace UnityEditor
             emissionMapProp = FindProperty("_EmissionMap", properties, false);
             emissionColorProp = FindProperty("_EmissionColor", properties, false);
             queueOffsetProp = FindProperty("_QueueOffset", properties, false);
+            vtProp = FindProperty("_VirtualTexturing", properties, false);
         }
 
         public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
@@ -219,8 +225,21 @@ namespace UnityEditor
             DrawAdditionalFoldouts(material);
             
             if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in  materialEditor.targets)
+            {  
+                //Based on user setting disable VT or enable VT. Only enable when the stacks are up to date.
+                if (vtProp != null)
+                {
+                    if (vtProp.floatValue == 0.0)
+                    {
+                        material.DisableKeyword("VT_ON");
+                    }
+                    else if (StackStatus.AllStacksValid(material))
+                    {
+                        material.EnableKeyword("VT_ON");
+                    }
+                }
+
+                foreach (var obj in materialEditor.targets)
                     MaterialChanged((Material)obj);
             }
         }
@@ -290,6 +309,8 @@ namespace UnityEditor
                     queueOffsetProp.floatValue = queue;
                 EditorGUI.showMixedValue = false;
             }
+
+            materialEditor.ShaderProperty(vtProp, BaseShaderGUI.Styles.vtText);
         }
 
         public virtual void DrawAdditionalFoldouts(Material material){}
@@ -403,6 +424,18 @@ namespace UnityEditor
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);
             shaderFunc?.Invoke(material);
+
+            if (material.HasProperty("_VirtualTexturing"))
+            {
+                if (material.GetFloat("_VirtualTexturing") == 0.0f)
+                {
+                    CoreUtils.SetKeyword(material, "VT_ON", false);
+                }
+                else if (StackStatus.AllStacksValid(material))
+                {
+                    CoreUtils.SetKeyword(material, "VT_ON", true);
+                }
+            }
         }
 
         public static void SetupMaterialBlendMode(Material material)
