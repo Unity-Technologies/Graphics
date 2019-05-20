@@ -6,24 +6,25 @@
 
 StructuredBuffer<DissolveOccludersCylinder> _DissolveOccludersCylinders;
 int _DissolveOccludersCylindersCount;
-float2 _DissolveOccludersAspectScale;
 
 float ComputeAlphaFromDissolveOccluders(const in PositionInputs posInput, const in float4 screenSize)
 {
     float alphaMin = 1.0f;
     for (int i = 0; i < _DissolveOccludersCylindersCount; ++i)
     {
-        float3 cylinderPositionNDC = _DissolveOccludersCylinders[i].positionNDC;
-        float2 cylinderRadiusScaleBiasNDC = _DissolveOccludersCylinders[i].radiusScaleBiasNDC;
+        float cylinderPositionNDCZ = _DissolveOccludersCylinders[i].positionNDCZ;
+        float4 ellipseFromNDCScaleBias = _DissolveOccludersCylinders[i].ellipseFromNDCScaleBias;
+        float2 alphaFromEllipseScaleBias = _DissolveOccludersCylinders[i].alphaFromEllipseScaleBias;
 
-        if (posInput.deviceDepth < cylinderPositionNDC.z) { continue; }
+        if (posInput.deviceDepth < cylinderPositionNDCZ) { continue; }
 
-        float2 offsetNDC = (posInput.positionNDC.xy - cylinderPositionNDC.xy) * _DissolveOccludersAspectScale;
-        float distanceNDC = length(offsetNDC);
-
-        float alpha = distanceNDC * cylinderRadiusScaleBiasNDC.x + cylinderRadiusScaleBiasNDC.y;
-        alpha = saturate(alpha);
+        float2 offsetEllipse = posInput.positionNDC.xy * ellipseFromNDCScaleBias.xy + ellipseFromNDCScaleBias.zw;
+        float lengthEllipseSquared = dot(offsetEllipse, offsetEllipse);
+        if (lengthEllipseSquared > 1.0f) { continue; }
+        float lengthEllipse = sqrt(lengthEllipseSquared);
+        float alpha = saturate(lengthEllipse * alphaFromEllipseScaleBias.x + alphaFromEllipseScaleBias.y);
         alphaMin = min(alphaMin, alpha);
+
         if (alphaMin < 1e-5f) { break; }
     }
     return alphaMin;

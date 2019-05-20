@@ -8,20 +8,21 @@
 // PackingRules = Exact
 struct DissolveOccludersCylinder
 {
-    float3 positionNDC;
-    float2 radiusScaleBiasNDC;
+    float4 ellipseFromNDCScaleBias;
+    float2 alphaFromEllipseScaleBias;
+    float positionNDCZ;
 };
 
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DissolveOccludersData+DissolveOccludersCylinder
 //
-float3 GetPositionNDC(DissolveOccludersCylinder value)
+float4 GetEllipseFromNDCScaleBias(DissolveOccludersCylinder value)
 {
-    return value.positionNDC;
+    return value.ellipseFromNDCScaleBias;
 }
-float2 GetRadiusScaleBiasNDC(DissolveOccludersCylinder value)
+float2 GetAlphaFromEllipseScaleBias(DissolveOccludersCylinder value)
 {
-    return value.radiusScaleBiasNDC;
+    return value.alphaFromEllipseScaleBias;
 }
 
 #endif

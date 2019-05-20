@@ -11,8 +11,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL]
         public struct DissolveOccludersCylinder
         {
-            public Vector3 positionNDC;
-            public Vector2 radiusScaleBiasNDC;
+            public Vector4 ellipseFromNDCScaleBias;
+            public Vector2 alphaFromEllipseScaleBias;
+            public float positionNDCZ;
         }
     }
 }

@@ -969,12 +969,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Initialize dissolve occluders to zero count and allow callbacks to override.
                 cmd.SetGlobalInt(HDShaderIDs._DissolveOccludersCylindersCount, 0);
                 cmd.SetGlobalBuffer(HDShaderIDs._DissolveOccludersCylinders, dissolveOccludersCylindersBufferFallback);
-                {
-                    Vector2 dissolveOccludersAspectScale = (hdCamera.actualWidth > hdCamera.actualHeight)
-                        ? new Vector2((float)hdCamera.actualWidth / (float)hdCamera.actualHeight, 1.0f)
-                        : new Vector2(1.0f, (float)hdCamera.actualHeight / (float)hdCamera.actualWidth);
-                    cmd.SetGlobalVector(HDShaderIDs._DissolveOccludersAspectScale, dissolveOccludersAspectScale);
-                }
 
                 if (OnPushGlobalParameters != null)
                     OnPushGlobalParameters(hdCamera, cmd);
