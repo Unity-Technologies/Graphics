@@ -2864,7 +2864,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                         else
                         {
-                            cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX, numTilesY, hdCamera.computePassCount);
+                            // 4x 8x8 groups per a 16x16 tile.
+                            cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX * 2, numTilesY * 2, hdCamera.computePassCount);
                         }
                     }
                 }
