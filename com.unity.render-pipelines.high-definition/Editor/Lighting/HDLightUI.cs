@@ -586,6 +586,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if(LightShape.Rectangle == serialized.editorLightShape)
                 {
                     EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
+                    if(serialized.serializedLightData.useRayTracedShadows.boolValue)
+                    {
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.filterTracedShadow);
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.filterSizeTraced);
+                    }
                 }
                 if (!serialized.serializedLightData.useRayTracedShadows.boolValue || LightShape.Rectangle != serialized.editorLightShape)
 #endif

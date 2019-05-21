@@ -95,6 +95,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static uint s_LightFeatureMaskFlagsOpaque = 0xFFF000 & ~((uint)LightFeatureFlags.SSRefraction); // Opaque don't support screen space refraction
         public static uint s_LightFeatureMaskFlagsTransparent = 0xFFF000 & ~((uint)LightFeatureFlags.SSReflection); // Transparent don't support screen space reflection
         public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
+
+        // Ray traced shadows
+        public static uint s_MaxRayTracedShadows = 4;
     }
 
     [GenerateHLSL]
@@ -423,6 +426,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HDShadowManager                     m_ShadowManager;
         HDShadowInitParameters              m_ShadowInitParameters;
 
+#if ENABLE_RAYTRACING
+        HDAdditionalLightData[]             m_CurrentRayTracedShadows;
+        public HDAdditionalLightData GetCurrentRayTracedShadow(int rayTracedShadowIndex) { return m_CurrentRayTracedShadows[rayTracedShadowIndex]; }
+#endif
+
         Material m_CopyStencil;
         // We need a copy for SSR because setting render states through uniform constants does not work with MaterialPropertyBlocks so it would override values set for the regular copy
         Material m_CopyStencilForSSR;
@@ -676,6 +684,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             s_lightVolumes = new DebugLightVolumes();
             s_lightVolumes.InitData(asset.renderPipelineResources);
+
+#if ENABLE_RAYTRACING
+            m_CurrentRayTracedShadows = new HDAdditionalLightData[LightDefinitions.s_MaxRayTracedShadows];
+#endif
 
             m_CopyStencil = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.copyStencilBufferPS);
             m_CopyStencilForSSR = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.copyStencilBufferPS);
@@ -1021,7 +1033,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalShadowData,
             int lightIndex, int shadowIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings
 #if ENABLE_RAYTRACING
-            , int maxAreaLightShadows, ref int areaShadowIndex
+            , ref int areaShadowIndex
 #endif
             )
         {
@@ -1222,10 +1234,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
              }
 
 #if ENABLE_RAYTRACING
-            if(gpuLightType == GPULightType.Rectangle && lightComponent.shadows != LightShadows.None && areaShadowIndex < maxAreaLightShadows && additionalLightData.useRayTracedShadows)
+            if(gpuLightType == GPULightType.Rectangle && lightComponent.shadows != LightShadows.None && areaShadowIndex < LightDefinitions.s_MaxRayTracedShadows && additionalLightData.useRayTracedShadows)
             {
                 lightData.rayTracedAreaShadowIndex = areaShadowIndex;
                 additionalLightData.shadowIndex = -1;
+                m_CurrentRayTracedShadows[areaShadowIndex] = additionalLightData;
                 areaShadowIndex++;
             }
             else
@@ -1237,7 +1250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #else
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
-            #endif
+#endif
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
             lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
 
@@ -1729,9 +1742,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
-        #if ENABLE_RAYTRACING
+#if ENABLE_RAYTRACING
             HDRaytracingEnvironment raytracingEnv = m_RayTracingManager.CurrentEnvironment();
-        #endif
+#endif
 
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -1796,10 +1809,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
 
-                    #if ENABLE_RAYTRACING
+#if ENABLE_RAYTRACING
                         var additionalLightData = GetHDAdditionalLightData(lightComponent);
                         if (!(additionalData.lightTypeExtent == LightTypeExtent.Rectangle && additionalLightData.useRayTracedShadows))
-                    #endif
+#endif
                         // Reserve shadow map resolutions and check if light needs to render shadows
                         additionalData.ReserveShadows(camera, m_ShadowManager, m_ShadowInitParameters, cullResults, m_FrameSettings, lightIndex);
 
@@ -1908,10 +1921,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // 2. Go through all lights, convert them to GPU format.
                     // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
 
-                    #if ENABLE_RAYTRACING
+#if ENABLE_RAYTRACING
                     int areaLightShadowIndex = 0;
-                    int maxAreaLightShadows = raytracingEnv != null && raytracingEnv.raytracedShadows ? raytracingEnv.numAreaLightShadows : 0;
-                    #endif
+#endif
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
@@ -1934,11 +1946,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int shadowIndex = -1;
 
                         // Manage shadow requests
-                        #if ENABLE_RAYTRACING
+#if ENABLE_RAYTRACING
                         if (additionalLightData.WillRenderShadows() && !(additionalLightData.useRayTracedShadows && gpuLightType == GPULightType.Rectangle))
-                        #else
+#else
                         if (additionalLightData.WillRenderShadows())
-                        #endif
+#endif
                         {
                                 int shadowRequestCount;
                             shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, light, cullResults, lightIndex, out shadowRequestCount);
@@ -1979,9 +1991,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // Punctual, area, projector lights - the rendering side.
                         if (GetLightData(cmd, hdShadowSettings, camera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, shadowIndex, ref lightDimensions, debugDisplaySettings
-                        #if ENABLE_RAYTRACING
-                            , maxAreaLightShadows, ref areaLightShadowIndex
-                        #endif
+#if ENABLE_RAYTRACING
+                            , ref areaLightShadowIndex
+#endif
                         ))
                         {
                             switch (lightCategory)
