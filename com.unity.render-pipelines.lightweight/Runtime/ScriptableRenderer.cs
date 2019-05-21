@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.LWRP
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
-        public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        public virtual void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
             ClearRenderState(context);
@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         [Conditional("UNITY_EDITOR")]
-        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
+        protected void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
         {
 #if UNITY_EDITOR
             if (UnityEditor.Handles.ShouldRenderGizmos())
