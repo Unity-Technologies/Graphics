@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
         {
             [Tooltip("Mesh to be used for particle rendering.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
-            [Tooltip("Define a bitmask to control which submeshes are rendered.")]
+            [Tooltip("Define a bitmask to control which submeshes are rendered."), BitField]
             public uint subMeshMask = 0xffffffff;
         }
 
