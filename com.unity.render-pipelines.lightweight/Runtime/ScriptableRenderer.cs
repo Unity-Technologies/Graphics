@@ -2,53 +2,25 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
     ///  Class <c>ScriptableRenderer</c> implements a rendering strategy. It describes how culling and lighting works and
     /// the effects supported.
-    /// 
+    ///
     ///  A renderer can be used for all cameras or be overridden on a per-camera basis. It will implement light culling and setup
     /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. The renderer can be extended to support more effect with additional
     ///  <c>ScriptableRendererFeature</c>. Resources for the renderer are serialized in <c>ScriptableRendererData</c>.
-    /// 
-    /// he renderer resources are serialized in <c>ScriptableRendererData</c>. 
+    ///
+    /// he renderer resources are serialized in <c>ScriptableRendererData</c>.
     /// <seealso cref="ScriptableRendererData"/>
     /// <seealso cref="ScriptableRendererFeature"/>
     /// <seealso cref="ScriptableRenderPass"/>
     /// </summary>
     public abstract class ScriptableRenderer
     {
-        void SetShaderTimeValues(float time, float deltaTime, float smoothDeltaTime, CommandBuffer cmd = null)
-        {
-            // We make these parameters to mirror those described in `https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-            float timeEights = time / 8f;
-            float timeFourth = time / 4f;
-            float timeHalf = time / 2f;
-
-            // Time values
-            Vector4 timeVector = time * new Vector4(1f / 20f, 1f, 2f, 3f);
-            Vector4 sinTimeVector = new Vector4(Mathf.Sin(timeEights), Mathf.Sin(timeFourth), Mathf.Sin(timeHalf), Mathf.Sin(time));
-            Vector4 cosTimeVector = new Vector4(Mathf.Cos(timeEights), Mathf.Cos(timeFourth), Mathf.Cos(timeHalf), Mathf.Cos(time));
-            Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
-
-            if (cmd == null)
-            {
-                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._Time, timeVector);
-                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
-                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
-                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
-            }
-            else
-            {
-                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._Time, timeVector);
-                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
-                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
-                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
-            }
-        }
- 
         public RenderTargetIdentifier cameraColorTarget
         {
             get => m_CameraColorTarget;
@@ -73,14 +45,18 @@ namespace UnityEngine.Rendering.LWRP
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
+        AttachmentDescriptor m_CameraColorAttachmentDescriptor;
+        AttachmentDescriptor m_CameraDepthAttachmentDescriptor;
+
         bool m_FirstCameraRenderPassExecuted = false;
-        
+
         const string k_ClearRenderStateTag = "Clear Render State";
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
 
         static RenderTargetIdentifier m_ActiveColorAttachment;
         static RenderTargetIdentifier m_ActiveDepthAttachment;
+
         static bool m_InsideStereoRenderBlock;
 
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
@@ -88,18 +64,19 @@ namespace UnityEngine.Rendering.LWRP
         {
             m_ActiveColorAttachment = colorAttachment;
             m_ActiveDepthAttachment = depthAttachment;
+
         }
-        
+
         public ScriptableRenderer(ScriptableRendererData data)
         {
             foreach (var feature in data.rendererFeatures)
             {
-                if (feature == null)
-                    continue;
-
                 feature.Create();
                 m_RendererFeatures.Add(feature);
             }
+
+            m_CameraColorAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Default);
+            m_CameraDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
             Clear();
         }
 
@@ -125,7 +102,7 @@ namespace UnityEngine.Rendering.LWRP
         public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
-        /// Override this method to implement the lighting setup for the renderer. You can use this to 
+        /// Override this method to implement the lighting setup for the renderer. You can use this to
         /// compute and upload light CBUFFER for example.
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
@@ -165,15 +142,6 @@ namespace UnityEngine.Rendering.LWRP
 
             SortStable(m_ActiveRenderPassQueue);
 
-            // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
-            // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.
-            // Setting the time per frame would take API changes to pass the variable to each camera render.
-            // Once `SetupCameraProperties` is gone, the variable should be set higher in the call-stack.
-            float time = Time.time;
-            float deltaTime = Time.deltaTime;
-            float smoothDeltaTime = Time.smoothDeltaTime;
-            SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
-
             // Before Render Block. This render blocks always execute in mono rendering.
             // Camera is not setup. Lights are not setup.
             // Used to render input textures like shadowmaps.
@@ -190,11 +158,6 @@ namespace UnityEngine.Rendering.LWRP
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled);
             SetupLights(context, ref renderingData);
-
-            // Override time values from when `SetupCameraProperties` were called.
-            // They might be a frame behind.
-            // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
-            SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
 
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
@@ -234,7 +197,7 @@ namespace UnityEngine.Rendering.LWRP
 #if UNITY_EDITOR
             // We need public API to tell if FrameDebugger is active and enabled. In that case
             // we want to force a clear to see properly the drawcall stepping.
-            // For now, to fix FrameDebugger in Editor, we force a clear. 
+            // For now, to fix FrameDebugger in Editor, we force a clear.
             cameraClearFlags = CameraClearFlags.SolidColor;
 #endif
 
@@ -321,43 +284,77 @@ namespace UnityEngine.Rendering.LWRP
 
             RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+//            AttachmentDescriptor passColorAttachmentDescriptor = renderPass.colorAttachmentDescriptor;
+//            AttachmentDescriptor passDepthAttachmentDescriptor = renderPass.depthAttachmentDescriptor;
+//            int sampleCount = renderPass.msaaSampleCount;
+
             ref CameraData cameraData = ref renderingData.cameraData;
 
             // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
-            // which might be backbuffer or the framebuffer render textures. 
+            // which might be backbuffer or the framebuffer render textures.
             if (!renderPass.overrideCameraTarget)
             {
                 passColorAttachment = m_CameraColorTarget;
                 passDepthAttachment = m_CameraDepthTarget;
+//                m_CameraColorAttachmentDescriptor.format = renderingData.cameraData.cameraTargetDescriptor.colorFormat;
+//                passColorAttachmentDescriptor = m_CameraColorAttachmentDescriptor;
+//                passDepthAttachmentDescriptor = m_CameraDepthAttachmentDescriptor;
+//                sampleCount = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
+//                passColorAttachmentDescriptor.ConfigureTarget(passColorAttachment,false, true);
+//                if (passDepthAttachment != BuiltinRenderTextureType.CameraTarget)
+//                    passDepthAttachmentDescriptor.ConfigureTarget(passDepthAttachment, false, true);
             }
 
-            if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
-            {
-                m_FirstCameraRenderPassExecuted = true;
 
-                Camera camera = cameraData.camera;
-                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
-                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+//            if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
+//            {
+//                m_FirstCameraRenderPassExecuted = true;
 
-                if (cameraData.isStereoEnabled)
-                {
-                    context.StartMultiEye(cameraData.camera);
-                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
-                }
-            }
+//                Camera camera = cameraData.camera;
+//                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+//                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
+//                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+//
+//                context.ExecuteCommandBuffer(cmd);
+//                cmd.Clear();
+//
+//                if (cameraData.isStereoEnabled)
+//                {
+//                    context.StartMultiEye(cameraData.camera);
+//                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+//                }
+
 
             // Only setup render target if current render pass attachments are different from the active ones
-            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
+            if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
                 SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+
+            //if (passColorAttachment == BuiltinRenderTextureType.CameraTarget)
+            //    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+            var camera = cameraData.camera;
+            if  (!m_FirstCameraRenderPassExecuted)
+                m_FirstCameraRenderPassExecuted = true;
+
+//            NativeArray<AttachmentDescriptor> descriptors = new NativeArray<AttachmentDescriptor>(new[] { passColorAttachmentDescriptor, passDepthAttachmentDescriptor}, Allocator.Temp);
+//
+//            context.BeginRenderPass(camera.pixelWidth, camera.pixelHeight, sampleCount, descriptors, -1);
+//            {
+//                NativeArray<int> atts = new NativeArray<int>(1, Allocator.Temp);
+//                atts[0] = 0;
+//                context.BeginSubPass(atts);
+//                {
+//                    renderPass.Execute(context, ref renderingData);
+//                    atts.Dispose();
+//                }
+//                context.EndSubPass();
+//                descriptors.Dispose();
+//            }
+//            context.EndRenderPass();
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            renderPass.Execute(context, ref renderingData);
         }
 
         void BeginXRRendering(ScriptableRenderContext context, Camera camera)
