@@ -379,6 +379,8 @@ Shader "HDRP/LitTessellation"
             #pragma hull Hull
             #pragma domain Domain
 
+            #pragma editor_sync_compilation
+
             ENDHLSL
         }
 

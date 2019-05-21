@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
 - Fixed volumetric rendering with camera-relative code and XR stereo instancing
+- Fixed issue with flashing cyan due to async compilation of shader when selecting a mesh
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
