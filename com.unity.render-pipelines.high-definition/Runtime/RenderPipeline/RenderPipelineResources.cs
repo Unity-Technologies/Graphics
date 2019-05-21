@@ -224,51 +224,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Reload("Runtime/PostProcessing/Shaders/SubpixelMorphologicalAntialiasing.shader")]
             public Shader SMAAPS;
 
-
-#if ENABLE_RAYTRACING
-            // Reflection
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace")]
-            public RaytracingShader reflectionRaytracing;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflectionFilter.compute")]
-            public ComputeShader reflectionBilateralFilterCS;
-
-            // Shadows
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingAreaShadows.raytrace")]
-            public RaytracingShader areaShadowsRaytracingRT;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/RaytracingAreaShadow.compute")]
-            public ComputeShader areaShadowRaytracingCS;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/AreaShadows/AreaBilateralShadow.compute")]
-            public ComputeShader areaShadowFilterCS;
-
-            // Primary visibility
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace")]
-            public RaytracingShader forwardRaytracing;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.shader")]
-            public Shader raytracingFlagMask;
-
-            // Light cluster
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute")]
-            public ComputeShader lightClusterBuildCS;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute")]
-            public ComputeShader lightClusterDebugCS;
-
-            // Indirect Diffuse
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIndirectDiffuse.raytrace")]
-            public RaytracingShader indirectDiffuseRaytracing;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuseAccumulation.compute")]
-            public ComputeShader indirectDiffuseAccumulation;            
-
-            // Ambient Occlusion
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace")]
-            public RaytracingShader aoRaytracing;
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusionFilter.compute")]
-            public ComputeShader raytracingAOFilterCS;
-
-            // Ray count
-            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/CountTracedRays.compute")]
-            public ComputeShader countTracedRays;
-#endif
-
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
             public IEnumerable<ComputeShader> GetAllComputeShaders()

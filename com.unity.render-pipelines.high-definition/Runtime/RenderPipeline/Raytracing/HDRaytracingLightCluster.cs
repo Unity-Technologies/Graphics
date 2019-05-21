@@ -18,8 +18,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // External data
         RenderPipelineResources m_RenderPipelineResources = null;
+        HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources = null;
         HDRaytracingManager m_RaytracingManager = null;
-        LightLoop m_LightLoop = null;
+        HDRenderPipeline m_RenderPipeline = null;
         SharedRTManager m_SharedRTManager = null;
 
         // Light data
@@ -63,14 +64,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
-        public void Initialize(RenderPipelineResources resources, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager, LightLoop lightLoop)
+        public void Initialize(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
         {
             // Keep track of the external buffers
-            m_RenderPipelineResources = resources;
+            m_RenderPipelineResources = rpResources;
+            m_RenderPipelineRayTracingResources = rpRTResources;
             m_RaytracingManager = raytracingManager;
 
-            // Keep track of the lightloop
-            m_LightLoop = lightLoop;
+            // Keep track of the render pipeline
+            m_RenderPipeline = renderPipeline;
 
             // Keep track of the shader rt manager
             m_SharedRTManager = sharedRTManager;
@@ -543,10 +545,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     switch (light.type)
                     {
                         case LightType.Spot:
-                            lightData.cookieIndex = m_LightLoop.cookieTexArray.FetchSlice(cmd, light.cookie);
+                            lightData.cookieIndex = m_RenderPipeline.cookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                         case LightType.Point:
-                            lightData.cookieIndex = m_LightLoop.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
+                            lightData.cookieIndex = m_RenderPipeline.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                     }
                 }
@@ -554,11 +556,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Projectors lights must always have a cookie texture.
                     // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
-                    lightData.cookieIndex = m_LightLoop.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
+                    lightData.cookieIndex = m_RenderPipeline.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
                 }
                 else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
                 {
-                    lightData.cookieIndex = m_LightLoop.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
+                    lightData.cookieIndex = m_RenderPipeline.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
                 }
 
                 {
@@ -592,7 +594,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void EvaluateClusterDebugView(CommandBuffer cmd, HDCamera hdCamera, HDRaytracingEnvironment currentEnv)
         {
-            ComputeShader lightClusterDebugCS = m_RenderPipelineResources.shaders.lightClusterDebugCS;
+            ComputeShader lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
             if (lightClusterDebugCS == null) return;
 
             Texture2D gradientTexture = m_RenderPipelineResources.textures.colorGradient;
@@ -663,7 +665,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Grab the current ray-tracing environment, if no environment available stop right away
             HDRaytracingEnvironment currentEnv = m_RaytracingManager.CurrentEnvironment();
-            ComputeShader lightClusterCS = m_RenderPipelineResources.shaders.lightClusterBuildCS;
+            ComputeShader lightClusterCS = m_RenderPipelineRayTracingResources.lightClusterBuildCS;
             // If there is no area light to process or no environment not the shader is missing
             if (currentEnv == null || lightClusterCS == null || lightArray.Count == 0)
             {

@@ -25,7 +25,8 @@
 
 // The target acceleration structure that we will evaluate the reflexion in
 Texture2D<float>                        _StencilTexture;
-Texture2D<float>                        _DepthTexture;
+TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X(_SsrClearCoatMaskTexture);
 
 // Flag value that defines if a given pixel recieves reflections or not
 // int                                       _SsrStencilExclusionValue;
@@ -33,12 +34,14 @@ Texture2D<float>                        _DepthTexture;
 // Output structure of the reflection raytrace shader
 RWTexture2D<float4>                     _SsrLightingTextureRW;
 RWTexture2D<float4>                     _SsrHitPointTexture;
-Texture2D<float4>                       _SsrClearCoatMaskTexture;
 
 [shader("miss")]
 void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload)
 {
-    rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0).xyz;
+    if(_RaytracingReflectSky != 0)
+    {
+        rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0).xyz;
+    }
     rayIntersection.t = _RaytracingRayMaxLength;
 }
 
@@ -71,7 +74,7 @@ void RayGenHalfRes()
     _SsrHitPointTexture[outputCoord] = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
     // Read the depth value
-    float depthValue  = _DepthTexture[sourceCoord];
+    float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
 
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -92,7 +95,7 @@ void RayGenHalfRes()
     NormalData normalData;
     DecodeFromNormalBuffer(sourceCoord, normalData);
     // Override the roughness by the clearcoat value of this is a clear coat
-    float4 coatMask = _SsrClearCoatMaskTexture[sourceCoord];
+    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, sourceCoord);
     normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
 
     // If this value is beyond the smoothness that we allow, no need to compute it
@@ -193,7 +196,7 @@ void RayGenIntegration()
     _SsrLightingTextureRW[currentCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
     // Read the depth value
-    float depthValue = _DepthTexture[currentCoord];
+    float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).r;
 
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
@@ -202,10 +205,6 @@ void RayGenIntegration()
     // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(currentCoord, 1.0f/LaunchDim.xy, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
     float distanceToCamera = length(posInput.positionWS);
-
-    // Should we compute the reflection for this pixel?
-    //if (_RaytracingReflectionMaxDistance < distanceToCamera)
-    //    return;
 
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
@@ -216,7 +215,7 @@ void RayGenIntegration()
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord, normalData);
     // Override the roughness by the clearcoat value of this is a clear coat
-    float4 coatMask = _SsrClearCoatMaskTexture[currentCoord];
+    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, currentCoord);
     normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
     
     // Create the local ortho basis

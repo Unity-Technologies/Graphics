@@ -13,6 +13,7 @@ int                                     _RaytracingMaxRecursion;
 float                                   _RaytracingIntensityClamp;
 float                                   _RaytracingReflectionMaxDistance;
 float                                   _RaytracingReflectionMinSmoothness;
+uint                                    _RaytracingReflectSky;
 int                                     _RaytracingFrameIndex;
 float                                   _RaytracingPixelSpreadAngle;
 int                                     _RayCountEnabled;
