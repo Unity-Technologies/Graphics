@@ -59,7 +59,7 @@ void EncodeIntoDBuffer( DecalSurfaceData surfaceData
                         )
 {
     outDBuffer0 = surfaceData.baseColor;
-    outDBuffer1 = float4(surfaceData.normalWS.xyz * 0.5 + 0.5, surfaceData.normalWS.w);
+    outDBuffer1 = float4(surfaceData.normalWS.xy * 0.5 + 0.5, surfaceData.normalWS.z, surfaceData.normalWS.w);
     outDBuffer2 = surfaceData.mask;
 #ifdef DECALS_4RT
 	outDBuffer3 = surfaceData.MAOSBlend;
@@ -78,7 +78,8 @@ void DecodeFromDBuffer(
 {
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
     surfaceData.baseColor = inDBuffer0;
-    surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0 - 1.0;
+    surfaceData.normalWS.xy = inDBuffer1.xy * 2.0 - 1.0;
+    surfaceData.normalWS.z = inDBuffer1.z;
     surfaceData.normalWS.w = inDBuffer1.w;
     surfaceData.mask = inDBuffer2;
 #ifdef DECALS_4RT

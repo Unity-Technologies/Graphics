@@ -52,7 +52,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // this clears the targets
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-            Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
+            //Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
+            Color clearColorNormal = new Color(0.5f, 0.5f, 0.0f, 1.0f); // for normals 0.5 is neutral (nx, ny, mag, alpha)
             Color clearColorAOSBlend = new Color(1.0f, 1.0f, 1.0f, 1.0f);
             HDUtils.SetRenderTarget(cmd, m_RTs[0], ClearFlag.Color, clearColor);
             HDUtils.SetRenderTarget(cmd, m_RTs[1], ClearFlag.Color, clearColorNormal);

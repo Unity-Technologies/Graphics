@@ -200,8 +200,20 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalTS;
     float3 bentNormalWS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
+#if HAVE_DECALS
+    if (_EnableDecals)
+    {
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+#ifndef LAYERED_LIT_SHADER
+        UVMapping uvMapping = layerTexCoord.base;
+#else
+        UVMapping uvMapping = layerTexCoord.base0;
+#endif
+        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+        ApplyDecalToTangentSpaceNormal(decalSurfaceData, uvMapping, normalTS);
+    }
+#endif
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
-
     // Use bent normal to sample GI if available
 #ifdef _BENTNORMALMAP
     GetNormalWS(input, bentNormalTS, bentNormalWS, doubleSidedConstants);
@@ -229,13 +241,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
-#if HAVE_DECALS
-    if (_EnableDecals)
-    {
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-    }
-#endif
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
     // Specular AA
