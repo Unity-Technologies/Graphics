@@ -392,17 +392,17 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
-            AttachmentDescriptor m_CameraTargetAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.ARGB32);
-            m_CameraTargetAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.CameraTarget, false, true);
-            descriptors = new NativeArray<AttachmentDescriptor>(new[] {m_CameraTargetAttachmentDescriptor}, Allocator.Temp);
-            using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight,
-                1, descriptors, -1))
-            {
-                descriptors.Dispose();
-                NativeArray<int> indices = new NativeArray<int>(new [] {0}, Allocator.Temp);
-                using (context.BeginScopedSubPass(indices))
-                {
-                    indices.Dispose();
+//            AttachmentDescriptor m_CameraTargetAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.ARGB32);
+//            m_CameraTargetAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.CameraTarget, false, true);
+//            descriptors = new NativeArray<AttachmentDescriptor>(new[] {m_CameraTargetAttachmentDescriptor}, Allocator.Temp);
+//            using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight,
+//                1, descriptors, -1))
+//            {
+//                descriptors.Dispose();
+//                NativeArray<int> indices = new NativeArray<int>(new [] {0}, Allocator.Temp);
+//                using (context.BeginScopedSubPass(indices))
+//                {
+//                    indices.Dispose();
                     if (postProcessEnabled)
                     {
                         m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
@@ -410,12 +410,12 @@ namespace UnityEngine.Rendering.LWRP
                     }
                     else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                     {
-//                        m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
-//                        m_FinalBlitPass.Execute(context, ref renderingData);
+                        m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+                        m_FinalBlitPass.Execute(context, ref renderingData);
                     }
-
-                }
-            }
+//
+//                }
+//            }
 
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
