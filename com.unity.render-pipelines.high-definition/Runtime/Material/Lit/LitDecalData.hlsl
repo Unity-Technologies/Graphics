@@ -1,18 +1,15 @@
-float2 SafeNormalize(float2 inVec)
+float2 SafeNormalizeFloat2(float2 inVec)
 {
     float dp3 = max(REAL_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 
-void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping uvMapping, inout float3 normalTS)
+void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping uvMapping, float3 dPdx, float3 dPdy, inout float3 normalTS)
 {
-    //const float2 TexDx = ddx(uvMapping.uv);
-    //const float2 TexDy = ddy(uvMapping.uv);
-
     float dsdx = ddx(uvMapping.uv.x), dsdy = ddy(uvMapping.uv.x);
     float dtdx = ddx(uvMapping.uv.y), dtdy = ddy(uvMapping.uv.y);
 
-    float recipDet = 1.0f / (dsdx*dtdy - dtdx * dsdy);
+    float recipDet = (dsdx*dtdy - dtdx * dsdy) < 0 ? -1 : 1;
 
     float dxds = dtdy, dxdt = -dsdy;
     float dyds = -dtdx, dydt = dsdx;
@@ -22,26 +19,29 @@ void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping
     dyds *= recipDet;
     dydt *= recipDet;
 
-
-    //const float Det = TexDx.x * TexDy.y - TexDy.x * TexDx.y;
     const float ds = decalSurfaceData.normalWS.x * dxds + decalSurfaceData.normalWS.y * dyds;
     const float dt = decalSurfaceData.normalWS.x * dxdt + decalSurfaceData.normalWS.y * dydt;
 
-    //dPds = ddx(P) * dxds + ddy(P)*dyds;
-    //dPdt = ddx(P) * dxdt + ddy(P)*dydt;
+    float pseudoWidth = 1;
+    float pseudoHeight = 1;
 
-    float pseudoWidth = 1;// length(dPds);
-    float pseudoHeight = 1;// length(dPdt);
+#ifdef _NORMALMAP
+    float3 dPds = dPdx * dxds + dPdy * dyds;
+    float3 dPdt = dPdx * dxdt + dPdy * dydt;
+
+    pseudoWidth = length(dPds);
+    pseudoHeight = length(dPdt);
+#endif
 
     float2 deriv = float2(ds, dt) / float2(pseudoWidth, pseudoHeight);
-    deriv = decalSurfaceData.normalWS.z * SafeNormalize(deriv);
-    deriv *= -rsqrt(1- deriv.x*deriv.x - deriv.y*deriv.y);
+    deriv = decalSurfaceData.normalWS.z * SafeNormalizeFloat2(deriv);
+    deriv *= -rsqrt(max(1 - Sq(deriv.x) - Sq(deriv.y), Sq(FLT_EPS)));
 
     float3 surfGrad = SurfaceGradientFromTBN(deriv, uvMapping.tangentWS, uvMapping.bitangentWS);
  
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
     {
-        normalTS.xyz = normalTS.xyz *decalSurfaceData.normalWS.w + surfGrad.xyz;
+        normalTS.xyz = normalTS.xyz * decalSurfaceData.normalWS.w + surfGrad.xyz;
     }
 }
 
@@ -53,10 +53,6 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
         surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
     }
 
-//    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
-//    {
-//        surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
-//    }
 
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
     {

@@ -72,19 +72,16 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
     normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
 #endif
-//	surfaceData.normalWS.xyz = normalWS;
- //   const float2 TexDx = ddx(texCoords);
- //   const float2 TexDy = ddy(texCoords);
     float dsdx = ddx(texCoords.x), dsdy = ddy(texCoords.x);
     float dtdx = ddx(texCoords.y), dtdy = ddy(texCoords.y);
 
-    //normalTS *= float2(pseudoWidth, pseudoHeight);
+    normalTS.xy *= float2(_NormalMapAspectRatio, 1);
 
     float dx = normalTS.x * dsdx + normalTS.y * dtdx;
     float dy = normalTS.x * dsdy + normalTS.y * dtdy;
     float mag = length(normalTS.xy);
     float2 tSrc = normalize(float2(dx, dy));
-    //surfaceData.normalWS.xyz = normalWS;
+
     surfaceData.normalWS.xyz = float3(tSrc, mag);
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
     if (surfaceData.normalWS.w > 0.0)

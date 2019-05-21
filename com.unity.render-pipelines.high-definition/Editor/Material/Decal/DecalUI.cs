@@ -155,6 +155,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty emissiveExposureWeight = null;
         protected const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
+        protected MaterialProperty normalMapAspectRatio = null;
+        protected const string kNormalMapAspectRatio = "_NormalMapAspectRatio";
+
         protected MaterialEditor m_MaterialEditor;
 
         void FindMaterialProperties(MaterialProperty[] props)
@@ -188,6 +191,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColorLDR = FindProperty(kEmissiveColorLDR, props);
             emissiveColorHDR = FindProperty(kEmissiveColorHDR, props);
             emissiveExposureWeight = FindProperty(kEmissiveExposureWeight, props);
+            normalMapAspectRatio = FindProperty(kNormalMapAspectRatio, props);
             
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
@@ -399,6 +403,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         else
                         {
                             emissiveColor.colorValue = emissiveColorHDR.colorValue;
+                        }
+
+                        Texture texture = material.GetTexture(kNormalMap);
+                        if(texture != null)
+                        {
+                            normalMapAspectRatio.floatValue = texture.width / texture.height;
                         }
 
                         foreach (var obj in m_MaterialEditor.targets)

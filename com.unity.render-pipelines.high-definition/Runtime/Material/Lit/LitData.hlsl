@@ -49,6 +49,7 @@ struct LayerTexCoord
     float3 vertexTangentWS1, vertexBitangentWS1;
     float3 vertexTangentWS2, vertexBitangentWS2;
     float3 vertexTangentWS3, vertexBitangentWS3;
+    float3 dPdx, dPdy;
 #endif
 };
 
@@ -60,13 +61,13 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
     layerTexCoord.vertexTangentWS0 = input.worldToTangent[0];
     layerTexCoord.vertexBitangentWS0 = input.worldToTangent[1];
 
-    float3 dPdx = ddx_fine(input.positionRWS);
-    float3 dPdy = ddy_fine(input.positionRWS);
+    layerTexCoord.dPdx = ddx_fine(input.positionRWS);
+    layerTexCoord.dPdy = ddy_fine(input.positionRWS);
 
-    float3 sigmaX = dPdx - dot(dPdx, vertexNormalWS) * vertexNormalWS;
-    float3 sigmaY = dPdy - dot(dPdy, vertexNormalWS) * vertexNormalWS;
+    float3 sigmaX = layerTexCoord.dPdx - dot(layerTexCoord.dPdx, vertexNormalWS) * vertexNormalWS;
+    float3 sigmaY = layerTexCoord.dPdy - dot(layerTexCoord.dPdy, vertexNormalWS) * vertexNormalWS;
     //float flipSign = dot(sigmaY, cross(vertexNormalWS, sigmaX) ) ? -1.0 : 1.0;
-    float flipSign = dot(dPdy, cross(vertexNormalWS, dPdx)) < 0.0 ? -1.0 : 1.0; // gives same as the commented out line above
+    float flipSign = dot(layerTexCoord.dPdy, cross(vertexNormalWS, layerTexCoord.dPdx)) < 0.0 ? -1.0 : 1.0; // gives same as the commented out line above
 
     // TODO: Optimize! The compiler will not be able to remove the tangent space that are not use because it can't know due to our UVMapping constant we use for both base and details
     // To solve this we should track which UVSet is use for normal mapping... Maybe not as simple as it sounds
@@ -210,7 +211,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         UVMapping uvMapping = layerTexCoord.base0;
 #endif
         ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-        ApplyDecalToTangentSpaceNormal(decalSurfaceData, uvMapping, normalTS);
+        ApplyDecalToTangentSpaceNormal(decalSurfaceData, uvMapping, layerTexCoord.dPdx, layerTexCoord.dPdy, normalTS);
     }
 #endif
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);

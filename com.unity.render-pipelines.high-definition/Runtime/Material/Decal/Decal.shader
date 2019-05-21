@@ -31,7 +31,6 @@ Shader "HDRP/Decal"
         _EmissiveIntensity("Emissive Intensity", Float) = 1
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
-
         // Stencil state
         [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 8 
         [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 8
@@ -45,6 +44,9 @@ Shader "HDRP/Decal"
         // scaling
         [HideInInspector] _MetallicScale("_MetallicScale", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
+
+        // normal map aspect ratio
+        [HideInInspector] _NormalMapAspectRatio("_NormalMapAspectRatio", Float) = 1.0
     }
 
     HLSLINCLUDE
