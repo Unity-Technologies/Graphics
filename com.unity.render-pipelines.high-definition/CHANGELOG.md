@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.8.0-preview] - 2019-XX-XX
 
+### Added
+- `Fixed`, `Viewer`, and `Automatic` modes to compute the FOV used when rendering a `PlanarReflectionProbe`
+- A checkbox to toggle the chrome gizmo of `ReflectionProbe`and `PlanarReflectionProbe`
+
+### Fixed
+- The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
+- Fixed volumetric rendering with camera-relative code and XR stereo instancing
+
+### Changed
+- Removed ScriptRuntimeVersion check in wizard.
+
 ## [6.7.0-preview] - 2019-05-21
 
 ### Added
@@ -25,8 +36,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Shader Graph samples for Hair, Fabric and Decal master nodes.
 - Add fade distance, shadow fade distance and light layers to light explorer
 - Add method to draw light layer drawer in a rect to HDEditorUtils
-- `Fixed`, `Viewer`, and `Automatic` modes to compute the FOV used when rendering a `PlanarReflectionProbe`
-- A checkbox to toggle the chrome gizmo of `ReflectionProbe`and `PlanarReflectionProbe`
 
 ### Fixed
 - Fixed deserialization crash at runtime
@@ -73,8 +82,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with LOD transition
 - Fixed shader warnings related to raytracing and TEXTURE2D_X
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
-- The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
-- Fixed volumetric rendering with camera-relative code and XR stereo instancing
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
@@ -94,7 +101,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Apply decal projector fade factor correctly on all attribut and for shader graph decal
 - Move RenderTransparentDepthPostpass after all transparent
 - Update exposure prepass to interleave XR single-pass instancing views in a checkerboard pattern
-- Removed ScriptRuntimeVersion check in wizard.
 
 ## [6.6.0-preview] - 2019-04-01
 
