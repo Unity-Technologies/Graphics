@@ -350,8 +350,16 @@ namespace UnityEngine.Rendering.LWRP
             RenderBufferLoadAction depthLoadAction = CoreUtils.HasFlag(clearFlag, ClearFlag.Depth) ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            cmd.SetRenderTarget(m_ActiveCameraColorAttachment.Identifier(), colorLoadAction, RenderBufferStoreAction.Store,
-                m_ActiveCameraDepthAttachment.Identifier(), depthLoadAction, RenderBufferStoreAction.Store);
+            if (m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget)
+            {
+                cmd.SetRenderTarget(m_ActiveCameraColorAttachment.Identifier(), colorLoadAction, RenderBufferStoreAction.Store);
+            }
+            else
+            {
+                cmd.SetRenderTarget(m_ActiveCameraColorAttachment.Identifier(), colorLoadAction, RenderBufferStoreAction.Store,
+                    m_ActiveCameraDepthAttachment.Identifier(), depthLoadAction, RenderBufferStoreAction.Store);
+            }
+
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
