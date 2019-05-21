@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.LWRP
         TextureDimension m_TargetDimension;
         bool m_ClearBlitTarget;
         Rect m_PixelRect;
-        
+
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             m_BlitMaterial = blitMaterial;
@@ -73,14 +73,14 @@ namespace UnityEngine.Rendering.LWRP
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
                 // meanwhile we set to load so split screen case works.
-                SetRenderTarget(
-                    cmd,
-                    BuiltinRenderTextureType.CameraTarget,
-                    RenderBufferLoadAction.Load,
-                    RenderBufferStoreAction.Store,
-                    m_ClearBlitTarget ? ClearFlag.Color : ClearFlag.None,
-                    Color.black,
-                    m_TargetDimension);
+//                SetRenderTarget(
+//                    cmd,
+//                    BuiltinRenderTextureType.CameraTarget,
+//                    RenderBufferLoadAction.Load,
+//                    RenderBufferStoreAction.Store,
+//                    m_ClearBlitTarget ? ClearFlag.Color : ClearFlag.None,
+//                    Color.black,
+//                    m_TargetDimension);
 
                 Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);

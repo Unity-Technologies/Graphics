@@ -1,3 +1,6 @@
+using System.Text;
+using Unity.Collections;
+
 namespace UnityEngine.Rendering.LWRP
 {
     internal class ForwardRenderer : ScriptableRenderer
@@ -29,6 +32,9 @@ namespace UnityEngine.Rendering.LWRP
         RenderTargetHandle m_CameraDepthAttachment;
         RenderTargetHandle m_DepthTexture;
         RenderTargetHandle m_OpaqueColor;
+
+        private AttachmentDescriptor m_ActiveCameraColorAttachmentDescriptor;
+        private AttachmentDescriptor m_ActiveCameraDepthAttachmentDescriptor;
 
         ForwardLights m_ForwardLights;
         StencilState m_DefaultStencilState;
@@ -82,7 +88,7 @@ namespace UnityEngine.Rendering.LWRP
 //            Camera camera = renderingData.cameraData.camera;
 //            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-//            // Special path for depth only offscreen cameras. Only write opaques + transparents. 
+//            // Special path for depth only offscreen cameras. Only write opaques + transparents.
 //            bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
 //            if (isOffscreenDepthTexture)
 //            {
@@ -100,7 +106,7 @@ namespace UnityEngine.Rendering.LWRP
 //            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
 //            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
 //            bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
-            
+
 //            // Depth prepass is generated in the following cases:
 //            // - We resolve shadows in screen space
 //            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
@@ -274,6 +280,10 @@ namespace UnityEngine.Rendering.LWRP
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
+
+            m_ActiveCameraColorAttachmentDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.colorFormat);
+            m_ActiveCameraDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+
             if (createColorTexture || createDepthTexture)
             {
                 var descriptor = cameraData.cameraTargetDescriptor;
@@ -297,7 +307,7 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             bool clearWithSkybox = (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null);
-            
+
             if (mainLightShadows)
             {
                 m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
@@ -362,24 +372,51 @@ namespace UnityEngine.Rendering.LWRP
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
-
-            m_RenderOpaqueForwardPass.Execute(context, ref renderingData);
-            if (clearWithSkybox)
-                m_DrawSkyboxPass.Execute(context, ref renderingData);
-            m_RenderTransparentForwardPass.Execute(context, ref renderingData);
+            m_ActiveCameraColorAttachmentDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), clearFlag == ClearFlag.None, true );
+            //m_ActiveCameraDepthAttachmentDescriptor.ConfigureTarget(m_ActiveCameraDepthAttachment.Identifier(), false, true);
+            m_ActiveCameraColorAttachmentDescriptor.ConfigureClear(Color.yellow);
+            m_ActiveCameraDepthAttachmentDescriptor.ConfigureClear(Color.cyan);
+            NativeArray<AttachmentDescriptor> descriptors = new NativeArray<AttachmentDescriptor>(new[] {m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor} , Allocator.Temp);
+            using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight, cameraData.cameraTargetDescriptor.msaaSamples, descriptors, 1))
+            {
+                descriptors.Dispose();
+                NativeArray<int> indices = new NativeArray<int>(new []{0}, Allocator.Temp);
+                using (context.BeginScopedSubPass(indices))
+                    {
+                        indices.Dispose();
+                        m_RenderOpaqueForwardPass.Execute(context, ref renderingData);
+                        if (clearWithSkybox)
+                            m_DrawSkyboxPass.Execute(context, ref renderingData);
+                        m_RenderTransparentForwardPass.Execute(context, ref renderingData);
+                    }
+            }
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+            AttachmentDescriptor m_CameraTargetAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.ARGB32);
+            m_CameraTargetAttachmentDescriptor.ConfigureTarget(BuiltinRenderTextureType.CameraTarget, false, true);
+            descriptors = new NativeArray<AttachmentDescriptor>(new[] {m_CameraTargetAttachmentDescriptor}, Allocator.Temp);
+            using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight,
+                1, descriptors, -1))
+            {
+                descriptors.Dispose();
+                NativeArray<int> indices = new NativeArray<int>(new [] {0}, Allocator.Temp);
+                using (context.BeginScopedSubPass(indices))
+                {
+                    indices.Dispose();
+                    if (postProcessEnabled)
+                    {
+                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
+                        m_PostProcessPass.Execute(context, ref renderingData);
+                    }
+                    else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
+                    {
+//                        m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+//                        m_FinalBlitPass.Execute(context, ref renderingData);
+                    }
 
-            if (postProcessEnabled)
-            {
-                m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget);
-                m_PostProcessPass.Execute(context, ref renderingData);
+                }
             }
-            else if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
-            {
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
-                m_FinalBlitPass.Execute(context, ref renderingData);
-            }
+
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
