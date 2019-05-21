@@ -6,10 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.0.0-preview] - 2019-XX-XX
 ### Added
+- auto recompile when changing shaderpath
+- auto recompile new vfx
+- better detection of default shader path
 - Bitfield control.
 
 ## [6.7.0-preview] - 2019-05-16
-### Added
 - Distortion Outputs (Quad / Mesh)
 - Color mapping mode for unlit outputs (Textured/Gradient Mapped)
 - Add Triangle and Octagon primitives for particle outputs

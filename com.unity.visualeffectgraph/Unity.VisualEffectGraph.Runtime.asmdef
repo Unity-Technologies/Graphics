@@ -2,10 +2,9 @@
     "name": "Unity.VisualEffectGraph.Runtime",
     "references": [
         "Unity.Timeline",
-		"Unity.ugui",
+        "Unity.ugui",
         "Unity.RenderPipelines.HighDefinition.Runtime"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
