@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.17.0-preview] - 2019-XX-XX
 
+### Fixed
+- Fixed issue when texture where deleted in ShadowCascadeGUI
+
 ## [5.16.1-preview] - 2019-05-22
 ### Changed
 - This package now requires Unity 2019.1.3f1 or later to run.
