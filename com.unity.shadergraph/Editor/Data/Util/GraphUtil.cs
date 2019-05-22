@@ -876,7 +876,7 @@ namespace UnityEditor.ShaderGraph
             var graph = new GraphData();
             graph.AddNode(node);
             graph.path = "Shader Graphs";
-            File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
+            FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
 
             UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath<Shader>(pathName);
