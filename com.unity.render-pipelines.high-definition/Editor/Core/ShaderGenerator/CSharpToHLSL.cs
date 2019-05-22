@@ -104,12 +104,16 @@ namespace UnityEditor.Experimental.Rendering
                     {
                         info = new FileInfo(fileName);
                     }
-                    catch(UnauthorizedAccessException e)
+
+                    catch (UnauthorizedAccessException )
+
                     {
                         Debug.Log("Access to " + fileName + " is denied. Skipping it.");
                         skipFile = true;
                     }
-                    catch (System.Security.SecurityException e)
+
+                    catch (System.Security.SecurityException )
+
                     {
                         Debug.Log("You do not have permission to access " + fileName + ". Skipping it.");
                         skipFile = true;
