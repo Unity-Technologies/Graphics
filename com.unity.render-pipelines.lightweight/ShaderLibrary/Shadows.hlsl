@@ -15,6 +15,9 @@
 #endif
 #endif
 
+#define SHADOWINPUT 0
+UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(SHADOWINPUT);
+
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowmapTexture);
 SAMPLER(sampler_ScreenSpaceShadowmapTexture);
 
@@ -111,7 +114,8 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
 #else
-    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
+    half attenuation = UNITY_READ_FRAMEBUFFER_INPUT(SHADOWINPUT, shadowCoord.xy).x;
+    //half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
 #endif
 
     return attenuation;

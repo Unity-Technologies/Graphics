@@ -56,10 +56,17 @@ namespace UnityEngine.Rendering.LWRP
             // In order to avoid it we can do a cmd.DrawMesh instead, however because LWRP doesn't setup camera matrices itself,
             // we would need to call an extra SetupCameraProperties here just to setup those matrices which is also troublesome.
             // TODO: We need get rid of SetupCameraProperties and setup camera matrices in LWRP ASAP.
-            RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
+            //RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
 
+
+            Camera camera = renderingData.cameraData.camera;
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
+            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+
+            //cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.cameraToWorldMatrix, GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, true));
+            //cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

@@ -339,49 +339,60 @@ namespace UnityEngine.Rendering.LWRP
                 m_DepthPrepass.Execute(context, ref renderingData);
             }
 
-            if (resolveShadowsInScreenSpace)
-            {
-                m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
-                m_ScreenSpaceShadowResolvePass.Configure(cmd, cameraTargetDescriptor);
-                cmd.SetRenderTarget(m_ScreenSpaceShadowResolvePass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                cmd.ClearRenderTarget(true, true, Color.white);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                m_ScreenSpaceShadowResolvePass.Execute(context, ref renderingData);
-            }
-
             // Main Rendering
             SetupLights(context, ref renderingData);
 
             ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-            RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
-                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            RenderBufferLoadAction depthLoadAction = CoreUtils.HasFlag(clearFlag, ClearFlag.Depth) ?
-                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
-
-            if (m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget)
-            {
-                cmd.SetRenderTarget(m_ActiveCameraColorAttachment.Identifier(), colorLoadAction, RenderBufferStoreAction.Store);
-            }
-            else
-            {
-                cmd.SetRenderTarget(m_ActiveCameraColorAttachment.Identifier(), colorLoadAction, RenderBufferStoreAction.Store,
-                    m_ActiveCameraDepthAttachment.Identifier(), depthLoadAction, RenderBufferStoreAction.Store);
-            }
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
             m_ActiveCameraColorAttachmentDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), clearFlag == ClearFlag.None, true );
             //m_ActiveCameraDepthAttachmentDescriptor.ConfigureTarget(m_ActiveCameraDepthAttachment.Identifier(), false, true);
             m_ActiveCameraColorAttachmentDescriptor.ConfigureClear(Color.yellow);
             m_ActiveCameraDepthAttachmentDescriptor.ConfigureClear(Color.cyan);
-            NativeArray<AttachmentDescriptor> descriptors = new NativeArray<AttachmentDescriptor>(new[] {m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor} , Allocator.Temp);
+
+            //if (resolveShadowsInScreenSpace)
+            //{
+            //    m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
+            //    m_ScreenSpaceShadowResolvePass.Configure(cmd, cameraTargetDescriptor);
+            //    cmd.SetRenderTarget(m_ScreenSpaceShadowResolvePass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            //    cmd.ClearRenderTarget(true, true, Color.white);
+            //    context.ExecuteCommandBuffer(cmd);
+            //    cmd.Clear();
+
+            //    m_ScreenSpaceShadowResolvePass.Execute(context, ref renderingData);
+            //}
+
+            NativeArray<AttachmentDescriptor> descriptors;
+            if (resolveShadowsInScreenSpace)
+            {
+                m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
+
+                var shadowResolveDescriptor = new AttachmentDescriptor(RenderTextureFormat.R8);
+                shadowResolveDescriptor.ConfigureClear(Color.white);
+
+                descriptors = new NativeArray<AttachmentDescriptor>(
+                    new[] { m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor, shadowResolveDescriptor },
+                    Allocator.Temp);
+            }
+            else
+            {
+                 descriptors = new NativeArray<AttachmentDescriptor>(
+                    new[] {m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor},
+                    Allocator.Temp);
+            }
+
             using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight, cameraData.cameraTargetDescriptor.msaaSamples, descriptors, 1))
             {
                 descriptors.Dispose();
-                NativeArray<int> indices = new NativeArray<int>(new []{0}, Allocator.Temp);
-                using (context.BeginScopedSubPass(indices))
+                if (resolveShadowsInScreenSpace)
+                {
+                    NativeArray<int> shadowResolveIndices = new NativeArray<int>(new[] { 2 }, Allocator.Temp);
+                    using (context.BeginScopedSubPass(shadowResolveIndices))
+                    {
+                        m_ScreenSpaceShadowResolvePass.Execute(context, ref renderingData);
+                    }
+
+                    NativeArray<int> indices = new NativeArray<int>(new[] { 0 }, Allocator.Temp);
+                    using (context.BeginScopedSubPass(indices, shadowResolveIndices))
                     {
                         indices.Dispose();
                         m_RenderOpaqueForwardPass.Execute(context, ref renderingData);
@@ -389,6 +400,22 @@ namespace UnityEngine.Rendering.LWRP
                             m_DrawSkyboxPass.Execute(context, ref renderingData);
                         m_RenderTransparentForwardPass.Execute(context, ref renderingData);
                     }
+                    shadowResolveIndices.Dispose();
+                }
+                else
+                {
+                    NativeArray<int> indices = new NativeArray<int>(new[] { 0 }, Allocator.Temp);
+                    using (context.BeginScopedSubPass(indices))
+                    {
+                        indices.Dispose();
+                        m_RenderOpaqueForwardPass.Execute(context, ref renderingData);
+                        if (clearWithSkybox)
+                            m_DrawSkyboxPass.Execute(context, ref renderingData);
+                        m_RenderTransparentForwardPass.Execute(context, ref renderingData);
+                    }
+                }
+                
+                
             }
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);

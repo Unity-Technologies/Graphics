@@ -21,12 +21,6 @@
 // For halfs
 #define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(idx) cbuffer hlslcc_SubpassInput_h_##idx { half4 hlslcc_fbinput_##idx; }
 #define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF_MS(idx) cbuffer hlslcc_SubpassInput_H_##idx { half4 hlslcc_fbinput_##idx[8]; }
-// For ints
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_INT(idx) cbuffer hlslcc_SubpassInput_i_##idx { int4 hlslcc_fbinput_##idx; }
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_INT_MS(idx) cbuffer hlslcc_SubpassInput_I_##idx { int4 hlslcc_fbinput_##idx[8]; }
-// For uints
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_UINT(idx) cbuffer hlslcc_SubpassInput_u_##idx { uint4 hlslcc_fbinput_##idx; }
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_UINT_MS(idx) cbuffer hlslcc_SubpassInput_U_##idx { uint4 hlslcc_fbinput_##idx[8]; }
 
 #define UNITY_READ_FRAMEBUFFER_INPUT(idx, v2fname) hlslcc_fbinput_##idx
 #define UNITY_READ_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fname) hlslcc_fbinput_##idx[sampleIdx]
@@ -34,10 +28,8 @@
 
 #else
 // Renderpass inputs: General fallback path
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(idx) UNITY_DECLARE_TEX2D_NOSAMPLER_FLOAT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(idx) UNITY_DECLARE_TEX2D_NOSAMPLER_HALF(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_INT(idx) UNITY_DECLARE_TEX2D_NOSAMPLER_INT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-#define UNITY_DECLARE_FRAMEBUFFER_INPUT_UINT(idx) UNITY_DECLARE_TEX2D_NOSAMPLER_UINT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(idx) TEXTURE2D_FLOAT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(idx) TEXTURE2D_HALF(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
 
 #define UNITY_READ_FRAMEBUFFER_INPUT(idx, v2fvertexname) _UnityFBInput##idx.Load(uint3(v2fvertexname.xy, 0))
 
