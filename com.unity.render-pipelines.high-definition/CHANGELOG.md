@@ -14,7 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The correct preview is displayed when selecting multiple `PlanarReflectionProbe`s
 - Fixed volumetric rendering with camera-relative code and XR stereo instancing
 - Fixed issue with flashing cyan due to async compilation of shader when selecting a mesh
-- Fix texture type mismatch when the contact shadow are disabled (causing errors on IOS devices)
+- Fixed texture type mismatch when the contact shadow are disabled (causing errors on IOS devices)
+- Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
+- Fixed Generate Shader Includes while in package
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
@@ -84,7 +86,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug with uninitialized values in light explorer
 - Fixed issue with LOD transition
 - Fixed shader warnings related to raytracing and TEXTURE2D_X
-- Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
