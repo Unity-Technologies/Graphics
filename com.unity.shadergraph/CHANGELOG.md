@@ -4,6 +4,10 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.16.1] - 2019-05-22
+### Changed
+Updated minimum Unity release version to 2019.1.3f1.
+
 ## [5.16.0] - 2019-05-20
 ### Fixed
 - Fixed an error in `Custom Function Node` port naming.
