@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.16.1] - 2019-05-22
 ### Changed
-Updated minimum Unity release version to 2019.1.3f1.
+- This package now requires Unity 2019.1.3f1 or later to run.
 
 ## [5.16.0] - 2019-05-20
 
