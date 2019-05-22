@@ -26,6 +26,8 @@ void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping
     float pseudoHeight = 1;
 
 #ifdef _NORMALMAP
+    _NormalMap.GetDimensions(pseudoWidth, pseudoHeight);
+#else
     float3 dPds = dPdx * dxds + dPdy * dyds;
     float3 dPdt = dPdx * dxdt + dPdy * dydt;
 

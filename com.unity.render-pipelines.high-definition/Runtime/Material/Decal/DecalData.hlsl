@@ -62,24 +62,27 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     }
 #endif
 
+    float pseudoWidth = 1;
+    float pseudoHeight = 1;
 	// needs to be after mask, because blend source could be in the mask map blue
 #ifdef _NORMALMAP
 	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
     float3 normalWS = float3(0.0, 0.0, 0.0);
+    _NormalMap.GetDimensions(pseudoWidth, pseudoHeight);
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 	normalWS = mul((float3x3)normalToWorld, normalTS);
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
     normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
 #endif
+
+    float mag = length(normalTS.xy);
+    normalTS.xy *= float2(pseudoWidth, pseudoHeight);
+
     float dsdx = ddx(texCoords.x), dsdy = ddy(texCoords.x);
     float dtdx = ddx(texCoords.y), dtdy = ddy(texCoords.y);
-
-    normalTS.xy *= float2(_NormalMapAspectRatio, 1);
-
     float dx = normalTS.x * dsdx + normalTS.y * dtdx;
     float dy = normalTS.x * dsdy + normalTS.y * dtdy;
-    float mag = length(normalTS.xy);
     float2 tSrc = normalize(float2(dx, dy));
 
     surfaceData.normalWS.xyz = float3(tSrc, mag);
