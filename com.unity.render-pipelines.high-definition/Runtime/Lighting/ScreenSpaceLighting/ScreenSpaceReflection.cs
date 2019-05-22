@@ -32,13 +32,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public IntParameter spatialFilterRadius = new ClampedIntParameter(4, 1, 6);
 
         // Tier 2 code
-        [Tooltip("Controls the length of ambient occlusion rays.")]
+        [Tooltip("Number of samples for reflections.")]
         public ClampedIntParameter numSamples = new ClampedIntParameter(1, 1, 32);
 
-        [Tooltip("Enable Filtering on the raytraced ambient occlusion.")]
+        [Tooltip("Enable Filtering on the raytraced reflections.")]
         public BoolParameter enableFilter = new BoolParameter(false);
 
-        [Tooltip("Controls the length of ambient occlusion rays.")]
+        [Tooltip("Controls the size of the filter radius.")]
         public ClampedIntParameter filterRadius = new ClampedIntParameter(16, 1, 32);
 
         static ScreenSpaceReflection s_Default = null;
