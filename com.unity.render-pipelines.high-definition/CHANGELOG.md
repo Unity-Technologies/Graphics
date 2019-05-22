@@ -84,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug with uninitialized values in light explorer
 - Fixed issue with LOD transition
 - Fixed shader warnings related to raytracing and TEXTURE2D_X
+- Fixed Generate Shader Includes while in package
 
 ### Changed
 - Refactor PixelCoordToViewDirWS to be VR compatible and to compute it only once per frame
