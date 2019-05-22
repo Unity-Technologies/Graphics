@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
             graph.AddNode(outputNode);
             outputNode.AddSlot(ConcreteSlotValueType.Vector4);
             graph.path = "Sub Graphs";
-            File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
+            FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
         }
     }
