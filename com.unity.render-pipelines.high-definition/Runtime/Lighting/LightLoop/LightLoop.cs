@@ -2709,7 +2709,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!WillRenderContactShadow())
             {
-                cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, TextureXR.GetBlackTexture());
+                cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, TextureXR.GetBlackUIntTexture());
                 return;
             }
             cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, contactShadowsRT);
