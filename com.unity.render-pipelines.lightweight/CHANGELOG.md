@@ -11,7 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
 - Updated `ScriptableRendererFeature` and `ScriptableRenderPass` API docs.
+
+### Fixed
 - Fixed NullReference exception caused when trying to add a ScriptableRendererFeature.
+- Fixed an issue that caused forward renderer resources to not load properly when you upgraded LWRP from an older version to 7.0.0. [case 1154925](https://issuetracker.unity3d.com/issues/lwrp-upgrading-lwrp-package-to-7-dot-0-0-breaks-forwardrenderdata-asset-in-resource-files)
 
 ## [6.7.0] - 2019-05-16
 ### Added
@@ -21,8 +24,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - The 2D renderer and Light2D component received a number of improvements and are now ready to try as experimental features.
-
-### Changed
 - Updated the [Feature Comparison Table](lwrp-builtin-feature-comparison.md) to reflect the current state of LWRP features.
 
 ### Fixed
