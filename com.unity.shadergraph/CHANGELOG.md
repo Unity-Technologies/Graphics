@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now reference sub-assets such as Textures.
 - Remaining outdated documentation has been removed. 
 - You can no longer duplicate the Sub Graph Outputs node.
+- When you create a new empty Sub Graph, it no longer shows a warning about a missing output.
+- When you create outputs that start with a digit, Shader generation no longer fails.
+- You can no longer add nodes that are not allowed into Sub Graphs.
+- A graph must now always contain at least one Master Node.
+- Duplicate output names are now allowed.
+- Fixed an issue where the main preview was always redrawing.
+- When you set a Master Node as active, the Main Preview now shows the correct result.
 - When you click on the gear icon, Shader Graph now focuses on the selected node, and brings the settings menu to front view.
 - Sub Graph Output and Custom Function Node now validate slot names, and display an appropriate error badge when needed.
 - You can now reference Scene Color and Scene Depth correctly from within a Sub Graph.
