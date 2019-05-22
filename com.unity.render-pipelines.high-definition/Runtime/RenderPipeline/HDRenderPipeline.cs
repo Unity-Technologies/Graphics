@@ -1698,14 +1698,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We only request the light cluster if we are gonna use it for debug mode
                 if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
                 {
-                    var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+                    var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+                    var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
                     HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
-                    if(settings.enableRaytracing.value && rtEnv != null)
+                    if (rSettings.enableRaytracing.value && rtEnv != null)
                     {
                         HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
                         PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
                     }
-                    else if(rtEnv != null && rtEnv.raytracedObjects)
+                    else if (rrSettings.enable.value && rtEnv != null)
                     {
                         HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
                         PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
@@ -2565,8 +2566,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
             // If there is a ray-tracing environment and the feature is enabled we want to push these objects to the prepass
             HDRaytracingEnvironment currentEnv = m_RayTracingManager.CurrentEnvironment();
+            var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
             // We want the opaque objects to be in the prepass so that we avoid rendering uselessly the pixels before raytracing them
-            if (currentEnv != null && currentEnv.raytracedObjects)
+            if (currentEnv != null && rrSettings.enable.value)
             {
                 var rendererList = CreateOpaqueRendererList(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllOpaqueRaytracing);
                 HDUtils.DrawRendererList(renderContext, cmd, rendererList);
@@ -2971,7 +2973,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if ENABLE_RAYTRACING
                 // If there is a ray-tracing environment and the feature is enabled we want to push these objects to the transparent postpass (they are not rendered in the first call because they are not in the generic transparent render queue)
                 HDRaytracingEnvironment currentEnv = m_RayTracingManager.CurrentEnvironment();
-                if (currentEnv != null && currentEnv.raytracedObjects)
+                var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
+                if (currentEnv != null && rrSettings.enable.value)
                 {
                     var rendererListRT = CreateTransparentRendererList(cullResults, hdCamera.camera, m_TransparentDepthPostpassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentRaytracing);
                     DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListRT);
