@@ -49,7 +49,7 @@
 // All shadow bias code is completely broken in volumetrics. Disable it.
 #define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1
 #define SHADOW_USE_VIEW_BIAS_SCALING       0
-
+#define PREFER_HALF 0
 //--------------------------------------------------------------------------------------------------
 // Included headers
 //--------------------------------------------------------------------------------------------------
