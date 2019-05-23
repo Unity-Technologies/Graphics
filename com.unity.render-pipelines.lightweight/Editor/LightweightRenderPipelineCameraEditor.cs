@@ -427,15 +427,29 @@ namespace UnityEditor.Rendering.LWRP
             }
         }
 
-        bool DrawLayerMask(SerializedProperty prop, ref LayerMask value, GUIContent style)
+        bool DrawLayerMask(SerializedProperty prop, ref LayerMask mask, GUIContent style)
         {
+            var layers = InternalEditorUtility.layers;
             bool hasChanged = false;
             var controlRect = BeginProperty(prop, style);
 
             EditorGUI.BeginChangeCheck();
-            value = EditorGUI.MaskField(controlRect, style, value, InternalEditorUtility.layers);
+
+            // LayerMask needs to be converted to be used in a MaskField...
+            int field = 0;
+            for (int c = 0; c < layers.Length; c++)
+                if ((mask & (1 << LayerMask.NameToLayer(layers[c]))) != 0)
+                    field |= 1 << c;
+
+            field = EditorGUI.MaskField(controlRect, style, field, InternalEditorUtility.layers);
             if (EditorGUI.EndChangeCheck())
                 hasChanged = true;
+
+            // ...and converted back.
+            mask = 0;
+            for (int c = 0; c < layers.Length; c++)
+                if ((field & (1 << c)) != 0)
+                    mask |= 1 << LayerMask.NameToLayer(layers[c]);
 
             EndProperty();
             return hasChanged;
