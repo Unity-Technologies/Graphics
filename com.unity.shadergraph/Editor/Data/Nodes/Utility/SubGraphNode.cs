@@ -162,16 +162,15 @@ namespace UnityEditor.ShaderGraph
         }
 
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
             if (subGraphData == null || hasError)
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
                 foreach (var slot in outputSlots)
                 {
-                    visitor.AddShaderChunk($"{NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
+                    sb.AppendLine($"{NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
                 }
                 
                 return;
@@ -180,11 +179,9 @@ namespace UnityEditor.ShaderGraph
             var inputVariableName = $"_{GetVariableNameForNode()}";
             
             GraphUtil.GenerateSurfaceInputTransferCode(sb, subGraphData.requirements, subGraphData.inputStructName, inputVariableName);
-            
-            visitor.AddShaderChunk(sb.ToString());
 
             foreach (var outSlot in subGraphData.outputs)
-                visitor.AddShaderChunk(string.Format("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, outSlot.concreteValueType), GetVariableNameForSlot(outSlot.id)));
+                sb.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, outSlot.concreteValueType), GetVariableNameForSlot(outSlot.id));
 
             var arguments = new List<string>();
             foreach (var prop in subGraphData.inputs)
@@ -209,10 +206,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var outSlot in subGraphData.outputs)
                 arguments.Add(GetVariableNameForSlot(outSlot.id));
 
-            visitor.AddShaderChunk(
-                string.Format("{0}({1});"
-                    , subGraphData.functionName
-                    , arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next))));
+            sb.AppendLine("{0}({1});", subGraphData.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
         }
 
         public void OnEnable()

@@ -29,6 +29,11 @@ MaterialNodeView #controls > #items {
     padding-bottom: 4px;
 }
 
+MaterialNodeView #title {
+    padding-top: 8px;
+    border-bottom-width: 8px;
+}
+
 MaterialNodeView > #previewContainer {
     position: absolute;
     bottom: 4px;

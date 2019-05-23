@@ -69,6 +69,8 @@ To create a new Lit Material, navigate to your Project's Asset window, right-cli
 
 Unity exposes this section if you select **Transparent** from the **Surface Type** drop-down. For information on the properties in this section, see the [Surface Type documentation](Surface-Type.html#TransparencyInputs).
 
+<a name="EmissionInputs></a>
+
 ### Emission inputs
 
 | **Property**                    | **Description**                                              |

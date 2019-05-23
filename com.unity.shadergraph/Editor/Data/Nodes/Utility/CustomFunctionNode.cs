@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string defaultFunctionBody => m_DefaultFunctionBody;
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
             GetOutputSlots<MaterialSlot>(slots);
@@ -80,17 +80,17 @@ namespace UnityEditor.ShaderGraph
                 if(generationMode == GenerationMode.Preview && slots.Count != 0)
                 {
                     slots.OrderBy(s => s.id);
-                    visitor.AddShaderChunk(string.Format("{0} {1};",
+                    sb.AppendLine("{0} {1};",
                         NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slots[0].concreteValueType),
-                        GetVariableNameForSlot(slots[0].id)));
+                        GetVariableNameForSlot(slots[0].id));
                 }
                 return;
             }
 
             foreach (var argument in slots)
-                visitor.AddShaderChunk(string.Format("{0} {1};",
+                sb.AppendLine("{0} {1};",
                     NodeUtils.ConvertConcreteSlotValueTypeToString(precision, argument.concreteValueType),
-                    GetVariableNameForSlot(argument.id)));
+                    GetVariableNameForSlot(argument.id));
 
             string call = string.Format("{0}_{1}(", functionName, precision);
             bool first = true;
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph
                 call += GetVariableNameForSlot(argument.id);
             }
             call += ");";
-            visitor.AddShaderChunk(call, true);
+            sb.AppendLine(call);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)

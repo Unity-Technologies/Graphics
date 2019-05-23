@@ -146,5 +146,21 @@ namespace UnityEngine.Rendering.LWRP
 
             context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
         }
+
+        // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.
+        static Dictionary<RenderTextureFormat, bool> m_RenderTextureFormatSupport = new Dictionary<RenderTextureFormat, bool>();
+
+        internal static void ClearSystemInfoCache()
+        {
+            m_RenderTextureFormatSupport.Clear();
+        }
+
+        internal static bool SupportsRenderTextureFormat(RenderTextureFormat format)
+        {
+            if (!m_RenderTextureFormatSupport.ContainsKey(format))
+                m_RenderTextureFormatSupport.Add(format, SystemInfo.SupportsRenderTextureFormat(format));
+
+            return m_RenderTextureFormatSupport[format];
+        }
     }
 }
