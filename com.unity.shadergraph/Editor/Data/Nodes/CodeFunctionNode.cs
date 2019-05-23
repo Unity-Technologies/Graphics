@@ -340,13 +340,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);
             foreach (var outSlot in s_TempSlots)
             {
-                visitor.AddShaderChunk(GetParamTypeName(outSlot) + " " + GetVariableNameForSlot(outSlot.id) + ";", true);
+                sb.AppendLine(GetParamTypeName(outSlot) + " " + GetVariableNameForSlot(outSlot.id) + ";");
             }
 
             string call = GetFunctionName() + "(";
@@ -369,7 +369,7 @@ namespace UnityEditor.ShaderGraph
             }
             call += ");";
 
-            visitor.AddShaderChunk(call, true);
+            sb.AppendLine(call);
         }
 
         private string GetParamTypeName(MaterialSlot slot)

@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             var graph = owner as GraphData;
             var property = graph.properties.FirstOrDefault(x => x.guid == propertyGuid);
@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is Vector2ShaderProperty)
             {
@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is Vector3ShaderProperty)
             {
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is Vector4ShaderProperty)
             {
@@ -143,7 +143,7 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is ColorShaderProperty)
             {
@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is BooleanShaderProperty)
             {
@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is Matrix2ShaderProperty)
             {
@@ -167,7 +167,7 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is Matrix3ShaderProperty)
             {
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is Matrix4ShaderProperty)
             {
@@ -183,7 +183,7 @@ namespace UnityEditor.ShaderGraph
                         , precision
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is SamplerStateShaderProperty)
             {
@@ -191,7 +191,7 @@ namespace UnityEditor.ShaderGraph
                 var result = string.Format("SamplerState {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId)
                         , samplerStateProperty.referenceName);
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
             else if (property is GradientShaderProperty)
             {
@@ -200,14 +200,14 @@ namespace UnityEditor.ShaderGraph
                     var result = string.Format("Gradient {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId) 
                         , GradientUtils.GetGradientForPreview(property.referenceName));
-                    visitor.AddShaderChunk(result, true);
+                    sb.AppendLine(result);
                 }
                 else
                 {
                     var result = string.Format("Gradient {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId)
                         , property.referenceName);
-                    visitor.AddShaderChunk(result, true);
+                    sb.AppendLine(result);
                 }
             }
         }

@@ -89,10 +89,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
-
             var colorValue = GetSlotValue(kEmissionColorInputSlotId, generationMode);
             var intensityValue = GetSlotValue(kEmissionIntensityInputSlotId, generationMode);
             var exposureWeightValue = GetSlotValue(kEmissionExposureWeightInputSlotId, generationMode);
@@ -112,8 +110,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 exposureWeightValue,
                 inverseExposureMultiplier
             );
-
-            visitor.AddShaderChunk(sb.ToString(), true);
         }
 
         string GetFunctionName()
