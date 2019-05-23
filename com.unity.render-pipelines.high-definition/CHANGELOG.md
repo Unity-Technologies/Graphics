@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed issue when texture where deleted in ShadowCascadeGUI
+- Fixed issue in FrameSettingsHistory when disabling a camera several time without enabling it in between.
 
 ## [5.16.1-preview] - 2019-05-22
 ### Changed
