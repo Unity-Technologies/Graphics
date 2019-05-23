@@ -51,7 +51,7 @@ Refers to aliasing in digital samples of visual signals.
 <a name="TemporalAntiAliasing"></a>
 
 #### temporal anti-aliasing (TAA):
-An anti-aliasing technique that uses frames from a history buffer to smooth edged more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion but requires motion vectors to do so.
+An anti-aliasing technique that uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion but requires motion vectors to do so.
 
 
 
