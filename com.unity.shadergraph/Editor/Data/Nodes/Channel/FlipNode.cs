@@ -104,10 +104,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
-
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             var outputValue = GetSlotValue(OutputSlotId, generationMode);
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlotId));
@@ -128,8 +126,6 @@ namespace UnityEditor.ShaderGraph
             }
 
             sb.AppendLine("{0}({1}, _{2}_Flip, {3});", GetFunctionName(), inputValue, GetVariableNameForNode(), outputValue);
-
-            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -155,21 +151,6 @@ namespace UnityEditor.ShaderGraph
                 overrideReferenceName = string.Format("_{0}_Flip", GetVariableNameForNode()),
                 generatePropertyBlock = false
             });
-        }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
-        {
-            var sb = new ShaderStringBuilder();
-            sb.AppendLine("void {0}({1} In, {2} Flip, out {3} Out)",
-                GetFunctionName(),
-                FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
-                FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
-                FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
-            using (sb.BlockScope())
-            {
-                sb.AppendLine("Out = (Flip * -2 + 1) * In;");
-            }
-            visitor.AddShaderChunk(sb.ToString(), true);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
