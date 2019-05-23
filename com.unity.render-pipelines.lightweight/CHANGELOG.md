@@ -6,7 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.8.0] - 2019-XX-XX
 
-## [6.7.0] - 2019-05-21
+### Changed
+- Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
+
+## [6.7.0] - 2019-05-16
 ### Added
 - Added SpeedTree Shaders.
 - Added two Shader Graph master nodes: Lit Sprite and Unlit Sprite. They only work with the 2D renderer.
