@@ -38,6 +38,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Mask = 4
         };
 
+        [GenerateHLSL]
+        public class DecalDefinitions
+        {
+            public static int s_DecalVolumeGradient = 1;
+        }
+
         //-----------------------------------------------------------------------------
         // DBuffer management
         //-----------------------------------------------------------------------------

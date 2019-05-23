@@ -4,8 +4,15 @@ float2 SafeNormalizeFloat2(float2 inVec)
     return inVec * rsqrt(dp2);
 }
 
-void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping uvMapping, float3 dPdx, float3 dPdy, inout float3 normalTS)
+#if (DECAL_VOLUME_GRADIENT)
+void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, float3 interpolatedNormalizedVertexNormalWS, inout float3 normalTS)
+#else
+void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping uvMapping, inout float3 normalTS)
+#endif
 {
+#if (DECAL_VOLUME_GRADIENT)
+    float3 surfGrad = SurfaceGradientFromVolumeGradient(interpolatedNormalizedVertexNormalWS, decalSurfaceData.normalWS.xyz);
+#else
     float dsdx = ddx(uvMapping.uv.x), dsdy = ddy(uvMapping.uv.x);
     float dtdx = ddx(uvMapping.uv.y), dtdy = ddy(uvMapping.uv.y);
 
@@ -27,12 +34,6 @@ void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping
 
 #ifdef _NORMALMAP
     _NormalMap.GetDimensions(pseudoWidth, pseudoHeight);
-#else
-//    float3 dPds = dPdx * dxds + dPdy * dyds;
-//    float3 dPdt = dPdx * dxdt + dPdy * dydt;
-
-//    pseudoWidth = length(dPds);
-//    pseudoHeight = length(dPdt);
 #endif
 
     float2 deriv = float2(ds, dt) / float2(pseudoWidth, pseudoHeight);
@@ -40,7 +41,7 @@ void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping
     deriv *= -rsqrt(max(1 - Sq(deriv.x) - Sq(deriv.y), Sq(FLT_EPS)));
 
     float3 surfGrad = SurfaceGradientFromTBN(deriv, uvMapping.tangentWS, uvMapping.bitangentWS);
- 
+#endif 
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
     {
         normalTS.xyz = normalTS.xyz * decalSurfaceData.normalWS.w + surfGrad.xyz;

@@ -16,6 +16,11 @@
 #define DBUFFERHTILEBIT_NORMAL (2)
 #define DBUFFERHTILEBIT_MASK (4)
 
+//
+// UnityEngine.Experimental.Rendering.HDPipeline.Decal+DecalDefinitions:  static fields
+//
+#define DECAL_VOLUME_GRADIENT (1)
+
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Decal+DecalSurfaceData
 // PackingRules = Exact
 struct DecalSurfaceData

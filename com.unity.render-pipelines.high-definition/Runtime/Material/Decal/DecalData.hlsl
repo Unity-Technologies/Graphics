@@ -83,6 +83,22 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
 #endif
 
+#if (DECAL_VOLUME_GRADIENT)
+    /// normalTS in[-1; 1] range
+    float2 Tsafe = saturate(length(normalTS.xy)) * SafeNormalizeFloat2(normalTS.xy);        // may be overkill if we normalize ts normal maps anyway
+#ifndef HIGH_PRECISION
+    float2 deriv = -Tsafe.xy;        // pseudo conversion to derivative (to fit in 8888)
+#else
+    float2 deriv = -Tsafe.xy * rsqrt(max(1 - Sq(Tsafe.x) - Sq(Tsafe.y), Sq(FLT_EPS)));
+#endif
+
+    float3x3 tNormalToWorld = transpose((float3x3)normalToWorld);
+    float3 decalXaxisWS = (tNormalToWorld)[0]; 
+    float3 decalYaxisWS = (tNormalToWorld)[1]; 
+    // consider oriented decal a volume bump map and use equation 2. in "Bump Mapping Unparametrized Surfaces on the GPU"
+    // since the volume gradient is a linear operator. (eq. 2 is used in gbuffer pass)
+    surfaceData.normalWS.xyz = decalXaxisWS * deriv.x + decalYaxisWS * deriv.y;
+#else
     float mag = length(normalTS.xy);
     normalTS.xy *= float2(pseudoWidth, pseudoHeight);
 
@@ -93,6 +109,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     float2 tSrc = SafeNormalizeFloat2(float2(dx, dy));
 
     surfaceData.normalWS.xyz = float3(tSrc, mag);
+#endif
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
     if (surfaceData.normalWS.w > 0.0)
     {
