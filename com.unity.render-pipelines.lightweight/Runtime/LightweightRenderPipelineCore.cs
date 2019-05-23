@@ -125,8 +125,7 @@ namespace UnityEngine.Rendering.LWRP
             }
 
             // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format.
-            bool useRGB111110 = Application.isMobilePlatform &&
-                                SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+            bool useRGB111110 = Application.isMobilePlatform && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
             RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
             desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
             desc.depthBufferBits = 32;
