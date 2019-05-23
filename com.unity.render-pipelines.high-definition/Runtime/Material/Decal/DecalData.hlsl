@@ -4,6 +4,13 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 
+float2 SafeNormalizeFloat2(float2 inVec)
+{
+    float dp2 = max(REAL_MIN, dot(inVec, inVec));
+    return inVec * rsqrt(dp2);
+}
+
+
 void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out DecalSurfaceData surfaceData)
 {
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
@@ -83,7 +90,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     float dtdx = ddx(texCoords.y), dtdy = ddy(texCoords.y);
     float dx = normalTS.x * dsdx + normalTS.y * dtdx;
     float dy = normalTS.x * dsdy + normalTS.y * dtdy;
-    float2 tSrc = normalize(float2(dx, dy));
+    float2 tSrc = SafeNormalizeFloat2(float2(dx, dy));
 
     surfaceData.normalWS.xyz = float3(tSrc, mag);
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;

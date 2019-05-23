@@ -1,7 +1,7 @@
 float2 SafeNormalizeFloat2(float2 inVec)
 {
-    float dp3 = max(REAL_MIN, dot(inVec, inVec));
-    return inVec * rsqrt(dp3);
+    float dp2 = max(REAL_MIN, dot(inVec, inVec));
+    return inVec * rsqrt(dp2);
 }
 
 void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping uvMapping, float3 dPdx, float3 dPdy, inout float3 normalTS)
@@ -28,11 +28,11 @@ void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, UVMapping
 #ifdef _NORMALMAP
     _NormalMap.GetDimensions(pseudoWidth, pseudoHeight);
 #else
-    float3 dPds = dPdx * dxds + dPdy * dyds;
-    float3 dPdt = dPdx * dxdt + dPdy * dydt;
+//    float3 dPds = dPdx * dxds + dPdy * dyds;
+//    float3 dPdt = dPdx * dxdt + dPdy * dydt;
 
-    pseudoWidth = length(dPds);
-    pseudoHeight = length(dPdt);
+//    pseudoWidth = length(dPds);
+//    pseudoHeight = length(dPdt);
 #endif
 
     float2 deriv = float2(ds, dt) / float2(pseudoWidth, pseudoHeight);
