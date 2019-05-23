@@ -317,8 +317,43 @@ namespace UnityEngine.Rendering.LWRP
                 m_MainLightShadowCasterPass.Execute(context, ref renderingData);
             }
 
+             if (mainLightShadows)
+             {
+                 m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
+                AttachmentDescriptor shadowCasterDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
+                shadowCasterDepthAttachmentDescriptor.ConfigureTarget(m_MainLightShadowCasterPass.colorAttachment, false, true);
+                NativeArray<AttachmentDescriptor> m_ShadowMapDescriptors = new NativeArray<AttachmentDescriptor>(new []{shadowCasterDepthAttachmentDescriptor}, Allocator.Temp);
+//
+//
+//
+                var shadowMapHeight = (renderingData.shadowData.mainLightShadowCascadesCount == 2)
+                    ? renderingData.shadowData.mainLightShadowmapHeight >> 1
+                    : renderingData.shadowData.mainLightShadowmapHeight;
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                using (context.BeginScopedRenderPass(renderingData.shadowData.mainLightShadowmapWidth, shadowMapHeight,
+                    1, m_ShadowMapDescriptors, 0))
+                {
+                    m_ShadowMapDescriptors.Dispose();
+                    NativeArray<int> indices = new NativeArray<int>(1, Allocator.Temp);
+                    indices[0] = 0;
+                    using (context.BeginScopedSubPass(indices))
+                    {
+                        indices.Dispose();
+                        m_MainLightShadowCasterPass.Execute(context, ref renderingData);
+                    }
+                }
+//                 cmd.SetRenderTarget(m_MainLightShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+//                 context.ExecuteCommandBuffer(cmd);
+//                 cmd.Clear();
+//                 m_MainLightShadowCasterPass.Execute(context, ref renderingData);
+
+             }
+
             if (additionalLightShadows)
             {
+
+                AttachmentDesc
                 m_AdditionalLightsShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
                 cmd.SetRenderTarget(m_AdditionalLightsShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 context.ExecuteCommandBuffer(cmd);
@@ -414,8 +449,8 @@ namespace UnityEngine.Rendering.LWRP
                         m_RenderTransparentForwardPass.Execute(context, ref renderingData);
                     }
                 }
-                
-                
+
+
             }
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
@@ -465,7 +500,9 @@ namespace UnityEngine.Rendering.LWRP
             m_RenderTransparentForwardPass.FrameCleanup(cmd);
             m_PostProcessPass.FrameCleanup(cmd);
             m_FinalBlitPass.FrameCleanup(cmd);
+            #if UNITY_EDITOR
             m_SceneViewDepthCopyPass.FrameCleanup(cmd);
+            #endif
             FinishRendering(cmd);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
