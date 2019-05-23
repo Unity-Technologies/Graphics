@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) uses a Volume framework. Each Volume 
 
 You can add a __Volume__ component to any GameObject, including a Camera, although it is good practice to create a dedicated GameObject for each Volume. The Volume component itself contains no actual data itself and instead references a [Volume Profile](Volume-Profile.html) which contains the values to interpolate between. The Volume Profile contains default values for every property and hides them by default. To view or alter these properties, you must add [Volume Component overrides](Volume-Components.html), which are structures containing overrides for the default values, to the Volume Profile.
 
-Volumes also contain parameters that control how they interact with other volumes. A Scene can contain many Volumes. Volumes affect the Camera if they have __IsGlobal __enabled or they encapsulate the Camera within the bounds of their Collider.
+Volumes also contain parameters that control how they interact with other volumes. A Scene can contain many Volumes. Volumes affect the Camera if they have __IsGlobal__ enabled or they encapsulate the Camera within the bounds of their Collider.
 
 At run time, HDRP looks at all of the enabled Volumes attached to active GameObjects in the Scene and determines each Volume’s contribution to the final Scene settings. HDRP uses the Camera position and the Volume properties described above to calculate this contribution. It then uses all Volumes with a non-zero contribution to calculate interpolated final values for every property in all Volume Components.
 

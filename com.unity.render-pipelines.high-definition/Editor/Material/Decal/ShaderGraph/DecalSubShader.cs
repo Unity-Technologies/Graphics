@@ -463,6 +463,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("Material.AffectsEmission");
             }
+            if (masterNode.affectsSmoothness.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn)
+            {
+                activeFields.Add("Material.AffectsMaskMap");
+            }
+
             return activeFields;
         }
 

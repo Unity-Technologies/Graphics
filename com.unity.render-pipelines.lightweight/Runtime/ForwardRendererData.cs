@@ -48,14 +48,21 @@ namespace UnityEngine.Rendering.LWRP
         [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData;
 
-        public ShaderResources shaders;
+        public ShaderResources shaders = null;
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
         [SerializeField] StencilStateData m_DefaultStencilState = null;
 
-        protected override ScriptableRenderer Create() => new ForwardRenderer(this);
+        protected override ScriptableRenderer Create()
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
+#endif
+            return new ForwardRenderer(this);
+        }
 
         internal LayerMask opaqueLayerMask => m_OpaqueLayerMask;
 
@@ -66,6 +73,14 @@ namespace UnityEngine.Rendering.LWRP
         protected override void OnEnable()
         {
             base.OnEnable();
+
+            // Upon asset creation, OnEnable is called and `shaders` reference is not yet initialized
+            // We need to call the OnEnable for data migration when updating from old versions of LWRP that
+            // serialized resources in a different format. Early returning here when OnEnable is called
+            // upon asset creation is fine because we guarantee new assets get created with all resources initialized.
+            if (shaders == null)
+                return;
+
 #if UNITY_EDITOR
             ResourceReloader.ReloadAllNullIn(this, LightweightRenderPipelineAsset.packagePath);
 #endif

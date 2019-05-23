@@ -92,7 +92,6 @@ namespace UnityEditor.VFX.Test
 
             foreach (var initBlock in initBlocks)
             {
-                graph.AddChild(initBlock);
                 initContext.AddChild(initBlock);
             }
 
