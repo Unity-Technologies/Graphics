@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string defaultFunctionBody => m_DefaultFunctionBody;
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
             GetOutputSlots<MaterialSlot>(slots);
@@ -80,17 +80,17 @@ namespace UnityEditor.ShaderGraph
                 if(generationMode == GenerationMode.Preview && slots.Count != 0)
                 {
                     slots.OrderBy(s => s.id);
-                    visitor.AddShaderChunk(string.Format("{0} {1};",
+                    sb.AppendLine("{0} {1};",
                         NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slots[0].concreteValueType),
-                        GetVariableNameForSlot(slots[0].id)));
+                        GetVariableNameForSlot(slots[0].id));
                 }
                 return;
             }
 
             foreach (var argument in slots)
-                visitor.AddShaderChunk(string.Format("{0} {1};",
+                sb.AppendLine("{0} {1};",
                     NodeUtils.ConvertConcreteSlotValueTypeToString(precision, argument.concreteValueType),
-                    GetVariableNameForSlot(argument.id)));
+                    GetVariableNameForSlot(argument.id));
 
             string call = string.Format("{0}_{1}(", functionName, precision);
             bool first = true;
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph
                 call += GetVariableNameForSlot(argument.id);
             }
             call += ");";
-            visitor.AddShaderChunk(call, true);
+            sb.AppendLine(call);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
@@ -123,11 +123,11 @@ namespace UnityEditor.ShaderGraph
             if(!IsValidFunction())
                 return;
 
-            registry.ProvideFunction(functionName, builder =>
+            switch (sourceType)
             {
-                switch (sourceType)
-                {
-                    case HlslSourceType.File:
+                case HlslSourceType.File:
+                    registry.ProvideFunction(functionSource, builder =>
+                    {
                         string path = AssetDatabase.GUIDToAssetPath(functionSource);
 
                         // This is required for upgrading without console errors
@@ -135,18 +135,21 @@ namespace UnityEditor.ShaderGraph
                             path = functionSource;
 
                         builder.AppendLine($"#include \"{path}\"");
-                        break;
-                    case HlslSourceType.String:
+                    });
+                    break;
+                case HlslSourceType.String:
+                    registry.ProvideFunction(functionName, builder =>
+                    {
                         builder.AppendLine(GetFunctionHeader());
-                        using(builder.BlockScope())
+                        using (builder.BlockScope())
                         {
                             builder.AppendLines(functionBody);
                         }
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            });
+                    });
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private string GetFunctionHeader()
@@ -242,9 +245,6 @@ namespace UnityEditor.ShaderGraph
             {
                 owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
-            
-            ValidateSlotName();
-            
             if(sourceType == HlslSourceType.File)
             {
                 if(!string.IsNullOrEmpty(functionSource))
@@ -260,7 +260,8 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-            
+            ValidateSlotName();
+
             base.ValidateNode();
         }
 

@@ -79,9 +79,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
             var uvValue = GetSlotValue(UVSlotId, generationMode);
             var widthValue = GetSlotValue(WidthSlotId, generationMode);
             var heightValue = GetSlotValue(HeightSlotId, generationMode);
@@ -94,8 +93,6 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("{0}2 _{1}_Invert = {0}2 ({2}, {3});", precision, GetVariableNameForNode(), invertX.isOn ? 1 : 0, invertY.isOn ? 1 : 0);
             }
             sb.AppendLine("{0}({1}, {2}, {3}, {4}, _{5}_Invert, {6});", GetFunctionName(), uvValue, widthValue, heightValue, tileValue, GetVariableNameForNode(), outputValue);
-
-            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
