@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed texture type mismatch when the contact shadow are disabled (causing errors on IOS devices)
 - Fixed an issue with history buffers causing effects like TAA or auto exposure to flicker when more than one camera was visible in the editor
 - Fixed Generate Shader Includes while in package
+- Fixed issue when texture where deleted in ShadowCascadeGUI
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
