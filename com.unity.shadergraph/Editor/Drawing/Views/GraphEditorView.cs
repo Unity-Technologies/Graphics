@@ -327,7 +327,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (node is MaterialNodeView materialNodeView)
                 {
-                    materialNodeView.UpdatePortInputVisibilities();
+                    materialNodeView.OnModified(ModificationScope.Topological);
                 }
             }
 
@@ -545,7 +545,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (node is MaterialNodeView materialNodeView)
                 {
-                    materialNodeView.UpdatePortInputVisibilities();
+                    materialNodeView.OnModified(ModificationScope.Topological);
                 }
 
             }

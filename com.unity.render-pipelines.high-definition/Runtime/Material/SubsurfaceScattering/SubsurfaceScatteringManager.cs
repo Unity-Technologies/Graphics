@@ -324,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(m_SubsurfaceScatteringCS, sssKernel, HDShaderIDs._SSSBufferTexture[i], GetSSSBuffer(i));
                 }
 
-                int numTilesX = ((int)(hdCamera.textureWidthScaling.x * hdCamera.screenSize.x) + 15) / 16;
+                int numTilesX = ((int)hdCamera.screenSize.x + 15) / 16;
                 int numTilesY = ((int)hdCamera.screenSize.y + 15) / 16;
                 int numTilesZ = hdCamera.computePassCount;
 

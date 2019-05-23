@@ -64,9 +64,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int  colorPyramidHistoryMipCount = 0;
         public VolumetricLightingSystem.VBufferParameters[] vBufferParams; // Double-buffered
 
-        // XRTODO: double-wide cleanup
-        public Vector4  textureWidthScaling; // (2.0, 0.5) for SinglePassDoubleWide (stereo) and (1.0, 1.0) otherwise
-
         // XR instanced views (hardware-accelerated single-pass instancing or multiview)
         ViewConstants[] xrViewConstants;
         ComputeBuffer   xrViewConstantsGpu;
@@ -137,17 +134,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public int computePassCount
-        {
-            get
-            {
-                // XRTODO: double-wide cleanup
-                if (camera.stereoEnabled && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
-                    return 1;
-
-                return viewCount;
-            }
-        }
+        // XRTODO: remove and replace occurences by viewCount
+        public int computePassCount { get => viewCount; }
 
         // The only way to reliably keep track of a frame change right now is to compare the frame
         // count Unity gives us. We need this as a single camera could be rendered several times per
@@ -323,22 +311,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
-
-            // XRTODO: double-wide cleanup
-            textureWidthScaling = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
-            if (camera.stereoEnabled && XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePass)
-            {
-                Debug.Assert(HDDynamicResolutionHandler.instance.SoftwareDynamicResIsEnabled() == false);
-
-                var xrDesc = XRGraphics.eyeTextureDesc;
-                nonScaledViewport.x = screenWidth = m_ActualWidth = xrDesc.width;
-                nonScaledViewport.y = screenHeight = m_ActualHeight = xrDesc.height;
-
-                finalViewport.width  = xrDesc.width;
-                finalViewport.height = xrDesc.height;
-
-                textureWidthScaling = new Vector4(2.0f, 0.5f, 0.0f, 0.0f);
-            }
 
             m_LastFrameActive = frameIndex;
 
@@ -769,7 +741,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
 
             return rtHandleSystem.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat,
-                                        enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, xrInstancing: true,
+                                        enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true, xrInstancing: true,
                                         name: string.Format("CameraColorBufferMipChain{0}", frameIndex));
         }
 
@@ -862,9 +834,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // TODO: qualify this code with xrInstancingEnabled when compute shaders can use keywords
             cmd.SetGlobalBuffer(HDShaderIDs._XRViewConstants, xrViewConstantsGpu);
-
-            // XRTODO: double-wide cleanup
-            cmd.SetGlobalVector(HDShaderIDs._TextureWidthScaling, textureWidthScaling);
         }
 
         public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)
