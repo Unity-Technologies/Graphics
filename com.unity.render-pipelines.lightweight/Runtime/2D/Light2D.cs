@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
+using UnityEngine.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
@@ -226,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         public static string[] s_LightIconPaths = new string[] { s_ParametricLightIconPath, s_FreeformLightIconPath, s_SpriteLightIconPath, s_PointLightIconPath, s_GlobalLightIconPath };
 #endif
 
-        internal static void SetupCulling(Camera camera)
+        internal static void SetupCulling(ScriptableRenderContext context, Camera camera)
         {
             if (Light2DManager.cullingGroup == null)
                 return;
@@ -395,7 +396,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             if (Light2DManager.cullingGroup == null)
             {
                 Light2DManager.cullingGroup = new CullingGroup();
-                RenderPipeline.beginCameraRendering += SetupCulling;
+                RenderPipelineManager.beginCameraRendering += SetupCulling;
             }
 
             if (!Light2DManager.lights[m_BlendStyleIndex].Contains(this))
@@ -425,7 +426,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             {
                 Light2DManager.cullingGroup.Dispose();
                 Light2DManager.cullingGroup = null;
-                RenderPipeline.beginCameraRendering -= SetupCulling;
+                RenderPipelineManager.beginCameraRendering -= SetupCulling;
             }
         }
 
