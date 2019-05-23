@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.LWRP
 
     // TODO: TAA
     // TODO: Motion blur
-    // TODO: Depth of Field
     internal class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
