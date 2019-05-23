@@ -51,17 +51,14 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { Input1SlotId, Input2SlotId, OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
             var input1Value = GetSlotValue(Input1SlotId, generationMode);
             var input2Value = GetSlotValue(Input2SlotId, generationMode);
             var outputValue = GetSlotValue(OutputSlotId, generationMode);
 
             sb.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId));
             sb.AppendLine("{0}({1}, {2}, {3});", GetFunctionHeader(), input1Value, input2Value, outputValue);
-
-            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         string GetFunctionName()

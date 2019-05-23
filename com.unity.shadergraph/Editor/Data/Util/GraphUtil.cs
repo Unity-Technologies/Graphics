@@ -1216,9 +1216,8 @@ namespace UnityEditor.ShaderGraph
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
             using (surfaceDescriptionFunction.BlockScope())
             {
-                ShaderGenerator sg = new ShaderGenerator();
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
-                foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+                foreach (var activeNode in activeNodeList)
                 {
                     if (activeNode is IGeneratesFunction functionNode)
                     {
@@ -1228,13 +1227,14 @@ namespace UnityEditor.ShaderGraph
 
                     if (activeNode is IGeneratesBodyCode bodyNode)
                     {
-                        bodyNode.GenerateNodeCode(sg, graphContext, mode);
+                        surfaceDescriptionFunction.currentNode = activeNode;
+                        bodyNode.GenerateNodeCode(surfaceDescriptionFunction, graphContext, mode);
+                        surfaceDescriptionFunction.currentNode = null;
                     }
 
                     activeNode.CollectShaderProperties(shaderProperties, mode);
                 }
 
-                surfaceDescriptionFunction.AppendLines(sg.GetShaderString(0));
                 functionRegistry.builder.currentNode = null;
 
                 if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
@@ -1322,24 +1322,23 @@ namespace UnityEditor.ShaderGraph
             builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
             using (builder.BlockScope())
             {
-                ShaderGenerator sg = new ShaderGenerator();
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
-                foreach (var node in nodes.OfType<AbstractMaterialNode>())
+                foreach (var node in nodes)
                 {
-                    var generatesFunction = node as IGeneratesFunction;
-                    if (generatesFunction != null)
+                    if (node is IGeneratesFunction generatesFunction)
                     {
                         functionRegistry.builder.currentNode = node;
                         generatesFunction.GenerateNodeFunction(functionRegistry, graphContext, mode);
                     }
-                    var generatesBodyCode = node as IGeneratesBodyCode;
-                    if (generatesBodyCode != null)
+
+                    if (node is IGeneratesBodyCode generatesBodyCode)
                     {
-                        generatesBodyCode.GenerateNodeCode(sg, graphContext, mode);
+                        builder.currentNode = node;
+                        generatesBodyCode.GenerateNodeCode(builder, graphContext, mode);
+                        builder.currentNode = null;
                     }
                     node.CollectShaderProperties(shaderProperties, mode);
                 }
-                builder.AppendLines(sg.GetShaderString(0));
                 foreach (var slot in slots)
                 {
                     var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
