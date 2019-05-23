@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed NullReference exception caused when trying to add a ScriptableRendererFeature.
 - Fixed an issue that caused forward renderer resources to not load properly when you upgraded LWRP from an older version to 6.8.0. [case 1154925](https://issuetracker.unity3d.com/issues/lwrp-upgrading-lwrp-package-to-7-dot-0-0-breaks-forwardrenderdata-asset-in-resource-files)
+- Fixed GC spikes caused by LWRP allocating heap memory every frame.
 
 ## [6.7.0] - 2019-05-16
 ### Added
