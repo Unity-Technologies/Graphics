@@ -117,6 +117,8 @@ namespace UnityEngine.Rendering.LWRP
         public static readonly string FilmGrain = "_FILM_GRAIN";
         public static readonly string Fxaa = "_FXAA";
         public static readonly string Dithering = "_DITHERING";
+
+        public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
     }
 
     public sealed partial class LightweightRenderPipeline

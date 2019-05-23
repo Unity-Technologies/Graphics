@@ -38,6 +38,12 @@ namespace UnityEngine.Rendering.LWRP
             [Reload("Shaders/PostProcessing/SubpixelMorphologicalAntialiasing.shader")]
             public Shader subpixelMorphologicalAntialiasingPS;
 
+            [Reload("Shaders/PostProcessing/GaussianDepthOfField.shader")]
+            public Shader gaussianDepthOfFieldPS;
+
+            [Reload("Shaders/PostProcessing/BokehDepthOfField.shader")]
+            public Shader bokehDepthOfFieldPS;
+
             [Reload("Shaders/PostProcessing/CameraMotionBlur.shader")]
             public Shader cameraMotionBlurPS;
 
