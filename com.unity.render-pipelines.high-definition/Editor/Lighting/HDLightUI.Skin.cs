@@ -119,6 +119,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent kernelSize = new GUIContent("Kernel size");
             public readonly GUIContent maxDepthBias = new GUIContent("Max Depth Bias");
 
+            // Layers
+            public readonly GUIContent linkLightAndShadowLayersText = new GUIContent("Link Light Layer", "When enabled, the Light Layer property specifies the light layers for both lighting and for shadows. When disabled, you can use the Light Layer property in the General section to specify the light layers for lighting and the Light Layer property in the Shadows section to specify the light layers for shadows.");
+            public readonly GUIContent shadowLayerMaskText = new GUIContent("Light Layer");
+
             // Settings
             public readonly GUIContent enableShadowMap = new GUIContent("Enable");
 
