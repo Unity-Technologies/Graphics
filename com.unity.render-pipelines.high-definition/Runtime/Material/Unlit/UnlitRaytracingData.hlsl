@@ -1,5 +1,3 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingBuiltinData.hlsl"
-
 bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     float2 unlitColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _UnlitColorMap);
@@ -29,7 +27,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
         builtinData.emissiveColor *= _IncludeIndirectLighting;
     }
     #endif
-    
+
 #if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
     float3 distortion = SAMPLE_TEXTURE2D_LOD(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0.xy, 0).rgb;
     distortion.rg = distortion.rg * _DistortionVectorScale.xx + _DistortionVectorBias.xx;

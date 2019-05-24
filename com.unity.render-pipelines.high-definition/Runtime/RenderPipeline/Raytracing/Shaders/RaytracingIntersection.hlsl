@@ -37,11 +37,11 @@ struct AttributeData
 // Structure to fill for intersections
 struct IntersectionVertice
 {
-	// World space position of the vertex
+	// Object space position of the vertex
 	float3 	positionOS;
-	// World space normal of the vertex
+	// Object space normal of the vertex
 	float3 	normalOS;
-	// World space normal of the vertex
+	// Object space normal of the vertex
 	float3 	tangentOS;
 	// UV coordinates
 	float2 	texCoord0;
@@ -95,7 +95,7 @@ void GetCurrentIntersectionVertice(AttributeData attributeData, out Intersection
 	outVertex.texCoord3 = INTERPOLATE_RAYTRACING_ATTRIBUTE(v0.texCoord3, v1.texCoord3, v2.texCoord3, barycentricCoordinates);
 	outVertex.vertexColor = INTERPOLATE_RAYTRACING_ATTRIBUTE(v0.vertexColor, v1.vertexColor, v2.vertexColor, barycentricCoordinates);
 
-	// Compute the lambda value
+	// Compute the lambda value (area computed in object space)
 	outVertex.triangleArea = length(cross(v1.positionOS - v0.positionOS, v2.positionOS - v0.positionOS));
 	outVertex.texCoord0Area = abs((v1.texCoord0.x - v0.texCoord0.x) * (v2.texCoord0.y - v0.texCoord0.y) - (v2.texCoord0.x - v0.texCoord0.x) * (v1.texCoord0.y - v0.texCoord0.y));
 	outVertex.texCoord1Area = abs((v1.texCoord1.x - v0.texCoord1.x) * (v2.texCoord1.y - v0.texCoord1.y) - (v2.texCoord1.x - v0.texCoord1.x) * (v1.texCoord1.y - v0.texCoord1.y));
