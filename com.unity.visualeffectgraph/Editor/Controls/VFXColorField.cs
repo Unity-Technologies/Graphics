@@ -125,8 +125,8 @@ namespace UnityEditor.VFX.UIElements
             var eyeDropper = new VisualElement();
 
             eyeDropper.style.backgroundImage = eyeDropperIcon;
-            eyeDropper.style.width = eyeDropperIcon.width /2;
-            eyeDropper.style.height = eyeDropperIcon.height /2;
+            eyeDropper.style.width = 20;
+            eyeDropper.style.height = 20;
 
             eyeDropper.RegisterCallback<MouseDownEvent>(OnEyeDropperStart);
 
