@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.0.0-preview] - 2019-XX-XX
 ### Added
+- Make multiselection work in a way that do not assume that the same parameter will have the same index in the property sheet.
 - auto recompile when changing shaderpath
 - auto recompile new vfx
 - better detection of default shader path
