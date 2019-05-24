@@ -66,7 +66,7 @@ void RayGenHalfRes()
     // Pixel where we will store the result of the raytracing
     uint2 outputCoord = halfResCoord * 2;
 
-    // Pixel coordinate in full res of the pixel that we will be using for our calculus
+    // Pixel coordinate in full res of the pixel that we will be using for our computation
     uint2 sourceCoord = outputCoord + shift;
 
     // Clear the textures (in case the sample that we generate does doesn't generate any )

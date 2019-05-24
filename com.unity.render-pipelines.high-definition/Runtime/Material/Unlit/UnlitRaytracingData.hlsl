@@ -1,4 +1,4 @@
-bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     float2 unlitColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _UnlitColorMap);
     surfaceData.color = SAMPLE_TEXTURE2D_LOD(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv, 0).rgb * _UnlitColor.rgb;

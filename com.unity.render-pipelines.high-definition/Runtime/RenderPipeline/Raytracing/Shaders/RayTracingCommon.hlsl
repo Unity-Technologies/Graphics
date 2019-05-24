@@ -26,8 +26,8 @@ float computeBaseTextureLOD(float3 viewWS,
 float computeTargetTextureLOD(Texture2D targetTexture, float baseLambda)
 {
     // Grab dimensions of the target texture
-    uint texWidth, texHeight, numMips;
-    targetTexture.GetDimensions(0, texWidth, texHeight, numMips);
+    uint texWidth, texHeight;
+    targetTexture.GetDimensions(texWidth, texHeight);
 
     return max(0.0, baseLambda + 0.5 * log2(texWidth * texHeight));
 }
