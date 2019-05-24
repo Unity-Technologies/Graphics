@@ -5,13 +5,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.0.0] - 2019-XX-XX
+### Added
+- Added a menu option to create a new `ScriptableRendererFeature` script. To do so in the Editor, click on Asset > Create > Rendering > Lightweight Render Pipeline > Renderer Feature.
+
+### Changed
+- Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
+- Updated `ScriptableRendererFeature` and `ScriptableRenderPass` API docs.
+
 ### Fixed
 - Fixed a case where built-in Shader time values could be out of sync with actual time. [case 1142495](https://fogbugz.unity3d.com/f/cases/1142495/)
 - Fixed an issue that caused forward renderer resources to not load properly when you upgraded LWRP from an older version to 7.0.0. [case 1154925](https://issuetracker.unity3d.com/issues/lwrp-upgrading-lwrp-package-to-7-dot-0-0-breaks-forwardrenderdata-asset-in-resource-files)
 - Fixed GC spikes caused by LWRP allocating heap memory every frame.
-
-### Changed
-- Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
+- Fixed NullReference exception caused when trying to add a ScriptableRendererFeature.
 
 ## [6.7.0] - 2019-05-16
 ### Added
