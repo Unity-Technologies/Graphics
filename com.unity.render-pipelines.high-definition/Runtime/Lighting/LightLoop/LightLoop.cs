@@ -4,6 +4,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    using RTHandle = RTHandleSystem.RTHandle;
+
     public static class VisibleLightExtensionMethods
     {
         public static Vector3 GetPosition(this VisibleLight value)
@@ -289,7 +291,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal LightList m_lightList;
         int m_punctualLightCount = 0;
         int m_areaLightCount = 0;
-        int m_lightCount = 0;
+        int m_TotalLightCount = 0;
         int m_densityVolumeCount = 0;
         bool m_enableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
         bool m_hasRunLightListPrevFrame = false;
@@ -357,7 +359,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6 (NR_THREADS is set to 64 on other platforms). NumClusters is 1<<g_iLog2NumClusters
 #endif
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
-        float m_ClustScale;
+        float m_ClusterScale;
         static ComputeBuffer s_PerVoxelLightLists = null;
         static ComputeBuffer s_PerVoxelOffset = null;
         static ComputeBuffer s_PerTileLogBaseTweak = null;
@@ -441,7 +443,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool HasLightToCull()
         {
-            return m_lightCount > 0;
+            return m_TotalLightCount > 0;
         }
 
         public ComputeBuffer GetBigTileLightList()
@@ -500,11 +502,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return HDUtils.DivRoundUp((int)hdCamera.screenSize.y, LightDefinitions.s_TileSizeClustered);
         }
 
-        public bool GetFeatureVariantsEnabled() =>
-            m_FrameSettings.litShaderMode == LitShaderMode.Deferred
-            && m_FrameSettings.fptl
-            && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation)
-            && (m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants) || m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants));
+        static bool GetFeatureVariantsEnabled(FrameSettings frameSettings) =>
+            frameSettings.litShaderMode == LitShaderMode.Deferred
+            && frameSettings.fptl
+            && frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation)
+            && (frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants) || frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants));
 
         int GetDeferredLightingMaterialIndex(int outputSplitLighting, int lightLoopDisableTileAndCluster, int shadowMask, int debugDisplay)
         {
@@ -794,7 +796,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 s_GenListPerVoxelKernelOblique = buildPerVoxelLightListShader.FindKernel(kernelObliqueName);
             }
 
-            if (GetFeatureVariantsEnabled())
+            if (GetFeatureVariantsEnabled(frameSettings))
             {
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
                 s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? "TileLightListGen_SrcBigTile_FeatureFlags_Oblique" : "TileLightListGen_FeatureFlags_Oblique");
@@ -2199,16 +2201,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, hdCamera.xr.instancingEnabled);
                 }
 
-                m_lightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
-                Debug.Assert(m_lightCount == m_lightList.bounds.Count);
-                Debug.Assert(m_lightCount == m_lightList.lightVolumes.Count);
+                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_densityVolumeCount;
+                Debug.Assert(m_TotalLightCount == m_lightList.bounds.Count);
+                Debug.Assert(m_TotalLightCount == m_lightList.lightVolumes.Count);
 
                 if (hdCamera.xr.instancingEnabled)
                 {
                     // TODO: Proper decal + stereo cull management
 
-                    Debug.Assert(m_lightList.rightEyeBounds.Count == m_lightCount);
-                    Debug.Assert(m_lightList.rightEyeLightVolumes.Count == m_lightCount);
+                    Debug.Assert(m_lightList.rightEyeBounds.Count == m_TotalLightCount);
+                    Debug.Assert(m_lightList.rightEyeLightVolumes.Count == m_TotalLightCount);
 
                     // TODO: GC considerations?
                     m_lightList.bounds.AddRange(m_lightList.rightEyeBounds);
@@ -2261,80 +2263,297 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (uint)logVolume << 12 | (uint)lightVolumeType << 9 | listType << 8 | ((uint)probeIndex & 0xFF);
         }
 
-        void VoxelLightListGeneration(CommandBuffer cmd, HDCamera hdCamera, Matrix4x4[] projscrArr, Matrix4x4[] invProjscrArr, RenderTargetIdentifier cameraDepthBufferRT)
+        struct BuildGPULightListParameters
         {
-            Camera camera = hdCamera.camera;
+            // Common
+            public int totalLightCount; // Regular + Env + Decal + Density Volumes
+            public bool isOrthographic;
+            public int computePassCount;
+            public bool runLightList;
+            public bool enableFeatureVariants;
+            public bool computeMaterialVariants;
+            public bool computeLightVariants;
+            public bool skyEnabled;
+            public LightList lightList;
+            public Matrix4x4[] lightListProjscrMatrices;
+            public Matrix4x4[] lightListInvProjscrMatrices;
+            public float nearClipPlane, farClipPlane;
+            public Vector4 screenSize;
+            public int msaaSamples;
 
-            var isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(camera.projectionMatrix);
+            // Screen Space AABBs
+            public ComputeShader screenSpaceAABBShader;
+            public int screenSpaceAABBKernel;
+            public Matrix4x4[] lightListProjHMatrices;
+            public Matrix4x4[] lightListInvProjHMatrices;
 
-            // clear atomic offset index
-            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, s_GlobalLightListAtomic);
-            cmd.DispatchCompute(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
+            // Big Tile
+            public ComputeShader bigTilePrepassShader;
+            public int bigTilePrepassKernel;
+            public bool runBigTilePrepass;
+            public int numBigTilesX, numBigTilesY;
 
-            bool isOrthographic = camera.orthographic;
-            cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-            cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
-            cmd.SetComputeMatrixArrayParam(buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjectionArr, projscrArr);
-            cmd.SetComputeMatrixArrayParam(buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjectionArr, invProjscrArr);
+            // FPTL
+            public ComputeShader buildPerTileLightListShader;
+            public int buildPerTileLightListKernel;
+            public bool runFPTL;
+            public int numTilesFPTLX;
+            public int numTilesFPTLY;
+            public int numTilesFPTL;
 
-            cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
+            // Cluster
+            public ComputeShader buildPerVoxelLightListShader;
+            public int buildPerVoxelLightListKernel;
+            public int numTilesClusterX;
+            public int numTilesClusterY;
+            public float clusterScale;
 
-            cmd.SetComputeVectorParam(buildPerVoxelLightListShader, HDShaderIDs.g_screenSize, hdCamera.screenSize);
-            cmd.SetComputeIntParam(buildPerVoxelLightListShader, HDShaderIDs.g_iNumSamplesMSAA, (int)hdCamera.msaaSamples);
-
-            //Vector4 v2_near = invProjscr * new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-            //Vector4 v2_far = invProjscr * new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
-            //float nearPlane2 = -(v2_near.z/v2_near.w);
-            //float farPlane2 = -(v2_far.z/v2_far.w);
-            var nearPlane = camera.nearClipPlane;
-            var farPlane = camera.farClipPlane;
-            cmd.SetComputeFloatParam(buildPerVoxelLightListShader, HDShaderIDs.g_fNearPlane, nearPlane);
-            cmd.SetComputeFloatParam(buildPerVoxelLightListShader, HDShaderIDs.g_fFarPlane, farPlane);
-
-            const float C = (float)(1 << k_Log2NumClusters);
-            var geomSeries = (1.0 - Mathf.Pow(k_ClustLogBase, C)) / (1 - k_ClustLogBase);        // geometric series: sum_k=0^{C-1} base^k
-            m_ClustScale = (float)(geomSeries / (farPlane - nearPlane));
-
-            cmd.SetComputeFloatParam(buildPerVoxelLightListShader, HDShaderIDs.g_fClustScale, m_ClustScale);
-            cmd.SetComputeFloatParam(buildPerVoxelLightListShader, HDShaderIDs.g_fClustBase, k_ClustLogBase);
-
-            var genListPerVoxelKernel = isProjectionOblique ? s_GenListPerVoxelKernelOblique : s_GenListPerVoxelKernel;
-
-            cmd.SetComputeTextureParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
-            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_vLayeredLightList, s_PerVoxelLightLists);
-            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_LayeredOffset, s_PerVoxelOffset);
-            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, s_GlobalLightListAtomic);
-            if (m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
-                cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
-
-            if (k_UseDepthBuffer)
-            {
-                cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
-            }
-
-            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
-            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
-            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, genListPerVoxelKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
-
-            var numTilesX = GetNumTileClusteredX(hdCamera);
-            var numTilesY = GetNumTileClusteredY(hdCamera);
-
-            cmd.DispatchCompute(buildPerVoxelLightListShader, genListPerVoxelKernel, numTilesX, numTilesY, hdCamera.computePassCount);
+            // Finalize
+            public ComputeShader buildMaterialFlagsShader;
+            public ComputeShader clearDispatchIndirectShader;
+            public ComputeShader buildDispatchIndirectShader;
         }
 
-        public void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
+        // generate screen-space AABBs (used for both fptl and clustered).
+        static void GenerateLightsScreenSpaceAABBs(BuildGPULightListParameters parameters, CommandBuffer cmd)
         {
-            bool runLightList = m_lightCount > 0;
+            if (parameters.totalLightCount != 0)
+            {
+                cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
+
+                // In the stereo case, we have two sets of light bounds to iterate over (bounds are in per-eye view space)
+                cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
+                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
+
+                cmd.SetComputeMatrixArrayParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_mProjectionArr, parameters.lightListProjHMatrices);
+                cmd.SetComputeMatrixArrayParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_mInvProjectionArr, parameters.lightListInvProjHMatrices);
+
+                // In stereo, we output two sets of AABB bounds
+                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
+
+                cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (parameters.totalLightCount + 7) / 8, parameters.computePassCount, 1);
+            }
+        }
+
+        // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
+        static void BigTilePrepass(BuildGPULightListParameters parameters, CommandBuffer cmd)
+        {
+            if (parameters.runLightList && parameters.runBigTilePrepass)
+            {
+                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
+                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
+                cmd.SetComputeIntParams(parameters.bigTilePrepassShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
+
+                // TODO: These two aren't actually used...
+                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
+                cmd.SetComputeIntParam(parameters.bigTilePrepassShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
+
+                cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
+                cmd.SetComputeMatrixArrayParam(parameters.bigTilePrepassShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
+
+                cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
+                cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
+                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vLightList, s_BigTileLightList);
+                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
+                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
+
+                cmd.DispatchCompute(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, parameters.numBigTilesX, parameters.numBigTilesY, parameters.computePassCount);
+            }
+        }
+
+        static void BuildPerTileLightList(BuildGPULightListParameters parameters, RTHandle cameraDepthBufferRT, ref bool tileFlagsWritten, CommandBuffer cmd)
+        {
+            // optimized for opaques only
+            if (parameters.runLightList && parameters.runFPTL)
+            {
+                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
+                cmd.SetComputeIntParams(parameters.buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
+                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, parameters.lightList.lights.Count);
+                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
+                cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
+
+                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
+
+                cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
+                cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
+
+                cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
+                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vLightList, s_LightList);
+                if (parameters.runBigTilePrepass)
+                    cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
+
+                if (parameters.enableFeatureVariants)
+                {
+                    uint baseFeatureFlags = 0;
+                    if (parameters.lightList.directionalLights.Count > 0)
+                    {
+                        baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
+                    }
+                    if (parameters.skyEnabled)
+                    {
+                        baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
+                    }
+                    if (!parameters.computeMaterialVariants)
+                    {
+                        baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
+                    }
+                    cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
+                    cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    tileFlagsWritten = true;
+                }
+
+                cmd.DispatchCompute(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.computePassCount);
+            }
+        }
+        static void VoxelLightListGeneration(BuildGPULightListParameters parameters, RTHandle cameraDepthBufferRT, CommandBuffer cmd)
+        {
+            if (parameters.runLightList)
+            {
+                // clear atomic offset index
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, s_GlobalLightListAtomic);
+                cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
+
+                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_isOrthographic, parameters.isOrthographic ? 1 : 0);
+                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
+                cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
+                cmd.SetComputeMatrixArrayParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
+
+                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iLog2NumClusters, k_Log2NumClusters);
+
+                cmd.SetComputeVectorParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_screenSize, parameters.screenSize);
+                cmd.SetComputeIntParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_iNumSamplesMSAA, parameters.msaaSamples);
+
+                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
+                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
+
+                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustScale, parameters.clusterScale);
+                cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustBase, k_ClustLogBase);
+
+                cmd.SetComputeTextureParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vLayeredLightList, s_PerVoxelLightLists);
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_LayeredOffset, s_PerVoxelOffset);
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, s_GlobalLightListAtomic);
+                if (parameters.runBigTilePrepass)
+                    cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
+
+                if (k_UseDepthBuffer)
+                {
+                    cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
+                }
+
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
+
+                cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.computePassCount);
+            }
+        }
+
+        static void FinalizeLightListGeneration(BuildGPULightListParameters parameters, RTHandle stencilTextureRT, bool tileFlagsWritten, CommandBuffer cmd)
+        {
+            if (parameters.enableFeatureVariants)
+            {
+                // We need to touch up the tile flags if we need material classification or, if disabled, to patch up for missing flags during the skipped light tile gen
+                bool needModifyingTileFeatures = !tileFlagsWritten || parameters.computeMaterialVariants;
+                if (needModifyingTileFeatures)
+                {
+                    int buildMaterialFlagsKernel = (!tileFlagsWritten || !parameters.computeLightVariants) ? s_BuildMaterialFlagsWriteKernel : s_BuildMaterialFlagsOrKernel;
+
+                    uint baseFeatureFlags = 0;
+                    if (!parameters.computeLightVariants)
+                    {
+                        baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
+                    }
+
+                    // If we haven't run the light list building, we are missing some basic lighting flags.
+                    if (!tileFlagsWritten)
+                    {
+                        if (parameters.lightList.directionalLights.Count > 0)
+                        {
+                            baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
+                        }
+                        if (parameters.skyEnabled)
+                        {
+                            baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
+                        }
+                        if (!parameters.computeMaterialVariants)
+                        {
+                            baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
+                        }
+                    }
+
+                    cmd.SetComputeIntParam(parameters.buildMaterialFlagsShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
+                    cmd.SetComputeIntParams(parameters.buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
+                    cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+
+                    cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, stencilTextureRT);
+
+                    cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.computePassCount);
+                }
+
+                // clear dispatch indirect buffer
+                if (k_PreferFragment)
+                {
+                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
+                    cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
+                    cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawInstancedIndirectKernel, 1, 1, 1);
+
+                    // add tiles to indirect buffer
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileList, s_TileList);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
+                    cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
+                    cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.computePassCount);
+                }
+                else
+                {
+                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
+
+                    // add tiles to indirect buffer
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileList, s_TileList);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
+                    cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
+                    cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.computePassCount);
+                }
+            }
+        }
+
+        BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCamera hdCamera)
+        {
+            BuildGPULightListParameters parameters = new BuildGPULightListParameters();
 
             var camera = hdCamera.camera;
-            cmd.BeginSample("Build Light List");
 
             var w = (int)hdCamera.screenSize.x;
             var h = (int)hdCamera.screenSize.y;
+
             s_TempScreenDimArray[0] = w;
             s_TempScreenDimArray[1] = h;
-            var numBigTilesX = (w + 63) / 64;
-            var numBigTilesY = (h + 63) / 64;
+
+            parameters.runLightList = m_TotalLightCount > 0;
+
+            // If we don't need to run the light list, we still run it for the first frame that is not needed in order to keep the lists in a clean state.
+            if (!parameters.runLightList && m_hasRunLightListPrevFrame)
+            {
+                m_hasRunLightListPrevFrame = false;
+                parameters.runLightList = true;
+            }
+            else
+            {
+                m_hasRunLightListPrevFrame = parameters.runLightList;
+            }
+
+            // Always build the light list in XR mode to avoid issues with multi-pass
+            if (hdCamera.xr.enabled)
+                parameters.runLightList = true;
 
             var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
@@ -2342,10 +2561,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
             temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
+            parameters.lightListProjscrMatrices = m_LightListProjscrMatrices;
+            parameters.lightListInvProjscrMatrices = m_LightListInvProjscrMatrices;
+            parameters.lightListProjHMatrices = m_LightListProjHMatrices;
+            parameters.lightListInvProjHMatrices = m_LightListInvProjHMatrices;
+
             // camera to screen matrix (and it's inverse)
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
-                var proj = hdCamera.camera.projectionMatrix;
+                var proj = camera.projectionMatrix;
 
                 // XRTODO: If possible, we could generate a non-oblique stereo projection
                 // matrix.  It's ok if it's not the exact same matrix, as long as it encompasses
@@ -2358,222 +2582,102 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     proj = hdCamera.xr.GetProjMatrix(viewIndex);
 
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
-                m_LightListProjscrMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
-                m_LightListInvProjscrMatrices[viewIndex] = m_LightListProjscrMatrices[viewIndex].inverse;
+                parameters.lightListProjscrMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
+                parameters.lightListInvProjscrMatrices[viewIndex] = parameters.lightListProjscrMatrices[viewIndex].inverse;
             }
 
-            bool isOrthographic = camera.orthographic;
+            parameters.totalLightCount = m_TotalLightCount;
+            parameters.isOrthographic = camera.orthographic;
+            parameters.computePassCount = hdCamera.computePassCount;
+            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings);
+            parameters.computeMaterialVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
+            parameters.computeLightVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants);
+            parameters.nearClipPlane = camera.nearClipPlane;
+            parameters.farClipPlane = camera.farClipPlane;
+            parameters.lightList = m_lightList;
+            parameters.skyEnabled = m_SkyManager.IsLightingSkyValid();
+            parameters.screenSize = hdCamera.screenSize;
+            parameters.msaaSamples = (int)hdCamera.msaaSamples;
+
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
-            // If we don't need to run the light list, we still run it for the first frame that is not needed in order to keep the lists in a clean state.
-            if (!runLightList && m_hasRunLightListPrevFrame)
-            {
-                m_hasRunLightListPrevFrame = false;
-                runLightList = true;
-            }
-            else
-            {
-                m_hasRunLightListPrevFrame = runLightList;
-            }
-
-            // Always build the light list in XR mode to avoid issues with multi-pass
-            if (hdCamera.xr.enabled)
-                runLightList = true;
-
-            // generate screen-space AABBs (used for both fptl and clustered).
-            if (m_lightCount != 0)
+            // Screen space AABB
+            parameters.screenSpaceAABBShader = buildScreenAABBShader;
+            parameters.screenSpaceAABBKernel = isProjectionOblique ? s_GenAABBKernel_Oblique : s_GenAABBKernel;
+            // camera to screen matrix (and it's inverse)
+            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
                 temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
                 temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
                 temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
-                for (int viewIndex = 0; viewIndex < hdCamera.viewCount; viewIndex++)
-                {
-                    m_LightListProjHMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
-                    m_LightListInvProjHMatrices[viewIndex] = m_LightListProjHMatrices[viewIndex].inverse;
-                }
-
-                var genAABBKernel = isProjectionOblique ? s_GenAABBKernel_Oblique : s_GenAABBKernel;
-
-                cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-
-                // In the stereo case, we have two sets of light bounds to iterate over (bounds are in per-eye view space)
-                cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
-                cmd.SetComputeBufferParam(buildScreenAABBShader, genAABBKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
-
-                cmd.SetComputeMatrixArrayParam(buildScreenAABBShader, HDShaderIDs.g_mProjectionArr, m_LightListProjHMatrices);
-                cmd.SetComputeMatrixArrayParam(buildScreenAABBShader, HDShaderIDs.g_mInvProjectionArr, m_LightListInvProjHMatrices);
-
-                // In stereo, we output two sets of AABB bounds
-                cmd.SetComputeBufferParam(buildScreenAABBShader, genAABBKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
-
-                cmd.DispatchCompute(buildScreenAABBShader, genAABBKernel, (m_lightCount + 7) / 8, hdCamera.computePassCount, 1);
+                parameters.lightListProjHMatrices[viewIndex] = temp * m_LightListProjMatrices[viewIndex];
+                parameters.lightListInvProjHMatrices[viewIndex] = parameters.lightListProjHMatrices[viewIndex].inverse;
             }
 
-            // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
-            if (runLightList && m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
-            {
-                cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
-                cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(buildPerBigTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
+            // Big tile prepass
+            parameters.runBigTilePrepass = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+            parameters.bigTilePrepassShader = buildPerBigTileLightListShader;
+            parameters.bigTilePrepassKernel = s_GenListPerBigTileKernel;
+            parameters.numBigTilesX = (w + 63) / 64;
+            parameters.numBigTilesY = (h + 63) / 64;
 
-                // TODO: These two aren't actually used...
-                cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
-                cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
-
-                cmd.SetComputeMatrixArrayParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjectionArr, m_LightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, m_LightListInvProjscrMatrices);
-
-                cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
-                cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fFarPlane, camera.farClipPlane);
-                cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs.g_vLightList, s_BigTileLightList);
-                cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
-                cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
-                cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
-
-                cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, hdCamera.computePassCount);
-            }
-
-            var numTilesX = GetNumTileFtplX(hdCamera);
-            var numTilesY = GetNumTileFtplY(hdCamera);
-            var numTiles = numTilesX * numTilesY;
-            bool enableFeatureVariants = GetFeatureVariantsEnabled();
-            bool tileFlagsWritten = false;
-            bool computeMaterialVariants = m_FrameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
-            bool computeLightVariants = m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants);
-
-            // optimized for opaques only
-            if (runLightList && m_FrameSettings.fptl)
-            {
-                var genListPerTileKernel = isProjectionOblique ? s_GenListPerTileKernel_Oblique : s_GenListPerTileKernel;
-
-                cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_isOrthographic, isOrthographic ? 1 : 0);
-                cmd.SetComputeIntParams(buildPerTileLightListShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
-                cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
-                cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
-                cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
-
-                cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
-                cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
-                cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
-
-                cmd.SetComputeMatrixArrayParam(buildPerTileLightListShader, HDShaderIDs.g_mScrProjectionArr, m_LightListProjscrMatrices);
-                cmd.SetComputeMatrixArrayParam(buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, m_LightListInvProjscrMatrices);
-
-                cmd.SetComputeTextureParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
-                cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_vLightList, s_LightList);
-                if (m_FrameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
-                    cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
-
-                if (enableFeatureVariants)
-                {
-                    uint baseFeatureFlags = 0;
-                    if (m_lightList.directionalLights.Count > 0)
-                    {
-                        baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
-                    }
-                    if (skyEnabled)
-                    {
-                        baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
-                    }
-                    if (!computeMaterialVariants)
-                    {
-                        baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
-                    }
-                    cmd.SetComputeIntParam(buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
-                    cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
-                    tileFlagsWritten = true;
-                }
-
-                cmd.DispatchCompute(buildPerTileLightListShader, genListPerTileKernel, numTilesX, numTilesY, hdCamera.computePassCount);
-            }
+            // Fptl
+            parameters.runFPTL = hdCamera.frameSettings.fptl;
+            parameters.buildPerTileLightListShader = buildPerTileLightListShader;
+            parameters.buildPerTileLightListKernel = isProjectionOblique ? s_GenListPerTileKernel_Oblique : s_GenListPerTileKernel;
+            parameters.numTilesFPTLX = GetNumTileFtplX(hdCamera);
+            parameters.numTilesFPTLY = GetNumTileFtplY(hdCamera);
+            parameters.numTilesFPTL = parameters.numTilesFPTLX * parameters.numTilesFPTLY;
 
             // Cluster
-            if(runLightList)
-                VoxelLightListGeneration(cmd, hdCamera, m_LightListProjscrMatrices, m_LightListInvProjscrMatrices, cameraDepthBufferRT);
+            parameters.buildPerVoxelLightListShader = buildPerVoxelLightListShader;
+            parameters.buildPerVoxelLightListKernel = isProjectionOblique ? s_GenListPerVoxelKernelOblique : s_GenListPerVoxelKernel;
+            parameters.numTilesClusterX = GetNumTileClusteredX(hdCamera);
+            parameters.numTilesClusterY = GetNumTileClusteredY(hdCamera);
 
-            if (enableFeatureVariants)
-            {
-                // We need to touch up the tile flags if we need material classification or, if disabled, to patch up for missing flags during the skipped light tile gen
-                bool needModifyingTileFeatures = !tileFlagsWritten || computeMaterialVariants;
-                if (needModifyingTileFeatures)
-                {
-                    int buildMaterialFlagsKernel = (!tileFlagsWritten || !computeLightVariants) ? s_BuildMaterialFlagsWriteKernel  : s_BuildMaterialFlagsOrKernel;
+            const float C = (float)(1 << k_Log2NumClusters);
+            var geomSeries = (1.0 - Mathf.Pow(k_ClustLogBase, C)) / (1 - k_ClustLogBase); // geometric series: sum_k=0^{C-1} base^k
+            // TODO: This is computed here and then passed later on as a global shader parameters.
+            // This will be dangerous when running RenderGraph as execution will be delayed and this can change before it's executed
+            m_ClusterScale = (float)(geomSeries / (parameters.farClipPlane - parameters.nearClipPlane));
 
-                    uint baseFeatureFlags = 0;
-                    if (!computeLightVariants)
-                    {
-                        baseFeatureFlags |= LightDefinitions.s_LightFeatureMaskFlags;
-                    }
+            parameters.clusterScale = m_ClusterScale;
 
-                    // If we haven't run the light list building, we are missing some basic lighting flags.
-                    if(!tileFlagsWritten)
-                    {
-                        if (m_lightList.directionalLights.Count > 0)
-                        {
-                            baseFeatureFlags |= (uint)LightFeatureFlags.Directional;
-                        }
-                        if (skyEnabled)
-                        {
-                            baseFeatureFlags |= (uint)LightFeatureFlags.Sky;
-                        }
-                        if (!computeMaterialVariants)
-                        {
-                            baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
-                        }
-                    }
+            // Finalize
+            parameters.buildMaterialFlagsShader = buildMaterialFlagsShader;
+            parameters.clearDispatchIndirectShader = clearDispatchIndirectShader;
+            parameters.buildDispatchIndirectShader = buildDispatchIndirectShader;
 
-                    cmd.SetComputeIntParam(buildMaterialFlagsShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
-                    cmd.SetComputeIntParams(buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
-                    cmd.SetComputeBufferParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
-
-                    cmd.SetComputeTextureParam(buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, stencilTextureRT);
-
-                    cmd.DispatchCompute(buildMaterialFlagsShader, buildMaterialFlagsKernel, numTilesX, numTilesY, hdCamera.computePassCount);
-                }
-
-                // clear dispatch indirect buffer
-                if (k_PreferFragment)
-                {
-                    cmd.SetComputeBufferParam(clearDispatchIndirectShader, s_ClearDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                    cmd.SetComputeIntParam(clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, numTiles);
-                    cmd.SetComputeIntParam(clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
-                    cmd.DispatchCompute(clearDispatchIndirectShader, s_ClearDrawInstancedIndirectKernel, 1, 1, 1);
-
-                    // add tiles to indirect buffer
-                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileList, s_TileList);
-                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
-                    cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, numTiles);
-                    cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, numTilesX);
-                    cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, (numTiles + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, hdCamera.computePassCount);
-                }
-                else
-                {
-                    cmd.SetComputeBufferParam(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                    cmd.DispatchCompute(clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
-
-                    // add tiles to indirect buffer
-                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileList, s_TileList);
-                    cmd.SetComputeBufferParam(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
-                    cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, numTiles);
-                    cmd.SetComputeIntParam(buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, numTilesX);
-                    cmd.DispatchCompute(buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (numTiles + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, hdCamera.computePassCount);
-                }
-            }
-
-            cmd.EndSample("Build Light List");
+            return parameters;
         }
 
-        public void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier cameraDepthBufferRT, RenderTargetIdentifier stencilTextureRT, bool skyEnabled)
+        void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd, RTHandle cameraDepthBufferRT, RTHandle stencilTextureRT)
+        {
+            using (new ProfilingSample(cmd, "Build Light List"))
+            {
+                var parameters = PrepareBuildGPULightListParameters(hdCamera);
+
+                bool tileFlagsWritten = false;
+
+                GenerateLightsScreenSpaceAABBs(parameters, cmd);
+                BigTilePrepass(parameters, cmd);
+                BuildPerTileLightList(parameters, cameraDepthBufferRT, ref tileFlagsWritten, cmd);
+                VoxelLightListGeneration(parameters, cameraDepthBufferRT, cmd);
+
+                FinalizeLightListGeneration(parameters, stencilTextureRT, tileFlagsWritten, cmd);
+            }
+        }
+
+        public void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd, RTHandle cameraDepthBufferRT, RTHandle stencilTextureRT)
         {
             cmd.SetRenderTarget(BuiltinRenderTextureType.None);
 
-            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT, skyEnabled);
+            BuildGPULightListsCommon(hdCamera, cmd, cameraDepthBufferRT, stencilTextureRT);
             PushLightLoopGlobalParams(hdCamera, cmd);
         }
+
         void UpdateDataBuffers()
         {
             m_DirectionalLightDatas.SetData(m_lightList.directionalLights);
@@ -2645,7 +2749,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Cluster
                 {
-                    cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClustScale);
+                    cmd.SetGlobalFloat(HDShaderIDs.g_fClustScale, m_ClusterScale);
                     cmd.SetGlobalFloat(HDShaderIDs.g_fClustBase, k_ClustLogBase);
                     cmd.SetGlobalFloat(HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
                     cmd.SetGlobalFloat(HDShaderIDs.g_fFarPlane, camera.farClipPlane);
@@ -2818,7 +2922,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int numTilesY = (h + 15) / 16;
                     int numTiles = numTilesX * numTilesY;
 
-                    bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnabled();
+                    bool enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
 
                     int numVariants = 1;
                     if (enableFeatureVariants)
@@ -2878,7 +2982,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int numTilesY = (h + 15) / 16;
                     int numTiles = numTilesX * numTilesY;
 
-                    bool enableFeatureVariants = GetFeatureVariantsEnabled() && !debugDisplaySettings.IsDebugDisplayEnabled();
+                    bool enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
 
                     if (options.outputSplitLighting)
                         cmd.SetRenderTarget(colorBuffers, depthStencilBuffer);
@@ -2979,7 +3083,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static void CopyStencilBufferForMaterialClassification(CommandBuffer cmd, RTHandleSystem.RTHandle depthStencilBuffer, RTHandleSystem.RTHandle stencilCopyBuffer, Material copyStencilMaterial)
+        static void CopyStencilBufferForMaterialClassification(CommandBuffer cmd, RTHandleSystem.RTHandle depthStencilBuffer, RTHandleSystem.RTHandle stencilCopyBuffer, Material copyStencilMaterial)
         {
 #if (UNITY_SWITCH || UNITY_IPHONE)
             // Faster on Switch.
@@ -3004,7 +3108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         }
 
-        public static void UpdateStencilBufferForSSRExclusion(CommandBuffer cmd, RTHandleSystem.RTHandle depthStencilBuffer, RTHandleSystem.RTHandle stencilCopyBuffer, Material copyStencilMaterial)
+        static void UpdateStencilBufferForSSRExclusion(CommandBuffer cmd, RTHandleSystem.RTHandle depthStencilBuffer, RTHandleSystem.RTHandle stencilCopyBuffer, Material copyStencilMaterial)
         {
             HDUtils.SetRenderTarget(cmd, depthStencilBuffer);
             cmd.SetRandomWriteTarget(1, stencilCopyBuffer);
@@ -3017,25 +3121,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.ClearRandomWriteTargets();
         }
 
-        public void CopyStencilBufferIfNeeded(CommandBuffer cmd, HDCamera hdCamera, SharedRTManager sharedRTManager)
+        static void CopyStencilBufferIfNeeded(CommandBuffer cmd, HDCamera hdCamera, RTHandle depthStencilBuffer, RTHandle stencilBufferCopy, Material copyStencil, Material copyStencilForSSR)
         {
             // Clear and copy the stencil texture needs to be moved to before we invoke the async light list build,
             // otherwise the async compute queue can end up using that texture before the graphics queue is done with it.
-            // TODO: Move this code inside LightLoop
             // For the SSR we need the lighting flags to be copied into the stencil texture (it is use to discard object that have no lighting)
-            if (GetFeatureVariantsEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
+            if (GetFeatureVariantsEnabled(hdCamera.frameSettings) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
             {
                 // For material classification we use compute shader and so can't read into the stencil, so prepare it.
                 using (new ProfilingSample(cmd, "Clear and copy stencil texture for material classification", CustomSamplerId.ClearAndCopyStencilTexture.GetSampler()))
                 {
-                    CopyStencilBufferForMaterialClassification(cmd, sharedRTManager.GetDepthStencilBuffer(), sharedRTManager.GetStencilBufferCopy(), m_CopyStencil);
+                    CopyStencilBufferForMaterialClassification(cmd, depthStencilBuffer, stencilBufferCopy, copyStencil);
                 }
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
                 {
                     using (new ProfilingSample(cmd, "Update stencil copy for SSR Exclusion", CustomSamplerId.UpdateStencilCopyForSSRExclusion.GetSampler()))
                     {
-                        UpdateStencilBufferForSSRExclusion(cmd, sharedRTManager.GetDepthStencilBuffer(), sharedRTManager.GetStencilBufferCopy(), m_CopyStencilForSSR);
+                        UpdateStencilBufferForSSRExclusion(cmd, depthStencilBuffer, stencilBufferCopy, copyStencilForSSR);
                     }
                 }
             }
@@ -3058,7 +3161,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Debug tiles
                     if (lightingDebug.tileClusterDebug == TileClusterDebug.MaterialFeatureVariants)
                     {
-                        if (GetFeatureVariantsEnabled())
+                        if (GetFeatureVariantsEnabled(hdCamera.frameSettings))
                         {
                             // featureVariants
                             m_DebugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);

@@ -1686,7 +1686,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (!hdCamera.frameSettings.SSAORunsAsync())
                     m_AmbientOcclusionSystem.Render(cmd, hdCamera, m_SharedRTManager, renderContext, m_FrameCount);
 
-                CopyStencilBufferIfNeeded(cmd, hdCamera, m_SharedRTManager);
+                CopyStencilBufferIfNeeded(cmd, hdCamera, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetStencilBufferCopy(), m_CopyStencil, m_CopyStencilForSSR);
 
                 // When debug is enabled we need to clear otherwise we may see non-shadows areas with stale values.
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ContactShadows) && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ContactShadows)
@@ -1742,7 +1742,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     haveAsyncTaskWithShadows = true;
 
                     void Callback(CommandBuffer asyncCmd)
-                        => BuildGPULightListsCommon(hdCamera, asyncCmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetStencilBufferCopy(), m_SkyManager.IsLightingSkyValid());
+                        => BuildGPULightListsCommon(hdCamera, asyncCmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetStencilBufferCopy());
                 }
 
                 if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
@@ -1803,9 +1803,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     using (new ProfilingSample(cmd, "Build Light list", CustomSamplerId.BuildLightList.GetSampler()))
                     {
-                        BuildGPULightLists(hdCamera, cmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetStencilBufferCopy(), m_SkyManager.IsLightingSkyValid());
+                        BuildGPULightLists(hdCamera, cmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetStencilBufferCopy());
                     }
-                    
+
                     DispatchContactShadows();
                 }
 
