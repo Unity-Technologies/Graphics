@@ -91,13 +91,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderReflectionsT1(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
+            HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
             HDRenderPipeline renderPipeline = m_RaytracingManager.GetRenderPipeline();
             BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
             ComputeShader reflectionFilter = m_PipelineAsset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
             RaytracingShader reflectionShader = m_PipelineAsset.renderPipelineRayTracingResources.reflectionRaytracing;
 
-            bool invalidState = rtEnvironement == null || blueNoise == null
+            bool invalidState = rtEnvironment == null || blueNoise == null
                 || reflectionFilter == null || reflectionShader == null
                 || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
@@ -109,8 +109,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
             // Grab the acceleration structures and the light cluster to use
-            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.reflLayerMask);
-            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironement.reflLayerMask);
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironment.reflLayerMask);
+            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironment.reflLayerMask);
 
             // Compute the actual resolution that is needed base on the quality
             string targetRayGen = m_RayGenHalfResName;
@@ -131,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingIntParams(reflectionShader, HDShaderIDs._RaytracingReflectSky, settings.reflectSky.value ? 1 : 0);
 
             // Inject the ray generation data
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, settings.rayLength.value);
             cmd.SetRaytracingIntParams(reflectionShader, HDShaderIDs._RaytracingNumSamples, settings.numSamples.value);
             int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;
@@ -178,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Force to disable specular lighting
             cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, 0);
 
-            // Run the calculus
+            // Run the computation
             cmd.DispatchRays(reflectionShader, targetRayGen, widthResolution, heightResolution, 1);
 
             // Restore the previous state of specular lighting
@@ -238,14 +238,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderReflectionsT2(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
+            HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
             HDRenderPipeline renderPipeline = m_RaytracingManager.GetRenderPipeline();
             BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
             ComputeShader reflectionFilter = m_PipelineAsset.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
             RaytracingShader reflectionShader = m_PipelineAsset.renderPipelineRayTracingResources.reflectionRaytracing;
             RenderPipelineSettings.RaytracingTier currentTier = m_PipelineAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
 
-            bool invalidState = rtEnvironement == null || blueNoise == null
+            bool invalidState = rtEnvironment == null || blueNoise == null
                 || reflectionFilter == null || reflectionShader == null
                 || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
@@ -257,8 +257,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
             // Grab the acceleration structures and the light cluster to use
-            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.reflLayerMask);
-            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironement.reflLayerMask);
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironment.reflLayerMask);
+            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironment.reflLayerMask);
 
             // Compute the actual resolution that is needed base on the quality
             string targetRayGen = m_RayGenIntegrationName;
@@ -279,7 +279,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingFloatParams(reflectionShader, HDShaderIDs._RaytracingReflectSky, settings.reflectSky.value ? 1 : 0);
 
             // Inject the ray generation data
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, settings.rayLength.value);
             cmd.SetRaytracingIntParams(reflectionShader, HDShaderIDs._RaytracingNumSamples, settings.numSamples.value);
             int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;
@@ -326,7 +326,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Force to disable specular lighting
             cmd.SetGlobalInt(HDShaderIDs._EnableSpecularLighting, 0);
 
-            // Run the calculus
+            // Run the computation
             cmd.DispatchRays(reflectionShader, targetRayGen, widthResolution, heightResolution, 1);
 
             // Restore the previous state of specular lighting

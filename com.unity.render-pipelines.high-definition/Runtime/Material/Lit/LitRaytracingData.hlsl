@@ -21,7 +21,7 @@ float2 GetIntersectionTextureCoordinates(FragInputs input, float4 uvMask, float2
     return uv;
 }
 
-float GetIntersectionTextureArea(IntersectionVertice input, float4 uvMask, float2 tiling, float worldScale)
+float GetIntersectionTextureArea(IntersectionVertex input, float4 uvMask, float2 tiling, float worldScale)
 {
 #if defined(_MAPPING_PLANAR) || defined(_MAPPING_TRIPLANAR)
     // Triplanar mapping will default to planar
@@ -40,7 +40,7 @@ float GetIntersectionTextureArea(IntersectionVertice input, float4 uvMask, float
     return area;
 }
 
-bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs posInput, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef _DOUBLESIDED_ON
     float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
@@ -81,8 +81,8 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     const float3x3 worldToObject = (float3x3)WorldToObject3x4();
     const float3 scale3 = float3(length(worldToObject[0]), length(worldToObject[1]), length(worldToObject[2]));
     const float coneWidthOS = rayCone.width * (scale3.x + scale3.y + scale3.z) / 3;
-    const float uvArea = GetIntersectionTextureArea(intersectionVertice, _UVMappingMask, _BaseColorMap_ST.xy, _TexWorldScale);
-    const float baseLOD = computeBaseTextureLOD(V, input.worldToTangent[2], coneWidthOS, uvArea, intersectionVertice.triangleArea);
+    const float uvArea = GetIntersectionTextureArea(intersectionVertex, _UVMappingMask, _BaseColorMap_ST.xy, _TexWorldScale);
+    const float baseLOD = computeBaseTextureLOD(V, input.worldToTangent[2], coneWidthOS, uvArea, intersectionVertex.triangleArea);
     #else
     const float baseLOD = 0;
     #endif

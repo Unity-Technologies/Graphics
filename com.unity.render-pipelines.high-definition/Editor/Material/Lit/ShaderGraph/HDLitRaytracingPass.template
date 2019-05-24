@@ -132,7 +132,7 @@ Pass
         return output;
     }
 
-    void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out float3 bentNormalWS)
+    void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out float3 bentNormalWS)
     {
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
@@ -227,7 +227,7 @@ Pass
 
     }
 
-    bool GetSurfaceDataFromIntersection(FragInputs fragInputs, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+    bool GetSurfaceDataFromIntersection(FragInputs fragInputs, float3 V, PositionInputs posInput, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
         $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
@@ -242,7 +242,7 @@ Pass
         $AlphaTest: if(surfaceDescription.Alpha < surfaceDescription.AlphaClipThreshold) return false;
 
         float3 bentNormalWS;
-        BuildSurfaceData(fragInputs, surfaceDescription, V, intersectionVertice, rayCone, surfaceData, bentNormalWS);
+        BuildSurfaceData(fragInputs, surfaceDescription, V, intersectionVertex, rayCone, surfaceData, bentNormalWS);
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal
