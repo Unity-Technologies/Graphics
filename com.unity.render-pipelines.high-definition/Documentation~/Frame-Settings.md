@@ -54,7 +54,7 @@ These settings control lighting features for your rendering components. Here you
 | **SSAO**                         | Enable the checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |
 | **Subsurface Scattering**        | Enable the checkbox to make HDRP process subsurface scattering. Enabling this feature causes HDRP to simulate how light penetrates surfaces of translucent GameObjects, scatters inside them, and exits from different locations. |
 | **Transmission**                 | Enable the checkbox to make HDRP process the transmission effect. This allows subsurface scattering Materials to use transmission, for example, light transmits through a leaf with a subsurface scattering Material. |
-| **Atmospheric Scattering**       | Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the [fog](Fog-Overview.html) from your Scene’s Volumes. |
+| **Atmospheric Scattering**       | Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the [fog](HDRP-Features.html#FogOverview.html) from your Scene’s Volumes. |
 | **Volumetrics**                  | Enable the checkbox to make HDRP process Volumetrics. Enabling this setting allows your rendering component to render volumetric fog and lighting. |
 | **Reprojection For Volumetrics** | Enable the checkbox to improve the quality of volumetrics at runtime. Enabling this feature causes HDRP to use several previous frames to calculate the volumetric effects. Using these previous frames helps to reduce noise and smooth out the effects. |
 | **Light Layers**                 | Enable the checkbox to make HDRP process Light Layers.      |
@@ -90,4 +90,4 @@ Note: These settings are for debugging purposes only so do not alter these value
 
 ## Debugging Frame Settings
 
-Frame Settings can be changed on the fly without altering the actual camera data by using the Render Pipeline Debug in the editor and the player. See the [corresponding page](Render-Pipeline-Debug-Camera).
+Frame Settings can be changed on the fly without altering the actual camera data by using the Render Pipeline Debug in the editor and the player. See the [corresponding page](Render-Pipeline-Debug-Camera.html).

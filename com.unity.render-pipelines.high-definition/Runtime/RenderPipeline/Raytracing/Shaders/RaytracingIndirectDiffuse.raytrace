@@ -25,7 +25,7 @@
 
 // The target acceleration structure that we will evaluate the reflexion in
 Texture2D<float>                        _StencilTexture;
-Texture2D<float>                        _DepthTexture;
+TEXTURE2D_X(_DepthTexture);
 
 // Flag value that defines if a given pixel recieves reflections or not
 // int                                       _SsrStencilExclusionValue;
@@ -57,7 +57,7 @@ void RayGenIndirectDiffuse()
     _IndirectDiffuseTextureRW[currentCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
     // Read the depth value
-    float depthValue = _DepthTexture[currentCoord];
+    float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
 
     // This point is part of the background, we don't really care
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)

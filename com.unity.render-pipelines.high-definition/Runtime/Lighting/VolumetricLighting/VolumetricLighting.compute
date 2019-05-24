@@ -88,7 +88,7 @@ TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinct
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
-    float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
+    float4x4 _VBufferCoordToViewDirWS[XR_MAX_VIEWS];
 
     float    _VBufferUnitDepthTexelSpacing;
     uint     _NumVisibleDensityVolumes;         // Not used by this shader
@@ -546,7 +546,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 reprojValue = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLightingHistory, s_linear_clamp_sampler),
                                            centerWS,
                                            _PrevCamPosRWS,
-                                           _PrevViewProjMatrix,
+                                           UNITY_MATRIX_PREV_VP,
                                            _VBufferPrevResolution,
                                            _VBufferPrevUvScaleAndLimit.xy,
                                            _VBufferPrevUvScaleAndLimit.zw,
@@ -662,11 +662,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     float2 centerCoord = voxelCoord + float2(0.5, 0.5);
 
     // Compute a ray direction s.t. ViewSpace(rayDirWS).z = 1.
-#if defined(USING_STEREO_MATRICES)
-    float3 rayDirWS       = normalize(ComputeWorldSpacePosition(centerCoord * _VBufferResolution.zw, 1.0, UNITY_MATRIX_I_VP) - GetCurrentViewPosition());
-#else
-    float3 rayDirWS       = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
-#endif
+    float3 rayDirWS       = mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS[unity_StereoEyeIndex]).xyz;
     float3 rightDirWS     = cross(rayDirWS, U);
     float  rcpLenRayDir   = rsqrt(dot(rayDirWS, rayDirWS));
     float  rcpLenRightDir = rsqrt(dot(rightDirWS, rightDirWS));
@@ -694,6 +690,8 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     LightLoopContext context;
     context.shadowContext = InitShadowContext();
     uint featureFlags     = 0xFFFFFFFF;
+
+    ApplyCameraRelativeXR(ray.originWS);
 
     FillVolumetricLightingBuffer(context, featureFlags, posInput, tileIndex, ray);
 }

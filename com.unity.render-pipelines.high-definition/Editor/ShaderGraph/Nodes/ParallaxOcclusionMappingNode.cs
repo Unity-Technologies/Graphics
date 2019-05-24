@@ -129,7 +129,7 @@ return objectScale;");
                 });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             string amplitude = GetSlotValue(kAmplitudeSlotId, generationMode);
             string steps = GetSlotValue(kStepsSlotId, generationMode);
@@ -144,7 +144,7 @@ return objectScale;");
             string tmpViewDirUV = GetVariableNameForNode() + "_ViewDirUV";
             string tmpOutHeight = GetVariableNameForNode() + "_OutHeight";
 
-            visitor.AddShaderChunk(String.Format(@"
+            sb.AppendLines(String.Format(@"
 {0}3 {5} = IN.{3} * GetDisplacementObjectScale().xzy;
 float {6} = {5}.z;
 float {7} = {4} * 0.01;
@@ -164,7 +164,8 @@ PerPixelHeightDisplacementParam {1};
                 tmpMaxHeight,
                 tmpViewDirUV
                 ));
-            visitor.AddShaderChunk(String.Format(@"
+
+            sb.AppendLines(String.Format(@"
 {0} {11};
 {0}2 {1} = {9} + ParallaxOcclusionMapping({2}, {3}, {4}, {5}, {6}, {11});
 

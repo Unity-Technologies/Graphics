@@ -60,7 +60,7 @@ RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extin
 
 // TODO: avoid creating another Constant Buffer...
 CBUFFER_START(UnityVolumetricLighting)
-    float4x4 _VBufferCoordToViewDirWS;          // Actually just 3x3, but Unity can only set 4x4
+    float4x4 _VBufferCoordToViewDirWS[XR_MAX_VIEWS];
 
     float    _VBufferUnitDepthTexelSpacing;
     uint     _NumVisibleDensityVolumes;
@@ -358,11 +358,7 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     float2 centerCoord = voxelCoord + float2(0.5, 0.5);
 
     // Compute a ray direction s.t. ViewSpace(rayDirWS).z = 1.
-#if defined(USING_STEREO_MATRICES)
-    float3 rayDirWS       = normalize(ComputeWorldSpacePosition(centerCoord * _VBufferResolution.zw, 1.0, UNITY_MATRIX_I_VP) - GetCurrentViewPosition());
-#else
-    float3 rayDirWS       = mul(-float3(centerCoord, 1), (float3x3)_VBufferCoordToViewDirWS);
-#endif
+    float3 rayDirWS       = mul(-float4(centerCoord, 1, 1), _VBufferCoordToViewDirWS[unity_StereoEyeIndex]).xyz;
     float3 rightDirWS     = cross(rayDirWS, U);
     float  rcpLenRayDir   = rsqrt(dot(rayDirWS, rayDirWS));
     float  rcpLenRightDir = rsqrt(dot(rightDirWS, rightDirWS));
@@ -379,6 +375,8 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.jitterDirWS = ray.centerDirWS; // TODO
 
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
+
+    ApplyCameraRelativeXR(ray.originWS);
 
     FillVolumetricDensityBuffer(posInput, tileIndex, ray);
 }

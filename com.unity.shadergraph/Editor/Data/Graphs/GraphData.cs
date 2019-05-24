@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
-using UnityEditor.ShaderGraph.Drawing;
 using Edge = UnityEditor.Graphing.Edge;
 
 namespace UnityEditor.ShaderGraph

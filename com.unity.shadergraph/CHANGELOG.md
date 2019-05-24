@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.0.0-preview] - 2019-XX-XX
+### Added
+- You can now use the `SHADERGRAPH_PREVIEW` keyword in `Custom Function Node` to generate different code for preview Shaders.
+- Color Mode improves node visibility by coloring the title bar by Category, Precision, or custom colors
+
+### Changed
+- The `Custom Function Node` now uses an object field to reference its source when using `File` mode.
+
+### Fixed
+- Fixed an error in `Custom Function Node` port naming.
+- `Sampler State` properties and nodes now serialize correctly.
+- Labels in the Custom Port menu now use the correct coloring when using the Personal skin.
 
 ## [6.7.0-preview] - 2019-05-16
 ### Added

@@ -309,19 +309,14 @@ namespace UnityEditor.ShaderGraph
                 using (sb.BlockScope())
                 {
                     // Just grab the body from the active nodes
-                    var bodyGenerator = new ShaderGenerator();
                     foreach (var node in nodes)
                     {
                         if (node is IGeneratesBodyCode)
-                            (node as IGeneratesBodyCode).GenerateNodeCode(bodyGenerator, graphContext, GenerationMode.ForReals);
+                            (node as IGeneratesBodyCode).GenerateNodeCode(sb, graphContext, GenerationMode.ForReals);
                     }
 
                     foreach (var slot in subGraphData.outputs)
-                    {
-                        bodyGenerator.AddShaderChunk($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals)};");
-                    }
-
-                    sb.Append(bodyGenerator.GetShaderString(1));
+                        sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals)};");
                 }
             });
             

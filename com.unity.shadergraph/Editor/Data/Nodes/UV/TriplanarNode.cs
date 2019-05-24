@@ -76,9 +76,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
             sb.AppendLine("{0}3 {1}_UV = {2} * {3};", precision, GetVariableNameForNode(),
                 GetSlotValue(PositionInputId, generationMode), GetSlotValue(TileInputId, generationMode));
 
@@ -166,8 +165,6 @@ namespace UnityEditor.ShaderGraph
                     , GetVariableNameForNode());
                     break;
             }
-
-            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)

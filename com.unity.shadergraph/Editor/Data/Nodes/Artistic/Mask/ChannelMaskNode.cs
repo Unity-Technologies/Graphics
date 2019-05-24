@@ -84,13 +84,13 @@ namespace UnityEditor.ShaderGraph
             return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(), NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<DynamicVectorMaterialSlot>(InputSlotId).concreteValueType), argIn, NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<DynamicVectorMaterialSlot>(OutputSlotId).concreteValueType), argOut);
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             ValidateChannelCount();
             string inputValue = GetSlotValue(InputSlotId, generationMode);
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
-            visitor.AddShaderChunk(string.Format("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
-            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, outputValue), true);
+            sb.AppendLine(string.Format("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)));
+            sb.AppendLine(GetFunctionCallBody(inputValue, outputValue));
         }
 
         string GetFunctionCallBody(string inputValue, string outputValue)

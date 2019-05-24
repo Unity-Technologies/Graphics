@@ -1,6 +1,6 @@
 # Camera Debug Panel
 
-In HDRP, each active camera will have its own debug panel. The purpose of this panel is to change camera [frame settings](Frame-Settings) on the fly without altering the camera data in the scene.
+In HDRP, each active camera will have its own debug panel. The purpose of this panel is to change camera [frame settings](Frame-Settings.html) on the fly without altering the camera data in the scene.
 
 ![](D:/Projects/SRP-Master/SRP/com.unity.render-pipelines.high-definition/Documentation~/Images/FrameSettings2.png)
 

@@ -2,6 +2,8 @@
 
 The High Definition Render Pipeline (HDRP) allows you to use Light Layers, which are [LayerMasks](https://docs.unity3d.com/ScriptReference/LayerMask.html), to make Lights in your Scene only light up specific Meshes. You set Light Layers for Lights and Meshes to make Lights only affect Meshes that are on corresponding Light Layers.
 
+![](Images/HDRPFeatures-LightLayers.png)
+
 ## Enabling Light Layers
 
 To use Light Layers, you must enable them in your Project’s [HDRP Asset](HDRP-Asset.html). You can then enable Light Layers in your default [Frame Settings](Frame-Settings.html) to set your Cameras to process Light Layers.

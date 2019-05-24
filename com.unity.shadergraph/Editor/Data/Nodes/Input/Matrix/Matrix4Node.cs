@@ -106,9 +106,8 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
             if (!generationMode.IsPreview())
             {
                 sb.AppendLine("{0}4 _{1}_m0 = {0}4 ({2}, {3}, {4}, {5});", precision, GetVariableNameForNode(),
@@ -134,7 +133,6 @@ namespace UnityEditor.ShaderGraph
             }
             sb.AppendLine("{0}4x4 {1} = {0}4x4 (_{1}_m0.x, _{1}_m0.y, _{1}_m0.z, _{1}_m0.w, _{1}_m1.x, _{1}_m1.y, _{1}_m1.z, _{1}_m1.w, _{1}_m2.x, _{1}_m2.y, _{1}_m2.z, _{1}_m2.w, _{1}_m3.x, _{1}_m3.y, _{1}_m3.z, _{1}_m3.w);",
                 precision, GetVariableNameForNode());
-            visitor.AddShaderChunk(sb.ToString(), false);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)

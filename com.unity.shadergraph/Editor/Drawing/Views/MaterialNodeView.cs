@@ -9,6 +9,7 @@ using UnityEngine.Rendering;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEngine.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
 
@@ -18,6 +19,10 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;
+        // Remove this after updated to the correct API call has landed in trunk. ------------
+        VisualElement m_TitleContainer;
+        new VisualElement m_ButtonContainer;
+
         VisualElement m_PreviewContainer;
         VisualElement m_ControlItems;
         VisualElement m_PreviewFiller;
@@ -32,10 +37,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         GraphView m_GraphView;
 
-
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
+            styleSheets.Add(Resources.Load<StyleSheet>($"Styles/ColorMode"));
             AddToClassList("MaterialNode");
 
             if (inNode == null)
@@ -159,11 +164,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_PortInputContainer.SendToBack();
 
-            // Remove this after updated to the correct API call has landed in trunk. ------------
-            VisualElement m_TitleContainer;
-            VisualElement m_ButtonContainer;
             m_TitleContainer = this.Q("title");
-            // -----------------------------------------------------------------------------------
 
             var settings = node as IHasSettings;
             if (settings != null)
@@ -183,15 +184,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                         UpdateSettingsExpandedState();
                     }));
 
-                // Remove this after updated to the correct API call has landed in trunk. ------------
                 m_ButtonContainer = new VisualElement { name = "button-container" };
                 m_ButtonContainer.style.flexDirection = FlexDirection.Row;
                 m_ButtonContainer.Add(m_SettingsButton);
                 m_ButtonContainer.Add(m_CollapseButton);
                 m_TitleContainer.Add(m_ButtonContainer);
-                // -----------------------------------------------------------------------------------
-                //titleButtonContainer.Add(m_SettingsButton);
-                //titleButtonContainer.Add(m_CollapseButton);
             }
         }
 
@@ -209,8 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             Add(badge);
-            var myTitle = this.Q("title");
-            badge.AttachTo(myTitle, SpriteAlignment.RightCenter);
+            badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
         }
 
         public void ClearMessage()
@@ -221,6 +217,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                 badge.Detach();
                 badge.RemoveFromHierarchy();
             }
+        }
+
+        public VisualElement colorElement
+        {
+            get { return this; }
+        }
+
+        static readonly StyleColor noColor = new StyleColor(StyleKeyword.Null);
+        public void SetColor(Color color)
+        {
+            m_TitleContainer.style.borderColor = color;
+        }
+        
+        public void ResetColor()
+        {
+            m_TitleContainer.style.borderColor = noColor;
+        }
+
+
+        public Color GetColor()
+        {
+            return m_TitleContainer.resolvedStyle.borderColor;
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)

@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph
 
         static int[] s_OutputSlots = {OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId};
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             var inputValue = GetSlotValue(InputSlotId, generationMode);
 
@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph
                             break;
                     }
                 }
-                visitor.AddShaderChunk(string.Format("{0}{1} {2} = {3};", precision, concreteRowCount, GetVariableNameForSlot(s_OutputSlots[r]), outputValue), true);
+                sb.AppendLine(string.Format("{0}{1} {2} = {3};", precision, concreteRowCount, GetVariableNameForSlot(s_OutputSlots[r]), outputValue));
             }
         }
 

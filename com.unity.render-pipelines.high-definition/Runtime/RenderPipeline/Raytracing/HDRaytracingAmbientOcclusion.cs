@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // External structures
         RenderPipelineResources m_PipelineResources = null;
+        HDRenderPipelineRayTracingResources m_PipelineRayTracingResources = null;
         RenderPipelineSettings m_PipelineSettings;
         HDRaytracingManager m_RaytracingManager = null;
         SharedRTManager m_SharedRTManager = null;
@@ -18,7 +19,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Intermediate buffer that stores the ambient occlusion pre-denoising
         RTHandleSystem.RTHandle m_IntermediateBuffer = null;
-        RTHandleSystem.RTHandle m_HitDistanceBuffer = null;
         RTHandleSystem.RTHandle m_ViewSpaceNormalBuffer = null;
 
         // String values
@@ -30,11 +30,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
         }
 
-        public void Init(RenderPipelineResources pipelineResources, RenderPipelineSettings pipelineSettings, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
+        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, RenderPipelineSettings pipelineSettings, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
         {
             // Keep track of the pipeline asset
             m_PipelineSettings = pipelineSettings;
-            m_PipelineResources = pipelineResources;
+            m_PipelineResources = rpResources;
+            m_PipelineRayTracingResources = rpRTResources;
 
             // keep track of the ray tracing manager
             m_RaytracingManager = raytracingManager;
@@ -45,9 +46,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Intermediate buffer that holds the pre-denoised texture
             m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateAOBuffer");
 
-            // Buffer that holds the average distance of the rays
-            m_HitDistanceBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "HitDistanceBuffer");
-
             // Buffer that holds the uncompressed normal buffer
             m_ViewSpaceNormalBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "ViewSpaceNormalBuffer");
         }
@@ -55,7 +53,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Release()
         {
             RTHandles.Release(m_ViewSpaceNormalBuffer);
-            RTHandles.Release(m_HitDistanceBuffer);
             RTHandles.Release(m_IntermediateBuffer);
         }
 
@@ -77,15 +74,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Let's check all the resources
             HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
-            ComputeShader aoFilter = m_PipelineResources.shaders.raytracingAOFilterCS;
-            RaytracingShader aoShader = m_PipelineResources.shaders.aoRaytracing;
+            ComputeShader aoFilter = m_PipelineRayTracingResources.raytracingAOFilterCS;
+            RaytracingShader aoShader = m_PipelineRayTracingResources.aoRaytracing;
             var aoSettings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
             // Check if the state is valid for evaluating ambient occlusion
             bool invalidState = rtEnvironement == null
             || aoFilter == null || aoShader == null
-            || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null
-            || !(hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && aoSettings.intensity.value > 0f);
+            || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
             // If any of the previous requirements is missing, the effect is not requested or no acceleration structure, set the default one and leave right away
             if (invalidState)
@@ -109,11 +105,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Inject the ray generation data
             cmd.SetRaytracingFloatParams(aoShader, HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
-            cmd.SetRaytracingFloatParams(aoShader, HDShaderIDs._RaytracingRayMaxLength, rtEnvironement.aoRayLength);
-            cmd.SetRaytracingIntParams(aoShader, HDShaderIDs._RaytracingNumSamples, rtEnvironement.aoNumSamples);
+            cmd.SetRaytracingFloatParams(aoShader, HDShaderIDs._RaytracingRayMaxLength, aoSettings.rayLength.value);
+            cmd.SetRaytracingIntParams(aoShader, HDShaderIDs._RaytracingNumSamples, aoSettings.numSamples.value);
 
             // Set the data for the ray generation
-
             cmd.SetRaytracingTextureParam(aoShader, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
             cmd.SetRaytracingTextureParam(aoShader, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;
@@ -127,7 +122,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Set the output textures
             cmd.SetRaytracingTextureParam(aoShader, HDShaderIDs._AmbientOcclusionTextureRW, m_IntermediateBuffer);
-            cmd.SetRaytracingTextureParam(aoShader, HDShaderIDs._RaytracingHitDistanceTexture, m_HitDistanceBuffer);
             cmd.SetRaytracingTextureParam(aoShader, HDShaderIDs._RaytracingVSNormalTexture, m_ViewSpaceNormalBuffer);
 
             // Run the calculus
@@ -135,73 +129,63 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingAmbientOcclusion.GetSampler()))
             {
-                switch(rtEnvironement.aoFilterMode)
+                if(aoSettings.enableFilter.value)
                 {
-                    case HDRaytracingEnvironment.AOFilterMode.Nvidia:
-                    {
-                        cmd.DenoiseAmbientOcclusionTexture(m_IntermediateBuffer, m_HitDistanceBuffer, m_SharedRTManager.GetDepthStencilBuffer(), m_ViewSpaceNormalBuffer, outputTexture, hdCamera.mainViewConstants.viewMatrix, hdCamera.mainViewConstants.projMatrix, (uint)rtEnvironement.maxFilterWidthInPixels, rtEnvironement.filterRadiusInMeters, rtEnvironement.normalSharpness, 1.0f, 0.0f);
-                    }
-                    break;
-                    case HDRaytracingEnvironment.AOFilterMode.SpatioTemporal:
-                    {
-                        // Grab the history buffer
-                        RTHandleSystem.RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
-                            ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
+                    // Grab the history buffer
+                    RTHandleSystem.RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
+                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
 
-                        // Texture dimensions
-                        int texWidth = hdCamera.actualWidth;
-                        int texHeight = hdCamera.actualHeight;
+                    // Texture dimensions
+                    int texWidth = hdCamera.actualWidth;
+                    int texHeight = hdCamera.actualHeight;
 
-                        // Evaluate the dispatch parameters
-                        int areaTileSize = 8;
-                        int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
-                        int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
+                    // Evaluate the dispatch parameters
+                    int areaTileSize = 8;
+                    int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
+                    int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
-                        m_KernelFilter = aoFilter.FindKernel("AOApplyTAA");
+                    m_KernelFilter = aoFilter.FindKernel("AOApplyTAA");
 
-                        // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
-                        var historyScale = new Vector2(hdCamera.actualWidth / (float)ambientOcclusionHistory.rt.width, hdCamera.actualHeight / (float)ambientOcclusionHistory.rt.height);
-                        cmd.SetComputeVectorParam(aoFilter, HDShaderIDs._RTHandleScaleHistory, historyScale);
+                    // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
+                    var historyScale = new Vector2(hdCamera.actualWidth / (float)ambientOcclusionHistory.rt.width, hdCamera.actualHeight / (float)ambientOcclusionHistory.rt.height);
+                    cmd.SetComputeVectorParam(aoFilter, HDShaderIDs._RTHandleScaleHistory, historyScale);
 
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_IntermediateBuffer);
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._AOHistorybuffer, ambientOcclusionHistory);
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, m_ViewSpaceNormalBuffer);
-                        cmd.DispatchCompute(aoFilter, m_KernelFilter, numTilesX, numTilesY, 1);
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_IntermediateBuffer);
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._AOHistorybuffer, ambientOcclusionHistory);
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, m_ViewSpaceNormalBuffer);
+                    cmd.DispatchCompute(aoFilter, m_KernelFilter, numTilesX, numTilesY, 1);
 
-                        // Output the new history
-                        m_KernelFilter = aoFilter.FindKernel("AOCopyHistory");
+                    // Output the new history
+                    m_KernelFilter = aoFilter.FindKernel("AOCopyHistory");
                         
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_ViewSpaceNormalBuffer);
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, ambientOcclusionHistory);
-                        cmd.DispatchCompute(aoFilter, m_KernelFilter, numTilesX, numTilesY, 1);
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_ViewSpaceNormalBuffer);
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, ambientOcclusionHistory);
+                    cmd.DispatchCompute(aoFilter, m_KernelFilter, numTilesX, numTilesY, 1);
                                     
-                        m_KernelFilter = aoFilter.FindKernel("AOBilateralFilterH");
+                    m_KernelFilter = aoFilter.FindKernel("AOBilateralFilterH");
 
-                        // Horizontal pass of the bilateral filter
-                        cmd.SetComputeIntParam(aoFilter, HDShaderIDs._RaytracingDenoiseRadius, rtEnvironement.aoBilateralRadius);
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_ViewSpaceNormalBuffer);
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, m_IntermediateBuffer);
-                        cmd.DispatchCompute(aoFilter, m_KernelFilter, numTilesX, numTilesY, 1);
+                    // Horizontal pass of the bilateral filter
+                    cmd.SetComputeIntParam(aoFilter, HDShaderIDs._RaytracingDenoiseRadius, aoSettings.filterRadius.value);
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_ViewSpaceNormalBuffer);
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, m_IntermediateBuffer);
+                    cmd.DispatchCompute(aoFilter, m_KernelFilter, numTilesX, numTilesY, 1);
 
-                        m_KernelFilter = aoFilter.FindKernel("AOBilateralFilterV");
+                    m_KernelFilter = aoFilter.FindKernel("AOBilateralFilterV");
 
-                        // Horizontal pass of the bilateral filter
-                        cmd.SetComputeIntParam(aoFilter, HDShaderIDs._RaytracingDenoiseRadius, rtEnvironement.aoBilateralRadius);
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_IntermediateBuffer);
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-                        cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputTexture);
-                        cmd.DispatchCompute(aoFilter, m_KernelFilter, numTilesX, numTilesY, 1);
-                    }
-                    break;
-                    case HDRaytracingEnvironment.AOFilterMode.None:
-                    {
-                        HDUtils.BlitCameraTexture(cmd, m_IntermediateBuffer, outputTexture);
-                    }
-                    break;
+                    // Horizontal pass of the bilateral filter
+                    cmd.SetComputeIntParam(aoFilter, HDShaderIDs._RaytracingDenoiseRadius, aoSettings.filterRadius.value);
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_IntermediateBuffer);
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+                    cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputTexture);
+                    cmd.DispatchCompute(aoFilter, m_KernelFilter, numTilesX, numTilesY, 1);
+                }
+                else
+                {
+                    HDUtils.BlitCameraTexture(cmd, m_IntermediateBuffer, outputTexture);
                 }
             }
 
