@@ -484,8 +484,19 @@ namespace UnityEditor.VFX
                 ++index;
             }
 
-            var copySubLinks = (src.property.type == dst.property.type) ||
-                (src.property.type == typeof(Transform) && dst.property.type == typeof(OrientedBox)); // This is bad but needed to keep sublinks when changing transform to orientedbox
+            var copySubLinks = dst.CanConvertFrom(src.property.type);
+
+            //Automatically skip encapsulation
+            //TODO : Should rework this to avoid these several "is VFXSlotEncapsulated" special cases (see also "SlotShouldSkipFirstLevel" at controller level)
+            if (src is VFXSlotEncapsulated)
+            {
+                src = src.children.First();
+            }
+
+            if (dst is VFXSlotEncapsulated)
+            {
+                dst = dst.children.First();
+            }
 
             if (copySubLinks && src.GetNbChildren() == dst.GetNbChildren())
             {
@@ -516,7 +527,7 @@ namespace UnityEditor.VFX
 
             int nbRemoved = m_LinkedSlots.RemoveAll(c => c == null);// Remove bad references if any
             if (nbRemoved > 0)
-                Debug.LogFormat("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType());
+                Debug.LogWarningFormat("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType());
 
             m_ExpressionTreeUpToDate = false;
             m_DefaultExpressionInitialized = false;

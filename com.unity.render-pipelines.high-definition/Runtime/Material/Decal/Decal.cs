@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Mask", true)]            
             public Vector4 mask; // Metal, AmbientOcclusion, Smoothness, smoothness opacity
             [SurfaceDataAttributes("Emissive")]
-            public Vector4 emissive;
+            public Vector3 emissive;
             [SurfaceDataAttributes("AOSBlend", true)]
             public Vector2 MAOSBlend; // Metal opacity and Ambient occlusion opacity
             [SurfaceDataAttributes("HTileMask")]

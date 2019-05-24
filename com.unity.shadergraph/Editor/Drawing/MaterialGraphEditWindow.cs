@@ -214,10 +214,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
-                bool VCSEnabled = (VersionControl.Provider.enabled && VersionControl.Provider.isActive);
-                CheckoutIfValid(path, VCSEnabled);
-
-                    UpdateShaderGraphOnDisk(path);
+                UpdateShaderGraphOnDisk(path);
 
                 graphObject.isDirty = false;
                 var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
@@ -434,8 +431,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            File.WriteAllText(path, EditorJsonUtility.ToJson(subGraph));
-            AssetDatabase.ImportAsset(path);
+            if(FileUtilities.WriteShaderGraphToDisk(path, subGraph))
+                AssetDatabase.ImportAsset(path);
 
             var loadedSubGraph = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
             if (loadedSubGraph == null)
@@ -467,8 +464,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateShaderGraphOnDisk(string path)
         {
-            File.WriteAllText(path, EditorJsonUtility.ToJson(graphObject.graph, true));
-            AssetDatabase.ImportAsset(path);
+            if(FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
+                AssetDatabase.ImportAsset(path);
         }
 
         private void Rebuild()
@@ -557,25 +554,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FrameAllAfterLayout = false;
             foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
                 node.Dirty(ModificationScope.Node);
-        }
-
-        void CheckoutIfValid(string path, bool VCSEnabled)
-        {
-            if (VCSEnabled)
-            {
-                var asset = VersionControl.Provider.GetAssetByPath(path);
-                if (asset != null)
-                {
-                    if (VersionControl.Provider.CheckoutIsValid(asset))
-                    {
-                        var task = VersionControl.Provider.Checkout(asset, VersionControl.CheckoutMode.Both);
-                        task.Wait();
-
-                        if (!task.success)
-                            Debug.Log(task.text + " " + task.resultCode);
-                    }
-                }
-            }
         }
     }
 }

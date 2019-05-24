@@ -64,7 +64,26 @@
 // If a function require to have both a half and a float version, then both need to be explicitly define
 #ifndef real
 
+// The including shader should define whether half
+// precision is suitable for its needs.  The shader
+// API (for now) can indicate whether half is possible.
 #ifdef SHADER_API_MOBILE
+#define HAS_HALF 1
+#else
+#define HAS_HALF 0
+#endif
+
+#ifndef PREFER_HALF
+#define PREFER_HALF 1
+#endif
+
+#if HAS_HALF && PREFER_HALF
+#define REAL_IS_HALF 1
+#else
+#define REAL_IS_HALF 0
+#endif // Do we have half?
+
+#if REAL_IS_HALF
 #define real half
 #define real2 half2
 #define real3 half3
@@ -97,8 +116,6 @@
 #define TEMPLATE_2_REAL TEMPLATE_2_HALF
 #define TEMPLATE_3_REAL TEMPLATE_3_HALF
 
-#define HAS_HALF 1
-
 #else
 
 #define real float
@@ -120,9 +137,7 @@
 #define TEMPLATE_2_REAL TEMPLATE_2_FLT
 #define TEMPLATE_3_REAL TEMPLATE_3_FLT
 
-#define HAS_HALF 0
-
-#endif // SHADER_API_MOBILE
+#endif // REAL_IS_HALF
 
 #endif // #ifndef real
 
@@ -1026,9 +1041,12 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
-// LOD1 must use this function with ditherFactor 0..1
+// LOD1 must use this function with ditherFactor -1..0
+// This is what is provided by unity_LODFade
 void LODDitheringTransition(uint3 fadeMaskSeed, float ditherFactor)
 {
+    ditherFactor = ditherFactor < 0.0 ? 1 + ditherFactor : ditherFactor;
+
     // Generate a spatially varying pattern.
     // Unfortunately, varying the pattern with time confuses the TAA, increasing the amount of noise.
     float p = GenerateHashedRandomFloat(fadeMaskSeed);

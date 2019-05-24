@@ -1,11 +1,19 @@
 #ifndef UNITY_TEXTUREXR_INCLUDED
 #define UNITY_TEXTUREXR_INCLUDED
 
+// single-pass instancing is the default VR method for HDRP
+// multi-pass is working but not recommended due to lower performance
+// multi-view is not yet supported
+// single-pass doule-wide is deprecated
+
 // XRTODO: refactor this with UnityInstancing.hlsl and sync with LWRP
 // XRTODO: update supported platforms based on Unity version (for required C++ fixes)
 
+// XRTODO: consolidate with TextureXR.cs
+#define XR_MAX_VIEWS 2
+
 // Must be in sync with C# with property useTexArray in TextureXR.cs
-#if defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE)
+#if (defined(SHADER_API_D3D11) && !defined(SHADER_API_XBOXONE)) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN)
     #define UNITY_TEXTURE2D_X_ARRAY_SUPPORTED
 #endif
 
@@ -90,10 +98,6 @@
     #define GATHER_GREEN_TEXTURE2D_X                                         GATHER_GREEN_TEXTURE2D
 #endif
 
-// Notes on current stereo support status
-// single-pass doule-wide is working but will be deprecated soon
-// single-pass instancing is the default method
-// multi-view and multi-pass are not yet supported
 // see Unity\Shaders\Includes\UnityShaderVariables.cginc for impl used by the C++ renderer
 #if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_INSTANCING_ENABLED)
     static uint unity_StereoEyeIndex;

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 1105_Transparent_BeforeRefraction_DoubleSided_Alpha_Emission
+  m_Name: 1105_Tr_BR_DblSi_Alpha_Emission
   m_Shader: {fileID: -6465566751694194690, guid: f33e1fc5fde48554b94e2424da5d8d67,
     type: 3}
   m_ShaderKeywords: 

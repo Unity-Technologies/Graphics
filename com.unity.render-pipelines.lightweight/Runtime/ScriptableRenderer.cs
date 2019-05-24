@@ -20,6 +20,35 @@ namespace UnityEngine.Rendering.LWRP
     /// </summary>
     public abstract class ScriptableRenderer
     {
+        void SetShaderTimeValues(float time, float deltaTime, float smoothDeltaTime, CommandBuffer cmd = null)
+        {
+            // We make these parameters to mirror those described in `https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
+            float timeEights = time / 8f;
+            float timeFourth = time / 4f;
+            float timeHalf = time / 2f;
+
+            // Time values
+            Vector4 timeVector = time * new Vector4(1f / 20f, 1f, 2f, 3f);
+            Vector4 sinTimeVector = new Vector4(Mathf.Sin(timeEights), Mathf.Sin(timeFourth), Mathf.Sin(timeHalf), Mathf.Sin(time));
+            Vector4 cosTimeVector = new Vector4(Mathf.Cos(timeEights), Mathf.Cos(timeFourth), Mathf.Cos(timeHalf), Mathf.Cos(time));
+            Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
+
+            if (cmd == null)
+            {
+                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._Time, timeVector);
+                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
+                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
+                Shader.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
+            }
+            else
+            {
+                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._Time, timeVector);
+                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
+                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
+                cmd.SetGlobalVector(LightweightRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
+            }
+        }
+ 
         public RenderTargetIdentifier cameraColorTarget
         {
             get => m_CameraColorTarget;
@@ -136,6 +165,15 @@ namespace UnityEngine.Rendering.LWRP
 
             SortStable(m_ActiveRenderPassQueue);
 
+            // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
+            // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.
+            // Setting the time per frame would take API changes to pass the variable to each camera render.
+            // Once `SetupCameraProperties` is gone, the variable should be set higher in the call-stack.
+            float time = Time.time;
+            float deltaTime = Time.deltaTime;
+            float smoothDeltaTime = Time.smoothDeltaTime;
+            SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
+
             // Before Render Block. This render blocks always execute in mono rendering.
             // Camera is not setup. Lights are not setup.
             // Used to render input textures like shadowmaps.
@@ -152,6 +190,11 @@ namespace UnityEngine.Rendering.LWRP
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled);
             SetupLights(context, ref renderingData);
+
+            // Override time values from when `SetupCameraProperties` were called.
+            // They might be a frame behind.
+            // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
+            SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
 
             if (stereoEnabled)
                 BeginXRRendering(context, camera);

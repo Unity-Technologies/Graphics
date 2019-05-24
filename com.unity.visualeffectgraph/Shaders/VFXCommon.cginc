@@ -453,12 +453,13 @@ struct VFXUVData
 {
     float4 uvs;
     float  blend;
+    float4 mvs;
 };
 
 float4 SampleTexture(VFXSampler2D s, VFXUVData uvData)
 {
-    float4 s0 = s.t.Sample(s.s, uvData.uvs.xy);
-    float4 s1 = s.t.Sample(s.s, uvData.uvs.zw);
+    float4 s0 = s.t.Sample(s.s, uvData.uvs.xy + uvData.mvs.xy);
+    float4 s1 = s.t.Sample(s.s, uvData.uvs.zw + uvData.mvs.zw);
     return lerp(s0, s1, uvData.blend);
 }
 

@@ -66,6 +66,7 @@ namespace UnityEditor.VFX.UI
         protected struct Property
         {
             public string name;
+            public VFXCoordinateSpace space;
             public VFXSerializableObject value;
         }
 

@@ -51,6 +51,10 @@ o.VFX_VARYING_UV.xy = uvData.uvs.xy;
 #if USE_FLIPBOOK_INTERPOLATION
 o.VFX_VARYING_UV.zw = uvData.uvs.zw;
 o.VFX_VARYING_FRAMEBLEND = uvData.blend;
+#if USE_FLIPBOOK_MOTIONVECTORS
+${VFXLoadParameter:{motionVectorScale}}
+o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
+#endif
 #endif
 #endif
 ${VFXEnd}
@@ -79,4 +83,23 @@ if (!alive)
 	
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
+${VFXEnd}
+
+${VFXBegin:VFXApplyColor}
+
+float4 color = VFXGetFragmentColor(i);
+
+#ifndef VFX_TEXTURE_COLOR
+	#define VFX_TEXTURE_COLOR float4(1.0,1.0,1.0,1.0)
+#endif
+
+#if VFX_COLORMAPPING_DEFAULT
+	o.color = color * VFX_TEXTURE_COLOR;
+#endif
+
+#if VFX_COLORMAPPING_GRADIENTMAPPED
+	${VFXLoadAttributes:{gradient}}
+	o.color = SampleGradient(gradient, VFX_TEXTURE_COLOR.a * color.a) * float4(color.rgb,1.0);
+#endif
+
 ${VFXEnd}

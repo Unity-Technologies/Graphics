@@ -33,7 +33,6 @@ void IndirectDiffuseAccumulation(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 #if SHADEROPTIONS_RAYTRACING
     // Fetch the current pixel coordinate
     uint2 currentPixelCoordinate = groupId * KERNEL_TILE_SIZE + groupThreadId;
-    currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Add the indirect diffuse to the buffer (while pre-multiplying by the base color)
     _GBufferTexture3[COORD_TEXTURE2D_X(currentPixelCoordinate)] += LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, currentPixelCoordinate) * LOAD_TEXTURE2D_X(_GBufferTexture0, currentPixelCoordinate);
@@ -54,7 +53,6 @@ void RaytracingIndirectDiffuseTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * KERNEL_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
@@ -204,7 +202,6 @@ void IndirectDiffuseFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * KERNEL_TILE_SIZE + groupThreadId;
-    centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float3 reflSum = 0.0;
     float wSum = 0.0;

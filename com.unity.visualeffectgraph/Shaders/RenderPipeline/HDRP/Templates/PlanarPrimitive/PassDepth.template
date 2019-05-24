@@ -25,11 +25,15 @@ Pass
 		// w: smoothness
 		nointerpolation float4 builtInInterpolants : TEXCOORD1;
 		#endif
-		
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		// x: motion vector scale u
+		// y: motion vector scale v
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		#endif
 		#ifdef WRITE_NORMAL_BUFFER
-		float4 normal : TEXCOORD2; // normal scale is stored in w
+		float4 normal : TEXCOORD3; // normal scale is stored in w
 		#if USE_NORMAL_MAP || USE_NORMAL_BENDING
-		float3 tangent : TEXCOORD3;
+		float3 tangent : TEXCOORD4;
 		#endif
 		#if USE_NORMAL_BENDING
 		float2 bentFactors : TEXCOORD6;
@@ -42,6 +46,7 @@ Pass
 #define VFX_VARYING_ALPHA builtInInterpolants.z
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.y
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 
 #ifdef WRITE_NORMAL_BUFFER

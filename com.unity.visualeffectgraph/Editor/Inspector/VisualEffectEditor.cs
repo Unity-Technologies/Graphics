@@ -506,8 +506,7 @@ namespace UnityEditor.VFX
             rect.x += Styles.foldoutStyle.CalcSize(GUIContent.none).x;
             rect.y += 3;
 
-            if (Event.current.type == EventType.Repaint)
-                EditorGUI.LabelField(rect, nameContent, EditorStyles.boldLabel);
+            EditorGUI.LabelField(rect, nameContent, EditorStyles.boldLabel);
 
             bool result = false;
             rect.x = 14;
@@ -710,7 +709,7 @@ namespace UnityEditor.VFX
                                         sourceVfxField.InsertArrayElementAtIndex(sourceVfxField.arraySize);
                                         var newEntry = sourceVfxField.GetArrayElementAtIndex(sourceVfxField.arraySize - 1);
 
-                                        newEntry.FindPropertyRelative("m_Overridden").boolValue = actualDisplayedPropertyOverridden.boolValue;
+                                        newEntry.FindPropertyRelative("m_Overridden").boolValue = true;
                                         SetObjectValue(newEntry.FindPropertyRelative("m_Value"), GetObjectValue(actualDisplayedPropertyValue));
                                         newEntry.FindPropertyRelative("m_Name").stringValue = param.path;
                                         PropertyOverrideChanged();

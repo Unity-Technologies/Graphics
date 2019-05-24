@@ -126,8 +126,9 @@ namespace UnityEditor.VFX
     class VFXGraph : VFXModel
     {
         // Please add increment reason for each version below
-        // size refactor
-        public static readonly int CurrentVersion = 1;
+        // 1: Size refactor
+        // 2: Change some SetAttribute to spaceable slot
+        public static readonly int CurrentVersion = 2;
 
         public override void OnEnable()
         {
@@ -309,6 +310,7 @@ namespace UnityEditor.VFX
 
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
+            UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
         }
 
         public void ClearCompileData()

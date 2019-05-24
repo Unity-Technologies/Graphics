@@ -471,13 +471,13 @@ namespace UnityEditor.VFX.UI
 
         public void SetPropertyValue(object value)
         {
-            Undo.RecordObject(model.GetMasterSlot(), "VFXSlotValue"); // The slot value is stored on the master slot, not necessarly my own slot
+            Undo.RecordObject(model.GetMasterSlot(), "VFXSlotValue"); // The slot value is stored on the master slot, not necessarily my own slot
             model.value = value;
         }
 
         public static bool SlotShouldSkipFirstLevel(VFXSlot slot)
         {
-            return slot.spaceable && slot.children.Count() == 1;
+            return slot is VFXSlotEncapsulated;
         }
 
         public virtual void ExpandPath()

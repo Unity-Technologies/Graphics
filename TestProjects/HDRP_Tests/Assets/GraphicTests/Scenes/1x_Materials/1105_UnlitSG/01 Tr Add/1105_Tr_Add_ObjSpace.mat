@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 1105_Transparent_Add_ObjectSpace
+  m_Name: 1105_Tr_Add_ObjSpace
   m_Shader: {fileID: -6465566751694194690, guid: 4599a1b5bcdd1a949867341a73fc6ca4,
     type: 3}
   m_ShaderKeywords: 

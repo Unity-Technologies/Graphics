@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 1105_Transparent_Alpha_Color
+  m_Name: 1105_Tr_Alpha_Color
   m_Shader: {fileID: -6465566751694194690, guid: 196654a78193d134c8229854d4f32776,
     type: 3}
   m_ShaderKeywords: 

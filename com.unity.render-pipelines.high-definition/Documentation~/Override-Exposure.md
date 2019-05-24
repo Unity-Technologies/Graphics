@@ -1,6 +1,6 @@
 # Exposure
 
-To work with physically-based lighting and Materials, you need to set up the Scene exposure correctly. The High Definition Render Pipeline (HDRP) includes several methods for calculating exposure to suit most use cases. HDRP expresses all exposure values that it uses in [EV<sub>100</sub>](Glossary.html#EV).
+To work with physically-based lighting and Materials, you need to set up the Scene exposure correctly. The High Definition Render Pipeline (HDRP) includes several methods for calculating exposure to suit most use cases. HDRP expresses all exposure values that it uses in [EV<sub>100</sub>](Physical-Light-Units.html#EV).
 
 **Exposure** uses the [Volume](Volumes.html) framework, so to enable and modify **Exposure** properties, you must add an **Exposure** override to a [Volume](Volumes.html) in your Scene. To add **Exposure** to a Volume:
 
@@ -85,7 +85,7 @@ The **Curve Mapping Mode** is a variant of [**Automatic**](#AutomaticProperties)
 
 ### Use Physical Camera
 
-This mode mainly relies on the [Camera’s](<https://docs.unity3d.com/Manual/class-Camera.html>) **Physical Settings**. The only property this **Mode** exposes allows you to over or under expose the Scene.
+This mode mainly relies on the [Camera’s](https://docs.unity3d.com/Manual/class-Camera.html) **Physical Settings**. The only property this **Mode** exposes allows you to over or under expose the Scene.
 
 #### Properties
 

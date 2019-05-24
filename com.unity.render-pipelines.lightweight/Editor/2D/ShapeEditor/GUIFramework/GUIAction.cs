@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
 {
     internal abstract class GUIAction
     {
@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
         public Func<IGUIState, GUIAction, bool> enableRepaint;
         public Func<IGUIState, GUIAction, bool> repaintOnMouseMove;
         public Action<IGUIState, GUIAction> onPreRepaint;
-        public Action<IGUIState, GUIAction> onRepaint = null;
+        public Action<IGUIState, GUIAction> onRepaint;
 
         public int ID
         {

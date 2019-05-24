@@ -170,6 +170,13 @@ namespace UnityEngine.Rendering
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public class LayerMaskParameter : VolumeParameter<LayerMask>
+    {
+        public LayerMaskParameter(LayerMask value, bool overrideState = false)
+            : base(value, overrideState) {}
+    }
+
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public class IntParameter : VolumeParameter<int>
     {
         public IntParameter(int value, bool overrideState = false)

@@ -180,6 +180,20 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, from.outputContexts.Count());
         }
 
+        [Test] // see fogbugz : 1146829
+        public void MultiLinkSpawnerSpawnerAfterSpawnerInit()
+        {
+            var from = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            var to1 = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var to2 = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            to1.LinkFrom(from);
+            to2.LinkFrom(from);
+
+            Assert.AreEqual(2, from.outputContexts.Count());
+        }
+
         [Test]
         public void Link_Fail()
         {

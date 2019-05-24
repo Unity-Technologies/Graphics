@@ -77,7 +77,7 @@ public class VFXManagerEditor : Editor
 
     public static void CheckVFXManager()
     {
-        UnityObject vfxmanager = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>("ProjectSettings/VFXManager.asset");
+        UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
         if (vfxmanager == null)
             return;
 

@@ -33,15 +33,21 @@ Pass
 		// z: frame blending factor
 		nointerpolation float3 builtInInterpolants : TEXCOORD2;
 		#endif
-		
-		nointerpolation float3 normal : TEXCOORD3;
+
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		// x: motion vector scale u
+		// y: motion vector scale v
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD3;
+		#endif
+
+		nointerpolation float3 normal : TEXCOORD4;
 		#if USE_NORMAL_MAP || USE_NORMAL_BENDING
-		nointerpolation float3 tangent : TEXCOORD4;
+		nointerpolation float3 tangent : TEXCOORD5;
 		#endif
 		#if USE_NORMAL_BENDING
-		float2 bentFactors : TEXCOORD5;
+		float2 bentFactors : TEXCOORD6;
 		#endif
-		float3 posWS : TEXCOORD6;
+		float3 posWS : TEXCOORD7;
 	};
 	
 ${VFXHDRPLitVaryingsMacros}	
@@ -51,6 +57,7 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 #define VFX_VARYING_NORMAL normal
 #if USE_NORMAL_MAP || USE_NORMAL_BENDING

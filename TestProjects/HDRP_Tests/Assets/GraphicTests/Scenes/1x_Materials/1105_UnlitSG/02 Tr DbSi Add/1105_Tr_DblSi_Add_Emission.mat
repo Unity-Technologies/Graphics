@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 1105_Transparent_DoubleSided_Add_Emission
+  m_Name: 1105_Tr_DblSi_Add_Emission
   m_Shader: {fileID: -6465566751694194690, guid: 5b80793448ef3054c966c65f645f3634,
     type: 3}
   m_ShaderKeywords: 

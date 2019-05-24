@@ -30,8 +30,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
 
+        GraphView m_GraphView;
 
-        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
+
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
             AddToClassList("MaterialNode");
@@ -40,6 +42,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             var contents = this.Q("contents");
+
+            m_GraphView = graphView;
 
             m_ConnectorListener = connectorListener;
             node = inNode;
@@ -349,6 +353,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_NodeSettingsView.Add(m_Settings);
                 m_NodeSettingsView.visible = true;
+                m_GraphView.ClearSelection();
+                m_GraphView.AddToSelection(this);
 
                 m_SettingsButton.AddToClassList("clicked");
                 RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
@@ -504,21 +510,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var port in inputContainer.Children().OfType<ShaderPort>())
             {
-                if (port.slot.isConnected || m_PortInputContainer.Children().OfType<PortInputView>().Any(a => Equals(a.slot, port.slot)))
+                if (port.slot.isConnected)
                 {
                     continue;
                 }
+
+                var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(a => Equals(a.slot, port.slot));
+                if (portInputView == null)
+                {
+                    portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
+                    m_PortInputContainer.Add(portInputView);
+                }
                 
-                var portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
-                m_PortInputContainer.Add(portInputView);
-                if (float.IsNaN(port.layout.width))
-                {
-                    port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
-                }
-                else
-                {
-                    SetPortInputPosition(port, portInputView);
-                }
+                port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
             }
         }
 
