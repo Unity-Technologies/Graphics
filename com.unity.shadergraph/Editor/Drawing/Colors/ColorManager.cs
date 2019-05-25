@@ -44,6 +44,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
             activeIndex = m_Providers.FindIndex(provider => provider.GetTitle() == activeProvider);
         }
 
+        public void SetNodesDirty(IEnumerable<IShaderNodeView> nodeViews)
+        {
+            if (activeProvider.ClearOnDirty())
+            {
+                foreach (var view in nodeViews)
+                {
+                    activeProvider.ClearColor(view);
+                }
+            }
+        }
+        
         public void SetActiveProvider(int newIndex, IEnumerable<IShaderNodeView> nodeViews)
         {
             if (newIndex == activeIndex || !IsValidIndex(newIndex))
@@ -56,6 +67,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
             {
                 oldProvider.ClearColor(view);
                 activeProvider.ApplyColor(view);
+            }
+        }
+
+        public void UpdateNodeViews(IEnumerable<IShaderNodeView> nodeViews)
+        {
+            foreach (var view in nodeViews)
+            {
+                UpdateNodeView(view);
             }
         }
         

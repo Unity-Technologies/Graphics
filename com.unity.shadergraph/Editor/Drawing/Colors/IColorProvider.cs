@@ -9,6 +9,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
 
         bool AllowCustom();
 
+        bool ClearOnDirty();
+
         void ApplyColor(IShaderNodeView nodeView);
         void ClearColor(IShaderNodeView nodeView);
     }
@@ -20,6 +22,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         public abstract string GetTitle();
 
         public abstract bool AllowCustom();
+
+        public abstract bool ClearOnDirty();
 
         public virtual void ApplyColor(IShaderNodeView nodeView)
         {
@@ -46,6 +50,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         public abstract string GetTitle();
 
         public abstract bool AllowCustom();
+
+        public abstract bool ClearOnDirty();
 
         public virtual void ApplyColor(IShaderNodeView nodeView)
         {

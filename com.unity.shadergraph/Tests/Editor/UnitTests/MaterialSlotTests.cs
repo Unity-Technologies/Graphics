@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             m_Graph = new GraphData();
             m_NodeA = new TestNode();
-            m_NodeA.precision = AbstractMaterialNode.OutputPrecision.half;
+            m_NodeA.precision = Precision.Half;
             m_Graph.AddNode(m_NodeA);
         }
 
@@ -105,16 +105,16 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual("6", result);
 
             m_NodeA.slot2.value = new Vector4(6, 6, 6, 1);
-            result = m_NodeA.slot2.GetDefaultValue(GenerationMode.ForReals);
-            Assert.AreEqual("half2 (6,6)", result);
+            result = m_NodeA.slot2.GetDefaultValue(GenerationMode.ForReals, ConcretePrecision.Half);
+            Assert.AreEqual("half2 (6, 6)", result);
 
             m_NodeA.slot3.value = new Vector4(6, 6, 6, 1);
-            result = m_NodeA.slot3.GetDefaultValue(GenerationMode.ForReals);
-            Assert.AreEqual("half3 (6,6,6)", result);
+            result = m_NodeA.slot3.GetDefaultValue(GenerationMode.ForReals, ConcretePrecision.Half);
+            Assert.AreEqual("half3 (6, 6, 6)", result);
 
             m_NodeA.slot4.value = new Vector4(6, 6, 6, 1);
-            result = m_NodeA.slot4.GetDefaultValue(GenerationMode.ForReals);
-            Assert.AreEqual("half4 (6,6,6,1)", result);
+            result = m_NodeA.slot4.GetDefaultValue(GenerationMode.ForReals, ConcretePrecision.Half);
+            Assert.AreEqual("half4 (6, 6, 6, 1)", result);
         }
 
         /* [Test]

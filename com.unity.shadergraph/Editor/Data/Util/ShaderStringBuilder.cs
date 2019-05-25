@@ -198,6 +198,13 @@ namespace UnityEditor.ShaderGraph
             AppendLines(other.ToString(other.m_CurrentMapping.startIndex, other.length - other.m_CurrentMapping.startIndex));
         }
 
+        public void ReplaceInCurrentMapping(string oldValue, string newValue)
+        {
+            int start = m_CurrentMapping.startIndex;
+            int end = m_StringBuilder.Length - start;
+            m_StringBuilder.Replace(oldValue, newValue, start, end );
+        }
+
         public override string ToString()
         {
             return m_StringBuilder.ToString();

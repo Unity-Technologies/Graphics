@@ -70,8 +70,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             string exposure = generationMode.IsPreview() ? "1.0" : exposureFunctions[exposureType];
 
-            sb.AppendLine("{0} {1} = {2};",
-                precision,
+            sb.AppendLine("$precision {0} = {1};",
                 GetVariableNameForSlot(kExposureOutputSlotId),
                 exposure);
         }
