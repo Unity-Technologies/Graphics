@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            sb.AppendLine(string.Format("{0}4 {1} = IN.{2};", precision, GetVariableNameForSlot(OutputSlotId), m_OutputChannel.GetUVName()));
+            sb.AppendLine(string.Format("$precision4 {0} = IN.{1};", GetVariableNameForSlot(OutputSlotId), m_OutputChannel.GetUVName()));
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

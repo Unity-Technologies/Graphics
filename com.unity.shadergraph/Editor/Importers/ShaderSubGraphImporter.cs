@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEditor;
 
-[ScriptedImporter(6, Extension, 1)]
+[ScriptedImporter(7, Extension, 1)]
 class ShaderSubGraphImporter : ScriptedImporter
 {
     public const string Extension = "shadersubgraph";
