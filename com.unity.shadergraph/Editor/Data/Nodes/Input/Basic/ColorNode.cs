@@ -79,7 +79,12 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            sb.AppendLine(@"{0}4 {1} = IsGammaSpace() ? {0}4({2}, {3}, {4}, {5}) : {0}4(SRGBToLinear({0}3({2}, {3}, {4})), {5});", precision, GetVariableNameForNode(), NodeUtils.FloatToShaderValue(color.color.r), NodeUtils.FloatToShaderValue(color.color.g), NodeUtils.FloatToShaderValue(color.color.b), NodeUtils.FloatToShaderValue(color.color.a));
+            sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
+                , GetVariableNameForNode()
+                , NodeUtils.FloatToShaderValue(color.color.r)
+                , NodeUtils.FloatToShaderValue(color.color.g)
+                , NodeUtils.FloatToShaderValue(color.color.b)
+                , NodeUtils.FloatToShaderValue(color.color.a));
         }
 
         public override string GetVariableNameForSlot(int slotId)

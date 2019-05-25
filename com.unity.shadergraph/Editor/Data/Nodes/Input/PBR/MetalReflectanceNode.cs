@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            sb.AppendLine(string.Format("{0}3 {1} = {0}3{2};", precision, GetVariableNameForSlot(kOutputSlotId), m_MaterialList[material].ToString(CultureInfo.InvariantCulture)));
+            sb.AppendLine(string.Format("$precision3 {0} = $precision3{1};", GetVariableNameForSlot(kOutputSlotId), m_MaterialList[material].ToString(CultureInfo.InvariantCulture)));
         }
     }
 }
