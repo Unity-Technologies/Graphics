@@ -61,9 +61,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             //volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
 
-            if (volume.parameters.volumeFluidSim != null)
+            if (volume.parameters.initialState != null)
             {
-                volumeFluidSimAtlas.AddTexture(volume.parameters.volumeFluidSim);
+                volumeFluidSimAtlas.AddTexture(volume.parameters.initialState);
             }
         }
         //seongdae;fspm
@@ -96,9 +96,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             //volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
 
-            if (volume.parameters.volumeFluidSim != null)
+            if (volume.parameters.initialState != null)
             {
-                volumeFluidSimAtlas.RemoveTexture(volume.parameters.volumeFluidSim);
+                volumeFluidSimAtlas.RemoveTexture(volume.parameters.initialState);
             }
 
             //Upon removal we have to refresh the texture list.
@@ -165,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             foreach (FluidSimVolume volume in fluidSimVolumes)
             {
-                volume.parameters.textureIndex = volumeFluidSimAtlas.GetTextureIndex(volume.parameters.volumeFluidSim);
+                volume.parameters.textureIndex = volumeFluidSimAtlas.GetTextureIndex(volume.parameters.initialState);
             }
         }
         //seongdae;fspm

@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public struct FluidSimVolumeArtistParameters
     {
-        public Texture3D volumeFluidSim; //seongdae;fspm
+        public Texture3D initialState;
 
         public Vector3 size;
 
@@ -29,6 +29,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class FluidSimVolume : MonoBehaviour
     {
         public FluidSimVolumeArtistParameters parameters = new FluidSimVolumeArtistParameters();
+        private Texture3D storage = null;
+
+        private void Start()
+        {
+            storage = new Texture3D(128, 128, 128, DefaultFormat.HDR, TextureCreationFlags.None);
+        }
 
         public FluidSimVolume()
         {
