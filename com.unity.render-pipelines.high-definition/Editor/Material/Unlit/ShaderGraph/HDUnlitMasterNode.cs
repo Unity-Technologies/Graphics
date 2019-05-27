@@ -22,6 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const string DistortionBlurSlotName = "DistortionBlur";
         public const string PositionSlotName = "Position";
         public const string EmissionSlotName = "Emission";
+        public const string FeedbackSlotName = "StreamingFeedback";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
@@ -30,6 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public const int DistortionSlotId = 10;
         public const int DistortionBlurSlotId = 11;
         public const int EmissionSlotId = 12;
+        public const int FeedBackSlotId = AggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         // Don't support Multiply
         public enum AlphaModeLit
@@ -255,6 +257,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 AddSlot(new Vector1MaterialSlot(DistortionBlurSlotId, DistortionBlurSlotName, DistortionBlurSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(DistortionBlurSlotId);
             }
+
+            var feedbackSlot = new Vector4MaterialSlot(FeedBackSlotId, FeedbackSlotName, FeedbackSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Fragment);
+            feedbackSlot.hidden = true;
+            AddSlot(feedbackSlot);
+            validSlots.Add(FeedBackSlotId);
 
             RemoveSlotsNameNotMatching(validSlots, true);
         }

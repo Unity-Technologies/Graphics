@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         public const int AlphaSlotId = 7;
         public const int AlphaThresholdSlotId = 8;
         public const int PositionSlotId = 9;
-        public const int FeedBackSlotId = 10;
+        public const int FeedBackSlotId = AggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         [SerializeField]
         SurfaceType m_SurfaceType;

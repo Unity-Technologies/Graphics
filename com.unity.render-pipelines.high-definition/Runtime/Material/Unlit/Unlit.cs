@@ -20,6 +20,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Color", false, true)]
             public Vector3 color;
+
+            [SurfaceDataAttributes("StreamingFeedback", false, false)]
+            public Vector3 streamingFeedback;
         };
 
         //-----------------------------------------------------------------------------
@@ -31,6 +34,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             [SurfaceDataAttributes("", false, true)]
             public Vector3 color;
+
+            [SurfaceDataAttributes("", false, false)]
+            public Vector3 streamingFeedback;
         };
     }
 }

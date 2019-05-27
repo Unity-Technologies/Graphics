@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
         public const int AlphaSlotId = 7;
         public const int AlphaThresholdSlotId = 8;
         public const int PositionSlotId = 9;
-        public const int FeedbackSlotId = 10;
+        public const int FeedbackSlotId = AggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         public enum Model
         {

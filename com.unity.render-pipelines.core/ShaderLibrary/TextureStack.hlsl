@@ -128,8 +128,8 @@ float4 ResolveVT_##stackName(float2 uv)\
     textureParamBlock.data[1] = stackName##_atlasparams[1];\
 \
     /* hack resolve scale into constant buffer here */\
-    stackName##_spaceparams[0][2][0] *= VT_ResolveConstantPatch.x;\
-    stackName##_spaceparams[0][3][0] *= VT_ResolveConstantPatch.y;\
+    /*stackName##_spaceparams[0][2][0] *= VT_ResolveConstantPatch.x;*/\
+    /*stackName##_spaceparams[0][3][0] *= VT_ResolveConstantPatch.y;*/\
 \
     GraniteTilesetConstantBuffer graniteParamBlock;\
     graniteParamBlock.data[0] = stackName##_spaceparams[0];\

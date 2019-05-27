@@ -8,17 +8,20 @@
 // UnityEngine.Experimental.Rendering.HDPipeline.Unlit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_UNLIT_SURFACEDATA_COLOR (300)
+#define DEBUGVIEW_UNLIT_SURFACEDATA_STREAMING_FEEDBACK (301)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData:  static fields
 //
 #define DEBUGVIEW_UNLIT_BSDFDATA_COLOR (350)
+#define DEBUGVIEW_UNLIT_BSDFDATA_STREAMING_FEEDBACK (351)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Unlit+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
     float3 color;
+    float3 streamingFeedback;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData
@@ -26,6 +29,7 @@ struct SurfaceData
 struct BSDFData
 {
     float3 color;
+    float3 streamingFeedback;
 };
 
 //
@@ -38,6 +42,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_UNLIT_SURFACEDATA_COLOR:
             result = surfacedata.color;
             needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_UNLIT_SURFACEDATA_STREAMING_FEEDBACK:
+            result = surfacedata.streamingFeedback;
             break;
     }
 }
@@ -52,6 +59,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_UNLIT_BSDFDATA_COLOR:
             result = bsdfdata.color;
             needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_UNLIT_BSDFDATA_STREAMING_FEEDBACK:
+            result = bsdfdata.streamingFeedback;
             break;
     }
 }
