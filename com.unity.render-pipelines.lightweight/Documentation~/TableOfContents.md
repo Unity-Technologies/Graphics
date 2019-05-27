@@ -23,7 +23,7 @@
   * [Normal map and mask Textures](SecondaryTextures.md)
   * [2D Lights Properties](2DLightProperties.md)
   * [Light Types](LightTypes.md)
-  * [Configuring the 2D Renderer Asset](2DRendererConfig.md)
+  * [Configuring the 2D Renderer Asset](2DRendererData_overview.md)
     * [HDR Emulation Scale](HDREmulationScale.md)
     * [Light Blend Styles](LightBlendStyles.md)
   * [2D with Shader Graph](ShaderGraph.md)

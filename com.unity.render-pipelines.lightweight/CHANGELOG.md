@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.0.0] - 2019-XX-XX
 ### Added
 - Added a menu option to create a new `ScriptableRendererFeature` script. To do so in the Editor, click on Asset > Create > Rendering > Lightweight Render Pipeline > Renderer Feature.
+- Added documentation for SpeedTree Shaders in LWRP.
 
 ### Changed
 - Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
@@ -17,6 +18,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused forward renderer resources to not load properly when you upgraded LWRP from an older version to 7.0.0. [case 1154925](https://issuetracker.unity3d.com/issues/lwrp-upgrading-lwrp-package-to-7-dot-0-0-breaks-forwardrenderdata-asset-in-resource-files)
 - Fixed GC spikes caused by LWRP allocating heap memory every frame.
 - Fixed NullReference exception caused when trying to add a ScriptableRendererFeature.
+- Added missing page for 2D Lights in LWRP.
+
+
 
 ## [6.7.0] - 2019-05-16
 ### Added
