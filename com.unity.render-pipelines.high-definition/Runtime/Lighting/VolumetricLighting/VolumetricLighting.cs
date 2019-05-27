@@ -735,7 +735,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         //seongdae;fspm
-        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, FluidSimVolumeList FluidSimVolumes, LightLoop lightLoop)
+        public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, FluidSimVolumeList fluidSimVolumes, LightLoop lightLoop)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
