@@ -400,7 +400,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case VolumetricLightingPreset.Medium:
                     return 8;
                 case VolumetricLightingPreset.High:
-                    return 4;
+                    return 2; //seongdae;fspm
                 case VolumetricLightingPreset.Off:
                     return 0;
                 default:
