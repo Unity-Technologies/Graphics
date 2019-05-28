@@ -12,8 +12,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
-                // sample-game begin: fix errors in Exposure by disabling conversions to texture array
-                /*
                 switch (SystemInfo.graphicsDeviceType)
                 {
                     case GraphicsDeviceType.Direct3D11:
@@ -26,8 +24,6 @@ namespace UnityEngine.Experimental.Rendering
                     case GraphicsDeviceType.Vulkan:
                         return true;
                 }
-                */
-                // sample-game end
 
                 return false;
             }
