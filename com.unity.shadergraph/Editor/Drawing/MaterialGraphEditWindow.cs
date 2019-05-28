@@ -276,6 +276,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             subGraph.AddNode(subGraphOutputNode);
 
+            var groupGuidMap = new Dictionary<Guid, Guid>();
+            foreach (GroupData groupData in deserialized.groups)
+            {
+                var oldGuid = groupData.guid;
+                var newGuid = groupData.RewriteGuid();
+                groupGuidMap[oldGuid] = newGuid;
+                subGraph.CreateGroup(groupData);
+            }
+
+            List<Guid> groupGuids = new List<Guid>();
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in deserialized.GetNodes<AbstractMaterialNode>())
             {
@@ -285,6 +295,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var drawState = node.drawState;
                 drawState.position = new Rect(drawState.position.position - middle, drawState.position.size);
                 node.drawState = drawState;
+
+                if (!groupGuids.Contains(node.groupGuid))
+                {
+                    groupGuids.Add(node.groupGuid);
+                }
+
+                // Checking if the group guid is also being copied.
+                // If not then nullify that guid
+                if (node.groupGuid != Guid.Empty)
+                {
+                    node.groupGuid = !groupGuidMap.ContainsKey(node.groupGuid) ? Guid.Empty : groupGuidMap[node.groupGuid];
+                }
+
                 subGraph.AddNode(node);
             }
 
@@ -442,6 +465,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             var ds = subGraphNode.drawState;
             ds.position = new Rect(middle - new Vector2(100f, 150f), Vector2.zero);
             subGraphNode.drawState = ds;
+
+            // Add the subgraph into the group if the nodes was all in the same group group
+            if (groupGuids.Count == 1)
+            {
+                subGraphNode.groupGuid = groupGuids[0];
+            }
+
             graphObject.graph.AddNode(subGraphNode);
             subGraphNode.subGraphAsset = loadedSubGraph;
 
