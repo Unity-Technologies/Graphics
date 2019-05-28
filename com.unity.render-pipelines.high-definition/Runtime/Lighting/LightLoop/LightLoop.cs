@@ -2268,7 +2268,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Common
             public int totalLightCount; // Regular + Env + Decal + Density Volumes
             public bool isOrthographic;
-            public int computePassCount;
+            public int viewCount;
             public bool runLightList;
             public bool enableFeatureVariants;
             public bool computeMaterialVariants;
@@ -2331,7 +2331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // In stereo, we output two sets of AABB bounds
                 cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
 
-                cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (parameters.totalLightCount + 7) / 8, parameters.computePassCount, 1);
+                cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (parameters.totalLightCount + 7) / 8, parameters.viewCount, 1);
             }
         }
 
@@ -2358,7 +2358,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
-                cmd.DispatchCompute(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, parameters.numBigTilesX, parameters.numBigTilesY, parameters.computePassCount);
+                cmd.DispatchCompute(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, parameters.numBigTilesX, parameters.numBigTilesY, parameters.viewCount);
             }
         }
 
@@ -2405,7 +2405,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     tileFlagsWritten = true;
                 }
 
-                cmd.DispatchCompute(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.computePassCount);
+                cmd.DispatchCompute(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
             }
         }
         static void VoxelLightListGeneration(BuildGPULightListParameters parameters, RTHandle cameraDepthBufferRT, CommandBuffer cmd)
@@ -2448,7 +2448,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
-                cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.computePassCount);
+                cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
             }
         }
 
@@ -2491,7 +2491,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, stencilTextureRT);
 
-                    cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.computePassCount);
+                    cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
                 }
 
                 // clear dispatch indirect buffer
@@ -2508,7 +2508,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
                     cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
                     cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
-                    cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.computePassCount);
+                    cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
                 }
                 else
                 {
@@ -2521,7 +2521,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
                     cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
                     cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
-                    cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.computePassCount);
+                    cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
                 }
             }
         }
@@ -2588,7 +2588,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             parameters.totalLightCount = m_TotalLightCount;
             parameters.isOrthographic = camera.orthographic;
-            parameters.computePassCount = hdCamera.computePassCount;
+            parameters.viewCount = hdCamera.viewCount;
             parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings);
             parameters.computeMaterialVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
             parameters.computeLightVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants);
@@ -2869,7 +2869,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int numTilesX = (hdCamera.actualWidth  + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
                 int numTilesY = (hdCamera.actualHeight + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
 
-                cmd.DispatchCompute(contactShadowComputeShader, kernel, numTilesX, numTilesY, hdCamera.computePassCount);
+                cmd.DispatchCompute(contactShadowComputeShader, kernel, numTilesX, numTilesY, hdCamera.viewCount);
             }
         }
 
@@ -2969,7 +2969,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         else
                         {
                             // 4x 8x8 groups per a 16x16 tile.
-                            cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX * 2, numTilesY * 2, hdCamera.computePassCount);
+                            cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX * 2, numTilesY * 2, hdCamera.viewCount);
                         }
                     }
                 }
