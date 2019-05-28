@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
 
@@ -9,7 +11,15 @@ namespace UnityEditor.ShaderGraph
     {
         Default,
         Slider,
-        Integer
+        Integer,
+        Enum
+    }
+
+    public enum EnumType
+    {
+        Enum,
+        CSharpEnum,
+        KeywordEnum,
     }
 
     [Serializable]
@@ -73,7 +83,43 @@ namespace UnityEditor.ShaderGraph
                 m_RangeValues = value;
             }
         }
-        
+
+        private EnumType m_EnumType = EnumType.Enum;
+
+        public EnumType enumType
+        {
+            get { return m_EnumType; }
+            set
+            {
+                if (m_EnumType == value)
+                    return;
+                m_EnumType = value;
+            }
+        }
+    
+        Type m_CSharpEnumType;
+
+        public Type cSharpEnumType
+        {
+            get => m_CSharpEnumType;
+            set => m_CSharpEnumType = value;
+        }
+
+        private List<string> m_EnumNames = new List<string>();
+        private List<int> m_EnumValues = new List<int>();
+
+        public List<string> enumNames
+        {
+            get => m_EnumNames;
+            set => m_EnumNames = value;
+        }
+
+        public List<int> enumValues
+        {
+            get => m_EnumValues;
+            set => m_EnumValues = value;
+        }
+
         [SerializeField]
         bool    m_Hidden = false;
 
@@ -88,21 +134,40 @@ namespace UnityEditor.ShaderGraph
             var result = new StringBuilder();
             if (hidden)
                 result.Append("[HideInInspector] ");
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
             switch (floatType)
             {
                 case FloatType.Slider:
-                    result.Append("\", Range(");
+                    result.Append($"{referenceName}(\"{displayName} \", Range(");
                     result.Append(NodeUtils.FloatToShaderValue(m_RangeValues.x) + ", " + NodeUtils.FloatToShaderValue(m_RangeValues.y));
                     result.Append(")) = ");
                     break;
                 case FloatType.Integer:
-                    result.Append("\", Int) = ");
+                    result.Append($"{referenceName}(\"{displayName} \", Int) = ");
+                    break;
+                case FloatType.Enum:
+                    string enumValuesString = "";
+                    string enumTypeString = enumType.ToString();
+                    switch (enumType)
+                    {
+                        case EnumType.CSharpEnum:
+                            enumValuesString = m_CSharpEnumType.ToString();
+                            enumTypeString = "Enum";
+                            break;
+                        case EnumType.KeywordEnum:
+                            enumValuesString = string.Join(", ", enumNames);
+                            break;
+                        default:
+                            for (int i = 0; i < enumNames.Count; i++)
+                            {
+                                int value = (i < enumValues.Count) ? enumValues[i] : i;
+                                enumValuesString += (enumNames[i] + ", " + value + ((i != enumNames.Count - 1) ? ", " : ""));
+                            }
+                            break;
+                    }
+                    result.Append($"[{enumTypeString}({enumValuesString})] {referenceName}(\"{displayName}\", Float) = ");
                     break;
                 default:
-                    result.Append("\", Float) = ");
+                    result.Append($"{referenceName}(\"{displayName} \", Float) = ");
                     break;
             }
             result.Append(NodeUtils.FloatToShaderValue(value));
@@ -111,7 +176,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format("float {0}{1}", referenceName, delimiter);
+            return string.Format("{0} {1}{2}", concretePrecision.ToShaderString(), referenceName, delimiter);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
@@ -143,6 +208,11 @@ namespace UnityEditor.ShaderGraph
             var copied = new Vector1ShaderProperty();
             copied.displayName = displayName;
             copied.value = value;
+            copied.floatType = floatType;
+            copied.rangeValues = rangeValues;
+            copied.enumType = enumType;
+            copied.enumNames = enumNames;
+            copied.enumValues = enumValues;
             return copied;
         }
     }

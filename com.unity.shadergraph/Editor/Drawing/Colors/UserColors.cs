@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         public override string GetTitle() => m_Title;
 
         public override bool AllowCustom() => true;
+        public override bool ClearOnDirty() => false;
 
         protected override bool GetColorFromNode(AbstractMaterialNode node, out Color color)
         {

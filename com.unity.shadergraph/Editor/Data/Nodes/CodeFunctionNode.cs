@@ -346,7 +346,7 @@ namespace UnityEditor.ShaderGraph
             GetOutputSlots(s_TempSlots);
             foreach (var outSlot in s_TempSlots)
             {
-                sb.AppendLine(GetParamTypeName(outSlot) + " " + GetVariableNameForSlot(outSlot.id) + ";");
+                sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
             }
 
             string call = GetFunctionName() + "(";
@@ -372,15 +372,10 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine(call);
         }
 
-        private string GetParamTypeName(MaterialSlot slot)
-        {
-            return NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
-        }
-
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision 
+            return function.Name + (function.IsStatic ? string.Empty : "_" + GuidEncoder.Encode(guid)) + "_" + concretePrecision.ToShaderString()
                 + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
                 + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
@@ -403,7 +398,7 @@ namespace UnityEditor.ShaderGraph
                 if (slot.isOutputSlot)
                     header += "out ";
 
-                header += GetParamTypeName(slot) + " " + slot.shaderOutputName;
+                header += slot.concreteValueType.ToShaderString() + " " + slot.shaderOutputName;
             }
 
             header += ")";
@@ -426,7 +421,6 @@ namespace UnityEditor.ShaderGraph
             if (string.IsNullOrEmpty(result))
                 return string.Empty;
 
-            result = result.Replace("{precision}", precision.ToString());
             s_TempSlots.Clear();
             GetSlots(s_TempSlots);
             foreach (var slot in s_TempSlots)

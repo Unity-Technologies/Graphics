@@ -42,8 +42,7 @@ namespace UnityEditor.ShaderGraph
             var inputYValue = GetSlotValue(InputSlotYId, generationMode);
             var outputName = GetVariableNameForSlot(OutputSlotId);
 
-            var s = string.Format("{0}2 {1} = {0}2({2},{3});",
-                    precision,
+            var s = string.Format("$precision2 {0} = $precision2({1}, {2});",
                     outputName,
                     inputXValue,
                     inputYValue);

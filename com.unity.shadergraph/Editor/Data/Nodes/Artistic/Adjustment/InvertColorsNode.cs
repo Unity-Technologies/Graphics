@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return "Unity_InvertColors_" + NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType);
+            return $"Unity_InvertColors_{FindSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(concretePrecision)}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -106,12 +106,12 @@ namespace UnityEditor.ShaderGraph
         {
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             var outputValue = GetSlotValue(OutputSlotId, generationMode);
-            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlotId));
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId));
 
             if (!generationMode.IsPreview())
             {
                 sb.AppendLine("{0} _{1}_InvertColors = {0} ({2}",
-                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision),
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(),
                     GetVariableNameForNode(),
                     Convert.ToInt32(m_RedChannel));
                 if (channelCount > 1)
@@ -157,9 +157,9 @@ namespace UnityEditor.ShaderGraph
                 {
                     s.AppendLine("void {0}({1} In, {2} InvertColors, out {3} Out)",
                         GetFunctionName(),
-                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
-                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
-                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
+                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
+                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
                     using (s.BlockScope())
                     {
                         s.AppendLine("Out = abs(InvertColors - In);");

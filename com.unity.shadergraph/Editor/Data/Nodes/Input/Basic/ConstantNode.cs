@@ -61,7 +61,9 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            sb.AppendLine(precision + " " + GetVariableNameForNode() + " = " + m_constantList[constant].ToString(CultureInfo.InvariantCulture) + ";");
+            sb.AppendLine(string.Format("$precision {0} = {1};"
+                , GetVariableNameForNode()
+                , m_constantList[constant].ToString(CultureInfo.InvariantCulture)));
         }
 
         public override string GetVariableNameForSlot(int slotId)

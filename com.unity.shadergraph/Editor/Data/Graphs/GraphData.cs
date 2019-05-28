@@ -227,6 +227,15 @@ namespace UnityEditor.ShaderGraph
         public MessageManager messageManager { get; set; }
         public bool isSubGraph { get; set; }
 
+        [SerializeField]
+        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+
+        public ConcretePrecision concretePrecision
+        {
+            get => m_ConcretePrecision;
+            set => m_ConcretePrecision = value;
+        }
+
         [NonSerialized]
         Guid m_ActiveOutputNodeGuid;
 
@@ -1048,15 +1057,7 @@ namespace UnityEditor.ShaderGraph
                 AddEdgeToNodeEdges(edge);
 
             m_OutputNode = null;
-        }
-
-        public void OnEnable()
-        {
-            foreach (var node in GetNodes<AbstractMaterialNode>().OfType<IOnAssetEnabled>())
-            {
-                node.OnEnable();
-            }
-
+            
             if (!isSubGraph)
             {
                 if (string.IsNullOrEmpty(m_ActiveOutputNodeGuidSerialized))
@@ -1071,6 +1072,14 @@ namespace UnityEditor.ShaderGraph
                 {
                     m_ActiveOutputNodeGuid = new Guid(m_ActiveOutputNodeGuidSerialized);
                 }
+            }
+        }
+
+        public void OnEnable()
+        {
+            foreach (var node in GetNodes<AbstractMaterialNode>().OfType<IOnAssetEnabled>())
+            {
+                node.OnEnable();
             }
         }
     }

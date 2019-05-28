@@ -174,6 +174,12 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(output);
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(Block.SetAttribute));
+            var blockAttribute = blockAttributeDesc.CreateInstance();
+            blockAttribute.SetSettingValue("attribute", "position");
+            contextInitialize.AddChild(blockAttribute);
+
             contextInitialize.LinkTo(output);
             graph.AddChild(contextInitialize);
 
@@ -186,11 +192,39 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator CreateComponent_And_Graph_Restart_Component_Expected()
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = CreateGraph_And_System();
+
+            yield return null;
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+            {
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            }
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+            Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
+
+            while (VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime < 1.0f)
+            {
+                yield return null;
+            }
+
+            vfxComponent.enabled = false;
+            vfxComponent.enabled = true;
+            yield return null;
+
+            Assert.IsTrue(VisualEffectUtility.GetSpawnerState(vfxComponent, 0).totalTime < 1.0f);
+        }
+
+        [UnityTest]
         public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = CreateGraph_And_System();
-        
+
             yield return null;
         
             while (m_mainObject.GetComponent<VisualEffect>() != null)
@@ -200,7 +234,7 @@ namespace UnityEditor.VFX.Test
             var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
             Assert.DoesNotThrow(() => VisualEffectUtility.GetSpawnerState(vfxComponent, 0));
-        
+
             yield return null;
         
             //Plug a GPU instruction on bounds, excepting an exception while recompiling
@@ -226,7 +260,7 @@ namespace UnityEditor.VFX.Test
             var graph = CreateGraph_And_System();
 
             //< Same Behavior as Drag & Drop
-            GameObject currentObject = new GameObject("TemporaryGameObject", /*typeof(Transform),*/ typeof(VisualEffect));
+            GameObject currentObject = new GameObject("TemporaryGameObject_RenderState", /*typeof(Transform),*/ typeof(VisualEffect));
             var vfx = currentObject.GetComponent<VisualEffect>();
             var asset = graph.visualEffectResource.asset;
             Assert.IsNotNull(asset);
@@ -244,6 +278,53 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(currentObject.GetComponent<VFXRenderer>());
             var actualShadowCastingMode = currentObject.GetComponent<VFXRenderer>().shadowCastingMode;
             Assert.AreEqual(actualShadowCastingMode, ShadowCastingMode.On);
+
+            UnityEngine.Object.DestroyImmediate(currentObject);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponent_And_VerifyRenderBounds()
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            var graph = CreateGraph_And_System();
+            var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+
+            var center = new Vector3(1.0f, 2.0f, 3.0f);
+            var size = new Vector3(111.0f, 222.0f, 333.0f);
+
+            initializeContext.inputSlots[0][0].value = center;
+            initializeContext.inputSlots[0][1].value = size;
+            graph.SetExpressionGraphDirty();
+            graph.RecompileIfNeeded();
+
+            //< Same Behavior as Drag & Drop
+            GameObject currentObject = new GameObject("TemporaryGameObject_RenderBounds", /*typeof(Transform),*/ typeof(VisualEffect));
+            var vfx = currentObject.GetComponent<VisualEffect>();
+            var asset = graph.visualEffectResource.asset;
+            Assert.IsNotNull(asset);
+
+            vfx.visualEffectAsset = asset;
+
+            int maxFrame = 512;
+            while ((    vfx.culled
+                    ||  currentObject.GetComponent<VFXRenderer>().bounds.extents.x == 0.0f)
+                    &&  --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            yield return null;
+
+            var vfxRenderer = currentObject.GetComponent<VFXRenderer>();
+            var bounds = vfxRenderer.bounds;
+
+            Assert.AreEqual(center.x, bounds.center.x, 10e-5);
+            Assert.AreEqual(center.y, bounds.center.y, 10e-5);
+            Assert.AreEqual(center.z, bounds.center.z, 10e-5);
+            Assert.AreEqual(size.x / 2.0f, bounds.extents.x, 10e-5);
+            Assert.AreEqual(size.y / 2.0f, bounds.extents.y, 10e-5);
+            Assert.AreEqual(size.z / 2.0f, bounds.extents.z, 10e-5);
 
             UnityEngine.Object.DestroyImmediate(currentObject);
             yield return null;

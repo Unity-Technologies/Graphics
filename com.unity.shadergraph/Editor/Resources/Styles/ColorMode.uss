@@ -26,3 +26,12 @@ MaterialNodeView.Utility #title {
 MaterialNodeView.UV #title {
     border-color:#08D78B;
 }
+
+/* Precision Colors */
+MaterialNodeView.Float #title {
+    border-color:#4B92F3;
+}
+
+MaterialNodeView.Half #title {
+    border-color:#CB3022;
+}
