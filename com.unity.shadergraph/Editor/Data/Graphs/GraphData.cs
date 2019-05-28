@@ -1057,15 +1057,7 @@ namespace UnityEditor.ShaderGraph
                 AddEdgeToNodeEdges(edge);
 
             m_OutputNode = null;
-        }
-
-        public void OnEnable()
-        {
-            foreach (var node in GetNodes<AbstractMaterialNode>().OfType<IOnAssetEnabled>())
-            {
-                node.OnEnable();
-            }
-
+            
             if (!isSubGraph)
             {
                 if (string.IsNullOrEmpty(m_ActiveOutputNodeGuidSerialized))
@@ -1080,6 +1072,14 @@ namespace UnityEditor.ShaderGraph
                 {
                     m_ActiveOutputNodeGuid = new Guid(m_ActiveOutputNodeGuidSerialized);
                 }
+            }
+        }
+
+        public void OnEnable()
+        {
+            foreach (var node in GetNodes<AbstractMaterialNode>().OfType<IOnAssetEnabled>())
+            {
+                node.OnEnable();
             }
         }
     }
