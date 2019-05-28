@@ -206,7 +206,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int lightVolumesTileSize = 8;
                 int numTilesX = (texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
                 int numTilesY = (texHeight + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
-                cmd.DispatchCompute(m_DebugLightVolumeCompute, targetKernel, numTilesX, numTilesY, hdCamera.computePassCount);
+                cmd.DispatchCompute(m_DebugLightVolumeCompute, targetKernel, numTilesX, numTilesY, hdCamera.viewCount);
 
                 // Blit this into the camera target
                 HDUtils.SetRenderTarget(cmd, finalRT);
