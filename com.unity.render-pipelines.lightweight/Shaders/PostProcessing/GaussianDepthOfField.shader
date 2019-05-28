@@ -118,8 +118,7 @@ Shader "Hidden/Lightweight Render Pipeline/GaussianDepthOfField"
 
         #else
 
-            // Bilinear sampling the depth is technically incorrect but we're aiming for speed here
-            float depth = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_LinearClamp, input.uv).x;
+            // Bilinear sampling the coc is technically incorrect but we're aiming for speed here
             half farCoC = SAMPLE_TEXTURE2D(_FullCoCTexture, sampler_LinearClamp, input.uv).x;
 
             // Fast bilinear downscale of the source target and pre-multiply the CoC to reduce
