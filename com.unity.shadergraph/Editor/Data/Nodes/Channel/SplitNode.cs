@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var outputFormat = numInputChannels == 1 ? inputValue : string.Format("{0}[{1}]", inputValue, i);
                 var outputValue = i >= numInputChannels ? "0" : outputFormat;
-                sb.AppendLine(string.Format("{0} {1} = {2};", precision, GetVariableNameForSlot(s_OutputSlots[i]), outputValue));
+                sb.AppendLine(string.Format("$precision {0} = {1};", GetVariableNameForSlot(s_OutputSlots[i]), outputValue));
             }
         }
     }

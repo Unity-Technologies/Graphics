@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph
             properties.Add(pp);
         }
 
-        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        protected override string ConcreteSlotValueAsVariable()
         {
             var channelCount = SlotValueHelper.GetChannelCount(concreteValueType);
             string values = NodeUtils.FloatToShaderValue(value.m00);
@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
                 return values;
             for (var i = 1; i < channelCount; i++)
                 values += ", " + NodeUtils.FloatToShaderValue(value.GetRow(0)[i]);
-            return string.Format("{0}{1}({2})", precision, channelCount, values);
+            return string.Format("$precision{0}({1})", channelCount, values);
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)

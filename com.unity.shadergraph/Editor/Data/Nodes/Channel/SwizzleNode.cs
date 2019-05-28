@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             ValidateChannelCount();
-            var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision);
+            var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString();
             var outputName = GetVariableNameForSlot(OutputSlotId);
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;

@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         public override string GetTitle() => "Category";
 
         public override bool AllowCustom() => false;
+        public override bool ClearOnDirty() => false;
 
         protected override bool GetClassFromNode(AbstractMaterialNode node, out string ussClass)
         {

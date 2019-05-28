@@ -160,7 +160,11 @@ namespace UnityEditor.ShaderGraph
         {
             get { return true; }
         }
-
+        
+        public override bool canSetPrecision
+        {
+            get { return false; }
+        }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
@@ -170,7 +174,7 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(outputSlots);
                 foreach (var slot in outputSlots)
                 {
-                    sb.AppendLine($"{NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
+                    sb.AppendLine($"{slot.concreteValueType.ToShaderString(subGraphData.outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
                 }
                 
                 return;
@@ -181,23 +185,24 @@ namespace UnityEditor.ShaderGraph
             GraphUtil.GenerateSurfaceInputTransferCode(sb, subGraphData.requirements, subGraphData.inputStructName, inputVariableName);
 
             foreach (var outSlot in subGraphData.outputs)
-                sb.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, outSlot.concreteValueType), GetVariableNameForSlot(outSlot.id));
+                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(subGraphData.outputPrecision), GetVariableNameForSlot(outSlot.id));
 
             var arguments = new List<string>();
             foreach (var prop in subGraphData.inputs)
             {
+                prop.SetConcretePrecision(subGraphData.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
                 if (prop is TextureShaderProperty)
-                    arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
+                    arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
                 else if (prop is Texture2DArrayShaderProperty)
-                    arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
+                    arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
                 else if (prop is Texture3DShaderProperty)
-                    arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
+                    arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
                 else if (prop is CubemapShaderProperty)
-                    arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
+                    arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
                 else
-                    arguments.Add(GetSlotValue(inSlotId, generationMode));
+                    arguments.Add(string.Format("{0}", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
             }
 
             // pass surface inputs through
@@ -377,8 +382,11 @@ namespace UnityEditor.ShaderGraph
                 {
                     owner.AddValidationError(tempId, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");
                 }
+
+                return;
             }
-            else if (subGraphData.isRecursive || owner.isSubGraph && (subGraphData.descendents.Contains(owner.assetGuid) || subGraphData.assetGuid == owner.assetGuid))
+            
+            if (subGraphData.isRecursive || owner.isSubGraph && (subGraphData.descendents.Contains(owner.assetGuid) || subGraphData.assetGuid == owner.assetGuid))
             {
                 hasError = true;
                 owner.AddValidationError(tempId, $"Detected a recursion in Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
@@ -390,6 +398,8 @@ namespace UnityEditor.ShaderGraph
             }
 
             ValidateShaderStage();
+
+            concretePrecision = subGraphData.outputPrecision;
         }
 
         public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)

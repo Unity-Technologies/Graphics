@@ -53,9 +53,12 @@ namespace UnityEditor.ShaderGraph
             return new MultiFloatSlotControlView(owner, m_Labels, () => value, (newValue) => value = newValue);
         }
 
-        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        protected override string ConcreteSlotValueAsVariable()
         {
-            return precision + "3 (" + NodeUtils.FloatToShaderValue(value.x) + "," + NodeUtils.FloatToShaderValue(value.y) + "," + NodeUtils.FloatToShaderValue(value.z) + ")";
+            return string.Format("$precision3 ({0}, {1}, {2})"
+                , NodeUtils.FloatToShaderValue(value.x)
+                , NodeUtils.FloatToShaderValue(value.y)
+                , NodeUtils.FloatToShaderValue(value.z));
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)

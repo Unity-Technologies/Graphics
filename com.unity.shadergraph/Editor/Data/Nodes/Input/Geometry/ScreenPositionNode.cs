@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            sb.AppendLine(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), m_ScreenSpaceType.ToValueAsVariable()));
+            sb.AppendLine(string.Format("$precision4 {0} = {1};", GetVariableNameForSlot(kOutputSlotId), m_ScreenSpaceType.ToValueAsVariable()));
         }
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability)

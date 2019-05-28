@@ -1,9 +1,10 @@
 namespace UnityEngine.Rendering.LWRP
 {
     /// <summary>
-    /// Class <c>ScriptableRendererFeature</c> extends <c>ScriptableRenderer</c> with additional features.
+    /// You can add a <c>ScriptableRendererFeature</c> to the <c>ScriptableRenderer</c>. Use this scriptable renderer feature to inject render passes into the renderer.
     /// </summary>
     /// <seealso cref="ScriptableRenderer"/>
+    /// <seealso cref="ScriptableRenderPass"/>
     public abstract class ScriptableRendererFeature : ScriptableObject
     {
         /// <summary>
