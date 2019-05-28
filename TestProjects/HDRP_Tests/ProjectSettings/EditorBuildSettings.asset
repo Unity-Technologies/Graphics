@@ -90,6 +90,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1701_HairGraph/1701_HairGraph.unity
     guid: 7c0b384fd32894841954edea3211d084
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1801_SpeedTreeLit.unity
+    guid: 6a83988ab5bb5ca44897dd62598998b9
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2001_Dynamic_Directional.unity
     guid: 09baf18a7e1f6584f86675e6a2141c66
   - enabled: 1
