@@ -204,17 +204,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-#ifndef LAYERED_LIT_SHADER
-        UVMapping uvMapping = layerTexCoord.base;
-#else
-        UVMapping uvMapping = layerTexCoord.base0;
-#endif
         ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-#if (DECAL_VOLUME_GRADIENT)
         ApplyDecalToTangentSpaceNormal(decalSurfaceData, input.worldToTangent[2], normalTS);
-#else
-        ApplyDecalToTangentSpaceNormal(decalSurfaceData, uvMapping, normalTS);
-#endif
     }
 #endif
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);

@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL]
         public class DecalDefinitions
         {
-            public static int s_DecalVolumeGradient = 1;
+            public static int s_DecalVolumeHighPrecision = 0;
         }
 
         //-----------------------------------------------------------------------------
@@ -53,9 +53,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static GraphicsFormat[] m_RTFormat = { GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8_UNorm};
 
+        static GraphicsFormat[] m_RTFormatHP = { GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8_UNorm};
+
         static public void GetMaterialDBufferDescription(out GraphicsFormat[] RTFormat)
-        {
-            RTFormat = m_RTFormat;
+        {            
+            if(DecalDefinitions.s_DecalVolumeHighPrecision == 1)
+            {
+                RTFormat = m_RTFormatHP;
+            }
+            else
+            {
+                RTFormat = m_RTFormat;
+            }
         }
 
         // relies on the order shader passes are declared in decal.shader
