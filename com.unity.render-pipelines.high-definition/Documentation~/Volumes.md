@@ -16,7 +16,7 @@ Volumes can contain different combinations of Volume Components. For example, on
 
 | Property| Description |
 |:---|:---|
-| **Is Global** | Enable this checkbox to apply this Volume to the entire Scene, so the Volume has no boundaries.  |
+| **Is Global** | Enable the checkbox to apply this Volume to the entire Scene, so the Volume has no boundaries.  |
 | **Blend Distance** | The furthest distance from the Volume’s Collider that HDRP starts blending from. A value of 0 means HDRP applies this Volume’s overrides immediately upon entry. Disable the **Is Global** checkbox to expose this property. |
 | **Weight** | The amount of influence the Volume has on the Scene. HDRP applies this multiplier to the value it calculates using the Camera position and Blend Distance.  |
 | **Priority** | HDRP uses this value to determine which Volume it uses when Volumes have an equal amount of influence on the Scene. HDRP uses Volumes with higher priorities first. |

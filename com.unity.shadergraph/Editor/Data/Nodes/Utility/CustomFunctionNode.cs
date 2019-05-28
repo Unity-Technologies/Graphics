@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
 
         private static string m_DefaultFunctionName = "Enter function name here...";
 
-        public string functionName 
+        public string functionName
         {
             get => m_FunctionName;
             set => m_FunctionName = value;
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 return;
             }
-            
+
             foreach (var argument in slots)
                 visitor.AddShaderChunk(string.Format("{0} _{1}_{2};",
                     NodeUtils.ConvertConcreteSlotValueTypeToString(precision, argument.concreteValueType),
@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph
 
             string call = string.Format("{0}_{1}(", functionName, precision);
             bool first = true;
-            
+
             slots.Clear();
             GetInputSlots<MaterialSlot>(slots);
             foreach (var argument in slots)
@@ -122,24 +122,27 @@ namespace UnityEditor.ShaderGraph
             if(!IsValidFunction())
                 return;
 
-            registry.ProvideFunction(functionName, builder =>
+            switch (sourceType)
             {
-                switch (sourceType)
-                {
-                    case HlslSourceType.File:
+                case HlslSourceType.File:
+                    registry.ProvideFunction(functionSource, builder =>
+                    {
                         builder.AppendLine($"#include \"{functionSource}\"");
-                        break;
-                    case HlslSourceType.String:
+                    });
+                    break;
+                case HlslSourceType.String:
+                    registry.ProvideFunction(functionName, builder =>
+                    {
                         builder.AppendLine(GetFunctionHeader());
-                        using(builder.BlockScope())
+                        using (builder.BlockScope())
                         {
                             builder.AppendLines(functionBody);
                         }
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            });
+                    });
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private string GetFunctionHeader()
@@ -206,16 +209,33 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        void ValidateSlotName()
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetSlots(slots);
+
+            foreach (var slot in slots)
+            {
+                var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
+                if (error)
+                {
+                    owner.AddValidationError(tempId, errorMessage);
+                    break;
+                }
+            }
+        }
+
         public override void ValidateNode()
         {
             if (!this.GetOutputSlots<MaterialSlot>().Any())
             {
                 owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
-            
+            ValidateSlotName();
+
             base.ValidateNode();
         }
-        
+
         public override void GetSourceAssetDependencies(List<string> paths)
         {
             base.GetSourceAssetDependencies(paths);
@@ -226,7 +246,7 @@ namespace UnityEditor.ShaderGraph
                     paths.Add(dependencyPath);
             }
         }
-        
+
         public VisualElement CreateSettingsElement()
         {
             PropertySheet ps = new PropertySheet();

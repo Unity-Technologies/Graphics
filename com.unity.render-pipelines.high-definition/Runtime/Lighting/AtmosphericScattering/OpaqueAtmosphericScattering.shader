@@ -14,8 +14,6 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
-        float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
-
         TEXTURE2D_X_MSAA(float, _DepthTextureMS);
 
         struct Attributes
@@ -41,7 +39,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
 
         inline float4 AtmosphericScatteringCompute(Varyings input, float3 V, float depth)
         {
-            PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
             if (depth == UNITY_RAW_FAR_CLIP_VALUE)
             {
@@ -60,7 +58,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS = input.positionCS.xy;
-            float3 V          = GetSkyViewDirWS(positionSS, (float3x3)_PixelCoordToViewDirWS);
+            float3 V          = GetSkyViewDirWS(positionSS);
             float  depth      = LoadCameraDepth(positionSS);
 
             return AtmosphericScatteringCompute(input, V, depth);
@@ -70,7 +68,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS = input.positionCS.xy;
-            float3 V          = GetSkyViewDirWS(positionSS, (float3x3)_PixelCoordToViewDirWS);
+            float3 V          = GetSkyViewDirWS(positionSS);
             float  depth      = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
 
             return AtmosphericScatteringCompute(input, V, depth);

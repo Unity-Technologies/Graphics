@@ -37,7 +37,7 @@ Collides with a sphere primitive
 
 Collides with an infinite plane primitive
 
-####AABox Collider
+#### AABox Collider
 
 Collides with an axis-aligned box
 
@@ -216,7 +216,7 @@ Positions are computed from a uniform sphere
 
 Positions are computed from a Cone / Cylinder
 
-####Position : Torus
+#### Position : Torus
 
 Positions are computed from a torus
 

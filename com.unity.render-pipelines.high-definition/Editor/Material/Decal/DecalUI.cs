@@ -20,31 +20,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string InputsText = "Surface Inputs";
             public static string SortingText = "Sorting Inputs";
 
-            public static GUIContent baseColorText = new GUIContent("Base Map", "BaseColor (RGB) and Opacity (A).");
-            public static GUIContent baseColorText2 = new GUIContent("Opacity", "Opacity (A).");
-            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm)).");
-            public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Opacity of the entire decal.");
+            public static GUIContent baseColorText = new GUIContent("Base Map", "Specify the base color (RGB) and opacity (A) of the decal.");
+            public static GUIContent baseColorText2 = new GUIContent("Opacity", "Specify the opacity (A) of the decal.");
+            public static GUIContent normalMapText = new GUIContent("Normal Map", "Specifies the normal map for this Material (BC7/BC5/DXT5(nm)).");
+            public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Controls the opacity of the entire decal.");
             public static GUIContent albedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only.");
- 			public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "Adjust this to prevents z-fighting with the decal mesh.");
-	 		public static GUIContent drawOrderText = new GUIContent("Draw order", "Controls the draw order of Decal Projectors.");
-            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Remaps the Material's Smoothness.");
-            public static GUIContent metallicText = new GUIContent("Metallic Scale", "Scale factor the Material's Metallic  effect.");
-            public static GUIContent aoRemappingText = new GUIContent("AO Remapping", "Remaps the Material's Ambient Occlusion effect.");
-            public static GUIContent maskMapBlueScaleText = new GUIContent("Scale Mask Map Blue Channel", "Scale the blue channel of the Mask Map. You can use this as opacity depending on the blend source you choose.");
- 			public static GUIContent emissiveText = new GUIContent("Emission Map", "Emission Map (RGB) in nits unit");
-            public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "");
+            public static GUIContent normalOpacityChannelText = new GUIContent("Normal Opacity Channel", "Specifies the source this Material uses as opacity for its Normal Map.");
+ 			public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh Decal Depth Bias", "Sets a depth bias to stop the decal's Mesh from overlapping with other Meshes.");
+	 		public static GUIContent drawOrderText = new GUIContent("Draw Order", "Controls the draw order of Decal Projectors. HDRP draws decals with lower values first.");
+            public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Controls a remap for the smoothness channel in the Mask Map.");
+            public static GUIContent metallicText = new GUIContent("Metallic Scale", "Controls a scale factor for the metallic channel in the Mask Map.");
+            public static GUIContent aoRemappingText = new GUIContent("Ambient Occlusion Remapping", "Controls a remap for the ambient occlusion channel in the Mask Map.");
+            public static GUIContent maskOpacityChannelText = new GUIContent("Mask Opacity Channel", "Specifies the source this Material uses as opacity for its Mask Map.");
+            public static GUIContent affectMetalText = new GUIContent("Affect Metal", "When enabled, this decal uses the metallic channel of its Mask Map. When disabled, the decal has no metallic effect.");
+            public static GUIContent affectAmbientOcclusionText = new GUIContent("Affect Ambient Occlusion", "When enabled, this decal uses the smoothness channel of its Mask Map. When disabled, the decal has no smoothness effect.");
+            public static GUIContent affectSmoothnessText = new GUIContent("Affect Smoothness", "When enabled, this decal uses the ambient occlusion channel of its Mask Map. When disabled, the decal has no ambient occlusion effect.");
+            public static GUIContent maskMapBlueScaleText = new GUIContent("Scale Mask Map Blue Channel", "Controls the scale of the blue channel of the Mask Map. You can use this as opacity depending on the blend source you choose.");
+            public static GUIContent emissiveText = new GUIContent("Emissive", "When enabled, this Material becomes emissive and appears self-illuminated.");
+            public static GUIContent useEmissionIntensityText = new GUIContent("Use Emission Intensity", "When enabled, this Material separates emission color and intensity. This makes the Emission Map into an LDR color and exposes the Emission Intensity property.");
+            public static GUIContent emissionMapText = new GUIContent("Emission Map", "Specifies a map (RGB) that the Material uses for emission.");
+            public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "Sets the overall strength of the emission effect.");
+            public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Control the percentage of emission to expose.");
 
 
             public static GUIContent[] maskMapText =
             {
                 new GUIContent("Error", "Mask map"), // Not possible
-                new GUIContent("Mask Map", "Mask map - Metal(R), Opacity(B)"), // Decal.MaskBlendFlags.Metal:
-                new GUIContent("Mask Map", "Mask map - Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.AO:
-                new GUIContent("Mask Map", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO:
-                new GUIContent("Mask Map", "Mask map - Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map", "Mask map - Metal(R), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map", "Mask map - Ambient Occlusion(G), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)") // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metal(R), Opacity(B)"), // Decal.MaskBlendFlags.Metal:
+                new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.AO:
+                new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metal(R), Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO:
+                new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metal(R), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Ambient Occlusion(G), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
+                new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)") // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
             };
         }
 
@@ -144,6 +152,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty emissiveColorHDR = null;
         protected const string kEmissiveColorHDR = "_EmissiveColorHDR";
 
+        protected MaterialProperty emissiveExposureWeight = null;
+        protected const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
+
         protected MaterialEditor m_MaterialEditor;
 
         void FindMaterialProperties(MaterialProperty[] props)
@@ -176,7 +187,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveIntensity = FindProperty(kEmissiveIntensity, props);
             emissiveColorLDR = FindProperty(kEmissiveColorLDR, props);
             emissiveColorHDR = FindProperty(kEmissiveColorHDR, props);
-
+            emissiveExposureWeight = FindProperty(kEmissiveExposureWeight, props);
+            
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
             instancing.boolValue = true;
@@ -273,7 +285,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (material.GetTexture(kNormalMap))
                         {
                             EditorGUI.indentLevel++;
-                            normalBlendSrcValue = EditorGUILayout.Popup("Normal Opacity channel", (int)normalBlendSrcValue, blendSourceNames);
+                            normalBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, (int)normalBlendSrcValue, blendSourceNames);
                             EditorGUI.indentLevel--;
                         }
 
@@ -289,7 +301,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref AORemapMinValue, ref AORemapMaxValue, 0.0f, 1.0f);
                             }
 
-                            maskBlendSrcValue = EditorGUILayout.Popup("Mask Opacity channel", (int)maskBlendSrcValue, blendSourceNames);
+                            maskBlendSrcValue = EditorGUILayout.Popup(Styles.maskOpacityChannelText, (int)maskBlendSrcValue, blendSourceNames);
 
                             if (perChannelMask)
                             {
@@ -299,15 +311,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                                 using (new EditorGUI.DisabledScope(mustDisableScope && maskmapMetal.floatValue == 1.0f))
                                 {
-                                    m_MaterialEditor.ShaderProperty(maskmapMetal, "Affect Metal");
+                                    m_MaterialEditor.ShaderProperty(maskmapMetal, Styles.affectMetalText);
                                 }
                                 using (new EditorGUI.DisabledScope(mustDisableScope && maskmapAO.floatValue == 1.0f))
                                 {
-                                    m_MaterialEditor.ShaderProperty(maskmapAO, "Affect AO");
+                                    m_MaterialEditor.ShaderProperty(maskmapAO, Styles.affectAmbientOcclusionText);
                                 }
                                 using (new EditorGUI.DisabledScope(mustDisableScope && maskmapSmoothness.floatValue == 1.0f))
                                 {
-                                    m_MaterialEditor.ShaderProperty(maskmapSmoothness, "Affect Smoothness");
+                                    m_MaterialEditor.ShaderProperty(maskmapSmoothness, Styles.affectSmoothnessText);
                                 }
 
                                 // Sanity condition in case for whatever reasons all value are 0.0 but it should never happen
@@ -333,14 +345,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                         m_MaterialEditor.ShaderProperty(maskMapBlueScale, Styles.maskMapBlueScaleText);
                         m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
-                        m_MaterialEditor.ShaderProperty(emissive, "Emissive");
+                        m_MaterialEditor.ShaderProperty(emissive, Styles.emissiveText);
                         if (emissive.floatValue == 1.0f)
                         {
-                            m_MaterialEditor.ShaderProperty(useEmissiveIntensity, "Use Emission Intensity");
+                            m_MaterialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissionIntensityText);
                             
-                            if(useEmissiveIntensity.floatValue == 1.0f)
+                            if (useEmissiveIntensity.floatValue == 1.0f)
                             {
-                                m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColorLDR);
+                                m_MaterialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorLDR);
                                 using (new EditorGUILayout.HorizontalScope())
                                 {
                                     EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
@@ -358,8 +370,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             }
                             else
                             {
-                                m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColorHDR);
+                                m_MaterialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorHDR);
                             }
+
+                            m_MaterialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
                         }
 
                         EditorGUI.indentLevel--;

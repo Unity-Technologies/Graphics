@@ -229,7 +229,7 @@ real DV_SmithJointGGX(real NdotH, real NdotL, real NdotV, real roughness, real p
     // This function is only used for direct lighting.
     // If roughness is 0, the probability of hitting a punctual or directional light is also 0.
     // Therefore, we return 0. The most efficient way to do it is with a max().
-    return INV_PI * 0.5 * (D.x * G.x) / max(D.y * G.y, FLT_MIN);
+    return INV_PI * 0.5 * (D.x * G.x) / max(D.y * G.y, REAL_MIN);
 }
 
 real DV_SmithJointGGX(real NdotH, real NdotL, real NdotV, real roughness)
@@ -322,7 +322,7 @@ real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH, real NdotV,
     // This function is only used for direct lighting.
     // If roughness is 0, the probability of hitting a punctual or directional light is also 0.
     // Therefore, we return 0. The most efficient way to do it is with a max().
-    return (INV_PI * 0.5) * (D.x * G.x) / max(D.y * G.y, FLT_MIN);
+    return (INV_PI * 0.5) * (D.x * G.x) / max(D.y * G.y, REAL_MIN);
 }
 
 real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH,

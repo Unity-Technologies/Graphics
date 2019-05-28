@@ -12,7 +12,7 @@ HDRP uses these two sorting methods together to control the render queue. To cal
 
 The resulting queue is a list of GameObjects that are first sorted by their Material’s **Priority**, then by their individual Mesh Renderer’s **Priority**.
 
-<a name=”SortingByMaterial”></a>
+<a name="SortingByMaterial"></a>
 
 ## Sorting by Material
 
@@ -37,7 +37,7 @@ When the **Sort Priority** properties of different Materials are not the same, H
 
 ![](Images/RendererAndMaterialPriority4.png)
 
-<a name=”SortingByRenderer”></a>
+<a name="SortingByRenderer"></a>
 
 ## Sorting by Renderer
 

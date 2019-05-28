@@ -63,7 +63,11 @@ uint deadCount = 0;
 deadCount = deadListCount.Load(0);
 #endif	
 if (index >= asuint(nbMax) - deadCount)
+#if USE_GEOMETRY_SHADER
+	return; // cull
+#else
 	return o; // cull
+#endif
 
 #if VFX_HAS_INDIRECT_DRAW
 index = indirectBuffer[index];

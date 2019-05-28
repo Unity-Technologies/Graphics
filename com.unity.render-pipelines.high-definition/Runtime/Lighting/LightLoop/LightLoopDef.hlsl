@@ -10,8 +10,9 @@ struct LightLoopContext
 
     HDShadowContext shadowContext;
     
-    float contactShadow; // Currently we support only one contact shadow per view
-    float shadowValue; // Stores the value of the cascade shadow map
+    uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
+    float contactShadowFade;    // combined fade factor of all contact shadows 
+    float shadowValue;          // Stores the value of the cascade shadow map
 };
 
 //-----------------------------------------------------------------------------
@@ -257,6 +258,43 @@ uint FetchIndex(uint lightStart, uint lightOffset)
 
 #endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
+bool IsFastPath(uint lightStart, out uint lightStartLane0)
+{
+#if SCALARIZE_LIGHT_LOOP
+    // Fast path is when we all pixels in a wave are accessing same tile or cluster.
+    lightStartLane0 = WaveReadLaneFirst(lightStart);
+    return WaveActiveAllTrue(lightStart == lightStartLane0); 
+#else
+    lightStartLane0 = lightStart;
+    return false;
+#endif
+}
+
+// This function scalarize an index accross all lanes. To be effecient it must be used in the context
+// of the scalarization of a loop. It is to use with IsFastPath so it can optimize the number of
+// element to load, which is optimal when all the lanes are contained into a tile.
+uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
+{
+    uint s_elementIdx = v_elementIdx;
+#if SCALARIZE_LIGHT_LOOP
+    if (!fastPath)
+    {
+        // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave. 
+        s_elementIdx = WaveActiveMin(v_elementIdx);
+        // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+        // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin
+        if (s_elementIdx == -1)
+        {
+            return -1;
+        }
+    }
+    // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
+    // However, we are certain at this point that the index is scalar.
+    s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+#endif
+    return s_elementIdx;
+}
+
 uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
 {
     if (i < count)
@@ -293,20 +331,39 @@ EnvLightData FetchEnvLight(uint index)
     return _EnvLightDatas[index];
 }
 
+// In the first 8 bits of the target we store the max fade of the contact shadows as a byte
+void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)
+{
+    fade = float(contactShadowData >> 24) / 255.0;
+    mask = contactShadowData & 0xFFFFFF; // store only the first 24 bits which represent 
+}
+
+uint PackContactShadowData(float fade, uint mask)
+{
+    uint fadeAsByte = (uint(saturate(fade) * 255) << 24);
+
+    return fadeAsByte | mask;
+}
+
 // We always fetch the screen space shadow texture to reduce the number of shader variant, overhead is negligible,
 // it is a 1x1 white texture if deferred directional shadow and/or contact shadow are disabled
 // We perform a single featch a the beginning of the lightloop
-float InitContactShadow(PositionInputs posInput)
+void InitContactShadow(PositionInputs posInput, inout LightLoopContext context)
 {
-    // For now we only support one contact shadow
-    // Contactshadow is store in Red Channel of _DeferredShadowTexture
     // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
     // We use this property to have a neutral value for contact shadows that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
     // We store inverse contact shadow so neutral is white. So either we sample inside or outside the texture it return 1 in case of neutral
-    return 1.0 - LOAD_TEXTURE2D_X(_DeferredShadowTexture, posInput.positionSS).x;
+    uint packedContactShadow = LOAD_TEXTURE2D_X(_ContactShadowTexture, posInput.positionSS).x;
+    UnpackContactShadowData(packedContactShadow, context.contactShadowFade, context.contactShadow);
 }
 
-float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowIndex)
+float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask)
 {
-    return contactShadowIndex >= 0 ? lightLoopContext.contactShadow : 1.0;
+    bool occluded = (lightLoopContext.contactShadow & contactShadowMask) != 0;
+    return 1.0 - (occluded * lightLoopContext.contactShadowFade);
+}
+
+float GetScreenSpaceShadow(PositionInputs posInput)
+{
+    return LOAD_TEXTURE2D_X(_ScreenSpaceShadowsTexture, posInput.positionSS).x;
 }

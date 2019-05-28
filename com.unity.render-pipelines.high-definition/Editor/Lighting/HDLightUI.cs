@@ -202,24 +202,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
-                var renderingLayerMask = serialized.serializedLightData.renderingLayerMask.intValue;
-                int lightLayer;
-                if (serialized.serializedLightData.renderingLayerMask.hasMultipleDifferentValues)
-                {
-                    EditorGUI.showMixedValue = true;
-                    lightLayer = 0;
-                }
-                else
-                    lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
-                EditorGUI.BeginChangeCheck();
-                lightLayer = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)lightLayer));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    // Overwrite only first byte
-                    lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
-                    serialized.serializedLightData.renderingLayerMask.intValue = lightLayer;
-                }
-                EditorGUI.showMixedValue = false;
+                HDEditorUtils.LightLayerMaskPropertyDrawer(s_Styles.lightLayer, serialized.serializedLightData.renderingLayerMask);
             }
         }
 
@@ -614,14 +597,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
                         {
+                            EditorGUI.showMixedValue = serialized.serializedLightData.nonLightmappedOnly.hasMultipleDifferentValues;
                             EditorGUI.BeginChangeCheck();
                             ShadowmaskMode shadowmask = serialized.serializedLightData.nonLightmappedOnly.boolValue ? ShadowmaskMode.ShadowMask : ShadowmaskMode.DistanceShadowmask;
                             shadowmask = (ShadowmaskMode)EditorGUILayout.EnumPopup(s_Styles.nonLightmappedOnly, shadowmask);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 serialized.serializedLightData.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
-                                ((Light)owner.target).lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                                foreach (Light target in owner.targets)
+                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
                             }
+                            EditorGUI.showMixedValue = false;
                         }
                     }
                     if (serialized.editorLightShape == LightShape.Rectangle)
@@ -714,6 +700,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Draw shadow settings using the current shadow algorithm
             HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams;
+            LightType lightType = (LightType)serialized.settings.lightType.enumValueIndex;
+
+            if (hdShadowInitParameters.shadowQuality == HDShadowQuality.VeryHigh)
+            {
+                // For very high settings shadow punctial lights we do not use the Very high settings but rather the High
+                if (quality == HDShadowQuality.High && lightType != LightType.Directional)
+                    return true;
+                // Only the directional can access the very high shadow settings
+                else if (quality == HDShadowQuality.VeryHigh && lightType == LightType.Directional)
+                    return true;
+                return false;
+            }
+
             return hdShadowInitParameters.shadowQuality == quality;
         }
 

@@ -28,6 +28,11 @@ namespace UnityEditor.ShaderGraph
             get { return false; }
         }
 
+        public override bool isRenamable
+        {
+            get { return true; }
+        }
+
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(PropertyType.Matrix4)

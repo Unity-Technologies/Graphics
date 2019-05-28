@@ -181,7 +181,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Sun could influence the sky (like for procedural sky). We need to handle this possibility. If sun property change, then we need to update the sky
                 int hash = 13;
-                hash = hash * 23 + (light.GetHashCode() * 23 + light.transform.position.GetHashCode()) * 23 + light.transform.rotation.GetHashCode();
+                hash = hash * 23 + light.transform.position.GetHashCode();
+                hash = hash * 23 + light.transform.rotation.GetHashCode();
                 hash = hash * 23 + light.color.GetHashCode();
                 hash = hash * 23 + light.colorTemperature.GetHashCode();
                 hash = hash * 23 + light.intensity.GetHashCode();
@@ -222,7 +223,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.commandBuffer = cmd;
                 m_BuiltinParameters.sunLight = sunLight;
                 m_BuiltinParameters.screenSize = m_CubemapScreenSize;
-                m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
                 m_BuiltinParameters.hdCamera = null;
                 m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
 
@@ -310,13 +310,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_BuiltinParameters.commandBuffer = cmd;
                     m_BuiltinParameters.sunLight = sunLight;
-#if UNITY_2019_1_OR_NEWER
-                    m_BuiltinParameters.pixelCoordToViewDirMatrix = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad, hdCamera.camera.GetGateFittedLensShift(), hdCamera.screenSize, hdCamera.viewMatrix, false);
-#else
-                    m_BuiltinParameters.pixelCoordToViewDirMatrix = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(hdCamera.camera.fieldOfView * Mathf.Deg2Rad, Vector2.zero, hdCamera.screenSize, hdCamera.viewMatrix, false);
-#endif
+                    m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
                     m_BuiltinParameters.screenSize = hdCamera.screenSize;
-                    m_BuiltinParameters.cameraPosWS = hdCamera.camera.transform.position;
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
                     m_BuiltinParameters.hdCamera = hdCamera;

@@ -1,16 +1,126 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+using UnityEngine.Serialization;
+
+#if UNITY_EDITOR
+using UnityEditor.Experimental.SceneManagement;
+#endif
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
+    class Light2DManager : IDisposable
+    {
+        const int k_BlendStyleCount = 4;    // This must match the array size of m_LightBlendStyles in _2DRendererData.
+        static Light2DManager s_Instance = new Light2DManager();
+
+        Light2DManager m_PrevInstance;
+        List<Light2D>[] m_Lights;
+        CullingGroup m_CullingGroup;
+        BoundingSphere[] m_BoundingSpheres;
+
+        internal static List<Light2D>[] lights => s_Instance.m_Lights;
+
+        internal static CullingGroup cullingGroup
+        {
+            get => s_Instance.m_CullingGroup;
+            set => s_Instance.m_CullingGroup = value;
+        }
+
+        internal static BoundingSphere[] boundingSpheres
+        {
+            get => s_Instance.m_BoundingSpheres;
+            set => s_Instance.m_BoundingSpheres = value;
+        }
+
+        internal static bool GetGlobalColor(int sortingLayerIndex, int blendStyleIndex, out Color color)
+        {
+            bool  foundGlobalColor = false;
+            color = Color.black;
+
+            // This should be rewritten to search only global lights
+            List<Light2D> lights = s_Instance.m_Lights[blendStyleIndex];
+            for (int i = 0; i < lights.Count; ++i)
+            {
+                Light2D light = lights[i];
+                if (light.lightType == Light2D.LightType.Global && light.IsLitLayer(sortingLayerIndex))
+                {
+                    bool inCurrentPrefabStage = true;
+#if UNITY_EDITOR
+                    // If we found the first global light in our prefab stage
+                    inCurrentPrefabStage = PrefabStageUtility.GetPrefabStage(light.gameObject) == PrefabStageUtility.GetCurrentPrefabStage();
+#endif
+                    
+                    if (inCurrentPrefabStage)
+                    {
+                        color = light.color * light.intensity;
+                        return true;
+                    }
+                    else
+                    {
+                        if (!foundGlobalColor)
+                        {
+                            color = light.color * light.intensity;
+                            foundGlobalColor = true;
+                        }
+                    }
+                }
+            }
+
+            return foundGlobalColor;
+        }
+
+        internal static bool ContainsDuplicateGlobalLight(int sortingLayerIndex, int blendStyleIndex)
+        {
+            int globalLightCount = 0;
+
+            // This should be rewritten to search only global lights
+            List<Light2D> lights = s_Instance.m_Lights[blendStyleIndex];
+            for (int i = 0; i < lights.Count; i++)
+            {
+                Light2D light = lights[i];
+                if (light.lightType == Light2D.LightType.Global && light.IsLitLayer(sortingLayerIndex))
+                {
+#if UNITY_EDITOR
+                    // If we found the first global light in our prefab stage
+                    if (PrefabStageUtility.GetPrefabStage(light.gameObject) == PrefabStageUtility.GetCurrentPrefabStage())
+#endif
+                    {
+                        if (globalLightCount > 0)
+                            return true;
+
+                        globalLightCount++;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        internal Light2DManager()
+        {
+            m_PrevInstance = s_Instance;
+            s_Instance = this;
+
+            m_Lights = new List<Light2D>[k_BlendStyleCount];
+            for (int i = 0; i < m_Lights.Length; ++i)
+                m_Lights[i] = new List<Light2D>();
+        }
+
+        public void Dispose()
+        {
+            s_Instance = m_PrevInstance;
+        }
+    }
+
     // TODO: 
     //     Fix parametric mesh code so that the vertices, triangle, and color arrays are only recreated when number of sides change
     //     Change code to update mesh only when it is on screen. Maybe we can recreate a changed mesh if it was on screen last update (in the update), and if it wasn't set it dirty. If dirty, in the OnBecameVisible function create the mesh and clear the dirty flag.
-    [ExecuteAlways]
+    [ExecuteAlways, DisallowMultipleComponent]
     sealed public partial class Light2D : MonoBehaviour
     {
+        /// <summary>
+        /// an enumeration of the types of light
+        /// </summary>
         public enum LightType
         {
             Parametric = 0,
@@ -20,158 +130,140 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             Global = 4
         }
 
-        public enum LightOverlapMode
-        {
-            Additive,
-            AlphaBlend
-        }
-
-        //------------------------------------------------------------------------------------------
-        //                                      Static/Constants
-        //------------------------------------------------------------------------------------------
-
-        const int k_LightOperationCount = 4;    // This must match the array size of m_LightOperations in _2DRendererData.
-        static List<Light2D>[] s_Lights = SetupLightArray();
-        static CullingGroup s_CullingGroup;
-        static BoundingSphere[] s_BoundingSpheres;
-        static Dictionary<int, Color>[] s_GlobalClearColors = SetupGlobalClearColors();
-
-        internal static Dictionary<int, Color>[] globalClearColors { get { return s_GlobalClearColors; } }
-
-        //------------------------------------------------------------------------------------------
-        //                                Variables/Properties
-        //------------------------------------------------------------------------------------------
-
+        [UnityEngine.Animations.NotKeyable]
         [SerializeField]
-        [Serialization.FormerlySerializedAs("m_LightProjectionType")]
         LightType m_LightType = LightType.Parametric;
         LightType m_PreviousLightType = (LightType)LightType.Parametric;
 
-        [SerializeField]
-        [Serialization.FormerlySerializedAs("m_ShapeLightType")]
-        [Serialization.FormerlySerializedAs("m_LightOperation")]
-        int m_LightOperationIndex = 0;
+        [SerializeField, FormerlySerializedAs("m_LightOperationIndex")]
+        int m_BlendStyleIndex = 0;
+
 
         [SerializeField]
-        float m_FalloffCurve = 0.5f;
-
+        float m_FalloffIntensity = 0.5f;
+            
         [ColorUsage(false, false)]
         [SerializeField]
-        [Serialization.FormerlySerializedAs("m_LightColor")]
         Color m_Color = Color.white;
-        Color m_PreviousColor = Color.white;
         [SerializeField]
         float m_Intensity = 1;
-        float m_PreviousIntensity = 1;
 
         [SerializeField] float m_LightVolumeOpacity = 0.0f;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
         [SerializeField] Sprite m_LightCookieSprite = null;
+        [SerializeField] bool m_UseNormalMap = false;
 
-        int         m_PreviousLightOperationIndex;
+        [SerializeField] int m_LightOrder = 0;
+        [SerializeField] bool m_AlphaBlendOnOverlap = false; 
+
+        int m_PreviousLightOrder = -1;
+        int m_PreviousBlendStyleIndex;
         float       m_PreviousLightVolumeOpacity;
         Sprite      m_PreviousLightCookieSprite     = null;
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
 
+        internal struct LightStats
+        {
+            public int totalLights;
+            public int totalNormalMapUsage;
+            public int totalVolumetricUsage;
+        }
+
+        /// <summary>
+        /// The lights current type
+        /// </summary>
         public LightType lightType
         {
             get => m_LightType;
             set => m_LightType = value;
         }
 
-        public int lightOperationIndex => m_LightOperationIndex;
+        /// <summary>
+        /// The lights current operation index
+        /// </summary>
+        public int blendStyleIndex { get => m_BlendStyleIndex; set => m_BlendStyleIndex = value; }
+
+        /// <summary>
+        /// The lights current color
+        /// </summary>
         public Color color
         {
             get { return m_Color; }
-            set
-            {
-                AddGlobalLight(this, true);
-                m_Color = value;
-            }
+            set { m_Color = value; }
         }
 
+        /// <summary>
+        /// The lights current intensity
+        /// </summary>
         public float intensity
         {
             get { return m_Intensity; }
-            set
-            {
-                AddGlobalLight(this, true);
-                m_Intensity = value;
-            }
+            set { m_Intensity = value; }
         }
 
+        /// <summary>
+        /// The lights current intensity
+        /// </summary>
         public float volumeOpacity => m_LightVolumeOpacity;
         public Sprite lightCookieSprite => m_LightCookieSprite;
-        public float falloffCurve => m_FalloffCurve;
+        public float falloffIntensity => m_FalloffIntensity;
+        public bool useNormalMap => m_UseNormalMap;
+        public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
+        public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
 
-        public bool hasDirection { get { return m_LightType == LightType.Point; } }
+        internal int lightCullingIndex => m_LightCullingIndex;
 
-
-        //==========================================================================================
-        //                              Functions
-        //==========================================================================================
-
-        internal static Dictionary<int, Color>[] SetupGlobalClearColors()
-        {
-            Dictionary<int,Color>[] globalClearColors = new Dictionary<int, Color>[k_LightOperationCount];
-            for(int i=0;i<k_LightOperationCount;i++)
-            {
-                globalClearColors[i] = new Dictionary<int, Color>();
-            }
-            return globalClearColors;
-        }
-
-        internal static List<Light2D>[] SetupLightArray()
-        {
-            List<Light2D>[] retArray = new List<Light2D>[k_LightOperationCount];
-
-            for (int i = 0; i < retArray.Length; i++)
-                retArray[i] = new List<Light2D>();
-
-            return retArray;
-        }
+#if UNITY_EDITOR
+        public static string s_IconsPath = "Packages/com.unity.render-pipelines.lightweight/Editor/2D/Resources/SceneViewIcons/";
+        public static string s_ParametricLightIconPath = s_IconsPath + "ParametricLight.png";
+        public static string s_FreeformLightIconPath = s_IconsPath + "FreeformLight.png";
+        public static string s_SpriteLightIconPath = s_IconsPath + "SpriteLight.png";
+        public static string s_PointLightIconPath = s_IconsPath + "PointLight.png";
+        public static string s_GlobalLightIconPath = s_IconsPath + "GlobalLight.png";
+        public static string[] s_LightIconPaths = new string[] { s_ParametricLightIconPath, s_FreeformLightIconPath, s_SpriteLightIconPath, s_PointLightIconPath, s_GlobalLightIconPath };
+#endif
 
         internal static void SetupCulling(Camera camera)
         {
-            if (s_CullingGroup == null)
+            if (Light2DManager.cullingGroup == null)
                 return;
 
-            s_CullingGroup.targetCamera = camera;
+            Light2DManager.cullingGroup.targetCamera = camera;
 
             int totalLights = 0;
-            for (int lightOpIndex = 0; lightOpIndex < s_Lights.Length; ++lightOpIndex)
-                totalLights += s_Lights[lightOpIndex].Count;
+            for (int blendStyleIndex = 0; blendStyleIndex < Light2DManager.lights.Length; ++blendStyleIndex)
+                totalLights += Light2DManager.lights[blendStyleIndex].Count;
 
-            if (s_BoundingSpheres == null)
-                s_BoundingSpheres = new BoundingSphere[Mathf.Max(1024, 2 * totalLights)];
-            else if (totalLights > s_BoundingSpheres.Length)
-                s_BoundingSpheres = new BoundingSphere[2 * totalLights];
+            if (Light2DManager.boundingSpheres == null)
+                Light2DManager.boundingSpheres = new BoundingSphere[Mathf.Max(1024, 2 * totalLights)];
+            else if (totalLights > Light2DManager.boundingSpheres.Length)
+                Light2DManager.boundingSpheres = new BoundingSphere[2 * totalLights];
 
             int currentLightCullingIndex = 0;
-            for (int lightOpIndex = 0; lightOpIndex < s_Lights.Length; ++lightOpIndex)
+            for (int blendStyleIndex = 0; blendStyleIndex < Light2DManager.lights.Length; ++blendStyleIndex)
             {
-                var lightsPerLightOp = s_Lights[lightOpIndex];
+                var lightsPerBlendStyle = Light2DManager.lights[blendStyleIndex];
 
-                for (int lightIndex = 0; lightIndex < lightsPerLightOp.Count; ++lightIndex)
+                for (int lightIndex = 0; lightIndex < lightsPerBlendStyle.Count; ++lightIndex)
                 {
-                    Light2D light = lightsPerLightOp[lightIndex];
+                    Light2D light = lightsPerBlendStyle[lightIndex];
                     if (light == null)
                         continue;
 
-                    s_BoundingSpheres[currentLightCullingIndex] = light.GetBoundingSphere();
+                    Light2DManager.boundingSpheres[currentLightCullingIndex] = light.GetBoundingSphere();
                     light.m_LightCullingIndex = currentLightCullingIndex++;
                 }
             }
 
-            s_CullingGroup.SetBoundingSpheres(s_BoundingSpheres);
-            s_CullingGroup.SetBoundingSphereCount(currentLightCullingIndex);
+            Light2DManager.cullingGroup.SetBoundingSpheres(Light2DManager.boundingSpheres);
+            Light2DManager.cullingGroup.SetBoundingSphereCount(currentLightCullingIndex);
         }
 
-        internal static List<Light2D> GetLightsByLightOperation(int lightOpIndex)
+        internal static List<Light2D> GetLightsByBlendStyle(int blendStyleIndex)
         {
-            return s_Lights[lightOpIndex];
+            return Light2DManager.lights[blendStyleIndex];
         }
 
         internal int GetTopMostLitLayer()
@@ -200,7 +292,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
                 return -1;
         }
 
-        internal void UpdateMesh()
+        void UpdateMesh()
         {
             GetMesh(true);
         }
@@ -212,23 +304,26 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         void InsertLight()
         {
-            var lightList = s_Lights[m_LightOperationIndex];
+            var lightList = Light2DManager.lights[m_BlendStyleIndex];
             int index = 0;
 
-            while (index < lightList.Count && m_ShapeLightOrder > lightList[index].m_ShapeLightOrder)
+            while (index < lightList.Count && m_LightOrder > lightList[index].m_LightOrder)
                 index++;
 
             lightList.Insert(index, this);
         }
 
-        void UpdateLightOperation()
+        void UpdateBlendStyle()
         {
-            if (m_LightOperationIndex == m_PreviousLightOperationIndex)
+            if (m_BlendStyleIndex == m_PreviousBlendStyleIndex)
                 return;
 
-            s_Lights[m_PreviousLightOperationIndex].Remove(this);
-            m_PreviousLightOperationIndex = m_LightOperationIndex;
+            Light2DManager.lights[m_PreviousBlendStyleIndex].Remove(this);
+            m_PreviousBlendStyleIndex = m_BlendStyleIndex;
             InsertLight();
+
+            if (m_LightType == LightType.Global)
+                ErrorIfDuplicateGlobalLight();
         }
 
         BoundingSphere GetBoundingSphere()
@@ -248,16 +343,16 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             switch (m_LightType)
             {
                 case LightType.Freeform:
-                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, combinedColor, m_ShapePath, m_ShapeLightFalloffOffset, m_LightVolumeOpacity, m_ShapeLightFalloffSize);
+                    m_LocalBounds = LightUtility.GenerateShapeMesh(ref m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
                     break;
                 case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightRadius, m_ShapeLightFalloffOffset, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, m_ShapeLightFalloffSize, combinedColor, m_LightVolumeOpacity);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:
-                    m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, combinedColor, m_LightVolumeOpacity, 1);
+                    m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, 1);
                     break;
                 case LightType.Point:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, Vector2.zero, 0, 4, 0, combinedColor, m_LightVolumeOpacity);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, 1.412135f, 0, 0, 4);
                     break;
             }
 
@@ -266,46 +361,24 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         internal bool IsLightVisible(Camera camera)
         {
-            bool isVisible = (s_CullingGroup == null || s_CullingGroup.IsVisible(m_LightCullingIndex)) && isActiveAndEnabled;
+            bool isVisible = (Light2DManager.cullingGroup == null || Light2DManager.cullingGroup.IsVisible(m_LightCullingIndex)) && isActiveAndEnabled;
 
 #if UNITY_EDITOR
             isVisible &= UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(gameObject, camera);
 #endif
-
             return isVisible;
         }
 
-        static internal void AddGlobalLight(Light2D light2D, bool overwriteColor = false)
+        internal void ErrorIfDuplicateGlobalLight()
         {
-            for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
+            for (int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
             {
-                int sortingLayer = light2D.m_ApplyToSortingLayers[i];
-                Dictionary<int, Color> globalColorOp = s_GlobalClearColors[light2D.m_LightOperationIndex];
-                if (!globalColorOp.ContainsKey(sortingLayer))
-                {
-                    globalColorOp.Add(sortingLayer, light2D.m_Intensity * light2D.m_Color);
-                }
-                else
-                {
-                    globalColorOp[sortingLayer] = light2D.m_Intensity * light2D.m_Color;
-                    if(!overwriteColor)
-                        Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light operation index " + light2D.m_LightOperationIndex);
-                }
+                int sortingLayer = m_ApplyToSortingLayers[i];
+
+                if(Light2DManager.ContainsDuplicateGlobalLight(sortingLayer, blendStyleIndex))
+                    Debug.LogError("More than one global light on layer " + SortingLayer.IDToName(sortingLayer) + " for light blend style index " + m_BlendStyleIndex);
             }
         }
-
-
-        static internal void RemoveGlobalLight(Light2D light2D)
-        {
-            for (int i = 0; i < light2D.m_ApplyToSortingLayers.Length; i++)
-            {
-                int sortingLayer = light2D.m_ApplyToSortingLayers[i];
-                Dictionary<int, Color> globalColorOp = s_GlobalClearColors[light2D.m_LightOperationIndex];
-                if (globalColorOp.ContainsKey(sortingLayer))
-                    globalColorOp.Remove(sortingLayer);
-            }
-        }
-
 
         private void Awake()
         {
@@ -315,22 +388,22 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             GetMesh();
         }
 
-        private void OnEnable()
+        void OnEnable()
         {
             // This has to stay in OnEnable() because we need to re-initialize the static variables after a domain reload.
-            if (s_CullingGroup == null)
+            if (Light2DManager.cullingGroup == null)
             {
-                s_CullingGroup = new CullingGroup();
+                Light2DManager.cullingGroup = new CullingGroup();
                 RenderPipeline.beginCameraRendering += SetupCulling;
             }
 
-            if (!s_Lights[m_LightOperationIndex].Contains(this))
+            if (!Light2DManager.lights[m_BlendStyleIndex].Contains(this))
                 InsertLight();
 
-            m_PreviousLightOperationIndex = m_LightOperationIndex;
+            m_PreviousBlendStyleIndex = m_BlendStyleIndex;
 
             if (m_LightType == LightType.Global)
-                AddGlobalLight(this);
+                ErrorIfDuplicateGlobalLight();
 
             m_PreviousLightType = m_LightType;
         }
@@ -339,51 +412,78 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         {
             bool anyLightLeft = false;
 
-            for (int i = 0; i < s_Lights.Length; ++i)
+            for (int i = 0; i < Light2DManager.lights.Length; ++i)
             {
-                s_Lights[i].Remove(this);
+                Light2DManager.lights[i].Remove(this);
 
-                if (s_Lights[i].Count > 0)
+                if (Light2DManager.lights[i].Count > 0)
                     anyLightLeft = true;
             }
 
-            if (!anyLightLeft && s_CullingGroup != null)
+            if (!anyLightLeft && Light2DManager.cullingGroup != null)
             {
-                s_CullingGroup.Dispose();
-                s_CullingGroup = null;
+                Light2DManager.cullingGroup.Dispose();
+                Light2DManager.cullingGroup = null;
                 RenderPipeline.beginCameraRendering -= SetupCulling;
             }
-
-            if (m_LightType == LightType.Global)
-                RemoveGlobalLight(this);
         }
 
         internal List<Vector2> GetFalloffShape()
         {
-            List<Vector2> shape = LightUtility.GetFeatheredShape(m_ShapePath, m_ShapeLightFalloffSize);
+            List<Vector2> shape = new List<Vector2>();
+            List<Vector2> extrusionDir = new List<Vector2>();
+            LightUtility.GetFalloffShape(m_ShapePath, ref extrusionDir);
+            for (int i = 0; i < m_ShapePath.Length; i++)
+            {
+                Vector2 position = new Vector2();
+                position.x = m_ShapePath[i].x + this.shapeLightFalloffSize * extrusionDir[i].x;
+                position.y = m_ShapePath[i].y + this.shapeLightFalloffSize * extrusionDir[i].y;
+                shape.Add(position);
+            }
             return shape;
+        }
+
+        static internal LightStats GetLightStatsByLayer(int layer)
+        {
+            LightStats returnStats = new LightStats();
+            for(int blendStyleIndex = 0; blendStyleIndex < Light2DManager.lights.Length; blendStyleIndex++)
+            {
+                List<Light2D> lights = Light2DManager.lights[blendStyleIndex];
+                for (int lightIndex = 0; lightIndex < lights.Count; lightIndex++)
+                {
+                    Light2D light = lights[lightIndex];
+
+                    if (light.IsLitLayer(layer))
+                    {
+                        returnStats.totalLights++;
+                        if (light.useNormalMap)
+                            returnStats.totalNormalMapUsage++;
+                        if (light.volumeOpacity > 0)
+                            returnStats.totalVolumetricUsage++;
+                    }
+                }
+
+            }
+            return returnStats;
         }
 
         private void LateUpdate()
         {
-            UpdateLightOperation();
+            UpdateBlendStyle();
 
             bool rebuildMesh = false;
 
             // Sorting. InsertLight() will make sure the lights are sorted.
-            if (LightUtility.CheckForChange(m_ShapeLightOrder, ref m_PreviousShapeLightOrder))
+            if (LightUtility.CheckForChange(m_LightOrder, ref m_PreviousLightOrder))
             {
-                s_Lights[(int)m_LightOperationIndex].Remove(this);
+                Light2DManager.lights[(int)m_BlendStyleIndex].Remove(this);
                 InsertLight();
             }
 
             if (m_LightType != m_PreviousLightType)
             {
-                if(m_PreviousLightType == LightType.Global)
-                    RemoveGlobalLight(this);
-
                 if (m_LightType == LightType.Global)
-                    AddGlobalLight(this);
+                    ErrorIfDuplicateGlobalLight();
                 else
                     rebuildMesh = true;
 
@@ -391,28 +491,27 @@ namespace UnityEngine.Experimental.Rendering.LWRP
             }
 
             // Mesh Rebuilding
-            rebuildMesh |= LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
-            rebuildMesh |= LightUtility.CheckForChange(m_Intensity, ref m_PreviousIntensity);
-            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
-            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightRadius, ref m_PreviousShapeLightRadius);
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
             rebuildMesh |= LightUtility.CheckForChange(m_LightCookieSprite, ref m_PreviousLightCookieSprite);
-
-            
+            rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffOffset, ref m_PreviousShapeLightFalloffOffset);
 
 #if UNITY_EDITOR
             rebuildMesh |= LightUtility.CheckForChange(GetShapePathHash(), ref m_PreviousShapePathHash);
 #endif
-
-            if (rebuildMesh)
+            if(rebuildMesh && m_LightType != LightType.Global)
                 UpdateMesh();
         }
 
+
+#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
-            Gizmos.DrawIcon(transform.position, "PointLight Gizmo", true);
+            Gizmos.color = Color.blue;
+            Gizmos.DrawIcon(transform.position, s_LightIconPaths[(int)m_LightType], true);
         }
+#endif
     }
 }

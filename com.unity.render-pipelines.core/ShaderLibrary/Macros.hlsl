@@ -160,7 +160,7 @@
     void FunctionName(inout bool3  a, inout bool3  b) { bool3  t = a; a = b; b = t; } \
     void FunctionName(inout bool4  a, inout bool4  b) { bool4  t = a; a = b; b = t; }
 #else
-    #if HAS_HALF
+    #if REAL_IS_HALF
         #define TEMPLATE_SWAP(FunctionName) \
         void FunctionName(inout real  a, inout real  b) { real  t = a; a = b; b = t; } \
         void FunctionName(inout real2 a, inout real2 b) { real2 t = a; a = b; b = t; } \

@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.Test
         VFXGraph MakeTemporaryGraph()
         {
             var tempFilePath = MakeTempFilePath("vfx");
-            var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
             var resource = asset.GetResource(); // force resource creation
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
             graph.visualEffectResource = resource;

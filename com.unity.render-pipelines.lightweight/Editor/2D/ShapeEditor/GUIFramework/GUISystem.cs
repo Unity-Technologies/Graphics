@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
 {
     internal class GUISystem
     {
@@ -14,6 +14,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
         private IGUIState m_GUIState;
         private int m_PrevNearestControl = -1;
         private LayoutData m_PrevNearestLayoutData = LayoutData.zero;
+        private int m_ControlIDCheck = -1;
 
         public GUISystem(IGUIState guiState)
         {
@@ -48,6 +49,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 
         public void OnGUI()
         {
+            var controlIDCheck = m_GUIState.GetControlID(kControlIDCheckHashCode, FocusType.Passive);
+
+            if (m_GUIState.eventType == EventType.Layout)
+                m_ControlIDCheck = controlIDCheck;
+            else if (m_GUIState.eventType != EventType.Used && m_ControlIDCheck != controlIDCheck)
+                Debug.LogWarning("GetControlID at event " + m_GUIState.eventType + " returns a controlID different from the one in Layout event");
+                
             var nearestLayoutData = LayoutData.zero;
 
             foreach (var control in m_Controls)

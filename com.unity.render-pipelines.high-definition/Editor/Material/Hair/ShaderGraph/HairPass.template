@@ -196,7 +196,6 @@ $include("SharedCode.template.hlsl")
 #ifdef _MATERIAL_FEATURE_HAIR_KAJIYA_KAY
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY;
 #endif
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS; // Remove
 
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
         $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);

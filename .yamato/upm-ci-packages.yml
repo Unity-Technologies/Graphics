@@ -1,0 +1,66 @@
+editors:
+  - version: trunk
+projects:
+  - name: Core
+    folder: none
+    packagename: com.unity.render-pipelines.core
+  - name: LWRP
+    folder: LWGraphicsTest
+    packagename: com.unity.visualeffectgraph
+  - name: ShaderGraph
+    folder: ShaderGraph
+    packagename: com.unity.shadergraph
+  - name: HDRP
+    folder: HDRP_Tests
+    packagename: com.unity.render-pipelines.high-definition
+  - name: VFXMain
+    folder: VisualEffectGraph
+    packagename: com.unity.visualeffectgraph
+  - name: VFX_LWRP
+    folder: VisualEffectGraph_LWRP
+    packagename: com.unity.visualeffectgraph
+---
+all_package_ci:
+  name: Pack and test all packages
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: m1.large
+  commands:
+  {% for project in projects %}
+  {% for editor in editors %}
+  - npm install git+ssh://git@gitlab.cds.internal.unity3d.com:upm-packages/project-templates/upm-template-utils.git#performance-package -g --no-progress
+  - cd {{ project.packagename }} && upm-ci package pack
+  - cd {{ project.packagename }} && upm-ci package test --unity-version {{ editor.version }}
+  {% endfor %}
+  {% endfor %}
+  artifacts:
+    logs.zip:
+      paths:
+      - "**/upm-ci~/test-results/**/*"
+      - "**/upm-ci~/packages/**/*.tgz"
+
+publish:
+  name: Publish all packages
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: m1.large
+  commands:
+  {% for project in projects %}
+  {% for editor in editors %}
+    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - cd {{ project.packagename }} && upm-ci package publish
+  {% endfor %}
+  {% endfor %}
+#  triggers:
+#    tags:
+#      only:
+#        - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
+#        - /^(r|R)elease-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
+  artifacts:
+    artifacts.zip:
+      paths:
+        - "upm-ci~/packages/*.tgz"
+  dependencies:
+    - all_package_ci

@@ -107,6 +107,7 @@ Shader "Lightweight Render Pipeline/Baked Lit"
             half4 frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 half2 uv = input.uv0AndFogCoord.xy;
                 half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
