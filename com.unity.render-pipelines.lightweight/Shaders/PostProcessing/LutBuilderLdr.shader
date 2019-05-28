@@ -2,9 +2,6 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderLdr"
 {
     HLSLINCLUDE
 
-        #pragma prefer_hlslcc gles
-        #pragma exclude_renderers d3d11_9x
-        
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"

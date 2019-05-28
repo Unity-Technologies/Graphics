@@ -7,9 +7,6 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
 
     HLSLINCLUDE
 
-        #pragma prefer_hlslcc gles
-        #pragma exclude_renderers d3d11_9x
-
         #pragma multi_compile_local _ _USE_RGBM
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

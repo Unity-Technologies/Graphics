@@ -7,8 +7,6 @@ Shader "Hidden/Lightweight Render Pipeline/PaniniProjection"
 
     HLSLINCLUDE
 
-        #pragma prefer_hlslcc gles
-        #pragma exclude_renderers d3d11_9x
         #pragma multi_compile_local _GENERIC _UNIT_DISTANCE
 
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"

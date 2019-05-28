@@ -7,8 +7,6 @@ Shader "Hidden/Lightweight Render Pipeline/CameraMotionBlur"
 
     HLSLINCLUDE
 
-        #pragma prefer_hlslcc gles
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"

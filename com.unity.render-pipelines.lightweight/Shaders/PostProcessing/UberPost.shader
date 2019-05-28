@@ -6,9 +6,6 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
     }
 
     HLSLINCLUDE
-
-        #pragma prefer_hlslcc gles
-        #pragma exclude_renderers d3d11_9x
         
         #pragma multi_compile_local _ _DISTORTION
         #pragma multi_compile_local _ _CHROMATIC_ABERRATION

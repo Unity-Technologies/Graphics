@@ -2,9 +2,6 @@ Shader "Hidden/Lightweight Render Pipeline/LutBuilderHdr"
 {
     HLSLINCLUDE
 
-        #pragma prefer_hlslcc gles
-        #pragma exclude_renderers d3d11_9x
-
         #pragma multi_compile_local _ _TONEMAP_ACES _TONEMAP_NEUTRAL
         
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
