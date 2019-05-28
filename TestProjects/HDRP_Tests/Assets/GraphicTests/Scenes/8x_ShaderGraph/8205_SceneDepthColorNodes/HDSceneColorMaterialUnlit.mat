@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: HDSceneColorMaterialUnlit
-  m_Shader: {fileID: -6465566751694194690, guid: 62f1221e34a59ba4c93ecc680efbc0de,
+  m_Shader: {fileID: -6465566751694194690, guid: 99ee13c2ba6c5874abaff194a5088b3e,
     type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -107,6 +107,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - Vector1_635111CF: 1
     - Vector1_CF3498BB: 1
     - _AORemapMax: 1
     - _AORemapMin: 0
@@ -218,6 +219,7 @@ Material:
     - _ZTestModeDistortion: 8
     - _ZWrite: 1
     m_Colors:
+    - Color_F79A4B5A: {r: 0, g: 0.77254903, b: 1, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}

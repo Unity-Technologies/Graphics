@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.SceneManagement;
+using System.Reflection;
 
 using UnityEditor;
 using EditorSceneManagement = UnityEditor.SceneManagement;
@@ -101,12 +102,19 @@ namespace UnityEditor.TestTools.Graphics
 
             Scene trScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(0);
 
+            string[] selectedScenes = GetSelectedScenes();
+
             foreach( EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
             {
                 if (!scene.enabled) continue;
 
                 SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scene.path);
                 var labels = new System.Collections.Generic.List<string>(AssetDatabase.GetLabels(sceneAsset));
+                
+                // if we successfully retrieved the names of the selected scenes, we filter using this list
+                if (selectedScenes.Length > 0 && !selectedScenes.Contains(sceneAsset.name))
+                    continue;
+
                 if ( labels.Contains(bakeLabel) )
                 {
 
@@ -130,6 +138,39 @@ namespace UnityEditor.TestTools.Graphics
 
             if (!IsBuildingForEditorPlaymode)
                 new CreateSceneListFileFromBuildSettings().Setup();
+        }
+
+        string[] GetSelectedScenes()
+        {
+            try {
+                var testRunnerWindowType = Type.GetType("UnityEditor.TestTools.TestRunner.TestRunnerWindow, UnityEditor.TestRunner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"); // type: TestRunnerWindow
+                var testRunnerWindow = EditorWindow.GetWindow(testRunnerWindowType);
+                var playModeListGUI = testRunnerWindowType.GetField("m_PlayModeTestListGUI", BindingFlags.NonPublic | BindingFlags.Instance); // type: PlayModeTestListGUI
+                var testListTree = playModeListGUI.FieldType.BaseType.GetField("m_TestListTree", BindingFlags.NonPublic | BindingFlags.Instance); // type: TreeViewController
+
+                // internal treeview GetSelection:
+                var getSelectionMethod = testListTree.FieldType.GetMethod("GetSelection", BindingFlags.Public | BindingFlags.Instance); // int[] GetSelection();
+                var playModeListGUIValue = playModeListGUI.GetValue(testRunnerWindow);
+                var testListTreeValue = testListTree.GetValue(playModeListGUIValue);
+
+                var selectedItems = getSelectionMethod.Invoke(testListTreeValue, null);
+
+                var getSelectedTestsAsFilterMethod = playModeListGUI.FieldType.BaseType.GetMethod(
+                    "GetSelectedTestsAsFilter",
+                    BindingFlags.NonPublic | BindingFlags.Instance
+                );
+
+                var testRunnerFilter = getSelectedTestsAsFilterMethod.Invoke(playModeListGUIValue, new object[] { selectedItems });
+
+                var testNames = testRunnerFilter.GetType().GetField("testNames", BindingFlags.Instance | BindingFlags.Public);
+
+                // Finally get the name of the selected scene to run !
+                var testNamesValue = testNames.GetValue(testRunnerFilter) as string[];
+
+                return testNamesValue.Select(name => name.Substring(name.LastIndexOf('.') + 1)).ToArray();
+            } catch (Exception) {
+                return new string[] {}; // Ignore error and return an empty array
+            }
         }
 
         static string lightmapDataGitIgnore = @"Lightmap-*_comp*

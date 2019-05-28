@@ -1,5 +1,3 @@
-**Important:** This page is subject to change during the 2019.1 beta cycle.
-
 # Lit Shader
 
 The Lit Shader lets you render real-world surfaces like stone, wood, glass, plastic, and metals in photo-realistic quality. Your light levels and reflections look lifelike and react properly across various lighting conditions, for example bright sunlight, or a dark cave. This Shader uses the most computationally heavy [shading model](shading-model.md) in LWRP. 

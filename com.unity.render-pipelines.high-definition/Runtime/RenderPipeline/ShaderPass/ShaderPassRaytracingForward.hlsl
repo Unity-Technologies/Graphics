@@ -2,7 +2,7 @@
 
 // Generic function that handles the reflection code
 [shader("closesthit")]
-void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
 	// The first thing that we should do is grab the intersection vertice
     IntersectionVertice currentvertex;

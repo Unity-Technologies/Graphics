@@ -41,21 +41,21 @@ Shader "Hidden/HDRP/ColorResolve"
         float4 Frag1X(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
+            int2 pixelCoords = int2(input.texcoord);
             return LoadColorTextureMS(pixelCoords, 0);
         }
 
         float4 Frag2X(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
+            int2 pixelCoords = int2(input.texcoord);
             return FastTonemapInvert((FastTonemap(LoadColorTextureMS(pixelCoords, 0)) + FastTonemap(LoadColorTextureMS(pixelCoords, 1))) * 0.5f);
         }
 
         float4 Frag4X(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
+            int2 pixelCoords = int2(input.texcoord);
             return FastTonemapInvert((FastTonemap(LoadColorTextureMS(pixelCoords, 0)) + FastTonemap(LoadColorTextureMS(pixelCoords, 1))
                                     + FastTonemap(LoadColorTextureMS(pixelCoords, 2)) + FastTonemap(LoadColorTextureMS(pixelCoords, 3))) * 0.25f);
         }
@@ -63,7 +63,7 @@ Shader "Hidden/HDRP/ColorResolve"
         float4 Frag8X(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            int2 pixelCoords = int2(TexCoordStereoOffset(input.texcoord));
+            int2 pixelCoords = int2(input.texcoord);
             return FastTonemapInvert((FastTonemap(LoadColorTextureMS(pixelCoords, 0)) + FastTonemap(LoadColorTextureMS(pixelCoords, 1))
                                     + FastTonemap(LoadColorTextureMS(pixelCoords, 2)) + FastTonemap(LoadColorTextureMS(pixelCoords, 3))
                                     + FastTonemap(LoadColorTextureMS(pixelCoords, 4)) + FastTonemap(LoadColorTextureMS(pixelCoords, 5))

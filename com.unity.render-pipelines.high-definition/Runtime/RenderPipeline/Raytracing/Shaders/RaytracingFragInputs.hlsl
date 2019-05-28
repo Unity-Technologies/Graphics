@@ -1,5 +1,5 @@
 
-void BuildFragInputsFromIntersection(IntersectionVertice currentVertex, RayIntersection rayIntersection, out FragInputs outFragInputs)
+void BuildFragInputsFromIntersection(IntersectionVertice currentVertex, in RayIntersection rayIntersection, out FragInputs outFragInputs)
 {
 	outFragInputs.positionSS = float4(0.0, 0.0, 0.0, 0.0);
 	outFragInputs.positionRWS = mul(ObjectToWorld3x4(), float4(currentVertex.positionOS, 1.0)).xyz - _WorldSpaceCameraPos;

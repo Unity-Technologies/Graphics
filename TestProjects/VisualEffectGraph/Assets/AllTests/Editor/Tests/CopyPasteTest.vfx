@@ -598,6 +598,7 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   preRefraction: 0
+  primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114806364651043532
 MonoBehaviour:

@@ -6,16 +6,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
-        [Reload("DefaultScene/DefaultSceneRoot.prefab", ReloadAttribute.Package.HDRPEditor)]
+        [Reload("Editor/DefaultScene/DefaultSceneRoot.prefab")]
         public GameObject defaultScene;
-        [Reload("DefaultScene/DefaultRenderingSettings.asset", ReloadAttribute.Package.HDRPEditor)]
+        [Reload("Editor/DefaultScene/DefaultRenderingSettings.asset")]
         public VolumeProfile defaultRenderSettingsProfile;
-        [Reload("DefaultScene/DefaultPostProcessingSettings.asset", ReloadAttribute.Package.HDRPEditor)]
+        [Reload("Editor/DefaultScene/DefaultPostProcessingSettings.asset")]
         public VolumeProfile defaultPostProcessingProfile;
         [Reload(new[]
         {
-            "RenderPipelineResources/Skin Diffusion Profile.asset",
-            "RenderPipelineResources/Foliage Diffusion Profile.asset"
+            "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",
+            "Runtime/RenderPipelineResources/Foliage Diffusion Profile.asset"
         })]
         public DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
 
@@ -31,13 +31,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public sealed class MaterialResources
         {
             // Defaults
-            [Reload("RenderPipelineResources/Material/DefaultHDMaterial.mat")]
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat")]
             public Material defaultDiffuseMat;
-            [Reload("RenderPipelineResources/Material/DefaultHDMirrorMaterial.mat")]
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMirrorMaterial.mat")]
             public Material defaultMirrorMat;
-            [Reload("RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
             public Material defaultDecalMat;
-            [Reload("RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
             public Material defaultTerrainMat;
         }
 
@@ -49,11 +49,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable, ReloadGroup]
         public sealed class ShaderGraphResources
         {
-            [Reload("RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph")]
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph")]
             public Shader autodeskInteractive;
-            [Reload("RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph")]
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph")]
             public Shader autodeskInteractiveMasked;
-            [Reload("RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph")]
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph")]
             public Shader autodeskInteractiveTransparent;
         }
 
@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 resources.textures = null;
                 resources.shaders = null;
                 resources.shaderGraphs = null;
-                ResourceReloader.ReloadAllNullIn(target);
+                ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
             }
         }
     }

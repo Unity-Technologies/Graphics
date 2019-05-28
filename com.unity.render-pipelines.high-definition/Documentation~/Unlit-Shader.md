@@ -18,7 +18,7 @@ New Materials in HDRP use the [Lit Shader](Lit-Shader.html) by default. To creat
 
 ### Surface Options
 
-Surface options control the overall look of your Material's surface and how Unity renders the Material on screen. 
+Surface options control the overall look of your Material's surface and how Unity renders the Material on screen.
 
 | Property| Description |
 |:---|:---|
@@ -47,10 +47,10 @@ Set the __Surface Type__ to __Transparent__ to expose the __Transparency Inputs_
 
 | Property| Description |
 |:---|:---|
-| **Distortion** | Enable this checkbox to distort the light passing through this transparent Material. Checking this box exposes the following properties. |
+| **Distortion** | Enable the checkbox to distort the light passing through this transparent Material. Checking this box exposes the following properties. |
 | **- Distortion Blend Mode** | Set the mode HDRP uses to blend overlayed distortion surfaces. |
-| **- Distortion Only** | Enable this checkbox to only show the distortion effect and set all other inputs to have no effect. |
-| **- Distortion Depth Test** | Enable this checkbox to make closer GameObjects hide the distortion effect, otherwise you can always see the effect. If you do not enable this feature, then the distortion appears on top of the rendering. |
+| **- Distortion Only** | Enable the checkbox to only show the distortion effect and set all other inputs to have no effect. |
+| **- Distortion Depth Test** | Enable the checkbox to make closer GameObjects hide the distortion effect, otherwise you can always see the effect. If you do not enable this feature, then the distortion appears on top of the rendering. |
 | **- Distortion Vector Map** | HDRP uses the red and green channels of this texture to calculate distortion. It also uses the blue channel to manage the blur intensity between 0 and 1. By default, a texture has values between 0 and 1. To be able to produce distortion in either direction, you must remap the distortion texture between -1 and 1. HDRP provides two values you can use to remap the distortion texture. It takes the original value from the map and multiplies it by the value on the left then adds the value on the right. For example, to remap original values of 0 to 1 to be  -1 to 1, enter 2 for the first value and -1 for the second value. |
 | **- Distortion Scale** | A multiplier for the distortion effect. Set this to a value higher than 1 to amplify the effect. |
 | **- Distortion Blur Scale** | A multiplier for the distortion blur. Set this to a value higher than 1 to amplify the blur. |

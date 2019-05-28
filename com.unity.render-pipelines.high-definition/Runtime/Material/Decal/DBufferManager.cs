@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-            m_HTile = RTHandles.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8_UNorm, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "DBufferHTile"); // Enable UAV
+            m_HTile = RTHandles.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, name: "DBufferHTile"); // Enable UAV
         }
 
         override public void DestroyBuffers()
@@ -54,9 +54,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
             Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
             Color clearColorAOSBlend = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-            HDUtils.SetRenderTarget(cmd, camera, m_RTs[0], ClearFlag.Color, clearColor);
-            HDUtils.SetRenderTarget(cmd, camera, m_RTs[1], ClearFlag.Color, clearColorNormal);
-            HDUtils.SetRenderTarget(cmd, camera, m_RTs[2], ClearFlag.Color, clearColor);
+            HDUtils.SetRenderTarget(cmd, m_RTs[0], ClearFlag.Color, clearColor);
+            HDUtils.SetRenderTarget(cmd, m_RTs[1], ClearFlag.Color, clearColorNormal);
+            HDUtils.SetRenderTarget(cmd, m_RTs[2], ClearFlag.Color, clearColor);
 
             // names IDs have to be set every frame, because they can change
             RTIDs[0] = m_RTs[0].nameID;
@@ -64,13 +64,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTIDs[2] = m_RTs[2].nameID;
             if (rtCount4)
             {
-                HDUtils.SetRenderTarget(cmd, camera, m_RTs[3], ClearFlag.Color, clearColorAOSBlend);
+                HDUtils.SetRenderTarget(cmd, m_RTs[3], ClearFlag.Color, clearColorAOSBlend);
                 RTIDs[3] = m_RTs[3].nameID;
             }
-            HDUtils.SetRenderTarget(cmd, camera, m_HTile, ClearFlag.Color, Color.clear);
+            HDUtils.SetRenderTarget(cmd, m_HTile, ClearFlag.Color, Color.clear);
 
             // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
-            HDUtils.SetRenderTarget(cmd, camera, RTIDs, cameraDepthStencilBuffer); // do not clear anymore
+            HDUtils.SetRenderTarget(cmd, RTIDs, cameraDepthStencilBuffer); // do not clear anymore
             cmd.SetRandomWriteTarget(rtCount4 ? 4 : 3, m_HTile);
         }
 

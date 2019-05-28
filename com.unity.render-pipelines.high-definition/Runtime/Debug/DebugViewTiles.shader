@@ -167,7 +167,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 uint2 pixelCoord = uint2(input.texcoord.xy * _ScreenSize.xy);
 
                 float depth = LoadCameraDepth(pixelCoord);
-                PositionInputs posInput = GetPositionInput_Stereo(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize(), unity_StereoEyeIndex);
+                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
 
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
                 int2 mouseTileCoord = _MousePixelCoord.xy / GetTileSize();
@@ -214,7 +214,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
                     float depthMouse = LoadCameraDepth(_MousePixelCoord.xy);
-                    PositionInputs mousePosInput = GetPositionInput_Stereo(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord, unity_StereoEyeIndex);
+                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ScreenSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
 
                     uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
                     uint start;

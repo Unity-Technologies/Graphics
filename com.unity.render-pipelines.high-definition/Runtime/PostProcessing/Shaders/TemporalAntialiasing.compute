@@ -42,18 +42,18 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 uv = posInputs.positionNDC - jitter;
 
-    float3 color = Fetch(_InputTexture, uv, 0.0, _ScreenToTargetScale.xy);
-    float3 history = Fetch(_InputHistoryTexture, posInputs.positionNDC - motionVector, 0.0, _ScreenToTargetScaleHistory.xy);
+    float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
+    float3 history = Fetch(_InputHistoryTexture, posInputs.positionNDC - motionVector, 0.0, _RTHandleScaleHistory.xy);
 
-    float3 topLeft = Fetch(_InputTexture, uv, -RADIUS, _ScreenToTargetScale.xy);
-    float3 bottomRight = Fetch(_InputTexture, uv, RADIUS, _ScreenToTargetScale.xy);
+    float3 topLeft = Fetch(_InputTexture, uv, -RADIUS, _RTHandleScale.xy);
+    float3 bottomRight = Fetch(_InputTexture, uv, RADIUS, _RTHandleScale.xy);
 
     float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
     // Sharpen output
     #if SHARPEN
-    float3 topRight = Fetch(_InputTexture, uv, float2(RADIUS, -RADIUS), _ScreenToTargetScale.xy);
-    float3 bottomLeft = Fetch(_InputTexture, uv, float2(-RADIUS, RADIUS), _ScreenToTargetScale.xy);
+    float3 topRight = Fetch(_InputTexture, uv, float2(RADIUS, -RADIUS), _RTHandleScale.xy);
+    float3 bottomLeft = Fetch(_InputTexture, uv, float2(-RADIUS, RADIUS), _RTHandleScale.xy);
     float3 blur = (topLeft + topRight + bottomLeft + bottomRight) * 0.25;
     color += (color - blur) * SHARPEN_STRENGTH;
     #endif

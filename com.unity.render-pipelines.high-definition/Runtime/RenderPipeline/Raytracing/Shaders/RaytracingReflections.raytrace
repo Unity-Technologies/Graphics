@@ -122,13 +122,16 @@ void RayGenHalfRes()
     globalSampleIndex += 8;
     for (int i = 1; i < 8; ++i)
     {
-        if (dot(sampleDir, normalData.normalWS) >= 0.00f && dot(normalData.normalWS, viewWS) >= 0.00f)
+        if (dot(sampleDir, normalData.normalWS) >= 0.00f)
             break;
 
         sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
         sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
         SampleGGXDir2(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH, LdotH, false);
     }
+
+    if (dot(sampleDir, normalData.normalWS) <= 0.00f)
+        return;
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
@@ -252,6 +255,10 @@ void RayGenIntegration()
         float3 sampleDir = float3(0.0, 0.0, 0.0);
         float NdotL, NdotH, VdotH, LdotH;
         SampleGGXDir2(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH, LdotH, false);
+
+        // If the sample is under the surface
+        if (dot(sampleDir, normalData.normalWS) <= 0.00f)
+            continue;
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;

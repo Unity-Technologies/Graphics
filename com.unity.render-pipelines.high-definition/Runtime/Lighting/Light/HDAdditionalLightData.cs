@@ -358,7 +358,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, VisibleLight visibleLight, CullingResults cullResults, int lightIndex, out int shadowRequestCount)
         {
             int                 firstShadowRequestIndex = -1;
-            Vector3             cameraPos = hdCamera.camera.transform.position;
+            Vector3             cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
             shadowRequestCount = 0;
 
             int count = GetShadowRequestCount();
@@ -377,7 +377,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Vector2 shapeSize = new Vector2(shapeWidth, shapeHeight);
                     float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
                     Vector3 shadowOffset = offset * visibleLight.GetForward();
-                    HDShadowUtils.ExtractAreaLightData(hdCamera, visibleLight, lightTypeExtent, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane - offset, shapeSize, viewportSize, m_ShadowData.normalBiasMax, out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
+                    HDShadowUtils.ExtractAreaLightData(hdCamera, visibleLight, lightTypeExtent, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, m_ShadowData.normalBiasMax, out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
                 }
                 else
                 {

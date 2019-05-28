@@ -188,11 +188,9 @@ namespace UnityEditor.ShaderGraph
             else if (property is SamplerStateShaderProperty)
             {
                 SamplerStateShaderProperty samplerStateProperty = property as SamplerStateShaderProperty;
-                var result = string.Format("SamplerState {0} = {1}_{2}_{3};"
+                var result = string.Format("SamplerState {0} = {1};"
                         , GetVariableNameForSlot(OutputSlotId)
-                        , samplerStateProperty.referenceName
-                        , samplerStateProperty.value.filter
-                        , samplerStateProperty.value.wrap);
+                        , samplerStateProperty.referenceName);
                 visitor.AddShaderChunk(result, true);
             }
             else if (property is GradientShaderProperty)

@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal static DiffusionProfileSettingsListUI diffusionProfileUI = new DiffusionProfileSettingsListUI();
 
-        internal static SelectedFrameSettings selectedFrameSettings = SelectedFrameSettings.Camera;
+        internal static SelectedFrameSettings selectedFrameSettings;
 
         static HDRenderPipelineUI()
         {
@@ -79,6 +79,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.FoldoutGroup(k_MaterialSectionTitle, Expandable.Material, k_ExpandedState, Drawer_SectionMaterialUnsorted),
                 CED.FoldoutGroup(k_PostProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings)
             );
+
+            // fix init of selection along what is serialized
+            if (k_ExpandedState[Expandable.BakedOrCustomProbeFrameSettings])
+                selectedFrameSettings = SelectedFrameSettings.BakedOrCustomReflection;
+            else if (k_ExpandedState[Expandable.RealtimeProbeFrameSettings])
+                selectedFrameSettings = SelectedFrameSettings.RealtimeReflection;
+            else //default value: camera
+                selectedFrameSettings = SelectedFrameSettings.Camera;
         }
         
         public static readonly CED.IDrawer Inspector;
@@ -287,7 +295,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(k_ShadowPunctualLightAtlasSubTitle);
             ++EditorGUI.indentLevel;
             CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), k_ResolutionContent);
-            EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_DirectionalShadowPrecisionContent);
+            EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_PrecisionContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.useDynamicViewportRescale, k_DynamicRescaleContent);
             --EditorGUI.indentLevel;
 
@@ -381,7 +389,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     using (new EditorGUI.DisabledGroupScope(true))
                         EditorGUILayout.LabelField(k_MultipleDifferenteValueMessage);
                 }
-                else if ((DynamicResolutionType)serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.intValue == DynamicResolutionType.Software)
+                else 
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter, k_UpsampleFilter);
 
                 if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
@@ -398,7 +406,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     
                     EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.hasMultipleDifferentValues;
                     EditorGUI.BeginChangeCheck();
-                    maxPercentage = EditorGUILayout.DelayedFloatField(k_MinPercentage, maxPercentage);
+                    maxPercentage = EditorGUILayout.DelayedFloatField(k_MaxPercentage, maxPercentage);
                     if (EditorGUI.EndChangeCheck())
                         serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, 0.0f, 100.0f);
 

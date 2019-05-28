@@ -4,16 +4,21 @@
         "UnityEngine.TestTools.Graphics",
         "Unity.RenderPipelines.Lightweight.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.Postprocessing.Runtime"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
+        "Unity.Postprocessing.Runtime",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.ugui"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": []
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": []
 }

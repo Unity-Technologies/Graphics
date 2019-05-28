@@ -54,7 +54,7 @@ void RayGenRenderer()
 	float depthValue  = _DepthTexture[currentPixelCoord];
 
 	// Convert this to a world space position
-    PositionInputs posInput = GetPositionInput_Stereo(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0, 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 	posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
 	// Compute the incident vector on the surfaces

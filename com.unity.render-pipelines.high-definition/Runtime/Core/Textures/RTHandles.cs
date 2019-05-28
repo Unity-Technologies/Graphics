@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public static int maxWidth { get { return s_DefaultInstance.GetMaxWidth(); } }
         public static int maxHeight { get { return s_DefaultInstance.GetMaxHeight(); } }
+        public static RTHandleProperties rtHandleProperties { get { return s_DefaultInstance.rtHandleProperties; } }
 
         public static RTHandleSystem.RTHandle Alloc(
             int width,
@@ -165,19 +166,6 @@ namespace UnityEngine.Experimental.Rendering
         public static void Release(RTHandleSystem.RTHandle rth)
         {
             s_DefaultInstance.Release(rth);
-        }
-
-        public static void ResetReferenceSize(
-            int width,
-            int height,
-            MSAASamples msaaSamples
-            )
-        {
-            s_DefaultInstance.ResetReferenceSize(
-                width,
-                height,
-                msaaSamples
-                );
         }
 
         public static void SetHardwareDynamicResolutionState(bool hwDynamicResRequested)

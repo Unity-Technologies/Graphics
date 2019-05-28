@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering
     public static class TextureXR
     {
         // Limit memory usage of default textures
-        const int kMaxSliceCount = 2;
+        public const int kMaxSliceCount = 2;
 
         // Must be in sync with shader define in TextureXR.hlsl
         public static bool useTexArray
@@ -14,11 +14,17 @@ namespace UnityEngine.Experimental.Rendering
             {
                 // sample-game begin: fix errors in Exposure by disabling conversions to texture array
                 /*
-                // XRTODO: Vulkan, PSVR, Mac with metal only for OS 10.14+, etc
                 switch (SystemInfo.graphicsDeviceType)
                 {
                     case GraphicsDeviceType.Direct3D11:
+                    case GraphicsDeviceType.Direct3D12:
                         return SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne;
+
+                    case GraphicsDeviceType.PlayStation4:
+                        return true;
+
+                    case GraphicsDeviceType.Vulkan:
+                        return true;
                 }
                 */
                 // sample-game end

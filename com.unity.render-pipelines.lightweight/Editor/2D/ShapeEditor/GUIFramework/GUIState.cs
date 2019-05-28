@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
 {
     internal class GUIState : IGUIState
     {
@@ -82,13 +82,14 @@ namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
 
         public bool Slider(int id, SliderData sliderData, out Vector3 newPosition)
         {
+            if (mouseButton == 0 && eventType == EventType.MouseDown)
+            {
+                hotControl = 0;
+                nearestControl = id;
+            }
+
             EditorGUI.BeginChangeCheck();
-
-            //if (HasCurrentCamera())
-                newPosition = Handles.Slider2D(id, sliderData.position, sliderData.forward, sliderData.right, sliderData.up, 1f, nullCap, Vector2.zero);
-            //else
-            //    newPosition = Slider2D.Do(id, sliderData.position, null);
-
+            newPosition = Handles.Slider2D(id, sliderData.position, sliderData.forward, sliderData.right, sliderData.up, 1f, nullCap, Vector2.zero);
             return EditorGUI.EndChangeCheck();
         }
 
@@ -115,6 +116,50 @@ namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
         public bool HasCurrentCamera()
         {
             return Camera.current != null;
+        }
+
+        public float GetHandleSize(Vector3 position)
+        {
+            var scale = HasCurrentCamera() ? 0.01f : 0.05f;
+            return HandleUtility.GetHandleSize(position) * scale;
+        }
+
+        public float DistanceToSegment(Vector3 p1, Vector3 p2)
+        {
+            p1 = HandleUtility.WorldToGUIPoint(p1);
+            p2 = HandleUtility.WorldToGUIPoint(p2);
+
+            return HandleUtility.DistancePointToLineSegment(Event.current.mousePosition, p1, p2);
+        }
+        
+        public float DistanceToCircle(Vector3 center, float radius)
+        {
+            return HandleUtility.DistanceToCircle(center, radius);
+        }
+
+        public Vector3 GUIToWorld(Vector2 guiPosition, Vector3 planeNormal, Vector3 planePos)
+        {
+            Vector3 worldPos = Handles.inverseMatrix.MultiplyPoint(guiPosition);
+
+            if (Camera.current)
+            {
+                Ray ray = HandleUtility.GUIPointToWorldRay(guiPosition);
+
+                planeNormal = Handles.matrix.MultiplyVector(planeNormal);
+
+                planePos = Handles.matrix.MultiplyPoint(planePos);
+
+                Plane plane = new Plane(planeNormal, planePos);
+
+                float distance = 0f;
+
+                if (plane.Raycast(ray, out distance))
+                {
+                    worldPos = Handles.inverseMatrix.MultiplyPoint(ray.GetPoint(distance));
+                }
+            }
+
+            return worldPos;
         }
     }
 }

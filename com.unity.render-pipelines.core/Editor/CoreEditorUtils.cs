@@ -13,6 +13,11 @@ namespace UnityEditor.Rendering
 
     public static class CoreEditorUtils
     {
+        static CoreEditorUtils()
+        {
+            LoadSkinAndIconMethods();
+        }
+        
         // Serialization helpers
         /// <summary>
         /// To use with extreme caution. It not really get the property but try to find a field with similar name
@@ -579,5 +584,98 @@ namespace UnityEditor.Rendering
                 }
             }
         }
+
+
+        #region IconAndSkin
+
+        public enum Skin
+        {
+            Auto,
+            Personnal,
+            Professional,
+        }
+        
+        static Func<int> GetInternalSkinIndex;
+        static Func<float> GetGUIStatePixelsPerPoint;
+        static Func<Texture2D, float> GetTexturePixelPerPoint;
+        static Action<Texture2D, float> SetTexturePixelPerPoint;
+
+        static void LoadSkinAndIconMethods()
+        {
+            var internalSkinIndexInfo = typeof(EditorGUIUtility).GetProperty("skinIndex", BindingFlags.NonPublic | BindingFlags.Static);
+            var internalSkinIndexLambda = Expression.Lambda<Func<int>>(Expression.Property(null, internalSkinIndexInfo));
+            GetInternalSkinIndex = internalSkinIndexLambda.Compile();
+
+            var guiStatePixelsPerPointInfo = typeof(GUIUtility).GetProperty("pixelsPerPoint", BindingFlags.NonPublic | BindingFlags.Static);
+            var guiStatePixelsPerPointLambda = Expression.Lambda<Func<float>>(Expression.Property(null, guiStatePixelsPerPointInfo));
+            GetGUIStatePixelsPerPoint = guiStatePixelsPerPointLambda.Compile();
+
+            var pixelPerPointParam = Expression.Parameter(typeof(float), "pixelPerPoint");
+            var texture2DProperty = Expression.Parameter(typeof(Texture2D), "texture2D");
+            var texture2DPixelsPerPointInfo = typeof(Texture2D).GetProperty("pixelsPerPoint", BindingFlags.NonPublic | BindingFlags.Instance);
+            var texture2DPixelsPerPointProperty = Expression.Property(texture2DProperty, texture2DPixelsPerPointInfo);
+            var texture2DGetPixelsPerPointLambda = Expression.Lambda<Func<Texture2D, float>>(texture2DPixelsPerPointProperty, texture2DProperty);
+            GetTexturePixelPerPoint = texture2DGetPixelsPerPointLambda.Compile();
+            var texture2DSetPixelsPerPointLambda = Expression.Lambda<Action<Texture2D, float>>(Expression.Assign(texture2DPixelsPerPointProperty, pixelPerPointParam), texture2DProperty, pixelPerPointParam);
+            SetTexturePixelPerPoint = texture2DSetPixelsPerPointLambda.Compile();
+        }
+
+        /// <summary>Get the skin currently in use</summary>
+        public static Skin currentSkin
+            => GetInternalSkinIndex() == 0 ? Skin.Personnal : Skin.Professional;
+
+
+
+        /// <summary>
+        /// Load an icon regarding skin and editor resolution.
+        /// Icon should be stored as legacy icon resources:
+        /// - "d_" prefix for Professional theme
+        /// - "@2x" suffix for high resolution
+        /// </summary>
+        /// <param name="path">Path to seek the icon from Assets/ folder</param>
+        /// <param name="name">Icon name without suffix, prefix or extention</param>
+        /// <param name="extention">[Optional] Extention of file (png per default)</param>
+        /// <param name="skin">[Optional] Load icon for this skin (Auto per default take current skin)</param>
+        public static Texture2D LoadIcon(string path, string name, string extention = ".png", Skin skin = Skin.Auto)
+        {
+            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
+                return null;
+
+            string prefix = "";
+
+            if (skin == Skin.Auto)
+                skin = currentSkin;
+
+            if (skin == Skin.Professional)
+                prefix = "d_";
+            
+            Texture2D icon = null;
+            float pixelsPerPoint = GetGUIStatePixelsPerPoint();
+            if (pixelsPerPoint > 1.0f)
+            {
+                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}@2x{3}", path, prefix, name, extention)) as Texture2D;
+                if (icon == null && !string.IsNullOrEmpty(prefix))
+                    icon = EditorGUIUtility.Load(String.Format("{0}/{1}@2x{2}", path, name, extention)) as Texture2D;
+                if (icon != null)
+                    SetTexturePixelPerPoint(icon, 2.0f);
+            }
+
+            if (icon == null)
+                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}{3}", path, prefix, name, extention)) as Texture2D;
+
+            if (icon == null && !string.IsNullOrEmpty(prefix))
+                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}", path, name, extention)) as Texture2D;
+
+            if (icon != null &&
+                !Mathf.Approximately(GetTexturePixelPerPoint(icon), pixelsPerPoint) && //scaling are different
+                !Mathf.Approximately(pixelsPerPoint % 1, 0)) //screen scaling is non-integer
+            {
+                icon.filterMode = FilterMode.Bilinear;
+            }
+
+            return icon;
+        }
+
+        #endregion
     }
 }

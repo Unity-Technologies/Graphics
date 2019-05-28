@@ -5,24 +5,18 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         //------------------------------------------------------------------------------------------
         //                                Variables/Properties
         //------------------------------------------------------------------------------------------
-        [SerializeField]
-        [Serialization.FormerlySerializedAs("m_ParametricSides")]
-        int m_ShapeLightParametricSides = 6;
-
+        [SerializeField] int                m_ShapeLightParametricSides         = 5;
         [SerializeField] float              m_ShapeLightParametricAngleOffset   = 0.0f;
+        [SerializeField] float              m_ShapeLightParametricRadius        = 1.0f;
         [SerializeField] float              m_ShapeLightFalloffSize             = 0.50f;
-        [SerializeField] float              m_ShapeLightRadius                  = 1.0f;
         [SerializeField] Vector2            m_ShapeLightFalloffOffset           = Vector2.zero;
-        [SerializeField] int                m_ShapeLightOrder                   = 0;
-        [SerializeField] LightOverlapMode   m_ShapeLightOverlapMode             = LightOverlapMode.Additive;
         [SerializeField] Vector3[]          m_ShapePath;
 
         int     m_PreviousShapeLightParametricSides         = -1;
         float   m_PreviousShapeLightParametricAngleOffset   = -1;
-        float   m_PreviousShapeLightFalloffSize             = -1;
-        float   m_PreviousShapeLightRadius                  = -1;
-        Vector2 m_PreviousShapeLightOffset                  = Vector2.negativeInfinity;
-        int     m_PreviousShapeLightOrder                   = -1;
+        float   m_PreviousShapeLightParametricRadius        = -1;
+        Vector2 m_PreviousShapeLightFalloffOffset           = Vector2.negativeInfinity;
+
 
 #if UNITY_EDITOR
         int     m_PreviousShapePathHash                     = -1;
@@ -30,10 +24,9 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public int              shapeLightParametricSides       => m_ShapeLightParametricSides;
         public float            shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;
+        public float            shapeLightParametricRadius      => m_ShapeLightParametricRadius;
         public float            shapeLightFalloffSize           => m_ShapeLightFalloffSize;
-        public float            shapeLightRadius                => m_ShapeLightRadius;
         public Vector2          shapeLightFalloffOffset         => m_ShapeLightFalloffOffset;
-        public LightOverlapMode shapeLightOverlapMode           => m_ShapeLightOverlapMode;
         public Vector3[]        shapePath                       => m_ShapePath;
 
         //==========================================================================================

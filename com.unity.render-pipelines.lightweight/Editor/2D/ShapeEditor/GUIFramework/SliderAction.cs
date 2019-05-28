@@ -1,16 +1,15 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
+namespace UnityEditor.Experimental.Rendering.LWRP.Path2D.GUIFramework
 {
     internal class SliderAction : ClickAction
     {
         private SliderData m_SliderData;
-        private bool m_Start;
 
-        public Action<IGUIState, Control, Vector3> onSliderBegin = null;
+        public Action<IGUIState, Control, Vector3> onSliderBegin;
         public Action<IGUIState, Control, Vector3> onSliderChanged;
-        public Action<IGUIState, Control, Vector3> onSliderEnd = null;
+        public Action<IGUIState, Control, Vector3> onSliderEnd;
 
         public SliderAction(Control control) : base(control, 0, false)
         {
@@ -30,34 +29,21 @@ namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
             m_SliderData.forward = hoveredControl.hotLayoutData.forward;
             m_SliderData.right = hoveredControl.hotLayoutData.right;
             m_SliderData.up = hoveredControl.hotLayoutData.up;
-            m_Start = true;
+
+            if (onSliderBegin != null)
+                onSliderBegin(guiState, hoveredControl, m_SliderData.position);
         }
 
         protected override void OnFinish(IGUIState guiState)
         {
-            if (!m_Start)
-            {
-                if (onSliderEnd != null)
-                    onSliderEnd(guiState, hoveredControl, m_SliderData.position);
+            if (onSliderEnd != null)
+                onSliderEnd(guiState, hoveredControl, m_SliderData.position);
 
-                guiState.UseCurrentEvent();
-            }
-
+            guiState.UseCurrentEvent();
             guiState.Repaint();
         }
 
         protected override void OnPerform(IGUIState guiState)
-        {
-            if (GetTriggerContidtion(guiState))
-            {
-                guiState.hotControl = 0;
-                guiState.nearestControl = ID;
-            }
-            
-            DoSlider(guiState);
-        }
-
-        private void DoSlider(IGUIState guiState)
         {
             Vector3 newPosition;
             var changed = guiState.Slider(ID, m_SliderData, out newPosition);
@@ -65,14 +51,6 @@ namespace UnityEditor.Experimental.Rendering.LWRP.GUIFramework
             if (changed)
             {
                 m_SliderData.position = newPosition;
-
-                if (m_Start)
-                {
-                    m_Start = false;
-
-                    if (onSliderBegin != null)
-                        onSliderBegin(guiState, hoveredControl, newPosition);
-                }
 
                 if (onSliderChanged != null)
                     onSliderChanged(guiState, hoveredControl, newPosition);

@@ -28,6 +28,10 @@ float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float3 posi
 
 float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist, bool pointLight, bool perspecive)
 {
+#if (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
+    shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
+#endif
+
     // Note: Here we assume that all the shadow map cube faces have been added contiguously in the buffer to retreive the shadow information
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
 
@@ -49,6 +53,10 @@ float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float3 positio
 
 float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerState sampl, real3 positionWS, int shadowDataIndex, float3 L, float3 lightPositionWS, bool pointLight)
 {
+#if (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
+    shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
+#endif
+
     // Note: Here we assume that all the shadow map cube faces have been added contiguously in the buffer to retreive the shadow information
     // TODO: if on the light type to retrieve the good shadow data
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
