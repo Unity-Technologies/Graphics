@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.LWRP
             float texelSize = frustumSize / shadowResolution;
             float depthBias = -shadowData.bias[shadowLightIndex].x * texelSize;
             float normalBias = -shadowData.bias[shadowLightIndex].y * texelSize;
-            
+
             if (shadowData.supportsSoftShadows)
             {
                 // TODO: depth and normal bias assume sample is no more than 1 texel away from shadowmap

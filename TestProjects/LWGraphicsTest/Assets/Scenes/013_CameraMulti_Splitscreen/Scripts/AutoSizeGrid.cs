@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+// using UnityEngine.UI;
 
 [ExecuteAlways]
 public class AutoSizeGrid : MonoBehaviour {
 
-	public GridLayoutGroup layout;
+	// public GridLayoutGroup layout;
 	public bool dynamic = false;
 	private int rows = 2;
 	private int columns = 2;
@@ -29,7 +29,7 @@ public class AutoSizeGrid : MonoBehaviour {
 
 	void SetCellSize(){
 		Vector2 vec = new Vector2 (Screen.width / columns, Screen.height / rows);
-		layout.cellSize = vec / transform.parent.localScale.x;
+		// layout.cellSize = vec / transform.parent.localScale.x;
 	}
 
 }

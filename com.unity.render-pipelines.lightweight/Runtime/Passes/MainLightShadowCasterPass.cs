@@ -101,14 +101,15 @@ namespace UnityEngine.Rendering.LWRP
                 if (!success)
                     return false;
             }
-
+            m_MainLightShadowmapTexture =ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
+                m_ShadowmapHeight, k_ShadowmapBufferBits);
             return true;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
-                    m_ShadowmapHeight, k_ShadowmapBufferBits);
+//            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
+//                    m_ShadowmapHeight, k_ShadowmapBufferBits);
             ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture));
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -116,7 +117,9 @@ namespace UnityEngine.Rendering.LWRP
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            RenderMainLightCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
+            Camera camera = renderingData.cameraData.camera;
+            RenderMainLightCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData, renderingData.cameraData);
+
         }
 
         /// <inheritdoc/>
@@ -146,7 +149,7 @@ namespace UnityEngine.Rendering.LWRP
                 m_CascadeSlices[i].Clear();
         }
 
-        void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)
+        void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData, CameraData cameraData)
         {
             int shadowLightIndex = lightData.mainLightIndex;
             if (shadowLightIndex == -1)
@@ -155,6 +158,7 @@ namespace UnityEngine.Rendering.LWRP
             VisibleLight shadowLight = lightData.visibleLights[shadowLightIndex];
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
+//            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
@@ -172,7 +176,7 @@ namespace UnityEngine.Rendering.LWRP
 
                     SetupMainLightShadowReceiverConstants(cmd, ref shadowData, shadowLight);
             }
-
+//            cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows);

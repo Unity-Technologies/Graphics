@@ -308,57 +308,85 @@ namespace UnityEngine.Rendering.LWRP
 
             bool clearWithSkybox = (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null);
 
-            if (mainLightShadows)
-            {
-                m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
-                cmd.SetRenderTarget(m_MainLightShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                m_MainLightShadowCasterPass.Execute(context, ref renderingData);
-            }
+//            if (mainLightShadows)
+//            {
+//                m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
+//                cmd.SetRenderTarget(m_MainLightShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+//                context.ExecuteCommandBuffer(cmd);
+//                cmd.Clear();
+//                m_MainLightShadowCasterPass.Execute(context, ref renderingData);
+//            }
 
              if (mainLightShadows)
              {
                  m_MainLightShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
-                AttachmentDescriptor shadowCasterDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
-                shadowCasterDepthAttachmentDescriptor.ConfigureTarget(m_MainLightShadowCasterPass.colorAttachment, false, true);
-                NativeArray<AttachmentDescriptor> m_ShadowMapDescriptors = new NativeArray<AttachmentDescriptor>(new []{shadowCasterDepthAttachmentDescriptor}, Allocator.Temp);
 //
-//
-//
-                var shadowMapHeight = (renderingData.shadowData.mainLightShadowCascadesCount == 2)
-                    ? renderingData.shadowData.mainLightShadowmapHeight >> 1
-                    : renderingData.shadowData.mainLightShadowmapHeight;
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                using (context.BeginScopedRenderPass(renderingData.shadowData.mainLightShadowmapWidth, shadowMapHeight,
-                    1, m_ShadowMapDescriptors, 0))
-                {
-                    m_ShadowMapDescriptors.Dispose();
-                    NativeArray<int> indices = new NativeArray<int>(1, Allocator.Temp);
-                    indices[0] = 0;
-                    using (context.BeginScopedSubPass(indices))
-                    {
-                        indices.Dispose();
-                        m_MainLightShadowCasterPass.Execute(context, ref renderingData);
-                    }
-                }
-//                 cmd.SetRenderTarget(m_MainLightShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+
+//                 AttachmentDescriptor shadowCasterDepthAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
+//                 shadowCasterDepthAttachmentDescriptor.ConfigureTarget(m_MainLightShadowCasterPass.colorAttachment, false, true);
+//                 shadowCasterDepthAttachmentDescriptor.ConfigureClear(Color.black,1.0f, 0);
+//                 NativeArray<AttachmentDescriptor> shadowCasterDescriptors = new NativeArray<AttachmentDescriptor>(new []{shadowCasterDepthAttachmentDescriptor}, Allocator.Temp);
 //                 context.ExecuteCommandBuffer(cmd);
 //                 cmd.Clear();
-//                 m_MainLightShadowCasterPass.Execute(context, ref renderingData);
+////
+////
+//                var shadowMapHeight = (renderingData.shadowData.mainLightShadowCascadesCount == 2)
+//                    ? renderingData.shadowData.mainLightShadowmapHeight >> 1
+//                    : renderingData.shadowData.mainLightShadowmapHeight;
+//
+//                using (context.BeginScopedRenderPass(renderingData.shadowData.mainLightShadowmapWidth, shadowMapHeight,
+//                    1, shadowCasterDescriptors, 0))
+//                {
+//                    shadowCasterDescriptors.Dispose();
+//                    NativeArray<int> indices = new NativeArray<int>(1, Allocator.Temp);
+//                    indices[0] = 0;
+//                    using (context.BeginScopedSubPass(indices))
+//                    {
+//                        indices.Dispose();
+//                        m_MainLightShadowCasterPass.Execute(context, ref renderingData);
+//                    }
+//                }
+
+                 cmd.SetRenderTarget(m_MainLightShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                 cmd.ClearRenderTarget(true, true, Color.white);
+                 context.ExecuteCommandBuffer(cmd);
+                 cmd.Clear();
+                 m_MainLightShadowCasterPass.Execute(context, ref renderingData);
+
+
 
              }
 
             if (additionalLightShadows)
             {
 
-                AttachmentDesc
+                var shadowMapHeight = (renderingData.shadowData.mainLightShadowCascadesCount == 2)
+                    ? renderingData.shadowData.mainLightShadowmapHeight >> 1
+                    : renderingData.shadowData.mainLightShadowmapHeight;
+
+                AttachmentDescriptor additionalLightShadowCasterAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Shadowmap);
                 m_AdditionalLightsShadowCasterPass.Configure(cmd, cameraTargetDescriptor);
-                cmd.SetRenderTarget(m_AdditionalLightsShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                m_AdditionalLightsShadowCasterPass.Execute(context, ref renderingData);
+                additionalLightShadowCasterAttachmentDescriptor.ConfigureTarget(
+                    m_AdditionalLightsShadowCasterPass.colorAttachment, false, true);
+                NativeArray<AttachmentDescriptor> shadowCasterDescriptors = new NativeArray<AttachmentDescriptor>(new [] {additionalLightShadowCasterAttachmentDescriptor}, Allocator.Temp);
+
+                using (context.BeginScopedRenderPass(renderingData.shadowData.mainLightShadowmapWidth, shadowMapHeight, 1, shadowCasterDescriptors, 0))
+                {
+                    shadowCasterDescriptors.Dispose();
+                    NativeArray<int> indices = new NativeArray<int>(1, Allocator.Temp);
+                    indices[0] = 0;
+                    using (context.BeginScopedSubPass(indices))
+                    {
+                        indices.Dispose();
+                        m_AdditionalLightsShadowCasterPass.Execute(context, ref renderingData);
+                    }
+                }
+
+
+//                cmd.SetRenderTarget(m_AdditionalLightsShadowCasterPass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+//                context.ExecuteCommandBuffer(cmd);
+//                cmd.Clear();
+//                m_AdditionalLightsShadowCasterPass.Execute(context, ref renderingData);
             }
 
             bool stereoEnabled = false;
@@ -366,13 +394,38 @@ namespace UnityEngine.Rendering.LWRP
 
             if (requiresDepthPrepass)
             {
+                AttachmentDescriptor depthPrepassAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
                 m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                 m_DepthPrepass.Configure(cmd, cameraTargetDescriptor);
+#if PLATFORM_IOS && !UNITY_EDITOR
+                Debug.Log("stuff hapens");
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                depthPrepassAttachmentDescriptor.ConfigureTarget(m_DepthPrepass.colorAttachment, false, true);
+                NativeArray<AttachmentDescriptor> depthPrepassDescriptors =
+                    new NativeArray<AttachmentDescriptor>(new[] {depthPrepassAttachmentDescriptor}, Allocator.Temp);
+
+                using (context.BeginScopedRenderPass(camera.pixelWidth, camera.pixelHeight, 1, depthPrepassDescriptors,
+                    0))
+                {
+                    depthPrepassDescriptors.Dispose();
+                    NativeArray<int> indices = new NativeArray<int>(1, Allocator.Temp);
+                    indices[0] = 0;
+                    using (context.BeginScopedSubPass(indices))
+                    {
+                        indices.Dispose();
+                        m_DepthPrepass.Execute(context, ref renderingData);
+                    }
+
+                }
+#else
                 cmd.SetRenderTarget(m_DepthPrepass.colorAttachment, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 m_DepthPrepass.Execute(context, ref renderingData);
+#endif
             }
+
 
             // Main Rendering
             SetupLights(context, ref renderingData);
@@ -380,9 +433,8 @@ namespace UnityEngine.Rendering.LWRP
             ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
 
             m_ActiveCameraColorAttachmentDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), clearFlag == ClearFlag.None, true );
-            //m_ActiveCameraDepthAttachmentDescriptor.ConfigureTarget(m_ActiveCameraDepthAttachment.Identifier(), false, true);
-            m_ActiveCameraColorAttachmentDescriptor.ConfigureClear(Color.yellow);
-            m_ActiveCameraDepthAttachmentDescriptor.ConfigureClear(Color.cyan);
+            m_ActiveCameraColorAttachmentDescriptor.ConfigureClear(Color.yellow, 1.0f, 0);
+            m_ActiveCameraDepthAttachmentDescriptor.ConfigureClear(Color.cyan, 1.0f, 0);
 
             //if (resolveShadowsInScreenSpace)
             //{
@@ -400,9 +452,12 @@ namespace UnityEngine.Rendering.LWRP
             if (resolveShadowsInScreenSpace)
             {
                 m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
-
+                m_ScreenSpaceShadowResolvePass.Configure(cmd, cameraTargetDescriptor);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
                 var shadowResolveDescriptor = new AttachmentDescriptor(RenderTextureFormat.R8);
-                shadowResolveDescriptor.ConfigureClear(Color.white);
+
+                shadowResolveDescriptor.ConfigureClear(Color.black, 1.0f, 0);
 
                 descriptors = new NativeArray<AttachmentDescriptor>(
                     new[] { m_ActiveCameraColorAttachmentDescriptor, m_ActiveCameraDepthAttachmentDescriptor, shadowResolveDescriptor },
@@ -425,7 +480,6 @@ namespace UnityEngine.Rendering.LWRP
                     {
                         m_ScreenSpaceShadowResolvePass.Execute(context, ref renderingData);
                     }
-
                     NativeArray<int> indices = new NativeArray<int>(new[] { 0 }, Allocator.Temp);
                     using (context.BeginScopedSubPass(indices, shadowResolveIndices))
                     {
