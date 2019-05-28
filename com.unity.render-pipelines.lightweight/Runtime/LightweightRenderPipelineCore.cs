@@ -109,6 +109,7 @@ namespace UnityEngine.Rendering.LWRP
         public static readonly string BloomHQ = "_BLOOM_HQ";
         public static readonly string BloomLQDirt = "_BLOOM_LQ_DIRT";
         public static readonly string BloomHQDirt = "_BLOOM_HQ_DIRT";
+        public static readonly string UseRGBM = "_USE_RGBM";
         public static readonly string Distortion = "_DISTORTION";
         public static readonly string ChromaticAberration = "_CHROMATIC_ABERRATION";
         public static readonly string HDRGrading = "_HDR_GRADING";

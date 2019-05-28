@@ -10,6 +10,8 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
         #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
 
+        #pragma multi_compile_local _ _USE_RGBM
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
@@ -28,15 +30,31 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
         #define Threshold           _Params.z
         #define ThresholdKnee       _Params.w
 
+        half4 EncodeHDR(half3 color)
+        {
+        #if _USE_RGBM
+            return EncodeRGBM(color);
+        #else
+            return half4(color, 1.0);
+        #endif
+        }
+
+        half3 DecodeHDR(half4 color)
+        {
+        #if _USE_RGBM
+            return DecodeRGBM(color);
+        #else
+            return color.xyz;
+        #endif
+        }
+
         half4 FragPrefilter(Varyings input) : SV_Target
         {
             half3 color = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv).xyz;
 
-            #if UNITY_COLORSPACE_GAMMA
-            {
-                color = SRGBToLinear(color);
-            }
-            #endif
+        #if UNITY_COLORSPACE_GAMMA
+            color = SRGBToLinear(color);
+        #endif
 
             // User controlled clamp to limit crazy high broken spec
             color = min(ClampMax, color);
@@ -48,7 +66,7 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
             half multiplier = max(brightness - Threshold, softness) / max(brightness, 1e-4);
             color *= multiplier;
 
-            return half4(color, 1.0);
+            return EncodeHDR(color);
         }
 
         half4 FragBlurH(Varyings input) : SV_Target
@@ -56,21 +74,21 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
             float texelSize = _MainTex_TexelSize.x * 2.0;
 
             // 9-tap gaussian blur on the downsampled source
-            half3 c0 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 4.0, 0.0)).xyz;
-            half3 c1 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 3.0, 0.0)).xyz;
-            half3 c2 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 2.0, 0.0)).xyz;
-            half3 c3 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 1.0, 0.0)).xyz;
-            half3 c4 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv                               ).xyz;
-            half3 c5 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 1.0, 0.0)).xyz;
-            half3 c6 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 2.0, 0.0)).xyz;
-            half3 c7 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 3.0, 0.0)).xyz;
-            half3 c8 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 4.0, 0.0)).xyz;
+            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 4.0, 0.0)));
+            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 3.0, 0.0)));
+            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 2.0, 0.0)));
+            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(texelSize * 1.0, 0.0)));
+            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv                               ));
+            half3 c5 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 1.0, 0.0)));
+            half3 c6 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 2.0, 0.0)));
+            half3 c7 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 3.0, 0.0)));
+            half3 c8 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(texelSize * 4.0, 0.0)));
 
             half3 color = c0 * 0.01621622 + c1 * 0.05405405 + c2 * 0.12162162 + c3 * 0.19459459
                         + c4 * 0.22702703
                         + c5 * 0.19459459 + c6 * 0.12162162 + c7 * 0.05405405 + c8 * 0.01621622;
 
-            return half4(color, 1.0);
+            return EncodeHDR(color);
         }
 
         half4 FragBlurV(Varyings input) : SV_Target
@@ -78,31 +96,36 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
             float texelSize = _MainTex_TexelSize.y;
 
             // Optimized bilinear 5-tap gaussian on the same-sized source (9-tap equivalent)
-            half3 c0 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(0.0, texelSize * 3.23076923)).xyz;
-            half3 c1 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(0.0, texelSize * 1.38461538)).xyz;
-            half3 c2 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv                                      ).xyz;
-            half3 c3 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(0.0, texelSize * 1.38461538)).xyz;
-            half3 c4 = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(0.0, texelSize * 3.23076923)).xyz;
+            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(0.0, texelSize * 3.23076923)));
+            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv - float2(0.0, texelSize * 1.38461538)));
+            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv                                      ));
+            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(0.0, texelSize * 1.38461538)));
+            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv + float2(0.0, texelSize * 3.23076923)));
 
             half3 color = c0 * 0.07027027 + c1 * 0.31621622
                         + c2 * 0.22702703
                         + c3 * 0.31621622 + c4 * 0.07027027;
 
-            return half4(color, 1.0);
+            return EncodeHDR(color);
+        }
+
+        half3 Upsample(float2 uv)
+        {
+            half3 highMip = DecodeHDR(SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, uv));
+
+        #if _BLOOM_HQ
+            half3 lowMip = DecodeHDR(SampleTexture2DBicubic(TEXTURE2D_ARGS(_MainTexLowMip, sampler_LinearClamp), uv, _MainTexLowMip_TexelSize.zwxy, (1.0).xx, 0));
+        #else
+            half3 lowMip = DecodeHDR(SAMPLE_TEXTURE2D(_MainTexLowMip, sampler_LinearClamp, uv));
+        #endif
+
+            return lerp(highMip, lowMip, Scatter);
         }
 
         half4 FragUpsample(Varyings input) : SV_Target
         {
-            half3 highMip = SAMPLE_TEXTURE2D(_MainTex, sampler_LinearClamp, input.uv).xyz;
-
-            #if _BLOOM_HQ
-            half3 lowMip = SampleTexture2DBicubic(TEXTURE2D_ARGS(_MainTexLowMip, sampler_LinearClamp), input.uv, _MainTexLowMip_TexelSize.zwxy, (1.0).xx, 0).xyz;
-            #else
-            half3 lowMip = SAMPLE_TEXTURE2D(_MainTexLowMip, sampler_LinearClamp, input.uv).xyz;
-            #endif
-
-            half3 color = lerp(highMip, lowMip, Scatter);
-            return half4(color, 1.0);
+            half3 color = Upsample(input.uv);
+            return EncodeHDR(color);
         }
 
     ENDHLSL

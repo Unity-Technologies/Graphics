@@ -47,13 +47,29 @@ float3 SoftLight(float3 base, float3 blend)
     return r2 * t + (1.0 - t) * r1;
 }
 
-float GetLuminance(float3 colorLinear)
+half GetLuminance(half3 colorLinear)
 {
-    #if _TONEMAP_ACES
+#if _TONEMAP_ACES
     return AcesLuminance(colorLinear);
-    #else
+#else
     return Luminance(colorLinear);
-    #endif
+#endif
+}
+
+// RGBM encode/decode
+static const float kRGBMRange = 8.0;
+
+half4 EncodeRGBM(half3 color)
+{
+    color *= 1.0 / kRGBMRange;
+    half m = max(max(color.x, color.y), max(color.z, 1e-5));
+    m = ceil(m * 255) / 255;
+    return half4(color / m, m);
+}
+
+half3 DecodeRGBM(half4 rgbm)
+{
+    return rgbm.xyz * rgbm.w * kRGBMRange;
 }
 
 // ----------------------------------------------------------------------------------
@@ -70,16 +86,12 @@ half3 ApplyVignette(half3 input, float2 uv, float2 center, float intensity, floa
 
 half3 ApplyTonemap(half3 input)
 {
-    #if _TONEMAP_ACES
-    {
-        float3 aces = unity_to_ACES(input);
-        input = AcesTonemap(aces);
-    }
-    #elif _TONEMAP_NEUTRAL
-    {
-        input = NeutralTonemap(input);
-    }
-    #endif
+#if _TONEMAP_ACES
+    float3 aces = unity_to_ACES(input);
+    input = AcesTonemap(aces);
+#elif _TONEMAP_NEUTRAL
+    input = NeutralTonemap(input);
+#endif
 
     return saturate(input);
 }

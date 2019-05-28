@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.LWRP
         // Misc
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_BloomFormat;
+        bool m_BloomRGBM;
         readonly GraphicsFormat m_GaussianCoCFormat;
         Matrix4x4 m_PrevViewProjM = Matrix4x4.identity;
         bool m_ResetHistory;
@@ -59,13 +60,16 @@ namespace UnityEngine.Rendering.LWRP
             m_Materials = new MaterialLibrary(data);
 
             // Texture format pre-lookup
-            var asset = LightweightRenderPipeline.asset;
-            var hdr = asset != null && asset.supportsHDR;
-
-            if (hdr && SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+            {
                 m_BloomFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                m_BloomRGBM = false;
+            }
             else
-                m_BloomFormat = GraphicsFormat.R8G8B8A8_UNorm;
+            {
+                m_BloomFormat = GraphicsFormat.R8G8B8A8_SRGB;
+                m_BloomRGBM = true;
+            }
 
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear | FormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_UNorm;
@@ -620,7 +624,7 @@ namespace UnityEngine.Rendering.LWRP
 
         #region Bloom
 
-        // TODO: RGBM support when not HDR as right now it's pretty much useless in LDR
+        // TODO: Gamma support
         void SetupBloom(Camera camera, CommandBuffer cmd, int source, Material uberMaterial)
         {
             // Start at half-res
@@ -642,6 +646,7 @@ namespace UnityEngine.Rendering.LWRP
             var bloomMaterial = m_Materials.bloom;
             bloomMaterial.SetVector(ShaderConstants._Params, new Vector4(scatter, clamp, threshold, thresholdKnee));
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.BloomHQ, m_Bloom.highQualityFiltering.value);
+            CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_BloomRGBM);
 
             // Prefilter
             cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], tw, th, 0, FilterMode.Bilinear, m_BloomFormat);
@@ -693,6 +698,7 @@ namespace UnityEngine.Rendering.LWRP
 
             var bloomParams = new Vector4(m_Bloom.intensity.value, tint.r, tint.g, tint.b);
             uberMaterial.SetVector(ShaderConstants._Bloom_Params, bloomParams);
+            uberMaterial.SetFloat(ShaderConstants._Bloom_RGBM, m_BloomRGBM ? 1f : 0f);
 
             cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, ShaderConstants._BloomMipUp[0]);
 
@@ -932,6 +938,7 @@ namespace UnityEngine.Rendering.LWRP
             public static readonly int _Params             = Shader.PropertyToID("_Params");
             public static readonly int _MainTexLowMip      = Shader.PropertyToID("_MainTexLowMip");
             public static readonly int _Bloom_Params       = Shader.PropertyToID("_Bloom_Params");
+            public static readonly int _Bloom_RGBM         = Shader.PropertyToID("_Bloom_RGBM");
             public static readonly int _Bloom_Texture      = Shader.PropertyToID("_Bloom_Texture");
             public static readonly int _LensDirt_Texture   = Shader.PropertyToID("_LensDirt_Texture");
             public static readonly int _LensDirt_Params    = Shader.PropertyToID("_LensDirt_Params");

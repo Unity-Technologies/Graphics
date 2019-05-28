@@ -41,6 +41,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
         float4 _Lut_Params;
         float4 _UserLut_Params;
         float4 _Bloom_Params;
+        float _Bloom_RGBM;
         float4 _LensDirt_Params;
         float _LensDirt_Intensity;
         float4 _Distortion_Params1;
@@ -64,6 +65,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
 
         #define BloomIntensity          _Bloom_Params.x
         #define BloomTint               _Bloom_Params.yzw
+        #define BloomRGBM               _Bloom_RGBM.x
         #define LensDirtScale           _LensDirt_Params.xy
         #define LensDirtOffset          _LensDirt_Params.zw
         #define LensDirtIntensity       _LensDirt_Intensity.x
@@ -151,13 +153,19 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
             #if defined(BLOOM)
             {
                 #if _BLOOM_HQ
-                half3 bloom = SampleTexture2DBicubic(TEXTURE2D_ARGS(_Bloom_Texture, sampler_LinearClamp), uvDistorted, _Bloom_Texture_TexelSize.zwxy, (1.0).xx, 0).xyz;
+                half4 bloom = SampleTexture2DBicubic(TEXTURE2D_ARGS(_Bloom_Texture, sampler_LinearClamp), uvDistorted, _Bloom_Texture_TexelSize.zwxy, (1.0).xx, 0);
                 #else
-                half3 bloom = SAMPLE_TEXTURE2D(_Bloom_Texture, sampler_LinearClamp, uvDistorted).xyz;
+                half4 bloom = SAMPLE_TEXTURE2D(_Bloom_Texture, sampler_LinearClamp, uvDistorted);
                 #endif
 
-                bloom *= BloomIntensity;
-                color += bloom * BloomTint;
+                UNITY_BRANCH
+                if (BloomRGBM > 0)
+                {
+                    bloom.xyz = half4(DecodeRGBM(bloom), 1.0);
+                }
+
+                bloom.xyz *= BloomIntensity;
+                color += bloom.xyz * BloomTint;
 
                 #if defined(BLOOM_DIRT)
                 {
@@ -167,7 +175,7 @@ Shader "Hidden/Lightweight Render Pipeline/UberPost"
                     // distortion is active.
                     half3 dirt = SAMPLE_TEXTURE2D(_LensDirt_Texture, sampler_LinearClamp, uvDistorted * LensDirtScale + LensDirtOffset).xyz;
                     dirt *= LensDirtIntensity;
-                    color += dirt * bloom;
+                    color += dirt * bloom.xyz;
                 }
                 #endif
             }
