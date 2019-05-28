@@ -33,14 +33,24 @@ Shader "Hidden/Lightweight Render Pipeline/Bloom"
         half4 EncodeHDR(half3 color)
         {
         #if _USE_RGBM
-            return EncodeRGBM(color);
+            half4 outColor = EncodeRGBM(color);
         #else
-            return half4(color, 1.0);
+            half4 outColor = half4(color, 1.0);
+        #endif
+
+        #if UNITY_COLORSPACE_GAMMA
+            return half4(sqrt(outColor.xyz), outColor.w); // linear to γ
+        #else
+            return outColor;
         #endif
         }
 
         half3 DecodeHDR(half4 color)
         {
+        #if UNITY_COLORSPACE_GAMMA
+            color.xyz *= color.xyz; // γ to linear
+        #endif
+
         #if _USE_RGBM
             return DecodeRGBM(color);
         #else

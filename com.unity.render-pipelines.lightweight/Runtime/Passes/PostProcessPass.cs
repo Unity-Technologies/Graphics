@@ -67,7 +67,9 @@ namespace UnityEngine.Rendering.LWRP
             }
             else
             {
-                m_BloomFormat = GraphicsFormat.R8G8B8A8_SRGB;
+                m_BloomFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
+                    ? GraphicsFormat.R8G8B8A8_SRGB
+                    : GraphicsFormat.R8G8B8A8_UNorm;
                 m_BloomRGBM = true;
             }
 
@@ -624,7 +626,6 @@ namespace UnityEngine.Rendering.LWRP
 
         #region Bloom
 
-        // TODO: Gamma support
         void SetupBloom(Camera camera, CommandBuffer cmd, int source, Material uberMaterial)
         {
             // Start at half-res
