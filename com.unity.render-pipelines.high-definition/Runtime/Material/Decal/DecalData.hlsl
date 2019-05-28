@@ -69,19 +69,9 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     }
 #endif
 
-    float pseudoWidth = 1;
-    float pseudoHeight = 1;
 	// needs to be after mask, because blend source could be in the mask map blue
 #ifdef _NORMALMAP
-	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
-    float3 normalWS = float3(0.0, 0.0, 0.0);
-    _NormalMap.GetDimensions(pseudoWidth, pseudoHeight);
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
-	normalWS = mul((float3x3)normalToWorld, normalTS);
-#elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
-    // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-    normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
-#endif
+    float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
     /// normalTS in[-1; 1] range
     float2 Tsafe = saturate(length(normalTS.xy)) * SafeNormalizeFloat2(normalTS.xy);        // may be overkill if we normalize ts normal maps anyway
 #if (DECAL_VOLUME_HIGH_PRECISION)
@@ -90,9 +80,15 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
     float2 deriv = -Tsafe.xy * rsqrt(max(1 - Sq(Tsafe.x) - Sq(Tsafe.y), Sq(FLT_EPS)));
     deriv = clamp(deriv, float2(-1, -1), float2(1, 1));
 #endif
+
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
     float3x3 tNormalToWorld = transpose((float3x3)normalToWorld);
     float3 decalXaxisWS = (tNormalToWorld)[0]; 
-    float3 decalYaxisWS = (tNormalToWorld)[1]; 
+    float3 decalYaxisWS = (tNormalToWorld)[1];
+#elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_MESH)
+    float3 decalXaxisWS = input.worldToTangent[0];
+    float3 decalYaxisWS = input.worldToTangent[1];
+#endif
     // consider oriented decal a volume bump map and use equation 2. in "Bump Mapping Unparametrized Surfaces on the GPU"
     // since the volume gradient is a linear operator. (eq. 2 is used in gbuffer pass)
     surfaceData.normalWS.xyz = decalXaxisWS * deriv.x + decalYaxisWS * deriv.y;
