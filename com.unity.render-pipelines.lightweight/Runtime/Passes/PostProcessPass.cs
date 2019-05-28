@@ -40,8 +40,8 @@ namespace UnityEngine.Rendering.LWRP
 
         // Misc
         const int k_MaxPyramidSize = 16;
-        readonly GraphicsFormat m_BloomFormat;
-        bool m_BloomRGBM;
+        readonly GraphicsFormat m_DefaultHDRFormat;
+        bool m_UseRGBM;
         readonly GraphicsFormat m_GaussianCoCFormat;
         Matrix4x4 m_PrevViewProjM = Matrix4x4.identity;
         bool m_ResetHistory;
@@ -62,15 +62,15 @@ namespace UnityEngine.Rendering.LWRP
             // Texture format pre-lookup
             if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
             {
-                m_BloomFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                m_BloomRGBM = false;
+                m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                m_UseRGBM = false;
             }
             else
             {
-                m_BloomFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
+                m_DefaultHDRFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
                     ? GraphicsFormat.R8G8B8A8_SRGB
                     : GraphicsFormat.R8G8B8A8_UNorm;
-                m_BloomRGBM = true;
+                m_UseRGBM = true;
             }
 
             if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear | FormatUsage.Render))
@@ -344,6 +344,7 @@ namespace UnityEngine.Rendering.LWRP
         #region Depth Of Field
 
         // TODO: CoC reprojection once TAA gets in LW
+        // TODO: Proper LDR/gamma support
         void DoDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination)
         {
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
@@ -366,18 +367,14 @@ namespace UnityEngine.Rendering.LWRP
             float maxRadius = m_DepthOfField.gaussianMaxRadius.value * (wh / 1080f);
             maxRadius = Mathf.Min(maxRadius, 2f);
 
-            if (m_DepthOfField.highQualitySampling.value)
-                material.EnableKeyword(ShaderKeywordStrings.HighQualitySampling);
-            else
-                material.DisableKeyword(ShaderKeywordStrings.HighQualitySampling);
-
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings.HighQualitySampling, m_DepthOfField.highQualitySampling.value);
             material.SetVector(ShaderConstants._CoCParams, new Vector3(farStart, farEnd, maxRadius));
 
             // Temporary textures
             cmd.GetTemporaryRT(ShaderConstants._FullCoCTexture, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, m_GaussianCoCFormat);
             cmd.GetTemporaryRT(ShaderConstants._HalfCoCTexture, wh, hh, 0, FilterMode.Bilinear, m_GaussianCoCFormat);
-            cmd.GetTemporaryRT(ShaderConstants._PingTexture, wh, hh, 0, FilterMode.Bilinear, m_Descriptor.graphicsFormat);
-            cmd.GetTemporaryRT(ShaderConstants._PongTexture, wh, hh, 0, FilterMode.Bilinear, m_Descriptor.graphicsFormat);
+            cmd.GetTemporaryRT(ShaderConstants._PingTexture, wh, hh, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
+            cmd.GetTemporaryRT(ShaderConstants._PongTexture, wh, hh, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
 
             // Compute CoC
             cmd.Blit(source, ShaderConstants._FullCoCTexture, material, 0);
@@ -396,16 +393,13 @@ namespace UnityEngine.Rendering.LWRP
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
-            //cmd.Blit(ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
-            //cmd.Blit(ShaderConstants._PongTexture, ShaderConstants._PingTexture, material, 3);
-            Blit(cmd, ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
-            Blit(cmd, ShaderConstants._PongTexture, ShaderConstants._PingTexture, material, 3);
+            cmd.Blit(ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
+            cmd.Blit(ShaderConstants._PongTexture, ShaderConstants._PingTexture, material, 3);
 
             // Composite
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._PingTexture);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
-            //cmd.Blit(source, destination, material, 4);
-            Blit(cmd, source, destination, material, 4);
+            cmd.Blit(source, destination, material, 4);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
@@ -647,11 +641,11 @@ namespace UnityEngine.Rendering.LWRP
             var bloomMaterial = m_Materials.bloom;
             bloomMaterial.SetVector(ShaderConstants._Params, new Vector4(scatter, clamp, threshold, thresholdKnee));
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.BloomHQ, m_Bloom.highQualityFiltering.value);
-            CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_BloomRGBM);
+            CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_UseRGBM);
 
             // Prefilter
-            cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], tw, th, 0, FilterMode.Bilinear, m_BloomFormat);
-            cmd.GetTemporaryRT(ShaderConstants._BloomMipUp[0], tw, th, 0, FilterMode.Bilinear, m_BloomFormat);
+            cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], tw, th, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
+            cmd.GetTemporaryRT(ShaderConstants._BloomMipUp[0], tw, th, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
             cmd.Blit(source, ShaderConstants._BloomMipDown[0], bloomMaterial, 0);
 
             // Downsample - gaussian pyramid
@@ -663,8 +657,8 @@ namespace UnityEngine.Rendering.LWRP
                 int mipDown = ShaderConstants._BloomMipDown[i];
                 int mipUp = ShaderConstants._BloomMipUp[i];
 
-                cmd.GetTemporaryRT(mipDown, tw, th, 0, FilterMode.Bilinear, m_BloomFormat);
-                cmd.GetTemporaryRT(mipUp, tw, th, 0, FilterMode.Bilinear, m_BloomFormat);
+                cmd.GetTemporaryRT(mipDown, tw, th, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
+                cmd.GetTemporaryRT(mipUp, tw, th, 0, FilterMode.Bilinear, m_DefaultHDRFormat);
 
                 // Classic two pass gaussian blur - use mipUp as a temporary target
                 //   First pass does 2x downsampling + 9-tap gaussian
@@ -699,7 +693,7 @@ namespace UnityEngine.Rendering.LWRP
 
             var bloomParams = new Vector4(m_Bloom.intensity.value, tint.r, tint.g, tint.b);
             uberMaterial.SetVector(ShaderConstants._Bloom_Params, bloomParams);
-            uberMaterial.SetFloat(ShaderConstants._Bloom_RGBM, m_BloomRGBM ? 1f : 0f);
+            uberMaterial.SetFloat(ShaderConstants._Bloom_RGBM, m_UseRGBM ? 1f : 0f);
 
             cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, ShaderConstants._BloomMipUp[0]);
 
