@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue in FrameSettingsHistory when disabling a camera several time without enabling it in between.
 - Fixed volumetric reprojection with camera-relative code and XR stereo instancing
 - Added custom BaseShaderPreprocessor in HDEditorUtils.GetBaseShaderPreprocessorList()
+- Fixed compile issue when USE_XR_SDK is not defined
 
 ### Changed
 - Optimization: Reduce the group size of the deferred lighting pass from 16x16 to 8x8
