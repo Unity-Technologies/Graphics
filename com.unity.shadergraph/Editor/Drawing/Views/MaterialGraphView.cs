@@ -163,14 +163,48 @@ namespace UnityEditor.ShaderGraph.Drawing
                     evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, (a) => DropdownMenuAction.Status.Normal);
                 }
             }
-            else if (evt.target is BlackboardField)
+
+            string collapsePreviewText = "Collapse Previews";
+            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            {
+                if (selectedNode.node.hasPreview && selectedNode.node.previewExpanded)
+                {
+                    if (selection.Count == 1)
+                    {
+                        collapsePreviewText = "Collapse Preview";
+                    }
+                    evt.menu.AppendAction(collapsePreviewText, _ => SetSelectionPreviews(false), (a) => DropdownMenuAction.Status.Normal);
+                    break;
+                }
+            }
+            
+            string expandPreviewText = "Expand Previews";
+            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            {
+                if (selectedNode.node.hasPreview && !selectedNode.node.previewExpanded)
+                {
+                    if (selection.Count == 1)
+                    {
+                        expandPreviewText = "Expand Preview";
+                    }
+                    evt.menu.AppendAction(expandPreviewText, _ => SetSelectionPreviews(true), (a) => DropdownMenuAction.Status.Normal);
+                    break;
+                }
+            }
+
+            if (evt.target is BlackboardField)
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
             if (evt.target is MaterialGraphView)
             {
-                evt.menu.AppendAction("Collapse Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
-                evt.menu.AppendAction("Expand Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
+                foreach (AbstractMaterialNode node in graph.GetNodes<AbstractMaterialNode>())
+                {
+                    if (node.hasPreview && node.previewExpanded == true)
+                        evt.menu.AppendAction("Collapse All Previews", CollapsePreviews, (a) => DropdownMenuAction.Status.Normal);
+                    if (node.hasPreview && node.previewExpanded == false)
+                        evt.menu.AppendAction("Expand All Previews", ExpandPreviews, (a) => DropdownMenuAction.Status.Normal);
+                }
                 evt.menu.AppendSeparator();
             }
         }
@@ -245,6 +279,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     group.RemoveElement(node);
                 }
+            }
+        }
+
+        void SetSelectionPreviews(bool state)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Toggle Preview Visibility");
+            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            {
+                selectedNode.UpdatePreviewExpandedState(state);
             }
         }
 
