@@ -131,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Render(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, CullingResults cull)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
+            HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
             HDRenderPipeline renderPipeline = m_RaytracingManager.GetRenderPipeline();
             RaytracingShader forwardShader = m_PipelineAsset.renderPipelineRayTracingResources.forwardRaytracing;
             Shader raytracingMask = m_PipelineAsset.renderPipelineRayTracingResources.raytracingFlagMask;
@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
             // Check the validity of the state before computing the effect
-            bool invalidState = rtEnvironement == null || !recursiveSettings.enable.value
+            bool invalidState = rtEnvironment == null || !recursiveSettings.enable.value
                 || forwardShader == null || raytracingMask == null
                 || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
@@ -149,8 +149,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             // Grab the acceleration structure and the list of HD lights for the target camera
-            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.raytracedLayerMask);
-            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironement.raytracedLayerMask);
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironment.raytracedLayerMask);
+            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironment.raytracedLayerMask);
 
             if (m_RaytracingFlagMaterial == null)
                 m_RaytracingFlagMaterial = CoreUtils.CreateEngineMaterial(raytracingMask);
@@ -167,9 +167,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Inject the ray-tracing sampling data
             cmd.SetRaytracingTextureParam(forwardShader, HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambledTex);
             cmd.SetRaytracingTextureParam(forwardShader, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
-            
+
             // Inject the ray generation data
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, recursiveSettings.rayLength.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, recursiveSettings.maxDepth.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
@@ -204,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingTextureParam(forwardShader, HDShaderIDs._RaytracingPrimaryDebug, m_DebugRaytracingTexture);
             hdrp.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugRaytracingTexture, FullScreenDebugMode.PrimaryVisibility);
 
-            // Run the calculus
+            // Run the computation
             cmd.DispatchRays(forwardShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
         }
     }
