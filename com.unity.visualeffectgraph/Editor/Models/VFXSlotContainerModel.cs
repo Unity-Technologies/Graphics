@@ -216,13 +216,13 @@ namespace UnityEditor.VFX
             SyncSlots(VFXSlot.Direction.kOutput, false);
         }
 
-        public override void CollectDependencies(HashSet<ScriptableObject> objs)
+        public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
-            base.CollectDependencies(objs);
+            base.CollectDependencies(objs, ownedOnly);
             foreach (var slot in m_InputSlots.Concat(m_OutputSlots))
             {
                 objs.Add(slot);
-                slot.CollectDependencies(objs);
+                slot.CollectDependencies(objs, ownedOnly);
             }
         }
 

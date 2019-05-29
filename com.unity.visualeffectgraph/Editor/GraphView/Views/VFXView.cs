@@ -1,8 +1,11 @@
+
+
 //#define OLD_COPY_PASTE
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -16,7 +19,18 @@ using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXView : GraphView, IDropTarget, IControlledElement<VFXViewController>, IControllerListener
+    public class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
+    {
+        public static bool assetMoved = false;
+
+        private static AssetMoveResult OnWillMoveAsset(string sourcePath, string destinationPath)
+        {
+            assetMoved = true;
+            return AssetMoveResult.DidNotMove;
+        }
+    }
+
+    class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener
     {
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
 
@@ -111,8 +125,25 @@ namespace UnityEditor.VFX.UI
             elementsRemovedFromGroup = ElementRemovedFromGroupNode;
             groupTitleChanged = GroupNodeTitleChanged;
 
-            m_NodeProvider = new VFXNodeProvider(controller, (d, mPos) => AddNode(d, mPos));
+            m_NodeProvider = new VFXNodeProvider(controller, (d, mPos) => AddNode(d, mPos),null, GetAcceptedTypeNodes());
+
+            //Make sure a subgraph block as a block subgraph  context
+            if (controller.model.isSubgraph && controller.model.subgraph is VisualEffectSubgraphBlock)
+            {
+                if( !controller.graph.children.Any(t=>t is VFXBlockSubgraphContext) )
+                {
+                    controller.graph.AddChild(VFXBlockSubgraphContext.CreateInstance<VFXBlockSubgraphContext>(),0);
+                }
+            }
         }
+
+        IEnumerable<Type> GetAcceptedTypeNodes()
+        {
+            if (!controller.model.isSubgraph)
+                return null;
+            return new Type[] { typeof(VFXOperator) };
+        }
+
 
         public VisualEffect attachedComponent
         {
@@ -188,7 +219,24 @@ namespace UnityEditor.VFX.UI
             {
                 string path = d.modelDescriptor as string;
 
-                CreateTemplateSystem(path, mPos, groupNode);
+                if(! path.StartsWith(VisualEffectAssetEditorUtility.templatePath) )
+                {
+                    if( Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
+                    {
+                        var subGraph = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(path);
+                        if (subGraph != null && (!controller.model.isSubgraph || !subGraph.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) && subGraph.GetResource() != controller.model))
+                        {
+                            ;
+                            VFXModel newModel = VFXSubgraphOperator.CreateInstance<VFXSubgraphOperator>() as VFXModel;
+
+                            controller.AddVFXModel(mPos, newModel);
+
+                            newModel.SetSettingValue("m_Subgraph", subGraph);
+                        }
+                    }
+                }
+                else
+                    CreateTemplateSystem(path, mPos, groupNode);
             }
             else if (d.modelDescriptor is GroupNodeAdder)
             {
@@ -804,6 +852,8 @@ namespace UnityEditor.VFX.UI
 
         void SyncEdges(int change)
         {
+            if (change == VFXViewController.Change.ui)
+                return; // for the moment ui changes don't have an impact on edges
             if (change != VFXViewController.Change.flowEdge)
             {
                 if (controller == null)
@@ -961,7 +1011,7 @@ namespace UnityEditor.VFX.UI
         {
             var graph = controller.graph;
             graph.SetExpressionGraphDirty();
-            graph.RecompileIfNeeded();
+            graph.RecompileIfNeeded(false, false);
         }
 
         private bool m_IsRuntimeMode = false;
@@ -994,6 +1044,24 @@ namespace UnityEditor.VFX.UI
 
         public EventPropagation Resync()
         {
+            foreach (var node in rootNodes.Values)
+                node.RemoveFromHierarchy();
+
+            rootNodes.Clear();
+            foreach (var node in nodes.ToList())
+                node.RemoveFromHierarchy();
+
+            foreach (var edge in dataEdges.Values)
+                edge.RemoveFromHierarchy();
+            dataEdges.Clear();
+
+            foreach (var edge in flowEdges.Values)
+                edge.RemoveFromHierarchy();
+            flowEdges.Clear();
+
+            foreach (var edge in edges.ToList())
+                edge.RemoveFromHierarchy();
+
             if (controller != null)
                 controller.ForceReload();
             return EventPropagation.Stop;
@@ -1255,8 +1323,8 @@ namespace UnityEditor.VFX.UI
         {
             if (Selection.activeObject != controller.model)
             {
-                Selection.activeObject = controller.model.asset;
-                EditorGUIUtility.PingObject(controller.model.asset);
+                Selection.activeObject = controller.model.visualEffectObject;
+                EditorGUIUtility.PingObject(controller.model.visualEffectObject);
             }
         }
 
@@ -1311,7 +1379,7 @@ namespace UnityEditor.VFX.UI
 
         protected internal override bool canCopySelection
         {
-            get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<Group>().Any() || selection.OfType<VFXContextUI>().Any() || selection.OfType<VFXStickyNote>().Any(); }
+            get { return selection.OfType<VFXNodeUI>().Any() || selection.OfType<Group>().Any() || selection.OfType<VFXContextUI>().Any(t => !(t.controller.model is VFXBlockSubgraphContext)) || selection.OfType<VFXStickyNote>().Any(); }
         }
 
         IEnumerable<Controller> ElementsToController(IEnumerable<GraphElement> elements)
@@ -1551,8 +1619,55 @@ namespace UnityEditor.VFX.UI
                 evt.menu.InsertSeparator("", 2);
                 evt.menu.InsertAction(3, string.IsNullOrEmpty(context.controller.model.label) ? "Name Context" : "Rename Context", a => context.OnRename(), e => DropdownMenuAction.Status.Normal);
             }
+
+
+            if (selection.OfType<VFXNodeUI>().Any())
+            {
+                if (selection.OfType<VFXOperatorUI>().Any() && !selection.OfType<VFXNodeUI>().Any(t => !(t is VFXOperatorUI) && !(t is VFXParameterUI)))
+                    evt.menu.InsertAction(3, "To Subgraph Operator", ToSubgraphOperator, e => DropdownMenuAction.Status.Normal);
+                else if (SelectionHasCompleteSystems())
+                    evt.menu.InsertAction(3, "To Subgraph", ToSubgraphContext, e => DropdownMenuAction.Status.Normal);
+                else if (selection.OfType<VFXBlockUI>().Any() && selection.OfType<VFXBlockUI>().Select(t => t.context).Distinct().Count() == 1)
+                {
+                    evt.menu.InsertAction(3, "To Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
+                }
+            }
+            
         }
 
+
+        public bool SelectionHasCompleteSystems()
+        {
+            HashSet<VFXContextUI> selectedContexts = new HashSet<VFXContextUI>(selection.OfType<VFXContextUI>());
+            if (selectedContexts.Count() < 1)
+                return false;
+
+            HashSet<VFXData> usedDatas = new HashSet<VFXData>(selectedContexts.Select(t => t.controller.model.GetData()).Where(t=>t != null));
+
+            foreach( var context in GetAllContexts())
+            {
+                if (usedDatas.Contains(context.controller.model.GetData()) && !selectedContexts.Contains(context))
+                    return false;
+            }
+
+            return true;
+        }
+
+
+        void ToSubgraphBlock(DropdownMenuAction a)
+        {
+            VFXConvertSubgraph.ConvertToSubgraphBlock(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
+        }
+
+
+        void ToSubgraphOperator(DropdownMenuAction a)
+        {
+            VFXConvertSubgraph.ConvertToSubgraphOperator(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
+        }
+        void ToSubgraphContext(DropdownMenuAction a)
+        {
+            VFXConvertSubgraph.ConvertToSubgraphContext(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
+        }
 
         List<VFXSystemBorder> m_Systems = new List<VFXSystemBorder>();
 
@@ -1578,71 +1693,111 @@ namespace UnityEditor.VFX.UI
                 border.controller = controller.systems[m_Systems.Count() - 1];
             }
         }
-        
-
-        bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
-        {
-            return selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null);
-        }
-
-        bool IDropTarget.DragExited()
-        {
-            return true;
-        }
-
-        bool IDropTarget.DragEnter(DragEnterEvent evt, IEnumerable<ISelectable> selection, IDropTarget enteredTarget, ISelection dragSource)
-        {
-            return true;
-        }
-
-        bool IDropTarget.DragLeave(DragLeaveEvent evt, IEnumerable<ISelectable> selection, IDropTarget leftTarget, ISelection dragSource)
-        {
-            return true;
-        }
-
-        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
-        {
-            var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
-
-            Vector2 mousePosition = contentViewContainer.WorldToLocal(evt.mousePosition);
-
-
-            foreach (var row in rows)
-            {
-                AddVFXParameter(mousePosition - new Vector2(100, 75), row.controller, null);
-            }
-
-            return true;
-        }
-
-        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
-        {
-            DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-
-            return true;
-        }
 
         void OnDragUpdated(DragUpdatedEvent e)
         {
-            if (selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
+            if (DragAndDrop.GetGenericData("DragSelection") != null && selection.Any(t => t is VFXBlackboardField && (t as VFXBlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
             {
+                VFXBlackboardField selectedField = selection.OfType<VFXBlackboardField>().Where(t => t.GetFirstAncestorOfType<VFXBlackboardRow>() != null).First();
+
+                if( selectedField.controller.isOutput &&selectedField.controller.nodeCount > 0 )
+                {
+                    return;
+                }
+
                 DragAndDrop.visualMode = DragAndDropVisualMode.Link;
                 e.StopPropagation();
             }
+            else
+            {
+                var references = DragAndDrop.objectReferences.OfType<VisualEffectAsset>().Cast<VisualEffectObject>().Concat(DragAndDrop.objectReferences.OfType<VisualEffectSubgraphOperator>());
+
+                if (references.Count() > 0 && (!controller.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) || t.GetResource() == controller.model)))
+                {
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+                    e.StopPropagation();
+                }
+                var droppedBlocks = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>();
+                if (droppedBlocks.Count() > 0 && (!controller.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) || t.GetResource() == controller.model)))
+                {
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+                    e.StopPropagation();
+                }
+            }
         }
+
 
         void OnDragPerform(DragPerformEvent e)
         {
             var groupNode = GetPickedGroupNode(e.mousePosition);
 
-            var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
-            if (rows.Length > 0)
+            if (DragAndDrop.GetGenericData("DragSelection") != null && selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null))
             {
-                Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
-                foreach (var row in rows)
+                var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
+                if (rows.Length > 0)
                 {
-                    AddVFXParameter(mousePosition - new Vector2(50, 20), row.controller, groupNode);
+                    DragAndDrop.AcceptDrag();
+                    Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
+                    foreach (var row in rows)
+                    {
+                        AddVFXParameter(mousePosition - new Vector2(50, 20), row.controller, groupNode);
+                    }
+                    e.StopPropagation();
                 }
+            }
+            else
+            {
+                DragAndDrop.AcceptDrag();
+                var references = DragAndDrop.objectReferences.OfType<VisualEffectAsset>().Cast<VisualEffectObject>().Concat(DragAndDrop.objectReferences.OfType<VisualEffectSubgraphOperator>());
+
+                if (references.Count() > 0 && (!controller.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) || t.GetResource() == controller.model)))
+                {
+                    Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
+                    VFXModel newModel = (references.First() is VisualEffectAsset) ? VFXSubgraphContext.CreateInstance<VFXSubgraphContext>() as VFXModel : VFXSubgraphOperator.CreateInstance<VFXSubgraphOperator>() as VFXModel;
+
+                    controller.AddVFXModel(mousePosition, newModel);
+
+                    newModel.SetSettingValue("m_Subgraph", references.First());
+
+                    //TODO add to picked groupnode
+                    e.StopPropagation();
+                }
+                else
+                {
+                    var droppedBlocks = DragAndDrop.objectReferences.OfType<VisualEffectSubgraphBlock>();
+                    if(droppedBlocks.Count() > 0 && (!controller.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.model.subgraph) || t.GetResource() == controller.model)))
+                    {
+                        Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
+
+                        VFXContextType contextKind = droppedBlocks.First().GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType;
+                        VFXModelDescriptor<VFXContext> contextType = VFXLibrary.GetContexts().First(t=>t.modelType == typeof(VFXBasicInitialize));
+                        if((contextKind & VFXContextType.Update) == VFXContextType.Update)
+                            contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicUpdate));
+                        else if ((contextKind & VFXContextType.Spawner) == VFXContextType.Spawner)
+                            contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicSpawner));
+                        else if ((contextKind & VFXContextType.Output) == VFXContextType.Output)
+                            contextType = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXMeshOutput));
+
+                        VFXContext ctx = controller.AddVFXContext(mousePosition, contextType);
+
+                        VFXModel newModel = VFXSubgraphBlock.CreateInstance<VFXSubgraphBlock>();
+
+                        newModel.SetSettingValue("m_Subgraph", droppedBlocks.First());
+
+                        ctx.AddChild(newModel);
+
+                        //TODO add to picked groupnode
+                        e.StopPropagation();
+                    }
+                }
+            }
+        }
+
+        public void AssetMoved()
+        {
+            foreach (var item in this.Query<VFXNodeUI>().ToList())
+            {
+                item.AssetMoved();
             }
         }
     }
