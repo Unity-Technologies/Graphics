@@ -99,6 +99,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // XRTODO: handle more than 2 instanced views
                 TextureXR.maxViews = 2;
+
+                return true;
             }
             else
             {
@@ -106,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 #endif
 
-            return display != null;
+            return false;
         }
 
         void CreateLayoutLegacyStereo(Camera camera)
