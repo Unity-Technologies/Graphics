@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static RTHandleSystem.RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false, xrInstancing: true, 
+                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false, xrInstancing: true,
                                         name: string.Format("IndirectDiffuseHistoryBuffer{0}", frameIndex));
         }
 
@@ -74,11 +74,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool ValidIndirectDiffuseState()
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
+            HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
             RaytracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseRaytracing;
             var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
 
-            return !(rtEnvironement == null || !settings.enableRayTracing.value
+            return !(rtEnvironment == null || !settings.enableRayTracing.value
                 || indirectDiffuseShader == null
                 || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null);
         }
@@ -89,13 +89,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             BindIndirectDiffuseTexture(cmd);
 
             // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
+            HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
             RaytracingShader indirectDiffuseShader = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseRaytracing;
             ComputeShader indirectDiffuseAccumulation = m_PipelineAsset.renderPipelineRayTracingResources.indirectDiffuseAccumulation;
             var settings = VolumeManager.instance.stack.GetComponent<GlobalIllumination>();
             var lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
-            bool invalidState = rtEnvironement == null || !settings.enableRayTracing.value
+            bool invalidState = rtEnvironment == null || !settings.enableRayTracing.value
                 || indirectDiffuseShader == null || indirectDiffuseAccumulation == null
                 || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
@@ -104,8 +104,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
 
             // Grab the acceleration structures and the light cluster to use
-            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.indirectDiffuseLayerMask);
-            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironement.indirectDiffuseLayerMask);
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironment.indirectDiffuseLayerMask);
+            HDRaytracingLightCluster lightCluster = m_RaytracingManager.RequestLightCluster(rtEnvironment.indirectDiffuseLayerMask);
 
             // Compute the actual resolution that is needed base on the quality
             string targetRayGen = m_RayGenIndirectDiffuseName;
@@ -121,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingTextureParam(indirectDiffuseShader, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, settings.rayLength.value);
             cmd.SetRaytracingIntParams(indirectDiffuseShader, HDShaderIDs._RaytracingNumSamples, settings.numSamples.value);
             int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;
@@ -159,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int widthResolution = hdCamera.actualWidth;
             int heightResolution = hdCamera.actualHeight;
 
-            // Run the calculus
+            // Run the computation
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", true);
             cmd.DispatchRays(indirectDiffuseShader, targetRayGen, (uint)widthResolution, (uint)heightResolution, 1);
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);

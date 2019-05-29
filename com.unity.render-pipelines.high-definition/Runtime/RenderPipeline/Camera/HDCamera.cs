@@ -69,8 +69,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // XR multipass and instanced views are supported (see XRSystem)
         XRPass m_XRPass;
         public XRPass xr { get { return m_XRPass; } }
-        ViewConstants[] xrViewConstants;
-        ComputeBuffer   xrViewConstantsGpu;
+        public ViewConstants[] xrViewConstants;
+        ComputeBuffer xrViewConstantsGpu;
 
         // Recorder specific
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
@@ -128,9 +128,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Helper property to inform how many views are rendered simultaneously
         public int viewCount { get => Math.Max(1, xr.viewCount); }
-
-        // XRTODO: remove and replace occurences by viewCount
-        public int computePassCount { get => viewCount; }
 
         public bool clearDepth
         {
