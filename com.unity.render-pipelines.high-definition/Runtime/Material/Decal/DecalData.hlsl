@@ -4,13 +4,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 
-float2 SafeNormalizeFloat2(float2 inVec)
-{
-    float dp2 = max(REAL_MIN, dot(inVec, inVec));
-    return inVec * rsqrt(dp2);
-}
-
-
 void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out DecalSurfaceData surfaceData)
 {
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
@@ -71,13 +64,9 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 
 	// needs to be after mask, because blend source could be in the mask map blue
 #ifdef _NORMALMAP
-    float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
-    /// normalTS in[-1; 1] range
-    float2 Tsafe = saturate(length(normalTS.xy)) * SafeNormalizeFloat2(normalTS.xy);        // may be overkill if we normalize ts normal maps anyway
-#if (DECAL_VOLUME_HIGH_PRECISION)
-    float2 deriv = -Tsafe.xy * rsqrt(max(1 - Sq(Tsafe.x) - Sq(Tsafe.y), Sq(FLT_EPS)));
-#else
-    float2 deriv = -Tsafe.xy * rsqrt(max(1 - Sq(Tsafe.x) - Sq(Tsafe.y), Sq(FLT_EPS)));
+    // normalTS in[-1; 1] range
+    float2 deriv = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
+#if (!DECAL_VOLUME_HIGH_PRECISION)
     deriv = clamp(deriv, float2(-1, -1), float2(1, 1));
 #endif
 
@@ -91,7 +80,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 #endif
     // consider oriented decal a volume bump map and use equation 2. in "Bump Mapping Unparametrized Surfaces on the GPU"
     // since the volume gradient is a linear operator. (eq. 2 is used in gbuffer pass)
-    surfaceData.normalWS.xyz = decalXaxisWS * deriv.x + decalYaxisWS * deriv.y;
+    surfaceData.normalWS.xyz = SurfaceGradientFromTBN(deriv, decalXaxisWS, decalYaxisWS);
 	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
     if (surfaceData.normalWS.w > 0.0)
     {

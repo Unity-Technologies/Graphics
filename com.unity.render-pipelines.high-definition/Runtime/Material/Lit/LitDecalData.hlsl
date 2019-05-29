@@ -1,8 +1,8 @@
 void ApplyDecalToTangentSpaceNormal(DecalSurfaceData decalSurfaceData, float3 interpolatedNormalizedVertexNormalWS, inout float3 normalTS)
 {
-    float3 surfGrad = SurfaceGradientFromVolumeGradient(interpolatedNormalizedVertexNormalWS, decalSurfaceData.normalWS.xyz);
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
     {
+        float3 surfGrad = SurfaceGradientFromVolumeGradient(interpolatedNormalizedVertexNormalWS, decalSurfaceData.normalWS.xyz);
         normalTS.xyz = normalTS.xyz * decalSurfaceData.normalWS.w + surfGrad.xyz;
     }
 }
@@ -15,7 +15,6 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
         surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
     }
 
-
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
     {
 #ifdef DECALS_4RT // only smoothness in 3RT mode
@@ -27,7 +26,6 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
 #endif
         surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
 #endif
-
         surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
     }
 }
