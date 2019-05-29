@@ -404,6 +404,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     renderData.shaderData.isCompiling = false;
                     CheckForErrors(renderData.shaderData);
                     m_NodesToDraw.Add(renderData.shaderData.node);
+
+                    var masterNode = renderData.shaderData.node as IMasterNode;
+                    masterNode?.ProcessPreviewMaterial(renderData.shaderData.mat);
                 }
             }
 

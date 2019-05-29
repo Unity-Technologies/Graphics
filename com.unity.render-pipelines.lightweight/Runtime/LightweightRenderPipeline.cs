@@ -98,6 +98,8 @@ namespace UnityEngine.Rendering.LWRP
             Lightmapping.SetDelegate(lightsDelegate);
 
             CameraCaptureBridge.enabled = true;
+
+            RenderingUtils.ClearSystemInfoCache();
         }
 
         protected override void Dispose(bool disposing)
@@ -144,7 +146,11 @@ namespace UnityEngine.Rendering.LWRP
             var settings = asset;
             LWRPAdditionalCameraData additionalCameraData = null;
             if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
+#if UNITY_2019_3_OR_NEWER
+                camera.gameObject.TryGetComponent(out additionalCameraData);
+#else
                 additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
+#endif
 
             InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
             SetupPerCameraShaderConstants(cameraData);
@@ -156,8 +162,8 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(camera.name);
-            using (new ProfilingSample(cmd, camera.name))
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
+            using (new ProfilingSample(cmd, k_RenderCameraTag))
             {
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
@@ -350,8 +356,15 @@ namespace UnityEngine.Rendering.LWRP
             for (int i = 0; i < visibleLights.Length; ++i)
             {
                 Light light = visibleLights[i].light;
-                LWRPAdditionalLightData data =
-                    (light != null) ? light.gameObject.GetComponent<LWRPAdditionalLightData>() : null;
+                LWRPAdditionalLightData data = null;
+                if (light != null)
+                {
+#if UNITY_2019_3_OR_NEWER
+                    light.gameObject.TryGetComponent(out data);
+#else
+                    data = light.gameObject.GetComponent<LWRPAdditionalLightData>();
+#endif
+                }
 
                 if (data && !data.usePipelineSettings)
                     m_ShadowBiasData.Add(new Vector4(light.shadowBias, light.shadowNormalBias, 0.0f, 0.0f));

@@ -202,7 +202,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
-                HDEditorUtils.LightLayerMaskPropertyDrawer(s_Styles.lightLayer, serialized.serializedLightData.renderingLayerMask);
+                using (var change = new EditorGUI.ChangeCheckScope())
+                {
+                    HDEditorUtils.LightLayerMaskPropertyDrawer(s_Styles.lightLayer, serialized.serializedLightData.lightlayersMask);
+
+                    // If we're not in decoupled mode for light layers, we sync light with shadow layers:
+                    if (serialized.serializedLightData.linkLightLayers.boolValue && change.changed)
+                        SyncLightAndShadowLayers(serialized, owner);
+                }
             }
         }
 
@@ -674,7 +681,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     EditorGUILayout.PropertyField(serialized.serializedShadowData.fadeDistance, s_Styles.shadowFadeDistance);
                 }
+
+                // Shadow Layers
+                using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
+                {
+                    using (var change = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.linkLightLayers, s_Styles.linkLightAndShadowLayersText);
+
+                        // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
+                        if (change.changed)
+                            Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
+                    }
+                    if (!serialized.serializedLightData.linkLightLayers.hasMultipleDifferentValues)
+                    {
+                        using (new EditorGUI.DisabledGroupScope(serialized.serializedLightData.linkLightLayers.boolValue))
+                        {
+                            HDEditorUtils.LightLayerMaskPropertyDrawer(s_Styles.shadowLayerMaskText, serialized.settings.renderingLayerMask);
+                        }
+                        if (serialized.serializedLightData.linkLightLayers.boolValue)
+                            SyncLightAndShadowLayers(serialized, owner);
+                    }
+                }
             }
+        }
+        
+        static void SyncLightAndShadowLayers(SerializedHDLight serialized, Editor owner)
+        {
+            // If we're not in decoupled mode for light layers, we sync light with shadow layers:
+            foreach (Light target in owner.targets)
+                target.renderingLayerMask = serialized.serializedLightData.lightlayersMask.intValue;
         }
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)

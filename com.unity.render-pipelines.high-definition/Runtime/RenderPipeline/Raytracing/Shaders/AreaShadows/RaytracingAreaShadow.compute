@@ -71,9 +71,13 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
-    // Decode the world space normal
-    NormalData normalData;
-    DecodeFromNormalBuffer(currentCoord, normalData);
+    // Let's now decode the BSDF data from the  gbuffer
+    BSDFData bsdfData;
+    ZERO_INITIALIZE(BSDFData, bsdfData);
+    BuiltinData builtinData;
+    ZERO_INITIALIZE(BuiltinData, builtinData);
+    uint  featureFlags = MATERIALFEATUREFLAGS_LIT_STANDARD;
+    DecodeFromGBuffer(posInput.positionSS, featureFlags, bsdfData, builtinData);
 
     // Convert this to a world space position
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
@@ -87,7 +91,7 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     // Structure that holds all the input data for the MIS
     MISSamplingInput misInput;
     ZERO_INITIALIZE(MISSamplingInput, misInput);
-    misInput.roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
+    misInput.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     misInput.viewWS = viewWS;
     misInput.positionWS = positionWS;
     misInput.rectDimension = lightData.size.xy;
@@ -96,17 +100,9 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     // Setup and check the spherical rectangle
     SphQuad squad;
     InitSphericalQuad(lightData, positionWS, squad);
-    
-    // Compute the local frame that matches the normal
-    misInput.localToWorld = GetLocalFrame(normalData.normalWS);
 
-    // Let's now decode the BSDF data from the  gbuffer
-    BSDFData bsdfData;
-    ZERO_INITIALIZE(BSDFData, bsdfData);
-    BuiltinData builtinData;
-    ZERO_INITIALIZE(BuiltinData, builtinData);
-    uint  featureFlags = MATERIALFEATUREFLAGS_LIT_STANDARD;
-    DecodeFromGBuffer(posInput.positionSS, featureFlags, bsdfData, builtinData);
+    // Compute the local frame that matches the normal
+    misInput.localToWorld = GetLocalFrame(bsdfData.normalWS);
 
     // Beyond a certain value of smoothness, we clamp due to the invalidity of the ratio BRDF / MIS.
     // TODO: investigate this and find a way to by pass it
@@ -163,7 +159,7 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     bool validity = GenerateMISSample(misInput, squad, viewWS,  misOutput);
 
     // If we could not sample , or the sample is not in the hemisphere or the sample is on the backface of the light
-    if (!validity || dot(misOutput.dir, normalData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
+    if (!validity || dot(misOutput.dir, bsdfData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
     {
         _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
         _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)] = float2(U, misInput.brdfProb);
@@ -173,7 +169,7 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     // Evaluate the lighting
     float3 diffuseLighting = float3(0.0, 0.0, 0.0);
     float3 specularLighting = float3(0.0, 0.0, 0.0);
-    float NdotL = saturate(dot(normalData.normalWS, misOutput.dir));
+    float NdotL = saturate(dot(bsdfData.normalWS, misOutput.dir));
     BSDF(viewWS, misOutput.dir, NdotL, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
     // Combine the light color with the light cookie color (if any)
@@ -251,10 +247,6 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     bsdfData.roughnessT = ClampRoughnessForRaytracing(bsdfData.roughnessT);
     bsdfData.roughnessB = ClampRoughnessForRaytracing(bsdfData.roughnessB);
 
-    // Decode the world space normal
-    NormalData normalData;
-    DecodeFromNormalBuffer(currentCoord, normalData);
-
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
 
@@ -273,7 +265,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     // Structure that holds all the input data for the MIS
     MISSamplingInput misInput;
     ZERO_INITIALIZE(MISSamplingInput, misInput);
-    misInput.roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
+    misInput.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     misInput.viewWS = viewWS;
     misInput.positionWS = positionWS;
     misInput.rectDimension = lightData.size.xy;
@@ -283,9 +275,9 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     // Setup and check the spherical rectangle
     SphQuad squad;
     InitSphericalQuad(lightData, positionWS, squad);
-    
+
     // Compute the local frame that matches the normal
-    misInput.localToWorld = GetLocalFrame(normalData.normalWS);
+    misInput.localToWorld = GetLocalFrame(bsdfData.normalWS);
 
     // Structure that holds all the output data from the MIS
     MISSamplingOuput misOutput;
@@ -309,7 +301,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     bool validity = GenerateMISSample(misInput, squad, viewWS,  misOutput);
 
     // If we could not sample , or the sample is not in the hemisphere or the sample is on the backface of the light
-    if (!validity || dot(misOutput.dir, normalData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
+    if (!validity || dot(misOutput.dir, bsdfData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
     {
         _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
         return;
@@ -318,7 +310,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     // Evaluate the lighting
     float3 diffuseLighting = float3(0.0, 0.0, 0.0);
     float3 specularLighting = float3(0.0, 0.0, 0.0);
-    float NdotL = saturate(dot(normalData.normalWS, misOutput.dir));
+    float NdotL = saturate(dot(bsdfData.normalWS, misOutput.dir));
     BSDF(viewWS, misOutput.dir, NdotL, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
     // Combine the light color with the light cookie color (if any)

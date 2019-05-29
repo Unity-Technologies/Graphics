@@ -605,12 +605,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
                 AddRow("Default", field);
             }
-//            AddRow("Type", new TextField());
-//            AddRow("Exposed", new Toggle(null));
-//            AddRow("Range", new Toggle(null));
-//            AddRow("Default", new TextField());
-//            AddRow("Tooltip", new TextField());
 
+            var precisionField = new EnumField((Enum)property.precision);
+            precisionField.RegisterValueChangedCallback(evt =>
+            {
+                m_Graph.owner.RegisterCompleteObjectUndo("Change Precision");
+                if (property.precision == (Precision)evt.newValue)
+                    return;
+                property.precision = (Precision)evt.newValue;
+                m_Graph.ValidateGraph();
+                precisionField.MarkDirtyRepaint();
+                DirtyNodes();
+            });
+            AddRow("Precision", precisionField);
 
             AddToClassList("sgblackboardFieldPropertyView");
 

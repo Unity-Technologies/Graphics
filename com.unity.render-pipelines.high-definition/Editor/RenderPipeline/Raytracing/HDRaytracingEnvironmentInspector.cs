@@ -87,8 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         CED.FoldoutGroup(Styles.reflSectionText, Expandable.Reflection, k_ExpandedState, ReflectionsSubMenu),
                         CED.FoldoutGroup(Styles.shadowSectionText, Expandable.AreaShadow, k_ExpandedState, AreaShadowSubMenu),
                         CED.FoldoutGroup(Styles.primaryRaytracingSectionText, Expandable.PrimaryRaytracing, k_ExpandedState, RaytracingSubMenu),
-                        CED.FoldoutGroup(Styles.indirectDiffuseSectionText, Expandable.IndirectDiffuse, k_ExpandedState, IndirectDiffuseSubMenu),
-                        CED.FoldoutGroup(Styles.lightClusterSectionText, Expandable.LightCluster, k_ExpandedState, LightClusterSubMenu));
+                        CED.FoldoutGroup(Styles.indirectDiffuseSectionText, Expandable.IndirectDiffuse, k_ExpandedState, IndirectDiffuseSubMenu));
         }
         static void GenericSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
@@ -132,31 +131,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void RaytracingSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
-            // Primary Visibility Specific fields
-            EditorGUILayout.PropertyField(rtEnv.raytracedObjects, Styles.raytracingEnableText);
-
-            if (rtEnv.raytracedObjects.boolValue)
+            // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+            // the non serialized object and update the sub-scenes
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(rtEnv.raytracedLayerMask, Styles.raytracedLayerMaskText);
+            if(EditorGUI.EndChangeCheck())
             {
-                // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
-                // the non serialized object and update the sub-scenes
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(rtEnv.raytracedLayerMask, Styles.raytracedLayerMaskText);
-                if(EditorGUI.EndChangeCheck())
-                {
-                    UpdateEnvironmentSubScenes(rtEnv);
-                }
-
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(rtEnv.rayMaxDepth, Styles.rayMaxDepth);
-                EditorGUILayout.PropertyField(rtEnv.raytracingRayLength, Styles.raytracingRayLength);
-                EditorGUI.indentLevel--;
+                UpdateEnvironmentSubScenes(rtEnv);
             }
-        }
-
-        static void LightClusterSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
-        {
-            EditorGUILayout.PropertyField(rtEnv.maxNumLightsPercell, Styles.maxNumLightsText);
-            EditorGUILayout.PropertyField(rtEnv.cameraClusterRange, Styles.cameraClusterRangeText);
         }
 
         static void AreaShadowSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
@@ -173,31 +155,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void IndirectDiffuseSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
-            EditorGUILayout.PropertyField(rtEnv.raytracedIndirectDiffuse, Styles.indirectDiffuseEnableText);
-            if (rtEnv.raytracedIndirectDiffuse.boolValue)
+            // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+            // the non serialized object and update the sub-scenes
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(rtEnv.indirectDiffuseLayerMask, Styles.indirectDiffuseLayerMaskText);
+            if(EditorGUI.EndChangeCheck())
             {
-                // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
-                // the non serialized object and update the sub-scenes
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(rtEnv.indirectDiffuseLayerMask, Styles.indirectDiffuseLayerMaskText);
-                if(EditorGUI.EndChangeCheck())
-                {
-                    UpdateEnvironmentSubScenes(rtEnv);
-                }
-
-                EditorGUILayout.PropertyField(rtEnv.indirectDiffuseNumSamples, Styles.indirectDiffuseNumSamplesText);
-                EditorGUILayout.PropertyField(rtEnv.indirectDiffuseRayLength, Styles.indirectDiffuseRayLengthText);
-                EditorGUILayout.PropertyField(rtEnv.indirectDiffuseClampValue, Styles.indirectDiffuseClampText);
-
-                EditorGUILayout.PropertyField(rtEnv.indirectDiffuseFilterMode, Styles.indirectDiffuseFilterModeText);
-                switch ((HDRaytracingEnvironment.IndirectDiffuseFilterMode)rtEnv.indirectDiffuseFilterMode.enumValueIndex)
-                {
-                    case HDRaytracingEnvironment.IndirectDiffuseFilterMode.SpatioTemporal:
-                    {
-                        EditorGUILayout.PropertyField(rtEnv.indirectDiffuseFilterRadius, Styles.indirectDiffuseFilterRadiusText);
-                    }
-                    break;
-                }
+                UpdateEnvironmentSubScenes(rtEnv);
             }
         }
 

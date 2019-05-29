@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SkyResolution4096 = 4096
     }
 
-    public enum EnvironementUpdateMode
+    public enum EnvironmentUpdateMode
     {
         OnChanged = 0,
         OnDemand,

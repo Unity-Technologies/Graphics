@@ -20,6 +20,8 @@
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
+      * [Screen Space Reflection](Override-Screen-Space-Reflection)
+      * [Screen Space Refraction](Override-Screen-Space-Refraction)
       * [Volumetric Fog Quality](Override-Volumetric-Fog-Quality)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
@@ -51,6 +53,8 @@
     * [Unlit Shader](Unlit-Shader)
     * [Decal Shader](Decal-Shader)
 * Lighting
+  * [Reflection in HDRP](Reflection-in-HDRP)
+  * [Refraction in HDRP](Refraction-in-HDRP)
   * Reflection Probes
     * [Reflection Probes Introduction](Reflection-Probes-Intro)
     * [Reflection Probe](Reflection-Probe)

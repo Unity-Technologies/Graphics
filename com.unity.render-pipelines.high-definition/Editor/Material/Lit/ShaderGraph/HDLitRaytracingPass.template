@@ -45,8 +45,8 @@ Pass
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
     //-------------------------------------------------------------------------------------
-    
-    #pragma raytracing test      
+
+    #pragma raytracing test
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -81,10 +81,10 @@ Pass
 #else
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 #endif
-    
+
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingBuiltinData.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
 
     //-------------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ Pass
         return output;
     }
 
-    void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out float3 bentNormalWS)
+    void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out float3 bentNormalWS)
     {
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
@@ -165,7 +165,7 @@ Pass
         surfaceData.atDistance = 1.0;
         surfaceData.transmittanceMask = 0.0;
 #endif
-        
+
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
@@ -227,7 +227,7 @@ Pass
 
     }
 
-    bool GetSurfaceDataFromIntersection(FragInputs fragInputs, float3 V, PositionInputs posInput, IntersectionVertice intersectionVertice, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
+    bool GetSurfaceDataFromIntersection(FragInputs fragInputs, float3 V, PositionInputs posInput, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
         $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
@@ -242,10 +242,10 @@ Pass
         $AlphaTest: if(surfaceDescription.Alpha < surfaceDescription.AlphaClipThreshold) return false;
 
         float3 bentNormalWS;
-        BuildSurfaceData(fragInputs, surfaceDescription, V, intersectionVertice, rayCone, surfaceData, bentNormalWS);
+        BuildSurfaceData(fragInputs, surfaceDescription, V, intersectionVertex, rayCone, surfaceData, bentNormalWS);
 
         // Builtin Data
-        // For back lighting we use the oposite vertex normal 
+        // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1,  fragInputs.texCoord2, builtinData);
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
