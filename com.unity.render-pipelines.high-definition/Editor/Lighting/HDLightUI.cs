@@ -685,7 +685,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Shadow Layers
                 using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
                 {
-                    EditorGUILayout.PropertyField(serialized.serializedLightData.linkLightLayers, s_Styles.linkLightAndShadowLayersText);
+                    using (var change = new EditorGUI.ChangeCheckScope())
+                    {
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.linkLightLayers, s_Styles.linkLightAndShadowLayersText);
+
+                        // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
+                        if (change.changed)
+                            Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
+                    }
                     if (!serialized.serializedLightData.linkLightLayers.hasMultipleDifferentValues)
                     {
                         using (new EditorGUI.DisabledGroupScope(serialized.serializedLightData.linkLightLayers.boolValue))
