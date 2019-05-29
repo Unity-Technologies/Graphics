@@ -2815,31 +2815,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
-                return;
-
-            m_MRTCache2[0] = m_CameraColorBuffer;
-            m_MRTCache2[1] = m_CameraSssDiffuseLightingBuffer;
-            var depthTexture = m_SharedRTManager.GetDepthTexture();
-
-            var options = new LightingPassOptions();
-
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
-            {
-                // Output split lighting for materials asking for it (masked in the stencil buffer)
-                options.outputSplitLighting = true;
-
-                RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_SharedRTManager.GetDepthStencilBuffer(), depthTexture, options);
-            }
-
-            // Output combined lighting for all the other materials.
-            options.outputSplitLighting = false;
-
-            RenderDeferredLighting(hdCamera, cmd, m_CurrentDebugDisplaySettings, m_MRTCache2, m_SharedRTManager.GetDepthStencilBuffer(), depthTexture, options);
-        }
-
         void UpdateSkyEnvironment(HDCamera hdCamera, CommandBuffer cmd)
         {
             m_SkyManager.UpdateEnvironment(hdCamera, GetCurrentSunLight(), cmd);
