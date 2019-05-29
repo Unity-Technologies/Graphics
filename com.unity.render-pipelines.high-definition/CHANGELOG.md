@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when texture where deleted in ShadowCascadeGUI
 - Fixed issue in FrameSettingsHistory when disabling a camera several time without enabling it in between.
 - Fixed volumetric reprojection with camera-relative code and XR stereo instancing
+- Fixed procedural sky sun disk intensity for high directional light intensities
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
