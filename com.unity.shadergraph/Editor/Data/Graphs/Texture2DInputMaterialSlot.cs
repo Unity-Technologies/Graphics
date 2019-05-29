@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(PropertyType.Texture2D)
+            var pp = new PreviewProperty(ConcreteSlotValueType.Texture2D)
             {
                 name = name,
                 textureValue = texture,

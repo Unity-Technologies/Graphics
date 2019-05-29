@@ -12,45 +12,11 @@ namespace UnityEditor.ShaderGraph
             displayName = "Vector3";
         }
 
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Vector3; }
-        }
+#region ShaderValueType
+        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector3;
+#endregion
 
-        public override Vector4 defaultValue
-        {
-            get { return new Vector4(value.x, value.y, value.z, 0); }
-        }
-
-        public override bool isBatchable
-        {
-            get { return true; }
-        }
-
-        public override bool isExposable
-        {
-            get { return true; }
-        }
-
-        public override bool isRenamable
-        {
-            get { return true; }
-        }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return string.Format("{0}3 {1}{2}", concretePrecision.ToShaderString(), referenceName, delimiter);
-        }
-
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return new PreviewProperty(PropertyType.Vector3)
-            {
-                name = referenceName,
-                vector4Value = value
-            };
-        }
-
+#region Utility
         public override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector3Node();
@@ -58,6 +24,15 @@ namespace UnityEditor.ShaderGraph
             node.FindInputSlot<Vector1MaterialSlot>(Vector3Node.InputSlotYId).value = value.y;
             node.FindInputSlot<Vector1MaterialSlot>(Vector3Node.InputSlotZId).value = value.z;
             return node;
+        }
+        
+        public override PreviewProperty GetPreviewMaterialProperty()
+        {
+            return new PreviewProperty(ConcreteSlotValueType.Vector3)
+            {
+                name = referenceName,
+                vector4Value = value
+            };
         }
 
         public override AbstractShaderProperty Copy()
@@ -67,5 +42,6 @@ namespace UnityEditor.ShaderGraph
             copied.value = value;
             return copied;
         }
+#endregion
     }
 }

@@ -21,9 +21,9 @@ namespace UnityEditor.ShaderGraph
         #region Property data
 
         [NonSerialized]
-        List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
+        List<ShaderInput> m_Properties = new List<ShaderInput>();
 
-        public IEnumerable<AbstractShaderProperty> properties
+        public IEnumerable<ShaderInput> properties
         {
             get { return m_Properties; }
         }
@@ -32,9 +32,9 @@ namespace UnityEditor.ShaderGraph
         List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
 
         [NonSerialized]
-        List<AbstractShaderProperty> m_AddedProperties = new List<AbstractShaderProperty>();
+        List<ShaderInput> m_AddedProperties = new List<ShaderInput>();
 
-        public IEnumerable<AbstractShaderProperty> addedProperties
+        public IEnumerable<ShaderInput> addedProperties
         {
             get { return m_AddedProperties; }
         }
@@ -48,9 +48,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [NonSerialized]
-        List<AbstractShaderProperty> m_MovedProperties = new List<AbstractShaderProperty>();
+        List<ShaderInput> m_MovedProperties = new List<ShaderInput>();
 
-        public IEnumerable<AbstractShaderProperty> movedProperties
+        public IEnumerable<ShaderInput> movedProperties
         {
             get { return m_MovedProperties; }
         }
@@ -620,32 +620,35 @@ namespace UnityEditor.ShaderGraph
 
         public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            foreach (var prop in properties)
+            foreach (var input in properties)
             {
-                if(generationMode == GenerationMode.Preview && prop.propertyType == PropertyType.Gradient)
+                if(input is AbstractShaderProperty prop)
                 {
-                    GradientShaderProperty gradientProperty = prop as GradientShaderProperty;
-                    GradientUtils.GetGradientPropertiesForPreview(collector, gradientProperty.referenceName, gradientProperty.value);
-                    continue;
-                }
+                    if(generationMode == GenerationMode.Preview && prop.concreteShaderValueType == ConcreteSlotValueType.Gradient)
+                    {
+                        GradientShaderProperty gradientProperty = prop as GradientShaderProperty;
+                        GradientUtils.GetGradientPropertiesForPreview(collector, gradientProperty.referenceName, gradientProperty.value);
+                        continue;
+                    }
 
-                collector.AddShaderProperty(prop);
+                    collector.AddShaderProperty(prop);
+                }
             }
         }
 
-        public void AddShaderProperty(AbstractShaderProperty property)
+        public void AddGraphInput(ShaderInput input)
         {
-            if (property == null)
+            if (input == null)
                 return;
 
-            if (m_Properties.Contains(property))
+            if (m_Properties.Contains(input))
                 return;
 
-            m_Properties.Add(property);
-            m_AddedProperties.Add(property);
+            m_Properties.Add(input);
+            m_AddedProperties.Add(input);
         }
 
-        public string SanitizePropertyName(string displayName, Guid guid = default(Guid))
+        public string SanitizeGraphInputName(string displayName, Guid guid = default(Guid))
         {
             displayName = displayName.Trim();
             return GraphUtil.SanitizeName(m_Properties.Where(p => p.guid != guid).Select(p => p.displayName), "{0} ({1})", displayName);
@@ -663,7 +666,8 @@ namespace UnityEditor.ShaderGraph
 
             referenceName = Regex.Replace(referenceName, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
 
-            return GraphUtil.SanitizeName(m_Properties.Where(p => p.guid != guid).Select(p => p.referenceName), "{0}_{1}", referenceName);
+            return GraphUtil.SanitizeName(m_Properties.Where(p => p.guid != guid).Where(p => p as AbstractShaderProperty != null)
+                .Select(p => ((AbstractShaderProperty)p).referenceName), "{0}_{1}", referenceName);
         }
 
         public void RemoveShaderProperty(Guid guid)
@@ -677,11 +681,11 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        public void MoveShaderProperty(AbstractShaderProperty property, int newIndex)
+        public void MoveGraphInput(ShaderInput input, int newIndex)
         {
             if (newIndex > m_Properties.Count || newIndex < 0)
                 throw new ArgumentException("New index is not within properties list.");
-            var currentIndex = m_Properties.IndexOf(property);
+            var currentIndex = m_Properties.IndexOf(input);
             if (currentIndex == -1)
                 throw new ArgumentException("Property is not in graph.");
             if (newIndex == currentIndex)
@@ -691,16 +695,16 @@ namespace UnityEditor.ShaderGraph
                 newIndex--;
             var isLast = newIndex == m_Properties.Count;
             if (isLast)
-                m_Properties.Add(property);
+                m_Properties.Add(input);
             else
-                m_Properties.Insert(newIndex, property);
-            if (!m_MovedProperties.Contains(property))
-                m_MovedProperties.Add(property);
+                m_Properties.Insert(newIndex, input);
+            if (!m_MovedProperties.Contains(input))
+                m_MovedProperties.Add(input);
         }
 
-        public int GetShaderPropertyIndex(AbstractShaderProperty property)
+        public int GetGraphInputIndex(ShaderInput input)
         {
-            return m_Properties.IndexOf(property);
+            return m_Properties.IndexOf(input);
         }
 
         void RemoveShaderPropertyNoValidate(Guid guid)
@@ -877,7 +881,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var otherProperty in other.properties)
             {
                 if (!properties.Any(p => p.guid == otherProperty.guid))
-                    AddShaderProperty(otherProperty);
+                    AddGraphInput(otherProperty);
             }
 
             other.ValidateGraph();
@@ -964,7 +968,7 @@ namespace UnityEditor.ShaderGraph
                     if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
                     {
                         // If the property is in the serialized paste graph, make the property node into a property node.
-                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
+                        var pastedGraphMetaProperties = graphToPaste.metaInputs.Where(x => x.guid == propertyNode.propertyGuid);
                         if (pastedGraphMetaProperties.Any())
                         {
                             pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
@@ -1021,14 +1025,14 @@ namespace UnityEditor.ShaderGraph
         {
             m_SerializableNodes = SerializationHelper.Serialize(GetNodes<AbstractMaterialNode>());
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
-            m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
+            m_SerializedProperties = SerializationHelper.Serialize<ShaderInput>(m_Properties);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
 
         public void OnAfterDeserialize()
         {
             // have to deserialize 'globals' before nodes
-            m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
+            m_Properties = SerializationHelper.Deserialize<ShaderInput>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
 
             var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
             m_Nodes = new List<AbstractMaterialNode>(nodes.Count);

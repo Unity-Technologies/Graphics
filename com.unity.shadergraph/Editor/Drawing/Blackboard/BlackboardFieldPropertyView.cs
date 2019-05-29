@@ -203,7 +203,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (property is ColorShaderProperty)
             {
                 var colorProperty = (ColorShaderProperty)property;
-                var colorField = new ColorField { value = property.defaultValue, showEyeDropper = false, hdr = colorProperty.colorMode == ColorMode.HDR };
+                var colorField = new ColorField { value = colorProperty.value, showEyeDropper = false, hdr = colorProperty.colorMode == ColorMode.HDR };
                 colorField.RegisterValueChangedCallback(evt =>
                     {
                         m_Graph.owner.RegisterCompleteObjectUndo("Change property value");

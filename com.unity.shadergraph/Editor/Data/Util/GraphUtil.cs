@@ -1084,11 +1084,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.AppendLine(@"Shader ""{0}""", name);
             using (finalShader.BlockScope())
             {
-                finalShader.AppendLine("Properties");
-                using (finalShader.BlockScope())
-                {
-                    finalShader.AppendLines(shaderProperties.GetPropertiesBlock(0));
-                }
+                finalShader.Concat(shaderProperties.GetPropertiesBlock());
                 finalShader.AppendNewLine();
 
                 finalShader.AppendLine(@"HLSLINCLUDE");

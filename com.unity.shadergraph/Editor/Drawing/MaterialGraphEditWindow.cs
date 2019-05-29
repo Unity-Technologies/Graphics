@@ -259,7 +259,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                     graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
-                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty),
+                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput),
                     metaProperties);
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
@@ -411,7 +411,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
                     prop.displayName = fromProperty != null ? fromProperty.displayName : fromSlot.concreteValueType.ToString();
 
-                    subGraph.AddShaderProperty(prop);
+                    subGraph.AddGraphInput(prop);
                     var propNode = new PropertyNode();
                     {
                         var drawState = propNode.drawState;

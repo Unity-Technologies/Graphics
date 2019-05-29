@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
 
             // Getting the generatePropertyBlock property to see if it is exposed or not
             var graph = node.owner as GraphData;
-            var property = graph.properties.FirstOrDefault(x => x.guid == node.propertyGuid);
+            var property = graph.properties.FirstOrDefault(x => x.guid == node.propertyGuid) as AbstractShaderProperty;
             var icon = (graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
             this.icon = icon;
 
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph
                 // changing the icon to be exposed or not
                 var propNode = (PropertyNode)node;
                 var graph = node.owner as GraphData;
-                var property = graph.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);
+                var property = graph.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid) as AbstractShaderProperty;
 
                 var icon = property.generatePropertyBlock ? exposedIcon : null;
                 this.icon = icon;

@@ -294,10 +294,13 @@ namespace UnityEditor.ShaderGraph
 
                 // Generate arguments... first INPUTS
                 var arguments = new List<string>();
-                foreach (var prop in subGraphData.inputs)
+                foreach (var input in subGraphData.inputs)
                 {
-                    prop.SetConcretePrecision(subGraphData.graphPrecision);
-                    arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+                    if(input is AbstractShaderProperty prop)
+                    {
+                        prop.SetConcretePrecision(subGraphData.graphPrecision);
+                        arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+                    }
                 }
 
                 // now pass surface inputs

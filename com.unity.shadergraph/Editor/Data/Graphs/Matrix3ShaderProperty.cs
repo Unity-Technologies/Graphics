@@ -13,20 +13,11 @@ namespace UnityEditor.ShaderGraph
             value = Matrix4x4.identity;
         }
 
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Matrix3; }
-        }
+#region ShaderValueType
+        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Matrix3;
+#endregion
 
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return new PreviewProperty(PropertyType.Matrix3)
-            {
-                name = referenceName,
-                matrixValue = value
-            };
-        }
-
+#region Utility
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new Matrix3Node
@@ -37,6 +28,15 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
+        public override PreviewProperty GetPreviewMaterialProperty()
+        {
+            return new PreviewProperty(ConcreteSlotValueType.Matrix3)
+            {
+                name = referenceName,
+                matrixValue = value
+            };
+        }
+
         public override AbstractShaderProperty Copy()
         {
             var copied = new Matrix3ShaderProperty();
@@ -44,5 +44,6 @@ namespace UnityEditor.ShaderGraph
             copied.value = value;
             return copied;
         }
+#endregion
     }
 }

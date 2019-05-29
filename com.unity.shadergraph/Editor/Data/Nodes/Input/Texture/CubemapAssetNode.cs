@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Cubemap)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Cubemap)
             {
                 name = GetVariableNameForSlot(OutputSlotId),
                 cubemapValue = cubemap

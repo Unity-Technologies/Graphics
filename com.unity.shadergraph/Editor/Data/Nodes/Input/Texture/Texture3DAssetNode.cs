@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Texture3D)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Texture3D)
             {
                 name = GetVariableNameForSlot(OutputSlotId),
                 textureValue = texture

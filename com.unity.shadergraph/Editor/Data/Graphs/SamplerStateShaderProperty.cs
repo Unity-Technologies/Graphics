@@ -9,63 +9,43 @@ namespace UnityEditor.ShaderGraph
         public SamplerStateShaderProperty()
         {
             displayName = "SamplerState";
-
-            if(value == null)
-                value = new TextureSamplerState();
-
-            if(string.IsNullOrEmpty(overrideReferenceName))
-                overrideReferenceName = string.Format("{0}_{1}_{2}_{3}"
-                    , propertyType
-                    , GuidEncoder.Encode(guid)
-                    , value.filter
-                    , value.wrap);
+            value = new TextureSamplerState();
         }
 
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.SamplerState; }
-        }
+#region Name
+        public override string referenceName => $"{concreteShaderValueType.ToShaderString()}_{GuidEncoder.Encode(guid)}_{value.filter}_{value.wrap}";
+#endregion
 
-        public override Vector4 defaultValue
-        {
-            get { return new Vector4(); }
-        }
+#region ShaderValueType
+        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.SamplerState;
+#endregion
 
-        public override bool isBatchable
-        {
-            get { return false; }
-        }
+#region Capabilities
+        public override bool isBatchable => false;
+        public override bool isExposable => false;
+        public override bool isRenamable => false;
+#endregion
 
-        public override bool isExposable
-        {
-            get { return false; }
-        }
-
-        public override bool isRenamable
-        {
-            get { return false; }
-        }
-
+#region PropertyBlock
         public override string GetPropertyBlockString()
         {
             return string.Empty;
         }
+#endregion
 
+#region ShaderValue
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format(@"SAMPLER({0}){1}", referenceName, delimiter);
+            return $"SAMPLER({referenceName}){delimiter}";
         }
 
         public override string GetPropertyAsArgumentString()
         {
-            return string.Format(@"SamplerState {0}", referenceName);
+            return $"SamplerState {referenceName}";
         }
+#endregion
 
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return default(PreviewProperty);
-        }
-
+#region Utility
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new SamplerStateNode() 
@@ -73,6 +53,11 @@ namespace UnityEditor.ShaderGraph
                 filter = value.filter,
                 wrap = value.wrap
             };
+        }
+
+        public override PreviewProperty GetPreviewMaterialProperty()
+        {
+            return default(PreviewProperty);
         }
 
         public override AbstractShaderProperty Copy()
@@ -83,5 +68,6 @@ namespace UnityEditor.ShaderGraph
             copied.value = value;
             return copied;
         }
+#endregion
     }
 }

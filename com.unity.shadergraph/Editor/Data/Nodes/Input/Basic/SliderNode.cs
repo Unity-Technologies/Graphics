@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Vector1)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector1)
             {
                 name = GetVariableNameForNode(),
                 floatValue = m_Value.x

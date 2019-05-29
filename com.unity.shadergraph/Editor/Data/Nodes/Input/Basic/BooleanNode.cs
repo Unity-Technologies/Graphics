@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Boolean)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Boolean)
             {
                 name = GetVariableNameForNode(),
                 booleanValue = m_Value

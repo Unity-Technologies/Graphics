@@ -88,13 +88,13 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Vector2)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector2)
             {
                 name = string.Format("_{0}_m0", GetVariableNameForNode()),
                 vector4Value = m_Row0
             });
 
-            properties.Add(new PreviewProperty(PropertyType.Vector2)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector2)
             {
                 name = string.Format("_{0}_m1", GetVariableNameForNode()),
                 vector4Value = m_Row1

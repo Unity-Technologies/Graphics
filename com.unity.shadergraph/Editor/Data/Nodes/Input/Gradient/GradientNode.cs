@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph
         {
             base.CollectPreviewMaterialProperties(properties);
 
-            properties.Add(new PreviewProperty(PropertyType.Gradient)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Gradient)
             {
                 name = GetVariableNameForNode(),
                 gradientValue = gradient

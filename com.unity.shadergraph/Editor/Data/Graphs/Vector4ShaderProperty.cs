@@ -12,45 +12,11 @@ namespace UnityEditor.ShaderGraph
             displayName = "Vector4";
         }
 
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Vector4; }
-        }
+#region ShaderValueType
+        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector4;
+#endregion
 
-        public override Vector4 defaultValue
-        {
-            get { return value; }
-        }
-
-        public override bool isBatchable
-        {
-            get { return true; }
-        }
-
-        public override bool isExposable
-        {
-            get { return true; }
-        }
-
-        public override bool isRenamable
-        {
-            get { return true; }
-        }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return string.Format("{0}4 {1}{2}", concretePrecision.ToShaderString(), referenceName, delimiter);
-        }
-
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return new PreviewProperty(PropertyType.Vector4)
-            {
-                name = referenceName,
-                vector4Value = value
-            };
-        }
-
+#region Utility
         public override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector4Node();
@@ -61,6 +27,15 @@ namespace UnityEditor.ShaderGraph
             return node;
         }
 
+        public override PreviewProperty GetPreviewMaterialProperty()
+        {
+            return new PreviewProperty(ConcreteSlotValueType.Vector4)
+            {
+                name = referenceName,
+                vector4Value = value
+            };
+        }
+
         public override AbstractShaderProperty Copy()
         {
             var copied = new Vector4ShaderProperty();
@@ -68,5 +43,6 @@ namespace UnityEditor.ShaderGraph
             copied.value = value;
             return copied;
         }
+#endregion
     }
 }

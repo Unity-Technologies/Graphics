@@ -87,19 +87,19 @@ namespace UnityEditor.ShaderGraph
         {
             base.CollectPreviewMaterialProperties(properties);
 
-            properties.Add(new PreviewProperty(PropertyType.Vector3)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector3)
             {
                 name = string.Format("_{0}_Red", GetVariableNameForNode()),
                 vector4Value = channelMixer.outRed
             });
 
-            properties.Add(new PreviewProperty(PropertyType.Vector3)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector3)
             {
                 name = string.Format("_{0}_Green", GetVariableNameForNode()),
                 vector4Value = channelMixer.outGreen
             });
 
-            properties.Add(new PreviewProperty(PropertyType.Vector3)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector3)
             {
                 name = string.Format("_{0}_Blue", GetVariableNameForNode()),
                 vector4Value = channelMixer.outBlue

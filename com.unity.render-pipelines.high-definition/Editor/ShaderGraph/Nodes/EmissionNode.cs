@@ -155,7 +155,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             Vector3 outputColor = GetHDREmissionColor(ldrColorSlot.value, intensitySlot.value);
 
-            properties.Add(new PreviewProperty(PropertyType.Vector3)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector3)
             {
                 name = GetVariableNameForSlot(kEmissionColorInputSlotId),
                 vector4Value = outputColor

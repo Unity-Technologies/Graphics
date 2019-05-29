@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph
         {
             base.CollectPreviewMaterialProperties(properties);
 
-            properties.Add(new PreviewProperty(PropertyType.Vector4)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector4)
             {
                 name = string.Format("_{0}_InvertColors", GetVariableNameForNode()),
                 vector4Value = new Vector4(Convert.ToInt32(m_RedChannel), Convert.ToInt32(m_GreenChannel), Convert.ToInt32(m_BlueChannel), Convert.ToInt32(m_AlphaChannel)),

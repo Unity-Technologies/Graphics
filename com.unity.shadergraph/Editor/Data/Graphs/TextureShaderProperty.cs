@@ -13,93 +13,76 @@ namespace UnityEditor.ShaderGraph
             White, Black, Grey, Bump
         }
 
+        public TextureShaderProperty()
+        {
+            displayName = "Texture2D";
+            value = new SerializableTexture();
+        }
+
+#region ShaderValueType
+        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Texture2D;
+#endregion
+
+#region Capabilities
+        public override bool isBatchable => false;
+        public override bool isExposable => true;
+        public override bool isRenamable => true;
+#endregion
+
+#region PropertyBlock
+        public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
+
+        public override string GetPropertyBlockString()
+        {
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset] {referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
+        }
+#endregion
+
+#region ShaderValue
+        public override string GetPropertyDeclarationString(string delimiter = ";")
+        {
+            return $"TEXTURE2D({referenceName}){delimiter} SAMPLER(sampler{referenceName}); {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}";
+        }
+
+        public override string GetPropertyAsArgumentString()
+        {
+            return $"TEXTURE2D_PARAM({referenceName}, sampler{referenceName})";
+        }
+#endregion
+
+#region Options
         [SerializeField]
         private bool m_Modifiable = true;
 
-        [SerializeField]
-        private DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
-
-        public TextureShaderProperty()
-        {
-            value = new SerializableTexture();
-            displayName = "Texture2D";
-        }
-
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Texture2D; }
-        }
-
         public bool modifiable
         {
-            get { return m_Modifiable; }
-            set { m_Modifiable = value; }
+            get => m_Modifiable;
+            set => m_Modifiable = value;
         }
+
+        [SerializeField]
+        private DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
 
         public DefaultType defaultType
         {
             get { return m_DefaultType; }
             set { m_DefaultType = value; }
         }
+#endregion
 
-        public override Vector4 defaultValue
+#region Utility
+        public override AbstractMaterialNode ToConcreteNode()
         {
-            get { return new Vector4(); }
+            return new Texture2DAssetNode { texture = value.texture };
         }
-
-        public override bool isBatchable
-        {
-            get { return false; }
-        }
-
-        public override bool isExposable
-        {
-            get { return true; }
-        }
-
-        public override bool isRenamable
-        {
-            get { return true; }
-        }
-
-        public override string GetPropertyBlockString()
-        {
-            var result = new StringBuilder();
-            if (!m_Modifiable)
-            {
-                result.Append("[NonModifiableTextureData] ");
-            }
-            result.Append("[NoScaleOffset] ");
-
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            result.Append("\", 2D) = \"" + defaultType.ToString().ToLower() + "\" {}");
-            return result.ToString();
-        }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return string.Format("TEXTURE2D({0}){1} SAMPLER(sampler{0}); {2}4 {0}_TexelSize{1}", referenceName, delimiter, concretePrecision.ToShaderString());
-        }
-
-        public override string GetPropertyAsArgumentString()
-        {
-            return string.Format("TEXTURE2D_PARAM({0}, sampler{0})", referenceName);
-        }
-
+        
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(PropertyType.Texture2D)
+            return new PreviewProperty(ConcreteSlotValueType.Texture2D)
             {
                 name = referenceName,
                 textureValue = value.texture
             };
-        }
-
-        public override AbstractMaterialNode ToConcreteNode()
-        {
-            return new Texture2DAssetNode { texture = value.texture };
         }
 
         public override AbstractShaderProperty Copy()
@@ -109,5 +92,6 @@ namespace UnityEditor.ShaderGraph
             copied.value = value;
             return copied;
         }
+#endregion
     }
 }

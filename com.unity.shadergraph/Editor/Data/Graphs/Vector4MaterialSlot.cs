@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(PropertyType.Vector4)
+            var pp = new PreviewProperty(ConcreteSlotValueType.Vector4)
             {
                 name = name,
                 vector4Value = new Vector4(value.x, value.y, value.z, value.w),

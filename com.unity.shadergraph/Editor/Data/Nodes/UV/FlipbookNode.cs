@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
         {
             base.CollectPreviewMaterialProperties(properties);
 
-            properties.Add(new PreviewProperty(PropertyType.Vector2)
+            properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector2)
             {
                 name = string.Format("_{0}_Invert", GetVariableNameForNode()),
                 vector4Value = new Vector2(invertX.isOn ? 1 : 0, invertY.isOn ? 1 : 0)
