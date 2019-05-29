@@ -13,9 +13,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                m_CascadeShadowSplits[0] = cascadeShadowSplit0;
-                m_CascadeShadowSplits[1] = cascadeShadowSplit1;
-                m_CascadeShadowSplits[2] = cascadeShadowSplit2;
+                m_CascadeShadowSplits[0] = cascadeShadowSplit0.value;
+                m_CascadeShadowSplits[1] = cascadeShadowSplit1.value;
+                m_CascadeShadowSplits[2] = cascadeShadowSplit2.value;
                 return m_CascadeShadowSplits;
             }
         }
@@ -24,15 +24,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                m_CascadeShadowBorders[0] = cascadeShadowBorder0;
-                m_CascadeShadowBorders[1] = cascadeShadowBorder1;
-                m_CascadeShadowBorders[2] = cascadeShadowBorder2;
-                m_CascadeShadowBorders[3] = cascadeShadowBorder3;
+                m_CascadeShadowBorders[0] = cascadeShadowBorder0.value;
+                m_CascadeShadowBorders[1] = cascadeShadowBorder1.value;
+                m_CascadeShadowBorders[2] = cascadeShadowBorder2.value;
+                m_CascadeShadowBorders[3] = cascadeShadowBorder3.value;
 
                 // For now we don't use shadow cascade borders but we still want to have the last split fading out.
-                if (!LightLoop.s_UseCascadeBorders)
+                if (!HDRenderPipeline.s_UseCascadeBorders)
                 {
-                    m_CascadeShadowBorders[cascadeShadowSplitCount - 1] = 0.2f;
+                    m_CascadeShadowBorders[cascadeShadowSplitCount.value - 1] = 0.2f;
                 }
                 return m_CascadeShadowBorders;
             }
@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HDShadowSettings()
         {
             displayName = "Shadows";
-            
+
             cascadeShadowSplit0.Init(cascadeShadowSplitCount, 2, maxShadowDistance, null, cascadeShadowSplit1);
             cascadeShadowSplit1.Init(cascadeShadowSplitCount, 3, maxShadowDistance, cascadeShadowSplit0, cascadeShadowSplit2);
             cascadeShadowSplit2.Init(cascadeShadowSplitCount, 4, maxShadowDistance, cascadeShadowSplit1, null);
@@ -83,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cascadeShadowBorder3.normalized = normalized;
         }
     }
-    
+
     [Serializable]
     public class CascadePartitionSplitParameter : VolumeParameter<float>
     {
@@ -99,10 +99,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int minCascadeToAppears;
 
         internal float min => previous?.value ?? 0f;
-        internal float max => (cascadeCounts > minCascadeToAppears && next != null) ? next.value : 1f;
+        internal float max => (cascadeCounts.value > minCascadeToAppears && next != null) ? next.value : 1f;
 
         internal float representationDistance => maxDistance.value;
-        
+
         public override float value
         {
             get => m_Value;
@@ -137,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         NoInterpClampedIntParameter cascadeCounts;
         int minCascadeToAppears;
 
-        internal float representationDistance => (((cascadeCounts > minCascadeToAppears && max != null) ? max.value : 1f) - (min?.value ?? 0f)) * maxDistance.value;
+        internal float representationDistance => (((cascadeCounts.value > minCascadeToAppears && max != null) ? max.value : 1f) - (min?.value ?? 0f)) * maxDistance.value;
 
         public override float value
         {

@@ -4,6 +4,10 @@
     #define _LAYER_COUNT 4
 #endif
 
+#ifndef _TERRAIN_BLEND_HEIGHT
+    #define _TERRAIN_BLEND_DENSITY // enable density blending by default and use DiffuseRemap.w to control whether the density blending is enabled for a layer
+#endif
+
 #define DECLARE_TERRAIN_LAYER_PROPS(n)  \
     float4 _Splat##n##_ST;              \
     float _Metallic##n;                 \

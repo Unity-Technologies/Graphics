@@ -14,8 +14,9 @@ namespace UnityEngine.Rendering.LWRP
         RenderStateBlock m_RenderStateBlock;
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
         string m_ProfilerTag;
+        bool m_IsOpaque;
 
-        public DrawObjectsPass(string profilerTag, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+        public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             m_ProfilerTag = profilerTag;
             m_ShaderTagIdList.Add(new ShaderTagId("LightweightForward"));
@@ -23,6 +24,7 @@ namespace UnityEngine.Rendering.LWRP
             renderPassEvent = evt;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
+            m_IsOpaque = opaque;
 
             if (stencilState.enabled)
             {
@@ -42,7 +44,7 @@ namespace UnityEngine.Rendering.LWRP
                 cmd.Clear();
 
                 Camera camera = renderingData.cameraData.camera;
-                var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
+                var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
                 var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
 

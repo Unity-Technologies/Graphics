@@ -29,6 +29,12 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     BuiltinData builtinData;
     GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
 
+    // We do not want to use the diffuse when we compute the indirect diffuse
+    #ifdef DIFFUSE_LIGHTING_ONLY
+    builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    builtinData.backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    #endif
+
     // Compute the bsdf data
     BSDFData bsdfData =  ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
@@ -39,10 +45,10 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // Run the lightloop
     float3 diffuseLighting;
     float3 specularLighting;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
 
     // Color display for the moment
-    #ifdef DIFFUSE_LIGHTNG_ONLY
+    #ifdef DIFFUSE_LIGHTING_ONLY
     rayIntersection.color = diffuseLighting;
     #else
     rayIntersection.color = diffuseLighting + specularLighting;

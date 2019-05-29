@@ -540,6 +540,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // properties used by either pixel and vertex shader
             PropertyCollector sharedProperties = new PropertyCollector();
+            ShaderStringBuilder shaderPropertyUniforms = new ShaderStringBuilder(1);
 
             // build the graph outputs structure to hold the results of each active slots (and fill out activeFields to indicate they are active)
             string pixelGraphInputStructName = "SurfaceDescriptionInputs";
@@ -552,7 +553,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields, pixelRequirements);
 
             // build the graph outputs structure, and populate activeFields with the fields of that structure
-            GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, true, pixelGraphOutputStructName, activeFields);
+            GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields);
 
             // Build the graph evaluation code, to evaluate the specified slots
             GraphUtil.GenerateSurfaceDescriptionFunction(
@@ -612,6 +613,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             HDSubShaderUtilities.BuildRenderStatesFromPassAndMaterialOptions(pass, materialOptions, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
+
+            // Get property declarations
+            sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
 
             // propagate active field requirements using dependencies
             ShaderSpliceUtil.ApplyDependencies(
@@ -673,12 +677,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     shaderPassIncludes.AddShaderChunk(include);
             }
 
-
             // build graph code
             var graph = new ShaderGenerator();
             {
                 graph.AddShaderChunk("// Shared Graph Properties (uniform inputs)");
-                graph.AddShaderChunk(sharedProperties.GetPropertiesDeclaration(1));
+                graph.AddShaderChunk(shaderPropertyUniforms.ToString());
 
                 if (vertexActive)
                 {
@@ -872,7 +875,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static SurfaceMaterialOptions BuildMaterialOptions(SurfaceType surfaceType,
                                                                   AlphaMode alphaMode,
                                                                   bool twoSided,
-                                                                  bool refraction)
+                                                                  bool refraction,
+                                                                  bool offscreenTransparent)
         {
             SurfaceMaterialOptions materialOptions = new SurfaceMaterialOptions();
             if (surfaceType == SurfaceType.Opaque)
@@ -888,6 +892,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                     materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                    materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                    materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                 }
                 else
                 {
@@ -896,21 +902,34 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         case AlphaMode.Alpha:
                             materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                             materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                             break;
                         case AlphaMode.Additive:
                             materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                             materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.One;
                             break;
                         case AlphaMode.Premultiply:
                             materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                             materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                             break;
                         // This isn't supported in HDRP.
                         case AlphaMode.Multiply:
                             materialOptions.srcBlend = SurfaceMaterialOptions.BlendMode.One;
                             materialOptions.dstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
+                            materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.One;
+                            materialOptions.alphaDstBlend = SurfaceMaterialOptions.BlendMode.OneMinusSrcAlpha;
                             break;
                     }
+                }
+
+                if(offscreenTransparent)
+                {
+                    materialOptions.alphaSrcBlend = SurfaceMaterialOptions.BlendMode.Zero;
                 }
                 materialOptions.zTest = SurfaceMaterialOptions.ZTest.LEqual;
                 materialOptions.zWrite = SurfaceMaterialOptions.ZWrite.Off;
@@ -1000,7 +1019,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 result.Add(HDRenderQueue.RenderQueueType.PreRefraction);
                 result.Add(HDRenderQueue.RenderQueueType.Transparent);
-                //result.AddHDRenderQueue.RenderQueueType.LowTransparent):
+                result.Add(HDRenderQueue.RenderQueueType.LowTransparent);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostprocessTransparent);
 #if ENABLE_RAYTRACING
@@ -1011,7 +1030,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return result;
         }
 
-        public static void GetStencilStateForDepthOrMV(bool receiveDecals, bool receiveSSR, bool useObjectVelocity, ref Pass pass)
+        public static void GetStencilStateForDepthOrMV(bool receiveDecals, bool receiveSSR, bool useObjectMotionVector, ref Pass pass)
         {
             int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
             int stencilRef = receiveDecals ? (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer : 0;
@@ -1019,8 +1038,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             stencilWriteMask |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR;
             stencilRef |= !receiveSSR ? (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR : 0;
 
-            stencilWriteMask |= useObjectVelocity ? (int)HDRenderPipeline.StencilBitMask.ObjectVelocity : 0;
-            stencilRef |= useObjectVelocity ? (int)HDRenderPipeline.StencilBitMask.ObjectVelocity : 0;
+            stencilWriteMask |= useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
+            stencilRef |= useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
 
             if (stencilWriteMask != 0)
             {

@@ -51,9 +51,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return focusMode.value != DepthOfFieldMode.Off && (IsNearLayerActive() || IsFarLayerActive());
         }
 
-        public bool IsNearLayerActive() => nearMaxBlur > 0f && nearFocusEnd > 0f;
+        public bool IsNearLayerActive() => nearMaxBlur.value > 0f && nearFocusEnd.value > 0f;
 
-        public bool IsFarLayerActive() => farMaxBlur > 0f;
+        public bool IsFarLayerActive() => farMaxBlur.value > 0f;
     }
 
     [Serializable]

@@ -1,0 +1,5 @@
+{
+    "displayName":"Additional Post-processing Data",
+    "description": "Adds additional post-processing data to your project, such as Lens Dirt textures.",
+    "createSeparatePackage": false
+}

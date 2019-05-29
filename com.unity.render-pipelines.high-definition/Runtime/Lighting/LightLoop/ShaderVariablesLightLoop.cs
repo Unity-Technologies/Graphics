@@ -10,6 +10,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public fixed float _ShadowAtlasSize[4];
         [HLSLArray(0, typeof(Vector4))]
         public fixed float _CascadeShadowAtlasSize[4];
+        [HLSLArray(0, typeof(Vector4))]
+        public fixed float _AreaShadowAtlasSize[4];
 
         [HLSLArray(s_MaxEnv2DLight, typeof(Matrix4x4))]
         public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];

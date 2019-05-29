@@ -53,9 +53,9 @@ Shader "Hidden/Lightweight Render Pipeline/Terrain/Lit (Base Pass)"
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
 
-            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature_local _NORMALMAP
             // Sample normal in pixel shader when doing instancing
-            #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
+            #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
             #define TERRAIN_SPLAT_BASEPASS 1
 
             #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Terrain/TerrainLitInput.hlsl"

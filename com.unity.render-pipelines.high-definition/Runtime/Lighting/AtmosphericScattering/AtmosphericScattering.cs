@@ -38,8 +38,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Fog Color
             cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode.value);
-            cmd.SetGlobalColor(m_FogColorDensityParam, new Color(color.value.r, color.value.g, color.value.b, density));
-            cmd.SetGlobalVector(m_MipFogParam, new Vector4(mipFogNear, mipFogFar, mipFogMaxMip, 0.0f));
+            cmd.SetGlobalColor(m_FogColorDensityParam, new Color(color.value.r, color.value.g, color.value.b, density.value));
+            cmd.SetGlobalVector(m_MipFogParam, new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f));
         }
     }
 

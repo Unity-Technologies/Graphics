@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 debugExposure = debugSettings.data.lightingDebugSettings.debugExposure;
             }
-            return ColorUtils.ConvertEV100ToExposure(-(skySettings.exposure + debugExposure));
+            return ColorUtils.ConvertEV100ToExposure(-(skySettings.exposure.value + debugExposure));
         }
     }
 }

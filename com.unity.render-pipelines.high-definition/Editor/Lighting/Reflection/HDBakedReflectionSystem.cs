@@ -6,9 +6,12 @@ using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
+using UnityEditor.Experimental.Rendering.HDPipeline;
+using UnityEditor.VersionControl;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using static UnityEditor.VersionControl.Provider;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -47,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Hash128[] m_StateHashes;
         HDProbeBakedState[] m_HDProbeBakedStates = new HDProbeBakedState[0];
         float m_DateSinceLastLegacyWarning = float.MinValue;
-        Dictionary<UnityEngine.Rendering.RenderPipeline, float> m_DateSinceLastInvalidSRPWarning 
+        Dictionary<UnityEngine.Rendering.RenderPipeline, float> m_DateSinceLastInvalidSRPWarning
             = new Dictionary<UnityEngine.Rendering.RenderPipeline, float>();
 
         HDBakedReflectionSystem() : base(1)
@@ -88,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // On the C# side, we don't have non blocking asset import APIs, and we don't want to block the
             //   UI when the user is editing the world.
             //   So, we skip the baking when the user is editing any UI control.
-            if (GUIUtility.hotControl != 0) 
+            if (GUIUtility.hotControl != 0)
                 return;
 
             if (!IsCurrentSRPValid(out HDRenderPipeline hdPipeline))
@@ -215,7 +218,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     HDBakingUtilities.CreateParentDirectoryIfMissing(bakedTexturePath);
-                    File.Copy(cacheFile, bakedTexturePath, true);
+                    if (Provider.isActive && File.Exists(bakedTexturePath))
+                    {
+                        Checkout(bakedTexturePath, CheckoutMode.Both);
+                    }
+                    // Checkout will make those file writeable, but this is not immediate,
+                    // so we retries when this fails.
+                    if (!HDEditorUtils.CopyFileWithRetryOnUnauthorizedAccess(cacheFile, bakedTexturePath))
+                        return;
                 }
                 // AssetPipeline bug
                 // Sometimes, the baked texture reference is destroyed during 'AssetDatabase.StopAssetEditing()'
@@ -242,8 +252,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var index = addIndices[i];
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
-                    var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
-
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     var bakedTexture = AssetDatabase.LoadAssetAtPath<Texture>(bakedTexturePath);
                     Assert.IsNotNull(bakedTexture, "The baked texture was imported before, " +
@@ -511,6 +519,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             (uint)StaticEditorFlags.ReflectionProbeStatic
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
+                        if (Provider.isActive && HDEditorUtils.IsAssetPath(targetFile))
+                            Checkout(targetFile, CheckoutMode.Both);
                         HDTextureUtilities.WriteTextureFileToDisk(cubeRT, targetFile);
                         break;
                     }
@@ -526,12 +536,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             settings,
                             positionSettings,
                             planarRT,
-                            out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
+                            out var cameraSettings, out var cameraPositionSettings
                         );
                         HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
+                        if (Provider.isActive && HDEditorUtils.IsAssetPath(targetFile))
+                            Checkout(targetFile, CheckoutMode.Both);
                         HDTextureUtilities.WriteTextureFileToDisk(planarRT, targetFile);
                         var renderData = new HDProbe.RenderData(cameraSettings, cameraPositionSettings);
-                        HDBakingUtilities.TrySerializeToDisk(renderData, targetFile + ".renderData");
+                        var targetRenderDataFile = targetFile + ".renderData";
+                        if (Provider.isActive && HDEditorUtils.IsAssetPath(targetRenderDataFile))
+                            Checkout(targetRenderDataFile, CheckoutMode.Both);
+                        HDBakingUtilities.TrySerializeToDisk(renderData, targetRenderDataFile);
                         break;
                     }
             }

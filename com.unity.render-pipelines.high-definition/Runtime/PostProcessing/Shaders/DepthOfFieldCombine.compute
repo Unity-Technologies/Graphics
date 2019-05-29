@@ -40,13 +40,13 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
 
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
-    float2 uv = posInputs.positionNDC * _ScreenToTargetScale.xy;
+    float2 uv = posInputs.positionNDC * _RTHandleScale.xy;
 
     float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).xyz;
-    float4 bicubicWnd = float4(_ScreenSize.xy * _TargetScale.y * rcp(_ScreenToTargetScale.xy), 1.0 / (_ScreenSize.xy * _TargetScale.y* rcp(_ScreenToTargetScale.xy)));
+    float4 bicubicWnd = float4(_ScreenSize.xy * _TargetScale.y * rcp(_RTHandleScale.xy), 1.0 / (_ScreenSize.xy * _TargetScale.y* rcp(_RTHandleScale.xy)));
 
     // Avoid bleeding with the RTHandle autosize system
-    float2 maxCoord = (_ScreenToTargetScale.xy - bicubicWnd.zw);
+    float2 maxCoord = (_RTHandleScale.xy - bicubicWnd.zw);
     uv = min(uv, maxCoord);
     // Blend the far layer first
     #if FAR

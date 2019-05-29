@@ -302,4 +302,15 @@ namespace UnityEditor.VFX
 
         public static CameraType defaultValue = new CameraType { transform = Transform.defaultValue, fieldOfView = 60.0f * Mathf.Deg2Rad, nearPlane = 0.3f, farPlane = 1000.0f, aspectRatio = 1.0f, pixelDimensions = new Vector2(1920, 1080) };
     }
+
+    [VFXType, Serializable]
+    struct TerrainType
+    {
+        [Tooltip("Bounds of the Terrain")]
+        public AABox Bounds;
+        [Tooltip("HeightMap of the Terrain")]
+        public Texture2D HeightMap;
+        [Tooltip("Height of the Terrain")]
+        public float Height;
+    }
 }

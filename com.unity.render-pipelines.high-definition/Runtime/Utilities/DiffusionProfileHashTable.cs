@@ -13,15 +13,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         [System.NonSerialized]
         static Dictionary<int,  uint>           diffusionProfileHashes = new Dictionary<int, uint>();
-        [System.NonSerialized]
-        static Queue<DiffusionProfileSettings>  diffusionProfileToUpdate = new Queue<DiffusionProfileSettings>();
-
-        // Called at each domain reload to build a list of all diffusion profile hashes so we can check
-        // for collisions when we create the hash for a new asset
-        static DiffusionProfileHashTable()
-        {
-            EditorApplication.update += UpdateDiffusionProfileHashes;
-        }
 
         static uint GetDiffusionProfileHash(DiffusionProfileSettings asset)
         {
@@ -47,33 +38,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return hash;
         }
 
-        static void UpdateDiffusionProfileHashes()
-        {
-            while (diffusionProfileToUpdate.Count != 0)
-            {
-                var profile = diffusionProfileToUpdate.Dequeue();
-
-                // if the profile to update is destroyed before the next editor frame, it will be null
-                if (profile == null)
-                    continue;
-
-                // We upgrade from here to be able so the call to AssetDatabase.SaveAssets() does not stall
-                // the editor (apparently in some configuration when loading the editor calling SaveAssets()
-                // inside OnEnable() just break the editor)
-                profile.TryToUpgrade();
-
-                // If the diffusion profile asset doesn't exists on the disk, it can be destroyed when we refresh the asset database
-                // which occurs when we call TryToUpgrade on a diffusion profile.
-                if (profile == null)
-                    continue;
-
-                UpdateDiffusionProfileHashNow(profile);
-
-                profile.profile.Validate();
-                profile.UpdateCache();
-            }
-        }
-
         public static void UpdateDiffusionProfileHashNow(DiffusionProfileSettings profile)
         {
             uint hash = profile.profile.hash;
@@ -83,6 +47,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 profile.profile.hash = GenerateUniqueHash(profile);
                 EditorUtility.SetDirty(profile);
+                // We can't move the asset
             }
             // If the asset is not in the list, we regenerate it's hash using the GUID (which leads to the same result every time)
             else if (!diffusionProfileHashes.ContainsKey(profile.GetInstanceID()))
@@ -96,12 +61,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else // otherwise, no issue, we don't change the hash and we keep it to check for collisions
                 diffusionProfileHashes.Add(profile.GetInstanceID(), profile.profile.hash);
-        }
-
-        public static void UpdateUniqueHash(DiffusionProfileSettings asset)
-        {
-            // Defere the generation of the hash because we can't call AssetDatabase functions outside of editor scope
-            diffusionProfileToUpdate.Enqueue(asset);
         }
     }
 }

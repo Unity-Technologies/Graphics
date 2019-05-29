@@ -21,23 +21,22 @@
 // common Encode/Decode functions
 //-----------------------------------------------------------------------------
 
-// Guideline for velocity buffer.
-// The object velocity buffer is potentially fill in several pass.
+// Guideline for motion vectors buffer.
+// The object motion vectors buffer is potentially fill in several pass.
 // - In gbuffer pass with extra RT (Not supported currently)
 // - In forward prepass pass
-// - In dedicated velocity pass
-// So same velocity buffer is use for all scenario, so if deferred define a velocity buffer, the same is reuse for forward case.
+// - In dedicated motion vectors pass
+// So same motion vectors buffer is use for all scenario, so if deferred define a motion vectors buffer, the same is reuse for forward case.
 // THis is similar to NormalBuffer
 
-// TODO: CAUTION: current DecodeVelocity is not used in motion vector / TAA pass as it come from Postprocess stack
+// TODO: CAUTION: current DecodeMotionVector is not used in motion vector / TAA pass as it come from Postprocess stack
 // This will be fix when postprocess will be integrated into HD, but it mean that we must not change the
-// EncodeVelocity / DecodeVelocity code for now, i.e it must do nothing like it is doing currently.
-// Note2: Motion blur code of posptrocess stack do * 2 - 1 to uncompress velocity which is not expected, TAA is correct.
-// Design note: We assume that velocity/distortion fit into a single buffer (i.e not spread on several buffer)
-void EncodeVelocity(float2 velocity, out float4 outBuffer)
+// EncodeMotionVector / DecodeMotionVector code for now, i.e it must do nothing like it is doing currently.
+// Design note: We assume that motion vector/distortion fit into a single buffer (i.e not spread on several buffer)
+void EncodeMotionVector(float2 motionVector, out float4 outBuffer)
 {
     // RT - 16:16 float
-    outBuffer = float4(velocity.xy, 0.0, 0.0);
+    outBuffer = float4(motionVector.xy, 0.0, 0.0);
 }
 
 bool PixelSetAsNoMotionVectors(float4 inBuffer)
@@ -45,9 +44,9 @@ bool PixelSetAsNoMotionVectors(float4 inBuffer)
 	return inBuffer.x > 1.0f;
 }
 
-void DecodeVelocity(float4 inBuffer, out float2 velocity)
+void DecodeMotionVector(float4 inBuffer, out float2 motionVector)
 {
-	velocity = PixelSetAsNoMotionVectors(inBuffer) ? 0.0f : inBuffer.xy;
+    motionVector = PixelSetAsNoMotionVectors(inBuffer) ? 0.0f : inBuffer.xy;
 }
 
 void EncodeDistortion(float2 distortion, float distortionBlur, bool isValidSource, out float4 outBuffer)

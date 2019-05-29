@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEngine.VFX.Utils
+namespace UnityEngine.Experimental.VFX.Utility
 {
     [RequireComponent(typeof(Renderer))]
     public class VFXVisibilityEventBinder : VFXEventBinderBase

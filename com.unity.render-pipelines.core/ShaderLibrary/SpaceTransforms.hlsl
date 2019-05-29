@@ -92,13 +92,13 @@ real3 TransformWorldToHClipDir(real3 directionWS)
 }
 
 // Transforms normal from object to world space
-real3 TransformObjectToWorldNormal(real3 normalOS)
+float3 TransformObjectToWorldNormal(float3 normalOS)
 {
 #ifdef UNITY_ASSUME_UNIFORM_SCALING
     return TransformObjectToWorldDir(normalOS);
 #else
     // Normal need to be multiply by inverse transpose
-    return normalize(mul(normalOS, (real3x3)GetWorldToObjectMatrix()));
+    return normalize(mul(normalOS, (float3x3)GetWorldToObjectMatrix()));
 #endif
 }
 

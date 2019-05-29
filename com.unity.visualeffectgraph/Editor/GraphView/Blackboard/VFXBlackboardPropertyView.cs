@@ -175,6 +175,8 @@ namespace  UnityEditor.VFX.UI
                     if (m_TooltipProperty == null)
                     {
                         m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
+                        TextField field = m_TooltipProperty.Query<TextField>();
+                        field.multiline = true;
                     }
                     Insert(insertIndex++, m_TooltipProperty);
                 }

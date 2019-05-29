@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-namespace UnityEditor.VFX.Utils
+namespace UnityEditor.Experimental.VFX.Utility
 {
     public partial class PointCacheBakeTool : EditorWindow
     {

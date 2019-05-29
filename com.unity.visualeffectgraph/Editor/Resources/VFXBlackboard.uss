@@ -13,6 +13,17 @@
     flex:0 0 auto;
 }
 
+.propertyrm VFXStringField.fieldContainer
+{
+    width: 240px;
+    flex-grow:0;
+    height: initial;
+}
+
+VFXStringField.fieldContainer > TextField
+{
+    white-space:normal;
+}
 
 VFXBlackboardRow.hovered #pill #selection-border
 {

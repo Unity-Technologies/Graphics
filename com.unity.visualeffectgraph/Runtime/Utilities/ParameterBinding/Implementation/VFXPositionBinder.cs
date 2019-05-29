@@ -1,11 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-namespace UnityEngine.VFX.Utils
+namespace UnityEngine.Experimental.VFX.Utility
 {
+    [AddComponentMenu("VFX/Utilities/Parameters/VFX Position Binder")]
     [VFXBinder("Transform/Position")]
     public class VFXPositionBinder : VFXBinderBase
     {

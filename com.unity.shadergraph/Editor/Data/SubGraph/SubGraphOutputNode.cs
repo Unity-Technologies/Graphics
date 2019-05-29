@@ -5,12 +5,15 @@ using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.Rendering;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     class SubGraphOutputNode : AbstractMaterialNode, IHasSettings
     {
+        static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
+
         public SubGraphOutputNode()
         {
             name = "Output";
@@ -39,18 +42,46 @@ namespace UnityEditor.ShaderGraph
                 slot.stageCapability = effectiveStage;
         }
 
+        void ValidateSlotName()
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetInputSlots(slots);
+
+            foreach (var slot in slots)
+            {
+                var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
+                if (error)
+                {
+                    owner.AddValidationError(tempId, errorMessage);
+                    break;
+                }
+            }
+        }
+
         public override void ValidateNode()
         {
             ValidateShaderStage();
 
+            if (!this.GetInputSlots<MaterialSlot>().Any())
+            {
+                owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+            }
+
             base.ValidateNode();
+        }
+
+        protected override void OnSlotsChanged()
+        {
+            base.OnSlotsChanged();
+            ValidateNode();
         }
 
         public int AddSlot(ConcreteSlotValueType concreteValueType)
         {
             var index = this.GetInputSlots<ISlot>().Count() + 1;
             string name = string.Format("Out_{0}", NodeUtils.GetDuplicateSafeNameForSlot(this, index, concreteValueType.ToString()));
-            AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name, NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
+            AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name,
+                NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
             return index;
         }
 
@@ -60,5 +91,9 @@ namespace UnityEditor.ShaderGraph
             ps.Add(new ReorderableSlotListView(this, SlotType.Input));
             return ps;
         }
+
+        public override bool canDeleteNode => false;
+
+        public override bool canCopyNode => false;
     }
 }

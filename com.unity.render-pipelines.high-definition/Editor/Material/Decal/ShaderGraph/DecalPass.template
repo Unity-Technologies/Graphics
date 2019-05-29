@@ -1,5 +1,5 @@
 Pass
-{
+{ 
     // based on DecalPass.template
     Name "$splice(PassName)"
     Tags { "LightMode" = "$splice(LightMode)" }
@@ -31,6 +31,7 @@ Pass
     //-------------------------------------------------------------------------------------
     $Material.AffectsAlbedo:     #define _MATERIAL_AFFECTS_ALBEDO 1
     $Material.AffectsNormal:     #define _MATERIAL_AFFECTS_NORMAL 1
+    $Material.AffectsMaskMap:    #define _MATERIAL_AFFECTS_MASKMAP 1
     $Material.AffectsEmission:   #define _MATERIAL_AFFECTS_EMISSION 1
 
     //-------------------------------------------------------------------------------------
@@ -108,12 +109,15 @@ $include("SharedCode.template.hlsl")
     {
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
         float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+        float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f);
         float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
         float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
         fragInputs.texCoord0.xy = fragInputs.texCoord0.xy * scale + offset;
         fragInputs.texCoord1.xy = fragInputs.texCoord1.xy * scale + offset;
         fragInputs.texCoord2.xy = fragInputs.texCoord2.xy * scale + offset;
         fragInputs.texCoord3.xy = fragInputs.texCoord3.xy * scale + offset;
+#else
+        float fadeFactor = 1.0;
 #endif
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
@@ -122,55 +126,56 @@ $include("SharedCode.template.hlsl")
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 
 #if _MATERIAL_AFFECTS_EMISSION
-        $SurfaceDescription.Emission:                   surfaceData.emissive = float4(surfaceDescription.Emission.xyz,1);
+        $SurfaceDescription.Emission:                   surfaceData.emissive.rgb = surfaceDescription.Emission.rgb * fadeFactor;
 #endif
 
         // copy across graph values, if defined
 #if _MATERIAL_AFFECTS_ALBEDO
         $SurfaceDescription.Albedo:                     surfaceData.baseColor.xyz = surfaceDescription.Albedo;
-#endif
-#if _MATERIAL_AFFECTS_NORMAL
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
-        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
-#elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
-        // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.worldToTangent));
-#endif
-#endif
-
-        $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;
-#ifdef DECALS_4RT
-        $SurfaceDescription.Metallic:                   surfaceData.mask.x = surfaceDescription.Metallic;
-        $SurfaceDescription.Occlusion:                  surfaceData.mask.y = surfaceDescription.Occlusion;
-#endif
-#if _MATERIAL_AFFECTS_ALBEDO
-        $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo;
-#endif
-#if _MATERIAL_AFFECTS_NORMAL
-        $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal;
-#endif
-        $SurfaceDescription.MAOSOpacity:                surfaceData.mask.w = surfaceDescription.MAOSOpacity;
-#ifdef DECALS_4RT
-        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.x = surfaceDescription.MAOSOpacity;
-        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.y = surfaceDescription.MAOSOpacity;
-#endif
-
-#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+        $SurfaceDescription.AlphaAlbedo:                surfaceData.baseColor.w = surfaceDescription.AlphaAlbedo * fadeFactor;
         if(surfaceData.baseColor.w > 0)
         {
             surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
         }
-        
+#endif
+
+#if _MATERIAL_AFFECTS_NORMAL
+    #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
+        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.Normal);
+    #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
+        // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
+        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.Normal, fragInputs.worldToTangent));
+    #endif
+        $SurfaceDescription.AlphaNormal:                surfaceData.normalWS.w = surfaceDescription.AlphaNormal * fadeFactor;
         if(surfaceData.normalWS.w > 0)
         {
             surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
         }
-        
-        if(surfaceData.mask.w > 0)
-        {
-            surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-        }
+#else
+    #if (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Default to vertex normal
+        $SurfaceDescription.Normal:                     surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(float3(0.0, 0.0, 0.1), fragInputs.worldToTangent));
+    #endif
 #endif
+
+#if _MATERIAL_AFFECTS_MASKMAP
+        $SurfaceDescription.Smoothness:                 surfaceData.mask.z = surfaceDescription.Smoothness;                                    
+    #ifdef DECALS_4RT
+        $SurfaceDescription.Metallic:                   surfaceData.mask.x = surfaceDescription.Metallic;
+        $SurfaceDescription.Occlusion:                  surfaceData.mask.y = surfaceDescription.Occlusion;
+    #endif
+
+        $SurfaceDescription.MAOSOpacity:                surfaceData.mask.w = surfaceDescription.MAOSOpacity * fadeFactor;
+    #ifdef DECALS_4RT
+        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.x = surfaceDescription.MAOSOpacity * fadeFactor;
+        $SurfaceDescription.MAOSOpacity:                surfaceData.MAOSBlend.y = surfaceDescription.MAOSOpacity * fadeFactor;
+    #endif
+
+    if (surfaceData.mask.w > 0)
+    {
+        surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
+    }                                                        
+#endif
+
     }
 
     //-------------------------------------------------------------------------------------

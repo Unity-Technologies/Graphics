@@ -6,6 +6,7 @@ using System.Text;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -109,7 +110,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             rootSubGraphData.isRecursive = true;
                         }
-                        else
+                        else if (subGraphMap.ContainsKey(childSubGraphGuid))
                         {
                             stack.Push(childSubGraphGuid);
                         }
@@ -168,7 +169,7 @@ namespace UnityEditor.ShaderGraph
                             var node = graphData.GetNodeFromTempId(pair.Key);
                             foreach (var message in pair.Value)
                             {
-                                Debug.LogError($"Error in {subGraphPath} at node {node.name}: {message.message}", subGraphAsset);                                
+                                MessageManager.Log(node, subGraphPath, message, subGraphAsset);
                             }
                         }
                     }
@@ -252,6 +253,8 @@ namespace UnityEditor.ShaderGraph
 
             subGraphData.requirements = ShaderGraphRequirements.FromNodes(nodes, subGraphData.effectiveShaderStage, false);
             subGraphData.inputs = graph.properties.ToList();
+            subGraphData.graphPrecision = graph.concretePrecision;
+            subGraphData.outputPrecision = outputNode.concretePrecision;
 
             foreach (var node in nodes)
             {
@@ -276,7 +279,9 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (node is IGeneratesFunction generatesFunction)
                 {
+                    registry.builder.currentNode = node;
                     generatesFunction.GenerateNodeFunction(registry, new GraphContext(subGraphData.inputStructName), GenerationMode.ForReals);
+                    registry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
                 }
             }
 
@@ -290,14 +295,17 @@ namespace UnityEditor.ShaderGraph
                 // Generate arguments... first INPUTS
                 var arguments = new List<string>();
                 foreach (var prop in subGraphData.inputs)
+                {
+                    prop.SetConcretePrecision(subGraphData.graphPrecision);
                     arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+                }
 
                 // now pass surface inputs
                 arguments.Add(string.Format("{0} IN", subGraphData.inputStructName));
 
                 // Now generate outputs
                 foreach (var output in subGraphData.outputs)
-                    arguments.Add($"out {output.concreteValueType.ToString(outputNode.precision)} {output.shaderOutputName}");
+                    arguments.Add($"out {output.concreteValueType.ToShaderString(subGraphData.outputPrecision)} {output.shaderOutputName}_{output.id}");
 
                 // Create the function prototype from the arguments
                 sb.AppendLine("void {0}({1})"
@@ -308,17 +316,18 @@ namespace UnityEditor.ShaderGraph
                 using (sb.BlockScope())
                 {
                     // Just grab the body from the active nodes
-                    var bodyGenerator = new ShaderGenerator();
                     foreach (var node in nodes)
                     {
                         if (node is IGeneratesBodyCode)
-                            (node as IGeneratesBodyCode).GenerateNodeCode(bodyGenerator, graphContext, GenerationMode.ForReals);
+                        {
+                            sb.currentNode = node;
+                            (node as IGeneratesBodyCode).GenerateNodeCode(sb, graphContext, GenerationMode.ForReals);
+                            sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                        }
                     }
 
                     foreach (var slot in subGraphData.outputs)
-                        bodyGenerator.AddShaderChunk($"{slot.shaderOutputName} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals)};");
-
-                    sb.Append(bodyGenerator.GetShaderString(1));
+                        sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, subGraphData.outputPrecision)};");
                 }
             });
             

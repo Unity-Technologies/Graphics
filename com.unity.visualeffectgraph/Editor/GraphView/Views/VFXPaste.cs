@@ -261,6 +261,8 @@ namespace UnityEditor.VFX.UI
                 if (inputSlots[i].name == node.inputSlots[i].name)
                 {
                     inputSlots[i].value = node.inputSlots[i].value.Get();
+                    if (inputSlots[i].spaceable)
+                        inputSlots[i].space = node.inputSlots[i].space;
                 }
             }
 

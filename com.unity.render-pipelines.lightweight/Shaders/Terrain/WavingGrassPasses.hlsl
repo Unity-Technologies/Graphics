@@ -140,6 +140,7 @@ GrassVertexOutput WavingGrassBillboardVert(GrassVertexInput v)
 half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
     half4 diffuseAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));

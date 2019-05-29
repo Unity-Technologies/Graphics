@@ -12,6 +12,13 @@ namespace UnityEditor.ShaderGraph
 
             if(value == null)
                 value = new TextureSamplerState();
+
+            if(string.IsNullOrEmpty(overrideReferenceName))
+                overrideReferenceName = string.Format("{0}_{1}_{2}_{3}"
+                    , propertyType
+                    , GuidEncoder.Encode(guid)
+                    , value.filter
+                    , value.wrap);
         }
 
         public override PropertyType propertyType
@@ -34,6 +41,11 @@ namespace UnityEditor.ShaderGraph
             get { return false; }
         }
 
+        public override bool isRenamable
+        {
+            get { return false; }
+        }
+
         public override string GetPropertyBlockString()
         {
             return string.Empty;
@@ -41,17 +53,12 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format(@"SAMPLER({0}_{1}_{2}){3}", referenceName, 
-                Enum.GetName(typeof(TextureSamplerState.FilterMode), value.filter), 
-                Enum.GetName(typeof(TextureSamplerState.WrapMode), value.wrap), 
-                delimiter);
+            return string.Format(@"SAMPLER({0}){1}", referenceName, delimiter);
         }
 
         public override string GetPropertyAsArgumentString()
         {
-            return string.Format(@"SamplerState {0}_{1}_{2}", referenceName, 
-                Enum.GetName(typeof(TextureSamplerState.FilterMode), value.filter), 
-                Enum.GetName(typeof(TextureSamplerState.WrapMode), value.wrap));
+            return string.Format(@"SamplerState {0}", referenceName);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
@@ -72,6 +79,7 @@ namespace UnityEditor.ShaderGraph
         {
             var copied = new SamplerStateShaderProperty();
             copied.displayName = displayName;
+            copied.overrideReferenceName = overrideReferenceName;
             copied.value = value;
             return copied;
         }

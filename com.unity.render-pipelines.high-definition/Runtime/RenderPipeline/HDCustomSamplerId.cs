@@ -35,8 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ForwardTransparentDepthPrepass,
         RenderForwardError,
         TransparentDepthPostpass,
-        ObjectsVelocity,
-        CameraVelocity,
+        ObjectsMotionVector,
+        CameraMotionVectors,
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
@@ -82,6 +82,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Misc
         VolumeUpdate,
 
+        // Low res transparency
+        DownsampleDepth,
+        LowResTransparent,
+        UpsampleLowResTransparent,
+
         // Post-processing
         StopNaNs,
         Exposure,
@@ -98,7 +103,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
         MotionBlur,
-        MotionBlurVelocityPrep,
+        MotionBlurMotionVecPrep,
         MotionBlurTileMinMax,
         MotionBlurTileNeighbourhood,
         MotionBlurKernel,

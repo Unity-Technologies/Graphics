@@ -131,10 +131,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BlendOverride = "Blend One Zero",
             ZWriteOverride = "ZWrite On",
             ColorMaskOverride = "ColorMask 0",
-            ExtraDefines = new List<string>()
-            {
-                "#define USE_LEGACY_UNITY_MATRIX_VARIABLES",
-            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -162,6 +158,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ExtraDefines = new List<string>()
             {
                 "#define SCENESELECTIONPASS",
+                "#pragma editor_sync_compilation",
             },
             Includes = new List<string>()
             {
@@ -226,7 +223,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.PositionSlotId
             },
-            UseInPreview = false,
+            UseInPreview = true,
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
@@ -241,11 +238,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LightMode = "MotionVectors",
             TemplateName = "HDPBRPass.template",
             MaterialName = "PBR",
-            ShaderPassName = "SHADERPASS_VELOCITY",
+            ShaderPassName = "SHADERPASS_MOTION_VECTORS",
             ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesDepthOrMotion,
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -331,6 +328,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = true
         };
 
+        public int GetPreviewPassIndex() { return 0; }
+
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
@@ -344,7 +343,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.twoSided.isOn)
             {
                 activeFields.Add("DoubleSided");
-                if (pass.ShaderPassName != "SHADERPASS_VELOCITY")   // HACK to get around lack of a good interpolator dependency system
+                if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
                 {                                                   // we need to be able to build interpolators using multiple input structs
                                                                     // also: should only require isFrontFace if Normals are required...
                     activeFields.Add("DoubleSided.Mirror");         // TODO: change this depending on what kind of normal flip you want..
@@ -438,8 +437,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     subShader.AddShaderChunk(tagsVisitor.ToString(), false);
                 }
 
-                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, false);
-
+                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, false, false);
+                
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
 

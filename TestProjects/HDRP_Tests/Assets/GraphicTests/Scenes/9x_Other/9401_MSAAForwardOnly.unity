@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.06027168, g: 0.07379283, b: 0.09001093, a: 1}
+  m_IndirectSpecularColor: {r: 0.05057154, g: 0.06200072, b: 0.075889885, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -94,8 +94,8 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaDirect: 0.5
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
-    m_ShowResolutionOverlay: 1
     m_ExportTrainingData: 0
+    m_TrainingDataDestination: TrainingData
   m_LightingDataAsset: {fileID: 0}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -147,40 +147,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 115701098}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: 516f572551099b046abfe364a6456bb0, type: 2}
   m_StaticLightingSkyUniqueID: 2
-  m_AmbientProbe:
-    sh[ 0]: 0.06027168
-    sh[ 1]: 0.027359921
-    sh[ 2]: 0.0044965222
-    sh[ 3]: -0.0015658992
-    sh[ 4]: -0.00034217132
-    sh[ 5]: 0.0009826319
-    sh[ 6]: 0.0073624034
-    sh[ 7]: -0.007623904
-    sh[ 8]: 0.012473657
-    sh[ 9]: 0.07379283
-    sh[10]: 0.038883843
-    sh[11]: 0.0069369525
-    sh[12]: -0.0024166608
-    sh[13]: -0.0005350297
-    sh[14]: 0.0015355991
-    sh[15]: 0.009107903
-    sh[16]: -0.009800919
-    sh[17]: 0.014964738
-    sh[18]: 0.09001093
-    sh[19]: 0.055168584
-    sh[20]: 0.012270652
-    sh[21]: -0.0042745844
-    sh[22]: -0.0010454021
-    sh[23]: 0.0030010724
-    sh[24]: 0.010525904
-    sh[25]: -0.012118401
-    sh[26]: 0.016297543
 --- !u!114 &115701100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -190,7 +161,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 115701098}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
@@ -273,38 +243,24 @@ PrefabInstance:
       propertyPath: field of view
       value: 42.6
       objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: ImageComparisonSettings.TargetHeight
-      value: 640
-      objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: clearColorMode
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.TargetHeight
+      value: 640
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: renderPipelineAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 8650072ee85219341b65a263bf871815,
+        type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
---- !u!1 &1782137678 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1132393308280272, guid: c07ace9ab142ca9469fa377877c2f1e7,
-    type: 3}
-  m_PrefabInstance: {fileID: 1782137677}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1782137679
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1782137678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_GeneratorAsset: {fileID: 0}
-  m_Script: {fileID: 11500000, guid: f33372cd2da94ca4480cbacca97d3b25, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetPipeline: {fileID: 11400000, guid: 8650072ee85219341b65a263bf871815, type: 2}
 --- !u!1001 &5493111667791475096
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -372,15 +328,15 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5493111667044481732, guid: 6e970b6acef289042af8a6f6d0c1e6fb,
-        type: 3}
-      propertyPath: m_Shadows.m_Type
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5493111666879982181, guid: 6e970b6acef289042af8a6f6d0c1e6fb,
         type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5493111667044481732, guid: 6e970b6acef289042af8a6f6d0c1e6fb,
+        type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6e970b6acef289042af8a6f6d0c1e6fb, type: 3}

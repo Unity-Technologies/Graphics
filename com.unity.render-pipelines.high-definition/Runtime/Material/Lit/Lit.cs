@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -33,19 +34,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public uint materialFeatures;
 
             // Standard
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
             [SurfaceDataAttributes("Specular Occlusion")]
             public float specularOcclusion;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
             [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
+
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
             [SurfaceDataAttributes("Smoothness")]
             public float perceptualSmoothness;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Metal)]
             [SurfaceDataAttributes("Metallic")]
             public float metallic;
 
@@ -55,6 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // MaterialFeature dependent attribute
 
             // Specular Color
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
             [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3 specularColor;
 
@@ -208,7 +216,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             enableWrite[2] = false;
             RTFormat[3] = Builtin.GetLightingBufferFormat();
             gBufferUsage[3] = GBufferUsage.None;
+
+            // If we are in raytracing mode and we want to have indirect diffuse active, we need to make sure that the gbuffer3 is writable
+            #if ENABLE_RAYTRACING
+            enableWrite[3] = true;
+            #else
             enableWrite[3] = false;
+            #endif
 
             int index = 4;
 

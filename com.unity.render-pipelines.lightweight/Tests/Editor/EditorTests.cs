@@ -1,28 +1,83 @@
 using NUnit.Framework;
+using UnityEditor;
+using UnityEditor.Rendering.LWRP;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.LWRP;
+using UnityEngine.TestTools;
 
 class EditorTests
 {
+    // When creating a new render pipeline asset it should not log any errors or throw exceptions.
+    [Test]
+    public void CreatePipelineAssetWithoutErrors()
+    {
+        // Test without any render pipeline assigned to GraphicsSettings.
+        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+        GraphicsSettings.renderPipelineAsset = null;
+
+        try
+        {
+            LightweightRenderPipelineAsset asset = LightweightRenderPipelineAsset.Create();
+            LogAssert.NoUnexpectedReceived();
+            ScriptableObject.DestroyImmediate(asset);
+        }
+        // Makes sure the render pipeline is restored in case of a NullReference exception.
+        finally
+        {
+            GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+        }
+    }
+
+    // When creating a new forward renderer asset it should not log any errors or throw exceptions.
+    [Test]
+    public void CreateForwardRendererAssetWithoutErrors()
+    {
+        // Test without any render pipeline assigned to GraphicsSettings.
+        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+        GraphicsSettings.renderPipelineAsset = null;
+
+        try
+        {
+            var asset = ScriptableObject.CreateInstance<ForwardRendererData>();
+            ResourceReloader.ReloadAllNullIn(asset, LightweightRenderPipelineAsset.packagePath);
+            LogAssert.NoUnexpectedReceived();
+            ScriptableObject.DestroyImmediate(asset);
+        }
+        // Makes sure the render pipeline is restored in case of a NullReference exception.
+        finally
+        {
+            GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+        }
+    }
+
+    // Validate that resources Guids are valid
+    [Test]
+    public void ValidateBuiltinResourceFiles()
+    {
+        string templatePath = AssetDatabase.GUIDToAssetPath(ResourceGuid.rendererTemplate);
+        Assert.IsFalse(string.IsNullOrEmpty(templatePath));
+    }
+
     // When creating LWRP all required resources should be initialized.
     [Test]
     public void ValidateNewAssetResources()
     {
         LightweightRenderPipelineAsset asset = LightweightRenderPipelineAsset.Create();
-        Assert.AreNotEqual(asset.defaultMaterial, null);
-        Assert.AreNotEqual(asset.defaultParticleMaterial, null);
-        Assert.AreNotEqual(asset.defaultLineMaterial, null);
-        Assert.AreNotEqual(asset.defaultTerrainMaterial, null);
-        Assert.AreNotEqual(asset.defaultShader, null);
+        Assert.AreNotEqual(null, asset.defaultMaterial);
+        Assert.AreNotEqual(null, asset.defaultParticleMaterial);
+        Assert.AreNotEqual(null, asset.defaultLineMaterial);
+        Assert.AreNotEqual(null, asset.defaultTerrainMaterial);
+        Assert.AreNotEqual(null, asset.defaultShader);
 
         // LWRP doesn't override the following materials
-        Assert.AreEqual(asset.defaultUIMaterial, null);
-        Assert.AreEqual(asset.defaultUIOverdrawMaterial, null);
-        Assert.AreEqual(asset.defaultUIETC1SupportedMaterial, null);
-        Assert.AreEqual(asset.default2DMaterial, null);
+        Assert.AreEqual(null, asset.defaultUIMaterial);
+        Assert.AreEqual(null, asset.defaultUIOverdrawMaterial);
+        Assert.AreEqual(null, asset.defaultUIETC1SupportedMaterial);
+        Assert.AreEqual(null, asset.default2DMaterial);
 
-        Assert.AreNotEqual(asset.m_EditorResourcesAsset, null, "Editor Resources should be initialized when creating a new pipeline.");
-        Assert.AreNotEqual(asset.m_RendererData, null, "A default renderer data should be created when creating a new pipeline.");
+        Assert.AreNotEqual(null, asset.m_EditorResourcesAsset, "Editor Resources should be initialized when creating a new pipeline.");
+        Assert.AreNotEqual(null, asset.m_RendererData, "A default renderer data should be created when creating a new pipeline.");
         ScriptableObject.DestroyImmediate(asset);
     }
 

@@ -23,10 +23,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_ShadowPunctualLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Punctual Lights Atlas");
         static readonly GUIContent k_ShadowAreaLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Area Lights Atlas");
         static readonly GUIContent k_DynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
+        static readonly GUIContent k_LowResTransparencySubTitle = EditorGUIUtility.TrTextContent("Low res Transparency");
 
         static readonly GUIContent k_DefaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
 
         static readonly GUIContent k_RenderPipelineResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Resources", "Set of resources that need to be loaded when creating stand alone");
+        static readonly GUIContent k_RenderPipelineRayTracingResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Ray Tracing Resources", "Set of resources that need to be loaded when using ray tracing");
         static readonly GUIContent k_RenderPipelineEditorResourcesContent = EditorGUIUtility.TrTextContent("Render Pipeline Editor Resources", "Set of resources that need to be loaded for working in editor");
         static readonly GUIContent k_DiffusionProfileSettingsContent = EditorGUIUtility.TrTextContent("Diffusion Profile List");
         static readonly GUIContent k_SRPBatcher = EditorGUIUtility.TrTextContent("SRP Batcher", "When enabled, the render pipeline uses the SRP batcher.");
@@ -52,9 +54,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_SupportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "When disabled, HDRP removes all transparent depth prepass Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "When disabled, HDRP removes all transparent depth postpass Shader variants when you build for the Unity Player. This decreases build time.");
         static readonly GUIContent k_SupportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing");
+        static readonly GUIContent k_RaytracingTier = EditorGUIUtility.TrTextContent("Raytracing Tier");
 
         const string k_CacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
         const string k_CacheInfoFormat = "Reserving {0} in memory at runtime.";
+        const string k_MultipleDifferenteValueMessage = "Multiple different values";
 
         static readonly GUIContent k_CoockieSizeContent = EditorGUIUtility.TrTextContent("Cookie Size", "Specifies the maximum size for the individual 2D cookies that HDRP uses for Directional and Spot Lights.");
         static readonly GUIContent k_CookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Texture Array Size", "Sets the maximum Texture Array size for the 2D cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
@@ -92,7 +96,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_AtlasWidthContent = EditorGUIUtility.TrTextContent("Atlas Width", "Sets the width of the Decal Atlas.");
         static readonly GUIContent k_AtlasHeightContent = EditorGUIUtility.TrTextContent("Atlas Height", "Sets the height of the Decal Atlas.");
         static readonly GUIContent k_MetalAndAOContent = EditorGUIUtility.TrTextContent("Metal and Ambient Occlusion Properties", "When enabled, Decals affect metal and ambient occlusion properties.");
-        static readonly GUIContent k_FilteringQuality = EditorGUIUtility.TrTextContent("Filtering Qualities", "Specifies the quality of shadows. See the documentation for details on the algorithm HDRP uses for each preset.");
+        static readonly GUIContent k_FilteringQuality = EditorGUIUtility.TrTextContent("Filtering Qualities", "Specifies the quality of shadows. See the documentation for details on the algorithm HDRP uses for each preset. (Unsupported in Deferred Only)");
 
         static readonly GUIContent k_Enabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP dynamically lowers the resolution of render targets to reduce the workload on the GPU.");
         static readonly GUIContent k_MaxPercentage = EditorGUIUtility.TrTextContent("Maximum Screen Percentage", "Sets the maximum screen percentage that dynamic resolution can reach.");
@@ -101,6 +105,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent k_UpsampleFilter = EditorGUIUtility.TrTextContent("Upscale Filter", "Specifies the filter that HDRP uses for upscaling.");
         static readonly GUIContent k_ForceScreenPercentage = EditorGUIUtility.TrTextContent("Force Screen Percentage", "When enabled, HDRP uses the Forced Screen Percentage value as the screen percentage.");
         static readonly GUIContent k_ForcedScreenPercentage = EditorGUIUtility.TrTextContent("Forced Screen Percentage", "Sets a specific screen percentage value. HDRP forces this screen percentage for dynamic resolution.");
+
+        static readonly GUIContent k_LowResTransparentEnabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, materials tagged as Low Res Transparent, will be rendered in a quarter res offscreen buffer and then composited to full res.");
+        static readonly GUIContent k_CheckerboardDepthBuffer = EditorGUIUtility.TrTextContent("Checkerboarded depth buffer downsample", "When enabled, the depth buffer used for low res transparency is generated in a min/max checkerboard pattern from original full res buffer.");
+        static readonly GUIContent k_LowResTranspUpsample = EditorGUIUtility.TrTextContent("Upsample type", "The type of upsampling filter used to composite the low resolution transparency.");
 
         static readonly GUIContent k_LutSize = EditorGUIUtility.TrTextContent("Grading LUT Size", "Sets size of the internal and external color grading lookup textures (LUTs).");
         static readonly GUIContent k_LutFormat = EditorGUIUtility.TrTextContent("Grading LUT Format", "Specifies the encoding format for color grading lookup textures. Lower precision formats are faster and use less memory at the expense of color precision.");

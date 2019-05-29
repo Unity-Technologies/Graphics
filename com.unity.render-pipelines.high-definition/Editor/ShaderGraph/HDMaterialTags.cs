@@ -52,7 +52,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Special case for transparent (as we have transparent range from PreRefractionFirst to AfterPostprocessTransparentLast
             // that start before RenderQueue.Transparent value
             if (HDRenderQueue.k_RenderQueue_AllTransparent.Contains(index)
-                || HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent.Contains(index))
+                || HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent.Contains(index)
+                || HDRenderQueue.k_RenderQueue_LowTransparent.Contains(index))
             {
                 int v = (index - (int)RenderQueue.Transparent);
                 return "Transparent" + ((v < 0) ? "" : "+") + v;

@@ -20,7 +20,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114327527808569384}
   m_ParameterInfo: []
-  m_GraphVersion: 1
+  m_GraphVersion: 2
   m_saved: 1
 --- !u!114 &114195964666403586
 MonoBehaviour:

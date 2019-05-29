@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
@@ -58,6 +57,16 @@ namespace UnityEditor.ShaderGraph
         {
             m_SubShaders.RemoveAll(x => x == subshader);
             Dirty(ModificationScope.Graph);
+        }
+
+        public ISubShader GetActiveSubShader()
+        {
+            foreach (var subShader in m_SubShaders)
+            {
+                if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                    return subShader;
+            }
+            return null;
         }
 
         public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
@@ -158,5 +167,7 @@ namespace UnityEditor.ShaderGraph
         {
             return null;
         }
+
+        public virtual void ProcessPreviewMaterial(Material Material) {}
     }
 }

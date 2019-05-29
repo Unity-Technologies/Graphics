@@ -13,19 +13,11 @@ namespace UnityEditor.Rendering
 
     public static class CoreEditorUtils
     {
-        [Obsolete("Use EditorGUIUtility.TrTextContent(<title>, <tooltip>) instead.")]
-        public static GUIContent GetContent(string textAndTooltip)
+        static CoreEditorUtils()
         {
-            if (textAndTooltip == null)
-                return GUIContent.none; //done in TrTextContent but here we need to split...
-
-            var s = textAndTooltip.Split('|');
-            if (s.Length > 1)
-                return EditorGUIUtility.TrTextContent(s[0], s[1]);
-            else
-                return EditorGUIUtility.TrTextContent(s[0]);
+            LoadSkinAndIconMethods();
         }
-
+        
         // Serialization helpers
         /// <summary>
         /// To use with extreme caution. It not really get the property but try to find a field with similar name
@@ -86,9 +78,7 @@ namespace UnityEditor.Rendering
         }
 
         public static void DrawMultipleFields(string label, SerializedProperty[] ppts, GUIContent[] lbls)
-        {
-            DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, lbls);
-        }
+            => DrawMultipleFields(EditorGUIUtility.TrTextContent(label), ppts, lbls);
 
         public static void DrawMultipleFields(GUIContent label, SerializedProperty[] ppts, GUIContent[] lbls)
         {
@@ -134,9 +124,7 @@ namespace UnityEditor.Rendering
         }
 
         public static void DrawHeader(string title)
-        {
-            DrawHeader(EditorGUIUtility.TrTextContent(title));
-        }
+            => DrawHeader(EditorGUIUtility.TrTextContent(title));
 
         public static void DrawHeader(GUIContent title)
         {
@@ -170,9 +158,7 @@ namespace UnityEditor.Rendering
         /// <param name="isAdvanced"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="switchAdvanced"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         public static bool DrawHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> isAdvanced = null, Action switchAdvanced = null)
-        {
-            return DrawHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
-        }
+            => DrawHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
 
         /// <summary> Draw a foldout header </summary>
         /// <param name="title"> The title of the header </param>
@@ -261,9 +247,7 @@ namespace UnityEditor.Rendering
         /// <param name="isAdvanced"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="switchAdvanced"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         public static bool DrawSubHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> isAdvanced = null, Action switchAdvanced = null)
-        {
-            return DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
-        }
+            => DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, isAdvanced, switchAdvanced);
 
         /// <summary> Draw a foldout header </summary>
         /// <param name="title"> The title of the header </param>
@@ -343,9 +327,7 @@ namespace UnityEditor.Rendering
         }
 
         public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null)
-        {
-            return DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction);
-        }
+            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction);
 
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null)
         {
@@ -533,10 +515,28 @@ namespace UnityEditor.Rendering
                 property.intValue = mode;
         }
 
-        public static void RemoveMaterialKeywords(Material material)
+        /// <summary>
+        /// Draw an EnumPopup handling multiEdition
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="type"></param>
+        /// <param name="label"></param>
+        public static void DrawEnumPopup(SerializedProperty property, System.Type type, GUIContent label = null)
         {
-            material.shaderKeywords = null;
+            EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
+            EditorGUI.BeginChangeCheck();
+            var name = System.Enum.GetName(type, property.intValue);
+            var index = System.Array.FindIndex(System.Enum.GetNames(type), n => n == name);
+            var input = (System.Enum)System.Enum.GetValues(type).GetValue(index);
+            var rawResult = EditorGUILayout.EnumPopup(label ?? EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(property.name)), input);
+            var result = ((System.IConvertible)rawResult).ToInt32(System.Globalization.CultureInfo.CurrentCulture);
+            if (EditorGUI.EndChangeCheck())
+                property.intValue = result;
+            EditorGUI.showMixedValue = false;
         }
+
+        public static void RemoveMaterialKeywords(Material material)
+            => material.shaderKeywords = null;
 
         public static T[] GetAdditionalData<T>(UnityEngine.Object[] targets, Action<T> initDefault = null)
             where T : Component
@@ -562,9 +562,7 @@ namespace UnityEditor.Rendering
         }
 
         static public GameObject CreateGameObject(GameObject parent, string name, params Type[] types)
-        {
-            return ObjectFactory.CreateGameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, name), types);
-        }
+            => ObjectFactory.CreateGameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, name), types);
 
         static public string GetCurrentProjectVersion()
         {
@@ -586,5 +584,98 @@ namespace UnityEditor.Rendering
                 }
             }
         }
+
+
+        #region IconAndSkin
+
+        public enum Skin
+        {
+            Auto,
+            Personnal,
+            Professional,
+        }
+        
+        static Func<int> GetInternalSkinIndex;
+        static Func<float> GetGUIStatePixelsPerPoint;
+        static Func<Texture2D, float> GetTexturePixelPerPoint;
+        static Action<Texture2D, float> SetTexturePixelPerPoint;
+
+        static void LoadSkinAndIconMethods()
+        {
+            var internalSkinIndexInfo = typeof(EditorGUIUtility).GetProperty("skinIndex", BindingFlags.NonPublic | BindingFlags.Static);
+            var internalSkinIndexLambda = Expression.Lambda<Func<int>>(Expression.Property(null, internalSkinIndexInfo));
+            GetInternalSkinIndex = internalSkinIndexLambda.Compile();
+
+            var guiStatePixelsPerPointInfo = typeof(GUIUtility).GetProperty("pixelsPerPoint", BindingFlags.NonPublic | BindingFlags.Static);
+            var guiStatePixelsPerPointLambda = Expression.Lambda<Func<float>>(Expression.Property(null, guiStatePixelsPerPointInfo));
+            GetGUIStatePixelsPerPoint = guiStatePixelsPerPointLambda.Compile();
+
+            var pixelPerPointParam = Expression.Parameter(typeof(float), "pixelPerPoint");
+            var texture2DProperty = Expression.Parameter(typeof(Texture2D), "texture2D");
+            var texture2DPixelsPerPointInfo = typeof(Texture2D).GetProperty("pixelsPerPoint", BindingFlags.NonPublic | BindingFlags.Instance);
+            var texture2DPixelsPerPointProperty = Expression.Property(texture2DProperty, texture2DPixelsPerPointInfo);
+            var texture2DGetPixelsPerPointLambda = Expression.Lambda<Func<Texture2D, float>>(texture2DPixelsPerPointProperty, texture2DProperty);
+            GetTexturePixelPerPoint = texture2DGetPixelsPerPointLambda.Compile();
+            var texture2DSetPixelsPerPointLambda = Expression.Lambda<Action<Texture2D, float>>(Expression.Assign(texture2DPixelsPerPointProperty, pixelPerPointParam), texture2DProperty, pixelPerPointParam);
+            SetTexturePixelPerPoint = texture2DSetPixelsPerPointLambda.Compile();
+        }
+
+        /// <summary>Get the skin currently in use</summary>
+        public static Skin currentSkin
+            => GetInternalSkinIndex() == 0 ? Skin.Personnal : Skin.Professional;
+
+
+
+        /// <summary>
+        /// Load an icon regarding skin and editor resolution.
+        /// Icon should be stored as legacy icon resources:
+        /// - "d_" prefix for Professional theme
+        /// - "@2x" suffix for high resolution
+        /// </summary>
+        /// <param name="path">Path to seek the icon from Assets/ folder</param>
+        /// <param name="name">Icon name without suffix, prefix or extention</param>
+        /// <param name="extention">[Optional] Extention of file (png per default)</param>
+        /// <param name="skin">[Optional] Load icon for this skin (Auto per default take current skin)</param>
+        public static Texture2D LoadIcon(string path, string name, string extention = ".png", Skin skin = Skin.Auto)
+        {
+            if (String.IsNullOrEmpty(path) || String.IsNullOrEmpty(name))
+                return null;
+
+            string prefix = "";
+
+            if (skin == Skin.Auto)
+                skin = currentSkin;
+
+            if (skin == Skin.Professional)
+                prefix = "d_";
+            
+            Texture2D icon = null;
+            float pixelsPerPoint = GetGUIStatePixelsPerPoint();
+            if (pixelsPerPoint > 1.0f)
+            {
+                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}@2x{3}", path, prefix, name, extention)) as Texture2D;
+                if (icon == null && !string.IsNullOrEmpty(prefix))
+                    icon = EditorGUIUtility.Load(String.Format("{0}/{1}@2x{2}", path, name, extention)) as Texture2D;
+                if (icon != null)
+                    SetTexturePixelPerPoint(icon, 2.0f);
+            }
+
+            if (icon == null)
+                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}{3}", path, prefix, name, extention)) as Texture2D;
+
+            if (icon == null && !string.IsNullOrEmpty(prefix))
+                icon = EditorGUIUtility.Load(String.Format("{0}/{1}{2}", path, name, extention)) as Texture2D;
+
+            if (icon != null &&
+                !Mathf.Approximately(GetTexturePixelPerPoint(icon), pixelsPerPoint) && //scaling are different
+                !Mathf.Approximately(pixelsPerPoint % 1, 0)) //screen scaling is non-integer
+            {
+                icon.filterMode = FilterMode.Bilinear;
+            }
+
+            return icon;
+        }
+
+        #endregion
     }
 }

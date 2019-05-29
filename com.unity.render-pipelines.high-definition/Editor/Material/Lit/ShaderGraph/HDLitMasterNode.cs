@@ -375,16 +375,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        bool m_TransparentWritesVelocity;
+        bool m_TransparentWritesMotionVec;
 
-        public ToggleData transparentWritesVelocity
+        public ToggleData transparentWritesMotionVec
         {
-            get { return new ToggleData(m_TransparentWritesVelocity); }
+            get { return new ToggleData(m_TransparentWritesMotionVec); }
             set
             {
-                if (m_TransparentWritesVelocity == value.isOn)
+                if (m_TransparentWritesMotionVec == value.isOn)
                     return;
-                m_TransparentWritesVelocity = value.isOn;
+                m_TransparentWritesMotionVec = value.isOn;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Topological);
             }

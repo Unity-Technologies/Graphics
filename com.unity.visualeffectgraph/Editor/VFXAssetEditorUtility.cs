@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Experimental.VFX;
@@ -44,6 +45,18 @@ namespace UnityEditor
             }
 
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+        }
+
+
+        public static VisualEffectAsset CreateNewAsset(string path)
+        {
+            string emptyAsset = "%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n--- !u!2058629511 &1\nVisualEffectResource:\n";
+
+            File.WriteAllText(path, emptyAsset);
+
+            AssetDatabase.ImportAsset(path);
+
+            return AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
         }
 
         [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph", false, 306)]

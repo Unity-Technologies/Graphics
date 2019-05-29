@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.Test
         VFXGraph MakeTemporaryGraph()
         {
             var tempFilePath = MakeTempFilePath("vfx");
-            var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
             var resource = asset.GetResource(); // force resource creation
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
             graph.visualEffectResource = resource;
@@ -283,10 +283,10 @@ namespace UnityEditor.VFX.Test
                 editor.serializedObject.ApplyModifiedPropertiesWithoutUndo();
                 GameObject.DestroyImmediate(editor);
                 EditorUtility.SetDirty(prefabInstanceObject);
-                PrefabUtility.SavePrefabAsset(prefabInstanceObject);
             }
             //AssetDatabase.SaveAssets(); //Helps debug but not necessary
 
+            PrefabUtility.SavePrefabAsset(prefabInstanceObject);
             yield return null;
 
             var currentVFXInstanciedFromPrefab = currentPrefabInstanceObject.GetComponent<VisualEffect>();

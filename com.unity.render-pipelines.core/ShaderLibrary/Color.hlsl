@@ -427,6 +427,16 @@ real3 LogCToLinear(real3 x)
 
 // Fast reversible tonemapper
 // http://gpuopen.com/optimized-reversible-tonemapper-for-resolve/
+real FastTonemapPerChannel(real c)
+{
+    return c * rcp(c + 1.0);
+}
+
+real2 FastTonemapPerChannel(real2 c)
+{
+    return c * rcp(c + 1.0);
+}
+
 real3 FastTonemap(real3 c)
 {
     return c * rcp(Max3(c.r, c.g, c.b) + 1.0);
@@ -445,6 +455,16 @@ real3 FastTonemap(real3 c, real w)
 real4 FastTonemap(real4 c, real w)
 {
     return real4(FastTonemap(c.rgb, w), c.a);
+}
+
+real FastTonemapPerChannelInvert(real c)
+{
+    return c * rcp(1.0 - c);
+}
+
+real2 FastTonemapPerChannelInvert(real2 c)
+{
+    return c * rcp(1.0 - c);
 }
 
 real3 FastTonemapInvert(real3 c)

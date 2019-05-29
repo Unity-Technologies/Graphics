@@ -36,7 +36,12 @@ Pass
 		// z: frame blending factor
 		nointerpolation float3 builtInInterpolants : TEXCOORD4;
 		#endif
-		float3 posWS : TEXCOORD5;
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		// x: motion vector scale u
+		// y: motion vector scale v
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
+		#endif
+		float3 posWS : TEXCOORD6;
 	};
 	
 	struct ps_output
@@ -52,6 +57,7 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_NORMAL normal
 #if USE_NORMAL_MAP
 #define VFX_VARYING_TANGENT tangent

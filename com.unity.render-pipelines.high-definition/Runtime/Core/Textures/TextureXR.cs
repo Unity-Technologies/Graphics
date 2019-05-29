@@ -5,18 +5,24 @@ namespace UnityEngine.Experimental.Rendering
     public static class TextureXR
     {
         // Limit memory usage of default textures
-        const int kMaxSliceCount = 2;
+        public const int kMaxSliceCount = 2;
 
         // Must be in sync with shader define in TextureXR.hlsl
         public static bool useTexArray
         {
             get
             {
-                // XRTODO: Vulkan, PSVR, Mac with metal only for OS 10.14+, etc
                 switch (SystemInfo.graphicsDeviceType)
                 {
                     case GraphicsDeviceType.Direct3D11:
+                    case GraphicsDeviceType.Direct3D12:
                         return SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne;
+
+                    case GraphicsDeviceType.PlayStation4:
+                        return true;
+
+                    case GraphicsDeviceType.Vulkan:
+                        return true;
                 }
 
                 return false;
@@ -25,16 +31,17 @@ namespace UnityEngine.Experimental.Rendering
 
         public static VRTextureUsage OverrideRenderTexture(bool xrInstancing, ref TextureDimension dimension, ref int slices)
         {
+            // XRTODO: need to also check if stereo is enabled in camera!
             if (xrInstancing && useTexArray)
             {
                 // TEXTURE2D_X macros will now expand to TEXTURE2D_ARRAY
                 dimension = TextureDimension.Tex2DArray;
 
-                // XRTODO: need to also check if stereo is enabled in camera!
+                // XR legacy single-pass stereo instancing (will be deprecated by XR SDK)
                 if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
                 {
                     // Add a new dimension
-                    slices = slices * XRGraphics.eyeCount;
+                    slices = slices * 2;
 
                     // XRTODO: useful? if yes, add validation, asserts
                     return XRGraphics.eyeTextureDesc.vrUsage;
@@ -58,6 +65,14 @@ namespace UnityEngine.Experimental.Rendering
                 return blackTexture2DArray;
 
             return Texture2D.blackTexture;
+        }
+
+        public static Texture GetBlackUIntTexture()
+        {
+            if (useTexArray)
+                return blackUIntTexture2DArray;
+
+            return blackUIntTexture;
         }
 
         public static Texture GetWhiteTexture()
@@ -93,6 +108,23 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        private static Texture m_BlackUIntTexture;
+        private static Texture blackUIntTexture
+        {
+            get
+            {
+                if (m_BlackUIntTexture == null)
+                {
+                    // Uint textures can't be used in Sampling operations so we can't use the Texture2D class because
+                    // it assumes that we will use the texture for sampling operations and crash because of invalid format.
+                    m_BlackUIntTexture = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt) { name = "Black UInt Texture" };
+                    Graphics.Blit(Texture2D.blackTexture, m_BlackUIntTexture as RenderTexture);
+                }
+
+                return m_BlackUIntTexture;
+            }
+        }
+
         static Texture2DArray m_ClearTexture2DArray;
         public static Texture2DArray clearTexture2DArray
         {
@@ -101,7 +133,6 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_ClearTexture2DArray == null)
                     m_ClearTexture2DArray = CreateTexture2DArrayFromTexture2D(clearTexture, "Clear Texture2DArray");
 
-                Debug.Assert(XRGraphics.eyeCount <= m_ClearTexture2DArray.depth);
                 return m_ClearTexture2DArray;
             }
         }
@@ -114,7 +145,6 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_BlackTexture2DArray == null)
                     m_BlackTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.blackTexture, "Black Texture2DArray");
 
-                Debug.Assert(XRGraphics.eyeCount <= m_BlackTexture2DArray.depth);
                 return m_BlackTexture2DArray;
             }
         }
@@ -127,8 +157,35 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_WhiteTexture2DArray == null)
                     m_WhiteTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.whiteTexture, "White Texture2DArray");
 
-                Debug.Assert(XRGraphics.eyeCount <= m_WhiteTexture2DArray.depth);
                 return m_WhiteTexture2DArray;
+            }
+        }
+
+        static Texture m_BlackUIntTexture2DArray;
+        public static Texture blackUIntTexture2DArray
+        {
+            get
+            {
+                if (m_BlackUIntTexture2DArray == null)
+                {
+                    // Uint textures can't be used in Sampling operations so we can't use the Texture2DArray class because
+                    // it assumes that we will use the texture for sampling operations and crash because of invalid format.
+                    m_BlackUIntTexture2DArray = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
+                    {
+                        dimension = TextureDimension.Tex2DArray,
+                        volumeDepth = kMaxSliceCount,
+                        useMipMap = false,
+                        autoGenerateMips = false,
+                        enableRandomWrite = true,
+                        name = "Black UInt Texture Array"
+                    };
+
+                    // Can't use CreateTexture2DArrayFromTexture2D here because we need to create the texture using GraphicsFormat
+                    for (int i = 0; i < kMaxSliceCount; ++i)
+                        Graphics.Blit(blackTexture2DArray, m_BlackUIntTexture2DArray as RenderTexture, i, i);
+                }
+
+                return m_BlackUIntTexture2DArray;
             }
         }
     }

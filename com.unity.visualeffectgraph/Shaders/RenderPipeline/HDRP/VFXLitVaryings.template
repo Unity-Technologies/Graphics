@@ -26,7 +26,11 @@ ${VFXBegin:VFXHDRPLitVaryingsMacros}
 #endif
 
 #if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
-#define VFX_VARYING_EMISSIVE emissiveColor
+#define VFX_VARYING_EMISSIVE emissiveColor.rgb
+#endif
+
+#if HDRP_USE_EMISSIVE
+#define VFX_VARYING_EXPOSUREWEIGHT emissiveColor.a
 #endif
 ${VFXEnd}
 
@@ -38,8 +42,8 @@ nointerpolation float4 color : COLOR0;
 #if HDRP_MATERIAL_TYPE_SPECULAR
 nointerpolation float3 specularColor : COLOR1;
 #endif
-#if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR	
-nointerpolation float3 emissiveColor : COLOR2;
+#if HDRP_USE_EMISSIVE	
+nointerpolation float4 emissiveColor : COLOR2;
 #endif
 
 // x: smoothness
@@ -89,6 +93,10 @@ o.VFX_VARYING_EMISSIVE = color;
 ${VFXLoadParameter:{emissiveColor}}
 o.VFX_VARYING_EMISSIVE = emissiveColor;
 #endif
+#endif
+#ifdef VFX_VARYING_EXPOSUREWEIGHT
+${VFXLoadParameter:{exposureWeight}}
+o.VFX_VARYING_EXPOSUREWEIGHT = exposureWeight;
 #endif
 #if HDRP_USE_ADDITIONAL_BASE_COLOR
 #ifdef VFX_VARYING_COLOR

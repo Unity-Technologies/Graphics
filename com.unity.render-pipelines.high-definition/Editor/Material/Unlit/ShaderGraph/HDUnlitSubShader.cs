@@ -53,10 +53,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BlendOverride = "Blend One Zero",
             ZWriteOverride = "ZWrite On",
             ColorMaskOverride = "ColorMask 0",
-            ExtraDefines = new List<string>()
-            {
-                "#define USE_LEGACY_UNITY_MATRIX_VARIABLES",
-            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -84,6 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ExtraDefines = new List<string>()
             {
                 "#define SCENESELECTIONPASS",
+                "#pragma editor_sync_compilation",
             },            
             Includes = new List<string>()
             {
@@ -149,7 +146,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LightMode = "MotionVectors",
             TemplateName = "HDUnlitPass.template",
             MaterialName = "Unlit",
-            ShaderPassName = "SHADERPASS_VELOCITY",
+            ShaderPassName = "SHADERPASS_MOTION_VECTORS",
 
             // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
             // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
@@ -163,7 +160,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             Includes = new List<string>()
             {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVelocity.hlsl\"",
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl\"",
             },
             RequiredFields = new List<string>()
             {
@@ -287,6 +284,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         };
 
+        public int GetPreviewPassIndex() { return 0; }
+
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
@@ -332,7 +331,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (mode == GenerationMode.ForReals || pass.UseInPreview)
             {
-                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.doubleSided.isOn, false);
+                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.doubleSided.isOn, false, (masterNode.renderingPass == HDRenderQueue.RenderQueueType.LowTransparent || masterNode.renderingPass == HDRenderQueue.RenderQueueType.AfterPostprocessTransparent));
 
                 pass.OnGeneratePass(masterNode);
 

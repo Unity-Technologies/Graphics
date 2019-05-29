@@ -4,13 +4,39 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.6.0-preview] - 2019-XX-XX
+## [7.0.0-preview] - 2019-XX-XX
+
+## [6.7.0-preview] - 2019-05-16
+### Added
+- Distortion Outputs (Quad / Mesh)
+- Color mapping mode for unlit outputs (Textured/Gradient Mapped)
+- Add Triangle and Octagon primitives for particle outputs
+- Set Attribute is now spaceable on a specific set of attributes (position, velocity, axis...)
+- Trigger : GPUEvent Rate (Over time or Distance)
+
+### Fixed
+- Fix shader compilation error with debug views
+- Improve AA line rendering
+- Fix screen space size block
+- Crash chaining two spawners each other [Case 1135299](https://issuetracker.unity3d.com/issues/crash-chaining-two-spawners-to-each-other-produces-an-infinite-loop)
+- Inspector : Exposed parameters disregard the initial value [Case 1126471](https://issuetracker.unity3d.com/issues/parameters-exposed-parameters-disregard-the-initial-value)
+- Asset name now displayed in compile errors and output context shaders
+- Fix for linking spawner to spawner while first spawner is linked to initialize + test 
+- Fix space of spaceable slot not copy pasted + test
+- Position (Circle) does not take the Center Z value into account [Case 1146850](https://issuetracker.unity3d.com/issues/blocks-position-circle-does-not-take-the-center-z-value-into-account)
+- Add Exposure Weight for emissive in lit outputs
+
+## [6.6.0-preview] - 2019-04-01
 ### Added
 - Addressing mode for Sequential blocks
 - Invert transform available on GPU
 - Add automatic depth buffer reference for main camera (for position and collision blocks)
 - Total Time for PreWarm in Visual Effect Asset inspector
 - Support for unlit output with LWRP
+- Add Terrain Parameter Binder + Terrain Type
+- Add UI Parameter Binders : Slider, Toggle
+- Add Input Parameter Binders : Axis, Button, Key, Mouse, Touch
+- Add Other Parameter Binders : Previous Position, Hierarchy Attribute Map, Multi-Position, Enabled
 
 ### Fixed
 - Undo Redo while changing space
@@ -24,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Issue that remove the edge when dragging an edge from slot to the same slot.
 - Exception when undoing an edge deletion on a dynamic operator. 
 - Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
+- Exception while removing a sub-slot of a dynamic operator
 
 ## [6.5.0-preview] - 2019-03-07
 
@@ -37,6 +64,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Better Handling of Null or Missing Parameter Binders (Editor + Runtime)
+- Fixes in VFX Raycast Binder
+- Fixes in VFX Parameter Binder Editor
 
 ## [6.1.0-preview] - 2019-02-13
 

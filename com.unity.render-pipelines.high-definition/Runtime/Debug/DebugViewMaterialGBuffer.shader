@@ -67,38 +67,46 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
                 float3 result = float3(-666.0, 0.0, 0.0);
                 bool needLinearToSRGB = false;
 
-                if (_DebugViewMaterial == DEBUGVIEWGBUFFER_DEPTH)
+                // Reminder: _DebugViewMaterialArray[i]
+                //   i==0 -> the size used in the buffer
+                //   i>0  -> the index used (0 value means nothing)
+                // The index stored in this buffer could either be
+                //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
+                //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
+                // So here if the buffer is of size zero, it is the same as if we give in a 0 buffer index.
+                int bufferIndex = int(_DebugViewMaterialArray[0]) >= 1 ? int(_DebugViewMaterialArray[1]) : 0;
+                if (bufferIndex == DEBUGVIEWGBUFFER_DEPTH)
                 {
                     float linearDepth = frac(posInput.linearDepth * 0.1);
                     result = linearDepth.xxx;
                 }
                 // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo
-                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
+                else if (bufferIndex == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
                 {
                     result = builtinData.bakeDiffuseLighting;
                     result *= exp2(_DebugExposure);
                     needLinearToSRGB = true;
                 }
-                #ifdef SHADOWS_SHADOWMASK
-                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK0)
+#ifdef SHADOWS_SHADOWMASK
+                else if (bufferIndex == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK0)
                 {
                     result = builtinData.shadowMask0.xxx;
                 }
-                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK1)
+                else if (bufferIndex == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK1)
                 {
                     result = builtinData.shadowMask1.xxx;
                 }
-                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK2)
+                else if (bufferIndex == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK2)
                 {
                     result = builtinData.shadowMask2.xxx;
                 }
-                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK3)
+                else if (bufferIndex == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK3)
                 {
                     result = builtinData.shadowMask3.xxx;
                 }
-                #endif
+#endif
 
-                GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
+                GetBSDFDataDebug(bufferIndex, bsdfData, result, needLinearToSRGB);
 
                 // f we haven't touch result, we don't blend it. This allow to have the GBuffer debug pass working with the regular forward debug pass.
                 // The forward debug pass will write its value and then the deferred will overwrite only touched texels.
