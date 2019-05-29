@@ -71,7 +71,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO: Use proper migration toolkit
         // 3. Added ShadowNearPlane to HDRP additional light data, we don't use Light.shadowNearPlane anymore
         // 4. Migrate HDAdditionalLightData.lightLayer to Light.renderingLayerMask
-        private const int currentVersion = 4;
+        // 5. Added the ShadowLayer
+        private const int currentVersion = 5;
 
         [HideInInspector, SerializeField]
         [FormerlySerializedAs("m_Version")]
@@ -207,10 +208,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Obsolete("Use Light.renderingLayerMask instead")]
         public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
 
+        // Now the renderingLayerMask is used for shadow layers and not light layers
+        public LightLayerEnum lightlayersMask = LightLayerEnum.LightLayerDefault;
+        public bool linkShadowLayers = true;
+
         // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         public uint GetLightLayers()
         {
-            int value = legacyLight.renderingLayerMask;
+            int value = (int)lightlayersMask;
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
@@ -1040,6 +1045,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Version <= 3)
             {
                 legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)lightLayers, legacyLight.renderingLayerMask);
+            }
+            if (m_Version <= 4)
+            {
+                // When we upgrade the option to decouple light and shadow layers will be disabled
+                // so we can sync the shadow layer mask (from the legacyLight) and the new light layer mask
+                lightlayersMask = (LightLayerEnum)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
             }
 
             m_Version = currentVersion;

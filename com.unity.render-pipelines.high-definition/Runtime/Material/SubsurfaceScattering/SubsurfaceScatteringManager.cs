@@ -326,7 +326,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 int numTilesX = ((int)hdCamera.screenSize.x + 15) / 16;
                 int numTilesY = ((int)hdCamera.screenSize.y + 15) / 16;
-                int numTilesZ = hdCamera.computePassCount;
+                int numTilesZ = hdCamera.viewCount;
 
                 if (NeedTemporarySubsurfaceBuffer() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                 {
