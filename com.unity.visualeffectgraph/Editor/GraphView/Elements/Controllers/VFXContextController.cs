@@ -83,6 +83,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            SyncFlowAnchors();
             SyncControllers();
             // make sure we listen to the right data
 
@@ -103,33 +104,57 @@ namespace UnityEditor.VFX.UI
             base.ModelChanged(obj);
         }
 
-        public VFXContextController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        public VFXContextController(VFXContext model, VFXViewController viewController) : base(model, viewController)
         {
             UnregisterAnchors();
+            SyncControllers();
 
-            if (this.model.inputType != VFXDataType.kNone)
+            if (model is VFXSubgraphContext)
             {
-                for (int slot = 0; slot < this.model.inputFlowSlot.Length; ++slot)
+                SyncFlowAnchors();
+                model.ResyncSlots(false);
+            }
+        }
+
+        private void SyncFlowAnchors()
+        {
+            if (this.model.inputType != VFXDataType.None)
+            {
+                for (int slot = m_FlowInputAnchors.Count; slot < this.model.inputFlowSlot.Length; ++slot)
                 {
                     var inAnchor = new VFXFlowInputAnchorController();
                     inAnchor.Init(this, slot);
                     m_FlowInputAnchors.Add(inAnchor);
                     viewController.RegisterFlowAnchorController(inAnchor);
                 }
+                while(this.model.inputFlowSlot.Length < m_FlowInputAnchors.Count)
+                {
+                    var removedAnchor = m_FlowInputAnchors[m_FlowInputAnchors.Count - 1];
+                    removedAnchor.OnDisable();
+                    viewController.UnregisterFlowAnchorController(removedAnchor);
+
+                    m_FlowInputAnchors.RemoveAt(m_FlowInputAnchors.Count - 1);
+                }
             }
 
-            if (this.model.outputType != VFXDataType.kNone)
+            if (this.model.outputType != VFXDataType.None)
             {
-                for (int slot = 0; slot < this.model.outputFlowSlot.Length; ++slot)
+                for (int slot = m_FlowOutputAnchors.Count; slot < this.model.outputFlowSlot.Length; ++slot)
                 {
                     var outAnchor = new VFXFlowOutputAnchorController();
                     outAnchor.Init(this, slot);
                     m_FlowOutputAnchors.Add(outAnchor);
                     viewController.RegisterFlowAnchorController(outAnchor);
                 }
-            }
+                while (this.model.outputFlowSlot.Length < m_FlowOutputAnchors.Count)
+                {
+                    var removedAnchor = m_FlowOutputAnchors[m_FlowOutputAnchors.Count - 1];
+                    removedAnchor.OnDisable();
+                    viewController.UnregisterFlowAnchorController(removedAnchor);
 
-            SyncControllers();
+                    m_FlowOutputAnchors.RemoveAt(m_FlowOutputAnchors.Count - 1);
+                }
+            }
         }
 
         public void AddBlock(int index, VFXBlock block, bool initSpace = false)

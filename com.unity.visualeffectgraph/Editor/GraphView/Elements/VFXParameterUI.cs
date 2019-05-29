@@ -8,11 +8,11 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXParameterDataAnchor : VFXOutputDataAnchor
+    class VFXOutputParameterDataAnchor : VFXOutputDataAnchor
     {
-        public static new VFXParameterDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
+        public static new VFXOutputParameterDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            var anchor = new VFXParameterDataAnchor(controller.orientation, controller.direction, controller.portType, node);
+            var anchor = new VFXOutputParameterDataAnchor(controller.orientation, controller.direction, controller.portType, node);
 
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.controller = controller;
@@ -20,7 +20,28 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        protected VFXParameterDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
+        protected VFXOutputParameterDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
+        {
+        }
+
+        public override bool ContainsPoint(Vector2 localPoint)
+        {
+            return base.ContainsPoint(localPoint) && !m_ConnectorText.ContainsPoint(this.ChangeCoordinatesTo(m_ConnectorText, localPoint));
+        }
+    }
+    class VFXInputParameterDataAnchor : VFXDataAnchor
+    {
+        public static new VFXInputParameterDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
+        {
+            var anchor = new VFXInputParameterDataAnchor(controller.orientation, controller.direction, controller.portType, node);
+
+            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
+            anchor.controller = controller;
+            anchor.AddManipulator(anchor.m_EdgeConnector);
+            return anchor;
+        }
+
+        protected VFXInputParameterDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
         }
 
@@ -111,14 +132,12 @@ namespace UnityEditor.VFX.UI
             get { return base.controller as VFXParameterNodeController; }
         }
 
-        protected override bool syncInput
-        {
-            get { return false; }
-        }
-
         public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
-            return VFXParameterDataAnchor.Create(controller, node);
+            if(controller.direction == Direction.Input)
+                return VFXInputParameterDataAnchor.Create(controller, node);
+            else
+                return VFXOutputParameterDataAnchor.Create(controller, node);
         }
 
         Image m_ExposedIcon;

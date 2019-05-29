@@ -167,7 +167,7 @@ public class VFXContextEditor : VFXSlotContainerEditor
         var data = (VFXData)dataObject.targetObject;
 
         // Particle context data
-        if (data.type == VFXDataType.kParticle)
+        if (data.type == VFXDataType.Particle)
         {
             VFXDataParticle particleData = data as VFXDataParticle;
             EditorGUILayout.Space();

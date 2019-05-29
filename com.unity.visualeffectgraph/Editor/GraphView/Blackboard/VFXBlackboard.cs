@@ -1,16 +1,10 @@
 using System;
-using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
 using UnityEngine.UIElements;
-using UnityEditor.VFX;
+using UnityEditor.Experimental.VFX;
 using System.Collections.Generic;
-using UnityEditor;
 using System.Linq;
-using System.Text;
-using UnityEditor.Graphs;
-using UnityEditor.SceneManagement;
 
 using PositionType = UnityEngine.UIElements.Position;
 
@@ -50,6 +44,8 @@ namespace  UnityEditor.VFX.UI
         new void Clear()
         {
             m_DefaultCategory.Clear();
+            if( m_OutputCategory != null)
+                m_OutputCategory.Clear();
 
             foreach (var cat in m_Categories)
             {
@@ -103,7 +99,13 @@ namespace  UnityEditor.VFX.UI
 
             style.position = PositionType.Absolute;
 
-            subTitle = "Parameters";
+            m_PathLabel = hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
+            m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownSubTitle);
+
+            m_PathTextField = new TextField { visible = false };
+            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
+            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
+            hierarchy.Add(m_PathTextField);
 
             resizer.RemoveFromHierarchy();
 
@@ -111,6 +113,71 @@ namespace  UnityEditor.VFX.UI
                 s_LayoutManual.SetValue(this, false);
 
             m_AddButton.SetEnabled(false);
+        }
+
+
+        Label m_PathLabel;
+        TextField m_PathTextField;
+        bool m_EditPathCancelled;
+
+        void OnMouseDownSubTitle(MouseDownEvent evt)
+        {
+            if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)
+            {
+                StartEditingPath();
+                evt.PreventDefault();
+            }
+        }
+
+        void StartEditingPath()
+        {
+            m_PathTextField.visible = true;
+
+            m_PathTextField.value = m_PathLabel.text;
+            m_PathTextField.style.position = PositionType.Absolute;
+            var rect = m_PathLabel.ChangeCoordinatesTo(this, new Rect(Vector2.zero, m_PathLabel.layout.size));
+            m_PathTextField.style.left = rect.xMin;
+            m_PathTextField.style.top = rect.yMin;
+            m_PathTextField.style.width = rect.width;
+            m_PathTextField.style.fontSize = 11;
+            m_PathTextField.style.marginLeft = 0;
+            m_PathTextField.style.marginRight = 0;
+            m_PathTextField.style.marginTop = 0;
+            m_PathTextField.style.marginBottom = 0;
+
+            m_PathLabel.visible = false;
+
+            m_PathTextField.Q("unity-text-input").Focus();
+            m_PathTextField.SelectAll();
+        }
+
+        void OnPathTextFieldKeyPressed(KeyDownEvent evt)
+        {
+            switch (evt.keyCode)
+            {
+                case KeyCode.Escape:
+                    m_EditPathCancelled = true;
+                    m_PathTextField.Q("unity-text-input").Blur();
+                    break;
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    m_PathTextField.Q("unity-text-input").Blur();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        void OnEditPathTextFinished()
+        {
+            m_PathLabel.visible = true;
+            m_PathTextField.visible = false;
+
+            var newPath = m_PathTextField.text;
+
+            controller.graph.categoryPath = newPath;
+            m_PathLabel.text = newPath;
+            m_EditPathCancelled = false;
         }
 
         static System.Reflection.PropertyInfo s_LayoutManual = typeof(VisualElement).GetProperty("isLayoutManual",System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
@@ -302,9 +369,11 @@ namespace  UnityEditor.VFX.UI
         {
             GenericMenu menu = new GenericMenu();
 
-
-            menu.AddItem(EditorGUIUtility.TrTextContent("Category"), false, OnAddCategory);
-            menu.AddSeparator(string.Empty);
+            if (!(controller.model.subgraph is VisualEffectSubgraphOperator))
+            {
+                menu.AddItem(EditorGUIUtility.TrTextContent("Category"), false, OnAddCategory);
+                menu.AddSeparator(string.Empty);
+            }
 
             foreach (var parameter in VFXLibrary.GetParameters())
             {
@@ -360,16 +429,27 @@ namespace  UnityEditor.VFX.UI
             //TODO sort elements
             foreach (var row in rows)
             {
-                controller.SetParametersOrder(row.controller, index++, category == m_DefaultCategory ? "" : category.title);
+                if( category == m_DefaultCategory || category == m_OutputCategory)
+                    controller.SetParametersOrder(row.controller, index++, category == m_DefaultCategory);
+                else
+                    controller.SetParametersOrder(row.controller, index++, category == m_DefaultCategory ? "" : category.title);
             }
         }
 
         public void SetCategoryExpanded(VFXBlackboardCategory category, bool expanded)
         {
-            controller.SetCategoryExpanded(category.title, expanded);
+            if (category == m_OutputCategory)
+            {
+                m_OutputCategory.expanded = !m_OutputCategory.expanded;
+
+                PlayerPrefs.SetInt("VFX.blackboard.outputexpanded", m_OutputCategory.expanded?1:0);
+            }
+            else
+                controller.SetCategoryExpanded(category.title, expanded);
         }
 
         VFXBlackboardCategory m_DefaultCategory;
+        VFXBlackboardCategory m_OutputCategory;
         Dictionary<string, VFXBlackboardCategory> m_Categories = new Dictionary<string, VFXBlackboardCategory>();
 
 
@@ -392,63 +472,87 @@ namespace  UnityEditor.VFX.UI
         Dictionary<string, bool> m_ExpandedStatus = new Dictionary<string, bool>();
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
-            if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
+            if (e.controller != controller && !(e.controller is VFXParameterController)) //optim : reorder only is only the order has changed
+                return;
+
+            if (e.controller == controller && e.change == VFXViewController.Change.assetName)
             {
-                if (e.controller == controller && e.change == VFXViewController.Change.assetName)
-                {
-                    title = controller.name;
-                    return;
-                }
+                title = controller.name;
+                return;
+            }
 
-                var orderedCategories = controller.graph.UIInfos.categories;
-                var newCategories = new List<VFXBlackboardCategory>();
+             if( controller.model.subgraph is VisualEffectSubgraphOperator && m_OutputCategory == null)
+            {
+                m_OutputCategory = new VFXBlackboardCategory() { title = "Output" };
+                m_OutputCategory.headerVisible = true;
+                m_OutputCategory.expanded = PlayerPrefs.GetInt("VFX.blackboard.outputexpanded", 0) != 0;
+                Add(m_OutputCategory);
+                m_OutputCategory.AddToClassList("output");
+            }
+            else if(!(controller.model.subgraph is VisualEffectSubgraphOperator) && m_OutputCategory != null )
+            {
+                Remove(m_OutputCategory);
+                m_OutputCategory = null;
+            }
 
-                if (orderedCategories != null)
+            var actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => !t.isOutput && string.IsNullOrEmpty(t.model.category)));
+            m_DefaultCategory.SyncParameters(actualControllers);
+
+            var orderedCategories = controller.graph.UIInfos.categories;
+            var newCategories = new List<VFXBlackboardCategory>();
+
+            if (orderedCategories != null)
+            {
+                foreach (var catModel in controller.graph.UIInfos.categories)
                 {
-                    foreach (var catModel in controller.graph.UIInfos.categories)
+                    VFXBlackboardCategory cat = null;
+                    if (!m_Categories.TryGetValue(catModel.name, out cat))
                     {
-                        VFXBlackboardCategory cat = null;
-                        if (!m_Categories.TryGetValue(catModel.name, out cat))
-                        {
-                            cat = new VFXBlackboardCategory() {title = catModel.name };
-                            cat.SetSelectable();
-                            m_Categories.Add(catModel.name, cat);
-                        }
-                        m_ExpandedStatus[catModel.name] = !catModel.collapsed;
-
-                        newCategories.Add(cat);
+                        cat = new VFXBlackboardCategory() {title = catModel.name };
+                        cat.SetSelectable();
+                        m_Categories.Add(catModel.name, cat);
                     }
+                    m_ExpandedStatus[catModel.name] = !catModel.collapsed;
 
-                    foreach (var category in m_Categories.Keys.Except(orderedCategories.Select(t => t.name)).ToArray())
-                    {
-                        m_Categories[category].RemoveFromHierarchy();
-                        m_Categories.Remove(category);
-                        m_ExpandedStatus.Remove(category);
-                    }
+                    newCategories.Add(cat);
                 }
 
-                var prevCat = m_DefaultCategory;
-
-                foreach (var cat in newCategories)
+                foreach (var category in m_Categories.Keys.Except(orderedCategories.Select(t => t.name)).ToArray())
                 {
-                    if (cat.parent == null)
-                        Insert(IndexOf(prevCat) + 1, cat);
-                    else
-                        cat.PlaceInFront(prevCat);
-                    prevCat = cat;
-                }
-
-                var actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => string.IsNullOrEmpty(t.model.category)));
-                m_DefaultCategory.SyncParameters(actualControllers);
-
-
-                foreach (var cat in newCategories)
-                {
-                    actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => t.model.category == cat.title));
-                    cat.SyncParameters(actualControllers);
-                    cat.expanded = m_ExpandedStatus[cat.title];
+                    m_Categories[category].RemoveFromHierarchy();
+                    m_Categories.Remove(category);
+                    m_ExpandedStatus.Remove(category);
                 }
             }
+
+            var prevCat = m_DefaultCategory;
+
+            foreach (var cat in newCategories)
+            {
+                if (cat.parent == null)
+                    Insert(IndexOf(prevCat) + 1, cat);
+                else
+                    cat.PlaceInFront(prevCat);
+                prevCat = cat;
+            }
+            if(m_OutputCategory != null)
+                m_OutputCategory.PlaceInFront(prevCat);
+
+            foreach (var cat in newCategories)
+            {
+                actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => t.model.category == cat.title && !t.isOutput));
+                cat.SyncParameters(actualControllers);
+                cat.expanded = m_ExpandedStatus[cat.title];
+            }
+
+            if (m_OutputCategory != null)
+            {
+                var outputControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => t.isOutput));
+                m_OutputCategory.SyncParameters(outputControllers);
+            }
+
+            m_PathLabel.text = controller.graph.categoryPath;
+                
         }
 
         public override void UpdatePresenterPosition()
