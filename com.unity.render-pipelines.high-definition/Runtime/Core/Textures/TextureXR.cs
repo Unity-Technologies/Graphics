@@ -5,7 +5,13 @@ namespace UnityEngine.Experimental.Rendering
     public static class TextureXR
     {
         // Limit memory usage of default textures
-        public const int kMaxSliceCount = 2;
+        public const int kMaxSlices = 2;
+
+        // Property set by XRSystem
+        public static int maxViews { get; set; } = 1;
+
+        // Property accessed when allocating a render texture
+        public static int slices { get => maxViews; }
 
         // Must be in sync with shader define in TextureXR.hlsl
         public static bool useTexArray
@@ -29,26 +35,13 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static VRTextureUsage OverrideRenderTexture(bool xrInstancing, ref TextureDimension dimension, ref int slices)
+        public static TextureDimension dimension
         {
-            // XRTODO: need to also check if stereo is enabled in camera!
-            if (xrInstancing && useTexArray)
+            get
             {
-                // TEXTURE2D_X macros will now expand to TEXTURE2D_ARRAY
-                dimension = TextureDimension.Tex2DArray;
-
-                // XR legacy single-pass stereo instancing (will be deprecated by XR SDK)
-                if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
-                {
-                    // Add a new dimension
-                    slices = slices * 2;
-
-                    // XRTODO: useful? if yes, add validation, asserts
-                    return XRGraphics.eyeTextureDesc.vrUsage;
-                }
+                // TEXTURE2D_X macros will now expand to TEXTURE2D or TEXTURE2D_ARRAY
+                return useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
             }
-
-            return VRTextureUsage.None;
         }
 
         public static Texture GetClearTexture()
@@ -85,8 +78,8 @@ namespace UnityEngine.Experimental.Rendering
 
         private static Texture2DArray CreateTexture2DArrayFromTexture2D(Texture2D source, string name)
         {
-            Texture2DArray texArray = new Texture2DArray(source.width, source.height, kMaxSliceCount, source.format, false) { name = name };
-            for (int i = 0; i < kMaxSliceCount; ++i)
+            Texture2DArray texArray = new Texture2DArray(source.width, source.height, kMaxSlices, source.format, false) { name = name };
+            for (int i = 0; i < kMaxSlices; ++i)
                 Graphics.CopyTexture(source, 0, 0, texArray, i, 0);
 
             return texArray;
@@ -173,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering
                     m_BlackUIntTexture2DArray = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
                     {
                         dimension = TextureDimension.Tex2DArray,
-                        volumeDepth = kMaxSliceCount,
+                        volumeDepth = kMaxSlices,
                         useMipMap = false,
                         autoGenerateMips = false,
                         enableRandomWrite = true,
@@ -181,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering
                     };
 
                     // Can't use CreateTexture2DArrayFromTexture2D here because we need to create the texture using GraphicsFormat
-                    for (int i = 0; i < kMaxSliceCount; ++i)
+                    for (int i = 0; i < kMaxSlices; ++i)
                         Graphics.Blit(blackTexture2DArray, m_BlackUIntTexture2DArray as RenderTexture, i, i);
                 }
 

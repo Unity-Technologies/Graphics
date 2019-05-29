@@ -300,19 +300,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int areaLightCount { get { return m_areaLightCount; } }
         public ComputeBuffer lightDatas { get { return m_LightDatas; } }
 
-        private ComputeShader buildScreenAABBShader { get { return asset.renderPipelineResources.shaders.buildScreenAABBCS; } }
-        private ComputeShader buildPerTileLightListShader { get { return asset.renderPipelineResources.shaders.buildPerTileLightListCS; } }
-        private ComputeShader buildPerBigTileLightListShader { get { return asset.renderPipelineResources.shaders.buildPerBigTileLightListCS; } }
-        private ComputeShader buildPerVoxelLightListShader { get { return asset.renderPipelineResources.shaders.buildPerVoxelLightListCS; } }
+        ComputeShader buildScreenAABBShader { get { return asset.renderPipelineResources.shaders.buildScreenAABBCS; } }
+        ComputeShader buildPerTileLightListShader { get { return asset.renderPipelineResources.shaders.buildPerTileLightListCS; } }
+        ComputeShader buildPerBigTileLightListShader { get { return asset.renderPipelineResources.shaders.buildPerBigTileLightListCS; } }
+        ComputeShader buildPerVoxelLightListShader { get { return asset.renderPipelineResources.shaders.buildPerVoxelLightListCS; } }
 
-        private ComputeShader buildMaterialFlagsShader { get { return asset.renderPipelineResources.shaders.buildMaterialFlagsCS; } }
-        private ComputeShader buildDispatchIndirectShader { get { return asset.renderPipelineResources.shaders.buildDispatchIndirectCS; } }
-        private ComputeShader clearDispatchIndirectShader { get { return asset.renderPipelineResources.shaders.clearDispatchIndirectCS; } }
-        private ComputeShader deferredComputeShader { get { return asset.renderPipelineResources.shaders.deferredCS; } }
-        private ComputeShader contactShadowComputeShader { get { return asset.renderPipelineResources.shaders.contactShadowCS; } }
-        private Shader screenSpaceShadowsShader { get { return asset.renderPipelineResources.shaders.screenSpaceShadowPS; } }
+        ComputeShader buildMaterialFlagsShader { get { return asset.renderPipelineResources.shaders.buildMaterialFlagsCS; } }
+        ComputeShader buildDispatchIndirectShader { get { return asset.renderPipelineResources.shaders.buildDispatchIndirectCS; } }
+        ComputeShader clearDispatchIndirectShader { get { return asset.renderPipelineResources.shaders.clearDispatchIndirectCS; } }
+        ComputeShader deferredComputeShader { get { return asset.renderPipelineResources.shaders.deferredCS; } }
+        ComputeShader contactShadowComputeShader { get { return asset.renderPipelineResources.shaders.contactShadowCS; } }
+        Shader screenSpaceShadowsShader { get { return asset.renderPipelineResources.shaders.screenSpaceShadowPS; } }
 
-        private Shader deferredTilePixelShader { get { return asset.renderPipelineResources.shaders.deferredTilePS; } }
+        Shader deferredTilePixelShader { get { return asset.renderPipelineResources.shaders.deferredTilePS; } }
 
 
         static int s_GenAABBKernel;
@@ -340,13 +340,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int s_deferredContactShadowKernel;
         static int s_deferredContactShadowKernelMSAA;
 
-        static ComputeBuffer s_LightVolumeDataBuffer = null;
-        static ComputeBuffer s_ConvexBoundsBuffer = null;
-        static ComputeBuffer s_AABBBoundsBuffer = null;
-        static ComputeBuffer s_LightList = null;
-        static ComputeBuffer s_TileList = null;
-        static ComputeBuffer s_TileFeatureFlags = null;
-        static ComputeBuffer s_DispatchIndirectBuffer = null;
+        ComputeBuffer s_LightVolumeDataBuffer = null;
+        ComputeBuffer s_ConvexBoundsBuffer = null;
+        ComputeBuffer s_AABBBoundsBuffer = null;
+        ComputeBuffer s_LightList = null;
+        ComputeBuffer s_TileList = null;
+        ComputeBuffer s_TileFeatureFlags = null;
+        ComputeBuffer s_DispatchIndirectBuffer = null;
 
         static ComputeBuffer s_BigTileLightList = null;        // used for pre-pass coarse culling on 64x64 tiles
         static int s_GenListPerBigTileKernel;
@@ -504,13 +504,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static bool GetFeatureVariantsEnabled(FrameSettings frameSettings) =>
             frameSettings.litShaderMode == LitShaderMode.Deferred
-            && frameSettings.fptl
-            && frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation)
+            && frameSettings.IsEnabled(FrameSettingsField.DeferredTile)
             && (frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants) || frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants));
 
-        int GetDeferredLightingMaterialIndex(int outputSplitLighting, int lightLoopDisableTileAndCluster, int shadowMask, int debugDisplay)
+        int GetDeferredLightingMaterialIndex(int outputSplitLighting, int shadowMask, int debugDisplay)
         {
-            return (outputSplitLighting) | (lightLoopDisableTileAndCluster << 1) | (shadowMask << 2) | (debugDisplay << 3);
+            return (outputSplitLighting) | (shadowMask << 1) | (debugDisplay << 2);
+        }
+
+        Material GetDeferredLightingMaterial(bool outputSplitLighting, bool shadowMask, bool debugDisplayEnabled)
+        {
+            int index = GetDeferredLightingMaterialIndex(outputSplitLighting ? 1 : 0,
+                shadowMask ? 1 : 0,
+                debugDisplayEnabled ? 1 : 0);
+
+            return m_deferredLightingMaterial[index];
         }
 
         public void InitializeLightLoop(IBLFilterBSDF[] iBLFilterBSDFArray)
@@ -620,30 +628,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             s_ScreenSpaceShadowsMat = CoreUtils.CreateEngineMaterial(screenSpaceShadowsShader);
 
-            // OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_DISABLE_TILE_AND_CLUSTER - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
-            m_deferredLightingMaterial = new Material[16];
+            // OUTPUT_SPLIT_LIGHTING - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
+            m_deferredLightingMaterial = new Material[8];
 
             for (int outputSplitLighting = 0; outputSplitLighting < 2; ++outputSplitLighting)
             {
-                for (int lightLoopDisableTileAndCluster = 0; lightLoopDisableTileAndCluster < 2; ++lightLoopDisableTileAndCluster)
+                for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
                 {
-                    for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
+                    for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
                     {
-                        for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
-                        {
-                            int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopDisableTileAndCluster, shadowMask, debugDisplay);
+                        int index = GetDeferredLightingMaterialIndex(outputSplitLighting, shadowMask, debugDisplay);
 
-                            m_deferredLightingMaterial[index] = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.deferredPS);
-                            m_deferredLightingMaterial[index].name = string.Format("{0}_{1}", asset.renderPipelineResources.shaders.deferredPS.name, index);
-                            CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "OUTPUT_SPLIT_LIGHTING", outputSplitLighting == 1);
-                            CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "LIGHTLOOP_DISABLE_TILE_AND_CLUSTER", lightLoopDisableTileAndCluster == 1);
-                            CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "SHADOWS_SHADOWMASK", shadowMask == 1);
-                            CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "DEBUG_DISPLAY", debugDisplay == 1);
+                        m_deferredLightingMaterial[index] = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.deferredPS);
+                        m_deferredLightingMaterial[index].name = string.Format("{0}_{1}", asset.renderPipelineResources.shaders.deferredPS.name, index);
+                        CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "OUTPUT_SPLIT_LIGHTING", outputSplitLighting == 1);
+                        CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "SHADOWS_SHADOWMASK", shadowMask == 1);
+                        CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "DEBUG_DISPLAY", debugDisplay == 1);
 
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, outputSplitLighting == 1 ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting);
-                            m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
-                        }
+                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
+                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, outputSplitLighting == 1 ? (int)StencilLightingUsage.SplitLighting : (int)StencilLightingUsage.RegularLighting);
+                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                     }
                 }
             }
@@ -743,15 +747,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int outputSplitLighting = 0; outputSplitLighting < 2; ++outputSplitLighting)
             {
-                for (int lightLoopDisableTileAndCluster = 0; lightLoopDisableTileAndCluster < 2; ++lightLoopDisableTileAndCluster)
+                for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
                 {
-                    for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
+                    for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
                     {
-                        for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
-                        {
-                            int index = GetDeferredLightingMaterialIndex(outputSplitLighting, lightLoopDisableTileAndCluster, shadowMask, debugDisplay);
-                            CoreUtils.Destroy(m_deferredLightingMaterial[index]);
-                        }
+                        int index = GetDeferredLightingMaterialIndex(outputSplitLighting, shadowMask, debugDisplay);
+                        CoreUtils.Destroy(m_deferredLightingMaterial[index]);
                     }
                 }
             }
@@ -2308,14 +2309,47 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public int numTilesClusterY;
             public float clusterScale;
 
-            // Finalize
+            // Build dispatch indirect
             public ComputeShader buildMaterialFlagsShader;
             public ComputeShader clearDispatchIndirectShader;
             public ComputeShader buildDispatchIndirectShader;
+            public bool useComputeAsPixel;
+        }
+
+        struct BuildGPULightListResources
+        {
+            public ComputeBuffer convexBoundsBuffer;
+            public ComputeBuffer aabbBoundsBuffer;
+            public ComputeBuffer lightVolumeDataBuffer;
+            public ComputeBuffer lightListBuffer;
+            public ComputeBuffer tileFeatureFlagsBuffer;
+            public ComputeBuffer tileListBuffer;
+            public ComputeBuffer dispatchIndirectBuffer;
+
+            public RTHandle depthBuffer;
+            public RTHandle stencilTexture;
+        }
+
+        BuildGPULightListResources PrepareBuildGPULightListResources(RTHandle depthBuffer, RTHandle stencilTexture)
+        {
+            var resources = new BuildGPULightListResources();
+
+            resources.convexBoundsBuffer = s_ConvexBoundsBuffer;
+            resources.aabbBoundsBuffer = s_AABBBoundsBuffer;
+            resources.lightVolumeDataBuffer = s_LightVolumeDataBuffer;
+            resources.lightListBuffer = s_LightList;
+            resources.tileFeatureFlagsBuffer = s_TileFeatureFlags;
+            resources.tileListBuffer = s_TileList;
+            resources.dispatchIndirectBuffer = s_DispatchIndirectBuffer;
+
+            resources.depthBuffer = depthBuffer;
+            resources.stencilTexture = stencilTexture;
+
+            return resources;
         }
 
         // generate screen-space AABBs (used for both fptl and clustered).
-        static void GenerateLightsScreenSpaceAABBs(BuildGPULightListParameters parameters, CommandBuffer cmd)
+        static void GenerateLightsScreenSpaceAABBs(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
             if (parameters.totalLightCount != 0)
             {
@@ -2323,20 +2357,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // In the stereo case, we have two sets of light bounds to iterate over (bounds are in per-eye view space)
                 cmd.SetComputeIntParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
-                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
 
                 cmd.SetComputeMatrixArrayParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_mProjectionArr, parameters.lightListProjHMatrices);
                 cmd.SetComputeMatrixArrayParam(parameters.screenSpaceAABBShader, HDShaderIDs.g_mInvProjectionArr, parameters.lightListInvProjHMatrices);
 
                 // In stereo, we output two sets of AABB bounds
-                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, HDShaderIDs.g_vBoundsBuffer, resources.aabbBoundsBuffer);
 
                 cmd.DispatchCompute(parameters.screenSpaceAABBShader, parameters.screenSpaceAABBKernel, (parameters.totalLightCount + 7) / 8, parameters.viewCount, 1);
             }
         }
 
         // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
-        static void BigTilePrepass(BuildGPULightListParameters parameters, CommandBuffer cmd)
+        static void BigTilePrepass(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
             if (parameters.runLightList && parameters.runBigTilePrepass)
             {
@@ -2354,15 +2388,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fNearPlane, parameters.nearClipPlane);
                 cmd.SetComputeFloatParam(parameters.bigTilePrepassShader, HDShaderIDs.g_fFarPlane, parameters.farClipPlane);
                 cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vLightList, s_BigTileLightList);
-                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
-                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
-                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, resources.aabbBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, resources.lightVolumeDataBuffer);
+                cmd.SetComputeBufferParam(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
 
                 cmd.DispatchCompute(parameters.bigTilePrepassShader, parameters.bigTilePrepassKernel, parameters.numBigTilesX, parameters.numBigTilesY, parameters.viewCount);
             }
         }
 
-        static void BuildPerTileLightList(BuildGPULightListParameters parameters, RTHandle cameraDepthBufferRT, ref bool tileFlagsWritten, CommandBuffer cmd)
+        static void BuildPerTileLightList(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, ref bool tileFlagsWritten, CommandBuffer cmd)
         {
             // optimized for opaques only
             if (parameters.runLightList && parameters.runFPTL)
@@ -2373,15 +2407,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs._DecalIndexShift, parameters.lightList.lights.Count + parameters.lightList.envLights.Count);
                 cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_iNrVisibLights, parameters.totalLightCount);
 
-                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBoundsBuffer, resources.aabbBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs._LightVolumeData, resources.lightVolumeDataBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
 
                 cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mScrProjectionArr, parameters.lightListProjscrMatrices);
                 cmd.SetComputeMatrixArrayParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, parameters.lightListInvProjscrMatrices);
 
-                cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
-                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vLightList, s_LightList);
+                cmd.SetComputeTextureParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vLightList, resources.lightListBuffer);
                 if (parameters.runBigTilePrepass)
                     cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
 
@@ -2401,14 +2435,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         baseFeatureFlags |= LightDefinitions.s_MaterialFeatureMaskFlags;
                     }
                     cmd.SetComputeIntParam(parameters.buildPerTileLightListShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
-                    cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    cmd.SetComputeBufferParam(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
                     tileFlagsWritten = true;
                 }
 
                 cmd.DispatchCompute(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
             }
         }
-        static void VoxelLightListGeneration(BuildGPULightListParameters parameters, RTHandle cameraDepthBufferRT, CommandBuffer cmd)
+        static void VoxelLightListGeneration(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
             if (parameters.runLightList)
             {
@@ -2432,7 +2466,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustScale, parameters.clusterScale);
                 cmd.SetComputeFloatParam(parameters.buildPerVoxelLightListShader, HDShaderIDs.g_fClustBase, k_ClustLogBase);
 
-                cmd.SetComputeTextureParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
+                cmd.SetComputeTextureParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_depth_tex, resources.depthBuffer);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vLayeredLightList, s_PerVoxelLightLists);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_LayeredOffset, s_PerVoxelOffset);
                 cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_LayeredSingleIdxBuffer, s_GlobalLightListAtomic);
@@ -2444,15 +2478,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_logBaseBuffer, s_PerTileLogBaseTweak);
                 }
 
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
-                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_vBoundsBuffer, resources.aabbBoundsBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs._LightVolumeData, resources.lightVolumeDataBuffer);
+                cmd.SetComputeBufferParam(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, HDShaderIDs.g_data, resources.convexBoundsBuffer);
 
                 cmd.DispatchCompute(parameters.buildPerVoxelLightListShader, parameters.buildPerVoxelLightListKernel, parameters.numTilesClusterX, parameters.numTilesClusterY, parameters.viewCount);
             }
         }
 
-        static void FinalizeLightListGeneration(BuildGPULightListParameters parameters, RTHandle stencilTextureRT, bool tileFlagsWritten, CommandBuffer cmd)
+        static void BuildDispatchIndirectArguments(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, bool tileFlagsWritten, CommandBuffer cmd)
         {
             if (parameters.enableFeatureVariants)
             {
@@ -2487,43 +2521,48 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     cmd.SetComputeIntParam(parameters.buildMaterialFlagsShader, HDShaderIDs.g_BaseFeatureFlags, (int)baseFeatureFlags);
                     cmd.SetComputeIntParams(parameters.buildMaterialFlagsShader, HDShaderIDs.g_viDimensions, s_TempScreenDimArray);
-                    cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
 
-                    cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, stencilTextureRT);
+                    cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture);
 
                     cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
                 }
 
                 // clear dispatch indirect buffer
-                if (k_PreferFragment)
+                if (parameters.useComputeAsPixel)
                 {
-                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
                     cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
                     cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
                     cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawInstancedIndirectKernel, 1, 1, 1);
 
                     // add tiles to indirect buffer
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileList, s_TileList);
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileList, resources.tileListBuffer);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
                     cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
                     cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
                     cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDrawInstancedIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
                 }
                 else
                 {
-                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
+                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
                     cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
 
                     // add tiles to indirect buffer
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, s_DispatchIndirectBuffer);
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileList, s_TileList);
-                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileList, resources.tileListBuffer);
+                    cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
                     cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
                     cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
                     cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
                 }
             }
+        }
+
+        static bool DeferredUseComputeAsPixel(FrameSettings frameSettings)
+        {
+            return frameSettings.IsEnabled(FrameSettingsField.DeferredTile) && (!frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) || k_PreferFragment);
         }
 
         BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCamera hdCamera)
@@ -2598,6 +2637,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             parameters.skyEnabled = m_SkyManager.IsLightingSkyValid();
             parameters.screenSize = hdCamera.screenSize;
             parameters.msaaSamples = (int)hdCamera.msaaSamples;
+            parameters.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
 
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
@@ -2645,7 +2685,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             parameters.clusterScale = m_ClusterScale;
 
-            // Finalize
+            // Build dispatch indirect
             parameters.buildMaterialFlagsShader = buildMaterialFlagsShader;
             parameters.clearDispatchIndirectShader = clearDispatchIndirectShader;
             parameters.buildDispatchIndirectShader = buildDispatchIndirectShader;
@@ -2658,15 +2698,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Build Light List"))
             {
                 var parameters = PrepareBuildGPULightListParameters(hdCamera);
+                var resources = PrepareBuildGPULightListResources(cameraDepthBufferRT, stencilTextureRT);
 
                 bool tileFlagsWritten = false;
 
-                GenerateLightsScreenSpaceAABBs(parameters, cmd);
-                BigTilePrepass(parameters, cmd);
-                BuildPerTileLightList(parameters, cameraDepthBufferRT, ref tileFlagsWritten, cmd);
-                VoxelLightListGeneration(parameters, cameraDepthBufferRT, cmd);
+                GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
+                BigTilePrepass(parameters, resources, cmd);
+                BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
+                VoxelLightListGeneration(parameters, resources, cmd);
 
-                FinalizeLightListGeneration(parameters, stencilTextureRT, tileFlagsWritten, cmd);
+                BuildDispatchIndirectArguments(parameters, resources, tileFlagsWritten, cmd);
             }
         }
 
@@ -2787,11 +2828,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowManager.RenderShadows(renderContext, cmd, cullResults, hdCamera);
         }
 
-        public struct LightingPassOptions
-        {
-            public bool outputSplitLighting;
-        }
-
         public bool WillRenderContactShadow()
         {
             // When contact shadow index is 0, then there is no light casting contact shadow in the view
@@ -2890,182 +2926,246 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings,
-            RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
-            LightingPassOptions options)
+        struct DeferredLightingParameters
         {
-            cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_LightList);
-            if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) && options.outputSplitLighting && !k_PreferFragment)
-            {
-                // The CS is always in the MRT mode. Do not execute the same shader twice.
+            public int                  numTilesX;
+            public int                  numTilesY;
+            public int                  numTiles;
+            public bool                 enableTile;
+            public bool                 outputSplitLighting;
+            public bool                 useComputeLightingEvaluation;
+            public bool                 enableFeatureVariants;
+            public bool                 enableShadowMasks;
+            public int                  numVariants;
+            public DebugDisplaySettings debugDisplaySettings;
+
+            // Compute Lighting
+            public ComputeShader        deferredComputeShader;
+            public int                  viewCount;
+
+            // Full Screen Pixel (debug)
+            public Material             splitLightingMat;
+            public Material             regularLightingMat;
+        }
+
+        DeferredLightingParameters PrepareDeferredLightingParameters(HDCamera hdCamera, DebugDisplaySettings debugDisplaySettings)
+        {
+            var parameters = new DeferredLightingParameters();
+
+            int w = hdCamera.actualWidth;
+            int h = hdCamera.actualHeight;
+            parameters.numTilesX = (w + 15) / 16;
+            parameters.numTilesY = (h + 15) / 16;
+            parameters.numTiles = parameters.numTilesX * parameters.numTilesY;
+            parameters.enableTile = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DeferredTile);
+            parameters.outputSplitLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering);
+            parameters.useComputeLightingEvaluation = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation);
+            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
+            parameters.enableShadowMasks = m_enableBakeShadowMask;
+            parameters.numVariants = LightDefinitions.s_NumFeatureVariants;
+            parameters.debugDisplaySettings = debugDisplaySettings;
+
+            // Compute Lighting
+            parameters.deferredComputeShader = deferredComputeShader;
+            parameters.viewCount = hdCamera.viewCount;
+
+            // Full Screen Pixel (debug)
+            parameters.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, parameters.enableShadowMasks, parameters.debugDisplaySettings.IsDebugDisplayEnabled());
+            parameters.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, parameters.enableShadowMasks, parameters.debugDisplaySettings.IsDebugDisplayEnabled());
+
+            return parameters;
+        }
+
+        struct DeferredLightingResources
+        {
+            public RenderTargetIdentifier[] colorBuffers;
+            public RTHandle depthStencilBuffer;
+            public RTHandle depthTexture;
+            public ComputeBuffer lightListBuffer;
+            public ComputeBuffer tileFeatureFlagsBuffer;
+            public ComputeBuffer tileListBuffer;
+            public ComputeBuffer dispatchIndirectBuffer;
+        }
+
+        DeferredLightingResources PrepareDeferredLightingResources()
+        {
+            var resources = new DeferredLightingResources();
+
+            resources.colorBuffers = m_MRTCache2;
+            resources.colorBuffers[0] = m_CameraColorBuffer;
+            resources.colorBuffers[1] = m_CameraSssDiffuseLightingBuffer;
+            resources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
+            resources.depthTexture = m_SharedRTManager.GetDepthTexture();
+            resources.lightListBuffer = s_LightList;
+            resources.tileFeatureFlagsBuffer = s_TileFeatureFlags;
+            resources.tileListBuffer = s_TileList;
+            resources.dispatchIndirectBuffer = s_DispatchIndirectBuffer;
+
+            return resources;
+        }
+
+        void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
                 return;
+
+            var parameters = PrepareDeferredLightingParameters(hdCamera, debugDisplaySettings);
+            var resources = PrepareDeferredLightingResources();
+
+            if (parameters.enableTile)
+            {
+                bool useCompute = parameters.useComputeLightingEvaluation && !k_PreferFragment;
+                if (useCompute)
+                    RenderComputeDeferredLighting(parameters, resources, cmd);
+                else
+                    RenderComputeAsPixelDeferredLighting(parameters, resources, cmd);
+            }
+            else
+            {
+                RenderPixelDeferredLighting(parameters, resources, cmd);
+            }
+        }
+
+        static void RenderComputeDeferredLighting(in DeferredLightingParameters parameters, in DeferredLightingResources resources, CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "TilePass - Compute Deferred Lighting Pass", CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
+            {
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, resources.lightListBuffer);
+
+                for (int variant = 0; variant < parameters.numVariants; variant++)
+                {
+                    int kernel;
+
+                    if (parameters.enableFeatureVariants)
+                    {
+                        kernel = parameters.enableShadowMasks ? s_shadeOpaqueIndirectShadowMaskFptlKernels[variant] : s_shadeOpaqueIndirectFptlKernels[variant];
+                    }
+                    else
+                    {
+                        if (parameters.enableShadowMasks)
+                        {
+                            kernel = parameters.debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel : s_shadeOpaqueDirectShadowMaskFptlKernel;
+                        }
+                        else
+                        {
+                            kernel = parameters.debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectFptlKernel;
+                        }
+                    }
+
+                    cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs._CameraDepthTexture, resources.depthTexture);
+
+                    // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
+                    cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, resources.colorBuffers[0]);
+                    cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV, resources.colorBuffers[1]);
+
+                    // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
+                    if (parameters.enableFeatureVariants)
+                    {
+                        cmd.SetComputeBufferParam(parameters.deferredComputeShader, kernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
+                        cmd.SetComputeIntParam(parameters.deferredComputeShader, HDShaderIDs.g_TileListOffset, variant * parameters.numTiles);
+                        cmd.SetComputeBufferParam(parameters.deferredComputeShader, kernel, HDShaderIDs.g_TileList, resources.tileListBuffer);
+                        cmd.DispatchCompute(parameters.deferredComputeShader, kernel, resources.dispatchIndirectBuffer, (uint)variant * 3 * sizeof(uint));
+                    }
+                    else
+                    {
+                        // 4x 8x8 groups per a 16x16 tile.
+                        cmd.DispatchCompute(parameters.deferredComputeShader, kernel, parameters.numTilesX * 2, parameters.numTilesY * 2, parameters.viewCount);
+                    }
+                }
+            }
+        }
+
+        static void RenderComputeAsPixelDeferredLighting(in DeferredLightingParameters parameters, in DeferredLightingResources resources, Material deferredMat, bool outputSplitLighting, CommandBuffer cmd)
+        {
+            CoreUtils.SetKeyword(cmd, "OUTPUT_SPLIT_LIGHTING", outputSplitLighting);
+            CoreUtils.SetKeyword(cmd, "SHADOWS_SHADOWMASK", parameters.enableShadowMasks);
+
+            if (parameters.enableFeatureVariants)
+            {
+                if (outputSplitLighting)
+                    cmd.SetRenderTarget(resources.colorBuffers, resources.depthStencilBuffer);
+                else
+                    cmd.SetRenderTarget(resources.colorBuffers[0], resources.depthStencilBuffer);
+
+                for (int variant = 0; variant < parameters.numVariants; variant++)
+                {
+                    cmd.SetGlobalInt(HDShaderIDs.g_TileListOffset, variant * parameters.numTiles);
+
+                    cmd.EnableShaderKeyword(s_variantNames[variant]);
+
+                    MeshTopology topology = k_HasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
+                    cmd.DrawProceduralIndirect(Matrix4x4.identity, deferredMat, 0, topology, resources.dispatchIndirectBuffer, variant * 4 * sizeof(uint), null);
+
+                    // Must disable variant keyword because it will not get overridden.
+                    cmd.DisableShaderKeyword(s_variantNames[variant]);
+                }
+            }
+            else
+            {
+                CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", parameters.debugDisplaySettings.IsDebugDisplayEnabled());
+
+                if (outputSplitLighting)
+                    CoreUtils.DrawFullScreen(cmd, deferredMat, resources.colorBuffers, resources.depthStencilBuffer, null, 1);
+                else
+                    CoreUtils.DrawFullScreen(cmd, deferredMat, resources.colorBuffers[0], resources.depthStencilBuffer, null, 1);
+            }
+        }
+
+        static void RenderComputeAsPixelDeferredLighting(in DeferredLightingParameters parameters, in DeferredLightingResources resources, CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "TilePass - Compute as Pixel Deferred Lighting Pass", CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
+            {
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, resources.lightListBuffer);
+
+                cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, resources.depthTexture);
+                cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs.g_TileList, resources.tileListBuffer);
+
+                // If SSS is disabled, do lighting for both split lighting and no split lighting
+                // Must set stencil parameters through Material.
+                if (parameters.outputSplitLighting)
+                {
+                    RenderComputeAsPixelDeferredLighting(parameters, resources, s_DeferredTileSplitLightingMat, true, cmd);
+                    RenderComputeAsPixelDeferredLighting(parameters, resources, s_DeferredTileRegularLightingMat, false, cmd);
+                }
+                else
+                {
+                    RenderComputeAsPixelDeferredLighting(parameters, resources, s_DeferredTileMat, false, cmd);
+                }
+            }
+        }
+
+        static void RenderPixelDeferredLighting(in DeferredLightingParameters parameters, in DeferredLightingResources resources, CommandBuffer cmd)
+        {
+            cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, resources.lightListBuffer);
+
+            // First, render split lighting.
+            if (parameters.outputSplitLighting)
+            {
+                using (new ProfilingSample(cmd, "SinglePass - Deferred Lighting Pass MRT", CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
+                {
+                    CoreUtils.DrawFullScreen(cmd, parameters.splitLightingMat, resources.colorBuffers, resources.depthStencilBuffer);
+                }
             }
 
-            // Predeclared to reduce GC pressure
-            string tilePassName = "TilePass - Deferred Lighting Pass";
-            string tilePassMRTName = "TilePass - Deferred Lighting Pass MRT";
-            string singlePassName = "SinglePass - Deferred Lighting Pass";
-            string SinglePassMRTName = "SinglePass - Deferred Lighting Pass MRT";
-
-            string sLabel = m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) ?
-                (options.outputSplitLighting ? tilePassMRTName : tilePassName) :
-                (options.outputSplitLighting ? SinglePassMRTName : singlePassName);
-
-            using (new ProfilingSample(cmd, sLabel, CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
+            using (new ProfilingSample(cmd, "SinglePass - Deferred Lighting Pass", CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
             {
-                // Compute path
-                if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) && !k_PreferFragment)
+                var currentLightingMaterial = parameters.regularLightingMat;
+                // If SSS is disable, do lighting for both split lighting and no split lighting
+                // This is for debug purpose, so fine to use immediate material mode here to modify render state
+                if (!parameters.outputSplitLighting)
                 {
-                    int w = hdCamera.actualWidth;
-                    int h = hdCamera.actualHeight;
-                    int numTilesX = (w + 15) / 16;
-                    int numTilesY = (h + 15) / 16;
-                    int numTiles = numTilesX * numTilesY;
-
-                    bool enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
-
-                    int numVariants = 1;
-                    if (enableFeatureVariants)
-                        numVariants = LightDefinitions.s_NumFeatureVariants;
-
-                    for (int variant = 0; variant < numVariants; variant++)
-                    {
-                        int kernel;
-
-                        if (enableFeatureVariants)
-                        {
-                            if (m_enableBakeShadowMask)
-                                kernel = s_shadeOpaqueIndirectShadowMaskFptlKernels[variant];
-                            else
-                                kernel = s_shadeOpaqueIndirectFptlKernels[variant];
-                        }
-                        else
-                        {
-                            if (m_enableBakeShadowMask)
-                            {
-                                kernel = debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectShadowMaskFptlDebugDisplayKernel : s_shadeOpaqueDirectShadowMaskFptlKernel;
-                            }
-                            else
-                            {
-                                kernel = debugDisplaySettings.IsDebugDisplayEnabled() ? s_shadeOpaqueDirectFptlDebugDisplayKernel : s_shadeOpaqueDirectFptlKernel;
-                            }
-                        }
-
-                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
-
-                        // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
-                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
-                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
-
-                        // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
-
-                        if (enableFeatureVariants)
-                        {
-                            cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
-                            cmd.SetComputeIntParam(deferredComputeShader, HDShaderIDs.g_TileListOffset, variant * numTiles);
-                            cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs.g_TileList, s_TileList);
-                            cmd.DispatchCompute(deferredComputeShader, kernel, s_DispatchIndirectBuffer, (uint)variant * 3 * sizeof(uint));
-                        }
-                        else
-                        {
-                            // 4x 8x8 groups per a 16x16 tile.
-                            cmd.DispatchCompute(deferredComputeShader, kernel, numTilesX * 2, numTilesY * 2, hdCamera.viewCount);
-                        }
-                    }
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
                 }
-                // Compute as pixel shader (faster on some platforms)
-                else if (m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) && m_FrameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) && k_PreferFragment)
+                else
                 {
-                    int w = hdCamera.actualWidth;
-                    int h = hdCamera.actualHeight;
-                    int numTilesX = (w + 15) / 16;
-                    int numTilesY = (h + 15) / 16;
-                    int numTiles = numTilesX * numTilesY;
-
-                    bool enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
-
-                    if (options.outputSplitLighting)
-                        cmd.SetRenderTarget(colorBuffers, depthStencilBuffer);
-                    else
-                        cmd.SetRenderTarget(colorBuffers[0], depthStencilBuffer);
-                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, depthTexture);
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, s_TileFeatureFlags);
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_TileList, s_TileList);
-
-                    // If SSS is disabled, do lighting for both split lighting and no split lighting
-                    // Must set stencil parameters through Material.
-                    Material deferredMat;
-
-                    if (options.outputSplitLighting)
-                        deferredMat = s_DeferredTileSplitLightingMat;
-                    else if (m_FrameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
-                        deferredMat = s_DeferredTileRegularLightingMat;
-                    else
-                        deferredMat = s_DeferredTileMat;
-
-                    CoreUtils.SetKeyword(cmd, "OUTPUT_SPLIT_LIGHTING", options.outputSplitLighting);
-                    CoreUtils.SetKeyword(cmd, "SHADOWS_SHADOWMASK", m_enableBakeShadowMask);
-
-                    if (enableFeatureVariants)
-                    {
-                        int numVariants = LightDefinitions.s_NumFeatureVariants;
-
-                        for (int variant = 0; variant < numVariants; variant++)
-                        {
-                            cmd.SetGlobalInt(HDShaderIDs.g_TileListOffset, variant * numTiles);
-
-                            cmd.EnableShaderKeyword(s_variantNames[variant]);
-
-                            MeshTopology topology = k_HasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
-                            cmd.DrawProceduralIndirect(Matrix4x4.identity, deferredMat, 0, topology, s_DispatchIndirectBuffer, variant * 4 * sizeof(uint), null);
-
-                            // Must disable variant keyword because it will not get overriden.
-                            cmd.DisableShaderKeyword(s_variantNames[variant]);
-                        }
-                    }
-                    else
-                    {
-                        CoreUtils.SetKeyword(cmd, "LIGHTLOOP_DISABLE_TILE_AND_CLUSTER", m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile));
-                        CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplaySettings.IsDebugDisplayEnabled());
-
-                        if (options.outputSplitLighting)
-                            CoreUtils.DrawFullScreen(cmd, deferredMat, colorBuffers, depthStencilBuffer, null, 1);
-                        else
-                            CoreUtils.DrawFullScreen(cmd, deferredMat, colorBuffers[0], depthStencilBuffer, null, 1);
-                    }
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.RegularLighting);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                 }
-                else // Pixel shader evaluation
-                {
-                    int index = GetDeferredLightingMaterialIndex(options.outputSplitLighting ? 1 : 0,
-                            m_FrameSettings.IsEnabled(FrameSettingsField.DeferredTile) ? 1 : 0,
-                            m_enableBakeShadowMask ? 1 : 0,
-                            debugDisplaySettings.IsDebugDisplayEnabled() ? 1 : 0);
 
-                    Material currentLightingMaterial = m_deferredLightingMaterial[index];
-
-                    if (options.outputSplitLighting)
-                    {
-                        CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers, depthStencilBuffer);
-                    }
-                    else
-                    {
-                        // If SSS is disable, do lighting for both split lighting and no split lighting
-                        // This is for debug purpose, so fine to use immediate material mode here to modify render state
-                        if (!m_FrameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
-                        {
-                            currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
-                            currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
-                        }
-                        else
-                        {
-                            currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.RegularLighting);
-                            currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
-                        }
-
-                        CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers[0], depthStencilBuffer);
-                    }
-                }
-            } // End profiling
+                CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, resources.colorBuffers[0], resources.depthStencilBuffer);
+            }
         }
 
         public void RenderForward(Camera camera, CommandBuffer cmd, bool renderOpaque)
