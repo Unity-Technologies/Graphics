@@ -125,8 +125,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_AmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                 filterMode: FilterMode.Bilinear,
                 colorFormat: GraphicsFormat.R8_UNorm,
+                slices: TextureXR.slices,
+                dimension: TextureXR.dimension,
                 enableRandomWrite: true,
-                xrInstancing: true,
                 useDynamicScale: true,
                 name: "Ambient Occlusion"
             );
@@ -136,8 +137,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_MultiAmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                     filterMode: FilterMode.Bilinear,
                     colorFormat: GraphicsFormat.R8G8_UNorm,
+                    slices: TextureXR.slices,
+                    dimension: TextureXR.dimension,
                     enableRandomWrite: true,
-                    xrInstancing: true,
                     useDynamicScale: true,
                     name: "Ambient Occlusion MSAA"
                 );
@@ -342,7 +344,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
-                dimension: TextureDimension.Tex2D,
+                slices: TextureXR.slices,
+                dimension: TextureXR.dimension,
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
                 autoGenerateMips: false,
@@ -350,7 +353,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
-                xrInstancing: true,
                 name: name
             );
         }
@@ -362,13 +364,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 dimension: TextureDimension.Tex2DArray,
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
-                slices: 16,
+                slices: 16 * TextureXR.slices,
                 autoGenerateMips: false,
                 enableMSAA: false,
                 useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
-                xrInstancing: true,
                 name: name
             );
         }
