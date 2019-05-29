@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
 {
     class VFXCameraSort : VFXContext
     {
-        public VFXCameraSort() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
+        public VFXCameraSort() : base(VFXContextType.Update, VFXDataType.Particle, VFXDataType.Particle) {}
         public override string name { get { return "CameraSort"; } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXCameraSort"; } }
         public override bool codeGeneratorCompute { get { return true; } }
