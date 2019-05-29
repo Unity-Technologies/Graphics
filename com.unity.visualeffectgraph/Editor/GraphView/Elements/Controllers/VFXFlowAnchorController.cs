@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
 {
@@ -95,11 +96,30 @@ namespace UnityEditor.VFX.UI
             {
                 if (owner is VFXBasicSpawner)
                 {
+                    switch(slotIndex)
+                    {
+                        case 0:
+                            return "Start";
+                        case 1:
+                            return "Stop";
+                    }
+                }
+                else if (owner is VFXSubgraphContext)
+                {
+                    string name = (owner as VFXSubgraphContext).GetInputFlowName(slotIndex);
                     if (slotIndex == 0)
                     {
-                        return "Start";
+                        if (name == VisualEffectAsset.PlayEventName)
+                            return "Start";
+                        else if (name == VisualEffectAsset.StopEventName)
+                            return "Stop";
                     }
-                    return "Stop";
+                    else if (slotIndex == 1)
+                    {
+                        if (name == VisualEffectAsset.StopEventName)
+                            return "Stop";
+                    }
+                    return name;
                 }
                 return "";
             }
