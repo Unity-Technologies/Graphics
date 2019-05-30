@@ -160,6 +160,8 @@ namespace UnityEngine.TestTools.Graphics
                         diffImage.SetPixels32(diffPixelsArray, 0);
                         diffImage.Apply(false);
 
+                        TestContext.CurrentContext.Test.Properties.Set("DiffImage", Convert.ToBase64String(diffImage.EncodeToPNG()) );
+
                         failedImageMessage.DiffImage = diffImage.EncodeToPNG();
                         failedImageMessage.ExpectedImage = expected.EncodeToPNG();
                         throw;
@@ -174,6 +176,7 @@ namespace UnityEngine.TestTools.Graphics
 #else
                 PlayerConnection.instance.Send(FailedImageMessage.MessageId, failedImageMessage.Serialize());
 #endif
+                TestContext.CurrentContext.Test.Properties.Set("Image", Convert.ToBase64String(actual.EncodeToPNG()));
                 throw;
             }
         }
