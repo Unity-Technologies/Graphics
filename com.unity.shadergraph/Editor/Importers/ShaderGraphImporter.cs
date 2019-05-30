@@ -102,7 +102,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
-        static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
         {
             graph = null;
             string shaderString = null;

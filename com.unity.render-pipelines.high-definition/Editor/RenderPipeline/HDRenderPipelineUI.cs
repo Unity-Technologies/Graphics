@@ -152,6 +152,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineResources, k_RenderPipelineResourcesContent);
 
+            #if ENABLE_RAYTRACING
+            EditorGUILayout.PropertyField(serialized.renderPipelineRayTracingResources, k_RenderPipelineRayTracingResourcesContent);
+            #endif
+
             // Not serialized as editor only datas... Retrieve them in data
             EditorGUI.showMixedValue = serialized.editorResourceHasMultipleDifferentValues;
             EditorGUI.BeginChangeCheck();
@@ -494,6 +498,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if(UnityEngine.SystemInfo.supportsRayTracing)
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
+                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
+                {
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRaytracingTier, k_RaytracingTier);
+                }
             }
             else
 #endif
