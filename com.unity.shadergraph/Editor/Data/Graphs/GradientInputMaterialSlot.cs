@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            properties.Add(new PreviewProperty(ConcreteSlotValueType.Gradient)
+            properties.Add(new PreviewProperty(PropertyType.Gradient)
             {
                 name = name,
                 gradientValue = value

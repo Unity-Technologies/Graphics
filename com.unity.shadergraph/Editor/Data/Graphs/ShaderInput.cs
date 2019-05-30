@@ -2,7 +2,7 @@
 
 namespace UnityEditor.ShaderGraph
 {
-    internal abstract class ShaderInput : ShaderValue
+    abstract class ShaderInput : ShaderValue
     {
 #region Utility
         public abstract AbstractMaterialNode ToConcreteNode();

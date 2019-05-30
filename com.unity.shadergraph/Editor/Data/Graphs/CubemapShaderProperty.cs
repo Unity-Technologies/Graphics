@@ -14,8 +14,8 @@ namespace UnityEditor.ShaderGraph
             value = new SerializableCubemap();
         }
 
-#region ShaderValueType
-        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Cubemap;
+#region Type
+        public override PropertyType propertyType => PropertyType.Cubemap;
 #endregion
 
 #region Capabilities
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(ConcreteSlotValueType.Cubemap)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
                 cubemapValue = value.cubemap

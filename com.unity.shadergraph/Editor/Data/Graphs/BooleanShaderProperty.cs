@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
         }
 
 #region ShaderValueType
-        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Boolean;
+        public override PropertyType propertyType => PropertyType.Boolean;
 #endregion
 
 #region Capabilities
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(ConcreteSlotValueType.Boolean)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
                 booleanValue = value

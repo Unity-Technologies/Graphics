@@ -11,13 +11,6 @@ namespace UnityEditor.ShaderGraph
         public override bool isExposable => false;
         public override bool isRenamable => true;
 #endregion
-
-#region PropertyBlock
-        public override string GetPropertyBlockString()
-        {
-            return string.Empty;
-        }
-#endregion
         
 #region ShaderValue
         public override string GetPropertyDeclarationString(string delimiter = ";")

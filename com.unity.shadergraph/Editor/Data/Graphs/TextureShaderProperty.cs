@@ -19,8 +19,8 @@ namespace UnityEditor.ShaderGraph
             value = new SerializableTexture();
         }
 
-#region ShaderValueType
-        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Texture2D;
+#region Type
+        public override PropertyType propertyType => PropertyType.Texture2D;
 #endregion
 
 #region Capabilities
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
         
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(ConcreteSlotValueType.Texture2D)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
                 textureValue = value.texture

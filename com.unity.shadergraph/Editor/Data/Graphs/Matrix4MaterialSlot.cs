@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(ConcreteSlotValueType.Matrix4)
+            var pp = new PreviewProperty(PropertyType.Matrix4)
             {
                 name = name,
                 matrixValue = value

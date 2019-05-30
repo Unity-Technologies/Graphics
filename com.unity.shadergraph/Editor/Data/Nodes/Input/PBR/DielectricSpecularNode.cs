@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph
 
             if (material.type == DielectricMaterialType.Common)
             {
-                properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector1)
+                properties.Add(new PreviewProperty(PropertyType.Vector1)
                 {
                     name = string.Format("_{0}_Range", GetVariableNameForNode()),
                     floatValue = material.range
@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph
             }
             else if (material.type == DielectricMaterialType.Custom)
             {
-                properties.Add(new PreviewProperty(ConcreteSlotValueType.Vector1)
+                properties.Add(new PreviewProperty(PropertyType.Vector1)
                 {
                     name = string.Format("_{0}_IOR", GetVariableNameForNode()),
                     floatValue = material.indexOfRefraction

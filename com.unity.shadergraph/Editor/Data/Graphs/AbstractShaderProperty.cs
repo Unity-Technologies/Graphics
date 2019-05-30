@@ -7,8 +7,9 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class AbstractShaderProperty : ShaderInput
     {
-#region Name
-        public string propertyTypeName => GetType().Name.Replace("ShaderProperty", "");
+#region Type
+        public abstract PropertyType propertyType { get; }
+        public override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
 #endregion
 
 #region Precision
@@ -58,12 +59,16 @@ namespace UnityEditor.ShaderGraph
 
         public string hideTagString => hidden ? "[HideInInspector]" : "";
 
-        public abstract string GetPropertyBlockString();
+        public virtual string GetPropertyBlockString()
+        {
+            return string.Empty;
+        }
 #endregion
 
 #region ShaderValue
         public virtual string GetPropertyDeclarationString(string delimiter = ";")
         {
+            SlotValueType type = ConcreteSlotValueType.Vector4.ToSlotValueType();
             return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}{delimiter}";
         }
 

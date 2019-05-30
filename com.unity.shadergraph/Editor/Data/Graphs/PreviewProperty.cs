@@ -7,11 +7,11 @@ namespace UnityEditor.ShaderGraph
     struct PreviewProperty
     {
         public string name { get; set; }
-        public ConcreteSlotValueType concreteShaderValueType { get; private set; }
+        public PropertyType propType { get; private set; }
 
-        public PreviewProperty(ConcreteSlotValueType type) : this()
+        public PreviewProperty(PropertyType type) : this()
         {
-            concreteShaderValueType = type;
+            propType = type;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -44,18 +44,34 @@ namespace UnityEditor.ShaderGraph
         ClassData m_ClassData;
         StructData m_StructData;
 
+        public Color colorValue
+        {
+            get
+            {
+                if (propType != PropertyType.Color)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Color, propType));
+                return m_StructData.colorValue;
+            }
+            set
+            {
+                if (propType != PropertyType.Color)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Color, propType));
+                m_StructData.colorValue = value;
+            }
+        }
+
         public Texture textureValue
         {
             get
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Texture2D && concreteShaderValueType != ConcreteSlotValueType.Texture2DArray && concreteShaderValueType != ConcreteSlotValueType.Texture3D)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, ConcreteSlotValueType.Texture2D, concreteShaderValueType));
+                if (propType != PropertyType.Texture2D && propType != PropertyType.Texture2DArray && propType != PropertyType.Texture3D)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Texture2D, propType));
                 return m_ClassData.textureValue;
             }
             set
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Texture2D && concreteShaderValueType != ConcreteSlotValueType.Texture2DArray && concreteShaderValueType != ConcreteSlotValueType.Texture3D)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, ConcreteSlotValueType.Texture2D, concreteShaderValueType));
+                if (propType != PropertyType.Texture2D && propType != PropertyType.Texture2DArray && propType != PropertyType.Texture3D)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Texture2D, propType));
                 m_ClassData.textureValue = value;
             }
         }
@@ -64,14 +80,14 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Cubemap)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, ConcreteSlotValueType.Cubemap, concreteShaderValueType));
+                if (propType != PropertyType.Cubemap)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Cubemap, propType));
                 return m_ClassData.cubemapValue;
             }
             set
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Cubemap)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, ConcreteSlotValueType.Cubemap, concreteShaderValueType));
+                if (propType != PropertyType.Cubemap)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Cubemap, propType));
                 m_ClassData.cubemapValue = value;
             }
         }
@@ -80,14 +96,14 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Gradient)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, ConcreteSlotValueType.Gradient, concreteShaderValueType));
+                if (propType != PropertyType.Gradient)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Gradient, propType));
                 return m_ClassData.gradientValue;
             }
             set
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Gradient)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, ConcreteSlotValueType.Gradient, concreteShaderValueType));
+                if (propType != PropertyType.Gradient)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Gradient, propType));
                 m_ClassData.gradientValue = value;
             }
         }
@@ -96,15 +112,15 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Vector2 && concreteShaderValueType != ConcreteSlotValueType.Vector3 && concreteShaderValueType != ConcreteSlotValueType.Vector4)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, ConcreteSlotValueType.Vector4, concreteShaderValueType));
+                if (propType != PropertyType.Vector2 && propType != PropertyType.Vector3 && propType != PropertyType.Vector4)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Vector4, propType));
                 return m_StructData.vector4Value;
             }
             set
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Vector2 && concreteShaderValueType != ConcreteSlotValueType.Vector3 && concreteShaderValueType != ConcreteSlotValueType.Vector4
-                    && concreteShaderValueType != ConcreteSlotValueType.Matrix2 && concreteShaderValueType != ConcreteSlotValueType.Matrix3 && concreteShaderValueType != ConcreteSlotValueType.Matrix4)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, ConcreteSlotValueType.Vector4, concreteShaderValueType));
+                if (propType != PropertyType.Vector2 && propType != PropertyType.Vector3 && propType != PropertyType.Vector4
+                    && propType != PropertyType.Matrix2 && propType != PropertyType.Matrix3 && propType != PropertyType.Matrix4)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Vector4, propType));
                 m_StructData.vector4Value = value;
             }
         }
@@ -113,14 +129,14 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Vector1)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, ConcreteSlotValueType.Vector1, concreteShaderValueType));
+                if (propType != PropertyType.Vector1)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Vector1, propType));
                 return m_StructData.floatValue;
             }
             set
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Vector1)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, ConcreteSlotValueType.Vector1, concreteShaderValueType));
+                if (propType != PropertyType.Vector1)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Vector1, propType));
                 m_StructData.floatValue = value;
             }
         }
@@ -129,14 +145,14 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Boolean)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, ConcreteSlotValueType.Boolean, concreteShaderValueType));
+                if (propType != PropertyType.Boolean)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Boolean, propType));
                 return m_StructData.booleanValue;
             }
             set
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Boolean)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, ConcreteSlotValueType.Boolean, concreteShaderValueType));
+                if (propType != PropertyType.Boolean)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Boolean, propType));
                 m_StructData.booleanValue = value;
             }
         }
@@ -145,14 +161,14 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Matrix2 && concreteShaderValueType != ConcreteSlotValueType.Matrix3 && concreteShaderValueType != ConcreteSlotValueType.Matrix4)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, ConcreteSlotValueType.Boolean, concreteShaderValueType));
+                if (propType != PropertyType.Matrix2 && propType != PropertyType.Matrix3 && propType != PropertyType.Matrix4)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Boolean, propType));
                 return m_StructData.matrixValue;
             }
             set
             {
-                if (concreteShaderValueType != ConcreteSlotValueType.Matrix2 && concreteShaderValueType != ConcreteSlotValueType.Matrix3 && concreteShaderValueType != ConcreteSlotValueType.Matrix4)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, ConcreteSlotValueType.Boolean, concreteShaderValueType));
+                if (propType != PropertyType.Matrix2 && propType != PropertyType.Matrix3 && propType != PropertyType.Matrix4)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Boolean, propType));
                 m_StructData.matrixValue = value;
             }
         }
@@ -162,19 +178,21 @@ namespace UnityEditor.ShaderGraph
 
         public void SetMaterialPropertyBlockValue(Material mat)
         {
-            if ((concreteShaderValueType == ConcreteSlotValueType.Texture2D || concreteShaderValueType == ConcreteSlotValueType.Texture2DArray || concreteShaderValueType == ConcreteSlotValueType.Texture3D) && textureValue != null)
+            if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D) && textureValue != null)
                 mat.SetTexture(name, m_ClassData.textureValue);
-            else if (concreteShaderValueType == ConcreteSlotValueType.Cubemap && cubemapValue != null)
+            else if (propType == PropertyType.Cubemap && cubemapValue != null)
                 mat.SetTexture(name, m_ClassData.cubemapValue);
-            else if (concreteShaderValueType == ConcreteSlotValueType.Vector2 || concreteShaderValueType == ConcreteSlotValueType.Vector3 || concreteShaderValueType == ConcreteSlotValueType.Vector4)
+            else if (propType == PropertyType.Color)
+                mat.SetColor(name, m_StructData.colorValue);
+            else if (propType == PropertyType.Vector2 || propType == PropertyType.Vector3 || propType == PropertyType.Vector4)
                 mat.SetVector(name, m_StructData.vector4Value);
-            else if (concreteShaderValueType == ConcreteSlotValueType.Vector1)
+            else if (propType == PropertyType.Vector1)
                 mat.SetFloat(name, m_StructData.floatValue);
-            else if (concreteShaderValueType == ConcreteSlotValueType.Boolean)
+            else if (propType == PropertyType.Boolean)
                 mat.SetFloat(name, m_StructData.booleanValue ? 1 : 0);
-            else if (concreteShaderValueType == ConcreteSlotValueType.Matrix2 || concreteShaderValueType == ConcreteSlotValueType.Matrix3 || concreteShaderValueType == ConcreteSlotValueType.Matrix4)
+            else if (propType == PropertyType.Matrix2 || propType == PropertyType.Matrix3 || propType == PropertyType.Matrix4)
                 mat.SetMatrix(name, m_StructData.matrixValue);
-            else if (concreteShaderValueType == ConcreteSlotValueType.Gradient)
+            else if (propType == PropertyType.Gradient)
             {
                 mat.SetFloat(string.Format("{0}_Type", name), (int)m_ClassData.gradientValue.mode);
                 mat.SetFloat(string.Format("{0}_ColorsLength", name), m_ClassData.gradientValue.colorKeys.Length);

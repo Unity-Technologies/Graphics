@@ -74,8 +74,9 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(concreteValueType) { name = name };
-            if (concreteValueType == ConcreteSlotValueType.Vector1)
+            var propType = concreteValueType.ToPropertyType();
+            var pp = new PreviewProperty(propType) { name = name };
+            if (propType == PropertyType.Vector1)
                 pp.floatValue = value.m00;
             else
                 pp.vector4Value = new Vector4(value.m00, value.m01, value.m02, value.m03);

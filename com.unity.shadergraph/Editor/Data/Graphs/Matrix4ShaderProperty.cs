@@ -13,8 +13,8 @@ namespace UnityEditor.ShaderGraph
             value = Matrix4x4.identity;
         }
 
-#region ShaderValueType
-        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Matrix4;
+#region Type
+        public override PropertyType propertyType => PropertyType.Matrix4;
 #endregion
 
 #region Utility
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(ConcreteSlotValueType.Matrix4)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
                 matrixValue = value

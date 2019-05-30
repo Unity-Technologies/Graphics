@@ -251,7 +251,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(input is AbstractShaderProperty property)
             {
                 var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                field = new BlackboardField(icon, property.displayName, property.propertyTypeName) { userData = property };
+                field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
                 var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
                 row = new BlackboardRow(field, propertyView);
             }

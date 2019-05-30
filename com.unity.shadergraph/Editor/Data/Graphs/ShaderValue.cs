@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    internal abstract class ShaderValue
+    abstract class ShaderValue
     {
 #region Guid
         [SerializeField]
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
         }
 #endregion
 
-#region ShaderValueType
+#region Type
         public abstract ConcreteSlotValueType concreteShaderValueType { get; }
 #endregion
     }

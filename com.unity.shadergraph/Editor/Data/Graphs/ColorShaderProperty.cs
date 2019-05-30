@@ -13,8 +13,8 @@ namespace UnityEditor.ShaderGraph
             displayName = "Color";
         }
 
-#region ShaderValueType
-        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector4;
+#region Type
+        public override PropertyType propertyType => PropertyType.Color;
 #endregion
 
 #region Capabilities
@@ -51,10 +51,10 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(ConcreteSlotValueType.Vector4)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
-                vector4Value = value
+                colorValue = value
             };
         }        
 

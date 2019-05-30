@@ -16,21 +16,14 @@ namespace UnityEditor.ShaderGraph
         public override string referenceName => $"{concreteShaderValueType.ToShaderString()}_{GuidEncoder.Encode(guid)}_{value.filter}_{value.wrap}";
 #endregion
 
-#region ShaderValueType
-        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.SamplerState;
+#region Type
+        public override PropertyType propertyType => PropertyType.SamplerState;
 #endregion
 
 #region Capabilities
         public override bool isBatchable => false;
         public override bool isExposable => false;
         public override bool isRenamable => false;
-#endregion
-
-#region PropertyBlock
-        public override string GetPropertyBlockString()
-        {
-            return string.Empty;
-        }
 #endregion
 
 #region ShaderValue

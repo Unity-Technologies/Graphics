@@ -17,21 +17,14 @@ namespace UnityEditor.ShaderGraph
             value = new Gradient();
         }
 
-#region ShaderValueType
-        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Gradient;
+#region Type
+        public override PropertyType propertyType => PropertyType.Gradient;
 #endregion
 
 #region Capabilities
         public override bool isBatchable => false;
         public override bool isExposable => false;
         public override bool isRenamable => true;
-#endregion
-
-#region PropertyBlock
-        public override string GetPropertyBlockString()
-        {
-            return string.Empty;
-        }
 #endregion
 
 #region ShaderValue
@@ -96,7 +89,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(ConcreteSlotValueType.Gradient)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
                 gradientValue = value

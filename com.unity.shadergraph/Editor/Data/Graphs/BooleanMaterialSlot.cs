@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(ConcreteSlotValueType.Boolean)
+            var pp = new PreviewProperty(PropertyType.Boolean)
             {
                 name = name,
                 booleanValue = value
