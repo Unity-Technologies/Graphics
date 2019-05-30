@@ -628,7 +628,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var materialNode = (AbstractMaterialNode)node;
             Node nodeView;
-            if (node is PropertyNode propertyNode)
+            if (node is GraphInputNode propertyNode)
             {
                 var tokenNode = new PropertyNodeView(propertyNode, m_EdgeConnectorListener);
                 m_GraphView.AddElement(tokenNode);

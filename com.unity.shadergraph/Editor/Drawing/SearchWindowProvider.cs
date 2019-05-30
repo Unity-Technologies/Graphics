@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var type in assembly.GetTypesOrNothing())
                 {
                     if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode)))
-                        && type != typeof(PropertyNode)
+                        && type != typeof(GraphInputNode)
                         && type != typeof(SubGraphNode))
                     {
                         var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
@@ -99,12 +99,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            foreach (var property in m_Graph.properties)
+            foreach (var property in m_Graph.inputs)
             {
-                var node = new PropertyNode();
+                var node = new GraphInputNode();
                 var property1 = property;
                 node.owner = m_Graph;
-                node.propertyGuid = property1.guid;
+                node.graphInputGuid = property1.guid;
                 node.owner = null;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
             }

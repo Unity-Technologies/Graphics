@@ -313,14 +313,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 prop.displayName = graph.SanitizeGraphInputName(prop.displayName, prop.guid);
                 graph.AddGraphInput(prop);
 
-                var propNode = new PropertyNode();
+                var propNode = new GraphInputNode();
                 propNode.drawState = node.drawState;
                 propNode.groupGuid = node.groupGuid;
                 graph.AddNode(propNode);
-                propNode.propertyGuid = prop.guid;
+                propNode.graphInputGuid = prop.guid;
 
                 var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
-                var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
+                var newSlot = propNode.FindSlot<MaterialSlot>(GraphInputNode.OutputSlotId);
 
                 foreach (var edge in graph.GetEdges(oldSlot.slotReference))
                     graph.Connect(newSlot.slotReference, edge.inputSlot);
@@ -333,7 +333,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (selection.OfType<IShaderNodeView>().Any(v => v.node != null))
             {
-                if (selection.OfType<IShaderNodeView>().Any(v => v.node is PropertyNode))
+                if (selection.OfType<IShaderNodeView>().Any(v => v.node is GraphInputNode))
                     return DropdownMenuAction.Status.Normal;
                 return DropdownMenuAction.Status.Disabled;
             }
@@ -345,10 +345,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Convert to Inline Node");
             var selectedNodeViews = selection.OfType<IShaderNodeView>()
                 .Select(x => x.node)
-                .OfType<PropertyNode>();
+                .OfType<GraphInputNode>();
 
             foreach (var propNode in selectedNodeViews)
-                ((GraphData)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
+                ((GraphData)propNode.owner).ReplaceGraphInputNodeWithConcreteNode(propNode);
         }
 
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
@@ -370,8 +370,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var properties = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
 
             // Collect the property nodes and get the corresponding properties
-            var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
-            var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
+            var propertyNodeGuids = nodes.OfType<GraphInputNode>().Select(x => x.graphInputGuid);
+            var metaProperties = this.graph.inputs.Where(x => propertyNodeGuids.Contains(x.guid));
 
             var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, properties, metaProperties);
             return JsonUtility.ToJson(graph, true);
@@ -415,8 +415,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    var property = (AbstractShaderProperty)field.userData;
-                    graph.RemoveShaderProperty(property.guid);
+                    var input = (ShaderInput)field.userData;
+                    graph.RemoveGraphInput(input.guid);
                 }
             }
 
@@ -591,7 +591,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (property != null)
                 {
                     graph.owner.RegisterCompleteObjectUndo("Drag Property");
-                    var node = new PropertyNode();
+                    var node = new GraphInputNode();
 
                     var drawState = node.drawState;
                     drawState.position =  new Rect(nodePosition, drawState.position.size);
@@ -599,7 +599,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graph.AddNode(node);
 
                     // Setting the guid requires the graph to be set first.
-                    node.propertyGuid = property.guid;
+                    node.graphInputGuid = property.guid;
                 }
             }
         }
@@ -623,11 +623,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphView.graph.AddGraphInput(copiedProperty);
 
                 // Update the property nodes that depends on the copied node
-                var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == property.guid);
+                var dependentPropertyNodes = copyGraph.GetNodes<GraphInputNode>().Where(x => x.graphInputGuid == property.guid);
                 foreach (var node in dependentPropertyNodes)
                 {
                     node.owner = graphView.graph;
-                    node.propertyGuid = copiedProperty.guid;
+                    node.graphInputGuid = copiedProperty.guid;
                 }
             }
 

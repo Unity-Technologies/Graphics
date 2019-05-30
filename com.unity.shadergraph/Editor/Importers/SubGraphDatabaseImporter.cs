@@ -252,7 +252,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             subGraphData.requirements = ShaderGraphRequirements.FromNodes(nodes, subGraphData.effectiveShaderStage, false);
-            subGraphData.inputs = graph.properties.ToList();
+            subGraphData.inputs = graph.inputs.ToList();
             subGraphData.graphPrecision = graph.concretePrecision;
             subGraphData.outputPrecision = outputNode.concretePrecision;
 

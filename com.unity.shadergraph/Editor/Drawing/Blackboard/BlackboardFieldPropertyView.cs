@@ -802,7 +802,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
-            foreach (var node in m_Graph.GetNodes<PropertyNode>())
+            foreach (var node in m_Graph.GetNodes<GraphInputNode>())
                 node.Dirty(modificationScope);
         }
     }

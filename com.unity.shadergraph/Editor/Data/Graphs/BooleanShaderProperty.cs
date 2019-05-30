@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
 #region PropertyBlock
         public override string GetPropertyBlockString()
         {
-            return $"{hideTagString}[ToggleUI] {referenceName}(\"{displayName}\", Float) = {(value == true ? 1 : 0)}";
+            return $"{hideTagString}[ToggleUI]{referenceName}(\"{displayName}\", Float) = {(value == true ? 1 : 0)}";
         }
 #endregion
 

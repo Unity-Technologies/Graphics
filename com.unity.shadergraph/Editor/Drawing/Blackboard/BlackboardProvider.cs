@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard.hierarchy.Add(m_PathLabelTextField);
 
             m_Section = new BlackboardSection { headerVisible = false };
-            foreach (var property in graph.properties)
+            foreach (var property in graph.inputs)
                 AddInput(property);
             blackboard.Add(m_Section);
         }
@@ -209,7 +209,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
-            foreach (var propertyGuid in m_Graph.removedProperties)
+            foreach (var propertyGuid in m_Graph.removedInputs)
             {
                 BlackboardRow row;
                 if (m_InputRows.TryGetValue(propertyGuid, out row))
@@ -219,7 +219,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            foreach (var property in m_Graph.addedProperties)
+            foreach (var property in m_Graph.addedInputs)
                 AddInput(property, index: m_Graph.GetGraphInputIndex(property));
 
             foreach (var propertyDict in expandedInputs)
@@ -227,12 +227,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 SessionState.SetBool(propertyDict.Key.guid.ToString(), propertyDict.Value);
             }
 
-            if (m_Graph.movedProperties.Any())
+            if (m_Graph.movedInputs.Any())
             {
                 foreach (var row in m_InputRows.Values)
                     row.RemoveFromHierarchy();
 
-                foreach (var property in m_Graph.properties)
+                foreach (var property in m_Graph.inputs)
                     m_Section.Add(m_InputRows[property.guid]);
             }
             m_ExpandedInputs.Clear();
@@ -293,7 +293,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DirtyNodes()
         {
-            foreach (var node in m_Graph.GetNodes<PropertyNode>())
+            foreach (var node in m_Graph.GetNodes<GraphInputNode>())
             {
                 node.OnEnable();
                 node.Dirty(ModificationScope.Node);
@@ -314,9 +314,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if(input is AbstractShaderProperty property)
                     {
-                        if (node.userData is PropertyNode propertyNode)
+                        if (node.userData is GraphInputNode propertyNode)
                         {
-                            if (propertyNode.propertyGuid == input.guid)
+                            if (propertyNode.graphInputGuid == input.guid)
                             {
                                 m_SelectedNodes.Add(node);
                                 node.AddToClassList("hovered");

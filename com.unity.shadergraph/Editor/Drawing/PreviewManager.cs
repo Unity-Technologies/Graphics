@@ -266,7 +266,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 propNode.CollectPreviewMaterialProperties(m_PreviewProperties);
             }
 
-            foreach (var input in m_Graph.properties)
+            foreach (var input in m_Graph.inputs)
             {
                 if(input is AbstractShaderProperty prop)
                     m_PreviewProperties.Add(prop.GetPreviewMaterialProperty());
