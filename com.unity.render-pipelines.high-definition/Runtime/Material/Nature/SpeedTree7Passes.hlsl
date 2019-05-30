@@ -48,7 +48,7 @@ void InitializeCommonData(inout SpeedTreeVertexInput input, float lodValue)
             #endif
             // face camera-facing leaf to camera
             float offsetLen = length(finalPosition);
-            float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, unity_MatrixInvV));
+            float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V));
             //finalPosition = mul(finalPosition.xyz, (float3x3)UNITY_MATRIX_IT_MV); // inv(MV) * finalPosition
             finalPosition = mul(mtx_ITMV, float4(finalPosition.xyz, 0)).xyz;
             finalPosition = normalize(finalPosition) * offsetLen; // make sure the offset vector is still scaled

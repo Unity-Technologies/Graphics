@@ -89,9 +89,9 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue, inout floa
             {
                 // face camera-facing leaf to camera
                 float offsetLen = length(windyPosition);
-				//float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, unity_MatrixInvV));
-                windyPosition = mul(windyPosition.xyz, (float3x3)UNITY_MATRIX_IT_MV); // inv(MV) * windyPosition
-				//windyPosition = mul(mtx_ITMV, float4(windyPosition.xyz, 0)).xyz;
+				float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V));
+                //windyPosition = mul(windyPosition.xyz, (float3x3)UNITY_MATRIX_IT_MV); // inv(MV) * windyPosition
+				windyPosition = mul(mtx_ITMV, float4(windyPosition.xyz, 0)).xyz;
                 windyPosition = normalize(windyPosition) * offsetLen; // make sure the offset vector is still scaled
             }
 
@@ -143,7 +143,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue, inout floa
     float3 treePos = float3(UNITY_MATRIX_M[0].w, UNITY_MATRIX_M[1].w, UNITY_MATRIX_M[2].w);
     // crossfade faces
     bool topDown = (input.texcoord.z > 0.5);
-	float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, unity_MatrixInvV));
+	float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V));
     float3 viewDir = mtx_ITMV[2].xyz;
     float3 cameraDir = normalize(mul((float3x3)UNITY_MATRIX_M, _WorldSpaceCameraPos - treePos));
     float viewDot = max(dot(viewDir, input.normal), dot(cameraDir, input.normal));
