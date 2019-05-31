@@ -10,8 +10,8 @@ namespace UnityEditor.VFX.Block
     class SubpixelAA : VFXBlock
     {
         public override string name { get { return "Subpixel Anti-Aliasing"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.Output; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get

@@ -134,9 +134,9 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
-    {precision}{slot2dimension} result2 = 2.0 * Base * Blend;
-    {precision}{slot2dimension} zeroOrOne = step(Blend, 0.5);
+    $precision{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
+    $precision{slot2dimension} result2 = 2.0 * Base * Blend;
+    $precision{slot2dimension} zeroOrOne = step(Blend, 0.5);
     Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
     Out = lerp(Base, Out, Opacity);
 }";
@@ -277,9 +277,9 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
-    {precision}{slot2dimension} result2 = 2.0 * Base * Blend;
-    {precision}{slot2dimension} zeroOrOne = step(Base, 0.5);
+    $precision{slot2dimension} result1 = 1.0 - 2.0 * (1.0 - Base) * (1.0 - Blend);
+    $precision{slot2dimension} result2 = 2.0 * Base * Blend;
+    $precision{slot2dimension} zeroOrOne = step(Base, 0.5);
     Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
     Out = lerp(Base, Out, Opacity);
 }
@@ -295,8 +295,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}{slot2dimension} check = step (0.5, Blend);
-    {precision}{slot2dimension} result1 = check * max(2.0 * (Base - 0.5), Blend);
+    $precision{slot2dimension} check = step (0.5, Blend);
+    $precision{slot2dimension} result1 = check * max(2.0 * (Base - 0.5), Blend);
     Out = result1 + (1.0 - check) * min(2.0 * Base, Blend);
     Out = lerp(Base, Out, Opacity);
 }
@@ -312,9 +312,9 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}{slot2dimension} result1 = 2.0 * Base * Blend + Base * Base * (1.0 - 2.0 * Blend);
-    {precision}{slot2dimension} result2 = sqrt(Base) * (2.0 * Blend - 1.0) + 2.0 * Base * (1.0 - Blend);
-    {precision}{slot2dimension} zeroOrOne = step(0.5, Blend);
+    $precision{slot2dimension} result1 = 2.0 * Base * Blend + Base * Base * (1.0 - 2.0 * Blend);
+    $precision{slot2dimension} result2 = sqrt(Base) * (2.0 * Blend - 1.0) + 2.0 * Base * (1.0 - Blend);
+    $precision{slot2dimension} zeroOrOne = step(0.5, Blend);
     Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
     Out = lerp(Base, Out, Opacity);
 }
@@ -331,9 +331,9 @@ namespace UnityEditor.ShaderGraph
                 @"
 {
     Base = clamp(Base, 0.000001, 0.999999);
-    {precision}{slot2dimension} result1 = 1.0 - (1.0 - Blend) / (2.0 * Base);
-    {precision}{slot2dimension} result2 = Blend / (2.0 * (1.0 - Base));
-    {precision}{slot2dimension} zeroOrOne = step(0.5, Base);
+    $precision{slot2dimension} result1 = 1.0 - (1.0 - Blend) / (2.0 * Base);
+    $precision{slot2dimension} result2 = Blend / (2.0 * (1.0 - Base));
+    $precision{slot2dimension} zeroOrOne = step(0.5, Base);
     Out = result2 * zeroOrOne + (1 - zeroOrOne) * result1;
     Out = lerp(Base, Out, Opacity);
 }

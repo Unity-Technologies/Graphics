@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string defaultFunctionBody => m_DefaultFunctionBody;
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
             GetOutputSlots<MaterialSlot>(slots);
@@ -80,19 +80,19 @@ namespace UnityEditor.ShaderGraph
                 if(generationMode == GenerationMode.Preview && slots.Count != 0)
                 {
                     slots.OrderBy(s => s.id);
-                    visitor.AddShaderChunk(string.Format("{0} {1};",
-                        NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slots[0].concreteValueType),
-                        GetVariableNameForSlot(slots[0].id)));
+                    sb.AppendLine("{0} {1};",
+                        slots[0].concreteValueType.ToShaderString(),
+                        GetVariableNameForSlot(slots[0].id));
                 }
                 return;
             }
 
             foreach (var argument in slots)
-                visitor.AddShaderChunk(string.Format("{0} {1};",
-                    NodeUtils.ConvertConcreteSlotValueTypeToString(precision, argument.concreteValueType),
-                    GetVariableNameForSlot(argument.id)));
+                sb.AppendLine("{0} {1};",
+                    argument.concreteValueType.ToShaderString(),
+                    GetVariableNameForSlot(argument.id));
 
-            string call = string.Format("{0}_{1}(", functionName, precision);
+            string call = $"{functionName}_$precision(";
             bool first = true;
 
             slots.Clear();
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph
                 call += GetVariableNameForSlot(argument.id);
             }
             call += ");";
-            visitor.AddShaderChunk(call, true);
+            sb.AppendLine(call);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph
 
         private string GetFunctionHeader()
         {
-            string header = string.Format("void {0}_{1}(", functionName, precision);
+            string header = $"void {functionName}_$precision(";
             var first = true;
             List<MaterialSlot> slots = new List<MaterialSlot>();
 
@@ -164,7 +164,7 @@ namespace UnityEditor.ShaderGraph
                 if (!first)
                     header += ", ";
                 first = false;
-                header += string.Format("{0} {1}", argument.concreteValueType.ToString(precision), argument.shaderOutputName);
+                header += $"{argument.concreteValueType.ToShaderString()} {argument.shaderOutputName}";
             }
 
             slots.Clear();
@@ -174,7 +174,7 @@ namespace UnityEditor.ShaderGraph
                 if (!first)
                     header += ", ";
                 first = false;
-                header += string.Format("out {0} {1}", argument.concreteValueType.ToString(precision), argument.shaderOutputName);
+                header += $"out {argument.concreteValueType.ToShaderString()} {argument.shaderOutputName}";
             }
             header += ")";
             return header;

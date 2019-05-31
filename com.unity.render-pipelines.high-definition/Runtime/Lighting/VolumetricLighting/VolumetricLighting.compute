@@ -542,6 +542,11 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 normalizedVoxelValue = linearizedVoxelValue * rcp(dt);
         float4 normalizedBlendValue = normalizedVoxelValue;
 
+    #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
+        // With XR single-pass instancing, remove the camera-relative offset for the reprojected sample
+        centerWS -= _WorldSpaceCameraPosViewOffset;
+    #endif
+
         // Reproject the history at 'centerWS'.
         float4 reprojValue = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLightingHistory, s_linear_clamp_sampler),
                                            centerWS,

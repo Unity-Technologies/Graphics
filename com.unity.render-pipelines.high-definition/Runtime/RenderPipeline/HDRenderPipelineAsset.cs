@@ -57,6 +57,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RenderPipelineResources = value; }
         }
 
+        [SerializeField]
+        HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources;
+        public HDRenderPipelineRayTracingResources renderPipelineRayTracingResources
+        {
+            get { return m_RenderPipelineRayTracingResources; }
+            set { m_RenderPipelineRayTracingResources = value; }
+        }
+
 #if UNITY_EDITOR
         HDRenderPipelineEditorResources m_RenderPipelineEditorResources;
 

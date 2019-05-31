@@ -435,7 +435,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-                        cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.computePassCount);
+                        cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
 
                         // Cleanup
                         if (bloomActive) m_Pool.Recycle(m_BloomTexture);
@@ -518,7 +518,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int kernel = cs.FindKernel("KMain");
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.computePassCount);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
         }
 
         #endregion
@@ -718,7 +718,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // On Scorpio, a group size of 16x16 is faster by around 20%, on Durango the cost is the same.
             int groupSize = SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ? 16 : 8;
 
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + (groupSize - 1)) / groupSize, (camera.actualHeight + (groupSize - 1)) / groupSize, camera.computePassCount);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + (groupSize - 1)) / groupSize, (camera.actualHeight + (groupSize - 1)) / groupSize, camera.viewCount);
         }
 
         static void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
@@ -726,9 +726,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 return rtHandleSystem.Alloc(
-                    Vector2.one, depthBufferBits: DepthBits.None,
+                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
                     filterMode: FilterMode.Bilinear, colorFormat: k_ColorFormat,
-                    enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, name: "TAA History"
+                    enableRandomWrite: true, useDynamicScale: true, name: "TAA History"
                 );
             }
 
@@ -744,7 +744,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, history);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.computePassCount);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
         }
 
         #endregion
@@ -913,7 +913,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, fullresCoC);
-                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.computePassCount);
+                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
 
                 // -----------------------------------------------------------------------------
                 // Pass: re-project CoC if TAA is enabled
@@ -929,7 +929,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHistoryCoCTexture, prevCoCTex);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, nextCoCTex);
-                    cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.computePassCount);
+                    cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
 
                     // Cleanup the main CoC texture as we don't need it anymore and use the
                     // re-projected one instead for the following steps
@@ -968,7 +968,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputFarTexture, pingFarRGB);
                 }
 
-                cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.computePassCount);
+                cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.viewCount);
             }
 
             if (farLayerActive)
@@ -1003,12 +1003,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // Downsample
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, pingFarRGB);
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, mip);
-                            cmd.DispatchCompute(cs, kernel, gx, gy, camera.computePassCount);
+                            cmd.DispatchCompute(cs, kernel, gx, gy, camera.viewCount);
 
                             // Copy to mip
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, mip);
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, pingFarRGB, i + 1);
-                            cmd.DispatchCompute(cs, kernel, gx, gy, camera.computePassCount);
+                            cmd.DispatchCompute(cs, kernel, gx, gy, camera.viewCount);
 
                             m_Pool.Recycle(mip);
                         }
@@ -1022,7 +1022,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, pingFarRGB, 2);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, pingFarRGB, 3);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, pingFarRGB, 4);
-                        cmd.DispatchCompute(cs, kernel, tx, ty, camera.computePassCount);
+                        cmd.DispatchCompute(cs, kernel, tx, ty, camera.viewCount);
                     }
 
                     cs = m_Resources.shaders.depthOfFieldMipCS;
@@ -1032,7 +1032,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, farCoC, 2);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, farCoC, 3);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, farCoC, 4);
-                    cmd.DispatchCompute(cs, kernel, tx, ty, camera.computePassCount);
+                    cmd.DispatchCompute(cs, kernel, tx, ty, camera.viewCount);
                 }
             }
 
@@ -1051,7 +1051,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, nearCoC);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, dilatedNearCoC);
-                    cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.computePassCount);
+                    cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.viewCount);
 
                     if (passCount > 1)
                     {
@@ -1063,7 +1063,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, src);
                             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, dst);
-                            cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.computePassCount);
+                            cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.viewCount);
                             CoreUtils.Swap(ref src, ref dst);
                         }
 
@@ -1145,7 +1145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.computePassCount);
+                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.viewCount);
                     }
                 }
             }
@@ -1166,7 +1166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputFarTexture, pongFarRGB);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, farCoC);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, pongNearRGB);
-                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.computePassCount);
+                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.viewCount);
 
                         CoreUtils.Swap(ref pingNearRGB, ref pongNearRGB);
                     }
@@ -1208,7 +1208,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                     else
                     {
-                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.computePassCount);
+                        cmd.DispatchCompute(cs, kernel, threadGroup8X, threadGroup8Y, camera.viewCount);
                     }
                 }
             }
@@ -1241,7 +1241,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.computePassCount);
+                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
             }
 
             // -----------------------------------------------------------------------------
@@ -1272,8 +1272,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 return rtHandleSystem.Alloc(
-                    Vector2.one, depthBufferBits: DepthBits.None, filterMode: FilterMode.Point,
-                    colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, name: "CoC History"
+                    Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
+                    dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "CoC History"
                 );
             }
 
@@ -1323,14 +1323,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 motionBlurParams0 = new Vector4(
                 screenMagnitude,
                 screenMagnitude * screenMagnitude,
-                m_MotionBlur.minVel.value,
-                m_MotionBlur.minVel.value * m_MotionBlur.minVel.value
+                m_MotionBlur.minimumVelocity.value,
+                m_MotionBlur.minimumVelocity.value * m_MotionBlur.minimumVelocity.value
             );
 
 
             Vector4 motionBlurParams1 = new Vector4(
                 m_MotionBlur.intensity.value,
-                m_MotionBlur.maxVelocity.value / screenMagnitude,
+                m_MotionBlur.maximumVelocity.value / screenMagnitude,
                 m_MotionBlur.tileMinMaxVelRatioForHighQuality.value,
                 m_MotionBlur.cameraRotationVelocityClamp.value
             );
@@ -1357,7 +1357,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 threadGroupX = (camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
                 threadGroupY = (camera.actualHeight + (groupSizeY - 1)) / groupSizeY;
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.computePassCount);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.viewCount);
             }
 
 
@@ -1389,7 +1389,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 threadGroupX = (camera.actualWidth + (tileSize - 1)) / tileSize;
                 threadGroupY = (camera.actualHeight + (tileSize - 1)) / tileSize;
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.computePassCount);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.viewCount);
             }
 
             // -----------------------------------------------------------------------------
@@ -1418,7 +1418,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 groupSizeY = 8;
                 threadGroupX = (tileTexWidth + (groupSizeX - 1)) / groupSizeX;
                 threadGroupY = (tileTexHeight + (groupSizeY - 1)) / groupSizeY;
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.computePassCount);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.viewCount);
             }
 
             // -----------------------------------------------------------------------------
@@ -1431,7 +1431,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMax, tileToScatterMax);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMin, tileToScatterMin);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, maxTileNeigbourhood);
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.computePassCount);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.viewCount);
             }
 
             // -----------------------------------------------------------------------------
@@ -1461,7 +1461,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 groupSizeY = 16;
                 threadGroupX = (camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
                 threadGroupY = (camera.actualHeight + (groupSizeY - 1)) / groupSizeY;
-                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.computePassCount);
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, camera.viewCount);
             }
 
 
@@ -1504,7 +1504,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS));
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.computePassCount);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
         }
 
         Vector2 CalcViewExtents(HDCamera camera)
@@ -1620,7 +1620,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (h < source.rt.height && h % 8 < k_RTGuardBandSize)
                     h += k_RTGuardBandSize;
 
-                cmd.DispatchCompute(shader, kernelId, (w + 7) / 8, (h + 7) / 8, camera.computePassCount);
+                cmd.DispatchCompute(shader, kernelId, (w + 7) / 8, (h + 7) / 8, camera.viewCount);
             }
 
             // Pre-filtering
@@ -2067,7 +2067,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int kernel = cs.FindKernel("FXAA");
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.computePassCount);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
         }
 
         #endregion
@@ -2313,9 +2313,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return stack.Pop();
 
                 var rt = RTHandles.Alloc(
-                    scaleFactor, depthBufferBits: DepthBits.None,
-                    filterMode: FilterMode.Point, colorFormat: format, useMipMap: mipmap,
-                    enableRandomWrite: true, useDynamicScale: true, xrInstancing: true, name: "Post-processing Target Pool " + m_Tracker
+                    scaleFactor, TextureXR.slices, DepthBits.None, colorFormat: format, dimension: TextureXR.dimension,
+                    useMipMap: mipmap, enableRandomWrite: true, useDynamicScale: true, name: "Post-processing Target Pool " + m_Tracker
                 );
 
                 m_Tracker++;

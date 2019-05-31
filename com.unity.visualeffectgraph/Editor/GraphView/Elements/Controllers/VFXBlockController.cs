@@ -15,6 +15,10 @@ namespace UnityEditor.VFX.UI
         public VFXBlockController(VFXBlock model, VFXContextController contextController) : base(model, contextController.viewController)
         {
             m_ContextController = contextController;
+            if (model is VFXSubgraphBlock)
+            {
+                model.Invalidate(VFXModel.InvalidationCause.kSettingChanged); // Simulate a settings change in case the subgraph parameters has changed.
+            }
         }
 
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)

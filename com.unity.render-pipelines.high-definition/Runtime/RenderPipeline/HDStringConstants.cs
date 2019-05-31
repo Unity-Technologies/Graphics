@@ -511,6 +511,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingIntensityClamp        = Shader.PropertyToID("_RaytracingIntensityClamp");
         public static readonly int _RaytracingReflectionMinSmoothness   = Shader.PropertyToID("_RaytracingReflectionMinSmoothness");
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
+        public static readonly int _RaytracingReflectSky            = Shader.PropertyToID("_RaytracingReflectSky");
 
         // Area Shadows
         public static readonly int _RaytracedAreaShadow             = Shader.PropertyToID("_RaytracedAreaShadow");

@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_xySeq = new Vector2[7];
             m_xySeqOffset = new Vector4();
 
-            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.kMaxSliceCount];
+            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.kMaxSlices];
 
             CreateVolumetricLightingBuffers();
         }
@@ -630,7 +630,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int h = (int)resolution.y;
 
                 // The shader defines GROUP_SIZE_1D = 8.
-                cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.computePassCount);
+                cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.viewCount);
             }
         }
 
@@ -742,7 +742,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int h = (int)resolution.y;
 
                 // The shader defines GROUP_SIZE_1D = 8.
-                cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.computePassCount);
+                cmd.DispatchCompute(m_VolumetricLightingCS, kernel, (w + 7) / 8, (h + 7) / 8, hdCamera.viewCount);
             }
         }
     } // class VolumetricLightingModule
