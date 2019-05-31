@@ -29,10 +29,11 @@ Pass
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
-    $Material.AffectsAlbedo:     #define _MATERIAL_AFFECTS_ALBEDO 1
-    $Material.AffectsNormal:     #define _MATERIAL_AFFECTS_NORMAL 1
-    $Material.AffectsMaskMap:    #define _MATERIAL_AFFECTS_MASKMAP 1
-    $Material.AffectsEmission:   #define _MATERIAL_AFFECTS_EMISSION 1
+    $Material.AffectsAlbedo:                #define _MATERIAL_AFFECTS_ALBEDO 1
+    $Material.AffectsNormal:                #define _MATERIAL_AFFECTS_NORMAL 1
+    $Material.AffectsMaskMap:               #define _MATERIAL_AFFECTS_MASKMAP 1
+    $Material.AffectsEmission:              #define _MATERIAL_AFFECTS_EMISSION 1
+    $Material.DecalVolumeHighPrecision:     #define _DECAL_VOLUME_HIGH_PRECISION 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
@@ -143,7 +144,9 @@ $include("SharedCode.template.hlsl")
 
 #if _MATERIAL_AFFECTS_NORMAL
         $SurfaceDescription.Normal:                     float2 deriv = -surfaceDescription.Normal.xy * rsqrt(max(1 - Sq(surfaceDescription.Normal.x) - Sq(surfaceDescription.Normal.y), Sq(FLT_EPS)));
+#ifndef DECAL_VOLUME_HIGH_PRECISION
         $SurfaceDescription.Normal:                     deriv = clamp(deriv, float2(-1, -1), float2(1, 1));
+#endif
     #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
         $SurfaceDescription.Normal:                     float3x3 tNormalToWorld = transpose((float3x3)normalToWorld);
         $SurfaceDescription.Normal:                     float3 decalXaxisWS = (tNormalToWorld)[0]; 

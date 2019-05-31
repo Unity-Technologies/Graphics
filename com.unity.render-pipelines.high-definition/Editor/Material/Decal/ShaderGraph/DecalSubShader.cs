@@ -481,6 +481,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // apply master node options to active fields
                 HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                if(Decal.DecalDefinitions.s_DecalVolumeHighPrecision == 1)
+                {
+                    activeFields.Add("Material.DecalVolumeHighPrecision");    
+                }            
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(DecalMasterNode.PositionSlotId);
