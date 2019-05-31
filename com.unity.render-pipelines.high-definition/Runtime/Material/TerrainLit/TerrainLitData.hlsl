@@ -138,6 +138,7 @@ float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS
 
 void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+    ZERO_INITIALIZE(SurfaceData, surfaceData);
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
     float2 terrainNormalMapUV = (input.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;
     input.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
@@ -163,10 +164,6 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 #endif
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
 
-#if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
-    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.worldToTangent[0], input.worldToTangent[1]);
-    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
-#endif
     surfaceData.geomNormalWS = input.worldToTangent[2];
 
     surfaceData.baseColor = terrainLitSurfaceData.albedo;
@@ -193,6 +190,27 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
+        
+#if HAVE_DECALS
+    float alpha = 1.0; // unused
+    DecalSurfaceData decalSurfaceData;       
+    decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+    if (_EnableDecals)
+    {
+        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);        
+    }
+#endif
+
+#if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
+    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.worldToTangent[0], input.worldToTangent[1]);
+#if HAVE_DECALS
+    if (_EnableDecals)
+    {
+        ApplyDecalToTangentSpaceNormal(decalSurfaceData, input.worldToTangent[2], normalTS);
+    }
+#endif
+    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
+#endif
 
     float3 bentNormalWS = surfaceData.normalWS;
 
@@ -203,14 +221,6 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.specularOcclusion = 1.0;
 #endif
 
-#if HAVE_DECALS
-    if (_EnableDecals)
-    {
-        float alpha = 1.0; // unused
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-    }
-#endif
 
 #ifdef DEBUG_DISPLAY
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)

@@ -4,24 +4,32 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 
-void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
+float3 ApplyDecalVolumeGradientToWorldSpaceNormal(float3 normalWS, float3 vtxNormal, float3 decalVolumeGradient, float decalContribution)
 {
-#if defined(_AXF_BRDF_TYPE_SVBRDF) && defined(_AXF_BRDF_TYPE_CAR_PAINT) // Not implemented for BTF
+    float3 surfGradAxF = SurfaceGradientFromPerturbedNormal(vtxNormal, normalWS);
+    float3 surfGradDecal = SurfaceGradientFromVolumeGradient(vtxNormal, decalVolumeGradient);
+    surfGradAxF = surfGradAxF * decalContribution + surfGradDecal;
+    return SafeNormalize(SurfaceGradientResolveNormal(vtxNormal, surfGradAxF));
+}
+
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)
+{
+#if !defined(_AXF_BRDF_TYPE_BTF) 
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
     {
-        surfaceData.diffuseColor.xyz = surfaceData.diffuseColor.xyz * decalSurfaceData.diffuseColor.w + decalSurfaceData.diffuseColor.xyz;
+        surfaceData.diffuseColor.xyz = surfaceData.diffuseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-        surfaceData.clearcoatColor.xyz = surfaceData.clearcoatColor.xyz * decalSurfaceData.diffuseColor.w + decalSurfaceData.diffuseColor.xyz;
+        surfaceData.clearcoatColor.xyz = surfaceData.clearcoatColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 #endif
     }
 
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
     {
-        // Affect both normal and clearcoat normal
-        surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
-        surfaceData.clearcoatNormalWS = normalize(surfaceData.clearcoatNormalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        surfaceData.normalWS.xyz = ApplyDecalVolumeGradientToWorldSpaceNormal(surfaceData.normalWS.xyz, vtxNormal, decalSurfaceData.normalWS.xyz, decalSurfaceData.normalWS.w);
+        surfaceData.clearcoatNormalWS = ApplyDecalVolumeGradientToWorldSpaceNormal(surfaceData.clearcoatNormalWS, vtxNormal, decalSurfaceData.normalWS.xyz, decalSurfaceData.normalWS.w);
     }
 
     if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
@@ -31,11 +39,9 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
         float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
         surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSBlend.x + decalSpecularColor;
 #endif
-
         surfaceData.clearcoatIOR = 1.0; // Neutral
         // Note:There is no ambient occlusion with AxF material
 #endif
-
         surfaceData.specularLobe = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
     }
 #endif
@@ -152,7 +158,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     if (_EnableDecals)
     {
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.worldToTangent[2], surfaceData);
     }
 #endif
 
