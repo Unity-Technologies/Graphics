@@ -589,6 +589,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 switch(blackboardField.userData)
                 {
                     case AbstractShaderProperty property:
+                    {
                         var node = new PropertyNode();
                         var drawState = node.drawState;
                         drawState.position =  new Rect(nodePosition, drawState.position.size);
@@ -598,6 +599,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // Setting the guid requires the graph to be set first.
                         node.propertyGuid = property.guid;
                         break;
+                    }
+                    case ShaderKeyword keyword:
+                    {
+                        var node = new KeywordNode();
+                        var drawState = node.drawState;
+                        drawState.position =  new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graph.AddNode(node);
+
+                        // Setting the guid requires the graph to be set first.
+                        node.keywordGuid = keyword.guid;
+                        break;
+                    }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -629,6 +643,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         node.owner = graphView.graph;
                         node.propertyGuid = copiedInput.guid;
+                    }
+                }
+                if(input is ShaderKeyword keyword)
+                {
+                    // Update the property nodes that depends on the copied node
+                    var dependentKeywordNodes = copyGraph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == input.guid);
+                    foreach (var node in dependentKeywordNodes)
+                    {
+                        node.owner = graphView.graph;
+                        node.keywordGuid = copiedInput.guid;
                     }
                 }
             }

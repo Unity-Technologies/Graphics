@@ -10,7 +10,12 @@ namespace UnityEditor.ShaderGraph
         public ShaderKeyword()
         {
             displayName = "Keyword";
-            m_Entries = new List<string>();
+            m_Entries = new List<KeyValuePair<string, string>>();
+
+            // TODO: Remove when BlackboardFieldKeywordView has content
+            m_Entries.Add(new KeyValuePair<string, string>("A", "_A"));
+            m_Entries.Add(new KeyValuePair<string, string>("B", "_B"));
+            m_Entries.Add(new KeyValuePair<string, string>("C", "_C"));
         }
 
         public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector1;
@@ -25,9 +30,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private List<string> m_Entries;
+        private List<KeyValuePair<string, string>> m_Entries;
 
-        public List<string> entries
+        public List<KeyValuePair<string, string>> entries
         {
             get => m_Entries;
             set => m_Entries = value;

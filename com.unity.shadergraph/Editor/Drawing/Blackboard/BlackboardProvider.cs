@@ -293,7 +293,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             
             if(field == null || row == null)
                 return;
-                
+
             var pill = row.Q<Pill>();
             pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
             pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
@@ -326,6 +326,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.OnEnable();
                 node.Dirty(ModificationScope.Node);
             }
+            foreach (var node in m_Graph.GetNodes<KeywordNode>())
+            {
+                node.OnEnable();
+                node.Dirty(ModificationScope.Node);
+            }
         }
 
         public BlackboardRow GetBlackboardRow(Guid guid)
@@ -345,6 +350,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (node.userData is PropertyNode propertyNode)
                         {
                             if (propertyNode.propertyGuid == input.guid)
+                            {
+                                m_SelectedNodes.Add(node);
+                                node.AddToClassList("hovered");
+                            }
+                        }
+                    }
+                    else if(input is ShaderKeyword keyword)
+                    {
+                        if (node.userData is KeywordNode keywordNode)
+                        {
+                            if (keywordNode.keywordGuid == input.guid)
                             {
                                 m_SelectedNodes.Add(node);
                                 node.AddToClassList("hovered");

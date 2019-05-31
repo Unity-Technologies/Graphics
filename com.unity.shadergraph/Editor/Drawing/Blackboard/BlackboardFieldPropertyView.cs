@@ -803,6 +803,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var node in m_Graph.GetNodes<PropertyNode>())
                 node.Dirty(modificationScope);
+
+            foreach(var node in m_Graph.GetNodes<KeywordNode>())
+                node.Dirty(modificationScope);
         }
     }
 }
