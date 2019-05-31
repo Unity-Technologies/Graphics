@@ -8,6 +8,17 @@ namespace UnityEngine.Experimental.Rendering
 {
     public delegate Vector2Int ScaleFunc(Vector2Int size);
 
+    public struct RTHandleProperties
+    {
+        public Vector2Int previousViewportSize;     // Size set as reference at the previous frame
+        public Vector2Int previousRenderTargetSize; // Size of the render targets at the previous frame
+        public Vector2Int currentViewportSize;      // Size set as reference at the current frame
+        public Vector2Int currentRenderTargetSize;  // Size of the render targets at the current frame
+        // Scale factor from RTHandleSystem max size to requested reference size (referenceSize/maxSize)
+        // (x,y) current frame (z,w) last frame (this is only used for buffered RTHandle Systems
+        public Vector4 rtHandleScale;
+    }
+
     public partial class RTHandleSystem : IDisposable
     {
         public enum ResizeMode
@@ -23,6 +34,9 @@ namespace UnityEngine.Experimental.Rendering
         HashSet<RTHandle>   m_AutoSizedRTs;
         RTHandle[]          m_AutoSizedRTsArray; // For fast iteration
         HashSet<RTHandle>   m_ResizeOnDemandRTs;
+        RTHandleProperties  m_RTHandleProperties;
+        public RTHandleProperties rtHandleProperties { get { return m_RTHandleProperties; } }
+
 
         int m_MaxWidths = 0;
         int m_MaxHeights = 0;
@@ -51,7 +65,11 @@ namespace UnityEngine.Experimental.Rendering
             m_ScaledRTSupportsMSAA = scaledRTsupportsMSAA;
             m_ScaledRTCurrentMSAASamples = scaledRTMSAASamples;
 
+<<<<<<< HEAD
             m_HardwareDynamicResRequested = HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+=======
+            m_HardwareDynamicResRequested = HDDynamicResolutionHandler.instance.RequestsHardwareDynamicResolution();
+>>>>>>> master
         }
 
         public void Release(RTHandle rth)
@@ -65,6 +83,10 @@ namespace UnityEngine.Experimental.Rendering
 
         public void SetReferenceSize(int width, int height, MSAASamples msaaSamples)
         {
+            m_RTHandleProperties.previousViewportSize = m_RTHandleProperties.currentViewportSize;
+            m_RTHandleProperties.previousRenderTargetSize = m_RTHandleProperties.currentRenderTargetSize;
+            Vector2 lastFrameMaxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
+
             width = Mathf.Max(width, 1);
             height = Mathf.Max(height, 1);
 
@@ -75,19 +97,47 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Resize(width, height, msaaSamples, sizeChanged, msaaSamplesChanged);
             }
+
+            m_RTHandleProperties.currentViewportSize = new Vector2Int(width, height);
+            m_RTHandleProperties.currentRenderTargetSize = new Vector2Int(GetMaxWidth(), GetMaxHeight());
+
+            if (HDDynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+            {
+                m_RTHandleProperties.rtHandleScale = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+            }
+            else
+            {
+                Vector2 maxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
+                Vector2 scaleCurrent = m_RTHandleProperties.currentViewportSize / maxSize;
+                Vector2 scalePrevious = m_RTHandleProperties.previousViewportSize / lastFrameMaxSize;
+                m_RTHandleProperties.rtHandleScale = new Vector4(scaleCurrent.x, scaleCurrent.y, scalePrevious.x, scalePrevious.y);
+            }
         }
 
-        public void ResetReferenceSize(int width, int height, MSAASamples msaaSamples)
+        public void SetHardwareDynamicResolutionState(bool enableHWDynamicRes)
         {
-            width = Mathf.Max(width, 1);
-            height = Mathf.Max(height, 1);
-
-            bool sizeChanged = width > GetMaxWidth() || height > GetMaxHeight();
-            bool msaaSamplesChanged = (msaaSamples != m_ScaledRTCurrentMSAASamples);
-
-            if (sizeChanged || msaaSamplesChanged)
+            if(enableHWDynamicRes != m_HardwareDynamicResRequested && m_AutoSizedRTsArray != null)
             {
-                Resize(width, height, msaaSamples, sizeChanged, msaaSamplesChanged);
+                m_HardwareDynamicResRequested = enableHWDynamicRes;
+
+                for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
+                {
+                    var rth = m_AutoSizedRTsArray[i];
+
+                    // Grab the render texture
+                    var renderTexture = rth.m_RT;
+                    if(renderTexture)
+                    {
+                        // Free the previous version
+                        renderTexture.Release();
+
+                        renderTexture.useDynamicScale = m_HardwareDynamicResRequested && rth.m_EnableHWDynamicScale;
+
+                        // Create the render texture
+                        renderTexture.Create();
+                    }
+
+                }
             }
         }
 
@@ -285,7 +335,10 @@ namespace UnityEngine.Experimental.Rendering
             MSAASamples msaaSamples = MSAASamples.None,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
+<<<<<<< HEAD
             bool xrInstancing = false,
+=======
+>>>>>>> master
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
             )
@@ -297,9 +350,12 @@ namespace UnityEngine.Experimental.Rendering
                 bindTextureMS = false;
             }
 
+<<<<<<< HEAD
             // XR override for instancing support
             VRTextureUsage vrUsage = TextureXR.OverrideRenderTexture(xrInstancing, ref dimension, ref slices);
 
+=======
+>>>>>>> master
             // We need to handle this in an explicit way since GraphicsFormat does not expose depth formats. TODO: Get rid of this branch once GraphicsFormat'll expose depth related formats
             RenderTexture rt;
             if (isShadowMap || depthBufferBits != DepthBits.None)
@@ -320,7 +376,10 @@ namespace UnityEngine.Experimental.Rendering
                     antiAliasing = (int)msaaSamples,
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
+<<<<<<< HEAD
                     vrUsage = vrUsage,
+=======
+>>>>>>> master
                     memorylessMode = memoryless,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, format, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
                 };
@@ -344,7 +403,10 @@ namespace UnityEngine.Experimental.Rendering
                     antiAliasing = (int)msaaSamples,
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
+<<<<<<< HEAD
                     vrUsage = vrUsage,
+=======
+>>>>>>> master
                     memorylessMode = memoryless,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
                 };
@@ -387,7 +449,10 @@ namespace UnityEngine.Experimental.Rendering
             bool enableMSAA = false,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
+<<<<<<< HEAD
             bool xrInstancing = false,
+=======
+>>>>>>> master
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
             )
@@ -416,7 +481,10 @@ namespace UnityEngine.Experimental.Rendering
                     enableMSAA,
                     bindTextureMS,
                     useDynamicScale,
+<<<<<<< HEAD
                     xrInstancing,
+=======
+>>>>>>> master
                     memoryless,
                     name
                     );
@@ -454,7 +522,10 @@ namespace UnityEngine.Experimental.Rendering
             bool enableMSAA = false,
             bool bindTextureMS = false,
             bool useDynamicScale = false,
+<<<<<<< HEAD
             bool xrInstancing = false,
+=======
+>>>>>>> master
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
             )
@@ -480,7 +551,10 @@ namespace UnityEngine.Experimental.Rendering
                     enableMSAA,
                     bindTextureMS,
                     useDynamicScale,
+<<<<<<< HEAD
                     xrInstancing,
+=======
+>>>>>>> master
                     memoryless,
                     name
                     );
@@ -510,7 +584,10 @@ namespace UnityEngine.Experimental.Rendering
             bool enableMSAA,
             bool bindTextureMS,
             bool useDynamicScale,
+<<<<<<< HEAD
             bool xrInstancing,
+=======
+>>>>>>> master
             RenderTextureMemoryless memoryless,
             string name
             )
@@ -540,9 +617,12 @@ namespace UnityEngine.Experimental.Rendering
             int msaaSamples = allocForMSAA ? (int)m_ScaledRTCurrentMSAASamples : 1;
             RTCategory category = allocForMSAA ? RTCategory.MSAA : RTCategory.Regular;
 
+<<<<<<< HEAD
             // XR override for instancing support
             VRTextureUsage vrUsage = TextureXR.OverrideRenderTexture(xrInstancing, ref dimension, ref slices);
 
+=======
+>>>>>>> master
             // We need to handle this in an explicit way since GraphicsFormat does not expose depth formats. TODO: Get rid of this branch once GraphicsFormat'll expose depth related formats
             RenderTexture rt;
             if (isShadowMap || depthBufferBits != DepthBits.None)
@@ -563,7 +643,10 @@ namespace UnityEngine.Experimental.Rendering
                     antiAliasing = msaaSamples,
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
+<<<<<<< HEAD
                     vrUsage = vrUsage,
+=======
+>>>>>>> master
                     memorylessMode = memoryless,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
                 };
@@ -585,7 +668,10 @@ namespace UnityEngine.Experimental.Rendering
                     antiAliasing = msaaSamples,
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
+<<<<<<< HEAD
                     vrUsage = vrUsage,
+=======
+>>>>>>> master
                     memorylessMode = memoryless,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
                 };

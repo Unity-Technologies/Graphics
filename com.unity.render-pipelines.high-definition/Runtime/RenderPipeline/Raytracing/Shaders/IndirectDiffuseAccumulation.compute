@@ -16,7 +16,11 @@
 
 // Raytracing Includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/OnlineVariance.hlsl"
+<<<<<<< HEAD
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingConsts.hlsl"
+=======
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
+>>>>>>> master
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
@@ -33,7 +37,10 @@ void IndirectDiffuseAccumulation(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 #if SHADEROPTIONS_RAYTRACING
     // Fetch the current pixel coordinate
     uint2 currentPixelCoordinate = groupId * KERNEL_TILE_SIZE + groupThreadId;
+<<<<<<< HEAD
     currentPixelCoordinate.x = currentPixelCoordinate.x + (unity_StereoEyeIndex * _ScreenSize.x);
+=======
+>>>>>>> master
 
     // Add the indirect diffuse to the buffer (while pre-multiplying by the base color)
     _GBufferTexture3[COORD_TEXTURE2D_X(currentPixelCoordinate)] += LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, currentPixelCoordinate) * LOAD_TEXTURE2D_X(_GBufferTexture0, currentPixelCoordinate);
@@ -54,10 +61,16 @@ void RaytracingIndirectDiffuseTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * KERNEL_TILE_SIZE + groupThreadId;
+<<<<<<< HEAD
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput_Stereo(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+=======
+
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+>>>>>>> master
 
     float2 closest = GetClosestFragment(posInputs);
 
@@ -67,10 +80,17 @@ void RaytracingIndirectDiffuseTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 
 
     float2 uv = posInputs.positionNDC;
 
+<<<<<<< HEAD
     float3 color = Fetch(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy);
     float3 history = Fetch(_IndirectDiffuseHistorybufferRW, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy);
     float3 topLeft = Fetch(_DenoiseInputTexture, uv, -RADIUS, _ScreenToTargetScale.xy);
     float3 bottomRight = Fetch(_DenoiseInputTexture, uv, RADIUS, _ScreenToTargetScale.xy);
+=======
+    float3 color = Fetch(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy);
+    float3 history = Fetch(_IndirectDiffuseHistorybufferRW, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy);
+    float3 topLeft = Fetch(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy);
+    float3 bottomRight = Fetch(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy);
+>>>>>>> master
 
     float3 corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
@@ -103,7 +123,11 @@ void RaytracingIndirectDiffuseTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 
 
     color = Unmap(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> master
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
 }
 
@@ -146,8 +170,12 @@ BilateralData TapBilateralData(uint2 coordSS)
 
     if (PLANE_WEIGHT > 0.0)
     {
+<<<<<<< HEAD
         posInput = GetPositionInput_Stereo(coordSS, _ScreenSize.zw, posInput.deviceDepth,
                                            UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+=======
+        posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+>>>>>>> master
         key.position = posInput.positionWS;
     }
 
@@ -205,7 +233,10 @@ void IndirectDiffuseFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * KERNEL_TILE_SIZE + groupThreadId;
+<<<<<<< HEAD
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+=======
+>>>>>>> master
 
     float3 reflSum = 0.0;
     float wSum = 0.0;

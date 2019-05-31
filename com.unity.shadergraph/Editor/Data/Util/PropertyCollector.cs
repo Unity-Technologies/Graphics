@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph
             return sb.ToString();
         }
 
+<<<<<<< HEAD
         public string GetPropertiesDeclaration(int baseIndentLevel, GenerationMode mode)
         {
             var builder = new ShaderStringBuilder(baseIndentLevel);
@@ -46,6 +47,15 @@ namespace UnityEditor.ShaderGraph
 
         public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode)
         {
+=======
+        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
+        {
+            foreach (var prop in properties)
+            {
+                prop.SetConcretePrecision(inheritedPrecision);
+            }
+
+>>>>>>> master
             var batchAll = mode == GenerationMode.Preview;
             builder.AppendLine("CBUFFER_START(UnityPerMaterial)");
             foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))

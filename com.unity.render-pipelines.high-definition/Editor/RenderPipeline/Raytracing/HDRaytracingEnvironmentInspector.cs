@@ -19,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Ambient Occlusion
             public static readonly GUIContent aoSectionText = EditorGUIUtility.TrTextContent("Ray-traced Ambient Occlusion");
+<<<<<<< HEAD
             public static readonly GUIContent aoEnableText = EditorGUIUtility.TrTextContent("Enable");
             public static readonly GUIContent aoLayerMaskText = EditorGUIUtility.TrTextContent("AO Layer Mask");
             public static readonly GUIContent aoRayLengthText = EditorGUIUtility.TrTextContent("Max AO Ray Length");
@@ -32,10 +33,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent aoNvidiaMaxFilterWidth = new GUIContent("AO Nvidia Max Filter Width");
             public static GUIContent aoNvidiaFilterRadius = new GUIContent("AO Nvidia Filter Radius");
             public static GUIContent aoNvidiaNormalSharpness = new GUIContent("AO Nvidia Normal Sharpness");
+=======
+            public static readonly GUIContent aoLayerMaskText = EditorGUIUtility.TrTextContent("AO Layer Mask");
+>>>>>>> master
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Reflections
             public static GUIContent reflSectionText = new GUIContent("Ray-traced Reflections");
+<<<<<<< HEAD
             public static GUIContent reflEnableText = new GUIContent("Enable");
             public static GUIContent reflLayerMaskText = EditorGUIUtility.TrTextContent("Reflection Layer Mask");
             public static GUIContent reflRayLengthText = new GUIContent("Max Reflections Ray Length");
@@ -53,6 +58,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Filter data
             public static GUIContent reflFilterRadius = new GUIContent("Filter Radius");
+=======
+            public static GUIContent reflLayerMaskText = EditorGUIUtility.TrTextContent("Reflection Layer Mask");
+
+>>>>>>> master
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Area Light Shadow
             public static GUIContent shadowEnableText = new GUIContent("Enable");
@@ -114,8 +123,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         CED.FoldoutGroup(Styles.reflSectionText, Expandable.Reflection, k_ExpandedState, ReflectionsSubMenu),
                         CED.FoldoutGroup(Styles.shadowSectionText, Expandable.AreaShadow, k_ExpandedState, AreaShadowSubMenu),
                         CED.FoldoutGroup(Styles.primaryRaytracingSectionText, Expandable.PrimaryRaytracing, k_ExpandedState, RaytracingSubMenu),
+<<<<<<< HEAD
                         CED.FoldoutGroup(Styles.indirectDiffuseSectionText, Expandable.IndirectDiffuse, k_ExpandedState, IndirectDiffuseSubMenu),
                         CED.FoldoutGroup(Styles.lightClusterSectionText, Expandable.LightCluster, k_ExpandedState, LightClusterSubMenu));
+=======
+                        CED.FoldoutGroup(Styles.indirectDiffuseSectionText, Expandable.IndirectDiffuse, k_ExpandedState, IndirectDiffuseSubMenu));
+>>>>>>> master
         }
         static void GenericSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
@@ -135,6 +148,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void AmbientOcclusionSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
+<<<<<<< HEAD
             // AO Specific fields
             EditorGUILayout.PropertyField(rtEnv.raytracedAO, Styles.aoEnableText);
 
@@ -173,11 +187,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 EditorGUI.indentLevel--;
                 EditorGUI.indentLevel--;
+=======
+            // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+            // the non serialized object and update the subscenes
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(rtEnv.aoLayerMask, Styles.aoLayerMaskText);
+            if(EditorGUI.EndChangeCheck())
+            {
+                UpdateEnvironmentSubScenes(rtEnv);
+>>>>>>> master
             }
         }
 
         static void ReflectionsSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
+<<<<<<< HEAD
             // AO Specific fields
             EditorGUILayout.PropertyField(rtEnv.raytracedReflections, Styles.reflEnableText);
 
@@ -228,11 +252,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 EditorGUI.indentLevel--;
                 EditorGUI.indentLevel--;
+=======
+            // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+            // the non serialized object and update the sub-scenes
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(rtEnv.reflLayerMask, Styles.reflLayerMaskText);
+            if(EditorGUI.EndChangeCheck())
+            {
+                UpdateEnvironmentSubScenes(rtEnv);
+>>>>>>> master
             }
         }
 
         static void RaytracingSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
+<<<<<<< HEAD
             // Primary Visibility Specific fields
             EditorGUILayout.PropertyField(rtEnv.raytracedObjects, Styles.raytracingEnableText);
 
@@ -279,11 +313,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(rtEnv.numAreaLightShadows, Styles.numAreaLightShadows);
                 EditorGUILayout.PropertyField(rtEnv.shadowFilterRadius, Styles.shadowBilateralRadius);
                 EditorGUILayout.PropertyField(rtEnv.splitIntegration, Styles.splitIntegrationText);
+=======
+            // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+            // the non serialized object and update the sub-scenes
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(rtEnv.raytracedLayerMask, Styles.raytracedLayerMaskText);
+            if(EditorGUI.EndChangeCheck())
+            {
+                UpdateEnvironmentSubScenes(rtEnv);
+            }
+        }
+
+        static void AreaShadowSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
+        {
+            // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+            // the non serialized object and update the sub-scenes
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(rtEnv.shadowLayerMask, Styles.shadowLayerMaskText);
+            if(EditorGUI.EndChangeCheck())
+            {
+                UpdateEnvironmentSubScenes(rtEnv);
+>>>>>>> master
             }
         }
 
         static void IndirectDiffuseSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
         {
+<<<<<<< HEAD
             EditorGUILayout.PropertyField(rtEnv.raytracedIndirectDiffuse, Styles.indirectDiffuseEnableText);
             if (rtEnv.raytracedIndirectDiffuse.boolValue)
             {
@@ -309,6 +365,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                     break;
                 }
+=======
+            // For the layer masks, we want to make sure the matching resources will be available during the following draw call. So we need to force a propagation to
+            // the non serialized object and update the sub-scenes
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(rtEnv.indirectDiffuseLayerMask, Styles.indirectDiffuseLayerMaskText);
+            if(EditorGUI.EndChangeCheck())
+            {
+                UpdateEnvironmentSubScenes(rtEnv);
+>>>>>>> master
             }
         }
 

@@ -2,11 +2,19 @@
 
 // Generic function that handles the reflection code
 [shader("closesthit")]
+<<<<<<< HEAD
 void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
 	// The first thing that we should do is grab the intersection vertice
     IntersectionVertice currentvertex;
     GetCurrentIntersectionVertice(attributeData, currentvertex);
+=======
+void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+{
+	// The first thing that we should do is grab the intersection vertice
+    IntersectionVertex currentvertex;
+    GetCurrentIntersectionVertex(attributeData, currentvertex);
+>>>>>>> master
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
@@ -22,7 +30,11 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     float travelDistance = length(pointWSPos - rayIntersection.origin);
     rayIntersection.t = travelDistance;
     rayIntersection.cone.width += travelDistance * abs(rayIntersection.cone.spreadAngle);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> master
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
     posInput.positionSS = uint2(0, 0);
@@ -49,14 +61,22 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     float invIOR = surfaceData.ior;
     if (fragInput.isFrontFace)
         invIOR = 1.0f / invIOR;
+<<<<<<< HEAD
     
     // Let's compute the refracted direction
     float3 refractedDirection = refract(rayIntersection.incidentDirection, surfaceData.normalWS, invIOR);
     
+=======
+
+    // Let's compute the refracted direction
+    float3 refractedDir = refract(rayIntersection.incidentDirection, surfaceData.normalWS, invIOR);
+
+>>>>>>> master
     // If the refracted direction ends going in the same direction than the normal, we do not want to throw it
     // NOTE: The current state of the code does not support the case of the total internal reflection. So there is a problem in term
     // of energy conservation
     // We launch a ray if there is still some depth be used
+<<<<<<< HEAD
     if (rayIntersection.remainingDepth > 0 && dot(refractedDirection, surfaceData.normalWS) < 0.0f)
     {
         
@@ -64,6 +84,17 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         RayDesc transmittedRay;
         transmittedRay.Origin = pointWSPos - surfaceData.normalWS * _RaytracingRayBias;
         transmittedRay.Direction = refractedDirection;
+=======
+    if (rayIntersection.remainingDepth > 0 && dot(refractedDir, surfaceData.normalWS) < 0.0f)
+    {
+        // Make sure we apply ray bias on the right side of the surface
+        const float biasSign = sign(dot(fragInput.worldToTangent[2], refractedDir));
+
+        // Build the transmitted ray structure
+        RayDesc transmittedRay;
+        transmittedRay.Origin = pointWSPos + biasSign * fragInput.worldToTangent[2] * _RaytracingRayBias;
+        transmittedRay.Direction = refractedDir;
+>>>>>>> master
         transmittedRay.TMin = 0;
         transmittedRay.TMax = _RaytracingRayMaxLength;
 
@@ -76,12 +107,21 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
+<<<<<<< HEAD
         transmittedIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
         transmittedIntersection.cone.width = rayIntersection.cone.width;
         
         // Evaluate the ray intersection
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, transmittedRay, transmittedIntersection);
             
+=======
+        transmittedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
+        transmittedIntersection.cone.width = rayIntersection.cone.width;
+
+        // Evaluate the ray intersection
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, transmittedRay, transmittedIntersection);
+
+>>>>>>> master
         // Override the transmitted color
         transmitted = transmittedIntersection.color;
     }
@@ -94,9 +134,18 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         // Compute the reflected direction
         float3 reflectedDir = reflect(rayIntersection.incidentDirection, surfaceData.normalWS);
 
+<<<<<<< HEAD
         // Build the reflected ray
         RayDesc reflectedRay;
         reflectedRay.Origin = pointWSPos + surfaceData.normalWS * _RaytracingRayBias;
+=======
+        // Make sure we apply ray bias on the right side of the surface
+        const float biasSign = sign(dot(fragInput.worldToTangent[2], reflectedDir));
+
+        // Build the reflected ray
+        RayDesc reflectedRay;
+        reflectedRay.Origin = pointWSPos + biasSign * fragInput.worldToTangent[2] * _RaytracingRayBias;
+>>>>>>> master
         reflectedRay.Direction = reflectedDir;
         reflectedRay.TMin = 0;
         reflectedRay.TMax = _RaytracingRayMaxLength;
@@ -110,9 +159,15 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
+<<<<<<< HEAD
         reflectedIntersection.cone.spreadAngle = -_RaytracingPixelSpreadAngle;
         reflectedIntersection.cone.width = rayIntersection.cone.width;
         
+=======
+        reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
+        reflectedIntersection.cone.width = rayIntersection.cone.width;
+
+>>>>>>> master
         // Evaluate the ray intersection
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, reflectedRay, reflectedIntersection);
 
@@ -140,8 +195,13 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     // The first thing that we should do is grab the intersection vertice
+<<<<<<< HEAD
     IntersectionVertice currentvertex;
     GetCurrentIntersectionVertice(attributeData, currentvertex);
+=======
+    IntersectionVertex currentvertex;
+    GetCurrentIntersectionVertex(attributeData, currentvertex);
+>>>>>>> master
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;

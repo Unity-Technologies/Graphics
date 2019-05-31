@@ -110,7 +110,11 @@ namespace UnityEditor.ShaderGraph
                         {
                             rootSubGraphData.isRecursive = true;
                         }
+<<<<<<< HEAD
                         else
+=======
+                        else if (subGraphMap.ContainsKey(childSubGraphGuid))
+>>>>>>> master
                         {
                             stack.Push(childSubGraphGuid);
                         }
@@ -253,6 +257,11 @@ namespace UnityEditor.ShaderGraph
 
             subGraphData.requirements = ShaderGraphRequirements.FromNodes(nodes, subGraphData.effectiveShaderStage, false);
             subGraphData.inputs = graph.properties.ToList();
+<<<<<<< HEAD
+=======
+            subGraphData.graphPrecision = graph.concretePrecision;
+            subGraphData.outputPrecision = outputNode.concretePrecision;
+>>>>>>> master
 
             foreach (var node in nodes)
             {
@@ -277,7 +286,13 @@ namespace UnityEditor.ShaderGraph
                 }
                 else if (node is IGeneratesFunction generatesFunction)
                 {
+<<<<<<< HEAD
                     generatesFunction.GenerateNodeFunction(registry, new GraphContext(subGraphData.inputStructName), GenerationMode.ForReals);
+=======
+                    registry.builder.currentNode = node;
+                    generatesFunction.GenerateNodeFunction(registry, new GraphContext(subGraphData.inputStructName), GenerationMode.ForReals);
+                    registry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+>>>>>>> master
                 }
             }
 
@@ -291,14 +306,25 @@ namespace UnityEditor.ShaderGraph
                 // Generate arguments... first INPUTS
                 var arguments = new List<string>();
                 foreach (var prop in subGraphData.inputs)
+<<<<<<< HEAD
                     arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+=======
+                {
+                    prop.SetConcretePrecision(subGraphData.graphPrecision);
+                    arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+                }
+>>>>>>> master
 
                 // now pass surface inputs
                 arguments.Add(string.Format("{0} IN", subGraphData.inputStructName));
 
                 // Now generate outputs
                 foreach (var output in subGraphData.outputs)
+<<<<<<< HEAD
                     arguments.Add($"out {output.concreteValueType.ToString(outputNode.precision)} {output.shaderOutputName}");
+=======
+                    arguments.Add($"out {output.concreteValueType.ToShaderString(subGraphData.outputPrecision)} {output.shaderOutputName}_{output.id}");
+>>>>>>> master
 
                 // Create the function prototype from the arguments
                 sb.AppendLine("void {0}({1})"
@@ -309,6 +335,7 @@ namespace UnityEditor.ShaderGraph
                 using (sb.BlockScope())
                 {
                     // Just grab the body from the active nodes
+<<<<<<< HEAD
                     var bodyGenerator = new ShaderGenerator();
                     foreach (var node in nodes)
                     {
@@ -320,6 +347,20 @@ namespace UnityEditor.ShaderGraph
                         bodyGenerator.AddShaderChunk($"{slot.shaderOutputName} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals)};");
 
                     sb.Append(bodyGenerator.GetShaderString(1));
+=======
+                    foreach (var node in nodes)
+                    {
+                        if (node is IGeneratesBodyCode)
+                        {
+                            sb.currentNode = node;
+                            (node as IGeneratesBodyCode).GenerateNodeCode(sb, graphContext, GenerationMode.ForReals);
+                            sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                        }
+                    }
+
+                    foreach (var slot in subGraphData.outputs)
+                        sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, subGraphData.outputPrecision)};");
+>>>>>>> master
                 }
             });
             

@@ -14,7 +14,6 @@ namespace UnityEditor.ShaderGraph
         public const int NormalInputId = 3;
         public const int SamplerInputId = 5;
         public const int LODInputId = 4;
-        
         const string kOutputSlotName = "Out";
         const string kCubemapInputName = "Cube";
         const string kViewDirInputName = "ViewDir";
@@ -30,10 +29,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sample-Cubemap-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -52,15 +47,14 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(CubemapInputId, generationMode);
-            string result = string.Format("{0}4 {1} = SAMPLE_TEXTURECUBE_LOD({2}, {3}, reflect(-{4}, {5}), {6});"
-                    , precision
+            string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}, {2}, reflect(-{3}, {4}), {5});"
                     , GetVariableNameForSlot(OutputSlotId)
                     , id
                     , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id
@@ -68,7 +62,7 @@ namespace UnityEditor.ShaderGraph
                     , GetSlotValue(NormalInputId, generationMode)
                     , GetSlotValue(LODInputId, generationMode));
 
-            visitor.AddShaderChunk(result, true);
+            sb.AppendLine(result);
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)

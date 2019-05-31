@@ -43,7 +43,11 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
+<<<<<<< HEAD
                 overrideReferenceName = matOwner.GetVariableNameForSlot(id),
+=======
+                overrideReferenceName = string.Format("{0}_Linear_Repeat", matOwner.GetVariableNameForSlot(id)),
+>>>>>>> master
                 generatePropertyBlock = false,
                 value = new TextureSamplerState()
                 {

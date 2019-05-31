@@ -90,10 +90,11 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new GradientMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
+            AddSlot(new GradientMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
+<<<<<<< HEAD
         public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
@@ -107,6 +108,17 @@ namespace UnityEditor.ShaderGraph
                 visitor.AddShaderChunk(string.Format("Gradient {0} = {1}", 
                     GetVariableNameForSlot(outputSlotId), 
                     GradientUtils.GetGradientValue(gradient, precision, true, ";")));
+=======
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        {
+            if (generationMode.IsPreview())
+            {
+                sb.AppendLine("Gradient {0} = {1};", GetVariableNameForSlot(outputSlotId), GradientUtils.GetGradientForPreview(GetVariableNameForNode()));
+            }
+            else
+            {
+                sb.AppendLine("Gradient {0} = {1}", GetVariableNameForSlot(outputSlotId), GradientUtils.GetGradientValue(gradient, true, ";"));
+>>>>>>> master
             }
         }
 

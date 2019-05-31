@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Divide";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Divide-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

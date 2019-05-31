@@ -33,7 +33,15 @@
     TEXTURE2D_ARRAY(_Env2DTextures);
 
     // Contact shadows
+<<<<<<< HEAD
     TEXTURE2D_X(_DeferredShadowTexture);
+=======
+    TEXTURE2D_X_UINT(_ContactShadowTexture);
+
+    // Screen space shadows
+    TEXTURE2D_X(_ScreenSpaceShadowsTexture);
+
+>>>>>>> master
 
 #if SHADEROPTIONS_RAYTRACING
     // Area shadow paper texture

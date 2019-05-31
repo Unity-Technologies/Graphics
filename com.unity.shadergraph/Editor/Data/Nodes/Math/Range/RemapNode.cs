@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Remap";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Remap-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

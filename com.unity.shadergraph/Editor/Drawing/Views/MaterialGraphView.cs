@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 using UnityEditor.Graphs;
 
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
@@ -29,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         protected override bool canCopySelection
         {
-            get { return selection.OfType<Node>().Any() || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
+            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
         public MaterialGraphView(GraphData graph) : this()
@@ -81,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
                 evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
 
-                evt.menu.AppendAction("Group Selection", GroupSelection, (a) =>
+                evt.menu.AppendAction("Group Selection", _ => GroupSelection(), (a) =>
                 {
                     List<ISelectable> filteredSelection = new List<ISelectable>();
 
@@ -129,12 +130,33 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return DropdownMenuAction.Status.Disabled;
                 });
 
-                if (selection.OfType<MaterialNodeView>().Count() == 1)
+                var editorView = GetFirstAncestorOfType<GraphEditorView>();
+                if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
+                {
+                    evt.menu.AppendSeparator();
+                    evt.menu.AppendAction("Color/Change...", ChangeCustomNodeColor,
+                        eventBase => DropdownMenuAction.Status.Normal);
+
+                    evt.menu.AppendAction("Color/Reset", menuAction =>
+                    {
+                        graph.owner.RegisterCompleteObjectUndo("Reset Node Color");
+                        foreach (var selectable in selection)
+                        {
+                            if (selectable is MaterialNodeView nodeView)
+                            {
+                                nodeView.node.ResetColor(editorView.colorManager.activeProviderName);
+                                editorView.colorManager.UpdateNodeView(nodeView);
+                            }
+                        }
+                    }, eventBase => DropdownMenuAction.Status.Normal);
+                }
+
+                if (selection.OfType<IShaderNodeView>().Count() == 1)
                 {
                     evt.menu.AppendSeparator();
                     evt.menu.AppendAction("Open Documentation", SeeDocumentation, SeeDocumentationStatus);
                 }
-                if (selection.OfType<MaterialNodeView>().Count() == 1 && selection.OfType<MaterialNodeView>().First().node is SubGraphNode)
+                if (selection.OfType<IShaderNodeView>().Count() == 1 && selection.OfType<IShaderNodeView>().First().node is SubGraphNode)
                 {
                     evt.menu.AppendSeparator();
 
@@ -153,24 +175,59 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void GroupSelection(DropdownMenuAction action)
+        void ChangeCustomNodeColor(DropdownMenuAction menuAction)
         {
-            Vector2 pos = action.eventInfo.localMousePosition;
+            // Color Picker is internal :(
+            var t = typeof(EditorWindow).Assembly.GetTypes().FirstOrDefault(ty => ty.Name == "ColorPicker");
+            var m = t?.GetMethod("Show", new[] {typeof(Action<Color>), typeof(Color), typeof(bool), typeof(bool)});
+            if (m == null)
+            {
+                Debug.LogWarning("Could not invoke Color Picker for ShaderGraph.");
+                return;
+            }
 
-            string title = "New Group";
-            GroupData groupData = new GroupData(title, pos);
+            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+            var defaultColor = Color.gray;
+            if (selection.FirstOrDefault(sel => sel is MaterialNodeView) is MaterialNodeView selNode1)
+            {
+                defaultColor = selNode1.GetColor();
+                defaultColor.a = 1.0f;
+            }
+
+            void ApplyColor(Color pickedColor)
+            {
+                foreach (var selectable in selection)
+                {
+                    if(selectable is MaterialNodeView nodeView)
+                    {
+                        nodeView.node.SetColor(editorView.colorManager.activeProviderName, pickedColor);
+                        editorView.colorManager.UpdateNodeView(nodeView);
+                    }
+                }
+            }
+            graph.owner.RegisterCompleteObjectUndo("Change Node Color");
+            m.Invoke(null, new object[] {(Action<Color>) ApplyColor, defaultColor, true, false});
+        }
+
+        protected override bool canDeleteSelection
+        {
+            get
+            {
+                return selection.Any(x => !(x is IShaderNodeView nodeView) || nodeView.node.canDeleteNode);
+            }
+        }
+
+        public void GroupSelection()
+        {
+            var title = "New Group";
+            var groupData = new GroupData(title, new Vector2(10f,10f));
 
             graph.owner.RegisterCompleteObjectUndo("Create Group Node");
-            graph.AddGroupData(groupData);
+            graph.CreateGroup(groupData);
 
-            foreach (ISelectable selectable in selection)
-            {
-                if (selectable is MaterialNodeView)
+            foreach (var shaderNodeView in selection.OfType<IShaderNodeView>())
                 {
-                    MaterialNodeView materialNodeView = selectable as MaterialNodeView;
-                    AbstractMaterialNode abstractMaterialNode = materialNodeView.node;
-                    graph.SetNodeGroup(abstractMaterialNode, groupData);
-                }
+                graph.SetNodeGroup(shaderNodeView.node, groupData);
             }
         }
 
@@ -211,14 +268,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SeeDocumentation(DropdownMenuAction action)
         {
-            var node = selection.OfType<MaterialNodeView>().First().node;
+            var node = selection.OfType<IShaderNodeView>().First().node;
             if (node.documentationURL != null)
                 System.Diagnostics.Process.Start(node.documentationURL);
         }
 
         void OpenSubGraph(DropdownMenuAction action)
         {
-            SubGraphNode subgraphNode = selection.OfType<MaterialNodeView>().First().node as SubGraphNode;
+            SubGraphNode subgraphNode = selection.OfType<IShaderNodeView>().First().node as SubGraphNode;
 
             var path = AssetDatabase.GetAssetPath(subgraphNode.subGraphAsset);
             ShaderGraphImporterEditor.ShowGraphEditWindow(path);
@@ -226,16 +283,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         DropdownMenuAction.Status SeeDocumentationStatus(DropdownMenuAction action)
         {
-            if (selection.OfType<MaterialNodeView>().First().node.documentationURL == null)
+            if (selection.OfType<IShaderNodeView>().First().node.documentationURL == null)
                 return DropdownMenuAction.Status.Disabled;
             return DropdownMenuAction.Status.Normal;
         }
 
         DropdownMenuAction.Status ConvertToPropertyStatus(DropdownMenuAction action)
         {
-            if (selection.OfType<MaterialNodeView>().Any(v => v.node != null))
+            if (selection.OfType<IShaderNodeView>().Any(v => v.node != null))
             {
-                if (selection.OfType<MaterialNodeView>().Any(v => v.node is IPropertyFromNode))
+                if (selection.OfType<IShaderNodeView>().Any(v => v.node is IPropertyFromNode))
                     return DropdownMenuAction.Status.Normal;
                 return DropdownMenuAction.Status.Disabled;
             }
@@ -245,7 +302,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ConvertToProperty(DropdownMenuAction action)
         {
             graph.owner.RegisterCompleteObjectUndo("Convert to Property");
-            var selectedNodeViews = selection.OfType<MaterialNodeView>().Select(x => x.node).ToList();
+            var selectedNodeViews = selection.OfType<IShaderNodeView>().Select(x => x.node).ToList();
             foreach (var node in selectedNodeViews)
             {
                 if (!(node is IPropertyFromNode))
@@ -274,9 +331,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         DropdownMenuAction.Status ConvertToInlineNodeStatus(DropdownMenuAction action)
         {
-            if (selection.OfType<MaterialNodeView>().Any(v => v.node != null))
+            if (selection.OfType<IShaderNodeView>().Any(v => v.node != null))
             {
-                if (selection.OfType<MaterialNodeView>().Any(v => v.node is PropertyNode))
+                if (selection.OfType<IShaderNodeView>().Any(v => v.node is PropertyNode))
                     return DropdownMenuAction.Status.Normal;
                 return DropdownMenuAction.Status.Disabled;
             }
@@ -286,7 +343,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ConvertToInlineNode(DropdownMenuAction action)
         {
             graph.owner.RegisterCompleteObjectUndo("Convert to Inline Node");
-            var selectedNodeViews = selection.OfType<MaterialNodeView>()
+            var selectedNodeViews = selection.OfType<IShaderNodeView>()
                 .Select(x => x.node)
                 .OfType<PropertyNode>();
 
@@ -297,7 +354,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
         {
             if (onConvertToSubgraphClick == null) return DropdownMenuAction.Status.Hidden;
+<<<<<<< HEAD
             return selection.OfType<MaterialNodeView>().Any(v => v.node != null) ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden;
+=======
+            return selection.OfType<IShaderNodeView>().Any(v => v.node != null && v.node.allowedInSubGraph && !(v.node is SubGraphOutputNode) ) ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Hidden;
+>>>>>>> master
         }
 
         void ConvertToSubgraph(DropdownMenuAction action)
@@ -308,7 +369,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
         {
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
+<<<<<<< HEAD
             var nodes = elements.OfType<MaterialNodeView>().Select(x => (AbstractMaterialNode)x.node);
+=======
+            var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
+>>>>>>> master
             var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
             var properties = selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty);
 
@@ -349,7 +414,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graph.owner.RegisterCompleteObjectUndo(operationName);
+<<<<<<< HEAD
             graph.RemoveElements(selection.OfType<MaterialNodeView>().Where(v => !(v.node is SubGraphOutputNode)).Select(x => (AbstractMaterialNode)x.node),
+=======
+            graph.RemoveElements(selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node),
+>>>>>>> master
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData));
 
@@ -458,7 +527,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (isNormalMap)
                     node.textureType = TextureType.Normal;
+<<<<<<< HEAD
                     
+=======
+
+>>>>>>> master
                 var inputslot = node.FindInputSlot<Texture2DInputMaterialSlot>(SampleTexture2DNode.TextureInputId);
                 if (inputslot != null)
                     inputslot.texture = texture2D;
@@ -613,13 +686,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.ClearSelection();
                     graphView.graphElements.ForEach(element =>
                         {
-                            var edge = element as Edge;
-                            if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
+                            if (element is Edge edge && remappedEdges.Contains(edge.userData as IEdge))
                                 graphView.AddToSelection(edge);
 
-                            var nodeView = element as MaterialNodeView;
-                            if (nodeView != null && remappedNodes.Contains(nodeView.node))
-                                graphView.AddToSelection(nodeView);
+                            if (element is IShaderNodeView nodeView && remappedNodes.Contains(nodeView.node))
+                                graphView.AddToSelection((Node)nodeView);
                         });
                 }
             }

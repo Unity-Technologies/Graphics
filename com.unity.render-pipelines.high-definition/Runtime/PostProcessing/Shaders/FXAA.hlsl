@@ -7,7 +7,11 @@
 
 float3 Fetch(TEXTURE2D_X_PARAM(_InputTexture, _InputTextureSampler), float2 coords, float2 offset)
 {
+<<<<<<< HEAD
     float2 uv = saturate(coords + offset) * _ScreenToTargetScale.xy;
+=======
+    float2 uv = saturate(coords + offset) * _RTHandleScale.xy;
+>>>>>>> master
     return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, _InputTextureSampler, uv, 0.0).xyz;
 }
 

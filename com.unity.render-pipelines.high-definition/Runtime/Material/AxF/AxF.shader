@@ -190,6 +190,11 @@ Shader "HDRP/AxF"
             #pragma vertex Vert
             #pragma fragment Frag
 
+<<<<<<< HEAD
+=======
+            #pragma editor_sync_compilation
+
+>>>>>>> master
             ENDHLSL
         }
 

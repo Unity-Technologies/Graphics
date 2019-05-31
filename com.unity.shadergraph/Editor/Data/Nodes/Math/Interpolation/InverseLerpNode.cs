@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Inverse Lerp";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Inverse-Lerp-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

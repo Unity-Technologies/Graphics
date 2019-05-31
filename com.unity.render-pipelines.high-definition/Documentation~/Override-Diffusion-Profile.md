@@ -20,7 +20,11 @@ To add a **Diffusion Profile Override** to a Volume:
 
 ## Details
 
+<<<<<<< HEAD
 If a Material references a Diffusion Profile that is not in the list of available Diffusion Profiles, that Material uses the default Diffusion Profile, which has a white tint.
+=======
+If a Material references a Diffusion Profile that is not in the list of available Diffusion Profiles, that Material uses the default Diffusion Profile, which has a green tint.
+>>>>>>> master
 
 
 If the Volume with the Diffusion Profile Override is local, the **Fill Profiles With Scene Materials** button appears. Click this button to fetch the Diffusion Profiles from Materials inside the Volume's bounds and fill the **Diffusion Profile List** with them. Note that this does not work with Materials that use a ShaderGraph Shader.

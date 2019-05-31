@@ -71,7 +71,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO: Use proper migration toolkit
         // 3. Added ShadowNearPlane to HDRP additional light data, we don't use Light.shadowNearPlane anymore
         // 4. Migrate HDAdditionalLightData.lightLayer to Light.renderingLayerMask
+<<<<<<< HEAD
         private const int currentVersion = 4;
+=======
+        // 5. Added the ShadowLayer
+        private const int currentVersion = 5;
+>>>>>>> master
 
         [HideInInspector, SerializeField]
         [FormerlySerializedAs("m_Version")]
@@ -185,6 +190,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if ENABLE_RAYTRACING
         public bool useRayTracedShadows = false;
+<<<<<<< HEAD
+=======
+        [Range(1, 32)]
+        public int numRayTracingSamples = 4;
+        public bool filterTracedShadow = true;
+        [Range(1, 32)]
+        public int filterSizeTraced = 16;
+>>>>>>> master
 #endif
 
         [Range(0.0f, 42.0f)]
@@ -202,10 +215,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Obsolete("Use Light.renderingLayerMask instead")]
         public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
 
+        // Now the renderingLayerMask is used for shadow layers and not light layers
+        public LightLayerEnum lightlayersMask = LightLayerEnum.LightLayerDefault;
+        public bool linkShadowLayers = true;
+
         // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         public uint GetLightLayers()
         {
+<<<<<<< HEAD
             int value = legacyLight.renderingLayerMask;
+=======
+            int value = (int)lightlayersMask;
+>>>>>>> master
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
@@ -358,7 +379,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, VisibleLight visibleLight, CullingResults cullResults, int lightIndex, out int shadowRequestCount)
         {
             int                 firstShadowRequestIndex = -1;
-            Vector3             cameraPos = hdCamera.camera.transform.position;
+            Vector3             cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
             shadowRequestCount = 0;
 
             int count = GetShadowRequestCount();
@@ -1035,6 +1056,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Version <= 3)
             {
                 legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)lightLayers, legacyLight.renderingLayerMask);
+<<<<<<< HEAD
+=======
+            }
+            if (m_Version <= 4)
+            {
+                // When we upgrade the option to decouple light and shadow layers will be disabled
+                // so we can sync the shadow layer mask (from the legacyLight) and the new light layer mask
+                lightlayersMask = (LightLayerEnum)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
+>>>>>>> master
             }
 
             m_Version = currentVersion;

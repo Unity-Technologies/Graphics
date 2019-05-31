@@ -77,7 +77,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         string GetFunctionName()
         {
+<<<<<<< HEAD
             return "Unity_HDRP_ParallaxOcclusionMapping";
+=======
+            return $"Unity_HDRP_ParallaxOcclusionMapping_{concretePrecision.ToShaderString()}";
+>>>>>>> master
         }
 
         public override void ValidateNode()
@@ -99,7 +103,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             registry.ProvideFunction(GetFunctionName(), s =>
                 {
+<<<<<<< HEAD
                     s.AppendLine("{0}3 GetDisplacementObjectScale()", precision);
+=======
+                    s.AppendLine("$precision3 GetDisplacementObjectScale()");
+>>>>>>> master
                     using (s.BlockScope())
                     {
                         s.AppendLines(@"
@@ -116,9 +124,15 @@ return objectScale;");
                     s.AppendLine("struct PerPixelHeightDisplacementParam");
                     using (s.BlockSemicolonScope())
                     {
+<<<<<<< HEAD
                         s.AppendLine("{0}2 uv;", precision);
                     }
                     s.AppendLine("{0} ComputePerPixelHeightDisplacement({0}2 texOffsetCurrent, {0} lod, PerPixelHeightDisplacementParam param)", precision);
+=======
+                        s.AppendLine("$precision2 uv;");
+                    }
+                    s.AppendLine("$precision ComputePerPixelHeightDisplacement($precision2 texOffsetCurrent, $precision lod, PerPixelHeightDisplacementParam param)");
+>>>>>>> master
                     using (s.BlockScope())
                     {
                         s.AppendLine("return SAMPLE_TEXTURE2D_LOD({0}, {1}, param.uv + texOffsetCurrent, lod).r;",
@@ -129,7 +143,11 @@ return objectScale;");
                 });
         }
 
+<<<<<<< HEAD
         public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+=======
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+>>>>>>> master
         {
             string amplitude = GetSlotValue(kAmplitudeSlotId, generationMode);
             string steps = GetSlotValue(kStepsSlotId, generationMode);
@@ -144,6 +162,7 @@ return objectScale;");
             string tmpViewDirUV = GetVariableNameForNode() + "_ViewDirUV";
             string tmpOutHeight = GetVariableNameForNode() + "_OutHeight";
 
+<<<<<<< HEAD
             visitor.AddShaderChunk(String.Format(@"
 {0}3 {5} = IN.{3} * GetDisplacementObjectScale().xzy;
 float {6} = {5}.z;
@@ -155,6 +174,18 @@ float {7} = {4} * 0.01;
 PerPixelHeightDisplacementParam {1};
 {1}.uv = {2};",
                 precision,
+=======
+            sb.AppendLines(String.Format(@"
+$precision3 {4} = IN.{2} * GetDisplacementObjectScale().xzy;
+$precision {5} = {4}.z;
+$precision {6} = {3} * 0.01;
+
+// Transform the view vector into the UV space.
+$precision3 {7}    = normalize($precision3({4}.xy * {6}, {4}.z)); // TODO: skip normalize
+
+PerPixelHeightDisplacementParam {1};
+{1}.uv = {2};",
+>>>>>>> master
                 tmpPOMParam,
                 uvs,
                 CoordinateSpace.Tangent.ToVariableName(InterpolatorType.ViewDirection),
@@ -164,6 +195,7 @@ PerPixelHeightDisplacementParam {1};
                 tmpMaxHeight,
                 tmpViewDirUV
                 ));
+<<<<<<< HEAD
             visitor.AddShaderChunk(String.Format(@"
 {0} {11};
 {0}2 {1} = {9} + ParallaxOcclusionMapping({2}, {3}, {4}, {5}, {6}, {11});
@@ -171,6 +203,15 @@ PerPixelHeightDisplacementParam {1};
 {0} {7} = ({8} - {11} * {8}) / max({10}, 0.0001);
 ",
                 precision,
+=======
+
+            sb.AppendLines(String.Format(@"
+$precision {10};
+$precision2 {0} = {8} + ParallaxOcclusionMapping({1}, {2}, {3}, {4}, {5}, {10});
+
+$precision {6} = ({7} - {10} * {7}) / max({9}, 0.0001);
+",
+>>>>>>> master
                 GetVariableNameForSlot(kParallaxUVsOutputSlotId),
                 lod,
                 lodThreshold,

@@ -281,9 +281,12 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
 //
 float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
+<<<<<<< HEAD
     /* in stereo, translate input position to the same space as shadows for proper sampling and bias */
     positionWS = StereoCameraRelativeEyeToCenter(positionWS);
 
+=======
+>>>>>>> master
     /* get shadowmap texcoords */
     float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _AreaShadowAtlasSize.zw, positionWS, perspective);
 

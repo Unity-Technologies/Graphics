@@ -17,6 +17,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Controls how much the ambient light affects occlusion.")]
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
 
+<<<<<<< HEAD
+=======
+        [Tooltip("Enable raytraced ambient occlusion.")]
+        public BoolParameter enableRaytracing = new BoolParameter(false);
+
+        [Tooltip("Controls the length of ambient occlusion rays.")]
+        public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+
+        [Tooltip("Enable Filtering on the raytraced ambient occlusion.")]
+        public BoolParameter enableFilter = new BoolParameter(false);
+
+        [Tooltip("Controls the length of ambient occlusion rays.")]
+        public ClampedIntParameter numSamples = new ClampedIntParameter(4, 1, 64);
+
+        [Tooltip("Controls the length of ambient occlusion rays.")]
+        public ClampedIntParameter filterRadius = new ClampedIntParameter(16, 1, 32);
+
+>>>>>>> master
         // Hidden parameters
         [HideInInspector] public ClampedFloatParameter noiseFilterTolerance = new ClampedFloatParameter(0f, -8f, 0f);
         [HideInInspector] public ClampedFloatParameter blurTolerance = new ClampedFloatParameter(-4.6f, -8f, 1f);
@@ -28,6 +46,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         enum MipLevel { Original, L1, L2, L3, L4, L5, L6, Count }
 
         RenderPipelineResources m_Resources;
+<<<<<<< HEAD
+=======
+#if ENABLE_RAYTRACING
+        HDRenderPipelineRayTracingResources m_RTResources;
+#endif
+>>>>>>> master
         RenderPipelineSettings m_Settings;
 
         // The arrays below are reused between frames to reduce GC allocation.
@@ -94,6 +118,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
             m_Resources = hdAsset.renderPipelineResources;
+<<<<<<< HEAD
+=======
+#if ENABLE_RAYTRACING
+            m_RTResources = hdAsset.renderPipelineRayTracingResources;
+#endif
+>>>>>>> master
 
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
@@ -104,8 +134,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_AmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                 filterMode: FilterMode.Bilinear,
                 colorFormat: GraphicsFormat.R8_UNorm,
+<<<<<<< HEAD
                 enableRandomWrite: true,
                 xrInstancing: true,
+=======
+                slices: TextureXR.slices,
+                dimension: TextureXR.dimension,
+                enableRandomWrite: true,
+>>>>>>> master
                 useDynamicScale: true,
                 name: "Ambient Occlusion"
             );
@@ -115,8 +151,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_MultiAmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                     filterMode: FilterMode.Bilinear,
                     colorFormat: GraphicsFormat.R8G8_UNorm,
+<<<<<<< HEAD
                     enableRandomWrite: true,
                     xrInstancing: true,
+=======
+                    slices: TextureXR.slices,
+                    dimension: TextureXR.dimension,
+                    enableRandomWrite: true,
+>>>>>>> master
                     useDynamicScale: true,
                     name: "Ambient Occlusion MSAA"
                 );
@@ -207,12 +249,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void InitRaytracing(HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
         {
             m_RayTracingManager = raytracingManager;
+<<<<<<< HEAD
             m_RaytracingAmbientOcclusion.Init(m_Resources, m_Settings, m_RayTracingManager, sharedRTManager);
+=======
+            m_RaytracingAmbientOcclusion.Init(m_Resources, m_RTResources, m_Settings, m_RayTracingManager, sharedRTManager);
+>>>>>>> master
         }
 #endif
 
         public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
+<<<<<<< HEAD
         public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext, uint frameCount)
         {
 
@@ -225,6 +272,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 Dispatch(cmd, camera, sharedRTManager);
                 PostDispatchWork(cmd, camera, sharedRTManager);
+=======
+        public void Render(CommandBuffer cmd, HDCamera camera, SharedRTManager sharedRTManager, ScriptableRenderContext renderContext, int frameCount)
+        {
+            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+
+            if (!IsActive(camera, settings))
+            {
+                // No AO applied - neutral is black, see the comment in the shaders
+                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, TextureXR.GetBlackTexture());
+                cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, Vector4.zero);
+                return;
+            }
+            else
+            {
+#if ENABLE_RAYTRACING
+                if (settings.enableRaytracing.value)
+                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
+                else
+#endif
+                {
+                    Dispatch(cmd, camera, sharedRTManager);
+                    PostDispatchWork(cmd, camera, sharedRTManager);
+                }
+>>>>>>> master
             }
         }
 
@@ -233,9 +304,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Grab current settings
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
+<<<<<<< HEAD
             if (!IsActive(camera, settings))
                 return;
 
+=======
+>>>>>>> master
             using (new ProfilingSample(cmd, "Render SSAO", CustomSamplerId.RenderSSAO.GetSampler()))
             {
                 // Base size
@@ -253,7 +327,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 // Grab current viewport scale factor - needed to handle RTHandle auto resizing
+<<<<<<< HEAD
                 var viewport = camera.viewportScale;
+=======
+                var viewport = new Vector2(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y);
+>>>>>>> master
 
                 // Textures used for rendering
                 RTHandle depthMap, destination;
@@ -291,6 +369,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Grab current settings
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
+<<<<<<< HEAD
             if (!IsActive(camera, settings))
             {
                 // No AO applied - neutral is black, see the comment in the shaders
@@ -299,12 +378,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
+=======
+>>>>>>> master
             // MSAA Resolve
             if (camera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 using (new ProfilingSample(cmd, "Resolve AO Buffer", CustomSamplerId.ResolveSSAO.GetSampler()))
                 {
+<<<<<<< HEAD
                     HDUtils.SetRenderTarget(cmd, camera, m_AmbientOcclusionTex);
+=======
+                    HDUtils.SetRenderTarget(cmd, m_AmbientOcclusionTex);
+>>>>>>> master
                     m_ResolvePropertyBlock.SetTexture(HDShaderIDs._DepthValuesTexture, sharedRTManager.GetDepthValuesTexture());
                     m_ResolvePropertyBlock.SetTexture(HDShaderIDs._MultiAmbientOcclusionTexture, m_MultiAmbientOcclusionTex);
                     cmd.DrawProcedural(Matrix4x4.identity, m_ResolveMaterial, 0, MeshTopology.Triangles, 3, 1, m_ResolvePropertyBlock);
@@ -322,7 +407,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
+<<<<<<< HEAD
                 dimension: TextureDimension.Tex2D,
+=======
+                slices: TextureXR.slices,
+                dimension: TextureXR.dimension,
+>>>>>>> master
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
                 autoGenerateMips: false,
@@ -330,7 +420,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
+<<<<<<< HEAD
                 xrInstancing: true,
+=======
+>>>>>>> master
                 name: name
             );
         }
@@ -342,20 +435,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 dimension: TextureDimension.Tex2DArray,
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
+<<<<<<< HEAD
                 slices: 16,
+=======
+                slices: 16 * TextureXR.slices,
+>>>>>>> master
                 autoGenerateMips: false,
                 enableMSAA: false,
                 useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
+<<<<<<< HEAD
                 xrInstancing: true,
+=======
+>>>>>>> master
                 name: name
             );
         }
 
         float CalculateTanHalfFovHeight(HDCamera camera)
         {
+<<<<<<< HEAD
             return 1f / camera.projMatrix[0, 0];
+=======
+#if ENABLE_VR
+            if (camera.xr.instancingEnabled)
+            {
+                float tanHalfFovH = 0.0f;
+                for (int viewIndex = 0; viewIndex < camera.viewCount; ++viewIndex)
+                    tanHalfFovH += 1f / camera.xrViewConstants[viewIndex].projMatrix[0, 0];
+
+                // Average values from all instanced views
+                return tanHalfFovH / camera.viewCount;
+            }
+#endif
+
+            return 1f / camera.mainViewConstants.projMatrix[0, 0];
+>>>>>>> master
         }
 
         Vector2 GetSize(MipLevel mip)
@@ -383,7 +499,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DS4xAtlas, m_TiledDepth2Tex);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Depth, depthMap, 0);
 
+<<<<<<< HEAD
             cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L4], m_Heights[(int)MipLevel.L4], camera.computePassCount);
+=======
+            cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L4], m_Heights[(int)MipLevel.L4], camera.viewCount);
+>>>>>>> master
 
             // 2nd downsampling pass.
             cs = m_Resources.shaders.aoDownsample2CS;
@@ -395,7 +515,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DS8xAtlas, m_TiledDepth3Tex);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DS16xAtlas, m_TiledDepth4Tex);
 
+<<<<<<< HEAD
             cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L6], m_Heights[(int)MipLevel.L6], camera.computePassCount);
+=======
+            cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L6], m_Heights[(int)MipLevel.L6], camera.viewCount);
+>>>>>>> master
         }
 
         void PushRenderCommands(CommandBuffer cmd, HDCamera camera, in Vector4 viewport, RTHandle source, RTHandle destination, AmbientOcclusion settings, in Vector3 sourceSize, float tanHalfFovH, bool msaa)
@@ -480,7 +604,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cs, kernel,
                 ((int)sourceSize.x + (int)xsize - 1) / (int)xsize,
                 ((int)sourceSize.y + (int)ysize - 1) / (int)ysize,
+<<<<<<< HEAD
                 camera.computePassCount * ((int)sourceSize.z + (int)zsize - 1) / (int)zsize
+=======
+                camera.viewCount * ((int)sourceSize.z + (int)zsize - 1) / (int)zsize
+>>>>>>> master
             );
         }
 
@@ -512,7 +640,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int xcount = ((int)highResDepthSize.x + 17) / 16;
             int ycount = ((int)highResDepthSize.y + 17) / 16;
+<<<<<<< HEAD
             cmd.DispatchCompute(cs, kernel, xcount, ycount, camera.computePassCount);
+=======
+            cmd.DispatchCompute(cs, kernel, xcount, ycount, camera.viewCount);
+>>>>>>> master
         }
     }
 }

@@ -19,7 +19,6 @@ namespace  UnityEditor.VFX.UI
     class VFXViewWindow : EditorWindow
     {
         ShortcutHandler m_ShortcutHandler;
-
         protected void SetupFramingShortcutHandler(VFXView view)
         {
             m_ShortcutHandler = new ShortcutHandler(
@@ -110,7 +109,7 @@ namespace  UnityEditor.VFX.UI
                 if (instanceID != 0)
                 {
                     string path = AssetDatabase.GetAssetPath(instanceID);
-                    if (path.EndsWith(".vfx"))
+                    if (path.EndsWith(VisualEffectResource.Extension))
                     {
                         selectedResource = VisualEffectResource.GetResourceAtPath(path);
                     }
@@ -123,6 +122,8 @@ namespace  UnityEditor.VFX.UI
             return selectedResource;
         }
 
+        Action m_OnUpdateAction;
+
         protected void OnEnable()
         {
             VFXManagerEditor.CheckVFXManager();
@@ -133,15 +134,18 @@ namespace  UnityEditor.VFX.UI
 
             rootVisualElement.Add(graphView);
 
-
-            var currentAsset = GetCurrentResource();
-            if (currentAsset != null)
+            // make sure we don't do something that might touch the model on the view OnEnable because
+            // the models OnEnable might be called after in the case of a domain reload.
+            m_OnUpdateAction = () =>
             {
-                LoadResource(currentAsset);
-            }
+                var currentAsset = GetCurrentResource();
+                if (currentAsset != null)
+                {
+                    LoadResource(currentAsset);
+                }
+            };
 
             autoCompile = true;
-
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
@@ -195,10 +199,18 @@ namespace  UnityEditor.VFX.UI
 
         public bool autoCompile {get; set; }
 
+        public bool autoCompileDependent { get; set; }
+
         void Update()
         {
             if (graphView == null)
                 return;
+
+            if(m_OnUpdateAction != null)
+            {
+                m_OnUpdateAction();
+                m_OnUpdateAction = null;
+            }
             VFXViewController controller = graphView.controller;
             var filename = "No Asset";
             if (controller != null)
@@ -217,10 +229,16 @@ namespace  UnityEditor.VFX.UI
                         }
 
 
-                        graph.RecompileIfNeeded(!autoCompile);
+                        graph.RecompileIfNeeded(!autoCompile,!autoCompileDependent);
                         controller.RecompileExpressionGraphIfNeeded();
                     }
                 }
+            }
+
+            if( VFXViewModicationProcessor.assetMoved)
+            {
+                graphView.AssetMoved();
+                VFXViewModicationProcessor.assetMoved = false;
             }
             titleContent.text = filename;
         }

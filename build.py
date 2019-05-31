@@ -10,6 +10,10 @@ def packages_list():
         ("com.unity.render-pipelines.core", os.path.join("com.unity.render-pipelines.core")),
         ("com.unity.render-pipelines.lightweight", os.path.join("com.unity.render-pipelines.lightweight")),
         ("com.unity.render-pipelines.high-definition", os.path.join("com.unity.render-pipelines.high-definition")),
+<<<<<<< HEAD
+=======
+        ("com.unity.testing.visualeffectgraph", os.path.join("com.unity.testing.visualeffectgraph")),
+>>>>>>> master
         ("com.unity.testframework.graphics", os.path.join("com.unity.testframework.graphics"))
     ]
 

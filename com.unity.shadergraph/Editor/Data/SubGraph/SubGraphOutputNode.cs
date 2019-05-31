@@ -40,6 +40,25 @@ namespace UnityEditor.ShaderGraph
 
             foreach(MaterialSlot slot in slots)
                 slot.stageCapability = effectiveStage;
+<<<<<<< HEAD
+=======
+        }
+
+        void ValidateSlotName()
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetInputSlots(slots);
+
+            foreach (var slot in slots)
+            {
+                var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
+                if (error)
+                {
+                    owner.AddValidationError(tempId, errorMessage);
+                    break;
+                }
+            }
+>>>>>>> master
         }
 
         public override void ValidateNode()
@@ -50,6 +69,7 @@ namespace UnityEditor.ShaderGraph
             {
                 owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
+<<<<<<< HEAD
             
             base.ValidateNode();
         }
@@ -87,5 +107,36 @@ namespace UnityEditor.ShaderGraph
             ps.Add(new ReorderableSlotListView(this, SlotType.Input, s_AllowedValueTypes));
             return ps;
         }
+=======
+
+            base.ValidateNode();
+        }
+
+        protected override void OnSlotsChanged()
+        {
+            base.OnSlotsChanged();
+            ValidateNode();
+        }
+
+        public int AddSlot(ConcreteSlotValueType concreteValueType)
+        {
+            var index = this.GetInputSlots<ISlot>().Count() + 1;
+            string name = string.Format("Out_{0}", NodeUtils.GetDuplicateSafeNameForSlot(this, index, concreteValueType.ToString()));
+            AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name,
+                NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
+            return index;
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            PropertySheet ps = new PropertySheet();
+            ps.Add(new ReorderableSlotListView(this, SlotType.Input));
+            return ps;
+        }
+
+        public override bool canDeleteNode => false;
+
+        public override bool canCopyNode => false;
+>>>>>>> master
     }
 }

@@ -196,5 +196,9 @@ Unity Manual ToC
         * [Rotate](Rotate-Node)  
         * [Spherize](Spherize-Node)  
         * [Tiling And Offset](Tiling-And-Offset-Node)
+<<<<<<< HEAD
         * [Triplanar](Triplanar-Node)
+=======
+        * [Triplanar](Triplanar-Node)  
+>>>>>>> master
         * [Twirl](Twirl-Node)

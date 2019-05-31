@@ -18,11 +18,16 @@ namespace UnityEditor.ShaderGraph
             get { return PropertyType.Matrix4; }
         }
 
-        public override bool isBatchable
+        public override PreviewProperty GetPreviewMaterialProperty()
         {
-            get { return true; }
+            return new PreviewProperty(PropertyType.Matrix4)
+            {
+                name = referenceName,
+                matrixValue = value
+            };
         }
 
+<<<<<<< HEAD
         public override bool isExposable
         {
             get { return false; }
@@ -37,6 +42,8 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
+=======
+>>>>>>> master
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new Matrix4Node

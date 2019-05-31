@@ -60,9 +60,15 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
+<<<<<<< HEAD
     maxTextureSize: 8192
     resizeAlgorithm: 0
     textureFormat: -1
+=======
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: 4
+>>>>>>> master
     textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
@@ -72,9 +78,15 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
     buildTarget: Standalone
+<<<<<<< HEAD
     maxTextureSize: 8192
     resizeAlgorithm: 0
     textureFormat: -1
+=======
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: 4
+>>>>>>> master
     textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
@@ -84,9 +96,15 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
     buildTarget: iPhone
+<<<<<<< HEAD
     maxTextureSize: 8192
     resizeAlgorithm: 0
     textureFormat: -1
+=======
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: 4
+>>>>>>> master
     textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
@@ -108,9 +126,15 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
     buildTarget: Windows Store Apps
+<<<<<<< HEAD
     maxTextureSize: 8192
     resizeAlgorithm: 0
     textureFormat: -1
+=======
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: 4
+>>>>>>> master
     textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0

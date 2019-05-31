@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Polygon";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Polygon-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -31,14 +27,14 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision} pi = 3.14159265359;
-    {precision} aWidth = Width * cos(pi / Sides);
-    {precision} aHeight = Height * cos(pi / Sides);
-    {precision}2 uv = (UV * 2 - 1) / {precision}2(aWidth, aHeight);
+    $precision pi = 3.14159265359;
+    $precision aWidth = Width * cos(pi / Sides);
+    $precision aHeight = Height * cos(pi / Sides);
+    $precision2 uv = (UV * 2 - 1) / $precision2(aWidth, aHeight);
     uv.y *= -1;
-    {precision} pCoord = atan2(uv.x, uv.y);
-    {precision} r = 2 * pi / Sides;
-    {precision} distance = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
+    $precision pCoord = atan2(uv.x, uv.y);
+    $precision r = 2 * pi / Sides;
+    $precision distance = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
     Out = saturate((1 - distance) / fwidth(distance));
 }
 ";

@@ -3,6 +3,15 @@
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
 #define SCALARIZE_LIGHT_LOOP (defined(SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+<<<<<<< HEAD
+=======
+
+// SCREEN_SPACE_SHADOWS needs to be defined in all cases in which they need to run. IMPORTANT: If this is activated, the light loop function WillRenderScreenSpaceShadows on C# MUST return true.
+#if SHADEROPTIONS_RAYTRACING
+// TODO: This will need to be a multi_compile when we'll have them on compute shaders.
+#define SCREEN_SPACE_SHADOWS 1
+#endif
+>>>>>>> master
 
 //-----------------------------------------------------------------------------
 // LightLoop
@@ -37,7 +46,11 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
             float3(1.0, 1.0, 1.0)
         };
 
+<<<<<<< HEAD
         diffuseLighting = float3(1.0, 1.0, 1.0);
+=======
+        diffuseLighting = Luminance(diffuseLighting);
+>>>>>>> master
         if (_DirectionalShadowIndex >= 0)
         {
             real alpha;
@@ -57,10 +70,33 @@ void ApplyDebug(LightLoopContext lightLoopContext, PositionInputs posInput, BSDF
                 float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
                 // We can't mix with the lighting as it can be HDR and it is hard to find a good lerp operation for this case that is still compliant with
                 // exposure. So disable exposure instead and replace color.
+<<<<<<< HEAD
                 diffuseLighting = cascadeShadowColor * shadow;
+=======
+                diffuseLighting = cascadeShadowColor * Luminance(diffuseLighting) * shadow;
+>>>>>>> master
             }
 
         }
+    }
+    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_MATCAP_VIEW)
+    {
+        specularLighting = 0.0f;
+        float3 normalVS = mul((float3x3)UNITY_MATRIX_V, bsdfData.normalWS).xyz;
+
+        float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+        float3 R = reflect(V, bsdfData.normalWS);
+
+        float2 UV = saturate(normalVS.xy * 0.5f + 0.5f);
+
+        bool isPureMetal = any(bsdfData.fresnel0 > DEFAULT_SPECULAR_VALUE) && all(bsdfData.diffuseColor == 0);
+        if (isPureMetal)
+        {
+            UV = saturate(R.xy * 0.5f + 0.5f);
+        }
+
+        float3 colorToMix = isPureMetal ? bsdfData.fresnel0 : bsdfData.diffuseColor;
+        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? colorToMix * _MatcapViewScale : 1.0f);
     }
 
     // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.
@@ -76,9 +112,15 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     LightLoopContext context;
 
     context.shadowContext    = InitShadowContext();
-    context.contactShadow    = InitContactShadow(posInput);
     context.shadowValue      = 1;
     context.sampleReflection = 0;
+
+    // With XR single-pass instancing and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
+    // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
+    ApplyCameraRelativeXR(posInput.positionWS);
+    
+    // Initialize the contactShadow and contactShadowFade fields
+    InitContactShadow(posInput, context);
 
     // First of all we compute the shadow value of the directional light to reduce the VGPR pressure
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
@@ -86,6 +128,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Evaluate sun shadows.
         if (_DirectionalShadowIndex >= 0)
         {
+#if (SHADERPASS == SHADERPASS_FORWARD) || !defined(SCREEN_SPACE_SHADOWS)
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
             // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
@@ -118,6 +161,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             {
                 context.shadowValue = EvaluateRuntimeSunShadow(context, posInput, light, shadowBiasNormal);
             }
+#else
+        context.shadowValue = GetScreenSpaceShadow(posInput);
+#endif
         }
     }
 
@@ -129,10 +175,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
         uint lightCount, lightStart;
-        bool fastPath = false;
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
+<<<<<<< HEAD
 
 #if SCALARIZE_LIGHT_LOOP
         // Fast path is when we all pixels in a wave are accessing same tile or cluster.
@@ -140,17 +186,23 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         fastPath = WaveActiveAllTrue(lightStart == lightStartLane0); 
 #endif
 
+=======
+>>>>>>> master
 #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         lightCount = _PunctualLightCount;
         lightStart = 0;
 #endif
 
-#if SCALARIZE_LIGHT_LOOP
+        bool fastPath = false;
+    #if SCALARIZE_LIGHT_LOOP
+        uint lightStartLane0;
+        fastPath = IsFastPath(lightStart, lightStartLane0);
+
         if (fastPath)
         {
             lightStart = lightStartLane0;
         }
-#endif
+    #endif
 
         // Scalarized loop. All lights that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the one relevant to current thread/pixel are processed.
         // For clarity, the following code will follow the convention: variables starting with s_ are meant to be wave uniform (meant for scalar register),
@@ -163,23 +215,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         while (v_lightListOffset < lightCount)
         {
             v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
-            uint s_lightIdx = v_lightIdx;
-#if SCALARIZE_LIGHT_LOOP
-            if (!fastPath)
-            {
-                // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave. 
-                s_lightIdx = WaveActiveMin(v_lightIdx);
-                // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-               // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
-                if (s_lightIdx == -1)
-                {
-                    break;
-                }
-            }
-            // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-            // However, we are certain at this point that the index is scalar.
-            s_lightIdx = WaveReadLaneFirst(s_lightIdx);
-#endif
+            uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
+            if (s_lightIdx == -1)
+                break;
+            
             LightData s_lightData = FetchLight(s_lightIdx);
 
             // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
@@ -215,10 +254,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         uint envLightStart, envLightCount;
 
-        bool fastPath = false;
         // Fetch first env light to provide the scene proxy for screen space computation
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+<<<<<<< HEAD
 
     #if SCALARIZE_LIGHT_LOOP
         // Fast path is when we all pixels in a wave is accessing same tile or cluster.
@@ -226,10 +265,18 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         fastPath = WaveActiveAllTrue(envLightStart == envStartFirstLane); 
     #endif
 
+=======
+>>>>>>> master
 #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         envLightCount = _EnvLightCount;
         envLightStart = 0;
 #endif
+
+        bool fastPath = false;
+    #if SCALARIZE_LIGHT_LOOP
+        uint envStartFirstLane;
+        fastPath = IsFastPath(envLightStart, envStartFirstLane);
+    #endif
 
         // Reflection / Refraction hierarchy is
         //  1. Screen Space Refraction / Reflection
@@ -265,6 +312,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
         {
             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
+
         #if SCALARIZE_LIGHT_LOOP
             if (fastPath)
             {
@@ -278,25 +326,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             while (v_envLightListOffset < envLightCount)
             {
                 v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
-                uint s_envLightIdx = v_envLightIdx;
-
-            #if SCALARIZE_LIGHT_LOOP
-                if (!fastPath)
-                {
-                    s_envLightIdx = WaveActiveMin(v_envLightIdx);
-                    // If we are not in fast path, s_envLightIdx is not scalar
-                   // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-                   // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
-                    if (s_envLightIdx == -1)
-                    {
-                        break;
-                    }
-                }
-                // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-                // However, we are certain at this point that the index is scalar.
-                s_envLightIdx = WaveReadLaneFirst(s_envLightIdx);
-
-            #endif
+                uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
+                if (s_envLightIdx == -1)
+                    break;
 
                 EnvLightData s_envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
 

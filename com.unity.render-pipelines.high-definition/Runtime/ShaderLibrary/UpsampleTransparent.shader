@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿Shader "Hidden/HDRP/UpsampleTransparent"
+=======
+Shader "Hidden/HDRP/UpsampleTransparent"
+>>>>>>> master
 {
     HLSLINCLUDE
 
@@ -42,6 +46,10 @@
 
         float4 Frag(Varyings input) : SV_Target
         {
+<<<<<<< HEAD
+=======
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+>>>>>>> master
             float2 uv = input.texcoord;
 
             float2 fullResTexelSize = _ScreenSize.zw;

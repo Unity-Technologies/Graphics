@@ -58,6 +58,21 @@ UNITY_INSTANCING_BUFFER_START(Terrain)
 UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
 UNITY_INSTANCING_BUFFER_END(Terrain)
 
+<<<<<<< HEAD
+=======
+float4 ConstructTerrainTangent(float3 normal, float3 positiveZ)
+{
+    // Consider a flat terrain. It should have tangent be (1, 0, 0) and bitangent be (0, 0, 1) as the UV of the terrain grid mesh is a scale of the world XZ position.
+    // In CreateWorldToTangent function (in SpaceTransform.hlsl), it is cross(normal, tangent) * sgn for the bitangent vector.
+    // It is not true in a left-handed coordinate system for the terrain bitangent, if we provide 1 as the tangent.w. It would produce (0, 0, -1) instead of (0, 0, 1).
+    // Also terrain's tangent calculation was wrong in a left handed system because cross((0,0,1), terrainNormalOS) points to the wrong direction as negative X.
+    // Therefore all the 4 xyzw components of the tangent needs to be flipped to correct the tangent frame.
+    // (See TerrainLitData.hlsl - GetSurfaceAndBuiltinData)
+    float3 tangent = cross(normal, positiveZ);
+    return float4(tangent, -1);
+}
+
+>>>>>>> master
 AttributesMesh ApplyMeshModification(AttributesMesh input)
 {
 #ifdef UNITY_INSTANCING_ENABLED
@@ -84,6 +99,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input)
 #endif
 
 #ifdef ATTRIBUTES_NEED_TANGENT
+<<<<<<< HEAD
     // Consider a flat terrain. It should have tangent be (1, 0, 0) and bitangent be (0, 0, 1) as the UV of the terrain grid mesh is a scale of the world XZ position.
     // In CreateWorldToTangent function (in SpaceTransform.hlsl), it is cross(normal, tangent) * sgn for the bitangent vector.
     // It is not true in a left-handed coordinate system for the terrain bitangent, if we provide 1 as the tangent.w. It would produce (0, 0, -1) instead of (0, 0, 1).
@@ -92,6 +108,9 @@ AttributesMesh ApplyMeshModification(AttributesMesh input)
     // (See TerrainLitData.hlsl - GetSurfaceAndBuiltinData)
     input.tangentOS.xyz = cross(input.normalOS, float3(0, 0, 1));
     input.tangentOS.w = -1;
+=======
+    input.tangentOS = ConstructTerrainTangent(input.normalOS, float3(0, 0, 1));
+>>>>>>> master
 #endif
     return input;
 }
@@ -134,6 +153,7 @@ float3 ConvertToNormalTS(float3 normalData, float3 tangentWS, float3 bitangentWS
 void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+<<<<<<< HEAD
     {
         // Consider a flat terrain.It should have tangent be(1, 0, 0) and bitangent be(0, 0, 1) as the UV of the terrain grid mesh is a scale of the world XZ position.
         // In CreateWorldToTangent function(in SpaceTransform.hlsl), it is cross(normal, tangent) * sgn for the bitangent vector.
@@ -151,6 +171,10 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 
         input.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
     }
+=======
+    float2 terrainNormalMapUV = (input.texCoord0.xy + 0.5f) * _TerrainHeightmapRecipSize.xy;
+    input.texCoord0.xy *= _TerrainHeightmapRecipSize.zw;
+>>>>>>> master
 #endif
 
     // terrain lightmap uvs are always taken from uv0
@@ -159,13 +183,39 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     TerrainLitSurfaceData terrainLitSurfaceData;
     InitializeTerrainLitSurfaceData(terrainLitSurfaceData);
     TerrainLitShade(input.texCoord0.xy, terrainLitSurfaceData);
+<<<<<<< HEAD
+
+    surfaceData.baseColor = terrainLitSurfaceData.albedo;
+    surfaceData.perceptualSmoothness = terrainLitSurfaceData.smoothness;
+    surfaceData.metallic = terrainLitSurfaceData.metallic;
+    surfaceData.ambientOcclusion = terrainLitSurfaceData.ao;
+=======
+>>>>>>> master
+
+#ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+    #ifdef TERRAIN_PERPIXEL_NORMAL_OVERRIDE
+        float3 normalWS = terrainLitSurfaceData.normalData.xyz; // normalData directly contains normal in world space.
+        surfaceData.normalWS = normalWS;
+    #else
+        float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, terrainNormalMapUV).rgb * 2 - 1;
+        float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
+    #endif
+    float4 tangentWS = ConstructTerrainTangent(normalWS, GetObjectToWorldMatrix()._13_23_33);
+    input.worldToTangent = BuildWorldToTangent(tangentWS, normalWS);
+#endif
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
+
+#if !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL) || !defined(TERRAIN_PERPIXEL_NORMAL_OVERRIDE)
+    float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.worldToTangent[0], input.worldToTangent[1]);
+    GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
+#endif
+    surfaceData.geomNormalWS = input.worldToTangent[2];
 
     surfaceData.baseColor = terrainLitSurfaceData.albedo;
     surfaceData.perceptualSmoothness = terrainLitSurfaceData.smoothness;
     surfaceData.metallic = terrainLitSurfaceData.metallic;
     surfaceData.ambientOcclusion = terrainLitSurfaceData.ao;
 
-    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = 0;
     surfaceData.thickness = 1;
     surfaceData.diffusionProfileHash = 0;
@@ -186,11 +236,14 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
+<<<<<<< HEAD
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.worldToTangent[0], input.worldToTangent[1]);
     GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
 
     surfaceData.geomNormalWS = input.worldToTangent[2];
 
+=======
+>>>>>>> master
     float3 bentNormalWS = surfaceData.normalWS;
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.

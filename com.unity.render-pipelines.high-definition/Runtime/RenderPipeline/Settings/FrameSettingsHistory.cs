@@ -276,6 +276,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             camera.cameraType == CameraType.SceneView && sceneViewCamera != null && frameSettingsHistory.ContainsKey(sceneViewCamera);
 #endif
 
+<<<<<<< HEAD
+=======
+        /// <summary>Check if a camera is registered.</summary>
+        public static bool IsRegistered(Camera camera)
+        {
+            return frameSettingsHistory.ContainsKey(camera);
+        }
+
+>>>>>>> master
         /// <summary>Return a copy of the persistently stored data.</summary>
         public static IDebugData GetPersistantDebugDataCopy(Camera camera) => frameSettingsHistory[camera];
 

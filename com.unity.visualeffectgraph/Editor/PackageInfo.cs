@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests-testable")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.RuntimeTests")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.RuntimeTests-testable")]
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests")]
+[assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests-testable")]
 
 namespace UnityEditor.VFX
 {
@@ -17,7 +19,7 @@ namespace UnityEditor.VFX
             {
                 if (m_PackagePath == null)
                 {
-                    foreach (var pkg in UnityEditor.PackageManager.Packages.GetAll())
+                    foreach (var pkg in UnityEditor.PackageManager.PackageInfo.GetAll())
                     {
                         if (pkg.name == "com.unity.visualeffectgraph")
                         {

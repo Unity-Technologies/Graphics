@@ -14,7 +14,10 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	static RenderTargetHandle afterAll;
 
     Material m_SamplingMaterial;
+<<<<<<< HEAD
     Downsampling m_DownsamplingMethod;
+=======
+>>>>>>> master
     
 	public CameraCallbackTests()
 	{
@@ -29,9 +32,12 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	public override void Create()
 	{
 		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Lightweight Render Pipeline/Sampling"));
+<<<<<<< HEAD
 
         if (LightweightRenderPipeline.asset != null)
 	        m_DownsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
+=======
+>>>>>>> master
 	}
 
 	internal class ClearColorPass : ScriptableRenderPass
@@ -55,6 +61,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
     }
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+<<<<<<< HEAD
         var cameraColorTarget = renderer.cameraColorTarget;
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, cameraColorTarget);
         
@@ -75,6 +82,30 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
         var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRendering, m_SamplingMaterial, m_DownsamplingMethod);
         copyAfterEverything.Setup(cameraColorTarget, afterAll);
+=======
+        Downsampling downSamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
+
+        var cameraColorTarget = renderer.cameraColorTarget;
+        var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, cameraColorTarget);
+        
+        var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial);
+        copyBeforeOpaquePass.Setup(cameraColorTarget, beforeAll, downSamplingMethod);
+
+        var copyAfterOpaquePass = new CopyColorPass(RenderPassEvent.AfterRenderingOpaques, m_SamplingMaterial);
+        copyAfterOpaquePass.Setup(cameraColorTarget, afterOpaque, downSamplingMethod);
+
+        var copyAfterSkyboxPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial);
+        copyAfterSkyboxPass.Setup(cameraColorTarget, afterSkybox, downSamplingMethod);
+
+        var copyAfterSkyboxPass2 = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial);
+        copyAfterSkyboxPass.Setup(cameraColorTarget, afterSkybox2, downSamplingMethod);
+
+        var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparents, m_SamplingMaterial);
+        copyAfterTransparents.Setup(cameraColorTarget, afterTransparent, downSamplingMethod);
+
+        var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRendering, m_SamplingMaterial);
+        copyAfterEverything.Setup(cameraColorTarget, afterAll, downSamplingMethod);
+>>>>>>> master
 
         var BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, cameraColorTarget);
 

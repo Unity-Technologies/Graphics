@@ -25,7 +25,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
     {
         if (!allowExternalization)
             return;
-        if (assetPath.EndsWith(".vfx"))
+        if (assetPath.EndsWith(VisualEffectResource.Extension))
         {
             string vfxName = Path.GetFileNameWithoutExtension(assetPath);
             string vfxDirectory = Path.GetDirectoryName(assetPath);
@@ -87,6 +87,14 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
 
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
+        foreach (var assetPath in deletedAssets)
+        {
+            if (VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath))
+            {
+                VisualEffectResource.DeleteAtPath(assetPath);
+            }
+        }
+
         if (!allowExternalization)
             return;
         HashSet<string> vfxToRefresh = new HashSet<string>();
@@ -102,7 +110,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
                 if (Path.GetFileName(vfxPath) != k_ShaderDirectory)
                     continue;
 
-                vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + ".vfx";
+                vfxPath = Path.GetDirectoryName(vfxPath) + "/" + vfxName + VisualEffectResource.Extension;
 
                 if (deletedAssets.Contains(assetPath))
                     vfxToRecompile.Add(vfxPath);
@@ -122,7 +130,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
             if (resource == null)
                 continue;
             resource.GetOrCreateGraph().SetExpressionGraphDirty();
-            resource.GetOrCreateGraph().RecompileIfNeeded();
+            resource.GetOrCreateGraph().RecompileIfNeeded(false,true);
         }
 
         foreach (var assetPath in vfxToRefresh)
@@ -155,11 +163,18 @@ public class VisualEffectAssetEditor : Editor
             VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
             return true;
         }
+        else if (obj is VisualEffectSubgraph)
+        {
+            VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
+
+            VFXViewWindow.GetWindow<VFXViewWindow>().LoadResource(resource, null);
+            return true;
+        }
         else if (obj is Shader || obj is ComputeShader)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
 
-            if (path.EndsWith(".vfx"))
+            if (path.EndsWith(VisualEffectResource.Extension))
             {
                 var resource = VisualEffectResource.GetResourceAtPath(path);
                 if (resource != null)
@@ -461,6 +476,7 @@ public class VisualEffectAssetEditor : Editor
         if (prewarmDeltaTime!= null && prewarmStepCount != null)
         {
             if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
+<<<<<<< HEAD
             {
                 var currentDeltaTime = prewarmDeltaTime.floatValue;
                 var currentStepCount = prewarmStepCount.intValue;
@@ -533,6 +549,80 @@ public class VisualEffectAssetEditor : Editor
             }
             else
             {
+=======
+            {
+                var currentDeltaTime = prewarmDeltaTime.floatValue;
+                var currentStepCount = prewarmStepCount.intValue;
+                var currentTotalTime = currentDeltaTime * currentStepCount;
+                EditorGUI.BeginChangeCheck();
+                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time"), currentTotalTime);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (currentStepCount <= 0)
+                    {
+                        prewarmStepCount.intValue = currentStepCount = 1;
+                    }
+
+                    currentDeltaTime = currentTotalTime / currentStepCount;
+                    prewarmDeltaTime.floatValue = currentDeltaTime;
+                    resourceObject.ApplyModifiedProperties();
+                }
+
+                EditorGUI.BeginChangeCheck();
+                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count"), currentStepCount);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (currentStepCount <= 0 && currentTotalTime != 0.0f)
+                    {
+                        prewarmStepCount.intValue = currentStepCount = 1;
+                    }
+                    
+                    currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
+                    prewarmDeltaTime.floatValue = currentDeltaTime;
+                    prewarmStepCount.intValue = currentStepCount;
+                    resourceObject.ApplyModifiedProperties();
+                }
+
+                EditorGUI.BeginChangeCheck();
+                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time"), currentDeltaTime);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (currentDeltaTime < k_MinimalCommonDeltaTime)
+                    {
+                        prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
+                    }
+
+                    if (currentDeltaTime > currentTotalTime)
+                    {
+                        currentTotalTime = currentDeltaTime;
+                    }
+
+                    if (currentTotalTime != 0.0f)
+                    {
+                        var candidateStepCount_A = Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
+                        var candidateStepCount_B = Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
+
+                        var totalTime_A = currentDeltaTime * candidateStepCount_A;
+                        var totalTime_B = currentDeltaTime * candidateStepCount_B;
+
+                        if (Mathf.Abs(totalTime_A - currentTotalTime) < Mathf.Abs(totalTime_B - currentTotalTime))
+                        {
+                            currentStepCount = candidateStepCount_A;
+                        }
+                        else
+                        {
+                            currentStepCount = candidateStepCount_B;
+                        }
+
+                        prewarmStepCount.intValue = currentStepCount;
+                    }
+                    prewarmDeltaTime.floatValue = currentDeltaTime;
+                    resourceObject.ApplyModifiedProperties();
+                }
+            }
+            else
+            {
+>>>>>>> master
                 //Multi selection case, can't resolve total time easily
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
@@ -558,7 +648,7 @@ public class VisualEffectAssetEditor : Editor
 
             m_ReorderableList.DoLayoutList();
 
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
+            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
 
             var shaderSources = resource.shaderSources;
 

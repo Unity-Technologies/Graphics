@@ -16,31 +16,58 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SerializeField, FormerlySerializedAs("capturePosition")]
             Vector3 m_CapturePosition;
             Quaternion m_CaptureRotation;
+<<<<<<< HEAD
+=======
+            float m_FieldOfView;
+>>>>>>> master
 
             public Matrix4x4 worldToCameraRHS => m_WorldToCameraRHS;
             public Matrix4x4 projectionMatrix => m_ProjectionMatrix;
             public Vector3 capturePosition => m_CapturePosition;
             public Quaternion captureRotation => m_CaptureRotation;
+<<<<<<< HEAD
+=======
+            public float fieldOfView => m_FieldOfView;
+>>>>>>> master
 
             public RenderData(CameraSettings camera, CameraPositionSettings position)
+                : this(
+                    position.GetUsedWorldToCameraMatrix(),
+                    camera.frustum.GetUsedProjectionMatrix(),
+                    position.position,
+                    position.rotation,
+                    camera.frustum.fieldOfView
+                )
             {
+<<<<<<< HEAD
                 m_WorldToCameraRHS = position.GetUsedWorldToCameraMatrix();
                 m_ProjectionMatrix = camera.frustum.GetUsedProjectionMatrix();
                 m_CapturePosition = position.position;
                 m_CaptureRotation = position.rotation;
+=======
+>>>>>>> master
             }
 
             public RenderData(
                 Matrix4x4 worldToCameraRHS,
                 Matrix4x4 projectionMatrix,
                 Vector3 capturePosition,
+<<<<<<< HEAD
                 Quaternion captureRotation
+=======
+                Quaternion captureRotation,
+                float fov
+>>>>>>> master
             )
             {
                 m_WorldToCameraRHS = worldToCameraRHS;
                 m_ProjectionMatrix = projectionMatrix;
                 m_CapturePosition = capturePosition;
                 m_CaptureRotation = captureRotation;
+<<<<<<< HEAD
+=======
+                m_FieldOfView = fov;
+>>>>>>> master
             }
         }
 
@@ -64,6 +91,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderData m_BakedRenderData;
         [SerializeField]
         RenderData m_CustomRenderData;
+
+        // Only used in editor, but this data needs to be probe instance specific
+        // (Contains: UI section states)
+        [SerializeField]
+        uint m_EditorOnlyData;
 
         // Runtime Data
         RenderTexture m_RealtimeTexture;
@@ -246,7 +278,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PrepareCulling();
 
             if (isActiveAndEnabled)
+            {
+                PrepareCulling();
                 HDProbeSystem.RegisterProbe(this);
+            }
         }
     }
 }

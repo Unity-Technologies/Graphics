@@ -122,7 +122,11 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 
 float RoughnessToBlinnPhongSpecularExponent(float roughness)
 {
+<<<<<<< HEAD
     return 2 * rcp(max(roughness * roughness, FLT_EPS)) - 2;
+=======
+    return clamp(2 * rcp(roughness * roughness) - 2, FLT_EPS, rcp(FLT_EPS));
+>>>>>>> master
 }
 
 BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)

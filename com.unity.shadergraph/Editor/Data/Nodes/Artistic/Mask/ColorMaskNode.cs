@@ -11,11 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Color Mask";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Color-Mask-Node"; }
-        }
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_ColorMask", BindingFlags.Static | BindingFlags.NonPublic);
@@ -31,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision} Distance = distance(MaskColor, In);
+    $precision Distance = distance(MaskColor, In);
     Out = saturate(1 - (Distance - Range) / max(Fuzziness, 1e-5));
 }";
         }

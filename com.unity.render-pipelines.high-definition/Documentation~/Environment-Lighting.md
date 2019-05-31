@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Environment lighting in the High Definition Render Pipeline
+=======
+# Environment lighting
+>>>>>>> master
 
 The High Definition Render Pipeline (HDRP) generates environment lighting from the area surrounding your Unity Scene. The most common source of environment lighting is sky lighting, but there are other types of background light, such as light from an interior lighting studio.
 
@@ -13,7 +17,11 @@ The two key components for environment lighting are the:
 
 ## Visual Environment
 
+<<<<<<< HEAD
 The Visual Environment is a Volume component that tells HDRP what type of [sky](Sky-Overview.html) and [fog](Fog-Overview.html) you want to render for Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Override-Visual-Environment.html) documentation .
+=======
+The Visual Environment is a Volume component that tells HDRP what type of [sky](HDRP-Features.html#SkyOverview.html) and [fog](HDRP-Features.html#FogOverview.html) you want to render for Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Override-Visual-Environment.html) documentation .
+>>>>>>> master
 
 Your Unity Project’s [HDRP Asset](HDRP-Asset.html#SkyLighting) has the following global sky properties that affect all Visual Environments:
 
@@ -41,13 +49,21 @@ An example of where you would want to decouple the sky lighting from the visual 
 
 ## HDRP built-in sky types
 
+<<<<<<< HEAD
 HDRP comes with three built-in [sky types](Sky-Overview.html):
+=======
+HDRP comes with three built-in [sky types](HDRP-Features.html#SkyOverview.html):
+>>>>>>> master
 
 - [HDRI Sky](Override-HDRI-Sky.html)
 - [Gradient Sky](Override-Gradient-Sky.html)
 - [Procedural Sky](Override-Procedural-Sky.html)
 
+<<<<<<< HEAD
 HDRP allows you to implement your own sky types that display a background and handle environment lighting. See the [Customizing HDRP](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki/Writing-A-Custom-Sky-Renderer) documentation for instructions on how to implement your own sky.
+=======
+HDRP allows you to implement your own sky types that display a background and handle environment lighting. See the [Customizing HDRP](Creating-a-Custom-Sky.html) documentation for instructions on how to implement your own sky.
+>>>>>>> master
 
 ## **Reflections**
 

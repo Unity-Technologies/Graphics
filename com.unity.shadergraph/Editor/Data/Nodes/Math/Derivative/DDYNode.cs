@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "DDY";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/DDY-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

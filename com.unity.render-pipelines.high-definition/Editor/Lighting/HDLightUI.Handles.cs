@@ -61,17 +61,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                         Vector4 aspectFovMaxRangeMinRange = new Vector4(additionalData.aspectRatio, light.spotAngle, light.range);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = wireframeColorBehind;
+<<<<<<< HEAD
                                         CoreLightEditorUtilities.DrawPyramidFrustumWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                         Handles.color = wireframeColorAbove;
                                         CoreLightEditorUtilities.DrawPyramidFrustumWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
+=======
+                                        CoreLightEditorUtilities.DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
+                                        Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                                        Handles.color = wireframeColorAbove;
+                                        CoreLightEditorUtilities.DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
+>>>>>>> master
                                         EditorGUI.BeginChangeCheck();
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = handleColorBehind;
-                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawPyramidFrustumHandle(aspectFovMaxRangeMinRange, false);
+                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                         Handles.color = handleColorAbove;
-                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawPyramidFrustumHandle(aspectFovMaxRangeMinRange, false);
+                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
                                         if (EditorGUI.EndChangeCheck())
                                         {
                                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Pyramid Spot Light");

@@ -1,7 +1,12 @@
 {
     "name": "Unity.RenderPipelines.HighDefinition.Runtime",
     "references": [
+<<<<<<< HEAD
         "Unity.RenderPipelines.Core.Runtime"
+=======
+        "Unity.RenderPipelines.Core.Runtime",
+		"Unity.ugui"
+>>>>>>> master
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

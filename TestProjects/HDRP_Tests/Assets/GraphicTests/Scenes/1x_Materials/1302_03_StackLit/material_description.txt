@@ -1,0 +1,20 @@
+Tester_SLSG : Tester_SLSG (aniso haze, dual spec occl, aniso area)
+Tester_SLSG_1 : Tester_SLSG 1 (aniso haze, dual spec occl, cap truef0fromhaze if dielectric)
+Tester_SLSG_2 : Tester_SLSG 2 (test 2lobe direct, coat, coatnormal, occC != occA != occB, aniso enable but null effect)
+Tester_SLSG_2b : Tester_SLSG 2b (bnm assigned, no occl, dual opposite aniso, no aniso for area)
+
+SLSG_BaseM_1 : SLSG_BaseMetal_Aniso_DualLobeDirect_Coat_CoatNormal_Irid_AnisoAreaLights.mat
+SLSG_BaseM_1 : SLSG_BaseMetal_Aniso_DualLobeDirect_Coat_CoatNormal_Irid_AnisoAreaLights.ShaderGraph
+
+SLSG_BaseM_2 : SLSG_BaseMetal_Aniso_DualLobeDirect_Coat_Irid_AnisoAreaLights.ShaderGraph
+SLSG_BaseM_2 : SLSG_BaseMetal_Aniso_DualLobeDirect_Coat_Irid_AnisoAreaLights.mat
+
+SLSG_BaseM_3 : SLSG_BaseMetal_Aniso_DualLobeHazeCap_SpecOcc_AnisoAreaLights.ShaderGraph
+SLSG_BaseM_4 : SLSG_BaseMetal_Aniso_DualLobeHazeNoCap_SpecOcc_AnisoAreaLights.ShaderGraph
+SLSG_SpecC_1 : SLSG_SpecColor_Aniso_DualLobeDirect.ShaderGraph
+SLSG_SpecC_2 : SLSG_SpecColor_Aniso_DualLobeDirect_Coat_CoatNormal_SpecOcc_AnisoAreaLights.ShaderGraph
+SLSG_SpecC_3 : SLSG_SpecColor_Aniso_DualLobeHaze_SpecOcc_AnisoAreaLights.ShaderGraph
+
+
+
+

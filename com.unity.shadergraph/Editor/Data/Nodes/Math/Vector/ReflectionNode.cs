@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Reflection";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Reflection-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

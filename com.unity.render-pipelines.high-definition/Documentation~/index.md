@@ -17,7 +17,8 @@ __Note: HDRP will only work on the following platforms if the device used suppor
 * Windows and Windows Store, with DirectX 11 or DirectX 12 and Shader Model 5.0
 * Modern consoles (Sony PS4 and Microsoft Xbox One)
 * MacOS using Metal graphics
-* Future: IOS with Metal, Android, Linux and Windows platforms with Vulkan
+* Linux and Windows platforms with Vulkan
+* Future: IOS with Metal, Android
 
 __HDRP does not support OpenGL or OpenGL ES devices.__
 

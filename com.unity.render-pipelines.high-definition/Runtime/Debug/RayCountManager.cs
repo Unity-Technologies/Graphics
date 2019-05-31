@@ -29,16 +29,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         
         // HDRP Resources
         DebugDisplaySettings m_DebugDisplaySettings;
+<<<<<<< HEAD
         RenderPipelineResources m_PipelineResources;
+=======
+        HDRenderPipelineRayTracingResources m_PipelineResources;
+>>>>>>> master
 
         // Given that the requests are guaranteed to be executed in order we use a queue to store it
         Queue<AsyncGPUReadbackRequest> rayCountReadbacks = new Queue<AsyncGPUReadbackRequest>();
 
+<<<<<<< HEAD
         public void Init(RenderPipelineResources renderPipelineResources, DebugDisplaySettings currentDebugDisplaySettings)
         {
             // Keep track of the external resources
             m_DebugDisplaySettings = currentDebugDisplaySettings;
             m_PipelineResources = renderPipelineResources;
+=======
+        public void Init(HDRenderPipelineRayTracingResources rayTracingResources, DebugDisplaySettings currentDebugDisplaySettings)
+        {
+            // Keep track of the external resources
+            m_DebugDisplaySettings = currentDebugDisplaySettings;
+            m_PipelineResources = rayTracingResources;
+>>>>>>> master
 
             m_RayCountTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32G32B32A32_UInt, enableRandomWrite: true, useMipMap: false, name: "RayCountTexture");
 
@@ -68,7 +80,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_DebugDisplaySettings.data.countRays)
             {
                 // Get the compute shader to use
+<<<<<<< HEAD
                 ComputeShader countCompute = m_PipelineResources.shaders.countTracedRays;
+=======
+                ComputeShader countCompute = m_PipelineResources.countTracedRays;
+>>>>>>> master
 
                 // Grab the kernel that we will be using for the clear
                 int currentKenel = countCompute.FindKernel("ClearBuffer");
@@ -80,7 +96,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.DispatchCompute(countCompute, currentKenel, tileSize, tileSize, 1);
 
                 // Clear the ray count texture (that ensures that we don't have to check what we are reading while we reduce)
+<<<<<<< HEAD
                 HDUtils.SetRenderTarget(cmd, camera, m_RayCountTexture, ClearFlag.Color);
+=======
+                HDUtils.SetRenderTarget(cmd, m_RayCountTexture, ClearFlag.Color);
+>>>>>>> master
             }
         }
 
@@ -100,7 +120,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int currentHeight = camera.actualHeight;
 
                     // Get the compute shader
+<<<<<<< HEAD
                     ComputeShader countCompute = m_PipelineResources.shaders.countTracedRays;
+=======
+                    ComputeShader countCompute = m_PipelineResources.countTracedRays;
+>>>>>>> master
 
                     // Grab the kernel that we will be using for the reduction
                     int currentKenel = countCompute.FindKernel("TextureReduction");

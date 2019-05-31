@@ -21,6 +21,11 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireVertexColor
         , IMayRequireTime
         , IMayRequireFaceSign
+<<<<<<< HEAD
+=======
+        , IMayRequireCameraOpaqueTexture
+        , IMayRequireDepthTexture
+>>>>>>> master
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -93,6 +98,8 @@ namespace UnityEditor.ShaderGraph
                 if (m_SubGraph == null)
                 {
                     return;
+<<<<<<< HEAD
+=======
                 }
                 
                 name = m_SubGraph.name;
@@ -102,6 +109,23 @@ namespace UnityEditor.ShaderGraph
         }
 
         public SubGraphData subGraphData
+                {
+            get
+                    {
+                LoadSubGraph();
+                return m_SubGraphData;
+                    }
+>>>>>>> master
+                }
+                
+                name = m_SubGraph.name;
+                var index = SubGraphDatabase.instance.subGraphGuids.BinarySearch(graphGuid);
+                m_SubGraphData = index < 0 ? null : SubGraphDatabase.instance.subGraphs[index];
+            }
+        }
+
+<<<<<<< HEAD
+        public SubGraphData subGraphData
         {
             get
             {
@@ -110,6 +134,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+=======
+>>>>>>> master
         public SubGraphAsset subGraphAsset
         {
             get
@@ -158,26 +184,34 @@ namespace UnityEditor.ShaderGraph
         {
             get { return true; }
         }
-
-        public override string documentationURL
+        
+        public override bool canSetPrecision
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sub-graph-Node"; }
+            get { return false; }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
+<<<<<<< HEAD
             var sb = new ShaderStringBuilder();
+=======
+>>>>>>> master
             if (subGraphData == null || hasError)
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
                 foreach (var slot in outputSlots)
                 {
+<<<<<<< HEAD
                     visitor.AddShaderChunk($"{NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
+=======
+                    sb.AppendLine($"{slot.concreteValueType.ToShaderString(subGraphData.outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
+>>>>>>> master
                 }
                 
                 return;
             }
+<<<<<<< HEAD
 
             var inputVariableName = $"_{GetVariableNameForNode()}";
             
@@ -187,10 +221,20 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var outSlot in subGraphData.outputs)
                 visitor.AddShaderChunk(string.Format("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, outSlot.concreteValueType), GetVariableNameForSlot(outSlot.id)));
+=======
+
+            var inputVariableName = $"_{GetVariableNameForNode()}";
+            
+            GraphUtil.GenerateSurfaceInputTransferCode(sb, subGraphData.requirements, subGraphData.inputStructName, inputVariableName);
+
+            foreach (var outSlot in subGraphData.outputs)
+                sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(subGraphData.outputPrecision), GetVariableNameForSlot(outSlot.id));
+>>>>>>> master
 
             var arguments = new List<string>();
             foreach (var prop in subGraphData.inputs)
             {
+<<<<<<< HEAD
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
                 if (prop is TextureShaderProperty)
@@ -201,8 +245,21 @@ namespace UnityEditor.ShaderGraph
                     arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
                 else if (prop is CubemapShaderProperty)
                     arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
+=======
+                prop.SetConcretePrecision(subGraphData.graphPrecision);
+                var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
+
+                if (prop is TextureShaderProperty)
+                    arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
+                else if (prop is Texture2DArrayShaderProperty)
+                    arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
+                else if (prop is Texture3DShaderProperty)
+                    arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
+                else if (prop is CubemapShaderProperty)
+                    arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
+>>>>>>> master
                 else
-                    arguments.Add(GetSlotValue(inSlotId, generationMode));
+                    arguments.Add(string.Format("{0}", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
             }
 
             // pass surface inputs through
@@ -211,10 +268,14 @@ namespace UnityEditor.ShaderGraph
             foreach (var outSlot in subGraphData.outputs)
                 arguments.Add(GetVariableNameForSlot(outSlot.id));
 
+<<<<<<< HEAD
             visitor.AddShaderChunk(
                 string.Format("{0}({1});"
                     , subGraphData.functionName
                     , arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next))));
+=======
+            sb.AppendLine("{0}({1});", subGraphData.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
+>>>>>>> master
         }
 
         public void OnEnable()
@@ -297,6 +358,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 var id = m_PropertyIds[propertyIndex];
                 MaterialSlot slot = MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue, ShaderStageCapability.All);
+                
                 // copy default for texture for niceness
                 if (slotType == SlotValueType.Texture2D && propType == PropertyType.Texture2D)
                 {
@@ -379,11 +441,31 @@ namespace UnityEditor.ShaderGraph
                 if (string.IsNullOrEmpty(assetPath))
                 {
                     owner.AddValidationError(tempId, $"Could not find Sub Graph asset with GUID {assetGuid}.");
+<<<<<<< HEAD
+                }
+                else
+                {
+                    owner.AddValidationError(tempId, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");
+=======
+>>>>>>> master
                 }
                 else
                 {
                     owner.AddValidationError(tempId, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");
                 }
+
+                return;
+            }
+            
+            if (subGraphData.isRecursive || owner.isSubGraph && (subGraphData.descendents.Contains(owner.assetGuid) || subGraphData.assetGuid == owner.assetGuid))
+            {
+                hasError = true;
+                owner.AddValidationError(tempId, $"Detected a recursion in Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+            }
+            else if (!subGraphData.isValid)
+            {
+                hasError = true;
+                owner.AddValidationError(tempId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
             else if (subGraphData.isRecursive || owner.isSubGraph && (subGraphData.descendents.Contains(owner.assetGuid) || subGraphData.assetGuid == owner.assetGuid))
             {
@@ -397,6 +479,11 @@ namespace UnityEditor.ShaderGraph
             }
 
             ValidateShaderStage();
+<<<<<<< HEAD
+=======
+
+            concretePrecision = subGraphData.outputPrecision;
+>>>>>>> master
         }
 
         public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
@@ -434,12 +521,21 @@ namespace UnityEditor.ShaderGraph
             
             foreach (var functionName in subGraphData.functionNames)
             {
+<<<<<<< HEAD
             registry.ProvideFunction(functionName, s =>
             {
                     var functionSource = database.functionSources[database.functionNames.BinarySearch(functionName)];
                     s.AppendLines(functionSource);
                 });
                     }
+=======
+                registry.ProvideFunction(functionName, s =>
+                {
+                    var functionSource = database.functionSources[database.functionNames.BinarySearch(functionName)];
+                    s.AppendLines(functionSource);
+                });
+            }
+>>>>>>> master
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
@@ -493,6 +589,7 @@ namespace UnityEditor.ShaderGraph
         public bool RequiresTime()
         {
             if (subGraphData == null)
+<<<<<<< HEAD
                 return false;
 
             return subGraphData.requirements.requiresTime;
@@ -503,6 +600,18 @@ namespace UnityEditor.ShaderGraph
             if (subGraphData == null)
                 return false;
 
+=======
+                return false;
+
+            return subGraphData.requirements.requiresTime;
+        }
+
+        public bool RequiresFaceSign(ShaderStageCapability stageCapability)
+        {
+            if (subGraphData == null)
+                return false;
+
+>>>>>>> master
             return subGraphData.requirements.requiresFaceSign;
         }
 
@@ -517,20 +626,51 @@ namespace UnityEditor.ShaderGraph
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)
         {
             if (subGraphData == null)
+<<<<<<< HEAD
                 return false;
 
             return subGraphData.requirements.requiresVertexColor;
+=======
+                return false;
+
+            return subGraphData.requirements.requiresVertexColor;
+        }
+
+        public bool RequiresCameraOpaqueTexture(ShaderStageCapability stageCapability)
+        {
+            if (subGraphData == null)
+                return false;
+
+            return subGraphData.requirements.requiresCameraOpaqueTexture;
+        }
+
+        public bool RequiresDepthTexture(ShaderStageCapability stageCapability)
+        {
+            if (subGraphData == null)
+                return false;
+
+            return subGraphData.requirements.requiresDepthTexture;
+>>>>>>> master
         }
 
         public override void GetSourceAssetDependencies(List<string> paths)
         {
             base.GetSourceAssetDependencies(paths);
             if (subGraphData != null)
+<<<<<<< HEAD
             {
                 paths.Add(AssetDatabase.GetAssetPath(subGraphAsset));
                 foreach (var graphGuid in subGraphData.descendents)
             {
                     paths.Add(AssetDatabase.GUIDToAssetPath(graphGuid));
+=======
+            {
+                paths.Add(AssetDatabase.GetAssetPath(subGraphAsset));
+                foreach (var graphGuid in subGraphData.descendents)
+                {
+                    paths.Add(AssetDatabase.GUIDToAssetPath(graphGuid));
+        }
+>>>>>>> master
             }
         }
         }

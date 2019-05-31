@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Polar Coordinates";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Polar-Coordinates-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -32,10 +28,10 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    float2 delta = UV - Center;
-    {precision} radius = length(delta) * 2 * RadialScale;
-    {precision} angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;
-    Out = float2(radius, angle);
+    $precision2 delta = UV - Center;
+    $precision radius = length(delta) * 2 * RadialScale;
+    $precision angle = atan2(delta.x, delta.y) * 1.0/6.28 * LengthScale;
+    Out = $precision2(radius, angle);
 }
 ";
         }

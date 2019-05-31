@@ -43,6 +43,14 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+<<<<<<< HEAD
+=======
+        public override bool isRenamable
+        {
+            get { return true; }
+        }
+
+>>>>>>> master
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
@@ -80,7 +88,7 @@ namespace UnityEditor.ShaderGraph
 
         public override AbstractMaterialNode ToConcreteNode()
         {
-            return new Texture2DAssetNode { texture = value.textureArray };
+            return new Texture2DArrayAssetNode { texture = value.textureArray };
         }
 
         public override AbstractShaderProperty Copy()

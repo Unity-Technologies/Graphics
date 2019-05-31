@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Twirl";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Twirl-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -33,11 +29,11 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    float2 delta = UV - Center;
-    {precision} angle = Strength * length(delta);
-    {precision} x = cos(angle) * delta.x - sin(angle) * delta.y;
-    {precision} y = sin(angle) * delta.x + cos(angle) * delta.y;
-    Out = float2(x + Center.x + Offset.x, y + Center.y + Offset.y);
+    $precision2 delta = UV - Center;
+    $precision angle = Strength * length(delta);
+    $precision x = cos(angle) * delta.x - sin(angle) * delta.y;
+    $precision y = sin(angle) * delta.x + cos(angle) * delta.y;
+    Out = $precision2(x + Center.x + Offset.x, y + Center.y + Offset.y);
 }
 ";
         }

@@ -6,7 +6,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum DynamicResolutionType : byte
     {
         Software,
+<<<<<<< HEAD
         //Hardware,   // Has lots of problems on platform. Disabling this while we investigate.
+=======
+        Hardware,   
+>>>>>>> master
         //Temporal    // Not yet supported
     }
 
@@ -26,7 +30,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             maxPercentage = 100.0f,
             minPercentage = 100.0f,
+<<<<<<< HEAD
             dynResType = DynamicResolutionType.Software,
+=======
+            // It fall-backs to software when not supported, so it makes sense to have it on by default.
+            dynResType = DynamicResolutionType.Hardware,
+>>>>>>> master
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
             forcedPercentage = 100.0f
         };

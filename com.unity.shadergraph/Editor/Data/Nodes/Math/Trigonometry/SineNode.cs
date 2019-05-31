@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Sine";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sine-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

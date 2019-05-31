@@ -46,10 +46,13 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return false; } }
 
+<<<<<<< HEAD
         public override string documentationURL
         {
             get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Scene-Depth-Node"; }
         }
+=======
+>>>>>>> master
 
         protected override MethodInfo GetFunctionToConvert()
         {

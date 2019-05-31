@@ -10,4 +10,8 @@ Components that include advanced properties have a plus icon to the right of eac
 
 When you click the plus icon, Unity exposes the advanced properties for the **General** section. In this example,  the **Light Layer** property appears:
 
+<<<<<<< HEAD
 ![](Images/AdvancedProperties2.png)
+=======
+![](Images/AdvancedProperties2.png)
+>>>>>>> master

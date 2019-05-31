@@ -1,27 +1,31 @@
-using UnityEngine.Serialization;
+using System;
 
 namespace UnityEngine.Rendering.LWRP
 {
     public class LightweightRenderPipelineEditorResources : ScriptableObject
     {
-        [FormerlySerializedAs("DefaultMaterial"),SerializeField]
-        Material m_LitMaterial = null;
+        [Serializable, ReloadGroup]
+        public sealed class ShaderResources
+        {
+            [Reload("Shaders/Autodesk Interactive/Autodesk Interactive.shadergraph")]
+            public Shader autodeskInteractivePS;
 
-        [FormerlySerializedAs("DefaultParticleMaterial"),SerializeField]
-        Material m_ParticleLitMaterial = null;
+            [Reload("Shaders/Autodesk Interactive/Autodesk Interactive Transparent.shadergraph")]
+            public Shader autodeskInteractiveTransparentPS;
 
-        [FormerlySerializedAs("DefaultTerrainMaterial"),SerializeField]
-        Material m_TerrainLitMaterial = null;
+            [Reload("Shaders/Autodesk Interactive/Autodesk Interactive Masked.shadergraph")]
+            public Shader autodeskInteractiveMaskedPS;
 
-        [FormerlySerializedAs("AutodeskInteractiveShader"), SerializeField]
-        private Shader m_AutodeskInteractiveShader = null;
+            [Reload("Shaders/Terrain/TerrainDetailLit.shader")]
+            public Shader terrainDetailLitPS;
 
-        [FormerlySerializedAs("AutodeskInteractiveTransparentShader"), SerializeField]
-        private Shader m_AutodeskInteractiveTransparentShader = null;
+            [Reload("Shaders/Terrain/WavingGrass.shader")]
+            public Shader terrainDetailGrassPS;
 
-        [FormerlySerializedAs("AutodeskInteractiveMaskedShader"), SerializeField]
-        private Shader m_AutodeskInteractiveMaskedShader = null;
+            [Reload("Shaders/Terrain/WavingGrassBillboard.shader")]
+            public Shader terrainDetailGrassBillboardPS;
 
+<<<<<<< HEAD
         [SerializeField]
         private Shader m_TerrainDetailLitShader = null;
 
@@ -41,32 +45,41 @@ namespace UnityEngine.Rendering.LWRP
         {
             get { return m_LitMaterial; }
         }
+=======
+            [Reload("Shaders/Nature/SpeedTree7.shader")]
+            public Shader defaultSpeedTree7PS;
+>>>>>>> master
 
-        public Material particleLitMaterial
-        {
-            get { return m_ParticleLitMaterial; }
+            [Reload("Shaders/Nature/SpeedTree8.shader")]
+            public Shader defaultSpeedTree8PS;
         }
 
-        public Material terrainLitMaterial
+        [Serializable, ReloadGroup]
+        public sealed class MaterialResources
         {
-            get { return m_TerrainLitMaterial; }
+            [Reload("Runtime/Materials/Lit.mat")]
+            public Material lit;
+
+            [Reload("Runtime/Materials/ParticlesLit.mat")]
+            public Material particleLit;
+
+            [Reload("Runtime/Materials/TerrainLit.mat")]
+            public Material terrainLit;
         }
 
-        public Shader autodeskInteractiveShader
-        {
-            get { return m_AutodeskInteractiveShader; }
-        }
+        public ShaderResources shaders;
+        public MaterialResources materials;
+    }
 
-        public Shader autodeskInteractiveTransparentShader
+#if UNITY_EDITOR
+    [UnityEditor.CustomEditor(typeof(LightweightRenderPipelineEditorResources))]
+    class LightweightRenderPipelineEditorResourcesEditor : UnityEditor.Editor
+    {
+        public override void OnInspectorGUI()
         {
-            get { return m_AutodeskInteractiveTransparentShader; }
-        }
+            DrawDefaultInspector();
 
-        public Shader autodeskInteractiveMaskedShader
-        {
-            get { return m_AutodeskInteractiveMaskedShader; }
-        }
-
+<<<<<<< HEAD
         public Shader terrainDetailLitShader
         {
             get { return m_TerrainDetailLitShader; }
@@ -90,6 +103,17 @@ namespace UnityEngine.Rendering.LWRP
         public Shader defaultSpeedTree8Shader
         {
             get { return m_SpeedTree8Shader; }
+=======
+            // Add a "Reload All" button in inspector when we are in developer's mode
+            if (UnityEditor.EditorPrefs.GetBool("DeveloperMode") && GUILayout.Button("Reload All"))
+            {
+                var resources = target as LightweightRenderPipelineEditorResources;
+                resources.materials = null;
+                resources.shaders = null;
+                ResourceReloader.ReloadAllNullIn(target, LightweightRenderPipelineAsset.packagePath);
+            }
+>>>>>>> master
         }
     }
+#endif
 }

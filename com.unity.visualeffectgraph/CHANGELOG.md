@@ -4,12 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+<<<<<<< HEAD
 ## [5.14.0-preview] - 2019-XX-XX
 ### Fixed
+=======
+## [7.0.0-preview] - 2019-XX-XX
+
+## [6.7.0-preview] - 2019-05-16
+### Added
+- Distortion Outputs (Quad / Mesh)
+- Color mapping mode for unlit outputs (Textured/Gradient Mapped)
+- Add Triangle and Octagon primitives for particle outputs
+- Set Attribute is now spaceable on a specific set of attributes (position, velocity, axis...)
+- Trigger : GPUEvent Rate (Over time or Distance)
+
+### Fixed
+- Fix shader compilation error with debug views
+>>>>>>> master
 - Improve AA line rendering
 - Fix screen space size block
 - Crash chaining two spawners each other [Case 1135299](https://issuetracker.unity3d.com/issues/crash-chaining-two-spawners-to-each-other-produces-an-infinite-loop)
 - Inspector : Exposed parameters disregard the initial value [Case 1126471](https://issuetracker.unity3d.com/issues/parameters-exposed-parameters-disregard-the-initial-value)
+<<<<<<< HEAD
 
 ## [5.13.0-preview] - 2019-04-15
 
@@ -29,15 +45,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Missing graph invalidation in VFXGraph.OnEnable, was causing trouble with value invalidation until next recompilation
 
 ## [5.8.0-preview] - 2019-03-13
+=======
+- Asset name now displayed in compile errors and output context shaders
+- Fix for linking spawner to spawner while first spawner is linked to initialize + test 
+- Fix space of spaceable slot not copy pasted + test
+- Position (Circle) does not take the Center Z value into account [Case 1146850](https://issuetracker.unity3d.com/issues/blocks-position-circle-does-not-take-the-center-z-value-into-account)
+- Add Exposure Weight for emissive in lit outputs
+
+## [6.6.0-preview] - 2019-04-01
+>>>>>>> master
 ### Added
 - Addressing mode for Sequential blocks
 - Invert transform available on GPU
 - Add automatic depth buffer reference for main camera (for position and collision blocks)
 - Total Time for PreWarm in Visual Effect Asset inspector
 - Support for unlit output with LWRP
+<<<<<<< HEAD
 
 ### Fixed
 - Better Handling of Null or Missing Parameter Binders (Editor + Runtime)
+=======
+- Add Terrain Parameter Binder + Terrain Type
+- Add UI Parameter Binders : Slider, Toggle
+- Add Input Parameter Binders : Axis, Button, Key, Mouse, Touch
+- Add Other Parameter Binders : Previous Position, Hierarchy Attribute Map, Multi-Position, Enabled
+
+### Fixed
+>>>>>>> master
 - Undo Redo while changing space
 - Type declaration was unmodifiable due to exception during space intialization
 - Fix unexpected issue when plugging per particle data into hash of per component fixed random
@@ -45,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix exception when using a Oriented Box Volume node [Case 1110419](https://issuetracker.unity3d.com/issues/operator-indexoutofrangeexception-when-using-a-volume-oriented-box-node)
 - Add missing blend value slot in Inherit Source Attribute blocks [Case 1120568](https://issuetracker.unity3d.com/issues/source-attribute-blend-source-attribute-blocks-are-not-useful-without-the-blend-value)
 - Visual Effect Inspector Cosmetic Improvements
+<<<<<<< HEAD
 - Exception while removing a sub-slot of a dynamic operator
 
 ## [5.7.0-preview] - 2019-03-07
@@ -63,6 +98,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.3.1-preview] - 2019-01-28
 
 ## [5.3.0-preview] - 2019-01-28
+=======
+- Missing graph invalidation in VFXGraph.OnEnable, was causing trouble with value invalidation until next recompilation
+- Issue that remove the edge when dragging an edge from slot to the same slot.
+- Exception when undoing an edge deletion on a dynamic operator. 
+- Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
+- Exception while removing a sub-slot of a dynamic operator
+
+## [6.5.0-preview] - 2019-03-07
+
+## [6.4.0-preview] - 2019-02-21 
+
+## [6.3.0-preview] - 2019-02-18
+
+## [6.2.0-preview] - 2019-02-15
+### Changed
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named
+
+### Fixed
+- Better Handling of Null or Missing Parameter Binders (Editor + Runtime)
+- Fixes in VFX Raycast Binder
+- Fixes in VFX Parameter Binder Editor
+
+## [6.1.0-preview] - 2019-02-13
+
+## [6.0.0-preview] - 2019-02-23
+>>>>>>> master
 ### Added
 - Add spawnTime & spawnCount operator
 - Add seed slot to constant random mode of Attribute from curve and map
@@ -83,6 +144,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix fog on decals
 - Saturate alpha component in outputs
 - Fixed scaleY in ConnectTarget
+<<<<<<< HEAD
+=======
+- Incorrect toggle rectangle in VisualEffect inspector
+- Shader compilation with SimpleLit and debug display
+>>>>>>> master
 
 ## [5.2.0-preview] - 2018-11-27
 ### Added

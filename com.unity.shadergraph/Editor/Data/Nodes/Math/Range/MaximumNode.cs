@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Maximum";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Maximum-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

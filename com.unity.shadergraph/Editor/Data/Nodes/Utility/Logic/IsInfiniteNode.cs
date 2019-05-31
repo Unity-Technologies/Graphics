@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Is Infinite";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Is-Infinite-Node"; }
-        }
 
         public override bool hasPreview
         {

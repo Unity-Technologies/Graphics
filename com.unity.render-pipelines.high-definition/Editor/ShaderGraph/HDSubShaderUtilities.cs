@@ -540,6 +540,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // properties used by either pixel and vertex shader
             PropertyCollector sharedProperties = new PropertyCollector();
+            ShaderStringBuilder shaderPropertyUniforms = new ShaderStringBuilder(1);
 
             // build the graph outputs structure to hold the results of each active slots (and fill out activeFields to indicate they are active)
             string pixelGraphInputStructName = "SurfaceDescriptionInputs";
@@ -613,6 +614,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
 
+            // Get property declarations
+            sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
+
             // propagate active field requirements using dependencies
             ShaderSpliceUtil.ApplyDependencies(
                 activeFields,
@@ -673,12 +677,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     shaderPassIncludes.AddShaderChunk(include);
             }
 
-
             // build graph code
             var graph = new ShaderGenerator();
             {
                 graph.AddShaderChunk("// Shared Graph Properties (uniform inputs)");
+<<<<<<< HEAD
                 graph.AddShaderChunk(sharedProperties.GetPropertiesDeclaration(1, mode));
+=======
+                graph.AddShaderChunk(shaderPropertyUniforms.ToString());
+>>>>>>> master
 
                 if (vertexActive)
                 {
@@ -855,6 +862,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 renderQueueIndex = HDRenderQueue.ChangeType(renderQueueType, sortPriority, alphaTest)
             };
         }
+<<<<<<< HEAD
 
         public static HDMaterialTags BuildMaterialTags(SurfaceType surfaceType,
                                                        int sortPriority,
@@ -866,6 +874,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (surfaceType == SurfaceType.Transparent)
                 renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
 
+=======
+
+        public static HDMaterialTags BuildMaterialTags(SurfaceType surfaceType,
+                                                       int sortPriority,
+                                                       bool alphaTest,
+                                                       HDMaterialTags.RenderType renderType = HDMaterialTags.RenderType.HDLitShader)
+        {
+            HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.RenderQueueType.Opaque;
+
+            if (surfaceType == SurfaceType.Transparent)
+                renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
+
+>>>>>>> master
             return BuildMaterialTags(renderQueueType, sortPriority, alphaTest, renderType);
         }
 

@@ -15,6 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty rayBias;
 
         // Ambient Occlusion
+<<<<<<< HEAD
         public SerializedProperty raytracedAO;
         public SerializedProperty aoLayerMask;
         public SerializedProperty aoFilterMode;
@@ -65,6 +66,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty indirectDiffuseClampValue;
         public SerializedProperty indirectDiffuseFilterMode;
         public SerializedProperty indirectDiffuseFilterRadius;
+=======
+        public SerializedProperty aoLayerMask;
+
+        // Reflections Attributes
+        public SerializedProperty reflLayerMask;
+
+        // Primary visiblity raytracing
+        public SerializedProperty raytracedLayerMask;
+
+        // Area Shadow Properties
+        public SerializedProperty shadowLayerMask;
+
+        // Indirect diffuse Properties
+        public SerializedProperty indirectDiffuseLayerMask;
+>>>>>>> master
 
         public SerializedHDRaytracingEnvironment(HDRaytracingEnvironment rtEnv)
         {
@@ -74,6 +90,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Ambient Occlusion
             rayBias = o.Find(x => x.rayBias);
+<<<<<<< HEAD
             raytracedAO = o.Find(x => x.raytracedAO);
             aoLayerMask = o.Find(x => x.aoLayerMask);
             aoFilterMode = o.Find(x => x.aoFilterMode);
@@ -124,6 +141,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             indirectDiffuseClampValue = o.Find(x => x.indirectDiffuseClampValue);
             indirectDiffuseFilterMode = o.Find(x => x.indirectDiffuseFilterMode);
             indirectDiffuseFilterRadius = o.Find(x => x.indirectDiffuseFilterRadius);
+=======
+            aoLayerMask = o.Find(x => x.aoLayerMask);
+
+            // Reflections Attributes
+            reflLayerMask = o.Find(x => x.reflLayerMask);
+
+            // Shadows Attributes
+            shadowLayerMask = o.Find(x => x.shadowLayerMask);
+
+            // Raytracing Attributes
+            raytracedLayerMask = o.Find(x => x.raytracedLayerMask);
+
+            // Indirect diffuse Properties
+            indirectDiffuseLayerMask = o.Find(x => x.indirectDiffuseLayerMask);
+>>>>>>> master
         }
 
         public void Update()

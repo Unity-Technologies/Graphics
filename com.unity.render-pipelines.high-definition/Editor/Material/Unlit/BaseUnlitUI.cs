@@ -433,6 +433,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (EditorGUI.EndChangeCheck())
                     {
                         transparentSortPriority.floatValue = HDRenderQueue.ClampsTransparentRangePriority((int)transparentSortPriority.floatValue);
+<<<<<<< HEAD
+=======
+                        renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.GetTypeByRenderQueueValue(renderQueue), offset: (int)transparentSortPriority.floatValue);
+>>>>>>> master
                     }
                 }
 

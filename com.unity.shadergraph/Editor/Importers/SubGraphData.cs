@@ -52,6 +52,13 @@ namespace UnityEditor.ShaderGraph
 
         public List<string> ancestors = new List<string>();
 
+<<<<<<< HEAD
+=======
+        public ConcretePrecision graphPrecision;
+
+        public ConcretePrecision outputPrecision;
+
+>>>>>>> master
         public ShaderStageCapability effectiveShaderStage;
 
         public void Reset()

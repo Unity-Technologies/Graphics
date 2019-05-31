@@ -166,15 +166,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Texture target,
             bool forceFlipY = false,
             bool forceInvertBackfaceCulling = false,
+<<<<<<< HEAD
             uint staticFlags = 0
+=======
+            uint staticFlags = 0,
+            float referenceFieldOfView = 90
+>>>>>>> master
         )
         {
             Render(
                 settings, position, target,
+<<<<<<< HEAD
                 out CameraSettings cameraSettings, out CameraPositionSettings cameraPosition,
                 forceFlipY: forceFlipY,
                 forceInvertBackfaceCulling: forceInvertBackfaceCulling,
                 staticFlags: staticFlags
+=======
+                out _, out _,
+                forceFlipY,
+                forceInvertBackfaceCulling,
+                staticFlags,
+                referenceFieldOfView
+>>>>>>> master
             );
         }
 
@@ -190,13 +203,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static void GenerateRenderingSettingsFor(
             ProbeSettings settings, ProbeCapturePositionSettings position,
             List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions,
+<<<<<<< HEAD
             bool forceFlipY = false
+=======
+            bool forceFlipY = false, float referenceFieldOfView = 90
+>>>>>>> master
         )
         {
             // Copy settings
             ComputeCameraSettingsFromProbeSettings(
                 settings, position,
+<<<<<<< HEAD
                 out CameraSettings cameraSettings, out CameraPositionSettings cameraPositionSettings
+=======
+                out var cameraSettings, out var cameraPositionSettings,
+                referenceFieldOfView
+>>>>>>> master
             );
 
             if (forceFlipY)
@@ -230,7 +252,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ProbeSettings settings,
             ProbeCapturePositionSettings position,
             out CameraSettings cameraSettings,
-            out CameraPositionSettings cameraPositionSettings
+            out CameraPositionSettings cameraPositionSettings,
+            float referenceFieldOfView = 90
         )
         {
             // Copy settings
@@ -240,7 +263,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Update settings
             ProbeSettingsUtilities.ApplySettings(
                 ref settings, ref position,
-                ref cameraSettings, ref cameraPositionSettings
+                ref cameraSettings, ref cameraPositionSettings,
+                referenceFieldOfView
             );
         }
 
@@ -252,7 +276,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out CameraPositionSettings cameraPositionSettings,
             bool forceFlipY = false,
             bool forceInvertBackfaceCulling = false,
+<<<<<<< HEAD
             uint staticFlags = 0
+=======
+            uint staticFlags = 0,
+            float referenceFieldOfView = 90
+>>>>>>> master
         )
         {
             // Copy settings

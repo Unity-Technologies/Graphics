@@ -43,6 +43,14 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+<<<<<<< HEAD
+=======
+        public override bool isRenamable
+        {
+            get { return true; }
+        }
+
+>>>>>>> master
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();

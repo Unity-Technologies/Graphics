@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Tiling And Offset";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Tiling-And-Offset-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

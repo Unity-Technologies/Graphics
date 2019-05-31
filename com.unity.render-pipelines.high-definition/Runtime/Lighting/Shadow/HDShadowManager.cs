@@ -174,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ShadowMapType    shadowMapType;
     }
 
-    public class HDShadowManager : IDisposable
+    public partial class HDShadowManager : IDisposable
     {
         public const int            k_DirectionalShadowCascadeCount = 4;
 
@@ -208,12 +208,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowRequests = new HDShadowRequest[maxShadowRequests];
 
             // The cascade atlas will be allocated only if there is a directional light
+<<<<<<< HEAD
             m_Atlas = new HDShadowAtlas(renderPipelineResources, punctualLightAtlasInfo.shadowAtlasResolution, punctualLightAtlasInfo.shadowAtlasResolution, HDShaderIDs._ShadowAtlasSize, clearMaterial, false, depthBufferBits: punctualLightAtlasInfo.shadowAtlasDepthBits, name: "Shadow Map Atlas");
             // Cascade atlas render texture will only be allocated if there is a shadow casting directional light
             bool useMomentShadows = GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS;
             m_CascadeAtlas = new HDShadowAtlas(renderPipelineResources, 1, 1, HDShaderIDs._CascadeShadowAtlasSize, clearMaterial, useMomentShadows, depthBufferBits: directionalShadowDepthBits, name: "Cascade Shadow Map Atlas");
 
             m_AreaLightShadowAtlas = new HDShadowAtlas(renderPipelineResources, areaLightAtlasInfo.shadowAtlasResolution, areaLightAtlasInfo.shadowAtlasResolution, HDShaderIDs._AreaShadowAtlasSize, clearMaterial, false, BlurredEVSM: true, depthBufferBits: areaLightAtlasInfo.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
+=======
+            m_Atlas = new HDShadowAtlas(renderPipelineResources, punctualLightAtlasInfo.shadowAtlasResolution, punctualLightAtlasInfo.shadowAtlasResolution, HDShaderIDs._ShadowmapAtlas, HDShaderIDs._ShadowAtlasSize, clearMaterial, depthBufferBits: punctualLightAtlasInfo.shadowAtlasDepthBits, name: "Shadow Map Atlas");
+            // Cascade atlas render texture will only be allocated if there is a shadow casting directional light
+            HDShadowAtlas.BlurAlgorithm cascadeBlur = GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS ? HDShadowAtlas.BlurAlgorithm.IM : HDShadowAtlas.BlurAlgorithm.None;
+            m_CascadeAtlas = new HDShadowAtlas(renderPipelineResources, 1, 1, HDShaderIDs._ShadowmapCascadeAtlas, HDShaderIDs._CascadeShadowAtlasSize, clearMaterial, cascadeBlur, depthBufferBits: directionalShadowDepthBits, name: "Cascade Shadow Map Atlas");
+
+            m_AreaLightShadowAtlas = new HDShadowAtlas(renderPipelineResources, areaLightAtlasInfo.shadowAtlasResolution, areaLightAtlasInfo.shadowAtlasResolution, HDShaderIDs._AreaLightShadowmapAtlas, HDShaderIDs._AreaShadowAtlasSize, clearMaterial, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: areaLightAtlasInfo.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas", momentAtlasShaderID: HDShaderIDs._AreaShadowmapMomentAtlas);
+>>>>>>> master
 
             m_ShadowDataBuffer = new ComputeBuffer(maxShadowRequests, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
             m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
@@ -479,6 +488,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_ShadowRequestCount == 0)
                 return ;
 
+<<<<<<< HEAD
             // TODO remove DrawShadowSettings, lightIndex and splitData when scriptable culling is available
             ShadowDrawingSettings dss = new ShadowDrawingSettings(cullResults, 0);
             dss.useRenderingLayerMaskTest = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers);
@@ -505,8 +515,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // If the shadow algorithm is the improved moment shadow
             if (GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS)
+=======
+            // Clear atlas render targets and draw shadows
+            using (new ProfilingSample(cmd, "Punctual Lights Shadows rendering", CustomSamplerId.RenderShadows.GetSampler()))
             {
-                m_CascadeAtlas.ComputeMomentShadows(cmd, hdCamera);
+                m_Atlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
+            }
+
+            using (new ProfilingSample(cmd, "Directional Light Shadows rendering", CustomSamplerId.RenderShadows.GetSampler()))
+>>>>>>> master
+            {
+                m_CascadeAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
+            }
+
+            using (new ProfilingSample(cmd, "Area Light Shadows rendering", CustomSamplerId.RenderShadows.GetSampler()))
+            {
+                m_AreaLightShadowAtlas.RenderShadows(cullResults, hdCamera.frameSettings, renderContext, cmd);
             }
         }
 
@@ -527,6 +551,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalBuffer(HDShaderIDs._HDShadowDatas, m_ShadowDataBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._HDDirectionalShadowData, m_DirectionalShadowDataBuffer);
 
+<<<<<<< HEAD
             cmd.SetGlobalTexture(HDShaderIDs._ShadowmapAtlas, m_Atlas.identifier);
             cmd.SetGlobalTexture(HDShaderIDs._ShadowmapCascadeAtlas, m_CascadeAtlas.identifier);
             cmd.SetGlobalTexture(HDShaderIDs._AreaLightShadowmapAtlas, m_AreaLightShadowAtlas.identifier);
@@ -534,6 +559,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 cmd.SetGlobalTexture(HDShaderIDs._AreaShadowmapMomentAtlas, m_AreaLightShadowAtlas.GetMomentRT());
             }
+=======
+            m_Atlas.BindResources(cmd);
+            m_CascadeAtlas.BindResources(cmd);
+            m_AreaLightShadowAtlas.BindResources(cmd);
+>>>>>>> master
 
             cmd.SetGlobalInt(HDShaderIDs._CascadeShadowCount, m_CascadeCount + 1);
         }
@@ -557,6 +587,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
         public void DisplayShadowAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+<<<<<<< HEAD
         {
             m_Atlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_Atlas.width, m_Atlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
         }
@@ -574,6 +605,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
+=======
+        {
+            m_Atlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_Atlas.width, m_Atlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+        }
+
+        // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
+        public void DisplayShadowCascadeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        {
+            m_CascadeAtlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_CascadeAtlas.width, m_CascadeAtlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+        }
+
+        // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
+        public void DisplayAreaLightShadowAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        {
+            m_AreaLightShadowAtlas.DisplayAtlas(cmd, debugMaterial, new Rect(0, 0, m_AreaLightShadowAtlas.width, m_AreaLightShadowAtlas.height), screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue);
+        }
+
+        // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
+>>>>>>> master
         public void DisplayShadowMap(int shadowIndex, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
             if (shadowIndex >= m_ShadowRequestCount)

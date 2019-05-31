@@ -38,7 +38,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Environments.Remove(targetEnvironment);
                 m_DirtyEnvironment = true;
 
+<<<<<<< HEAD
                 // Now that a new environement has been removed, we need to update
+=======
+                // Now that a new environment has been removed, we need to update
+>>>>>>> master
                 UpdateEnvironmentSubScenes();
             }
         }
@@ -85,8 +89,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // The HDRPAsset data that needs to be 
         RenderPipelineResources m_Resources = null;
+<<<<<<< HEAD
         RenderPipelineSettings m_Settings;
         public LightLoop m_LightLoop = null;
+=======
+        HDRenderPipelineRayTracingResources m_RTResources = null;
+        RenderPipelineSettings m_Settings;
+        HDRenderPipeline m_RenderPipeline = null;
+>>>>>>> master
         SharedRTManager m_SharedRTManager = null;
         BlueNoise m_BlueNoise = null;
 
@@ -94,16 +104,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RayCountManager m_RayCountManager = new RayCountManager();
         public RayCountManager rayCountManager { get { return m_RayCountManager; } }
 
+<<<<<<< HEAD
         public void Init(RenderPipelineSettings settings, RenderPipelineResources resources, BlueNoise blueNoise, LightLoop lightloop, SharedRTManager sharedRTManager, DebugDisplaySettings currentDebugDisplaySettings)
         {
             // Keep track of the resources
             m_Resources = resources;
+=======
+        public void Init(RenderPipelineSettings settings, RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rayTracingResources, BlueNoise blueNoise, HDRenderPipeline renderPipeline, SharedRTManager sharedRTManager, DebugDisplaySettings currentDebugDisplaySettings)
+        {
+            // Keep track of the resources
+            m_Resources = rpResources;
+            m_RTResources = rayTracingResources;
+>>>>>>> master
 
             // Keep track of the settings
             m_Settings = settings;
 
+<<<<<<< HEAD
             // Keep track of the lightloop
             m_LightLoop = lightloop;
+=======
+            // Keep track of the render pipeline
+            m_RenderPipeline = renderPipeline;
+>>>>>>> master
 
             // Keep track of the shared RT manager
             m_SharedRTManager = sharedRTManager;
@@ -122,7 +145,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Init the ray count manager
+<<<<<<< HEAD
             m_RayCountManager.Init(resources, currentDebugDisplaySettings);
+=======
+            m_RayCountManager.Init(rayTracingResources, currentDebugDisplaySettings);
+>>>>>>> master
 
 #if UNITY_EDITOR
             // We need to invalidate the acceleration structures in case the hierarchy changed
@@ -175,7 +202,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This function is in charge of rebuilding the Subscenes in case the environment is flagged as obsolete
         public void CheckSubScenes()
         {
+<<<<<<< HEAD
             // If the environement is dirty we needs to destroy and rebuild all the sub-scenes
+=======
+            // If the environment is dirty we needs to destroy and rebuild all the sub-scenes
+>>>>>>> master
             if (m_DirtyEnvironment)
             {
                 // Let's lag all the sub-scenes as obsolete
@@ -314,35 +345,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (rtEnv == null) return;
 
             // If AO is on flag its RAS needUpdate
+<<<<<<< HEAD
             if (rtEnv.raytracedAO)
+=======
+            // if (rtEnv.raytracedAO)
+>>>>>>> master
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.aoLayerMask);
                 currentSubScene.needUpdate = true;
             }
 
             // If Reflection is on flag its RAS needUpdate
+<<<<<<< HEAD
             if (rtEnv.raytracedReflections)
+=======
+            // if (rtEnv.raytracedReflections)
+>>>>>>> master
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.reflLayerMask);
                 currentSubScene.needUpdate = true;
             }
 
             // If Area Shadow is on flag its RAS needUpdate
+<<<<<<< HEAD
             if (rtEnv.raytracedShadows)
+=======
+            //if (rtEnv.raytracedShadows)
+>>>>>>> master
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.shadowLayerMask);
                 currentSubScene.needUpdate = true;
             }
 
             // If Primary Visibility is on flag its RAS needUpdate
+<<<<<<< HEAD
             if (rtEnv.raytracedObjects)
+=======
+            // if (rtEnv.raytracedObjects)
+>>>>>>> master
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.raytracedLayerMask);
                 currentSubScene.needUpdate = true;
             }
 
             // If indirect diffuse is on flag its RAS needUpdate
+<<<<<<< HEAD
             if (rtEnv.raytracedIndirectDiffuse)
+=======
+            // if (rtEnv.raytracedIndirectDiffuse)
+>>>>>>> master
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.indirectDiffuseLayerMask);
                 currentSubScene.needUpdate = true;
@@ -383,21 +434,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (rtEnv == null) return;
 
             // If Reflection is on flag its light cluster
+<<<<<<< HEAD
             if (rtEnv.raytracedReflections)
+=======
+            // if (rtEnv.raytracedReflections)
+>>>>>>> master
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.reflLayerMask);
                 currentSubScene.needUpdate = true;
             }
 
             // If Primary Visibility is on flag its light cluster
+<<<<<<< HEAD
             if (rtEnv.raytracedObjects)
+=======
+            // if (rtEnv.raytracedObjects)
+>>>>>>> master
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.raytracedLayerMask);
                 currentSubScene.needUpdate = true;
             }
 
             // If indirect diffuse is on flag its light cluster
+<<<<<<< HEAD
             if (rtEnv.raytracedIndirectDiffuse)
+=======
+            // if (rtEnv.raytracedIndirectDiffuse)
+>>>>>>> master
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.indirectDiffuseLayerMask);
                 currentSubScene.needUpdate = true;
@@ -630,7 +693,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Build the light cluster
                 subScene.lightCluster = new HDRaytracingLightCluster();
+<<<<<<< HEAD
                 subScene.lightCluster.Initialize(m_Resources, this, m_SharedRTManager, m_LightLoop);
+=======
+                subScene.lightCluster.Initialize(m_Resources, m_RTResources, this, m_SharedRTManager, m_RenderPipeline);
+>>>>>>> master
 
                 // Mark this sub-scene as valid
                 subScene.valid = true;
@@ -682,9 +749,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_BlueNoise;
         }
 
+<<<<<<< HEAD
         public LightLoop GetLightLoop()
         {
             return m_LightLoop;
+=======
+        public HDRenderPipeline GetRenderPipeline()
+        {
+            return m_RenderPipeline;
+>>>>>>> master
         }
     }
 #endif

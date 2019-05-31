@@ -27,6 +27,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Both = ForwardOnly | DeferredOnly
         }
 
+<<<<<<< HEAD
+=======
+        public enum RaytracingTier
+        {
+            Tier1 = 1 << 0,
+            Tier2 = 1 << 1
+        }
+
+>>>>>>> master
         public enum ColorBufferFormat
         {
             R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
@@ -44,7 +53,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             supportTransparentBackface = true,
             supportTransparentDepthPrepass = true,
             supportTransparentDepthPostpass = true,
+<<<<<<< HEAD
             supportLowResTransparent = true,
+=======
+>>>>>>> master
             colorBufferFormat = ColorBufferFormat.R11G11B10,
             supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
             supportDecals = true,
@@ -57,7 +69,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             decalSettings = GlobalDecalSettings.@default,
             postProcessSettings = GlobalPostProcessSettings.@default,
             dynamicResolutionSettings = GlobalDynamicResolutionSettings.@default,
+<<<<<<< HEAD
             lowresTransparentSettings = GlobalLowResolutionTransparencySettings.@default
+=======
+            lowresTransparentSettings = GlobalLowResolutionTransparencySettings.@default,
+            supportRayTracing = false,
+            supportedRaytracingTier = RaytracingTier.Tier2,
+>>>>>>> master
         };
 
         // Lighting
@@ -73,7 +91,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportTransparentBackface;
         public bool supportTransparentDepthPrepass;
         public bool supportTransparentDepthPostpass;
+<<<<<<< HEAD
         public bool supportLowResTransparent;
+=======
+>>>>>>> master
         public ColorBufferFormat colorBufferFormat;
         public SupportedLitShaderMode supportedLitShaderMode;
 
@@ -93,6 +114,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportRuntimeDebugDisplay;
         public bool supportDitheringCrossFade;
         public bool supportRayTracing;
+<<<<<<< HEAD
+=======
+        public RaytracingTier supportedRaytracingTier;
+>>>>>>> master
 
         public GlobalLightLoopSettings lightLoopSettings;
         public HDShadowInitParameters hdShadowInitParams;

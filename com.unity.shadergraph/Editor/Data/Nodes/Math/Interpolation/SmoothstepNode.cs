@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Smoothstep";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Smoothstep-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

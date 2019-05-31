@@ -1,30 +1,42 @@
+
 VFXBlockUI.VFXNodeUI.node {
     flex:1 0 auto;
     align-items:stretch;
     border-radius:0;
     border-color:rgba(0,0,0,0);
-    padding-top:2;
+    padding-top: 2px;
     padding-left:0;
     padding-right:0;
-    padding-bottom:1;
+    padding-bottom: 1px;
     margin-left:0;
     margin-right:0;
+    overflow:hidden;
 }
 VFXBlockUI.VFXNodeUI.node.first
 {
     padding-top:0;
 }
+VFXBlockUI.VFXNodeUI.node.first > #selection-border
+{
+    margin-top:0;
+}
 
-VFXBlockUI.VFXNodeUI.node > #selection-border{
+VFXBlockUI.VFXNodeUI.node > #selection-border
+{
     margin-left:0;
     margin-right:0;
+<<<<<<< HEAD
     margin-top:2;
     margin-bottom:1;
+=======
+    margin-top: 2px;
+    margin-bottom: 1px;
+>>>>>>> master
 }
 
 VFXBlockUI.VFXNodeUI.node #contents > #top > #input
 {
-    padding-bottom:8;
+    padding-bottom: 8px;
     flex: 1 1 auto;
 }
 
@@ -35,6 +47,15 @@ VFXContextUI VFXBlockUI.node #node-border #title
     justify-content:flex-start;
 }
 
+VFXBlockUI.VFXNodeUI.node #node-border
+{
+    border-radius:8;
+}
+
+VFXBlockUI.VFXNodeUI.node.invalid #node-border
+{
+    border-color: #FF0000;
+}
 
 VFXContextUI VFXBlockUI.node #node-border #title.disabled
 {
@@ -43,7 +64,7 @@ VFXContextUI VFXBlockUI.node #node-border #title.disabled
 
 VFXContextUI VFXBlockUI.node #node-border #title #title-label
 {
-    margin-left:4;
+    margin-left: 4px;
     flex:1 0 auto;
 }
 
@@ -52,14 +73,10 @@ VFXContextUI VFXBlockUI.node #node-border #title.disabled #title-label
     opacity:0.5;
 }
 
-VFXBlockUI.node #title .unity-toggle
-{
-    -margin-right:0;
-}
 VFXBlockUI.node #title #collapse-button
 {
-    width:20;
-    padding-right:4;
+    width: 20px;
+    padding-right: 4px;
 }
 VFXBlockUI.node
 {

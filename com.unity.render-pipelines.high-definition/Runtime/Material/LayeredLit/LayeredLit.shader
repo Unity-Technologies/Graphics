@@ -543,6 +543,11 @@ Shader "HDRP/LayeredLit"
             #pragma vertex Vert
             #pragma fragment Frag
 
+<<<<<<< HEAD
+=======
+            #pragma editor_sync_compilation
+
+>>>>>>> master
             ENDHLSL
         }
 

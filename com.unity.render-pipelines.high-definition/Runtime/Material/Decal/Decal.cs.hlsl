@@ -23,7 +23,11 @@ struct DecalSurfaceData
     float4 baseColor;
     float4 normalWS;
     float4 mask;
+<<<<<<< HEAD
     float4 emissive;
+=======
+    float3 emissive;
+>>>>>>> master
     float2 MAOSBlend;
     uint HTileMask;
 };

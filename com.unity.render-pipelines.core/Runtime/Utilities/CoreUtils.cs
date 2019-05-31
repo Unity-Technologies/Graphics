@@ -591,6 +591,26 @@ namespace UnityEngine.Rendering
             return animateMaterials;
         }
 
+        public static bool IsSceneLightingDisabled(Camera camera)
+        {
+            bool disabled = false;
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "No Scene Lighting" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                {
+                    if (sv.camera == camera && !sv.sceneLighting)
+                    {
+                        disabled = true;
+                        break;
+                    }
+                }
+            }
+#endif
+            return disabled;
+        }
+
 #if UNITY_EDITOR
         static Func<List<UnityEditor.MaterialEditor>> materialEditors;
 

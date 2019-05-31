@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDRaytracingEnvironment : MonoBehaviour
     {
 #if ENABLE_RAYTRACING
+<<<<<<< HEAD
 
         // The set of raytracing passes that we support
         public enum RaytracingPass
@@ -19,6 +20,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PrimaryVisibility = (1<<2),
             IndirectDiffuse = (1<<3),
         }
+=======
+>>>>>>> master
         public readonly static int numRaytracingPasses = 5;
 
         // Generic Ray Data
@@ -27,6 +30,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Ambient Occlusion Data
+<<<<<<< HEAD
         // Flag that defines if the Ambient Occlusion should be Ray-traced
         public bool raytracedAO = false;
 
@@ -185,6 +189,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(1, 27)]
         public int indirectDiffuseFilterRadius = 16;
 
+=======
+        public LayerMask aoLayerMask = -1;
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+        // Reflection Data
+        public LayerMask reflLayerMask = -1;
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+        // Recursive Rendering
+        public LayerMask raytracedLayerMask = -1;
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+        // Area Light Shadows
+        public LayerMask shadowLayerMask = -1;
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+        // Indirect diffuse
+        public LayerMask indirectDiffuseLayerMask = -1;
+
+>>>>>>> master
         void Start()
         {
             // Grab the High Definition RP

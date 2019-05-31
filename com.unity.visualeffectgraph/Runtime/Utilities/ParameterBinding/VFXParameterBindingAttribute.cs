@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEngine.VFX.Utils
+namespace UnityEngine.Experimental.VFX.Utility
 {
     [AttributeUsage(AttributeTargets.Field)]
     public class VFXParameterBindingAttribute : PropertyAttribute

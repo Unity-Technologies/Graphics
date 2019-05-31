@@ -167,7 +167,7 @@ public class VFXContextEditor : VFXSlotContainerEditor
         var data = (VFXData)dataObject.targetObject;
 
         // Particle context data
-        if (data.type == VFXDataType.kParticle)
+        if (data.type == VFXDataType.Particle)
         {
             VFXDataParticle particleData = data as VFXDataParticle;
             EditorGUILayout.Space();
@@ -238,7 +238,6 @@ public class VFXContextEditor : VFXSlotContainerEditor
                 }
                 catch
                 {
-                    EditorGUILayout.HelpBox("Context is not connected or results in invalid system, please ensure all flow connections are correct.", MessageType.Warning, true);
                     return;
                 }
 

@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Branch";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Branch-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

@@ -57,7 +57,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             field.RegisterValueChangedCallback(evt =>
                 {
                     // Only true when setting value via FieldMouseDragger
+<<<<<<< HEAD
                     // Undo recorded once per dragger release
+=======
+                    // Undo recorded once per dragger release              
+>>>>>>> master
                     if (m_UndoGroup == -1)
                     {
                         m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);

@@ -41,6 +41,11 @@ Shader "Hidden/HDRP/ApplyDistortion"
 
         float4 Frag(Varyings input) : SV_Target
         {
+<<<<<<< HEAD
+=======
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+>>>>>>> master
             // We use a bias when fetching distortion source pixels
             // This avoid artifacts when a distortion is overlapped by an opaque object
             const float _FetchBias = 0.9;

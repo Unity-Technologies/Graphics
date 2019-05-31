@@ -6,8 +6,13 @@
 void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
 	// The first thing that we should do is grab the intersection vertice
+<<<<<<< HEAD
     IntersectionVertice currentvertex;
     GetCurrentIntersectionVertice(attributeData, currentvertex);
+=======
+    IntersectionVertex currentvertex;
+    GetCurrentIntersectionVertex(attributeData, currentvertex);
+>>>>>>> master
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
@@ -36,7 +41,11 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     }
     else
     {
+<<<<<<< HEAD
         // If this fella is opaque, then we need to stop 
+=======
+        // If this fella is opaque, then we need to stop
+>>>>>>> master
         rayIntersection.color = float3(0.0, 0.0, 0.0);
         AcceptHitAndEndSearch();
     }

@@ -27,7 +27,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         public delegate void OnExposedToggle();
         private OnExposedToggle m_OnExposedToggle;
         int m_UndoGroup = -1;
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> master
         public BlackboardFieldPropertyView(BlackboardField blackboardField, GraphData graph, AbstractShaderProperty property)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
@@ -60,6 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddRow("Exposed", m_ExposedToogle);
                 }
 
+<<<<<<< HEAD
                 m_ReferenceNameField = new TextField(512, false, false, ' ');
                 m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
                 AddRow("Reference", m_ReferenceNameField);
@@ -88,6 +93,39 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ReferenceNameField.AddToClassList("modified");
             }
 
+=======
+                if(property.isExposable)
+                {
+                    m_ReferenceNameField = new TextField(512, false, false, ' ');
+                    m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
+                    AddRow("Reference", m_ReferenceNameField);
+                    m_ReferenceNameField.value = property.referenceName;
+                    m_ReferenceNameField.isDelayed = true;
+                    m_ReferenceNameField.RegisterValueChangedCallback(newName =>
+                        {
+                            m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
+                            if (m_ReferenceNameField.value != m_Property.referenceName)
+                            {
+                                string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue, property.guid);
+                                property.overrideReferenceName = newReferenceName;
+                            }
+                            m_ReferenceNameField.value = property.referenceName;
+
+                            if (string.IsNullOrEmpty(property.overrideReferenceName))
+                                m_ReferenceNameField.RemoveFromClassList("modified");
+                            else
+                                m_ReferenceNameField.AddToClassList("modified");
+
+                            DirtyNodes(ModificationScope.Graph);
+                            UpdateReferenceNameResetMenu();
+                        });
+
+                    if (!string.IsNullOrEmpty(property.overrideReferenceName))
+                        m_ReferenceNameField.AddToClassList("modified");
+                }
+            }
+
+>>>>>>> master
             // Key Undo callbacks for input fields
             EventCallback<KeyDownEvent> keyDownCallback = new EventCallback<KeyDownEvent>(evt =>
             {
@@ -155,7 +193,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 field.Q("unity-z-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(keyDownCallback);
                 field.Q("unity-z-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(focusOutCallback);
 
+<<<<<<< HEAD
                 //Called after KeyDownEvent
+=======
+                // Called after KeyDownEvent
+>>>>>>> master
                 field.RegisterValueChangedCallback(evt =>
                     {
                         // Only true when setting value via FieldMouseDragger
@@ -602,12 +644,27 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
                 AddRow("Default", field);
             }
+<<<<<<< HEAD
 //            AddRow("Type", new TextField());
 //            AddRow("Exposed", new Toggle(null));
 //            AddRow("Range", new Toggle(null));
 //            AddRow("Default", new TextField());
 //            AddRow("Tooltip", new TextField());
+=======
+>>>>>>> master
 
+            var precisionField = new EnumField((Enum)property.precision);
+            precisionField.RegisterValueChangedCallback(evt =>
+            {
+                m_Graph.owner.RegisterCompleteObjectUndo("Change Precision");
+                if (property.precision == (Precision)evt.newValue)
+                    return;
+                property.precision = (Precision)evt.newValue;
+                m_Graph.ValidateGraph();
+                precisionField.MarkDirtyRepaint();
+                DirtyNodes();
+            });
+            AddRow("Precision", precisionField);
 
             AddToClassList("sgblackboardFieldPropertyView");
 

@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Reflection Probe";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Reflection-Probe-Node"; }
-        }
 
         public override bool hasPreview { get { return false; } }
 

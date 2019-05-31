@@ -20,10 +20,6 @@ namespace UnityEditor.ShaderGraph
             name = "Log";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Log-Node"; }
-        }
 
         [SerializeField]
         private LogBase m_LogBase = LogBase.BaseE;

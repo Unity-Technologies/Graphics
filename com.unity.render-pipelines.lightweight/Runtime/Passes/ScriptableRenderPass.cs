@@ -72,6 +72,16 @@ namespace UnityEngine.Rendering.LWRP
             isBlitRenderPass = false;
         }
 
+<<<<<<< HEAD
+=======
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorAttachment">Color attachment identifier.</param>
+        /// <param name="depthAttachment">Depth attachment identifier.</param>
+        /// <seealso cref="Configure"/>
+>>>>>>> master
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
             overrideCameraTarget = true;
@@ -79,6 +89,15 @@ namespace UnityEngine.Rendering.LWRP
             m_DepthAttachment = depthAttachment;
         }
 
+<<<<<<< HEAD
+=======
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorAttachment">Color attachment identifier.</param>
+        /// <seealso cref="Configure"/>
+>>>>>>> master
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
             overrideCameraTarget = true;
@@ -86,12 +105,34 @@ namespace UnityEngine.Rendering.LWRP
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         }
 
+<<<<<<< HEAD
+=======
+        /// <summary>
+        /// Configures clearing for the render targets for this render pass. Call this inside Configure.
+        /// </summary>
+        /// <param name="clearFlag">ClearFlag containing information about what targets to clear.</param>
+        /// <param name="clearColor">Clear color.</param>
+        /// <seealso cref="Configure"/>
+>>>>>>> master
         public void ConfigureClear(ClearFlag clearFlag, Color clearColor)
         {
             m_ClearFlag = clearFlag;
             m_ClearColor = clearColor;
         }
 
+<<<<<<< HEAD
+=======
+        /// <summary>
+        /// This method is called by the renderer before executing the render pass. 
+        /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
+        /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
+        /// You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to enqueue rendering commands. This will be executed by the pipeline.</param>
+        /// <param name="cameraTextureDescriptor">Render texture descriptor of the camera render target.</param>
+        /// <seealso cref="ConfigureTarget"/>
+        /// <seealso cref="ConfigureClear"/>
+>>>>>>> master
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {}
 
@@ -120,6 +161,7 @@ namespace UnityEngine.Rendering.LWRP
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
         /// <seealso cref="ScriptableRenderer"/>
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
+<<<<<<< HEAD
         {
             ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
@@ -151,6 +193,39 @@ namespace UnityEngine.Rendering.LWRP
         /// <seealso cref="DrawingSettings"/>
         public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
+=======
+        {
+            ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
+            cmd.Blit(source, destination, material, passIndex);
+        }
+
+        /// <summary>
+        /// Adds a Render Post-processing command for execution. This changes the active render target in the ScriptableRenderer to destination.
+        /// </summary>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="cameraData">Camera rendering data.</param>
+        /// <param name="sourceDescriptor">Render texture descriptor for source.</param>
+        /// <param name="source">Source texture or render target identifier.</param>
+        /// <param name="destination">Destination texture or render target identifier.</param>
+        /// <param name="opaqueOnly">If true, only renders opaque post-processing effects. Otherwise, renders before and after stack post-processing effects.</param>
+        /// <param name="flip">If true, flips image vertically.</param>
+        public void RenderPostProcessing(CommandBuffer cmd, ref CameraData cameraData, RenderTextureDescriptor sourceDescriptor, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool opaqueOnly, bool flip)
+        {
+            ScriptableRenderer.ConfigureActiveTarget(destination, BuiltinRenderTextureType.CameraTarget);
+            RenderingUtils.RenderPostProcessing(cmd, ref cameraData, sourceDescriptor, source, destination, opaqueOnly, flip);
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current the rendering state.
+        /// </summary>
+        /// <param name="shaderTagId">Shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns></returns>
+        /// <seealso cref="DrawingSettings"/>
+        public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
+        {
+>>>>>>> master
             Camera camera = renderingData.cameraData.camera;
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
             DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
@@ -189,6 +264,7 @@ namespace UnityEngine.Rendering.LWRP
         public static bool operator <(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent < rhs.renderPassEvent;
+<<<<<<< HEAD
         }
 
         public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
@@ -196,6 +272,15 @@ namespace UnityEngine.Rendering.LWRP
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }
 
+=======
+        }
+
+        public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        {
+            return lhs.renderPassEvent > rhs.renderPassEvent;
+        }
+
+>>>>>>> master
         // TODO: Remove this. Currently only used by FinalBlit pass.
         internal void SetRenderTarget(
             CommandBuffer cmd,

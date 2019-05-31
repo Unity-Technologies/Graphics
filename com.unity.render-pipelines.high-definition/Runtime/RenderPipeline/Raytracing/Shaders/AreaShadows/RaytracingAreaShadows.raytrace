@@ -39,7 +39,11 @@
 uint     _RaytracingTargetAreaLight;
 
 // The target acceleration structure that we will evaluate the reflexion in
+<<<<<<< HEAD
 TEXTURE2D(_DepthTexture);
+=======
+TEXTURE2D_X(_DepthTexture);
+>>>>>>> master
 
 // Output structure of the shadows raytrace shader
 RWTexture2D<float2> _RaytracedAreaShadowSample;
@@ -67,12 +71,20 @@ void RayGenShadows()
     _AnalyticProbBuffer[currentPixelCoord] = float2(-1.0, +1.0);
 
     // Read the depth value
+<<<<<<< HEAD
     float depthValue  = _DepthTexture[currentPixelCoord].x;
+=======
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
+>>>>>>> master
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
     // Compute the position input structure
+<<<<<<< HEAD
     PositionInputs posInput = GetPositionInput_Stereo(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0, 0);
+=======
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+>>>>>>> master
 
     // Decode the world space normal
     NormalData normalData;
@@ -263,8 +275,13 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 }
 
 // Texture that holds the raytracing data
+<<<<<<< HEAD
 Texture2D<float4>         _RaytracingDirectionBuffer;
 Texture2D<float>          _RaytracingDistanceBuffer;
+=======
+TEXTURE2D_X(_RaytracingDirectionBuffer);
+TEXTURE2D_X(_RaytracingDistanceBuffer);
+>>>>>>> master
 
 [shader("raygeneration")]
 void RayGenShadowSingle()
@@ -281,7 +298,11 @@ void RayGenShadowSingle()
     float2 currentSample = _RaytracedAreaShadowSample[currentPixelCoord];
 
     // Read the depth value
+<<<<<<< HEAD
     float depthValue  = _DepthTexture[currentPixelCoord].x;
+=======
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
+>>>>>>> master
 
     // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || currentSample.y == 0.0 || _AnalyticProbBuffer[currentPixelCoord].y < 0.0)
@@ -294,7 +315,11 @@ void RayGenShadowSingle()
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
 
     // Compute the position input structure
+<<<<<<< HEAD
     PositionInputs posInput = GetPositionInput_Stereo(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0, 0);
+=======
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+>>>>>>> master
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
@@ -302,8 +327,13 @@ void RayGenShadowSingle()
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Read the ray distance
+<<<<<<< HEAD
     float3 rayDirection = _RaytracingDirectionBuffer[currentPixelCoord].xyz;
     float rayDistance = _RaytracingDistanceBuffer[currentPixelCoord].x;
+=======
+    float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
+    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentPixelCoord).x;
+>>>>>>> master
 
     float3 rayOrigin = positionWS + rayDirection * rayDistance - lightData.forward * _RaytracingRayBias;
     float3 rayDestination = positionWS + normalData.normalWS * _RaytracingRayBias;

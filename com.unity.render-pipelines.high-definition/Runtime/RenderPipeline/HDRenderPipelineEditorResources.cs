@@ -6,6 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
+<<<<<<< HEAD
         [Reload("DefaultScene/DefaultSceneRoot.prefab", ReloadAttribute.Package.HDRPEditor)]
         public GameObject defaultScene;
         [Reload("DefaultScene/DefaultRenderingSettings.asset", ReloadAttribute.Package.HDRPEditor)]
@@ -16,6 +17,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             "RenderPipelineResources/Skin Diffusion Profile.asset",
             "RenderPipelineResources/Foliage Diffusion Profile.asset"
+=======
+        [Reload("Editor/DefaultScene/DefaultSceneRoot.prefab")]
+        public GameObject defaultScene;
+        [Reload("Editor/DefaultScene/DefaultRenderingSettings.asset")]
+        public VolumeProfile defaultRenderSettingsProfile;
+        [Reload("Editor/DefaultScene/DefaultPostProcessingSettings.asset")]
+        public VolumeProfile defaultPostProcessingProfile;
+        [Reload(new[]
+        {
+            "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",
+            "Runtime/RenderPipelineResources/Foliage Diffusion Profile.asset"
+>>>>>>> master
         })]
         public DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
 
@@ -31,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public sealed class MaterialResources
         {
             // Defaults
+<<<<<<< HEAD
             [Reload("RenderPipelineResources/Material/DefaultHDMaterial.mat")]
             public Material defaultDiffuseMat;
             [Reload("RenderPipelineResources/Material/DefaultHDMirrorMaterial.mat")]
@@ -38,6 +52,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [Reload("RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
             public Material defaultDecalMat;
             [Reload("RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
+=======
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat")]
+            public Material defaultDiffuseMat;
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDMirrorMaterial.mat")]
+            public Material defaultMirrorMat;
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDDecalMaterial.mat")]
+            public Material defaultDecalMat;
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
+>>>>>>> master
             public Material defaultTerrainMat;
         }
 
@@ -49,11 +72,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Serializable, ReloadGroup]
         public sealed class ShaderGraphResources
         {
+<<<<<<< HEAD
             [Reload("RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph")]
             public Shader autodeskInteractive;
             [Reload("RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph")]
             public Shader autodeskInteractiveMasked;
             [Reload("RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph")]
+=======
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph")]
+            public Shader autodeskInteractive;
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph")]
+            public Shader autodeskInteractiveMasked;
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph")]
+>>>>>>> master
             public Shader autodeskInteractiveTransparent;
         }
 
@@ -85,7 +116,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 resources.textures = null;
                 resources.shaders = null;
                 resources.shaderGraphs = null;
+<<<<<<< HEAD
                 ResourceReloader.ReloadAllNullIn(target);
+=======
+                ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());
+>>>>>>> master
             }
         }
     }

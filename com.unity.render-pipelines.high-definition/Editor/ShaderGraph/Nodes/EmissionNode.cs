@@ -89,10 +89,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             });
         }
 
+<<<<<<< HEAD
         public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var sb = new ShaderStringBuilder();
 
+=======
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        {
+>>>>>>> master
             var colorValue = GetSlotValue(kEmissionColorInputSlotId, generationMode);
             var intensityValue = GetSlotValue(kEmissionIntensityInputSlotId, generationMode);
             var exposureWeightValue = GetSlotValue(kEmissionExposureWeightInputSlotId, generationMode);
@@ -103,8 +108,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             string inverseExposureMultiplier = (generationMode.IsPreview()) ? "1.0" : "GetInverseCurrentExposureMultiplier()";
             
+<<<<<<< HEAD
             sb.AppendLine(@"{0}3 {1} = {2}({3}.xyz, {4}, {5}, {6});",
                 precision,
+=======
+            sb.AppendLine(@"$precision3 {0} = {1}({2}.xyz, {3}, {4}, {5});",
+>>>>>>> master
                 outputValue,
                 GetFunctionName(),
                 colorValue,
@@ -112,13 +121,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 exposureWeightValue,
                 inverseExposureMultiplier
             );
+<<<<<<< HEAD
 
             visitor.AddShaderChunk(sb.ToString(), true);
+=======
+>>>>>>> master
         }
 
         string GetFunctionName()
         {
+<<<<<<< HEAD
             return "Unity_HDRP_GetEmissionHDRColor";
+=======
+            return $"Unity_HDRP_GetEmissionHDRColor_{concretePrecision.ToShaderString()}";
+>>>>>>> master
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
@@ -128,20 +144,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     // We may need ConvertEvToLuminance() so we include CommonLighting.hlsl
                     s.AppendLine("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl\"");
                     
+<<<<<<< HEAD
                     s.AppendLine("{1}3 {0}({1}3 ldrColor, {2} luminanceIntensity, {2} exposureWeight, {2} inverseCurrentExposureMultiplier)",
                         GetFunctionName(),
                         precision,
                         intensitySlot.concreteValueType.ToString(precision));
+=======
+                    s.AppendLine("$precision3 {0}($precision3 ldrColor, {1} luminanceIntensity, {1} exposureWeight, {1} inverseCurrentExposureMultiplier)",
+                        GetFunctionName(),
+                        intensitySlot.concreteValueType.ToShaderString());
+>>>>>>> master
                     using (s.BlockScope())
                     {
                         if (normalizeColor.isOn)
                         {
                             s.AppendLine("ldrColor = ldrColor * rcp(max(Luminance(ldrColor), 1e-6));");
                         }
+<<<<<<< HEAD
                         s.AppendLine("{0}3 hdrColor = ldrColor * luminanceIntensity;", precision);
                         s.AppendNewLine();
                         s.AppendLine("// Inverse pre-expose using _EmissiveExposureWeight weight");
                         s.AppendLine("hdrColor = lerp(hdrColor * inverseCurrentExposureMultiplier, hdrColor, exposureWeight);", precision);
+=======
+                        s.AppendLine("$precision3 hdrColor = ldrColor * luminanceIntensity;");
+                        s.AppendNewLine();
+                        s.AppendLine("// Inverse pre-expose using _EmissiveExposureWeight weight");
+                        s.AppendLine("hdrColor = lerp(hdrColor * inverseCurrentExposureMultiplier, hdrColor, exposureWeight);");
+>>>>>>> master
                         s.AppendLine("return hdrColor;");
                     }
                 });

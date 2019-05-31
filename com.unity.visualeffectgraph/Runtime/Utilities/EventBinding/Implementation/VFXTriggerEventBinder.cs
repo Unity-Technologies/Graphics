@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace UnityEngine.VFX.Utils
+namespace UnityEngine.Experimental.VFX.Utility
 {
     [RequireComponent(typeof(Collider))]
     public class VFXTriggerEventBinder : VFXEventBinderBase

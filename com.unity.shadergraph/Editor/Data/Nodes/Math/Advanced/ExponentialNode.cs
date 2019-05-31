@@ -19,10 +19,6 @@ namespace UnityEditor.ShaderGraph
             name = "Exponential";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Exponential-Node"; }
-        }
 
         [SerializeField]
         private ExponentialBase m_ExponentialBase = ExponentialBase.BaseE;

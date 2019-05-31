@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Saturate";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Saturate-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

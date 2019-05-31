@@ -189,6 +189,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ExtraDefines = new List<string>()
             {
                 "#define SCENESELECTIONPASS",
+                "#pragma editor_sync_compilation",
             },            
             Includes = new List<string>()
             {
@@ -735,6 +736,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = false
         };
 
+<<<<<<< HEAD
+=======
+        public int GetPreviewPassIndex() { return 0; }
+
+>>>>>>> master
         private static List<string> GetInstancingOptionsFromMasterNode(AbstractMaterialNode iMasterNode)
         {
             List<string> instancingOption = new List<string>();
@@ -754,7 +760,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return instancingOption;
         }
         
+<<<<<<< HEAD
         public int GetPreviewPassIndex() { return 0; }
+=======
+>>>>>>> master
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {

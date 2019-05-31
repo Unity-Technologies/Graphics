@@ -1,4 +1,6 @@
-// This file assume SHADER_API_D3D11 is defined
+// This file assume SHADER_API_PSSL is defined
+
+#define PLATFORM_LANE_COUNT 64
 
 #define PLATFORM_LANE_COUNT 64
 

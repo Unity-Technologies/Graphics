@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 
@@ -16,6 +17,11 @@ namespace UnityEditor.Graphing
 
     static class NodeUtils
     {
+<<<<<<< HEAD
+=======
+        public static string docURL = "https://github.com/Unity-Technologies/ScriptableRenderPipeline/tree/master/com.unity.shadergraph/Documentation%7E/";
+
+>>>>>>> master
         public static void SlotConfigurationExceptionIfBadConfiguration(AbstractMaterialNode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
         {
             var missingSlots = new List<int>();
@@ -126,6 +132,11 @@ namespace UnityEditor.Graphing
             }
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
+        }
+
+        public static string GetDocumentationString(AbstractMaterialNode node)
+        {
+            return $"{docURL}{node.name.Replace(" ", "-")}"+"-Node.md";
         }
 
         static Stack<MaterialSlot> s_SlotStack = new Stack<MaterialSlot>();
@@ -239,10 +250,14 @@ namespace UnityEditor.Graphing
             }
         }
 
-        public static string ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision p, ConcreteSlotValueType slotValue)
+        public static string GetHLSLSafeName(string input)
         {
-            switch (slotValue)
+            char[] arr = input.ToCharArray();
+            arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
+            var safeName = new string(arr);
+            if (char.IsDigit(safeName[0]))
             {
+<<<<<<< HEAD
                 case ConcreteSlotValueType.Boolean:
                     return p.ToString();
                 case ConcreteSlotValueType.Vector1:
@@ -273,14 +288,39 @@ namespace UnityEditor.Graphing
                     return "SamplerState";
                 default:
                     return "Error";
+=======
+                safeName = $"var{safeName}";
+>>>>>>> master
             }
+            return safeName;
         }
 
-        public static string GetHLSLSafeName(string input)
+        private static string GetDisplaySafeName(string input)
         {
-            char[] arr = input.ToCharArray();
-            arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
-            return new string(arr);
+            //strip valid display characters from slot name
+            //current valid characters are whitespace and ( ) _ separators
+            StringBuilder cleanName = new StringBuilder();
+            foreach (var c in input)
+            {
+                if (c != ' ' && c != '(' && c != ')' && c != '_')
+                    cleanName.Append(c);
+            }
+
+            return cleanName.ToString();
+        }
+
+        public static bool ValidateSlotName(string inName, out string errorMessage)
+        {
+            //check for invalid characters between display safe and hlsl safe name
+            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName))
+            {
+                errorMessage = "Slot name(s) found invalid character(s). Valid characters: A-Z, a-z, 0-9, _ ( ) ";
+                return true;
+            }
+
+            //if clean, return null and false
+            errorMessage = null;
+            return false;
         }
 
         public static string FloatToShaderValue(float value)

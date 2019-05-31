@@ -14,7 +14,12 @@ float _NormalBlendSrc;
 float _MaskBlendSrc;
 float _DecalBlend;
 float4 _BaseColor;
+<<<<<<< HEAD
 float4 _EmissiveColor;
+=======
+float3 _EmissiveColor;
+float _EmissiveExposureWeight;
+>>>>>>> master
 float _DecalMeshDepthBias;
 float _SmoothnessRemapMin;
 float _SmoothnessRemapMax;

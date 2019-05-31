@@ -201,7 +201,11 @@ Shader "Hidden/HDRP/DeferredTile"
             Varyings Vert(Attributes input)
             {
                 uint  tilePackIndex = g_TileList[g_TileListOffset + input.instID];
+<<<<<<< HEAD
                 uint2 tileCoord   = uint2(tilePackIndex & 0x0000FFFF, tilePackIndex >> 16); // see builddispatchindirect.compute
+=======
+                uint2 tileCoord = uint2((tilePackIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tilePackIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK); // see builddispatchindirect.compute
+>>>>>>> master
                 uint2 pixelCoord  = tileCoord * GetTileSize();
 
                 uint screenWidth  = (uint)_ScreenSize.x;
@@ -232,7 +236,11 @@ Shader "Hidden/HDRP/DeferredTile"
                 uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileIndex);
 
                 float depth = LoadCameraDepth(input.positionCS.xy).x;
+<<<<<<< HEAD
                 PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord, unity_StereoEyeIndex);
+=======
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
+>>>>>>> master
 
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
@@ -298,9 +306,12 @@ Shader "Hidden/HDRP/DeferredTile"
             #pragma vertex Vert
             #pragma fragment Frag
 
+<<<<<<< HEAD
             // Chose supported lighting architecture in case of deferred rendering
             #pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
+=======
+>>>>>>> master
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ SHADOWS_SHADOWMASK /// Variant with and without shadowmask
@@ -390,7 +401,11 @@ Shader "Hidden/HDRP/DeferredTile"
 
                 // input.positionCS is SV_Position
                 float depth = LoadCameraDepth(input.positionCS.xy).x;
+<<<<<<< HEAD
                 PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize(), unity_StereoEyeIndex);
+=======
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());
+>>>>>>> master
 
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 

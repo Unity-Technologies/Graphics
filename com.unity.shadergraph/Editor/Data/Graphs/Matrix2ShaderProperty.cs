@@ -18,8 +18,9 @@ namespace UnityEditor.ShaderGraph
             get { return PropertyType.Matrix2; }
         }
 
-        public override bool isBatchable
+        public override PreviewProperty GetPreviewMaterialProperty()
         {
+<<<<<<< HEAD
             get { return true; }
         }
 
@@ -35,6 +36,8 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
+=======
+>>>>>>> master
             return new PreviewProperty(PropertyType.Matrix2)
             {
                 name = referenceName,

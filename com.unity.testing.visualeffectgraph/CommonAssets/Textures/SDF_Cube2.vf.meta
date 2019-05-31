@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 215b01aa0f431244786e0c3732a59612
+ScriptedImporter:
+  fileIDToRecycleName:
+    11700000: VectorField
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 336709e79a7c5ad4f8611c5f160d050b, type: 3}
+  outputFormat: 1
+  wrapMode: 1
+  filterMode: 1
+  generateMipMaps: 0
+  anisoLevel: 1

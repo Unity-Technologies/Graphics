@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Normalize";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Normalize-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

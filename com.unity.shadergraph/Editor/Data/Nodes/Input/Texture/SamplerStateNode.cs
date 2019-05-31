@@ -48,10 +48,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sampler-State-Node"; }
-        }
 
         public override bool hasPreview { get { return false; } }
 
@@ -73,7 +69,11 @@ namespace UnityEditor.ShaderGraph
         {
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
+<<<<<<< HEAD
                 overrideReferenceName = NodeUtils.GetHLSLSafeName(name),
+=======
+                overrideReferenceName = string.Format("{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), m_filter, m_wrap),
+>>>>>>> master
                 generatePropertyBlock = false,
 
                 value = new TextureSamplerState()

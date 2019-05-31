@@ -11,11 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Replace Color";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Replace-Color-Node"; }
-        }
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_ReplaceColor", BindingFlags.Static | BindingFlags.NonPublic);
@@ -33,7 +28,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision} Distance = distance(From, In);
+    $precision Distance = distance(From, In);
     Out = lerp(To, In, saturate((Distance - Range) / max(Fuzziness, 1e-5f)));
 }";
         }

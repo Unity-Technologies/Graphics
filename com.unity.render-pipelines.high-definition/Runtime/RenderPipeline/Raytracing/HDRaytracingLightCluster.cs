@@ -18,8 +18,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         // External data
         RenderPipelineResources m_RenderPipelineResources = null;
+<<<<<<< HEAD
         HDRaytracingManager m_RaytracingManager = null;
         LightLoop m_LightLoop = null;
+=======
+        HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources = null;
+        HDRaytracingManager m_RaytracingManager = null;
+        HDRenderPipeline m_RenderPipeline = null;
+>>>>>>> master
         SharedRTManager m_SharedRTManager = null;
 
         // Light data
@@ -63,6 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
+<<<<<<< HEAD
         public void Initialize(RenderPipelineResources resources, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager, LightLoop lightLoop)
         {
             // Keep track of the external buffers
@@ -71,6 +78,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Keep track of the lightloop
             m_LightLoop = lightLoop;
+=======
+        public void Initialize(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        {
+            // Keep track of the external buffers
+            m_RenderPipelineResources = rpResources;
+            m_RenderPipelineRayTracingResources = rpRTResources;
+            m_RaytracingManager = raytracingManager;
+
+            // Keep track of the render pipeline
+            m_RenderPipeline = renderPipeline;
+>>>>>>> master
 
             // Keep track of the shader rt manager
             m_SharedRTManager = sharedRTManager;
@@ -220,6 +238,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void EvaluateClusterVolume(HDRaytracingEnvironment currentEnv, HDCamera hdCamera, int numLights)
         {
+<<<<<<< HEAD
+=======
+            var settings = VolumeManager.instance.stack.GetComponent<LightCluster>();
+
+>>>>>>> master
             clusterCenter = hdCamera.camera.gameObject.transform.position;
             minClusterPos.Set(float.MaxValue, float.MaxValue, float.MaxValue);
             maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
@@ -235,6 +258,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 maxClusterPos.z = Mathf.Max(m_LightVolumesCPUArray[lightIdx].position.z + m_LightVolumesCPUArray[lightIdx].range, maxClusterPos.z);
             }
 
+<<<<<<< HEAD
             minClusterPos.x = minClusterPos.x < clusterCenter.x - currentEnv.cameraClusterRange ? clusterCenter.x - currentEnv.cameraClusterRange : minClusterPos.x;
             minClusterPos.y = minClusterPos.y < clusterCenter.y - currentEnv.cameraClusterRange ? clusterCenter.y - currentEnv.cameraClusterRange : minClusterPos.y;
             minClusterPos.z = minClusterPos.z < clusterCenter.z - currentEnv.cameraClusterRange ? clusterCenter.z - currentEnv.cameraClusterRange : minClusterPos.z;
@@ -242,6 +266,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             maxClusterPos.x = maxClusterPos.x > clusterCenter.x + currentEnv.cameraClusterRange ? clusterCenter.x + currentEnv.cameraClusterRange : maxClusterPos.x;
             maxClusterPos.y = maxClusterPos.y > clusterCenter.y + currentEnv.cameraClusterRange ? clusterCenter.y + currentEnv.cameraClusterRange : maxClusterPos.y;
             maxClusterPos.z = maxClusterPos.z > clusterCenter.z + currentEnv.cameraClusterRange ? clusterCenter.z + currentEnv.cameraClusterRange : maxClusterPos.z;
+=======
+            minClusterPos.x = minClusterPos.x < clusterCenter.x - settings.cameraClusterRange.value ? clusterCenter.x - settings.cameraClusterRange.value : minClusterPos.x;
+            minClusterPos.y = minClusterPos.y < clusterCenter.y - settings.cameraClusterRange.value ? clusterCenter.y - settings.cameraClusterRange.value : minClusterPos.y;
+            minClusterPos.z = minClusterPos.z < clusterCenter.z - settings.cameraClusterRange.value ? clusterCenter.z - settings.cameraClusterRange.value : minClusterPos.z;
+
+            maxClusterPos.x = maxClusterPos.x > clusterCenter.x + settings.cameraClusterRange.value ? clusterCenter.x + settings.cameraClusterRange.value : maxClusterPos.x;
+            maxClusterPos.y = maxClusterPos.y > clusterCenter.y + settings.cameraClusterRange.value ? clusterCenter.y + settings.cameraClusterRange.value : maxClusterPos.y;
+            maxClusterPos.z = maxClusterPos.z > clusterCenter.z + settings.cameraClusterRange.value ? clusterCenter.z + settings.cameraClusterRange.value : maxClusterPos.z;
+>>>>>>> master
 
             // Compute the cell size per dimension
             clusterCellSize = (maxClusterPos - minClusterPos);
@@ -285,8 +318,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Build Light Cluster", CustomSamplerId.RaytracingBuildCluster.GetSampler()))
             {
+<<<<<<< HEAD
                 // Make sure the Cluster buffer has the right size
                 int bufferSize = 64 * 64 * 32 * (currentEnv.maxNumLightsPercell + 3);
+=======
+                var lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
+
+                // Make sure the Cluster buffer has the right size
+                int bufferSize = 64 * 64 * 32 * (lightClusterSettings.maxNumLightsPercell.value + 3);
+>>>>>>> master
                 if (m_LightCluster.count != bufferSize)
                 {
                     ResizeClusterBuffer(bufferSize);
@@ -300,7 +340,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeVectorParam(lightClusterCS, _MinClusterPos, minClusterPos);
                 cmd.SetComputeVectorParam(lightClusterCS, _MaxClusterPos, maxClusterPos);
                 cmd.SetComputeVectorParam(lightClusterCS, _ClusterCellSize, clusterCellSize);
+<<<<<<< HEAD
                 cmd.SetComputeFloatParam(lightClusterCS, _LightPerCellCount, HDShadowUtils.Asfloat(currentEnv.maxNumLightsPercell));
+=======
+                cmd.SetComputeFloatParam(lightClusterCS, _LightPerCellCount, HDShadowUtils.Asfloat(lightClusterSettings.maxNumLightsPercell.value));
+>>>>>>> master
 
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterKernel, _LightVolumes, m_LightVolumeGPUArray);
                 cmd.SetComputeFloatParam(lightClusterCS, _LightVolumeCount, HDShadowUtils.Asfloat(numLights));
@@ -532,7 +576,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.specularDimmer = lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
                 lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.volumetricDimmer);
 
+<<<<<<< HEAD
                 lightData.contactShadowIndex = -1;
+=======
+                lightData.contactShadowMask = 0;
+>>>>>>> master
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
                 lightData.rayTracedAreaShadowIndex = -1;
@@ -543,10 +591,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     switch (light.type)
                     {
                         case LightType.Spot:
+<<<<<<< HEAD
                             lightData.cookieIndex = m_LightLoop.cookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                         case LightType.Point:
                             lightData.cookieIndex = m_LightLoop.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
+=======
+                            lightData.cookieIndex = m_RenderPipeline.cookieTexArray.FetchSlice(cmd, light.cookie);
+                            break;
+                        case LightType.Point:
+                            lightData.cookieIndex = m_RenderPipeline.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
+>>>>>>> master
                             break;
                     }
                 }
@@ -554,11 +609,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Projectors lights must always have a cookie texture.
                     // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
+<<<<<<< HEAD
                     lightData.cookieIndex = m_LightLoop.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
                 }
                 else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
                 {
                     lightData.cookieIndex = m_LightLoop.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
+=======
+                    lightData.cookieIndex = m_RenderPipeline.cookieTexArray.FetchSlice(cmd, Texture2D.whiteTexture);
+                }
+                else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
+                {
+                    lightData.cookieIndex = m_RenderPipeline.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
+>>>>>>> master
                 }
 
                 {
@@ -592,12 +655,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void EvaluateClusterDebugView(CommandBuffer cmd, HDCamera hdCamera, HDRaytracingEnvironment currentEnv)
         {
+<<<<<<< HEAD
             ComputeShader lightClusterDebugCS = m_RenderPipelineResources.shaders.lightClusterDebugCS;
+=======
+            ComputeShader lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
+>>>>>>> master
             if (lightClusterDebugCS == null) return;
 
             Texture2D gradientTexture = m_RenderPipelineResources.textures.colorGradient;
             if (gradientTexture == null) return;
 
+<<<<<<< HEAD
+=======
+            var settings = VolumeManager.instance.stack.GetComponent<LightCluster>();
+
+>>>>>>> master
             // Grab the kernel
             int m_LightClusterDebugKernel = lightClusterDebugCS.FindKernel("DebugLightCluster");
 
@@ -606,7 +678,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeVectorParam(lightClusterDebugCS, _MinClusterPos, minClusterPos);
             cmd.SetComputeVectorParam(lightClusterDebugCS, _MaxClusterPos, maxClusterPos);
             cmd.SetComputeVectorParam(lightClusterDebugCS, _ClusterCellSize, clusterCellSize);
+<<<<<<< HEAD
             cmd.SetComputeFloatParam(lightClusterDebugCS, _LightPerCellCount, HDShadowUtils.Asfloat(currentEnv.maxNumLightsPercell));
+=======
+            cmd.SetComputeFloatParam(lightClusterDebugCS, _LightPerCellCount, HDShadowUtils.Asfloat(settings.maxNumLightsPercell.value));
+>>>>>>> master
             cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, _DebugColorGradientTexture, gradientTexture);
             cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
 
@@ -663,7 +739,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Grab the current ray-tracing environment, if no environment available stop right away
             HDRaytracingEnvironment currentEnv = m_RaytracingManager.CurrentEnvironment();
+<<<<<<< HEAD
             ComputeShader lightClusterCS = m_RenderPipelineResources.shaders.lightClusterBuildCS;
+=======
+            ComputeShader lightClusterCS = m_RenderPipelineRayTracingResources.lightClusterBuildCS;
+>>>>>>> master
             // If there is no area light to process or no environment not the shader is missing
             if (currentEnv == null || lightClusterCS == null || lightArray.Count == 0)
             {

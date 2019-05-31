@@ -42,7 +42,7 @@ float3 PreEvaluateDirectionalLightTransmission(BSDFData bsdfData, inout Directio
             NdotL = -NdotL;
 
             // However, we don't want baked or contact shadows.
-            light.contactShadowIndex   = -1;
+            light.contactShadowMask    = 0;
             light.shadowMaskSelector.x = -1;
 
             // We use the precomputed value (based on "baked" thickness).
@@ -76,7 +76,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are OK with this
     bool surfaceReflection = NdotL > 0;
 
-    // Caution: this function modifies N, NdotL, contactShadowIndex and shadowMaskSelector.
+    // Caution: this function modifies N, NdotL, contactShadowMask and shadowMaskSelector.
     float3 transmittance = PreEvaluateDirectionalLightTransmission(bsdfData, light, N, NdotL);
 
     float3 color; float attenuation;
@@ -161,7 +161,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext,
             NdotL = -NdotL;
 
             // However, we don't want baked or contact shadows.
-            light.contactShadowIndex   = -1;
+            light.contactShadowMask    = 0;
             light.shadowMaskSelector.x = -1;
 
             transmittance = bsdfData.transmittance;
@@ -229,7 +229,7 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
     // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are OK with this
     bool surfaceReflection = NdotL > 0;
 
-    // Caution: this function modifies N, NdotL, shadowIndex, contactShadowIndex and shadowMaskSelector.
+    // Caution: this function modifies N, NdotL, shadowIndex, contactShadowMask and shadowMaskSelector.
     float3 transmittance = PreEvaluatePunctualLightTransmission(lightLoopContext, posInput, bsdfData,
                                                                 light, distances.x, N, L, NdotL);
     float3 color; float attenuation;

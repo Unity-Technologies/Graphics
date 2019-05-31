@@ -86,8 +86,13 @@ float EvalBrdfPDF(MISSamplingInput misInput, float3 L)
 void brdfSampleMIS(MISSamplingInput misInput, out float3 direction, out float pdf)
 {
     // Specular BRDF sampling
+<<<<<<< HEAD
     float NdotL, NdotH, VdotH, LdotH;
     SampleGGXDir2(misInput.noiseValue, misInput.viewWS, misInput.localToWorld, misInput.roughness, direction, NdotL, NdotH, VdotH, LdotH);
+=======
+    float NdotL, NdotH, VdotH;
+    SampleGGXDir(misInput.noiseValue, misInput.viewWS, misInput.localToWorld, misInput.roughness, direction, NdotL, NdotH, VdotH);
+>>>>>>> master
 
     // Evaluate the pdf for this sample
     pdf = EvalBrdfPDF(misInput, direction);

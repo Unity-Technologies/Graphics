@@ -10,7 +10,11 @@ This table provides an overview of the current features supported in the Lightwe
 | ***Camera***                                                 |                                                              |                                                              |
 | HDR                                                          | Yes                                                          | Yes                                                          |
 | MSAA                                                         | Yes                                                          | Yes                                                          |
+<<<<<<< HEAD
 | Physical Camera                                              | Yes                                                          | Yes                                                |
+=======
+| Physical Camera                                              | Yes                                                          | Yes                                                          |
+>>>>>>> master
 | Dynamic Resolution                                           | Yes                                                          | Yes                                                          |
 | Multi Display                                                | Yes                                                          | Yes                                                          |
 | Stacking                                                     | Yes                                                          | In research                                                  |
@@ -45,19 +49,31 @@ This table provides an overview of the current features supported in the Lightwe
 | Gamma                                                        | Yes                                                          | Yes                                                          |
 | ***Global Illumination (Backing Back End)***                 |                                                              |                                                              |
 | Enlighten                                                    | Yes                                                          | Yes                                                          |
+<<<<<<< HEAD
 | Enlighten Realtime                                           | Yes                                                          | In research                                                  |
+=======
+| Enlighten Realtime                                           | Yes                                                          | Not supported                                                |
+>>>>>>> master
 | Progressive CPU                                              | Yes                                                          | Yes                                                          |
 | Progressive GPU                                              | Yes                                                          | Yes                                                          |
 | ***Mixed Lighting***                                         |                                                              |                                                              |
 | Subtractive                                                  | Yes                                                          | Yes                                                          |
+<<<<<<< HEAD
 | Baked Indirect                                               | Yes                                                          | In research                                                  |
+=======
+| Baked Indirect                                               | Yes                                                          | Yes                                                          |
+>>>>>>> master
 | Shadow Mask                                                  | Yes                                                          | In research                                                  |
 | Distance Shadow Mask                                         | Yes                                                          | In research                                                  |
 | ***Global Illumination (Light Probes)***                     |                                                              |                                                              |
 | Blending                                                     | Yes                                                          | Yes                                                          |
 | Proxy Volume (LPPV)                                          | Yes                                                          | In research                                                  |
 | Custom Provided                                              | Yes                                                          | Yes                                                          |
+<<<<<<< HEAD
 | Occlusion Probes                                             | Yes                                                          | In research                                                  |
+=======
+| Occlusion Probes                                             | Yes                                                          | Yes                                                          |
+>>>>>>> master
 | ***Global Illumination (Reflection Probes)***                |                                                              |                                                              |
 | Realtime                                                     | Yes                                                          | Yes                                                          |
 | Baked                                                        | Yes                                                          | Yes                                                          |
@@ -99,7 +115,11 @@ This table provides an overview of the current features supported in the Lightwe
 | GPU Instancing                                               | Yes                                                          | Yes                                                          |
 | Double Sided GI                                              | Yes                                                          | Yes                                                          |
 | Two Sided                                                    | Not supported                                                | Yes                                                          |
+<<<<<<< HEAD
 | Order In Layer                                               | Not supported                                                | In research                                                  |
+=======
+| Order In Layer                                               | Not supported                                                | Yes                                                          |
+>>>>>>> master
 | ***Render Pipeline Hooks***                                  |                                                              |                                                              |
 | Camera.RenderWithShader                                      | Yes                                                          | Not supported                                                |
 | Camera.AddCommandBuffer*<br/>(Camera.Remove[All]CommandBuffer*) | Yes                                                          | Not supported                                                |
@@ -115,12 +135,21 @@ This table provides an overview of the current features supported in the Lightwe
 | OnBecameInvisible                                            | Yes                                                          | Yes                                                          |
 | Camera Replacement Material                                  | Not supported                                                | In research                                                  |
 | RenderPipeline.BeginFrameRendering                           | Not supported                                                | Yes                                                          |
+<<<<<<< HEAD
 | RenderPipeline.EndFrameRendering                             | Not supported                                                | In research                                                  |
 | RenderPipeline.BeginCameraRendering                          | Not supported                                                | Yes                                                          |
 | RenderPIpeline.EndCameraRendering                            | Not supported                                                | In research                                                  |
 | LightweightRenderPipeline.RenderSingleCamera                 | Not supported                                                | Yes                                                          |
 | ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
 | Custom Renderers                                             | Not supported                                                | In research                                                  |
+=======
+| RenderPipeline.EndFrameRendering                             | Not supported                                                | Yes                                                          |
+| RenderPipeline.BeginCameraRendering                          | Not supported                                                | Yes                                                          |
+| RenderPIpeline.EndCameraRendering                            | Not supported                                                | Yes                                                          |
+| LightweightRenderPipeline.RenderSingleCamera                 | Not supported                                                | Yes                                                          |
+| ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
+| Custom Renderers                                             | Not supported                                                | Yes                                                          |
+>>>>>>> master
 | ***Post-processing***                                        |                                                              |                                                              |
 | Ambient Occlusion (MSVO)                                     | Yes                                                          | In research                                                  |
 | Auto Exposure                                                | Yes                                                          | Yes                                                          |
@@ -134,14 +163,22 @@ This table provides an overview of the current features supported in the Lightwe
 | Screen Space Reflections                                     | Yes                                                          | Not supported                                                |
 | Vignette                                                     | Yes                                                          | Yes                                                          |
 | ***Particles***                                              |                                                              |                                                              |
+<<<<<<< HEAD
 | VFX Graph (GPU)                                              | Not supported                                                | In research                                                  |
+=======
+| VFX Graph (GPU)                                              | Not supported                                                | Yes                                                          |
+>>>>>>> master
 | Particles System (CPU)                                       | Yes                                                          | Yes                                                          |
 | *Shaders*<br/>Physically Based<br/>Simple LIghting (Blinn Phong)<br/>Unlit | <br/>Yes<br/>Yes<br/>Yes                                     | <br/>Yes ([Particles Lit](particles-lit-shader.md))<br/>Yes ([Particles Simple Lit](particles-simple-lit-shader.md))<br/>Yes ([Particles Unlit](particles-unlit-shader.md)) |
 | Soft Particles                                               | Yes                                                          | Yes                                                          |
 | Distortion                                                   | Yes                                                          | Yes                                                          |
 | Flipbook Blending                                            | Yes                                                          | Yes                                                          |
 | ***Terrain***                                                |                                                              |                                                              |
+<<<<<<< HEAD
 | *Shaders*<br/>Physically Based<br/>Simple Lighting (Blinn-Phong)<br/>Unlit<br/>Speed Tree<br/>Vegetation<br/>Detail | <br/>Yes<br/>Yes<br/>Not supported<br/>Yes<br/>Yes<br/>Yes   | <br/>Yes<br/>In research<br/>In research<br/>In research<br/>Yes<br/>Yes |
+=======
+| *Shaders*<br/>Physically Based<br/>Simple Lighting (Blinn-Phong)<br/>Unlit<br/>Speed Tree<br/>Vegetation<br/>Detail | <br/>Yes<br/>Yes<br/>Not supported<br/>Yes<br/>Yes<br/>Yes   | <br/>Yes<br/>In research<br/>In research<br/>Yes<br/>Yes<br/>Yes |
+>>>>>>> master
 | Wind Zone                                                    | Yes                                                          | Yes                                                          |
 | Number of Layers                                             | Unlimited                                                    | 4                                                            |
 | GPU Patch Generation                                         | Yes                                                          | Yes                                                          |

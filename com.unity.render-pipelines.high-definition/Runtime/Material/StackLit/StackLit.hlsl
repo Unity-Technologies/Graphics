@@ -3170,7 +3170,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    // Caution: this function modifies N, NdotL, contactShadowIndex and shadowMaskSelector.
+    // Caution: this function modifies N, NdotL, contactShadowMask and shadowMaskSelector.
     float3 transmittance = PreEvaluateDirectionalLightTransmission(bsdfData, light, N, NdotL);
 
     float3 color; float attenuation;
@@ -3255,7 +3255,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                       N, L, NdotL, lightCanOnlyBeTransmitted, /* computeSunDiscEffect*/ false);
     surfaceReflection = !lightCanOnlyBeTransmitted;
 
-    // Caution: this function modifies N, NdotL, shadowIndex, contactShadowIndex and shadowMaskSelector.
+    // Caution: this function modifies N, NdotL, shadowIndex, contactShadowMask and shadowMaskSelector.
     float3 transmittance = PreEvaluatePunctualLightTransmission(lightLoopContext, posInput, bsdfData,
                                                                 light, distances.x, N, L, NdotL);
     float3 color; float attenuation;

@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
             {
                 int nbRemoved = m_Children.RemoveAll(c => c == null);// Remove bad references if any
                 if (nbRemoved > 0)
-                    Debug.Log(String.Format("Remove {0} child(ren) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
+                    Debug.LogWarning(String.Format("Remove {0} child(ren) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
             }
         }
 
@@ -69,12 +69,12 @@ namespace UnityEditor.VFX
         {
         }
 
-        public virtual void CollectDependencies(HashSet<ScriptableObject> objs)
+        public virtual void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
             foreach (var child in children)
             {
                 objs.Add(child);
-                child.CollectDependencies(objs);
+                child.CollectDependencies(objs, ownedOnly);
             }
         }
 

@@ -4,11 +4,12 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class CreateHairShaderGraph : EndNameEditAction
+    static class CreateHairShaderGraph
     {
         [MenuItem("Assets/Create/Shader/HDRP/Hair Graph", false, 208)]
         public static void CreateMaterialGraph()
         {
+<<<<<<< HEAD
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateHairShaderGraph>(),
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
@@ -20,6 +21,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             graph.path = "Shader Graphs";
             File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
             AssetDatabase.Refresh();
+=======
+            GraphUtil.CreateNewGraph(new HairMasterNode());
+>>>>>>> master
         }
     }
 }

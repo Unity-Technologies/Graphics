@@ -1,6 +1,11 @@
 // Temporal Filtering kernels
+<<<<<<< HEAD
 #pragma kernel AOCopyTAAHistory
 #pragma kernel AOApplyTAA
+=======
+#pragma kernel AOApplyTAA
+#pragma kernel AOCopyHistory
+>>>>>>> master
 
 #pragma kernel AOBilateralFilterH   AOBilateralFilter=AOBilateralFilterH
 #pragma kernel AOBilateralFilterV   AOBilateralFilter=AOBilateralFilterV  FINAL_PASS
@@ -18,11 +23,16 @@
 
 // Input filter DATA
 TEXTURE2D_X(_DepthTexture);
+<<<<<<< HEAD
 RW_TEXTURE2D_X(float, _AOHistorybufferRW);
+=======
+TEXTURE2D_X(_AOHistorybuffer);
+>>>>>>> master
 TEXTURE2D_X(_DenoiseInputTexture);
 int _RaytracingDenoiseRadius;
 
 // Output Filter Data
+<<<<<<< HEAD
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 
 [numthreads(AMBIENT_OCCLUSION_TILE_SIZE, AMBIENT_OCCLUSION_TILE_SIZE, 1)]
@@ -39,16 +49,25 @@ void AOCopyTAAHistory(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
     // Merge them into the previous buffer
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(currentValue, historyValue, 0, 0);
 }
+=======
+RW_TEXTURE2D_X(float, _DenoiseOutputTextureRW);
+>>>>>>> master
 
 [numthreads(AMBIENT_OCCLUSION_TILE_SIZE, AMBIENT_OCCLUSION_TILE_SIZE, 1)]
 void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AMBIENT_OCCLUSION_TILE_SIZE + groupThreadId;
+<<<<<<< HEAD
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput_Stereo(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+=======
+
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+>>>>>>> master
 
     float2 closest = GetClosestFragment(posInputs);
 
@@ -58,10 +77,17 @@ void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Group
 
     float2 uv = posInputs.positionNDC;
 
+<<<<<<< HEAD
     float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _ScreenToTargetScale.xy).x;
     float history = Fetch4(_DenoiseInputTexture, posInputs.positionNDC - velocity, 0.0, _ScreenToTargetScaleHistory.xy).y;
     float topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _ScreenToTargetScale.xy).x;
     float bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _ScreenToTargetScale.xy).x;
+=======
+    float color = Fetch4(_DenoiseInputTexture, uv, 0.0, _RTHandleScale.xy).x;
+    float history = Fetch4(_AOHistorybuffer, posInputs.positionNDC - velocity, 0.0, _RTHandleScaleHistory.xy).x;
+    float topLeft = Fetch4(_DenoiseInputTexture, uv, -RADIUS, _RTHandleScale.xy).x;
+    float bottomRight = Fetch4(_DenoiseInputTexture, uv, RADIUS, _RTHandleScale.xy).x;
+>>>>>>> master
 
     float corners = 4.0 * (topLeft + bottomRight) - 2.0 * color;
 
@@ -95,8 +121,23 @@ void AOApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Group
     color = UnmapPerChannel(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);
     
+<<<<<<< HEAD
     _AOHistorybufferRW[COORD_TEXTURE2D_X(centerCoord)] = color;
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, color, color, 1.0);
+=======
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = color;
+}
+
+[numthreads(AMBIENT_OCCLUSION_TILE_SIZE, AMBIENT_OCCLUSION_TILE_SIZE, 1)]
+void AOCopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+
+    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
+        return;  // Out of bounds, discard
+
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
+>>>>>>> master
 }
 
 // ----------------------------------------------------------------------------
@@ -138,8 +179,12 @@ BilateralData TapBilateralData(uint2 coordSS)
 
     if (PLANE_WEIGHT > 0.0)
     {
+<<<<<<< HEAD
         posInput = GetPositionInput_Stereo(coordSS, _ScreenSize.zw, posInput.deviceDepth,
                                            UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
+=======
+        posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+>>>>>>> master
         key.position = posInput.positionWS;
     }
 
@@ -197,7 +242,10 @@ void AOBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
 {
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * AMBIENT_OCCLUSION_TILE_SIZE + groupThreadId;
+<<<<<<< HEAD
     centerCoord.x = centerCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
+=======
+>>>>>>> master
 
     float aoSum = 0.0;
     float wSum = 0.0;
@@ -225,5 +273,9 @@ void AOBilateralFilter(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
 
     // Store the intermediate result
     float ao = aoSum / wSum;
+<<<<<<< HEAD
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(ao, ao, ao, 1.0);
+=======
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = ao;
+>>>>>>> master
 }

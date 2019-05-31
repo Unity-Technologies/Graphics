@@ -23,6 +23,7 @@ float3 Bilinear(TEXTURE2D_X(_InputTexture), float2 UV)
 
 float3 CatmullRomFourSamples(TEXTURE2D_X(_InputTexture), float2 UV)
 {
+<<<<<<< HEAD
     float2 TexSize = _ScreenSize.xy * rcp(_ScreenToTargetScale.xy);
     float4 bicubicWnd = float4(TexSize, 1.0 / (TexSize));
 
@@ -30,6 +31,15 @@ float3 CatmullRomFourSamples(TEXTURE2D_X(_InputTexture), float2 UV)
                                     UV * _ScreenToTargetScale.xy,
                                     bicubicWnd,
                                     (1.0f - 0.5f * _ScreenSize.zw) * _ScreenToTargetScale.xy,
+=======
+    float2 TexSize = _ScreenSize.xy * rcp(_RTHandleScale.xy);
+    float4 bicubicWnd = float4(TexSize, 1.0 / (TexSize));
+
+    return SampleTexture2DBicubic(  TEXTURE2D_X_ARGS(_InputTexture, s_linear_clamp_sampler),
+                                    UV * _RTHandleScale.xy,
+                                    bicubicWnd,
+                                    (1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy,
+>>>>>>> master
                                     unity_StereoEyeIndex).xyz;
 }
 
@@ -42,7 +52,11 @@ float3 Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
     // Lanczos 3
     const float a = 3.0;
 
+<<<<<<< HEAD
     float2 TexSize = _ScreenSize.xy * (_ScreenToTargetScale.xy); 
+=======
+    float2 TexSize = _ScreenSize.xy * (_RTHandleScale.xy);
+>>>>>>> master
     float2 TexelSize = rcp(TexSize);
     float2 texelLoc = inUV * TexSize;
     float2 center = floor(texelLoc - 0.5) + 0.5;
@@ -71,7 +85,11 @@ float3 Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
     float2 UV2 = (center + 2) * TexelSize;
     float2 UV3 = (center + 3) * TexelSize;
 
+<<<<<<< HEAD
     // Find weights. 
+=======
+    // Find weights.
+>>>>>>> master
     float2 xMin1 = x - 1.0;
     float2 xMin2 = x - 2.0;
     float2 xMin3 = x - 3.0;
@@ -96,7 +114,11 @@ float3 Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
 
 
     float4 accumulation = 0;
+<<<<<<< HEAD
     // Corners are dropped (similarly to what Jimenez suggested for Bicubic) 
+=======
+    // Corners are dropped (similarly to what Jimenez suggested for Bicubic)
+>>>>>>> master
     accumulation += float4(Bilinear(_InputTexture, float2(UV_2.x, UV0.y)), 1) * weight0.x * weight23.y;
     accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV_1.y)), 1) * weight1.x * weight1.y;
     accumulation += float4(Bilinear(_InputTexture, float2(UV_1.x, UV0.y)), 1) * weight1.x * weight23.y;

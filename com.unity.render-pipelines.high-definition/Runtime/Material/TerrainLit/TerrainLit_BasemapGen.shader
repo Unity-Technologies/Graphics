@@ -22,11 +22,19 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl"
 
         // Terrain builtin keywords
+<<<<<<< HEAD
         #pragma shader_feature _TERRAIN_8_LAYERS
         #pragma shader_feature _NORMALMAP
         #pragma shader_feature _MASKMAP
 
         #pragma shader_feature _TERRAIN_BLEND_HEIGHT
+=======
+        #pragma shader_feature_local _TERRAIN_8_LAYERS
+        #pragma shader_feature_local _NORMALMAP
+        #pragma shader_feature_local _MASKMAP
+
+        #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
+>>>>>>> master
 
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
 
@@ -91,6 +99,7 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
 
         Pass
         {
+<<<<<<< HEAD
             // _NormalMap pass will get ignored by terrain basemap generation code. Put here so that the VTC can use it to generate cache for normal maps.
             Tags
             {
@@ -120,6 +129,8 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
 
         Pass
         {
+=======
+>>>>>>> master
             Tags
             {
                 "Name" = "_MetallicTex"

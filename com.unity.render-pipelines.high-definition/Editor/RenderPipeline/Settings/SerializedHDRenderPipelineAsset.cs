@@ -8,6 +8,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedObject serializedObject;
 
         public SerializedProperty renderPipelineResources;
+<<<<<<< HEAD
+=======
+        public SerializedProperty renderPipelineRayTracingResources;
+>>>>>>> master
         public SerializedProperty diffusionProfileSettingsList; 
         public SerializedProperty allowShaderVariantStripping;
         public SerializedProperty enableSRPBatcher;
@@ -46,6 +50,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             this.serializedObject = serializedObject;
 
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
+<<<<<<< HEAD
+=======
+            renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
+>>>>>>> master
             diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineAsset s) => s.diffusionProfileSettingsList);
             allowShaderVariantStripping = serializedObject.Find((HDRenderPipelineAsset s) => s.allowShaderVariantStripping);
             enableSRPBatcher = serializedObject.Find((HDRenderPipelineAsset s) => s.enableSRPBatcher);

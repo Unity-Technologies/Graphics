@@ -35,12 +35,19 @@ namespace UnityEngine.Rendering.LWRP
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
+<<<<<<< HEAD
             Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
 
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.copyDepthShader);
             Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
             Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.screenSpaceShadowShader);
+=======
+            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
+            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
+            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
+>>>>>>> master
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -60,7 +67,11 @@ namespace UnityEngine.Rendering.LWRP
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques, copyDepthMaterial);
             m_OpaquePostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingOpaques, true);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+<<<<<<< HEAD
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, samplingMaterial, downsamplingMethod);
+=======
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, samplingMaterial);
+>>>>>>> master
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
@@ -180,7 +191,14 @@ namespace UnityEngine.Rendering.LWRP
 
             if (renderingData.cameraData.requiresOpaqueTexture)
             {
+<<<<<<< HEAD
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor);
+=======
+                // TODO: Downsampling method should be store in the renderer isntead of in the asset.
+                // We need to migrate this data to renderer. For now, we query the method in the active asset.
+                Downsampling downsamplingMethod = LightweightRenderPipeline.asset.opaqueDownsampling;
+                m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
+>>>>>>> master
                 EnqueuePass(m_CopyColorPass);
             }
 
@@ -294,26 +312,47 @@ namespace UnityEngine.Rendering.LWRP
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
+<<<<<<< HEAD
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
+=======
+            bool isStereoEnabled = renderingData.cameraData.isStereoEnabled;
+            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
+            bool isCompatibleBackbufferTextureDimension = baseDescriptor.dimension == TextureDimension.Tex2D;
+>>>>>>> master
             bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
             bool isOffscreenRender = cameraData.camera.targetTexture != null && !cameraData.isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
 
+<<<<<<< HEAD
+=======
+            if (isStereoEnabled)
+                isCompatibleBackbufferTextureDimension = UnityEngine.XR.XRSettings.deviceEyeTextureDimension == baseDescriptor.dimension;
+
+>>>>>>> master
             bool requiresBlitForOffscreenCamera = cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve;
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
             return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+<<<<<<< HEAD
                    isTargetTexture2DArray || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
                    || renderingData.killAlphaInFinalBlit;
+=======
+                   !isCompatibleBackbufferTextureDimension || !cameraData.isDefaultViewport || isCapturing || Display.main.requiresBlitToBackbuffer
+                   || (renderingData.killAlphaInFinalBlit && !isStereoEnabled);
+>>>>>>> master
         }
 
         bool CanCopyDepth(ref CameraData cameraData)
         {
             bool msaaEnabledForCamera = cameraData.cameraTargetDescriptor.msaaSamples > 1;
             bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
+<<<<<<< HEAD
             bool supportsDepthTarget = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
+=======
+            bool supportsDepthTarget = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
+>>>>>>> master
             bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
 
             // TODO:  We don't have support to highp Texture2DMS currently and this breaks depth precision.

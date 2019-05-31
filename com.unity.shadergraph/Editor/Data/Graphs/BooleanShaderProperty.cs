@@ -34,9 +34,30 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+<<<<<<< HEAD
+=======
+        [SerializeField]
+        bool m_Hidden = false;
+
+        public bool hidden
+        {
+            get { return m_Hidden; }
+            set { m_Hidden = value; }
+        }
+
+        public override bool isRenamable
+        {
+            get { return true; }
+        }
+
+>>>>>>> master
         public override string GetPropertyBlockString()
         {
             var result = new StringBuilder();
+            if (hidden)
+            {
+                result.Append("[HideInInspector] ");
+            }
             result.Append("[ToggleUI] ");
             result.Append(referenceName);
             result.Append("(\"");
@@ -48,7 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            return string.Format("float {0}{1}", referenceName, delimiter);
+            return string.Format("{0} {1}{2}", concretePrecision.ToShaderString(), referenceName, delimiter);
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()

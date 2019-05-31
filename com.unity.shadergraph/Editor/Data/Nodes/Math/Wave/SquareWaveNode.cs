@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Square Wave";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Square-Wave-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

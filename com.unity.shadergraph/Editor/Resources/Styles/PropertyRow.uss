@@ -6,28 +6,28 @@ PropertyRow ColorField,
 PropertyRow DoubleField {
     margin-left: 0;
     margin-right: 0;
-	text-alignment : middle-left;
+	-unity-text-align : middle-left;
 }
 
 PropertyRow > #container{
     flex-grow: 1;
-    padding-left: 8;
-    padding-right: 8;
+    padding-left: 8px;
+    padding-right: 8px;
     flex-direction: row;
 }
 
 PropertyRow > #container > #label {
-    width: 200;
-    height: 24;
+    width: 200px;
+    height: 24px;
     justify-content: center;
 }
 
 PropertyRow > #container > #label > Label {
-    margin-bottom: 3;
+    margin-bottom: 3px;
 }
 
 PropertyRow > #container > #content{
     flex-grow: 1;
-    height: 24;
+    height: 24px;
     justify-content: center;
 }

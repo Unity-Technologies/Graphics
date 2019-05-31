@@ -41,6 +41,21 @@ namespace UnityEngine.Rendering.LWRP
         {
             isInvalidated = true;
         }
+<<<<<<< HEAD
+=======
+
+#if UNITY_EDITOR
+        internal virtual Material GetDefaultMaterial(DefaultMaterialType materialType)
+        {
+            return null;
+        }
+
+        internal virtual Shader GetDefaultShader()
+        {
+            return null;
+        }
+#endif
+>>>>>>> master
     }
 }
 
