@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.AppendLine(@"Shader ""{0}""", outputName);
             using (finalShader.BlockScope())
             {
-                finalShader.Concat(shaderProperties.GetPropertiesBlock());
+                shaderProperties.GetPropertiesBlock(finalShader);
 
                 foreach (var subShader in m_SubShaders)
                 {

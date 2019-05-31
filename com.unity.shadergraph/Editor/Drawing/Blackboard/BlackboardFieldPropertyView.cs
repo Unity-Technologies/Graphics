@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddRow("Exposed", m_ExposedToogle);
                 }
 
-                if(property.isExposable)
+                if(property.isRenamable)
                 {
                     m_ReferenceNameField = new TextField(512, false, false, ' ');
                     m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
@@ -72,8 +72,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
                             if (m_ReferenceNameField.value != m_Property.referenceName)
                             {
-                                string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue, property.guid);
-                                property.overrideReferenceName = newReferenceName;
+                                m_Graph.SanitizePropertyReferenceName(property, newName.newValue);
                             }
                             m_ReferenceNameField.value = property.referenceName;
 
@@ -802,7 +801,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
-            foreach (var node in m_Graph.GetNodes<GraphInputNode>())
+            foreach (var node in m_Graph.GetNodes<PropertyNode>())
                 node.Dirty(modificationScope);
         }
     }

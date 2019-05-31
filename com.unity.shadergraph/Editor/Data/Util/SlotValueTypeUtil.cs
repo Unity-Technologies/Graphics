@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    static class ShaderValueTypeUtil
+    static class SlotValueTypeUtil
     {
         public static SlotValueType ToSlotValueType(this ConcreteSlotValueType concreteValueType)
         {

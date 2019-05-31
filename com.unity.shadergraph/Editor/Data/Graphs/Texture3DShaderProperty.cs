@@ -13,27 +13,20 @@ namespace UnityEditor.ShaderGraph
             displayName = "Texture3D";
             value = new SerializableTexture();
         }
-
-#region Type
+        
         public override PropertyType propertyType => PropertyType.Texture3D;
-#endregion
-
-#region Capabilities
+        
         public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
-#endregion
-
-#region PropertyBlock
+        
         public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
         public override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset] {referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
-#endregion
-
-#region ShaderValue
+        
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return $"TEXTURE3D({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
@@ -43,9 +36,7 @@ namespace UnityEditor.ShaderGraph
         {
             return $"TEXTURE3D_PARAM({referenceName}, sampler{referenceName})";
         }
-#endregion
-
-#region Options
+        
         [SerializeField]
         private bool m_Modifiable = true;
 
@@ -54,12 +45,10 @@ namespace UnityEditor.ShaderGraph
             get => m_Modifiable;
             set => m_Modifiable = value;
         }
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
-            return new Texture3DAssetNode { texture = (Texture3D)value.texture };
+            return new Texture3DAssetNode { texture = value.texture as Texture3D };
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
@@ -71,13 +60,14 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
-            var copied = new Texture3DShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new Texture3DShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
-#endregion
     }
 }

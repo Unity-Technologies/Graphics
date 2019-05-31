@@ -11,12 +11,9 @@ namespace UnityEditor.ShaderGraph
         {
             displayName = "Vector2";
         }
-
-#region Type
+        
         public override PropertyType propertyType => PropertyType.Vector2;
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector2Node();
@@ -34,13 +31,14 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
-            var copied = new Vector2ShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new Vector2ShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
-#endregion
     }
 }

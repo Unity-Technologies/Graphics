@@ -19,18 +19,13 @@ namespace UnityEditor.ShaderGraph
         {
             displayName = "Vector1";
         }
-
-#region Type
+        
         public override PropertyType propertyType => PropertyType.Vector1;
-#endregion
-
-#region Capabilities
+        
         public override bool isBatchable => true;
         public override bool isExposable => true;
         public override bool isRenamable => true;
-#endregion
-
-#region PropertyBlock
+        
         private string enumTagString
         {
             get
@@ -58,18 +53,16 @@ namespace UnityEditor.ShaderGraph
             switch(floatType)
             {
                 case FloatType.Slider:
-                    return $"{hideTagString} {referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {NodeUtils.FloatToShaderValue(value)}";
                 case FloatType.Integer:
-                    return $"{hideTagString} {referenceName}(\"{displayName}\", Int) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {NodeUtils.FloatToShaderValue(value)}";
                 case FloatType.Enum:
-                    return $"{hideTagString}{enumTagString} {referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
                 default:
-                    return $"{hideTagString} {referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
             }
         }
-#endregion
-
-#region Options
+        
         [SerializeField]
         private FloatType m_FloatType = FloatType.Default;
 
@@ -119,9 +112,7 @@ namespace UnityEditor.ShaderGraph
             get => m_EnumValues;
             set => m_EnumValues = value;
         }
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)
@@ -146,18 +137,19 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
-            var copied = new Vector1ShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            copied.floatType = floatType;
-            copied.rangeValues = rangeValues;
-            copied.enumType = enumType;
-            copied.enumNames = enumNames;
-            copied.enumValues = enumValues;
-            return copied;
+            return new Vector1ShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value,
+                floatType = floatType,
+                rangeValues = rangeValues,
+                enumType = enumType,
+                enumNames = enumNames,
+                enumValues = enumValues
+            };
         }
-#endregion
     }
 }

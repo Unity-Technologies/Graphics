@@ -2,7 +2,7 @@
 
 namespace UnityEditor.ShaderGraph
 {
-    static class GradientUtils
+    static class GradientUtil
     {
         public static string GetGradientValue(Gradient gradient, bool inline, string delimiter = ";")
         {
@@ -10,13 +10,7 @@ namespace UnityEditor.ShaderGraph
             for(int i = 0; i < 8; i++)
             {
                 if(i < gradient.colorKeys.Length)
-                {
-                    colorKeys += string.Format("$precision4({0}, {1}, {2}, {3})"
-                        , gradient.colorKeys[i].color.r
-                        , gradient.colorKeys[i].color.g
-                        , gradient.colorKeys[i].color.b
-                        , gradient.colorKeys[i].time);
-                }
+                    colorKeys += $"$precision4({gradient.colorKeys[i].color.r}, {gradient.colorKeys[i].color.g}, {gradient.colorKeys[i].color.b}, {gradient.colorKeys[i].time})";
                 else
                     colorKeys += "$precision4(0, 0, 0, 0)";
                 if(i < 7)
@@ -27,11 +21,7 @@ namespace UnityEditor.ShaderGraph
             for(int i = 0; i < 8; i++)
             {
                 if(i < gradient.alphaKeys.Length)
-                {
-                    alphaKeys += string.Format("$precision2({0}, {1})"
-                        , gradient.alphaKeys[i].alpha
-                        , gradient.alphaKeys[i].time);
-                }
+                    alphaKeys += $"$precision2({gradient.alphaKeys[i].alpha}, {gradient.alphaKeys[i].time})";
                 else
                     alphaKeys += "$precision2(0, 0)";
                 if(i < 7)
@@ -39,25 +29,9 @@ namespace UnityEditor.ShaderGraph
             }
 
             if(inline)
-            {
-                return string.Format("NewGradient({0}, {1}, {2}, {3}, {4}){5}"
-                    , (int)gradient.mode
-                    , gradient.colorKeys.Length
-                    , gradient.alphaKeys.Length
-                    , colorKeys
-                    , alphaKeys
-                    , delimiter);
-            }
+                return $"NewGradient({(int)gradient.mode}, {gradient.colorKeys.Length}, {gradient.alphaKeys.Length}, {colorKeys}, {alphaKeys}){delimiter}";
             else
-            {
-                return string.Format("{{{0}, {1}, {2}, {{{3}}}, {{{4}}}}}{5}"
-                    , (int)gradient.mode
-                    , gradient.colorKeys.Length
-                    , gradient.alphaKeys.Length
-                    , colorKeys
-                    , alphaKeys
-                    , delimiter);
-            }
+                return $"{{{(int)gradient.mode}, {gradient.colorKeys.Length}, {gradient.alphaKeys.Length}, {{{colorKeys}}}, {{{alphaKeys}}}}}{delimiter}";
         }
 
         public static string GetGradientForPreview(string name)
@@ -65,7 +39,7 @@ namespace UnityEditor.ShaderGraph
             string colorKeys = "";
             for(int i = 0; i < 8; i++)
             {
-                colorKeys += string.Format("{0}_ColorKey{1}", name, i);
+                colorKeys += $"{name}_ColorKey{i}";
                 if(i < 7)
                     colorKeys += ",";
             }
@@ -73,36 +47,33 @@ namespace UnityEditor.ShaderGraph
             string alphaKeys = "";
             for(int i = 0; i < 8; i++)
             {
-                alphaKeys += string.Format("{0}_AlphaKey{1}", name, i);
+                alphaKeys += $"{name}_AlphaKey{i}";
                 if(i < 7)
                     alphaKeys += ",";
             }
 
-            return string.Format("NewGradient({0}_Type, {0}_ColorsLength, {0}_AlphasLength, {1}, {2})"
-                , name
-                , colorKeys
-                , alphaKeys);
+            return $"NewGradient({name}_Type, {name}_ColorsLength, {name}_AlphasLength, {colorKeys}, {alphaKeys})";
         }
 
         public static void GetGradientPropertiesForPreview(PropertyCollector properties, string name, Gradient value)
         {
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
-                overrideReferenceName = string.Format("{0}_Type", name),
+                overrideReferenceName = $"{name}_Type",
                 value = (int)value.mode,
                 generatePropertyBlock = false
             });
 
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
-                overrideReferenceName = string.Format("{0}_ColorsLength", name),
+                overrideReferenceName = $"{name}_ColorsLength",
                 value = value.colorKeys.Length,
                 generatePropertyBlock = false
             });
 
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
-                overrideReferenceName = string.Format("{0}_AlphasLength", name),
+                overrideReferenceName = $"{name}_AlphasLength",
                 value = value.alphaKeys.Length,
                 generatePropertyBlock = false
             });
@@ -111,8 +82,8 @@ namespace UnityEditor.ShaderGraph
             {
                 properties.AddShaderProperty(new Vector4ShaderProperty()
                 {
-                    overrideReferenceName = string.Format("{0}_ColorKey{1}", name, i),
-                    value = i < value.colorKeys.Length ? GradientUtils.ColorKeyToVector(value.colorKeys[i]) : Vector4.zero,
+                    overrideReferenceName = $"{name}_ColorKey{i}",
+                    value = i < value.colorKeys.Length ? GradientUtil.ColorKeyToVector(value.colorKeys[i]) : Vector4.zero,
                     generatePropertyBlock = false
                 });
             }
@@ -121,8 +92,8 @@ namespace UnityEditor.ShaderGraph
             {
                 properties.AddShaderProperty(new Vector2ShaderProperty()
                 {
-                    overrideReferenceName = string.Format("{0}_AlphaKey{1}", name, i),
-                    value = i < value.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(value.alphaKeys[i]) : Vector2.zero,
+                    overrideReferenceName = $"{name}_AlphaKey{i}",
+                    value = i < value.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(value.alphaKeys[i]) : Vector2.zero,
                     generatePropertyBlock = false
                 });
             }

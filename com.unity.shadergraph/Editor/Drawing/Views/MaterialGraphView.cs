@@ -310,17 +310,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var converter = node as IPropertyFromNode;
                 var prop = converter.AsShaderProperty();
-                prop.displayName = graph.SanitizeGraphInputName(prop.displayName, prop.guid);
+                graph.SanitizeGraphInputName(prop);
                 graph.AddGraphInput(prop);
 
-                var propNode = new GraphInputNode();
+                var propNode = new PropertyNode();
                 propNode.drawState = node.drawState;
                 propNode.groupGuid = node.groupGuid;
                 graph.AddNode(propNode);
-                propNode.graphInputGuid = prop.guid;
+                propNode.propertyGuid = prop.guid;
 
                 var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
-                var newSlot = propNode.FindSlot<MaterialSlot>(GraphInputNode.OutputSlotId);
+                var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
 
                 foreach (var edge in graph.GetEdges(oldSlot.slotReference))
                     graph.Connect(newSlot.slotReference, edge.inputSlot);
@@ -333,7 +333,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (selection.OfType<IShaderNodeView>().Any(v => v.node != null))
             {
-                if (selection.OfType<IShaderNodeView>().Any(v => v.node is GraphInputNode))
+                if (selection.OfType<IShaderNodeView>().Any(v => v.node is PropertyNode))
                     return DropdownMenuAction.Status.Normal;
                 return DropdownMenuAction.Status.Disabled;
             }
@@ -345,10 +345,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Convert to Inline Node");
             var selectedNodeViews = selection.OfType<IShaderNodeView>()
                 .Select(x => x.node)
-                .OfType<GraphInputNode>();
+                .OfType<PropertyNode>();
 
             foreach (var propNode in selectedNodeViews)
-                ((GraphData)propNode.owner).ReplaceGraphInputNodeWithConcreteNode(propNode);
+                ((GraphData)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
         }
 
         DropdownMenuAction.Status ConvertToSubgraphStatus(DropdownMenuAction action)
@@ -367,13 +367,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
             var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
             var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
-            var properties = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
+            var inputs = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
 
             // Collect the property nodes and get the corresponding properties
-            var propertyNodeGuids = nodes.OfType<GraphInputNode>().Select(x => x.graphInputGuid);
-            var metaProperties = this.graph.inputs.Where(x => propertyNodeGuids.Contains(x.guid));
+            var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
+            var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, properties, metaProperties);
+            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -416,7 +416,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (field != null && field.userData != null)
                 {
                     var input = (ShaderInput)field.userData;
-                    graph.RemoveGraphInput(input.guid);
+                    graph.RemoveGraphInput(input);
                 }
             }
 
@@ -507,7 +507,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 var node = new SampleTexture2DNode();
-
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
@@ -525,13 +524,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (textureArray != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Texture Array");
-                var property = new Texture2DArrayShaderProperty { displayName = textureArray.name, value = { textureArray = textureArray } };
-                graph.AddGraphInput(property);
+                
                 var node = new SampleTexture2DArrayNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
                 graph.AddNode(node);
+
                 var inputslot = node.FindSlot<Texture2DArrayInputMaterialSlot>(SampleTexture2DArrayNode.TextureInputId);
                 if (inputslot != null)
                     inputslot.textureArray = textureArray;
@@ -541,13 +540,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (texture3D != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Texture 3D");
-                var property = new Texture3DShaderProperty { displayName = texture3D.name, value = { texture = texture3D } };
-                graph.AddGraphInput(property);
+
                 var node = new SampleTexture3DNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
                 graph.AddNode(node);
+
                 var inputslot = node.FindSlot<Texture3DInputMaterialSlot>(SampleTexture3DNode.TextureInputId);
                 if (inputslot != null)
                     inputslot.texture = texture3D;
@@ -557,10 +556,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (cubemap != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
-                var property = new CubemapShaderProperty { displayName = cubemap.name, value = { cubemap = cubemap } };
-                graph.AddGraphInput(property);
+                
                 var node = new SampleCubemapNode();
-
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
@@ -586,20 +583,23 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var blackboardField = obj as BlackboardField;
             if (blackboardField != null)
-            {
-                AbstractShaderProperty property = blackboardField.userData as AbstractShaderProperty;
-                if (property != null)
+            {   
+                graph.owner.RegisterCompleteObjectUndo("Drag Graph Input");
+
+                switch(blackboardField.userData)
                 {
-                    graph.owner.RegisterCompleteObjectUndo("Drag Property");
-                    var node = new GraphInputNode();
+                    case AbstractShaderProperty property:
+                        var node = new PropertyNode();
+                        var drawState = node.drawState;
+                        drawState.position =  new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graph.AddNode(node);
 
-                    var drawState = node.drawState;
-                    drawState.position =  new Rect(nodePosition, drawState.position.size);
-                    node.drawState = drawState;
-                    graph.AddNode(node);
-
-                    // Setting the guid requires the graph to be set first.
-                    node.graphInputGuid = property.guid;
+                        // Setting the guid requires the graph to be set first.
+                        node.propertyGuid = property.guid;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
         }
@@ -614,20 +614,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (copyGraph == null)
                 return;
 
-            // Make new properties from the copied graph
-            foreach (AbstractShaderProperty property in copyGraph.inputs)
+            // Make new inputs from the copied graph
+            foreach (ShaderInput input in copyGraph.inputs)
             {
-                string propertyName = graphView.graph.SanitizeGraphInputName(property.displayName);
-                AbstractShaderProperty copiedProperty = property.Copy();
-                copiedProperty.displayName = propertyName;
-                graphView.graph.AddGraphInput(copiedProperty);
+                ShaderInput copiedInput = input.Copy();
+                graphView.graph.SanitizeGraphInputName(copiedInput);
+                graphView.graph.AddGraphInput(copiedInput);
 
-                // Update the property nodes that depends on the copied node
-                var dependentPropertyNodes = copyGraph.GetNodes<GraphInputNode>().Where(x => x.graphInputGuid == property.guid);
-                foreach (var node in dependentPropertyNodes)
+                if(input is AbstractShaderProperty property)
                 {
-                    node.owner = graphView.graph;
-                    node.graphInputGuid = copiedProperty.guid;
+                    // Update the property nodes that depends on the copied node
+                    var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
+                    foreach (var node in dependentPropertyNodes)
+                    {
+                        node.owner = graphView.graph;
+                        node.propertyGuid = copiedInput.guid;
+                    }
                 }
             }
 

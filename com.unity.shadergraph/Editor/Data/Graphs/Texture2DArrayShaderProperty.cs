@@ -13,27 +13,20 @@ namespace UnityEditor.ShaderGraph
             displayName = "Texture2D Array";
             value = new SerializableTextureArray();
         }
-
-#region Type
+        
         public override PropertyType propertyType => PropertyType.Texture2DArray;
-#endregion
-
-#region Capabilities
+        
         public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
-#endregion
-
-#region PropertyBlock
+        
         public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
         public override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset] {referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
         }
-#endregion
-
-#region ShaderValue
+        
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return $"TEXTURE2D_ARRAY({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
@@ -43,9 +36,7 @@ namespace UnityEditor.ShaderGraph
         {
             return $"TEXTURE2D_ARRAY_PARAM({referenceName}, sampler{referenceName})";
         }
-#endregion
-
-#region Options
+        
         [SerializeField]
         private bool m_Modifiable = true;
 
@@ -54,9 +45,7 @@ namespace UnityEditor.ShaderGraph
             get => m_Modifiable;
             set => m_Modifiable = value;
         }
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new Texture2DArrayAssetNode { texture = value.textureArray };
@@ -72,13 +61,14 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
-            var copied = new Texture2DArrayShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new Texture2DArrayShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
-#endregion
     }
 }

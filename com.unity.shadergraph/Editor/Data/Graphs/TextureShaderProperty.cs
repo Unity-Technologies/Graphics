@@ -8,37 +8,27 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
-        public enum DefaultType
-        {
-            White, Black, Grey, Bump
-        }
+        public enum DefaultType { White, Black, Grey, Bump }
 
         public TextureShaderProperty()
         {
             displayName = "Texture2D";
             value = new SerializableTexture();
         }
-
-#region Type
+        
         public override PropertyType propertyType => PropertyType.Texture2D;
-#endregion
-
-#region Capabilities
+        
         public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
-#endregion
-
-#region PropertyBlock
+        
         public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
         public override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset] {referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
-#endregion
-
-#region ShaderValue
+        
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return $"TEXTURE2D({referenceName}){delimiter} SAMPLER(sampler{referenceName}); {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}";
@@ -48,9 +38,7 @@ namespace UnityEditor.ShaderGraph
         {
             return $"TEXTURE2D_PARAM({referenceName}, sampler{referenceName})";
         }
-#endregion
-
-#region Options
+        
         [SerializeField]
         private bool m_Modifiable = true;
 
@@ -68,9 +56,7 @@ namespace UnityEditor.ShaderGraph
             get { return m_DefaultType; }
             set { m_DefaultType = value; }
         }
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new Texture2DAssetNode { texture = value.texture };
@@ -85,13 +71,14 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
-            var copied = new TextureShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new TextureShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
-#endregion
     }
 }

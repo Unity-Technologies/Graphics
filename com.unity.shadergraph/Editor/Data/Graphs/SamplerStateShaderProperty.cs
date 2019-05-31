@@ -11,22 +11,15 @@ namespace UnityEditor.ShaderGraph
             displayName = "SamplerState";
             value = new TextureSamplerState();
         }
-
-#region Name
+        
         public override string referenceName => $"{concreteShaderValueType.ToShaderString()}_{GuidEncoder.Encode(guid)}_{value.filter}_{value.wrap}";
-#endregion
 
-#region Type
         public override PropertyType propertyType => PropertyType.SamplerState;
-#endregion
-
-#region Capabilities
+        
         public override bool isBatchable => false;
         public override bool isExposable => false;
         public override bool isRenamable => false;
-#endregion
-
-#region ShaderValue
+        
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return $"SAMPLER({referenceName}){delimiter}";
@@ -36,9 +29,7 @@ namespace UnityEditor.ShaderGraph
         {
             return $"SamplerState {referenceName}";
         }
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new SamplerStateNode() 
@@ -53,14 +44,15 @@ namespace UnityEditor.ShaderGraph
             return default(PreviewProperty);
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
-            var copied = new SamplerStateShaderProperty();
-            copied.displayName = displayName;
-            copied.overrideReferenceName = overrideReferenceName;
-            copied.value = value;
-            return copied;
+            return new SamplerStateShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                overrideReferenceName = overrideReferenceName,
+                value = value
+            };
         }
-#endregion
     }
 }
