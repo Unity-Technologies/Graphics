@@ -435,7 +435,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void UpdatePreviewExpandedState(bool expanded)
+        void UpdatePreviewExpandedState(bool expanded)
         {
             node.previewExpanded = expanded;
             if (m_PreviewFiller == null)
