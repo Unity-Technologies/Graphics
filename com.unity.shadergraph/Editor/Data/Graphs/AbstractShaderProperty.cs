@@ -7,12 +7,36 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class AbstractShaderProperty : ShaderInput
     {
-#region Type
         public abstract PropertyType propertyType { get; }
-        public override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
-#endregion
 
-#region Precision
+        public override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
+
+        [SerializeField]
+        private string m_DefaultReferenceName;
+
+        [SerializeField]
+        private string m_OverrideReferenceName;
+
+        public virtual string referenceName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(overrideReferenceName))
+                {
+                    if (string.IsNullOrEmpty(m_DefaultReferenceName))
+                        m_DefaultReferenceName = $"{concreteShaderValueType}_{GuidEncoder.Encode(guid)}";
+                    return m_DefaultReferenceName;
+                }
+                return overrideReferenceName;
+            }
+        }
+
+        public string overrideReferenceName
+        {
+            get => m_OverrideReferenceName;
+            set => m_OverrideReferenceName = value;
+        }
+
         [SerializeField]
         private Precision m_Precision = Precision.Inherit;
         
@@ -30,15 +54,11 @@ namespace UnityEditor.ShaderGraph
         {
             m_ConcretePrecision = (precision == Precision.Inherit) ? inheritedPrecision : precision.ToConcrete();
         }
-#endregion
 
-#region Capabilities
         public abstract bool isBatchable { get; }
         public abstract bool isExposable { get; }
         public abstract bool isRenamable { get; }
-#endregion
 
-#region PropertyBlock
         [SerializeField]
         private bool m_GeneratePropertyBlock = true;
 
@@ -63,9 +83,7 @@ namespace UnityEditor.ShaderGraph
         {
             return string.Empty;
         }
-#endregion
 
-#region ShaderValue
         public virtual string GetPropertyDeclarationString(string delimiter = ";")
         {
             SlotValueType type = ConcreteSlotValueType.Vector4.ToSlotValueType();
@@ -76,18 +94,14 @@ namespace UnityEditor.ShaderGraph
         {
             return GetPropertyDeclarationString(string.Empty);
         }
-#endregion
-
-#region Utility
+        
+        public abstract AbstractMaterialNode ToConcreteNode();
         public abstract PreviewProperty GetPreviewMaterialProperty();
-        public abstract AbstractShaderProperty Copy();
-#endregion
     }
     
     [Serializable]
     abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {
-#region ShaderValue
         [SerializeField]
         private T m_Value;
 
@@ -96,6 +110,5 @@ namespace UnityEditor.ShaderGraph
             get => m_Value;
             set => m_Value = value;
         }
-#endregion
     }
 }

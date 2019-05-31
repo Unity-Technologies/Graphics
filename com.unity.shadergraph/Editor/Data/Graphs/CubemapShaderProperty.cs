@@ -13,27 +13,20 @@ namespace UnityEditor.ShaderGraph
             displayName = "Cubemap";
             value = new SerializableCubemap();
         }
-
-#region Type
+        
         public override PropertyType propertyType => PropertyType.Cubemap;
-#endregion
-
-#region Capabilities
+        
         public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
-#endregion
-
-#region PropertyBlock
+        
         public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
         public override string GetPropertyBlockString()
         {
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", CUBE) = \"\" {{}}";
         }
-#endregion
-
-#region ShaderValue
+        
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return $"TEXTURECUBE({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
@@ -43,9 +36,7 @@ namespace UnityEditor.ShaderGraph
         {
             return $"TEXTURECUBE_PARAM({referenceName}, sampler{referenceName})";
         }
-#endregion
-
-#region Options
+        
         [SerializeField]
         private bool m_Modifiable = true;
 
@@ -54,9 +45,7 @@ namespace UnityEditor.ShaderGraph
             get => m_Modifiable;
             set => m_Modifiable = value;
         }
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new CubemapAssetNode { cubemap = value.cubemap };
@@ -71,13 +60,14 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
-            var copied = new CubemapShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new CubemapShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
-#endregion
     }
 }

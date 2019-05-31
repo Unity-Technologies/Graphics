@@ -12,12 +12,9 @@ namespace UnityEditor.ShaderGraph
             displayName = "Matrix3x3";
             value = Matrix4x4.identity;
         }
-
-#region Type
+        
         public override PropertyType propertyType => PropertyType.Matrix3;
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new Matrix3Node
@@ -37,13 +34,14 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
-            var copied = new Matrix3ShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new Matrix3ShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
-#endregion
     }
 }

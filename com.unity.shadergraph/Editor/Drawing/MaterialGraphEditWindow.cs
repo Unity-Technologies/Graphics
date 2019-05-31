@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graphObject.RegisterCompleteObjectUndo("Convert To Subgraph");
 
-            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is GraphInputNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray();
+            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray();
             var bounds = Rect.MinMaxRect(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity);
             foreach (var node in nodes)
             {
@@ -251,13 +251,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             bounds.center = Vector2.zero;
 
             // Collect the property nodes and get the corresponding properties
-            var propertyNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is GraphInputNode)).Select(x => ((GraphInputNode)x.node).graphInputGuid);
-            var metaProperties = graphView.graph.inputs.Where(x => propertyNodeGuids.Contains(x.guid));
+            var propertyNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).propertyGuid);
+            var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.graph.assetGuid,
                     graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
-                    graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is GraphInputNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                    graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
                     graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput),
                     metaProperties);
@@ -407,24 +407,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (prop != null)
                 {
                     var materialGraph = (GraphData)graphObject.graph;
-                    var fromPropertyNode = fromNode as GraphInputNode;
-                    var fromProperty = fromPropertyNode != null ? materialGraph.inputs.FirstOrDefault(p => p.guid == fromPropertyNode.graphInputGuid) : null;
+                    var fromPropertyNode = fromNode as PropertyNode;
+                    var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
                     prop.displayName = fromProperty != null ? fromProperty.displayName : fromSlot.concreteValueType.ToString();
 
                     subGraph.AddGraphInput(prop);
-                    var propNode = new GraphInputNode();
+                    var propNode = new PropertyNode();
                     {
                         var drawState = propNode.drawState;
                         drawState.position = new Rect(new Vector2(bounds.xMin - 300f, 0f), drawState.position.size);
                         propNode.drawState = drawState;
                     }
                     subGraph.AddNode(propNode);
-                    propNode.graphInputGuid = prop.guid;
+                    propNode.propertyGuid = prop.guid;
 
                     foreach (var edge in group.edges)
                     {
                         subGraph.Connect(
-                            new SlotReference(propNode.guid, GraphInputNode.OutputSlotId),
+                            new SlotReference(propNode.guid, PropertyNode.OutputSlotId),
                             new SlotReference(nodeGuidMap[edge.inputSlot.nodeGuid], edge.inputSlot.slotId));
                         externalInputNeedingConnection.Add(new KeyValuePair<IEdge, AbstractShaderProperty>(edge, prop));
                     }

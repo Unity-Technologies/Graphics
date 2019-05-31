@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
     sealed class PropertyNodeView : TokenNode, IShaderNodeView
     {
 
-        public PropertyNodeView(GraphInputNode node, EdgeConnectorListener edgeConnectorListener)
+        public PropertyNodeView(PropertyNode node, EdgeConnectorListener edgeConnectorListener)
             : base(null, ShaderPort.Create(node.GetOutputSlots<MaterialSlot>().First(), edgeConnectorListener))
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNodeView"));
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
 
             // Getting the generatePropertyBlock property to see if it is exposed or not
             var graph = node.owner as GraphData;
-            var property = graph.inputs.FirstOrDefault(x => x.guid == node.graphInputGuid) as AbstractShaderProperty;
+            var property = graph.properties.FirstOrDefault(x => x.guid == node.propertyGuid);
             var icon = (graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
             this.icon = icon;
 
@@ -60,9 +60,9 @@ namespace UnityEditor.ShaderGraph
             if (scope == ModificationScope.Graph)
             {
                 // changing the icon to be exposed or not
-                var propNode = (GraphInputNode)node;
+                var propNode = (PropertyNode)node;
                 var graph = node.owner as GraphData;
-                var property = graph.inputs.FirstOrDefault(x => x.guid == propNode.graphInputGuid) as AbstractShaderProperty;
+                var property = graph.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);
 
                 var icon = property.generatePropertyBlock ? exposedIcon : null;
                 this.icon = icon;
@@ -86,9 +86,9 @@ namespace UnityEditor.ShaderGraph
             if (blackboardProvider == null)
                 return;
 
-            var propNode = (GraphInputNode)node;
+            var propNode = (PropertyNode)node;
 
-            var propRow = blackboardProvider.GetBlackboardRow(propNode.graphInputGuid);
+            var propRow = blackboardProvider.GetBlackboardRow(propNode.propertyGuid);
             if (propRow != null)
             {
                 if (evt.eventTypeId == MouseEnterEvent.TypeId())

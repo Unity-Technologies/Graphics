@@ -14,24 +14,17 @@ namespace UnityEditor.ShaderGraph
             displayName = "Boolean";
         }
 
-#region ShaderValueType
         public override PropertyType propertyType => PropertyType.Boolean;
-#endregion
-
-#region Capabilities
+        
         public override bool isBatchable => true;
         public override bool isExposable => true;
         public override bool isRenamable => true;
-#endregion
-
-#region PropertyBlock
+        
         public override string GetPropertyBlockString()
         {
             return $"{hideTagString}[ToggleUI]{referenceName}(\"{displayName}\", Float) = {(value == true ? 1 : 0)}";
         }
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new BooleanNode { value = new ToggleData(value) };
@@ -46,13 +39,14 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
-            var copied = new BooleanShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new BooleanShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
-#endregion
     }
 }

@@ -190,21 +190,30 @@ namespace UnityEditor.ShaderGraph
             var arguments = new List<string>();
             foreach (var input in subGraphData.inputs)
             {
-                if(input is AbstractShaderProperty prop)
-                {
-                    prop.SetConcretePrecision(subGraphData.graphPrecision);
-                    var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
+                var prop = input as AbstractShaderProperty;
+                if(prop == null)
+                    continue;
 
-                    if (prop is TextureShaderProperty)
+                prop.SetConcretePrecision(subGraphData.graphPrecision);
+                var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
+
+                switch(prop)
+                {
+                    case TextureShaderProperty texture2DProp:
                         arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                    else if (prop is Texture2DArrayShaderProperty)
+                        break;
+                    case Texture2DArrayShaderProperty texture2DArrayProp:
                         arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                    else if (prop is Texture3DShaderProperty)
+                        break;
+                    case Texture3DShaderProperty texture3DProp:
                         arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                    else if (prop is CubemapShaderProperty)
+                        break;
+                    case CubemapShaderProperty cubemapProp:
                         arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                    else
+                        break;
+                    default:
                         arguments.Add(string.Format("{0}", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
+                        break;
                 }
             }
 

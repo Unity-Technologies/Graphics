@@ -16,18 +16,13 @@ namespace UnityEditor.ShaderGraph
             displayName = "Gradient";
             value = new Gradient();
         }
-
-#region Type
+        
         public override PropertyType propertyType => PropertyType.Gradient;
-#endregion
-
-#region Capabilities
+        
         public override bool isBatchable => false;
         public override bool isExposable => false;
         public override bool isRenamable => true;
-#endregion
-
-#region ShaderValue
+        
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             ShaderStringBuilder s = new ShaderStringBuilder();
@@ -79,9 +74,7 @@ namespace UnityEditor.ShaderGraph
         {
             return "Gradient " + referenceName;
         }
-#endregion
-
-#region Utility
+        
         public override AbstractMaterialNode ToConcreteNode()
         {
             return new GradientNode { gradient = value };
@@ -96,13 +89,14 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        public override ShaderInput Copy()
         {
             return new GradientShaderProperty
             {
+                displayName = displayName,
+                hidden = hidden,
                 value = value
             };
         }
-#endregion
     }
 }
