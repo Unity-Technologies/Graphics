@@ -15,8 +15,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public PBRSettingsView(PBRMasterNode node)
         {
             m_Node = node;
-
             PropertySheet ps = new PropertySheet();
+
+            bool opaqueOptions = (m_Node.surfaceType == SurfaceType.Opaque);
 
             ps.Add(new PropertyRow(new Label("Workflow")), (row) =>
                 {
@@ -36,14 +37,28 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
                 });
 
-            ps.Add(new PropertyRow(new Label("Blend")), (row) =>
-                {
-                    row.Add(new EnumField(AlphaMode.Additive), (field) =>
+            if (!opaqueOptions)
+            {
+                ps.Add(new PropertyRow(new Label("Blend")), (row) =>
                     {
-                        field.value = m_Node.alphaMode;
-                        field.RegisterValueChangedCallback(ChangeAlphaMode);
+                        row.Add(new EnumField(AlphaMode.Additive), (field) =>
+                        {
+                            field.value = m_Node.alphaMode;
+                            field.RegisterValueChangedCallback(ChangeAlphaMode);
+                        });
                     });
-                });
+            }
+            else
+            {
+                ps.Add(new PropertyRow(new Label("Cast Shadow")), (row) =>
+                    {
+                        row.Add(new Toggle(), (toggle) =>
+                        {
+                            toggle.value = m_Node.shadowCast.isOn;
+                            toggle.OnToggleChanged(ChangeShadowCast);
+                        });
+                    });
+            }
 
             ps.Add(new PropertyRow(new Label("Two Sided")), (row) =>
                 {
@@ -82,6 +97,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Mode Change");
             m_Node.alphaMode = (AlphaMode)evt.newValue;
+        }
+
+        void ChangeShadowCast(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Shadow Cast Change");
+            ToggleData td = m_Node.shadowCast;
+            td.isOn = evt.newValue;
+            m_Node.shadowCast = td;
         }
 
         void ChangeTwoSided(ChangeEvent<bool> evt)

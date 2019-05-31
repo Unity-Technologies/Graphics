@@ -303,7 +303,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
 
-                GenerateShaderPassUnlit(masterNode, m_PassShadowCaster, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                bool includeShadowPass = true;
+                IOptionalShadowPass optionalShadow = masterNode as IOptionalShadowPass;
+                if (optionalShadow != null)
+                {
+                    includeShadowPass = optionalShadow.ShadowPassActive();
+                }
+
+                if (includeShadowPass) GenerateShaderPassUnlit(masterNode, m_PassShadowCaster, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassUnlit(masterNode, m_PassMETA, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassUnlit(masterNode, m_SceneSelectionPass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
 

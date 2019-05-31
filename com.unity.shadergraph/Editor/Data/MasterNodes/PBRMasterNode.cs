@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "PBR")]
-    class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequirePosition, IMayRequireNormal
+    class PBRMasterNode : MasterNode<IPBRSubShader>, IMayRequirePosition, IMayRequireNormal, IOptionalShadowPass
     {
         public const string AlbedoSlotName = "Albedo";
         public const string NormalSlotName = "Normal";
@@ -70,6 +70,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_SurfaceType = value;
+                UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -91,7 +92,23 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        bool m_TwoSided;
+        bool m_shadowCast = true;
+
+        public ToggleData shadowCast
+        {
+            get { return new ToggleData(m_shadowCast); }
+            set
+            {
+                if (m_shadowCast == value.isOn)
+                    return;
+
+                m_shadowCast = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_TwoSided = false;
 
         public ToggleData twoSided
         {
@@ -100,16 +117,21 @@ namespace UnityEditor.ShaderGraph
             {
                 if (m_TwoSided == value.isOn)
                     return;
+
                 m_TwoSided = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
+        }
+
+        public bool ShadowPassActive()
+        {
+            return shadowCast.isOn && m_SurfaceType == SurfaceType.Opaque;
         }
 
         public PBRMasterNode()
         {
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

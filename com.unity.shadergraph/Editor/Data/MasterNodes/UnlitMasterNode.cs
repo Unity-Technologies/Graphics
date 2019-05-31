@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    class UnlitMasterNode : MasterNode<IUnlitSubShader>, IMayRequirePosition
+    class UnlitMasterNode : MasterNode<IUnlitSubShader>, IMayRequirePosition, IOptionalShadowPass
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -35,6 +35,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_SurfaceType = value;
+                UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -56,22 +57,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        bool m_TwoSided;
-
-        public ToggleData twoSided
-        {
-            get { return new ToggleData(m_TwoSided); }
-            set
-            {
-                if (m_TwoSided == value.isOn)
-                    return;
-                m_TwoSided = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        bool m_shadowCast;
+        bool m_shadowCast = false;
 
         public ToggleData shadowCast
         {
@@ -86,11 +72,30 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        bool m_TwoSided = false;
+
+        public ToggleData twoSided
+        {
+            get { return new ToggleData(m_TwoSided); }
+            set
+            {
+                if (m_TwoSided == value.isOn)
+                    return;
+                m_TwoSided = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        public bool ShadowPassActive()
+        {
+            return shadowCast.isOn && m_SurfaceType == SurfaceType.Opaque;
+        }
+
         public UnlitMasterNode()
         {
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

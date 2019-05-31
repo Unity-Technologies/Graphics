@@ -63,9 +63,23 @@ namespace UnityEditor.Rendering.LWRP
             }
         };
 
-        Pass m_DepthShadowPass = new Pass()
+        Pass m_ShadowPass = new Pass()
         {
-            Name = "",
+            Name = "ShadowPass",
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            }
+        };
+
+        Pass m_ExtraPass = new Pass()
+        {
+            Name = "ExtraPass",
             PixelShaderSlots = new List<int>()
             {
                 PBRMasterNode.AlbedoSlotId,
@@ -90,13 +104,19 @@ namespace UnityEditor.Rendering.LWRP
             }
 
             var templatePath = GetTemplatePath("lightweightPBRForwardPass.template");
+            var shadowPassTemplatePath = GetTemplatePath("lightweightPBRShadowPass.template");
             var extraPassesTemplatePath = GetTemplatePath("lightweightPBRExtraPasses.template");
-            if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
+
+            if (!File.Exists(templatePath) || !File.Exists(shadowPassTemplatePath) || !File.Exists(extraPassesTemplatePath))
+            {
+                UnityEngine.Debug.LogError("One or more LW PBR template files not found.");
                 return string.Empty;
+            }
 
             if (sourceAssetDependencyPaths != null)
             {
                 sourceAssetDependencyPaths.Add(templatePath);
+                sourceAssetDependencyPaths.Add(shadowPassTemplatePath);
                 sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
 
                 var relativePath = "Packages/com.unity.render-pipelines.lightweight/";
@@ -106,6 +126,7 @@ namespace UnityEditor.Rendering.LWRP
             }
 
             string forwardTemplate = File.ReadAllText(templatePath);
+            string shadowPassTemplate = File.ReadAllText(shadowPassTemplatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
 
             var pbrMasterNode = masterNode as PBRMasterNode;
@@ -120,6 +141,7 @@ namespace UnityEditor.Rendering.LWRP
                 subShader.AppendLines(tagsBuilder.ToString());
 
                 var materialOptions = ShaderGenerator.GetMaterialOptions(pbrMasterNode.surfaceType, pbrMasterNode.alphaMode, pbrMasterNode.twoSided.isOn);
+
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         forwardTemplate,
                         pbrMasterNode,
@@ -127,10 +149,25 @@ namespace UnityEditor.Rendering.LWRP
                         mode,
                         materialOptions));
 
+                bool includeShadowPass = true;
+                IOptionalShadowPass optionalShadow = masterNode as IOptionalShadowPass;
+                if (optionalShadow != null)
+                {
+                    includeShadowPass = optionalShadow.ShadowPassActive();
+                }
+
+                if (includeShadowPass)
+                    subShader.AppendLines(GetShaderPassFromTemplate(
+                            shadowPassTemplate,
+                            pbrMasterNode,
+                            m_ShadowPass,
+                            mode,
+                            materialOptions));
+
                 subShader.AppendLines(GetShaderPassFromTemplate(
                         extraTemplate,
                         pbrMasterNode,
-                        m_DepthShadowPass,
+                        m_ExtraPass,
                         mode,
                         materialOptions));
             }

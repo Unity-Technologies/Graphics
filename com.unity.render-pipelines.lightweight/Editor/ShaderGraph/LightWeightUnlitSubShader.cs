@@ -120,12 +120,11 @@ namespace UnityEngine.Rendering.LWRP
                         mode,
                         materialOptions));
 
-                // Only include shadow pass if the bool is checked
                 bool includeShadowPass = true;
-                UnlitMasterNode unlitMaster = masterNode as UnlitMasterNode;
-                if (unlitMaster != null)
+                IOptionalShadowPass optionalShadow = masterNode as IOptionalShadowPass;
+                if (optionalShadow != null)
                 {
-                    includeShadowPass = unlitMaster.shadowCast.isEnabled && unlitMaster.shadowCast.isOn;
+                    includeShadowPass = optionalShadow.ShadowPassActive();
                 }
 
                 if (includeShadowPass)
