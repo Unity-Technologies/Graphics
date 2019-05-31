@@ -59,12 +59,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
             blackboard.hierarchy.Add(m_PathLabelTextField);
 
-            m_PropertySection = new BlackboardSection { headerVisible = false };
+            m_PropertySection = new BlackboardSection { title = "Properties" };
             foreach (var property in graph.properties)
                 AddInputRow(property);
             blackboard.Add(m_PropertySection);
 
-            m_KeywordSection = new BlackboardSection { title = "Keywords", headerVisible = true };
+            m_KeywordSection = new BlackboardSection { title = "Keywords" };
             foreach (var keyword in graph.keywords)
                 AddInputRow(keyword);
             blackboard.Add(m_KeywordSection);
@@ -255,9 +255,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (create)
                 m_Graph.SanitizeGraphInputName(input);
 
-            if (index < 0)
-                index = m_InputRows.Count;
-
             BlackboardField field = null;
             BlackboardRow row = null;
 
@@ -269,7 +266,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
                     var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
                     row = new BlackboardRow(field, propertyView) { userData = input };
-                    if (index == m_PropertySection.childCount)
+                    if (index < 0)
+                        index = m_InputRows.Count;
+                    if (index == m_InputRows.Count)
                         m_PropertySection.Add(row);
                     else
                         m_PropertySection.Insert(index, row);
@@ -277,10 +276,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 case ShaderKeyword keyword:
                 {
-                    field = new BlackboardField(null, keyword.displayName, keyword.keywordType.ToString()) { userData = keyword };
+                    field = new BlackboardField(null, keyword.displayName, "Keyword") { userData = keyword };
                     var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);
-                    if (index == m_KeywordSection.childCount)
+                    if (index < 0)
+                        index = m_InputRows.Count;
+                    if (index == m_InputRows.Count)
                         m_KeywordSection.Add(row);
                     else
                         m_KeywordSection.Insert(index, row);

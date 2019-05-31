@@ -1,57 +1,45 @@
 ﻿using System;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Controls;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {   
-    enum KeywordType { Boolean, Enum }
-
     [Serializable]
     class ShaderKeyword : ShaderInput
     {
-#region Name
-        [SerializeField]
-        private KeywordType m_KeywordType;
-        public KeywordType keywordType => m_KeywordType;
-        public override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
-#endregion
-
-#region Data
-        [SerializeField]
-        private bool m_BoolValue;
-
-        public bool boolValue
+        public ShaderKeyword()
         {
-            get => m_BoolValue;
-            set => m_BoolValue = value;
+            displayName = "Keyword";
+            m_Entries = new List<string>();
+        }
+
+        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector1;
+
+        [SerializeField]
+        private int m_Value;
+
+        public int value
+        {
+            get => m_Value;
+            set => m_Value = value;
         }
 
         [SerializeField]
-        private int m_IndexValue;
+        private List<string> m_Entries;
 
-        public int indexValue
+        public List<string> entries
         {
-            get => m_IndexValue;
-            set => m_IndexValue = value;
+            get => m_Entries;
+            set => m_Entries = value;
         }
-#endregion
 
-#region Utility
-        public override AbstractMaterialNode ToConcreteNode()
+        public override ShaderInput Copy()
         {
-            switch(keywordType)
+            return new ShaderKeyword()
             {
-                case KeywordType.Boolean:
-                    return new BooleanNode() { value = new ToggleData(boolValue) };
-                case KeywordType.Enum:
-                    var node = new Vector1Node();
-                    node.FindInputSlot<Vector1MaterialSlot>(Vector1Node.InputSlotXId).value = indexValue;
-                    return node;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                displayName = displayName,
+                value = value
+            };
         }
-#endregion
     }
 }

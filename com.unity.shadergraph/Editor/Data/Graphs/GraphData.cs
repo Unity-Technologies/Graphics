@@ -33,6 +33,11 @@ namespace UnityEditor.ShaderGraph
             get { return m_Inputs.Where(x => x is AbstractShaderProperty ).Select(x => x as AbstractShaderProperty); }
         }
 
+        public IEnumerable<ShaderKeyword> keywords
+        {
+            get { return m_Inputs.Where(x => x is ShaderKeyword).Select(x => x as ShaderKeyword); }
+        }
+
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
 
@@ -656,6 +661,9 @@ namespace UnityEditor.ShaderGraph
             {
                 case AbstractShaderProperty property:
                     input.displayName = GraphUtil.SanitizeName(properties.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
+                    break;
+                case ShaderKeyword keyword:
+                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
