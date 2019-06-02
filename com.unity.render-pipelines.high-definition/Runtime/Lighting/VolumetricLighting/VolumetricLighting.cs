@@ -618,7 +618,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_VisibleFluidSimVolumeData.Clear();
 
                 // Collect all visible finite fluid sim volume data, and upload it to the GPU.
-                FluidSimVolume[] fluidSimVolumes = DensityVolumeManager.manager.PrepareFluidSimVolumeData(cmd, hdCamera.camera, time);
+                FluidSimVolume[] fluidSimVolumes = FluidSimVolumeManager.manager.PrepareFluidSimVolumeData(cmd, hdCamera.camera, time);
 
                 for (int i = 0; i < Math.Min(fluidSimVolumes.Length, k_MaxVisibleFluidSimVolumeCount); i++)
                 {
@@ -770,7 +770,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Compute texel spacing at the depth of 1 meter.
                 float unitDepthTexelSpacing = HDUtils.ComputZPlaneTexelSpacing(1.0f, vFoV, resolution.y);
 
-                Texture3D volumeAtlas = DensityVolumeManager.manager.volumeAtlas.GetAtlas();
+                Texture3D volumeAtlas = FluidSimVolumeManager.manager.volumeAtlas.GetAtlas();
                 Vector4 volumeAtlasDimensions = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
                 if (volumeAtlas != null)

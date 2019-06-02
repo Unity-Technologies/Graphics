@@ -29,11 +29,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class FluidSimVolume : MonoBehaviour
     {
         public FluidSimVolumeArtistParameters parameters = new FluidSimVolumeArtistParameters();
-        private Texture3D storage = null;
+
+        private Texture3D primary = null;
+        private Texture3D secondary = null;
+
+        private Texture3D inputPM;
+        private Texture3D outputPM;
 
         private void Start()
         {
-            storage = new Texture3D(128, 128, 128, DefaultFormat.HDR, TextureCreationFlags.None);
+            primary   = new Texture3D(128, 128, 128, DefaultFormat.HDR, TextureCreationFlags.None);
+            secondary = new Texture3D(128, 128, 128, DefaultFormat.HDR, TextureCreationFlags.None);
+
+            inputPM  = primary;
+            outputPM = secondary;
         }
 
         public FluidSimVolume()
@@ -42,12 +51,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void OnEnable()
         {
-            DensityVolumeManager.manager.RegisterVolume(this);
+            FluidSimVolumeManager.manager.RegisterVolume(this);
         }
 
         private void OnDisable()
         {
-            DensityVolumeManager.manager.DeRegisterVolume(this);
+            FluidSimVolumeManager.manager.DeRegisterVolume(this);
         }
 
         private void Update()

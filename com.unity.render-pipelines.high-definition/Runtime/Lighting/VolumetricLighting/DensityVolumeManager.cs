@@ -20,27 +20,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public Texture3DAtlas volumeAtlas = null;
-        public Texture3DAtlas volumeFluidSimAtlas = null; //seongdae;fspm
         private bool atlasNeedsRefresh = false;
 
         //TODO: hardcoded size....:-(
         public static int volumeTextureSize = 32;
-        public static int fluidSimVolumeTextureSize = 64; //seongdae;fspm
 
         private DensityVolumeManager()
         {
             volumes = new List<DensityVolume>();
-            fluidSimVolumes = new List<FluidSimVolume>(); //seongdae;fspm
 
             volumeAtlas = new Texture3DAtlas(TextureFormat.Alpha8, volumeTextureSize);
-            volumeFluidSimAtlas = new Texture3DAtlas(TextureFormat.ARGB32, fluidSimVolumeTextureSize); //seongdae;fspm
 
             volumeAtlas.OnAtlasUpdated += AtlasUpdated;
-            volumeFluidSimAtlas.OnAtlasUpdated += FluidSimAtlasUpdated; //seongdae;fspm
         }
 
         private List<DensityVolume> volumes = null;
-        private List<FluidSimVolume> fluidSimVolumes = null; //seongdae;fspm
 
         public void RegisterVolume(DensityVolume volume)
         {
@@ -53,20 +47,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 volumeAtlas.AddTexture(volume.parameters.volumeMask);
             }
         }
-
-        //seongdae;fspm
-        public void RegisterVolume(FluidSimVolume volume)
-        {
-            fluidSimVolumes.Add(volume);
-
-            //volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
-
-            if (volume.parameters.initialState != null)
-            {
-                volumeFluidSimAtlas.AddTexture(volume.parameters.initialState);
-            }
-        }
-        //seongdae;fspm
 
         public void DeRegisterVolume(DensityVolume volume)
         {
@@ -85,26 +65,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //Upon removal we have to refresh the texture list.
             TriggerVolumeAtlasRefresh();
         }
-
-        //seongdae;fspm
-        public void DeRegisterVolume(FluidSimVolume volume)
-        {
-            if (fluidSimVolumes.Contains(volume))
-            {
-                fluidSimVolumes.Remove(volume);
-            }
-
-            //volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
-
-            if (volume.parameters.initialState != null)
-            {
-                volumeFluidSimAtlas.RemoveTexture(volume.parameters.initialState);
-            }
-
-            //Upon removal we have to refresh the texture list.
-            //TriggerVolumeAtlasRefresh();
-        }
-        //seongdae;fspm
 
         public DensityVolume[] PrepareDensityVolumeData(CommandBuffer cmd, Camera currentCam, float time)
         {
@@ -127,13 +87,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // List`1.ToArray()
             return volumes.ToArray();
         }
-
-        //seongdae;fspm
-        public FluidSimVolume[] PrepareFluidSimVolumeData(CommandBuffer cmd, Camera currentCam, float time)
-        {
-            return fluidSimVolumes.ToArray();
-        }
-        //seongdae;fspm
 
         private void VolumeAtlasRefresh()
         {
@@ -159,15 +112,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
             }
         }
-
-        //seongdae;fspm
-        private void FluidSimAtlasUpdated()
-        {
-            foreach (FluidSimVolume volume in fluidSimVolumes)
-            {
-                volume.parameters.textureIndex = volumeFluidSimAtlas.GetTextureIndex(volume.parameters.initialState);
-            }
-        }
-        //seongdae;fspm
     }
 }
