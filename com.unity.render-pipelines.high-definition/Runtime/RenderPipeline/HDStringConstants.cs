@@ -708,7 +708,73 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _LowResDepthTexture             = Shader.PropertyToID("_LowResDepthTexture");
         public static readonly int _LowResTransparent              = Shader.PropertyToID("_LowResTransparent");
+    }
 
+    // Shared material property names
+    public static class HDMaterialProperties
+    {
+        // Stencil properties
+        public const string kStencilRef = "_StencilRef";
+        public const string kStencilWriteMask = "_StencilWriteMask";
+        public const string kStencilRefDepth = "_StencilRefDepth";
+        public const string kStencilWriteMaskDepth = "_StencilWriteMaskDepth";
+        public const string kStencilRefGBuffer = "_StencilRefGBuffer";
+        public const string kStencilWriteMaskGBuffer = "_StencilWriteMaskGBuffer";
+        public const string kStencilRefMV = "_StencilRefMV";
+        public const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
+        public const string kStencilRefDistortionVec = "_StencilRefDistortionVec";
+        public const string kStencilWriteMaskDistortionVec = "_StencilWriteMaskDistortionVec";
+        public const string kUseSplitLighting = "_RequireSplitLighting";
+        
+        public const string kZWrite = "_ZWrite";
+        public const string kTransparentCullMode = "_TransparentCullMode";
+        public const string kZTestTransparent = "_ZTestTransparent";
 
+        public const string kEmissiveColorMap = "_EmissiveColorMap";
+
+        public const string kSurfaceType = "_SurfaceType";
+        public const string kMaterialID = "_MaterialID";
+        public const string kTransmissionEnable = "_TransmissionEnable";
+        public const string kEnableDecals = "_SupportDecals";
+        public const string kSupportDecals = kEnableDecals;
+        public const string kEnableSSR = "_ReceivesSSR";
+
+        public const string kLayerCount = "_LayerCount";
+        
+        public const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
+        public const string kZTestGBuffer = "_ZTestGBuffer";
+        public const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
+        public const string kBlendMode = "_BlendMode";
+        public const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
+        public const string kDistortionDepthTest = "_DistortionDepthTest";
+        public const string kDistortionEnable = "_DistortionEnable";
+        public const string kZTestModeDistortion = "_ZTestModeDistortion";
+        public const string kDistortionBlendMode = "_DistortionBlendMode";
+        public const string kTransparentWritingMotionVec = "_TransparentWritingMotionVec";
+        public const string kEnableBlendModePreserveSpecularLighting = "_EnableBlendModePreserveSpecularLighting";
+        public const string kEmissionColor = "_EmissionColor";
+        public const string kTransparentBackfaceEnable = "_TransparentBackfaceEnable";
+        public const string kDoubleSidedEnable = "_DoubleSidedEnable";
+        public const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
+        public const string kDistortionOnly = "_DistortionOnly";
+        public const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
+        public const string kTransparentDepthPostpassEnable = "_TransparentDepthPostpassEnable";
+
+        public const int kMaxLayerCount = 4;
+
+        public const string kUVBase = "_UVBase";
+        public const string kTexWorldScale = "_TexWorldScale";
+        public const string kUVMappingMask = "_UVMappingMask";
+        public const string kUVDetail = "_UVDetail";
+        public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
+        public const string kReceivesSSR = "_ReceivesSSR";
+    
+        public static readonly Color[] kLayerColors =
+        {
+            Color.white,
+            Color.red,
+            Color.green,
+            Color.blue
+        };
     }
 }

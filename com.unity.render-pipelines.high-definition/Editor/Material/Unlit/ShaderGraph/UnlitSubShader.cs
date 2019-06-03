@@ -68,7 +68,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 UnlitMasterNode.PositionSlotId
             },
-            UseInPreview = false
+            UseInPreview = false,
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as UnlitMasterNode;
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
+                GetZWrite(masterNode.surfaceType, ref pass);
+            }
         };
 
         Pass m_SceneSelectionPass = new Pass()
@@ -97,7 +103,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 UnlitMasterNode.PositionSlotId
             },
-            UseInPreview = false
+            UseInPreview = false,
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as UnlitMasterNode;
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
+                GetZWrite(masterNode.surfaceType, ref pass);
+            }
         };
 
         Pass m_PassDepthForwardOnly = new Pass()
@@ -137,7 +149,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as UnlitMasterNode;
-                HDSubShaderUtilities.GetStencilStateForDepthOrMV(false, false, false, ref pass);
+                GetStencilStateForDepthOrMV(false, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
+                GetZWrite(masterNode.surfaceType, ref pass);
             }
         };
 
@@ -181,7 +195,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
                 var masterNode = node as UnlitMasterNode;
-                HDSubShaderUtilities.GetStencilStateForDepthOrMV(false, false, true, ref pass);
+                GetStencilStateForDepthOrMV(true, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
             }
         };
 
@@ -214,12 +229,98 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
-                var masterNode = node as HDUnlitMasterNode;
-                HDSubShaderUtilities.GetStencilStateForForwardUnlit(ref pass);
+                var masterNode = node as UnlitMasterNode;
+                GetStencilStateForForwardUnlit(ref pass);
+                GetBlendMode(masterNode.surfaceType, masterNode.alphaMode, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
+                GetZWrite(masterNode.surfaceType, ref pass);
             }
         };
 
         public int GetPreviewPassIndex() { return 0; }
+
+        // For Unlit we keep the hardcoded stencils as the shader does not have properties to setup the stencil
+        public static void GetStencilStateForForwardUnlit(ref Pass pass)
+        {
+            pass.StencilOverride = new List<string>()
+            {
+                "// Stencil setup",
+                "Stencil",
+                "{",
+                string.Format("   WriteMask {0}", (int) HDRenderPipeline.StencilBitMask.LightingMask),
+                string.Format("   Ref  {0}", (int)StencilLightingUsage.NoLighting),
+                "   Comp Always",
+                "   Pass Replace",
+                "}"
+            };
+        }
+
+        public static void GetStencilStateForDepthOrMV(bool useObjectMotionVector, ref Pass pass)
+        {
+            int stencilWriteMask = useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
+            int stencilRef = useObjectMotionVector ? (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors : 0;
+
+            if (stencilWriteMask != 0)
+            {
+                pass.StencilOverride = new List<string>()
+                {
+                    "// Stencil setup",
+                    "Stencil",
+                    "{",
+                    string.Format("   WriteMask {0}", stencilWriteMask),
+                    string.Format("   Ref  {0}", stencilRef),
+                    "   Comp Always",
+                    "   Pass Replace",
+                    "}"
+                };
+            }
+        }
+
+        public static void GetBlendMode(ShaderGraph.SurfaceType surfaceType, AlphaMode alphaMode, ref Pass pass)
+        {
+            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
+            {
+                pass.BlendOverride = "Blend One Zero, One Zero";
+            }
+            else
+            {
+                switch (alphaMode)
+                {
+                    case AlphaMode.Alpha:
+                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
+                        break;
+                    case AlphaMode.Additive:
+                        pass.BlendOverride = "Blend One One, One One";
+                        break;
+                    case AlphaMode.Premultiply:
+                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
+                        break;
+                    // This isn't supported in HDRP.
+                    case AlphaMode.Multiply:
+                    default:
+                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
+                        break;
+                }
+            }
+        }
+
+        public static void GetCullMode(bool doubleSided, ref Pass pass)
+        {
+            if (doubleSided)
+                pass.CullOverride = "Cull Off";
+        }
+
+        public static void GetZWrite(ShaderGraph.SurfaceType surfaceType, ref Pass pass)
+        {
+            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
+            {
+                pass.ZWriteOverride = "ZWrite On";
+            }
+            else
+            {
+                pass.ZWriteOverride = "ZWrite Off";
+            }
+        }
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
@@ -239,7 +340,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Keywords for transparent
             // #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-            if (masterNode.surfaceType != SurfaceType.Opaque)
+            if (masterNode.surfaceType != ShaderGraph.SurfaceType.Opaque)
             {
                 // transparent-only defines
                 activeFields.Add("SurfaceType.Transparent");
@@ -262,7 +363,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return activeFields;
         }
 
-        private static bool GenerateShaderPassUnlit(UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassUnlit(UnlitMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             pass.OnGeneratePass(masterNode);
 
@@ -271,7 +372,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // use standard shader pass generation
             bool vertexActive = masterNode.IsSlotConnected(UnlitMasterNode.PositionSlotId);
-            return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, materialOptions, activeFields, result, sourceAssetDependencyPaths, vertexActive);
+            return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
         }
 
         public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
@@ -290,31 +391,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                // Options still need to be added to master node - pre-refraction, sort priority...
-                HDMaterialTags materialTags = HDSubShaderUtilities.BuildMaterialTags(masterNode.surfaceType, 0, false);
-                // Add tags at the SubShader level
-                {
-                    var tagsVisitor = new ShaderStringBuilder();
-                    materialTags.GetTags(tagsVisitor, HDRenderPipeline.k_ShaderTagName);
-                    subShader.AddShaderChunk(tagsVisitor.ToString(), false);
-                }
+                var renderingPass = masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+                int queue = HDRenderQueue.ChangeType(renderingPass, 0, true);
+                HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDUnlitShader, queue);
                 
-                SurfaceMaterialOptions materialOptions = HDSubShaderUtilities.BuildMaterialOptions(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, false, false);
-
                 // generate the necessary shader passes
-                bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
+                bool opaque = (masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque);
 
-                GenerateShaderPassUnlit(masterNode, m_PassShadowCaster, mode, materialOptions, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassUnlit(masterNode, m_PassMETA, mode, materialOptions, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassUnlit(masterNode, m_SceneSelectionPass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassUnlit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassUnlit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassUnlit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
 
                 if (opaque)
                 {
-                    GenerateShaderPassUnlit(masterNode, m_PassDepthForwardOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassUnlit(masterNode, m_PassMotionVectors, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassUnlit(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassUnlit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerateShaderPassUnlit(masterNode, m_PassForwardOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassUnlit(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

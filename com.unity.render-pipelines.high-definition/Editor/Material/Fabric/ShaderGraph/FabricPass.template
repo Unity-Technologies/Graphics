@@ -29,17 +29,16 @@ Pass
 
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+    #pragma shader_feature_local _DOUBLESIDED_ON
+    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
     $Material.CottonWool:               #define _MATERIAL_FEATURE_COTTON_WOOL 1
     $Material.Transmission:             #define _MATERIAL_FEATURE_TRANSMISSION 1
     $Material.SubsurfaceScattering:     #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
-    $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
-    $BlendMode.Alpha:                   #define _BLENDMODE_ALPHA 1
-    $BlendMode.Add:                     #define _BLENDMODE_ADD 1
-    $BlendMode.Premultiply:             #define _BLENDMODE_PRE_MULTIPLY 1
-    $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
     $AlphaFog:                          #define _ENABLE_FOG_ON_TRANSPARENT 1
     $Occlusion:                         #define _OCCLUSION 1
     $SpecularOcclusionFromAO:           #define _SPECULAR_OCCLUSION_FROM_AO 1
@@ -49,8 +48,9 @@ Pass
     $Specular.AA:                       #define _ENABLE_GEOMETRIC_SPECULAR_AA 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
-    $DoubleSided:                       #define _DOUBLESIDED_ON 1
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
+    $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
     //-------------------------------------------------------------------------------------
@@ -212,9 +212,11 @@ $include("SharedCode.template.hlsl")
         surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
 #endif
 
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
-        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
 
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
@@ -274,9 +276,11 @@ $include("SharedCode.template.hlsl")
         LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-        float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-        $DoubleSided.Flip:   doubleSidedConstants = float3(-1.0, -1.0, -1.0);
-        $DoubleSided.Mirror: doubleSidedConstants = float3( 1.0,  1.0, -1.0);
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
 
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 

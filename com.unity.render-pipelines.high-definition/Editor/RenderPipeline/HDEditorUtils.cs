@@ -6,6 +6,7 @@ using UnityEditorInternal;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -20,9 +21,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             { "HDRP/LayeredLitTessellation", LayeredLitGUI.SetupMaterialKeywordsAndPass },
             { "HDRP/Lit", LitGUI.SetupMaterialKeywordsAndPass },
             { "HDRP/LitTessellation", LitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/Unlit", UnlitGUI.SetupMaterialKeywordsAndPass },
+            { "HDRP/Unlit", UnlitGUI.SetupUnlitMaterialKeywordsAndPass },
             { "HDRP/Decal", DecalUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/TerrainLit", TerrainLitGUI.SetupMaterialKeywordsAndPass }
+            { "HDRP/TerrainLit", TerrainLitGUI.SetupMaterialKeywordsAndPass },
+            { "HDRP/AxF", AxFGUI.SetupMaterialKeywordsAndPass }
+        };
+
+        static Dictionary<Type, MaterialResetter> k_ShaderGraphMaterialResetters = new Dictionary<Type, MaterialResetter>
+        {
+            { typeof(HDUnlitMasterNode), UnlitGUI.SetupUnlitMaterialKeywordsAndPass },
+            { typeof(HDLitMasterNode), HDLitGUI.SetupMaterialKeywordsAndPass },
+            { typeof(FabricMasterNode), FabricGUI.SetupMaterialKeywordsAndPass },
+            { typeof(HairMasterNode), HairGUI.SetupMaterialKeywordsAndPass },
+            { typeof(StackLitMasterNode), StackLitGUI.SetupMaterialKeywordsAndPass },
         };
 
         public static T LoadAsset<T>(string relativePath) where T : UnityEngine.Object
@@ -30,10 +41,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return AssetDatabase.LoadAssetAtPath<T>(HDUtils.GetHDRenderPipelinePath() + relativePath);
         }
 
+        /// <summary>
+        /// Reset the dedicated Keyword and Pass regarding the shader kind.
+        /// Also re-init the drawers and set the material dirty for the engine.
+        /// </summary>
+        /// <param name="material">The material that nees to be setup</param>
+        /// <returns>
+        /// True: managed to do the operation.
+        /// False: unknown shader used in material
+        /// </returns>
         public static bool ResetMaterialKeywords(Material material)
         {
-            MaterialResetter resetter;
-            if (k_MaterialResetters.TryGetValue(material.shader.name, out resetter))
+            MaterialResetter resetter = null;
+
+            // For shader graphs, we retrieve the master node type to get the materials resetter
+            if (material.shader.IsShaderGraph())
+            {
+                Type masterNodeType = null;
+                try
+                {
+                    // GraphUtil.GetOutputNodeType can throw if it's not able to parse the graph
+                    masterNodeType = GraphUtil.GetOutputNodeType(AssetDatabase.GetAssetPath(material.shader));
+                } catch {}
+
+                if (masterNodeType != null)
+                {
+                    k_ShaderGraphMaterialResetters.TryGetValue(masterNodeType, out resetter);
+                }
+            }
+            else
+            {
+                k_MaterialResetters.TryGetValue(material.shader.name, out resetter);
+            }
+
+            if (resetter != null)
             {
                 CoreEditorUtils.RemoveMaterialKeywords(material);
                 // We need to reapply ToggleOff/Toggle keyword after reset via ApplyMaterialPropertyDrawers
@@ -42,9 +83,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorUtility.SetDirty(material);
                 return true;
             }
+
             return false;
         }
 
+        /// <summary>Gather all the shader preprocessors</summary>
+        /// <returns>The list of shader preprocessor</returns>
         public static List<BaseShaderPreprocessor> GetBaseShaderPreprocessorList()
         {
             var baseType = typeof(BaseShaderPreprocessor);
@@ -61,7 +105,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         static readonly GUIContent s_OverrideTooltip = EditorGUIUtility.TrTextContent("", "Override this setting in component.");
-        public static bool FlagToggle<TEnum>(TEnum v, SerializedProperty property)
+        internal static bool FlagToggle<TEnum>(TEnum v, SerializedProperty property)
             where TEnum : struct, IConvertible // restrict to ~enum
         {
             var intV = (int)(object)v;
@@ -76,7 +120,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return isOn;
         }
 
-        public static Rect ReserveAndGetFlagToggleRect()
+        internal static Rect ReserveAndGetFlagToggleRect()
         {
             var rect = GUILayoutUtility.GetRect(11, 17, GUILayout.ExpandWidth(false));
             rect.y += 4;
@@ -117,7 +161,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public static void PropertyFieldWithOptionalFlagToggle<TEnum>(
+        internal static void PropertyFieldWithOptionalFlagToggle<TEnum>(
             TEnum v, SerializedProperty property, GUIContent label,
             SerializedProperty @override, bool showOverrideButton,
             Action<SerializedProperty, GUIContent> drawer = null, int indent = 0
@@ -145,7 +189,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.EndHorizontal();
         }
 
-        public static void PropertyFieldWithFlagToggleIfDisplayed<TEnum>(
+        internal static void PropertyFieldWithFlagToggleIfDisplayed<TEnum>(
             TEnum v, SerializedProperty property, GUIContent label,
             SerializedProperty @override,
             TEnum displayed, TEnum overrideable,
@@ -164,13 +208,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static bool DrawSectionFoldout(string title, bool isExpanded)
+        internal static bool DrawSectionFoldout(string title, bool isExpanded)
         {
             CoreEditorUtils.DrawSplitter(false);
             return CoreEditorUtils.DrawHeaderFoldout(title, isExpanded, false);
         }
 
-        static internal void DrawToolBarButton<TEnum>(
+        internal static void DrawToolBarButton<TEnum>(
             TEnum button, Editor owner,
             Dictionary<TEnum, EditMode.SceneViewEditMode> toolbarMode,
             Dictionary<TEnum, GUIContent> toolbarContent,
@@ -204,6 +248,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         /// <summary>
         /// Give a human readable string representing the inputed weight given in byte.
         /// </summary>
+        /// <param name="weightInByte">The weigth in byte</param>
+        /// <returns>Human readable weight</returns>
         public static string HumanizeWeight(long weightInByte)
         {
             if (weightInByte < 500)
@@ -282,16 +328,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         /// Helper to get an enum value from a SerializedProperty
         /// </summary>
         public static T GetEnumValue<T>(this SerializedProperty property)
-        {
-            return (T)System.Enum.GetValues(typeof(T)).GetValue(property.enumValueIndex);
-        }
+            => (T)System.Enum.GetValues(typeof(T)).GetValue(property.enumValueIndex);
 
         /// <summary>
         /// Helper to get an enum name from a SerializedProperty
         /// </summary>
         public static T GetEnumName<T>(this SerializedProperty property)
-        {
-            return (T)System.Enum.GetNames(typeof(T)).GetValue(property.enumValueIndex);
-        }
+            => (T)System.Enum.GetNames(typeof(T)).GetValue(property.enumValueIndex);
     }
 }
