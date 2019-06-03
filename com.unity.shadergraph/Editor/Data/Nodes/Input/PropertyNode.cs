@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
     {
         public PropertyNode()
         {
+            name = "Property";
             UpdateNodeAfterDeserialization();
         }
         
