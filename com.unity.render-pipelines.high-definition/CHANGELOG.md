@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added custom BaseShaderPreprocessor in HDEditorUtils.GetBaseShaderPreprocessorList()
 - Fixed compile issue when USE_XR_SDK is not defined
 - Fixed procedural sky sun disk intensity for high directional light intensities
+- Fixed Decal mip level when using texture mip map streaming to avoid dropping to lowest permitted mip (now loading all mips)
 
 ### Changed
 - Removed ScriptRuntimeVersion check in wizard.
