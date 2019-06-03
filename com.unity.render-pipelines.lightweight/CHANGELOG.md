@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a case where built-in Shader time values could be out of sync with actual time. [case 1142495](https://fogbugz.unity3d.com/f/cases/1142495/)
 - Fixed an issue that caused forward renderer resources to not load properly when you upgraded LWRP from an older version to 7.0.0. [case 1154925](https://issuetracker.unity3d.com/issues/lwrp-upgrading-lwrp-package-to-7-dot-0-0-breaks-forwardrenderdata-asset-in-resource-files)
 - Fixed GC spikes caused by LWRP allocating heap memory every frame.
+- Fixed distortion effect on particle unlit shader.
 - Fixed NullReference exception caused when trying to add a ScriptableRendererFeature.
 - Added missing page for 2D Lights in LWRP.
 
