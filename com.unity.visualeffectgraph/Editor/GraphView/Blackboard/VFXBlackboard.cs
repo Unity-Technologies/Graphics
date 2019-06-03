@@ -118,7 +118,6 @@ namespace  UnityEditor.VFX.UI
 
         Label m_PathLabel;
         TextField m_PathTextField;
-        bool m_EditPathCancelled;
 
         void OnMouseDownSubTitle(MouseDownEvent evt)
         {
@@ -156,7 +155,6 @@ namespace  UnityEditor.VFX.UI
             switch (evt.keyCode)
             {
                 case KeyCode.Escape:
-                    m_EditPathCancelled = true;
                     m_PathTextField.Q("unity-text-input").Blur();
                     break;
                 case KeyCode.Return:
@@ -177,7 +175,6 @@ namespace  UnityEditor.VFX.UI
 
             controller.graph.categoryPath = newPath;
             m_PathLabel.text = newPath;
-            m_EditPathCancelled = false;
         }
 
         static System.Reflection.PropertyInfo s_LayoutManual = typeof(VisualElement).GetProperty("isLayoutManual",System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
