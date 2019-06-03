@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
                 if (keyword == null)
                     return;
                 
-                AddSlots(keyword);
+                UpdateNode(keyword);
                 Dirty(ModificationScope.Topological);
             }
         }
@@ -47,13 +47,15 @@ namespace UnityEditor.ShaderGraph
             if (keyword == null)
                 return;
             
-            AddSlots(keyword);
+            UpdateNode(keyword);
         }
 
         public const int OutputSlotId = 0;
 
-        private void AddSlots(ShaderKeyword keyword)
+        private void UpdateNode(ShaderKeyword keyword)
         {
+            name = keyword.displayName;
+
             int[] slotIds = new int[keyword.entries.Count + 1];
             slotIds[keyword.entries.Count] = OutputSlotId;
 
