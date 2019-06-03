@@ -208,6 +208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Edit Graph Input Name");
                 m_Graph.SanitizeGraphInputName(input);
+                input.displayName = newText;
                 field.text = input.displayName;
                 DirtyNodes();
             }
