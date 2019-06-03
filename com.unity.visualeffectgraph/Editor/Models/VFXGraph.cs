@@ -15,8 +15,7 @@ namespace UnityEditor.VFX
 {
     public class VFXCacheManager : EditorWindow
     {
-        [MenuItem("Edit/Visual Effects//Rebuild All Visual Effect Graphs", priority = 320)]
-        public static void Build()
+        private static List<VisualEffectAsset> GetAllVisualEffectAssets()
         {
             var vfxAssets = new List<VisualEffectAsset>();
             var vfxAssetsGuid = AssetDatabase.FindAssets("t:VisualEffectAsset");
@@ -29,7 +28,13 @@ namespace UnityEditor.VFX
                     vfxAssets.Add(vfxAsset);
                 }
             }
+            return vfxAssets;
+        }
 
+        [MenuItem("Edit/Visual Effects//Rebuild All Visual Effect Graphs", priority = 320)]
+        public static void Build()
+        {
+            var vfxAssets = GetAllVisualEffectAssets();
             foreach (var vfxAsset in vfxAssets)
             {
                 if (VFXViewPreference.advancedLogs)
@@ -38,6 +43,27 @@ namespace UnityEditor.VFX
                 VFXExpression.ClearCache();
                 vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
                 vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
+            }
+            AssetDatabase.SaveAssets();
+        }
+
+        [MenuItem("Edit/Visual Effects//Clear All Visual Effect Runtime Data", priority = 321)]
+        public static void ClearRuntime()
+        {
+            var vfxAssets = GetAllVisualEffectAssets();
+            foreach (var vfxAsset in vfxAssets)
+            {
+                if (VFXViewPreference.advancedLogs)
+                    Debug.Log(string.Format("Clear VFX asset Runtime Data: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+
+                //Prevent possible automatic compilation afterwards ClearRuntimeData
+                VFXExpression.ClearCache();
+                vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
+                vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
+
+                //Now effective clear runtime data
+                vfxAsset.GetResource().shaderSources = new VFXShaderSourceDesc[] { }; //TODO: Should be done by ClearRuntimeData, remove this when it's fixed
+                vfxAsset.GetResource().ClearRuntimeData();
             }
             AssetDatabase.SaveAssets();
         }
