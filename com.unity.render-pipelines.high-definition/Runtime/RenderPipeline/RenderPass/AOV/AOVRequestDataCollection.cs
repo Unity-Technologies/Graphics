@@ -11,7 +11,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Owned
         private List<AOVRequestData> m_AOVRequestData;
 
-        internal AOVRequestDataCollection(List<AOVRequestData> aovRequestData)
+        /// <summary>Build a new collection from requests.</summary>
+        /// <param name="aovRequestData">Requests to include in the collection.</param>
+        public AOVRequestDataCollection(List<AOVRequestData> aovRequestData)
             // Transfer ownership of the list
             => m_AOVRequestData = aovRequestData;
 
