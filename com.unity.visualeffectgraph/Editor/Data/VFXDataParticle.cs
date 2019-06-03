@@ -803,7 +803,7 @@ namespace UnityEditor.VFX
                 //B search for uninitilized attributes
                 foreach (var attr in context.attributes)
                     if ((attr.mode & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
-                        if (!writtenAttributes.Contains(attr.attrib.name) && !attributesWithGoodDefaultValues.Contains(attr.attrib.name))
+                        if (!writtenAttributes.Contains(attr.attrib.name) && VFXAttribute.AllRequiringInitialization.Contains(attr.attrib.name))
                             uninitilizedAttributes.Add(attr.attrib.name);
 
                 //C add message if needed
