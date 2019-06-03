@@ -520,9 +520,6 @@ namespace UnityEditor.VFX
             return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting());
         }
 
-
-        readonly HashSet<string> attributesWithGoodDefaultValues = new HashSet<string>(new string[] {"alive","position", "size","age", "scaleX", "scaleY", "scaleZ", "axisX", "axisY", "axisZ", "angleX", "angleY", "angleZ", "pivotX", "pivotY", "pivotZ" });
-
         public override void FillDescs(
             VFXCompilationStatus status,
             List<VFXGPUBufferDesc> outBufferDescs,
@@ -803,7 +800,7 @@ namespace UnityEditor.VFX
                 //B search for uninitilized attributes
                 foreach (var attr in context.attributes)
                     if ((attr.mode & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
-                        if (!writtenAttributes.Contains(attr.attrib.name) && VFXAttribute.AllRequiringInitialization.Contains(attr.attrib.name))
+                        if (!writtenAttributes.Contains(attr.attrib.name) && (attr.attrib.flags & VFXAttribute.Flags.RequireInitialization) != 0)
                             uninitilizedAttributes.Add(attr.attrib.name);
 
                 //C add message if needed
@@ -827,7 +824,7 @@ namespace UnityEditor.VFX
                         var neededAttrs = GetAllExpressionNeededAttributes(exp);
                         foreach (var attr in neededAttrs)
                             if ((attr.mode & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
-                                if (!writtenAttributes.Contains(attr.attrib.name) && !attributesWithGoodDefaultValues.Contains(attr.attrib.name))
+                                if (!writtenAttributes.Contains(attr.attrib.name) && (attr.attrib.flags & VFXAttribute.Flags.RequireInitialization) != 0 )
                                     uninitilizedAttributes.Add(attr.attrib.name);
 
                         //C
@@ -851,7 +848,7 @@ namespace UnityEditor.VFX
                     //B
                     foreach (var attr in block.attributes)
                         if ((attr.mode & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
-                            if (!writtenAttributes.Contains(attr.attrib.name) && !attributesWithGoodDefaultValues.Contains(attr.attrib.name))
+                            if (!writtenAttributes.Contains(attr.attrib.name) && (attr.attrib.flags & VFXAttribute.Flags.RequireInitialization)!= 0)
                                 uninitilizedAttributes.Add(attr.attrib.name);
                     //C
                     if (uninitilizedAttributes.Count > 0)
@@ -871,7 +868,7 @@ namespace UnityEditor.VFX
                         {
                             foreach (var attr in GetAllExpressionNeededAttributes(exp))
                                 if ((attr.mode & (VFXAttributeMode.ReadSource | VFXAttributeMode.Read)) != 0)
-                                    if (!writtenAttributes.Contains(attr.attrib.name) && !attributesWithGoodDefaultValues.Contains(attr.attrib.name))
+                                    if (!writtenAttributes.Contains(attr.attrib.name) && (attr.attrib.flags & VFXAttribute.Flags.RequireInitialization) != 0)
                                         uninitilizedAttributes.Add(attr.attrib.name);
                             //C
                             if (uninitilizedAttributes.Count > 0)

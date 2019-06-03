@@ -73,8 +73,6 @@ namespace UnityEditor.VFX
         public static readonly string[] AllWritable = All.Except(AllReadOnly).ToArray();
         public static readonly string[] AllReadWritable = All.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
 
-        public static readonly HashSet<string> AllRequiringInitialization = new HashSet<string>(AllAttribute.Where(t => (t.flags & Flags.RequireInitialization) != 0).Select(t=>t.name));
-
         public static readonly VFXAttribute[] AllVariadicAttribute = new VFXAttribute[]
         {
             new VFXAttribute("angle", VFXValueType.Float3, VFXVariadic.True),
