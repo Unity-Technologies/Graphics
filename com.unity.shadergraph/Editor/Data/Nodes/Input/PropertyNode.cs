@@ -159,8 +159,6 @@ namespace UnityEditor.ShaderGraph
                     else
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
         }
 

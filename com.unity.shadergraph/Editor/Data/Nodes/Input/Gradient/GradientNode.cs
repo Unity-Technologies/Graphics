@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                sb.AppendLine("Gradient {0} = {1}", GetVariableNameForSlot(outputSlotId), GradientUtil.GetGradientValue(gradient, true, ";"));
+                sb.AppendLine("Gradient {0} = {1}", GetVariableNameForSlot(outputSlotId), GradientUtil.GetGradientValue(gradient, ";"));
             }
         }
 

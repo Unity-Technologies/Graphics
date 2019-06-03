@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph
 {
     static class GradientUtil
     {
-        public static string GetGradientValue(Gradient gradient, bool inline, string delimiter = ";")
+        public static string GetGradientValue(Gradient gradient, string delimiter = ";")
         {
             string colorKeys = "";
             for(int i = 0; i < 8; i++)
@@ -28,10 +28,7 @@ namespace UnityEditor.ShaderGraph
                     alphaKeys += ",";
             }
 
-            if(inline)
-                return $"NewGradient({(int)gradient.mode}, {gradient.colorKeys.Length}, {gradient.alphaKeys.Length}, {colorKeys}, {alphaKeys}){delimiter}";
-            else
-                return $"{{{(int)gradient.mode}, {gradient.colorKeys.Length}, {gradient.alphaKeys.Length}, {{{colorKeys}}}, {{{alphaKeys}}}}}{delimiter}";
+            return $"NewGradient({(int)gradient.mode}, {gradient.colorKeys.Length}, {gradient.alphaKeys.Length}, {colorKeys}, {alphaKeys}){delimiter}";
         }
 
         public static string GetGradientForPreview(string name)

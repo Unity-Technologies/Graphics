@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override string ConcreteSlotValueAsVariable()
         {
-            return GradientUtil.GetGradientValue(value, true, "");
+            return GradientUtil.GetGradientValue(value, "");
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
