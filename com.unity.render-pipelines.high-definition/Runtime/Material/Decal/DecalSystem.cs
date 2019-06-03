@@ -838,9 +838,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Array.Copy(value.resultIndices, m_ResultIndices, m_NumResults);
             }
         }
+		
+		void SetupMipStreamingSettings(Texture texture, bool allMips)
+		{
+			if (texture)
+			{
+				if (texture.dimension == UnityEngine.Rendering.TextureDimension.Tex2D)
+				{
+					Texture2D tex2D = (texture as Texture2D);
+					if (allMips)
+						tex2D.requestedMipmapLevel = 0;
+					else
+						tex2D.ClearRequestedMipmapLevel();
+				}
+			}
+		}
 
         DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material, int layerMask, float fadeFactor)
         {
+			if (material != null)
+			{
+				SetupMipStreamingSettings(material.GetTexture("_BaseColorMap"), true);
+				SetupMipStreamingSettings(material.GetTexture("_NormalMap"), true);
+				SetupMipStreamingSettings(material.GetTexture("_MaskMap"), true);
+			}
+				
             DecalSet decalSet = null;
             int key = material != null ? material.GetInstanceID() : kNullMaterialIndex;
             if (!m_DecalSets.TryGetValue(key, out decalSet))
