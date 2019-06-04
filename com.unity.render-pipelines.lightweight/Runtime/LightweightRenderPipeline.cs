@@ -353,7 +353,7 @@ namespace UnityEngine.Rendering.LWRP
             // Until we can have keyword stripping forcing single cascade hard shadows on gles2
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            shadowData.supportsMainLightShadows = settings.supportsMainLightShadows && mainLightCastShadows;
+            shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
 
             // we resolve shadows in screenspace when cascades are enabled to save ALU as computing cascade index + shadowCoord on fragment is expensive
             shadowData.requiresScreenSpaceShadowResolve = shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
@@ -393,7 +393,7 @@ namespace UnityEngine.Rendering.LWRP
                     break;
             }
 
-            shadowData.supportsAdditionalLightShadows = settings.supportsAdditionalLightShadows && additionalLightsCastShadows;
+            shadowData.supportsAdditionalLightShadows = SystemInfo.supportsShadows && settings.supportsAdditionalLightShadows && additionalLightsCastShadows;
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;

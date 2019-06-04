@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed distortion effect on particle unlit shader.
 - Fixed the shadow resolve pass and the final pass, so they're not consuming unnecessary bandwidth. [case 1152439](https://issuetracker.unity3d.com/issues/lwrp-mobile-increased-memory-usage-and-extra-rendering-steps) 
 - Added missing page for 2D Lights in LWRP.
+- Fixed warnings for unsupported shadow map formats for GLES2 API.
+- Disabled shadows for devices that do not support shadow maps or depth textures.
 
 ## [6.7.0] - 2019-05-16
 ### Added
