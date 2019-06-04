@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("LWGraphicsTests")]
-[assembly: InternalsVisibleTo("Unity.RenderPipelines.Lightweight.Editor")]
-[assembly: InternalsVisibleTo("Unity.RenderPipelines.Lightweight.Editor.Tests")]
-[assembly: InternalsVisibleTo("Unity.RenderPipelines.Lightweight.Runtime.Tests")]
+[assembly: InternalsVisibleTo("UniversalGraphicsTests")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor.Tests")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Runtime.Tests")]
