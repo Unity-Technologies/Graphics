@@ -402,22 +402,49 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
         {
+            bool containsProperty = false;
+            bool containsKeyword = false;
+            List<KeywordNode> keywordNodes = new List<KeywordNode>();
+
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    if (graph.isSubGraph)
+                    switch(field.userData)
                     {
-                        if (EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        case AbstractShaderProperty property:
+                            containsProperty = true;
                             break;
-                        return;
+                        case ShaderKeyword keyword:
+                            keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid));
+                            containsKeyword = true;
+                            break;
                     }
                 }
             }
 
+            if(containsProperty)
+            {
+                if (graph.isSubGraph)
+                {
+                    if (!EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        return;
+                }
+            }
+
+            if(containsKeyword)
+            {
+                if(keywordNodes.Any())
+                {
+                    if (!EditorUtility.DisplayDialog("Keyword Nodes Will be Removed", "Removing a keyword will automatically remove all dependent keyword nodes.\n\nDo you want to continue?", "Yes", "No"))
+                        return;
+                }
+            }
+
+            var deleteNodes = selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node).Union(keywordNodes);
             graph.owner.RegisterCompleteObjectUndo(operationName);
-            graph.RemoveElements(selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node),
+            graph.RemoveElements(deleteNodes,
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData));
 
