@@ -1,5 +1,5 @@
 {
-    "name": "Unity.RenderPipelines.Lightweight.Runtime",
+    "name": "Unity.RenderPipelines.Universal.Runtime",
     "references": [
         "GUID:d60799ab2a985554ea1a39cd38695018",
         "GUID:df380645f10b7bc4b97d4f5eb6303d95"
