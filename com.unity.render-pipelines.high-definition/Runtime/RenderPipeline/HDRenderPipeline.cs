@@ -3449,7 +3449,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_RayTracingManager.rayCountManager.EvaluateRayCount(cmd, hdCamera);
 #endif
 
-                RenderLightLoopDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth, cullResults, m_IntermediateAfterPostProcessBuffer);
+                RenderLightLoopDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth, cullResults, m_SharedRTManager.GetDepthTexture(), m_IntermediateAfterPostProcessBuffer);
 
                 DecalSystem.instance.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
 
