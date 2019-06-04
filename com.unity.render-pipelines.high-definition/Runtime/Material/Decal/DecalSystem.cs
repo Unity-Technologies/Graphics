@@ -838,9 +838,42 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Array.Copy(value.resultIndices, m_ResultIndices, m_NumResults);
             }
         }
+		
+		void SetupMipStreamingSettings(Texture texture, bool allMips)
+		{
+			if (texture)
+			{
+				if (texture.dimension == UnityEngine.Rendering.TextureDimension.Tex2D)
+				{
+					Texture2D tex2D = (texture as Texture2D);
+                    if (tex2D)
+                    {
+                        if (allMips)
+                            tex2D.requestedMipmapLevel = 0;
+                        else
+                            tex2D.ClearRequestedMipmapLevel();
+                    }
+				}
+			}
+		}
+
+        void SetupMipStreamingSettings(Material material, bool allMips)
+        {
+            if (material != null)
+            {
+                if (IsHDRenderPipelineDecal(material.shader.name))
+                {
+                    SetupMipStreamingSettings(material.GetTexture("_BaseColorMap"), allMips);
+                    SetupMipStreamingSettings(material.GetTexture("_NormalMap"), allMips);
+                    SetupMipStreamingSettings(material.GetTexture("_MaskMap"), allMips);
+                }
+            }
+        }
 
         DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material, int layerMask, float fadeFactor)
         {
+            SetupMipStreamingSettings(material, true);
+				
             DecalSet decalSet = null;
             int key = material != null ? material.GetInstanceID() : kNullMaterialIndex;
             if (!m_DecalSets.TryGetValue(key, out decalSet))
@@ -874,6 +907,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 decalSet.RemoveDecal(handle);
                 if (decalSet.Count == 0)
                 {
+                    SetupMipStreamingSettings(decalSet.KeyMaterial, false);
+
                     m_DecalSets.Remove(key);
                 }
             }

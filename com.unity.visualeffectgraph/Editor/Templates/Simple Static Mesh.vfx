@@ -22,6 +22,8 @@ MonoBehaviour:
   m_ParameterInfo: []
   m_GraphVersion: 2
   m_saved: 1
+  m_SubgraphDependencies: []
+  m_CategoryPath: 
 --- !u!114 &114195964666403586
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -215,31 +217,7 @@ VisualEffectResource:
   m_ShaderSources: []
   m_Infos:
     m_Expressions:
-      m_Expressions:
-      - op: 1
-        valueIndex: 0
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 15
-      - op: 1
-        valueIndex: 1
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 12
-      - op: 1
-        valueIndex: 17
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 6
-      - op: 1
-        valueIndex: 18
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 7
+      m_Expressions: []
       m_NeedsLocalToWorld: 0
       m_NeedsWorldToLocal: 0
       m_NeededMainCameraBuffers: 0
@@ -253,65 +231,24 @@ VisualEffectResource:
       m_Vector4f:
         m_Array: []
       m_Uint:
-        m_Array:
-        - m_ExpressionIndex: 2
-          m_Value: 4294967295
+        m_Array: []
       m_Int:
         m_Array: []
       m_Matrix4x4f:
-        m_Array:
-        - m_ExpressionIndex: 1
-          m_Value:
-            e00: 1
-            e01: 0
-            e02: 0
-            e03: 0
-            e10: 0
-            e11: 1
-            e12: 0
-            e13: 0
-            e20: 0
-            e21: 0
-            e22: 1
-            e23: 0
-            e30: 0
-            e31: 0
-            e32: 0
-            e33: 1
+        m_Array: []
       m_AnimationCurve:
         m_Array: []
       m_Gradient:
         m_Array: []
       m_NamedObject:
-        m_Array:
-        - m_ExpressionIndex: 3
-          m_Value: {fileID: 2800000, guid: de0fae515169ff246a20d58a8a440ed0, type: 3}
-        - m_ExpressionIndex: 0
-          m_Value: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+        m_Array: []
       m_Bool:
         m_Array: []
     m_ExposedExpressions: []
     m_Buffers: []
     m_TemporaryBuffers: []
-    m_CPUBuffers:
-    - capacity: 1
-      stride: 1
-      layout:
-      - name: spawnCount
-        type: 1
-        offset:
-          bucket: 0
-          structure: 1
-          element: 0
-      initialData:
-        data: 00000000
-    m_Events:
-    - name: OnPlay
-      playSystems: 
-      stopSystems: 
-    - name: OnStop
-      playSystems: 
-      stopSystems: 
+    m_CPUBuffers: []
+    m_Events: []
     m_RuntimeVersion: 10
     m_RendererSettings:
       motionVectorGenerationMode: 0
@@ -323,33 +260,7 @@ VisualEffectResource:
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
-  m_Systems:
-  - type: 2
-    flags: 0
-    capacity: 0
-    layer: 4294967295
-    buffers: []
-    values:
-    - nameId: mesh
-      index: 0
-    - nameId: transform
-      index: 1
-    - nameId: subMeshMask
-      index: 2
-    tasks:
-    - type: 1073741824
-      buffers: []
-      temporaryBuffers: []
-      values:
-      - nameId: subMeshMask
-        index: 2
-      - nameId: _MainTex
-        index: 3
-      params:
-      - nameId: sortPriority
-        index: 0
-      processor: {fileID: 10750, guid: 0000000000000000f000000000000000, type: 0}
-      shaderSourceIndex: -1
+  m_Systems: []
 --- !u!114 &8926484042661614528
 MonoBehaviour:
   m_ObjectHideFlags: 0
