@@ -670,7 +670,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void SanitizePropertyReferenceName(AbstractShaderProperty property, string newName)
+        public void SanitizeGraphInputReferenceName(ShaderInput input, string newName)
         {
             string name = newName.Trim();
 
@@ -681,7 +681,17 @@ namespace UnityEditor.ShaderGraph
                 name = "_" + name;
 
             name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-            property.overrideReferenceName = GraphUtil.SanitizeName(properties.Where(p => p.guid != property.guid).Select(p => p.referenceName), "{0}_{1}", name);
+            switch(input)
+            {
+                case AbstractShaderProperty property:
+                    property.overrideReferenceName = GraphUtil.SanitizeName(properties.Where(p => p.guid != property.guid).Select(p => p.referenceName), "{0}_{1}", name);
+                    break;
+                case ShaderKeyword keyword:
+                    input.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "{0}_{1}", name);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         public void RemoveGraphInput(ShaderInput input)
