@@ -126,10 +126,19 @@ namespace UnityEngine.Rendering.LWRP
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
-            if (createColorTexture || createDepthTexture)
+            bool intermediateRenderTexture = createColorTexture || createDepthTexture;
+            
+            if (intermediateRenderTexture)
                 CreateCameraRenderTarget(context, ref renderingData.cameraData);
+            
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
+            // if rendering to intermediate render texture we don't have to create msaa backbuffer
+            int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
+            
+            if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
+                SetupBackbufferFormat(backbufferMsaaSamples, renderingData.cameraData.isStereoEnabled);
+            
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
@@ -291,6 +300,30 @@ namespace UnityEngine.Rendering.LWRP
             CommandBufferPool.Release(cmd);
         }
 
+        void SetupBackbufferFormat(int msaaSamples, bool stereo)
+        {
+#if ENABLE_VR
+            bool msaaSampleCountHasChanged = false;
+            int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
+            if (currentQualitySettingsSampleCount != msaaSamples &&
+                !(currentQualitySettingsSampleCount == 0 && msaaSamples == 1))
+            {
+                msaaSampleCountHasChanged = true;
+            }
+
+            // There's no exposed API to control how a backbuffer is created with MSAA
+            // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
+            // We only do this for the main camera and this only takes effect in the beginning of next frame.
+            // This settings should not be changed on a frame basis so that's fine.
+            QualitySettings.antiAliasing = msaaSamples;
+
+            if (stereo && msaaSampleCountHasChanged)
+                XR.XRDevice.UpdateEyeTextureMSAASetting();
+#else
+            QualitySettings.antiAliasing = msaaSamples;
+#endif
+        }
+        
         bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
