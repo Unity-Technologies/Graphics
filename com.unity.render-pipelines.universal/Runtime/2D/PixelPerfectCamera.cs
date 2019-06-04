@@ -1,4 +1,5 @@
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
@@ -8,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
     [DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Pixel Perfect Camera (Experimental)")]
     [RequireComponent(typeof(Camera))]
-    public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
     {
         /// <summary>
         /// Match this value to to the Pixels Per Unit values of all Sprites within the Scene.

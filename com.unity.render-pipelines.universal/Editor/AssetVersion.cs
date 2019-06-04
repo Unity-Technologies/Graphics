@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     class AssetVersion : ScriptableObject
     {

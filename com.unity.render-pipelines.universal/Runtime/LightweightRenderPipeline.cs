@@ -2,13 +2,13 @@ using System;
 using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Rendering.LWRP;
+using UnityEditor.Rendering.Universal;
 #endif
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class LightweightRenderPipeline : RenderPipeline
     {
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.LWRP
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
             cameraData.maxShadowDistance = (anyShadowsEnabled) ? settings.shadowDistance : 0.0f;
-            
+
             if (additionalCameraData != null)
             {
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.LWRP
             int maxVisibleAdditionalLights = LightweightRenderPipeline.maxVisibleAdditionalLights;
 
             lightData.mainLightIndex = mainLightIndex;
-            
+
             if (settings.additionalLightsRenderingMode != LightRenderingMode.Disabled)
             {
                 lightData.additionalLightsCount =

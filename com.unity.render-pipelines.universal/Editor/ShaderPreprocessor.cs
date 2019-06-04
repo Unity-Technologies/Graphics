@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     internal class ShaderPreprocessor : IPreprocessShaders
     {
@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering.LWRP
             if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
-            if (isAdditionalShadow && !compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel)) 
+            if (isAdditionalShadow && !compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel))
                 return true;
 
             return false;

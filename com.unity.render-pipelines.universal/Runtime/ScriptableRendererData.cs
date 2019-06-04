@@ -1,12 +1,13 @@
 using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Class <c>ScriptableRendererData</c> contains resources for a <c>ScriptableRenderer</c>.
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
-    public abstract class ScriptableRendererData : ScriptableObject
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRendererData : ScriptableObject
     {
         internal bool isInvalidated { get; set; }
 
@@ -17,7 +18,7 @@ namespace UnityEngine.Rendering.LWRP
         protected abstract ScriptableRenderer Create();
 
         [SerializeField] List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
-        
+
         /// <summary>
         /// List of additional render pass features for this renderer.
         /// </summary>

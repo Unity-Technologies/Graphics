@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Render all objects that have a 'DepthOnly' pass into the given depth buffer.

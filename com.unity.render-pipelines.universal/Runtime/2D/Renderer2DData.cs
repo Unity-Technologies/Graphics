@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
@@ -11,7 +12,7 @@ using UnityEditor.ProjectWindowCallback;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class Renderer2DData : ScriptableRendererData
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class Renderer2DData : ScriptableRendererData
     {
         [SerializeField]
         float m_HDREmulationScale = 1;

@@ -3,10 +3,11 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 using System;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Rendering.LWRP
-{    
-    public class ForwardRendererData : ScriptableRendererData
+namespace UnityEngine.Rendering.Universal
+{
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class ForwardRendererData : ScriptableRendererData
     {
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
@@ -39,7 +40,7 @@ namespace UnityEngine.Rendering.LWRP
 
             [SerializeField, Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
-        
+
             [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
         }

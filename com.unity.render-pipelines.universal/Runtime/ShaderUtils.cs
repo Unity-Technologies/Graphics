@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
-    public enum ShaderPathID
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShaderPathID
     {
         Lit,
         SimpleLit,
@@ -16,7 +17,7 @@ namespace UnityEngine.Rendering.LWRP
         Count
     }
 
-    public static class ShaderUtils
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShaderUtils
     {
         static readonly string[] s_ShaderPaths  =
         {
@@ -41,7 +42,7 @@ namespace UnityEngine.Rendering.LWRP
 
             return s_ShaderPaths[index];
         }
-        
+
         public static ShaderPathID GetEnumFromPath(string path)
         {
             var index = Array.FindIndex(s_ShaderPaths, m => m == path);

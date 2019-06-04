@@ -3,12 +3,13 @@ using UnityEditorInternal;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEditor.Rendering.LWRP.ShaderGUI
+namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    public static class ParticleGUI
+    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class ParticleGUI
     {
-        public enum ColorMode
+        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum ColorMode
         {
             Multiply,
             Additive,
@@ -18,7 +19,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             Difference
         }
 
-        public static class Styles
+        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class Styles
         {
             public static GUIContent colorMode = new GUIContent("Color Mode",
                 "Controls how the Particle color and the Material color blend together.");
@@ -69,14 +70,14 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
 
             public static GUIContent streamApplyToAllSystemsText = new GUIContent("Fix Now",
                 "Apply the vertex stream layout to all Particle Systems using this material");
-            
+
             public static string undoApplyCustomVertexStreams = L10n.Tr("Apply custom vertex streams from material");
 
             public static GUIStyle vertexStreamIcon = new GUIStyle();
         }
 
         private static ReorderableList vertexStreamList;
-        
+
         public struct ParticleProperties
         {
             // Surface Option Props
@@ -108,14 +109,14 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 cameraNearFadeDistance = BaseShaderGUI.FindProperty("_CameraNearFadeDistance", properties);
                 cameraFarFadeDistance = BaseShaderGUI.FindProperty("_CameraFarFadeDistance", properties);
                 distortionBlend = BaseShaderGUI.FindProperty("_DistortionBlend", properties, false);
-                distortionStrength = BaseShaderGUI.FindProperty("_DistortionStrength", properties, false); 
+                distortionStrength = BaseShaderGUI.FindProperty("_DistortionStrength", properties, false);
             }
         }
-        
+
         public static void SetupMaterialWithColorMode(Material material)
         {
             var colorMode = (ColorMode) material.GetFloat("_ColorMode");
-            
+
             switch (colorMode)
             {
                 case ColorMode.Multiply:
@@ -153,7 +154,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                     break;
             }
         }
-        
+
         public static void FadingOptions(Material material, MaterialEditor materialEditor, ParticleProperties properties)
         {
             // Z write doesn't work with fading
@@ -180,7 +181,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                             properties.softParticlesNearFadeDistance,
                             Styles.softParticlesNearFadeDistanceText,
                             properties.softParticlesFarFadeDistance,
-                            Styles.softParticlesFarFadeDistanceText, 
+                            Styles.softParticlesFarFadeDistanceText,
                             materialEditor);
                         EditorGUI.indentLevel--;
                     }
@@ -206,18 +207,18 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                             properties.cameraNearFadeDistance,
                             Styles.cameraNearFadeDistanceText,
                             properties.cameraFarFadeDistance,
-                            Styles.cameraFarFadeDistanceText, 
+                            Styles.cameraFarFadeDistanceText,
                             materialEditor);
                         EditorGUI.indentLevel--;
                     }
                 }
-                
+
                 // Distortion
                 if (properties.distortionEnabled != null)
                 {
                     EditorGUI.showMixedValue = properties.distortionEnabled.hasMixedValue;
                     var enabled = properties.distortionEnabled.floatValue;
-                    
+
                     EditorGUI.BeginChangeCheck();
                     enabled = EditorGUILayout.Toggle(Styles.distortionEnabled, enabled != 0.0f) ? 1.0f : 0.0f;
                     if (EditorGUI.EndChangeCheck())
@@ -225,7 +226,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                         materialEditor.RegisterPropertyChangeUndo("Distortion Enabled");
                         properties.distortionEnabled.floatValue = enabled;
                     }
-                    
+
                     if (enabled >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
@@ -242,7 +243,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 EditorGUI.showMixedValue = false;
             }
         }
-        
+
         public static void DoVertexStreamsArea(Material material, List<ParticleSystemRenderer> renderers, bool useLighting = false)
         {
             EditorGUILayout.Space();
@@ -255,7 +256,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             // Build the list of expected vertex streams
             List<ParticleSystemVertexStream> streams = new List<ParticleSystemVertexStream>();
             List<string> streamList = new List<string>();
-            
+
             streams.Add(ParticleSystemVertexStream.Position);
             streamList.Add(Styles.streamPositionText);
 
@@ -282,15 +283,15 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 streams.Add(ParticleSystemVertexStream.AnimBlend);
                 streamList.Add(Styles.streamAnimBlendText);
             }
-            
+
             vertexStreamList = new ReorderableList(streamList, typeof(string), false, true, false, false);
-            
+
             vertexStreamList.drawHeaderCallback = (Rect rect) => {
                 EditorGUI.LabelField(rect, "Vertex Streams");
             };
-            
+
             vertexStreamList.DoLayoutList();
-            
+
             // Display a warning if any renderers have incorrect vertex streams
             string Warnings = "";
             List<ParticleSystemVertexStream> rendererStreams = new List<ParticleSystemVertexStream>();
@@ -310,7 +311,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 if (GUILayout.Button(Styles.streamApplyToAllSystemsText, EditorStyles.miniButton, GUILayout.ExpandWidth(true)))
                 {
                     Undo.RecordObjects(renderers.Where(r => r != null).ToArray(), Styles.undoApplyCustomVertexStreams);
-                    
+
                     foreach (ParticleSystemRenderer renderer in renderers)
                     {
                         renderer.SetActiveVertexStreams(streams);
@@ -318,7 +319,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 }
             }
         }
-        
+
         public static void SetMaterialKeywords(Material material)
         {
             // Setup particle + material color blending
@@ -345,7 +346,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 {
                     var softParticlesNearFadeDistance = material.GetFloat("_SoftParticlesNearFadeDistance");
                     var softParticlesFarFadeDistance = material.GetFloat("_SoftParticlesFarFadeDistance");
-                    // clamp values   
+                    // clamp values
                     if (softParticlesNearFadeDistance < 0.0f)
                     {
                         softParticlesNearFadeDistance = 0.0f;
@@ -407,7 +408,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                 if (useDistortion)
                     material.SetFloat("_DistortionStrengthScaled", material.GetFloat("_DistortionStrength") * 0.1f);
             }
-            
+
             var useFading = (useSoftParticles || useCameraFading) && !hasZWrite;
             CoreUtils.SetKeyword(material, "_FADING_ON", useFading);
         }

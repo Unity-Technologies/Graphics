@@ -1,15 +1,15 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor.Rendering.LWRP;
+using UnityEditor.Rendering.Universal;
 
-namespace UnityEditor.Rendering.LWRP.ShaderGUI
+namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class LitShader : BaseShaderGUI
     {
         // Properties
         private LitGUI.LitProperties litProperties;
-        
+
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
@@ -22,10 +22,10 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         {
             if (material == null)
                 throw new ArgumentNullException("material");
-            
+
             SetMaterialKeywords(material, LitGUI.SetMaterialKeywords);
         }
-        
+
         // material main surface options
         public override void DrawSurfaceOptions(Material material)
         {

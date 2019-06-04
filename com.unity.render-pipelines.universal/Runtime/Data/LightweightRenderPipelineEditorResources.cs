@@ -1,8 +1,9 @@
 using System;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
-    public class LightweightRenderPipelineEditorResources : ScriptableObject
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class LightweightRenderPipelineEditorResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
@@ -50,7 +51,7 @@ namespace UnityEngine.Rendering.LWRP
     }
 
 #if UNITY_EDITOR
-    [UnityEditor.CustomEditor(typeof(LightweightRenderPipelineEditorResources))]
+    [UnityEditor.CustomEditor(typeof(LightweightRenderPipelineEditorResources), true)]
     class LightweightRenderPipelineEditorResourcesEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()

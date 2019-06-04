@@ -30,11 +30,11 @@ Shader "Lightweight Render Pipeline/Simple Lit"
         [HideInInspector] _Cull("__cull", Float) = 2.0
 
         [ToogleOff] _ReceiveShadows("Receive Shadows", Float) = 1.0
-        
+
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
         [HideInInspector] _Smoothness("SMoothness", Float) = 0.5
-        
+
         // ObsoleteProperties
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
         [HideInInspector] _Color("Base Color", Color) = (0.5, 0.5, 0.5, 1)
@@ -178,7 +178,7 @@ Shader "Lightweight Render Pipeline/Simple Lit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-            
+
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMetaSimple
 
@@ -192,5 +192,5 @@ Shader "Lightweight Render Pipeline/Simple Lit"
         }
     }
     Fallback "Hidden/InternalErrorShader"
-    CustomEditor "UnityEditor.Rendering.LWRP.ShaderGUI.SimpleLitShader"
+    CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.SimpleLitShader"
 }

@@ -1,9 +1,9 @@
 using UnityEditor.AnimatedValues;
 using UnityEngine;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     [CanEditMultipleObjects]
     [CustomEditorForRenderPipeline(typeof(Light), typeof(LightweightRenderPipelineAsset))]
@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.LWRP
                 return;
             m_AdditionalLightDataSO = new SerializedObject(additionalLightData);
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
-            
+
             settings.ApplyModifiedProperties();
         }
 

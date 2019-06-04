@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 
 public class #SCRIPTNAME# : ScriptableRendererFeature
 {
     class CustomRenderPass : ScriptableRenderPass
     {
-        // This method is called before executing the render pass. 
+        // This method is called before executing the render pass.
         // It can be used to configure render targets and their clear state. Also to create temporary render target textures.
         // When empty this render pass will render to the active camera render target.
         // You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
@@ -38,7 +38,7 @@ public class #SCRIPTNAME# : ScriptableRendererFeature
         // Configures where the render pass should be injected.
         m_ScriptablePass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
     }
-    
+
     // Here you can inject one or multiple render passes in the renderer.
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)

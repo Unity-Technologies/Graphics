@@ -1,9 +1,9 @@
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     internal static class NewRendererFeatureDropdownItem
     {
         static readonly string defaultNewClassName = "CustomRenderPassFeature.cs";
-        
+
         [MenuItem("Assets/Create/Rendering/Lightweight Render Pipeline/Renderer Feature", priority = EditorUtils.lwrpAssetCreateMenuPriorityGroup2)]
         internal static void CreateNewRendererFeature()
         {

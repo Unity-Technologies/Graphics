@@ -2,16 +2,17 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     internal sealed class LightweightRenderPipelineMaterialUpgrader
     {
         private LightweightRenderPipelineMaterialUpgrader()
         {
         }
-        
+
         [MenuItem("Edit/Render Pipeline/Lightweight Render Pipeline/Upgrade Project Materials to LightweightRP Materials", priority = CoreUtils.editMenuPriority2)]
         private static void UpgradeProjectMaterials()
         {
@@ -137,7 +138,7 @@ namespace UnityEditor.Rendering.LWRP
         }
     }
 
-    public static class SupportedUpgradeParams
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public static class SupportedUpgradeParams
     {
         static public UpgradeParams diffuseOpaque = new UpgradeParams()
         {
@@ -230,13 +231,13 @@ namespace UnityEditor.Rendering.LWRP
         };
     }
 
-    public class StandardUpgrader : MaterialUpgrader
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class StandardUpgrader : MaterialUpgrader
     {
         public static void UpdateStandardMaterialKeywords(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
-            
+
             if(material.GetTexture("_MetallicGlossMap"))
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
@@ -251,7 +252,7 @@ namespace UnityEditor.Rendering.LWRP
         {
             if (material == null)
                 throw new ArgumentNullException("material");
-            
+
             if(material.GetTexture("_SpecGlossMap"))
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
@@ -299,7 +300,7 @@ namespace UnityEditor.Rendering.LWRP
             SetFloat("_AlphaClip", upgradeParams.alphaClip ? 1 : 0);
             SetFloat("_SpecularHighlights", (float)upgradeParams.specularSource);
             SetFloat("_SmoothnessSource", (float)upgradeParams.smoothnessSource);
-            
+
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_Shininess", "_Smoothness");
@@ -350,7 +351,7 @@ namespace UnityEditor.Rendering.LWRP
         }
     }
 
-    public class TerrainUpgrader : MaterialUpgrader
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class TerrainUpgrader : MaterialUpgrader
     {
         public TerrainUpgrader(string oldShaderName)
         {
@@ -358,13 +359,13 @@ namespace UnityEditor.Rendering.LWRP
         }
     }
 
-    public class ParticleUpgrader : MaterialUpgrader
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class ParticleUpgrader : MaterialUpgrader
     {
         public ParticleUpgrader(string oldShaderName)
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
-            
+
             RenameFloat("_Mode", "_Surface");
 
             if (oldShaderName.Contains("Unlit"))
@@ -426,7 +427,7 @@ namespace UnityEditor.Rendering.LWRP
         }
     }
 
-    public class AutodeskInteractiveUpgrader : MaterialUpgrader
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class AutodeskInteractiveUpgrader : MaterialUpgrader
     {
         public AutodeskInteractiveUpgrader(string oldShaderName)
         {

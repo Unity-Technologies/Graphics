@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
-
+using UnityEngine.Scripting.APIUpdating;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
@@ -123,7 +123,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
         /// <summary>
         /// an enumeration of the types of light
         /// </summary>
-        public enum LightType
+        [MovedFrom("UnityEngine.Rendering.LWRP")] public enum LightType
         {
             Parametric = 0,
             Freeform = 1,

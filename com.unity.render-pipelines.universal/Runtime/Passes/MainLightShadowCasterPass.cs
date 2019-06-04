@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     internal class MainLightShadowCasterPass : ScriptableRenderPass
     {

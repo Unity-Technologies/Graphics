@@ -1,10 +1,11 @@
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(LWRPAdditionalLightData))]
-    public class LWRPAdditionLightDataEditor : Editor
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class LWRPAdditionLightDataEditor : Editor
     {
         public override void OnInspectorGUI()
         {

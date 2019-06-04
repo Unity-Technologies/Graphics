@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.LWRP.ShaderGUI
+namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class ParticlesUnlitShader : BaseShaderGUI
     {
         // Properties
         private BakedLitGUI.BakedLitProperties shadingModelProperties;
         private ParticleGUI.ParticleProperties particleProps;
-        
+
         // List of renderers using this material in the scene, used for validating vertex streams
         List<ParticleSystemRenderer> m_RenderersUsingThisMaterial = new List<ParticleSystemRenderer>();
-        
+
         public override void FindProperties(MaterialProperty[] properties)
         {
             base.FindProperties(properties);
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             BakedLitGUI.Inputs(shadingModelProperties, materialEditor);
             DrawEmissionProperties(material, true);
         }
-        
+
         public override void DrawAdvancedOptions(Material material)
         {
             EditorGUI.BeginChangeCheck();
@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         {
             CacheRenderersUsingThisMaterial(material);
             base.OnOpenGUI(material, materialEditor);
-        } 
+        }
 
         void CacheRenderersUsingThisMaterial(Material material)
         {

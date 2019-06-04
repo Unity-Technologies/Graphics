@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     // Note: Spaced built-in events so we can add events in between them
     // We need to leave room as we sort render passes based on event.
@@ -8,7 +9,7 @@ namespace UnityEngine.Rendering.LWRP
     /// <summary>
     /// Controls when the render pass executes.
     /// </summary>
-    public enum RenderPassEvent
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RenderPassEvent
     {
         BeforeRendering = 0,
         BeforeRenderingShadows = 50,
@@ -29,7 +30,7 @@ namespace UnityEngine.Rendering.LWRP
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend LWRP renderer.
     /// </summary>
-    public abstract class ScriptableRenderPass
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
@@ -112,7 +113,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         /// <summary>
-        /// This method is called by the renderer before executing the render pass. 
+        /// This method is called by the renderer before executing the render pass.
         /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
         /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
         /// You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.

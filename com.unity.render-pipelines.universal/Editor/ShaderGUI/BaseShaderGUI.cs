@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor
 {
@@ -47,7 +48,7 @@ namespace UnityEditor
 
             public static readonly GUIContent AdvancedLabel = new GUIContent("Advanced",
                 "These settings affect behind-the-scenes rendering and underlying calculations.");
-            
+
             public static readonly GUIContent surfaceType = new GUIContent("Surface Type",
                 "Select a surface type for your texture. Choose between Opaque or Transparent.");
 
@@ -162,7 +163,7 @@ namespace UnityEditor
             FindProperties(properties); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
             materialEditor = materialEditorIn;
             Material material = materialEditor.target as Material;
-            
+
             // Make sure that needed setup (ie keywords/renderqueue) are set up if we're switching some existing
             // material to a lightweight shader.
             if (m_FirstTimeApply)
@@ -181,7 +182,7 @@ namespace UnityEditor
             m_SurfaceOptionsFoldout = new SavedBool($"{m_HeaderStateKey}.SurfaceOptionsFoldout", true);
             m_SurfaceInputsFoldout = new SavedBool($"{m_HeaderStateKey}.SurfaceInputsFoldout", true);
             m_AdvancedFoldout = new SavedBool($"{m_HeaderStateKey}.AdvancedFoldout", false);
-            
+
             foreach (var obj in  materialEditor.targets)
                 MaterialChanged((Material)obj);
         }
@@ -192,7 +193,7 @@ namespace UnityEditor
                 throw new ArgumentNullException("material");
 
             EditorGUI.BeginChangeCheck();
-            
+
             m_SurfaceOptionsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_SurfaceOptionsFoldout.value, Styles.SurfaceOptions);
             if(m_SurfaceOptionsFoldout.value){
                 DrawSurfaceOptions(material);
@@ -217,7 +218,7 @@ namespace UnityEditor
             EditorGUILayout.EndFoldoutHeaderGroup();
 
             DrawAdditionalFoldouts(material);
-            
+
             if (EditorGUI.EndChangeCheck())
             {
                 foreach (var obj in  materialEditor.targets)
@@ -446,7 +447,7 @@ namespace UnityEditor
             {
                 BlendMode blendMode = (BlendMode)material.GetFloat("_Blend");
                 var queue = (int) UnityEngine.Rendering.RenderQueue.Transparent;
-                
+
                 // Specific Transparent Mode Settings
                 switch (blendMode)
                 {
@@ -479,7 +480,7 @@ namespace UnityEditor
                 material.SetShaderPassEnabled("ShadowCaster", false);
             }
         }
-        
+
         #endregion
         ////////////////////////////////////
         // Helper Functions               //
@@ -500,14 +501,14 @@ namespace UnityEditor
             Rect propRect1 = new Rect(rect.x + preLabelWidth, rect.y,
                 (rect.width - preLabelWidth) * 0.5f, EditorGUIUtility.singleLineHeight);
             var prop1val = EditorGUI.FloatField(propRect1, prop1Label, prop1.floatValue);
-            
+
             Rect propRect2 = new Rect(propRect1.x + propRect1.width, rect.y,
                 propRect1.width, EditorGUIUtility.singleLineHeight);
             var prop2val = EditorGUI.FloatField(propRect2, prop2Label, prop2.floatValue);
 
             EditorGUI.indentLevel = indent;
             EditorGUIUtility.labelWidth = preLabelWidth;
-            
+
             if (EditorGUI.EndChangeCheck())
             {
                 materialEditor.RegisterPropertyChangeUndo(title.text);
@@ -517,7 +518,7 @@ namespace UnityEditor
 
             EditorGUI.showMixedValue = false;
         }
-        
+
         public void DoPopup(GUIContent label, MaterialProperty property, string[] options)
         {
             DoPopup(label, property, options, materialEditor);
@@ -541,7 +542,7 @@ namespace UnityEditor
 
             EditorGUI.showMixedValue = false;
         }
-        
+
         // Helper to show texture and color properties
         public static Rect TextureColorProps(MaterialEditor materialEditor, GUIContent label, MaterialProperty textureProp, MaterialProperty colorProp, bool hdr = false)
         {

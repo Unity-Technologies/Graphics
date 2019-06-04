@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Draw  objects into the given color and depth target

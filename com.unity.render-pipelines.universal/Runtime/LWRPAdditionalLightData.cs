@@ -1,8 +1,10 @@
-namespace UnityEngine.Rendering.LWRP
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.Rendering.Universal
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
-    public class LWRPAdditionalLightData : MonoBehaviour
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class LWRPAdditionalLightData : MonoBehaviour
     {
         [Tooltip("Controls the usage of pipeline settings.")]
         [SerializeField] bool m_UsePipelineSettings = true;

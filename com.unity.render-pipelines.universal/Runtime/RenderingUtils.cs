@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
-    public static class RenderingUtils
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class RenderingUtils
     {
         static int m_PostProcessingTemporaryTargetId = Shader.PropertyToID("_TemporaryColorTexture");
 

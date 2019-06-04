@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     [CustomPropertyDrawer(typeof(StencilStateData), true)]
     internal class StencilStateDataDrawer : PropertyDrawer
@@ -28,12 +28,12 @@ namespace UnityEditor.Rendering.LWRP
         }
 
         private bool firstTime = true;
-        
+
         //Stencil rendering
         private const int stencilBits = 4;
         private const int minStencilValue = 0;
         private const int maxStencilValue = (1 << stencilBits) - 1;
-        
+
         //Stencil props
         private SerializedProperty m_OverrideStencil;
         private SerializedProperty m_StencilIndex;

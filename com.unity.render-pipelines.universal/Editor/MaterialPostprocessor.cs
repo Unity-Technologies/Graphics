@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEditor.Rendering.LWRP.ShaderGUI;
+using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     class MaterialModificationProcessor : AssetModificationProcessor
     {
@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.LWRP
     class MaterialReimporter : Editor
     {
         const string Key = "LWRP-material-upgrader";
-        
+
         [InitializeOnLoadMethod]
         static void ReimportAllMaterials()
         {
@@ -53,10 +53,10 @@ namespace UnityEditor.Rendering.LWRP
         {
             var upgradeLog = "LWRP Material log:";
             var upgradeCount = 0;
-            
+
             foreach (var asset in importedAssets)
             {
-                
+
                 if (!asset.ToLowerInvariant().EndsWith(".mat"))
                 {
                     continue;
@@ -122,14 +122,14 @@ namespace UnityEditor.Rendering.LWRP
 
         static void InitializeLatest(Material material, ShaderPathID id)
         {
-            
+
         }
 
         static void UpgradeV1(Material material, ShaderPathID shaderID)
         {
             var shaderPath = ShaderUtils.GetShaderPath(shaderID);
             var upgradeFlag = MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound;
-            
+
             switch (shaderID)
             {
                 case ShaderPathID.Unlit:
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.LWRP
             }
         }
     }
-    
+
     // Upgaders v1
     #region UpgradersV1
 
@@ -169,12 +169,12 @@ namespace UnityEditor.Rendering.LWRP
         {
             if (material == null)
                 throw new ArgumentNullException("material");
-            
+
             if(material.GetTexture("_MetallicGlossMap") || material.GetTexture("_SpecGlossMap") || material.GetFloat("_SmoothnessTextureChannel") >= 0.5f)
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
-            
+
         }
 
         public LitUpdaterV1(string oldShaderName)
@@ -195,7 +195,7 @@ namespace UnityEditor.Rendering.LWRP
     internal class UnlitUpdaterV1 : MaterialUpgrader
     {
         static Shader bakedLit = Shader.Find(ShaderUtils.GetShaderPath(ShaderPathID.BakedLit));
-        
+
         public static void UpgradeToUnlit(Material material)
         {
             if (material == null)
@@ -226,15 +226,15 @@ namespace UnityEditor.Rendering.LWRP
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
-            
+
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SimpleLit), UpgradeToSimpleLit);
-            
+
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_SpecSource", "_SpecularHighlights");
             RenameFloat("_Shininess", "_Smoothness");
         }
-        
+
         public static void UpgradeToSimpleLit(Material material)
         {
             if (material == null)
@@ -247,7 +247,7 @@ namespace UnityEditor.Rendering.LWRP
                 var col = material.GetColor("_SpecColor");
                 var colBase = material.GetColor("_Color");
                 var smoothness = material.GetFloat("_Shininess");
-                
+
                 if (material.GetFloat("_Surface") == 0)
                 {
                     if (smoothnessSource == 1)
@@ -256,7 +256,7 @@ namespace UnityEditor.Rendering.LWRP
                         col.a = smoothness;
                     material.SetColor("_BaseColor", colBase);
                 }
-                
+
                 material.SetColor("_BaseColor", colBase);
                 material.SetColor("_SpecColor", col);
             }
@@ -291,5 +291,5 @@ namespace UnityEditor.Rendering.LWRP
     }
 
     #endregion
-    
+
 }

@@ -1,15 +1,16 @@
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
-    public enum CameraOverrideOption
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum CameraOverrideOption
     {
         Off,
         On,
         UsePipelineSettings,
     }
 
-    public enum RendererOverrideOption
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererOverrideOption
     {
         Custom,
         UsePipelineSettings,
@@ -18,7 +19,7 @@ namespace UnityEngine.Rendering.LWRP
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
-    public class LWRPAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class LWRPAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
         [Tooltip("If enabled shadows will render for this camera.")]
         [FormerlySerializedAs("renderShadows"), SerializeField]

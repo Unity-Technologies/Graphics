@@ -2,24 +2,24 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.LWRP.ShaderGUI
+namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class ParticlesLitShader : BaseShaderGUI
     {
         // Properties
         private LitGUI.LitProperties litProperties;
         private ParticleGUI.ParticleProperties particleProps;
-        
+
         // List of renderers using this material in the scene, used for validating vertex streams
         List<ParticleSystemRenderer> m_RenderersUsingThisMaterial = new List<ParticleSystemRenderer>();
-        
+
         public override void FindProperties(MaterialProperty[] properties)
         {
             base.FindProperties(properties);
             litProperties = new LitGUI.LitProperties(properties);
             particleProps = new ParticleGUI.ParticleProperties(properties);
         }
-        
+
         public override void MaterialChanged(Material material)
         {
             if (material == null)
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
 
             SetMaterialKeywords(material, LitGUI.SetMaterialKeywords, ParticleGUI.SetMaterialKeywords);
         }
-        
+
         public override void DrawSurfaceOptions(Material material)
         {
             // Detect any changes to the material
@@ -42,14 +42,14 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
                     MaterialChanged((Material)obj);
             }
         }
-        
+
         public override void DrawSurfaceInputs(Material material)
         {
             base.DrawSurfaceInputs(material);
             LitGUI.Inputs(litProperties, materialEditor, material);
             DrawEmissionProperties(material, true);
         }
-        
+
         public override void DrawAdvancedOptions(Material material)
         {
             EditorGUI.BeginChangeCheck();

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
-    public class RenderObjectsPass : ScriptableRenderPass
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class RenderObjectsPass : ScriptableRenderPass
     {
         RenderQueueType renderQueueType;
         FilteringSettings m_FilteringSettings;
