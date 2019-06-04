@@ -1,11 +1,12 @@
 using UnityEngine;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(LightweightRenderPipelineAsset))]
-    public class LightweightRenderPipelineAssetEditor : Editor
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class LightweightRenderPipelineAssetEditor : Editor
     {
         internal class Styles
         {
@@ -50,7 +51,7 @@ namespace UnityEditor.Rendering.LWRP
             public static GUIContent srpBatcher = EditorGUIUtility.TrTextContent("SRP Batcher (Experimental)", "If enabled, the render pipeline uses the SRP batcher.");
             public static GUIContent dynamicBatching = EditorGUIUtility.TrTextContent("Dynamic Batching", "If enabled, the render pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
             public static GUIContent mixedLightingSupportLabel = EditorGUIUtility.TrTextContent("Mixed Lighting", "Support for mixed light mode.");
-            
+
             public static GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
 
             // Dropdown menu options
@@ -105,7 +106,7 @@ namespace UnityEditor.Rendering.LWRP
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            
+
             DrawGeneralSettings();
             DrawQualitySettings();
             DrawLightingSettings();

@@ -1,5 +1,5 @@
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
 ** Copyright (C) 2011 Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -9,10 +9,10 @@
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-** 
+**
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software. 
+** included in all copies or substantial portions of the Software.
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -20,7 +20,7 @@
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-** 
+**
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -34,6 +34,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
@@ -117,7 +118,7 @@ namespace LibTessDotNet
     {
         public const int Undef = ~0;
 
-            public abstract class Pooled<T> where T : Pooled<T>, new()
+            [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class Pooled<T> where T : Pooled<T>, new()
             {
                 private static Stack<T> _stack;
                 public abstract void Reset();
@@ -144,7 +145,7 @@ namespace LibTessDotNet
                 }
             }
 
-            public class Vertex : Pooled<Vertex>
+            [MovedFrom("UnityEngine.Rendering.LWRP")] public class Vertex : Pooled<Vertex>
         {
             internal Vertex _prev, _next;
             internal Edge _anEdge;
@@ -168,7 +169,7 @@ namespace LibTessDotNet
             }
         }
 
-        public class Face : Pooled<Face>
+        [MovedFrom("UnityEngine.Rendering.LWRP")] public class Face : Pooled<Face>
         {
             internal Face _prev, _next;
             internal Edge _anEdge;
@@ -222,7 +223,7 @@ namespace LibTessDotNet
             }
         }
 
-        public class Edge : Pooled<Edge>
+        [MovedFrom("UnityEngine.Rendering.LWRP")] public class Edge : Pooled<Edge>
         {
             internal EdgePair _pair;
             internal Edge _next, _Sym, _Onext, _Lnext;

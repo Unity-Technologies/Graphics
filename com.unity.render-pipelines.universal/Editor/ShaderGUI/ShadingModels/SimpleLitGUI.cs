@@ -1,24 +1,25 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEditor.Rendering.LWRP.ShaderGUI
+namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    public static class SimpleLitGUI
+    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class SimpleLitGUI
     {
-        public enum SpecularSource
+        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum SpecularSource
         {
             SpecularTextureAndColor,
             NoSpecular
         }
-        
-        public enum SmoothnessMapChannel
+
+        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum SmoothnessMapChannel
         {
             SpecularAlpha,
             AlbedoAlpha,
         }
 
-        public static class Styles
+        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class Styles
         {
             public static GUIContent specularMapText =
                 new GUIContent("Specular Map", "Sets and configures a Specular map and color for your Material.");
@@ -61,7 +62,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             DoSpecularArea(properties, materialEditor, material);
             BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp);
         }
-        
+
         public static void Advanced(SimpleLitProperties properties)
         {
             SpecularSource specularSource = (SpecularSource)properties.specHighlights.floatValue;
@@ -87,7 +88,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
             var opaque = ((BaseShaderGUI.SurfaceType) material.GetFloat("_Surface") ==
                           BaseShaderGUI.SurfaceType.Opaque);
             EditorGUI.indentLevel += 2;
-            
+
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = properties.smoothness.hasMixedValue;
             var smoothnessSource = (int)properties.smoothnessMapChannel.floatValue;
@@ -118,7 +119,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
         {
             UpdateMaterialSpecularSource(material);
         }
-        
+
         private static void UpdateMaterialSpecularSource(Material material)
         {
             var opaque = ((BaseShaderGUI.SurfaceType) material.GetFloat("_Surface") ==

@@ -1,13 +1,13 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.LWRP.ShaderGUI
+namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class SimpleLitShader : BaseShaderGUI
     {
         // Properties
         private SimpleLitGUI.SimpleLitProperties shadingModelProperties;
-        
+
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
 
             SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords);
         }
-        
+
         // material main surface options
         public override void DrawSurfaceOptions(Material material)
         {

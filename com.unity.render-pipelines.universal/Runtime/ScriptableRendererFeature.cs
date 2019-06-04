@@ -1,11 +1,13 @@
-namespace UnityEngine.Rendering.LWRP
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// You can add a <c>ScriptableRendererFeature</c> to the <c>ScriptableRenderer</c>. Use this scriptable renderer feature to inject render passes into the renderer.
     /// </summary>
     /// <seealso cref="ScriptableRenderer"/>
     /// <seealso cref="ScriptableRenderPass"/>
-    public abstract class ScriptableRendererFeature : ScriptableObject
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRendererFeature : ScriptableObject
     {
         /// <summary>
         /// Initializes this feature's resources.

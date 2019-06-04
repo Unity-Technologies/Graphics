@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     internal class ForwardLights
     {

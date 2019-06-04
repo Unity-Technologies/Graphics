@@ -1,12 +1,14 @@
-namespace UnityEditor.Rendering.LWRP
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEditor.Rendering.Universal
 {
-    public enum UpgradeSurfaceType
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum UpgradeSurfaceType
     {
         Opaque,
         Transparent
     }
 
-    public enum UpgradeBlendMode
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum UpgradeBlendMode
     {
         Alpha,
         Premultiply,
@@ -14,19 +16,19 @@ namespace UnityEditor.Rendering.LWRP
         Multiply
     }
 
-    public enum SpecularSource
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum SpecularSource
     {
         SpecularTextureAndColor,
         NoSpecular
     }
 
-    public enum SmoothnessSource
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum SmoothnessSource
     {
         BaseAlpha,
         SpecularAlpha
     }
 
-    public enum ReflectionSource
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public enum ReflectionSource
     {
         NoReflection,
         Cubemap,

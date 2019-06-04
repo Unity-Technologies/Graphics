@@ -1,14 +1,14 @@
 using System;
 using UnityEngine;
-using UnityEditor.Rendering.LWRP;
+using UnityEditor.Rendering.Universal;
 
-namespace UnityEditor.Rendering.LWRP.ShaderGUI
+namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class BakedLitShader : BaseShaderGUI
     {
         // Properties
         private BakedLitGUI.BakedLitProperties shadingModelProperties;
-        
+
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
 
             SetMaterialKeywords(material);
         }
-        
+
         // material main surface options
         public override void DrawSurfaceOptions(Material material)
         {

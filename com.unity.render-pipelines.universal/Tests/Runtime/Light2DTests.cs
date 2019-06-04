@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine.Experimental.Rendering.LWRP;
 using UnityEngine.TestTools;
 
-namespace UnityEngine.Rendering.LWRP.Tests
+namespace UnityEngine.Rendering.Universal.Tests
 {
     [TestFixture]
     class SingleObjectLight2DTests

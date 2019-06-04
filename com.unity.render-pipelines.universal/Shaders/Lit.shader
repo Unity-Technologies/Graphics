@@ -4,7 +4,7 @@ Shader "Lightweight Render Pipeline/Lit"
     {
         // Specular vs Metallic workflow
         [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
-        
+
         [MainColor] _BaseColor("Color", Color) = (0.5,0.5,0.5,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
@@ -41,10 +41,10 @@ Shader "Lightweight Render Pipeline/Lit"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
 
-        _ReceiveShadows("Receive Shadows", Float) = 1.0        
+        _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
-        
+
         // ObsoleteProperties
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
         [HideInInspector] _Color("Base Color", Color) = (0.5, 0.5, 0.5, 1)
@@ -114,7 +114,7 @@ Shader "Lightweight Render Pipeline/Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            
+
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
@@ -219,5 +219,5 @@ Shader "Lightweight Render Pipeline/Lit"
 
     }
     FallBack "Hidden/InternalErrorShader"
-    CustomEditor "UnityEditor.Rendering.LWRP.ShaderGUI.LitShader"
+    CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.LitShader"
 }

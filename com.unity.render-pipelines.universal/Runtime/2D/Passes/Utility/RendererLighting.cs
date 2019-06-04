@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Experimental.Rendering.LWRP
 {

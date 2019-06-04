@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.LWRP.ShaderGUI
+namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
     internal class UnlitShader : BaseShaderGUI
     {
@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.LWRP.ShaderGUI
 
             SetMaterialKeywords(material);
         }
-        
+
         // material main surface options
         public override void DrawSurfaceOptions(Material material)
         {

@@ -1,26 +1,28 @@
+
+using UnityEngine.Scripting.APIUpdating;
 #if UNITY_EDITOR
 using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
-    public enum ShadowCascadesOption
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowCascadesOption
     {
         NoCascades,
         TwoCascades,
         FourCascades,
     }
 
-    public enum ShadowQuality
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowQuality
     {
         Disabled,
         HardShadows,
         SoftShadows,
     }
 
-    public enum ShadowResolution
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowResolution
     {
         _256 = 256,
         _512 = 512,
@@ -29,7 +31,7 @@ namespace UnityEngine.Rendering.LWRP
         _4096 = 4096
     }
 
-    public enum MsaaQuality
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MsaaQuality
     {
         Disabled = 1,
         _2x = 2,
@@ -37,7 +39,7 @@ namespace UnityEngine.Rendering.LWRP
         _8x = 8
     }
 
-    public enum Downsampling
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum Downsampling
     {
         None,
         _2xBilinear,
@@ -54,27 +56,27 @@ namespace UnityEngine.Rendering.LWRP
         UnityBuiltinDefault
     }
 
-    public enum LightRenderingMode
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum LightRenderingMode
     {
         Disabled = 0,
         PerVertex = 2,
         PerPixel = 1,
     }
 
-    public enum ShaderVariantLogLevel
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShaderVariantLogLevel
     {
         Disabled,
         OnlyLightweightRPShaders,
         AllShaders,
     }
 
-    public enum RendererType
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererType
     {
         Custom,
         ForwardRenderer,
     }
 
-    public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public class LightweightRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
         internal ScriptableRenderer m_Renderer;

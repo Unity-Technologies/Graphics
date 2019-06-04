@@ -1,24 +1,25 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEditor.Rendering.LWRP.ShaderGUI
+namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    public static class LitGUI
+    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class LitGUI
     {
-        public enum WorkflowMode
+        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum WorkflowMode
         {
             Specular = 0,
             Metallic
         }
 
-        public enum SmoothnessMapChannel
+        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public enum SmoothnessMapChannel
         {
             SpecularMetallicAlpha,
             AlbedoAlpha,
         }
 
-        public static class Styles
+        [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class Styles
         {
             public static GUIContent workflowModeText = new GUIContent("Workflow Mode",
                 "Select a workflow that fits your textures. Choose between Metallic or Specular.");

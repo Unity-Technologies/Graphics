@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     internal static class ResourceGuid
     {
@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.LWRP
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
             public static float defaultIndentWidth = 12;
         }
-        
+
         public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit)
         {
             float[] cascadePartitionSizes = null;

@@ -1,8 +1,10 @@
+using UnityEngine.Scripting.APIUpdating;
+
 namespace UnityEngine.Experimental.Rendering.LWRP
 {
     sealed public partial class Light2D : MonoBehaviour
     {
-        public enum PointLightQuality
+        [MovedFrom("UnityEngine.Rendering.LWRP")] public enum PointLightQuality
         {
             Fast = 0,
             Accurate = 1
@@ -43,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.LWRP
 
         public float pointLightDistance => m_PointLightDistance;
         public PointLightQuality pointLightQuality => m_PointLightQuality;
-        
+
         private BoundingSphere GetPointLightBoundingSphere()
         {
             BoundingSphere boundingSphere;

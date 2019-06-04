@@ -1,6 +1,6 @@
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     [CanEditMultipleObjects]
     // Disable the GUI for additional camera data

@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
-    public enum MixedLightingSetup
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MixedLightingSetup
     {
         None,
         ShadowMask,
@@ -70,7 +71,7 @@ namespace UnityEngine.Rendering.LWRP
         public List<Vector4> bias;
     }
 
-    public static class ShaderKeywordStrings
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShaderKeywordStrings
     {
         public static readonly string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
         public static readonly string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";

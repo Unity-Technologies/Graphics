@@ -1,24 +1,25 @@
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor
 {
 	[LightingExplorerExtensionAttribute(typeof(LightweightRenderPipelineAsset))]
-	public class LightExplorer : DefaultLightingExplorerExtension
+	[MovedFrom("UnityEditor.Rendering.LWRP")] public class LightExplorer : DefaultLightingExplorerExtension
 	{
 		private static class Styles
         {
 	        public static readonly GUIContent Enabled = EditorGUIUtility.TrTextContent("Enabled");
 	        public static readonly GUIContent Name = EditorGUIUtility.TrTextContent("Name");
 	        public static readonly GUIContent Mode = EditorGUIUtility.TrTextContent("Mode");
-	        
+
 	        public static readonly GUIContent HDR = EditorGUIUtility.TrTextContent("HDR");
 	        public static readonly GUIContent ShadowDistance = EditorGUIUtility.TrTextContent("Shadow Distance");
 	        public static readonly GUIContent NearPlane = EditorGUIUtility.TrTextContent("Near Plane");
 	        public static readonly GUIContent FarPlane = EditorGUIUtility.TrTextContent("Far Plane");
 	        public static readonly GUIContent Resolution = EditorGUIUtility.TrTextContent("Resolution");
-	        
+
 	        public static readonly GUIContent[] ReflectionProbeModeTitles = { EditorGUIUtility.TrTextContent("Baked"), EditorGUIUtility.TrTextContent("Realtime"), EditorGUIUtility.TrTextContent("Custom") };
 	        public static readonly int[] ReflectionProbeModeValues = { (int)ReflectionProbeMode.Baked, (int)ReflectionProbeMode.Realtime, (int)ReflectionProbeMode.Custom };
 	        public static readonly GUIContent[] ReflectionProbeSizeTitles = { EditorGUIUtility.TrTextContent("16"),
@@ -31,7 +32,7 @@ namespace UnityEditor
 																				EditorGUIUtility.TrTextContent("2048") };
 	        public static readonly int[] ReflectionProbeSizeValues = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
         }
-		
+
 		protected override LightingExplorerTableColumn[] GetReflectionProbeColumns()
 		{
 			return new[]

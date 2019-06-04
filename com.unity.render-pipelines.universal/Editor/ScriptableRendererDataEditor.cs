@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Rendering.LWRP;
+using UnityEngine.Rendering.Universal;
 using System.Text.RegularExpressions;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEditor.Rendering.LWRP
+namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(ScriptableRendererData), true)]
-    public class ScriptableRendererDataEditor : Editor
+    [MovedFrom("UnityEditor.Rendering.LWRP")] public class ScriptableRendererDataEditor : Editor
     {
         class Styles
         {
@@ -223,7 +224,7 @@ namespace UnityEditor.Rendering.LWRP
 #endif
             menu.ShowAsContext();
         }
-        
+
         private void RemovePass(ReorderableList list)
         {
             var obj = m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue;

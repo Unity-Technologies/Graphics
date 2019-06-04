@@ -185,5 +185,5 @@ Shader "Lightweight Render Pipeline/Baked Lit"
         }
     }
     FallBack "Lightweight Render Pipeline/Unlit"
-    CustomEditor "UnityEditor.Rendering.LWRP.ShaderGUI.BakedLitShader"
+    CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.BakedLitShader"
 }

@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Copy the given color target to the current camera target

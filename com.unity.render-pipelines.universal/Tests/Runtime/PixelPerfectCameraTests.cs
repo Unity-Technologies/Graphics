@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using UnityEngine.Experimental.Rendering.LWRP;
 
-namespace UnityEngine.Rendering.LWRP.Tests
+namespace UnityEngine.Rendering.Universal.Tests
 {
     internal class PixelPerfectCameraTests
     {

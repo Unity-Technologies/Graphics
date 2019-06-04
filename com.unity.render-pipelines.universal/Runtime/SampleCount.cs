@@ -1,6 +1,8 @@
-namespace UnityEngine.Rendering.LWRP
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.Rendering.Universal
 {
-    public enum SampleCount
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum SampleCount
     {
         One = 1,
         Two = 2,

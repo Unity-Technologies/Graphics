@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEngine.Rendering.LWRP
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Perform post-processing using the given color attachment
