@@ -16,8 +16,9 @@ namespace UnityEditor.ShaderGraph
             this.referenceName = referenceName;
         }
     }
-
-    enum ShaderKeywordType { ShaderFeature, MultiCompile, Predefined }
+    
+    enum ShaderKeywordType { Boolean, Enum }
+    enum ShaderKeywordDefinition { ShaderFeature, MultiCompile, Predefined }
     enum ShaderKeywordScope { Local, Global }
 
     [Serializable]
@@ -25,33 +26,20 @@ namespace UnityEditor.ShaderGraph
     {
         public ShaderKeyword()
         {
-            m_Entries = new List<ShaderKeywordEntry>();
         }
 
-        [SerializeField]
-        private string m_DefaultReferenceName;
-
-        [SerializeField]
-        private string m_OverrideReferenceName;
-
-        public virtual string referenceName
+        public ShaderKeyword(ShaderKeywordType keywordType)
         {
-            get
+            displayName = keywordType.ToString();
+            this.keywordType = keywordType;
+            
+            if(keywordType == ShaderKeywordType.Enum)
             {
-                if (string.IsNullOrEmpty(overrideReferenceName))
-                {
-                    if (string.IsNullOrEmpty(m_DefaultReferenceName))
-                        m_DefaultReferenceName = $"{concreteShaderValueType}_{GuidEncoder.Encode(guid)}";
-                    return m_DefaultReferenceName;
-                }
-                return overrideReferenceName;
+                m_Entries = new List<ShaderKeywordEntry>();
+                m_Entries.Add(new ShaderKeywordEntry("A", $"{referenceName}_A"));
+                m_Entries.Add(new ShaderKeywordEntry("B", $"{referenceName}_B"));
+                m_Entries.Add(new ShaderKeywordEntry("C", $"{referenceName}_C"));
             }
-        }
-
-        public string overrideReferenceName
-        {
-            get => m_OverrideReferenceName;
-            set => m_OverrideReferenceName = value;
         }
 
         [SerializeField]
@@ -63,26 +51,26 @@ namespace UnityEditor.ShaderGraph
             set => m_IsEditable = value;
         }
 
-        public bool isExposable => keywordType == ShaderKeywordType.ShaderFeature;
+        public override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
+        public override bool isExposable => keywordDefinition == ShaderKeywordDefinition.ShaderFeature;
+        public override bool isRenamable => keywordType == ShaderKeywordType.Boolean;
 
         [SerializeField]
-        private bool m_GeneratePropertyBlock = false;
-
-        public bool generatePropertyBlock
-        {
-            get => m_GeneratePropertyBlock;
-            set => m_GeneratePropertyBlock = value;
-        }
-
-        public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector1;
-
-        [SerializeField]
-        private ShaderKeywordType m_KeywordType = ShaderKeywordType.ShaderFeature;
+        private ShaderKeywordType m_KeywordType = ShaderKeywordType.Boolean;
 
         public ShaderKeywordType keywordType
         {
             get => m_KeywordType;
             set => m_KeywordType = value;
+        }
+
+        [SerializeField]
+        private ShaderKeywordDefinition m_KeywordDefinition = ShaderKeywordDefinition.ShaderFeature;
+
+        public ShaderKeywordDefinition keywordDefinition
+        {
+            get => m_KeywordDefinition;
+            set => m_KeywordDefinition = value;
         }
 
         [SerializeField]
@@ -108,9 +96,11 @@ namespace UnityEditor.ShaderGraph
             return new ShaderKeyword()
             {
                 displayName = displayName,
-                isEditable = isEditable,
+                overrideReferenceName = overrideReferenceName,
                 generatePropertyBlock = generatePropertyBlock,
+                isEditable = isEditable,
                 keywordType = keywordType,
+                keywordDefinition = keywordDefinition,
                 keywordScope = keywordScope,
                 entries = entries
             };

@@ -54,24 +54,33 @@ namespace UnityEditor.ShaderGraph
                 return;
             
             name = keyword.displayName;
-
+            
             List<MaterialSlot> inputSlots = new List<MaterialSlot>();
             GetInputSlots(inputSlots);
             for(int i = 0; i < inputSlots.Count; i++)
                 RemoveSlot(inputSlots[i].id);
-
-            int[] slotIds = new int[keyword.entries.Count + 1];
-            slotIds[keyword.entries.Count] = OutputSlotId;
-
-            for(int i = 0; i < keyword.entries.Count; i++)
-            {
-                int slotId = i + 1;
-                AddSlot(new DynamicVectorMaterialSlot(slotId, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero));
-                slotIds[i] = slotId;
-            }
             
             AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
-            RemoveSlotsNameNotMatching(slotIds);
+
+            if(keyword.keywordType == ShaderKeywordType.Enum)
+            {
+                int[] slotIds = new int[keyword.entries.Count + 1];
+                slotIds[keyword.entries.Count] = OutputSlotId;
+                for(int i = 0; i < keyword.entries.Count; i++)
+                {
+                    int slotId = i + 1;
+                    AddSlot(new DynamicVectorMaterialSlot(slotId, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero));
+                    slotIds[i] = slotId;
+                }
+                RemoveSlotsNameNotMatching(slotIds);
+            }
+            else
+            {
+                int[] slotIds = new int[] {0, 1, 2};
+                AddSlot(new DynamicVectorMaterialSlot(1, "On", keyword.referenceName, SlotType.Input, Vector4.zero));
+                AddSlot(new DynamicVectorMaterialSlot(2, "Off", "_", SlotType.Input, Vector4.zero));
+                RemoveSlotsNameNotMatching(slotIds);
+            }
         }
 
         protected override bool CalculateNodeHasError(ref string errorMessage)

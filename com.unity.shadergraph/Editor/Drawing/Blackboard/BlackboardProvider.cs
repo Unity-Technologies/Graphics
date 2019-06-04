@@ -207,7 +207,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddKeywordItems(GenericMenu gm, string path)
         {
-            gm.AddItem(new GUIContent($"{path}/Custom Keyword"), false, () => AddInputRow(new ShaderKeyword() { displayName = "Custom Keyword" }, true));
+            gm.AddItem(new GUIContent($"{path}/Boolean"), false, () => AddInputRow(new ShaderKeyword(ShaderKeywordType.Boolean), true));
+            gm.AddItem(new GUIContent($"{path}/Enum"), false, () => AddInputRow(new ShaderKeyword(ShaderKeywordType.Enum), true));
+            gm.AddSeparator($"{path}/");
             gm.AddItem(new GUIContent($"{path}/{BuiltinKeyword.QualityKeyword.displayName}"), false, () => AddInputRow(BuiltinKeyword.QualityKeyword, true));
         }
 
