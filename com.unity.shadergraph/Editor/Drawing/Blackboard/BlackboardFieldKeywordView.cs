@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
             foreach (var node in graph.GetNodes<KeywordNode>())
-                node.Dirty(modificationScope);
+                node.UpdateNode();
         }
     }
 }
