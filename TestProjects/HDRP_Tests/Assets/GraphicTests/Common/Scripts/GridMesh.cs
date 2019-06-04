@@ -2,12 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteAlways, RequireComponent(typeof(MeshFilter))]
 public class GridMesh : MonoBehaviour
 {
     [SerializeField] private int m_Rows = 1;
     [SerializeField] private int m_Cols = 1;
     [SerializeField] private Vector2 m_CellSize = Vector2.one;
     [SerializeField] private float m_Thickness = 0.1f;
+
+    [System.NonSerialized]
+    Mesh            mesh;
+
+    private void OnEnable()
+    {
+        mesh = new Mesh();
+        GetComponent< MeshFilter >().sharedMesh = mesh;
+        GenerateMesh(mesh, m_Rows, m_Cols, m_CellSize, m_Thickness);
+    }
 
     static void GenerateMesh(Mesh destination, int rows, int cols, Vector2 cellSize, float thickness)
     {
@@ -182,15 +193,18 @@ public class GridMesh : MonoBehaviour
 
     void OnValidate()
     {
+        if (Application.isPlaying || mesh == null)
+            return;
+
         m_Rows = Mathf.Max(1, m_Rows);
         m_Cols = Mathf.Max(1, m_Cols);
         m_CellSize = Vector2.Max(Vector2.zero, m_CellSize);
         m_Thickness = Mathf.Min(Mathf.Max(0, m_Thickness), Mathf.Min(m_CellSize.x, m_CellSize.y));
 
-        var meshFilter = GetComponent<MeshFilter>() ?? gameObject.AddComponent<MeshFilter>();
+        // var meshFilter = GetComponent<MeshFilter>() ?? gameObject.AddComponent<MeshFilter>();
 
-        var mesh = meshFilter.sharedMesh != null ? Instantiate(meshFilter.sharedMesh) : new Mesh();
+        // var mesh = meshFilter.sharedMesh != null ? Instantiate(meshFilter.sharedMesh) : new Mesh();
         GenerateMesh(mesh, m_Rows, m_Cols, m_CellSize, m_Thickness);
-        meshFilter.mesh = mesh;
+        // meshFilter.mesh = mesh;
     }
 }
