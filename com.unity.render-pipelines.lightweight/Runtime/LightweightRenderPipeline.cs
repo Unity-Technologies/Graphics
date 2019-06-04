@@ -163,8 +163,13 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_RenderCameraTag);
-            using (new ProfilingSample(cmd, k_RenderCameraTag))
+#if UNITY_EDITOR
+            string tag = camera.name;
+#else
+            string tag = k_RenderCameraTag;
+#endif
+            CommandBuffer cmd = CommandBufferPool.Get(tag);
+            using (new ProfilingSample(cmd, tag))
             {
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
@@ -219,26 +224,6 @@ namespace UnityEngine.Rendering.LWRP
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
                 msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
-
-            if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
-            {
-                bool msaaSampleCountHasChanged = false;
-                int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
-                if (currentQualitySettingsSampleCount != msaaSamples &&
-                    !(currentQualitySettingsSampleCount == 0 && msaaSamples == 1))
-                {
-                    msaaSampleCountHasChanged = true;
-                }
-
-                // There's no exposed API to control how a backbuffer is created with MSAA
-                // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
-                // We only do this for the main camera and this only takes effect in the beginning of next frame.
-                // This settings should not be changed on a frame basis so that's fine.
-                QualitySettings.antiAliasing = msaaSamples;
-
-                if (cameraData.isStereoEnabled && msaaSampleCountHasChanged)
-                    XR.XRDevice.UpdateEyeTextureMSAASetting();
-            }
             
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
