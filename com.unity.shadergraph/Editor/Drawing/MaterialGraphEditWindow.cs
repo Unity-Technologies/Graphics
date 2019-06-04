@@ -250,16 +250,30 @@ namespace UnityEditor.ShaderGraph.Drawing
             var middle = bounds.center;
             bounds.center = Vector2.zero;
 
+            // Collect graph inputs
+            var graphInputs = graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
+
             // Collect the property nodes and get the corresponding properties
             var propertyNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).propertyGuid);
             var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
+
+            // Always include Keyword inputs for all keyword nodes
+            foreach(KeywordNode keyNode in graphView.selection.OfType<IShaderNodeView>().Where(x => x.node is KeywordNode).Select(x => x.node as KeywordNode))
+            {
+                // Skip if selection already contains keyword
+                if(graphInputs.Where(x => x.guid == keyNode.keywordGuid).Any())
+                    continue;
+
+                ShaderKeyword keyword = graphView.graph.keywords.FirstOrDefault(x => x.guid == keyNode.keywordGuid);
+                graphInputs = graphInputs.Append(keyword);
+            }
 
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.graph.assetGuid,
                     graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                     graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
-                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput),
+                    graphInputs,
                     metaProperties);
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
@@ -275,6 +289,34 @@ namespace UnityEditor.ShaderGraph.Drawing
                 subGraphOutputNode.drawState = drawState;
             }
             subGraph.AddNode(subGraphOutputNode);
+
+            foreach (ShaderInput input in deserialized.inputs)
+            {
+                ShaderInput copiedInput = input.Copy();
+                subGraph.SanitizeGraphInputName(copiedInput);
+                subGraph.AddGraphInput(copiedInput);
+
+                if(input is AbstractShaderProperty property)
+                {
+                    // Update the property nodes that depends on the copied node
+                    var dependentPropertyNodes = deserialized.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
+                    foreach (var node in dependentPropertyNodes)
+                    {
+                        node.owner = graphView.graph;
+                        node.propertyGuid = copiedInput.guid;
+                    }
+                }
+                if(input is ShaderKeyword keyword)
+                {
+                    // Update the keyword nodes that depends on the copied node
+                    var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keywordGuid == input.guid);
+                    foreach (var node in dependentKeywordNodes)
+                    {
+                        node.owner = graphView.graph;
+                        node.keywordGuid = copiedInput.guid;
+                    }
+                }
+            }
 
             var groupGuidMap = new Dictionary<Guid, Guid>();
             foreach (GroupData groupData in deserialized.groups)

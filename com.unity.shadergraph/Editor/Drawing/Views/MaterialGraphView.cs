@@ -369,6 +369,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
             var inputs = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
 
+            // Always include Keyword inputs for all keyword nodes
+            foreach(KeywordNode keyNode in elements.OfType<IShaderNodeView>().Where(x => x.node is KeywordNode).Select(x => x.node as KeywordNode))
+            {
+                // Skip if selection already contains keyword
+                if(inputs.Where(x => x.guid == keyNode.keywordGuid).Any())
+                    continue;
+
+                ShaderKeyword keyword = this.graph.keywords.FirstOrDefault(x => x.guid == keyNode.keywordGuid);
+                inputs = inputs.Append(keyword);
+            }
+
             // Collect the property nodes and get the corresponding properties
             var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
             var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
@@ -647,7 +658,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 if(input is ShaderKeyword keyword)
                 {
-                    // Update the property nodes that depends on the copied node
+                    // Update the keyword nodes that depends on the copied node
                     var dependentKeywordNodes = copyGraph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == input.guid);
                     foreach (var node in dependentKeywordNodes)
                     {
