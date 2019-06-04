@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
-{   
+{
+    enum ShaderKeywordType { ShaderFeature, MultiCompile, None }
+    enum ShaderKeywordScope { Local, Global }
+
     [Serializable]
     class ShaderKeyword : ShaderInput
     {
@@ -11,14 +14,27 @@ namespace UnityEditor.ShaderGraph
         {
             displayName = "Keyword";
             m_Entries = new List<KeyValuePair<string, string>>();
-
-            // TODO: Remove when BlackboardFieldKeywordView has content
-            m_Entries.Add(new KeyValuePair<string, string>("A", "_A"));
-            m_Entries.Add(new KeyValuePair<string, string>("B", "_B"));
-            m_Entries.Add(new KeyValuePair<string, string>("C", "_C"));
         }
 
         public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector1;
+
+        [SerializeField]
+        private ShaderKeywordType m_KeywordType = ShaderKeywordType.ShaderFeature;
+
+        public ShaderKeywordType keywordType
+        {
+            get => m_KeywordType;
+            set => m_KeywordType = value;
+        }
+
+        [SerializeField]
+        private ShaderKeywordScope m_KeywordScope = ShaderKeywordScope.Local;
+
+        public ShaderKeywordScope keywordScope
+        {
+            get => m_KeywordScope;
+            set => m_KeywordScope = value;
+        }
 
         [SerializeField]
         private int m_Value;

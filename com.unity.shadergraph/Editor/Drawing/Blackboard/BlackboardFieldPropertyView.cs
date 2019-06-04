@@ -618,7 +618,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
             AddRow("Precision", precisionField);
 
-            AddToClassList("sgblackboardFieldPropertyView");
+            AddToClassList("sgblackboardFieldView");
 
             UpdateReferenceNameResetMenu();
         }
