@@ -208,6 +208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void AddKeywordItems(GenericMenu gm, string path)
         {
             gm.AddItem(new GUIContent($"{path}/Custom Keyword"), false, () => AddInputRow(new ShaderKeyword() { displayName = "Custom Keyword" }, true));
+            gm.AddItem(new GUIContent($"{path}/Quality"), false, () => AddInputRow(BuiltinKeyword.QualityKeyword, true));
         }
 
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
