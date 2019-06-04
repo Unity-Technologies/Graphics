@@ -289,10 +289,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 case ShaderKeyword keyword:
                 {
-                    field = new BlackboardField(null, keyword.displayName, "Keyword") { userData = keyword };
+                    var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? exposedIcon : null;
+                    field = new BlackboardField(icon, keyword.displayName, "Keyword") { userData = keyword };
                     var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);
-                    rowExpandable = keyword.isEditable;
+                    rowExpandable = keyword.isEditable || keyword.isExposable;
                     if (index < 0)
                         index = m_InputRows.Count;
                     if (index == m_InputRows.Count)

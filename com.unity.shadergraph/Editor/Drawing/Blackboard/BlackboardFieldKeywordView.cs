@@ -16,11 +16,10 @@ namespace UnityEditor.ShaderGraph.Drawing
     class BlackboardFieldKeywordView : VisualElement
     {
         readonly GraphData m_Graph;
-        readonly ShaderKeyword m_Keyword;
+        ShaderKeyword m_Keyword;
 
         readonly BlackboardField m_BlackboardField;
         List<VisualElement> m_Rows;
-        int m_UndoGroup = -1;
 
         private ReorderableList m_ReorderableList;
         private IMGUIContainer m_Container;
@@ -41,70 +40,95 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void BuildFields(ShaderKeyword keyword)
         {
-            if(!keyword.isEditable)
-                return;
-
             // KeywordType
-            var keywordTypeField = new EnumField((Enum)keyword.keywordType);
-            keywordTypeField.RegisterValueChangedCallback(evt =>
+            if(keyword.isEditable)
             {
-                m_Graph.owner.RegisterCompleteObjectUndo("Change Keyword Type");
-                if (keyword.keywordType == (ShaderKeywordType)evt.newValue)
-                    return;
-                keyword.keywordType = (ShaderKeywordType)evt.newValue;
-                RemoveAllElements();
-                BuildFields(keyword);
-                this.MarkDirtyRepaint();
-            });
-            AddRow("Type", keywordTypeField);
-            
-            // KeywordScope
-            if(keyword.keywordType != ShaderKeywordType.None)
-            {
-                var keywordScopeField = new EnumField((Enum)keyword.keywordScope);
-                keywordScopeField.RegisterValueChangedCallback(evt =>
+                var keywordTypeField = new EnumField((Enum)keyword.keywordType);
+                keywordTypeField.RegisterValueChangedCallback(evt =>
                 {
                     m_Graph.owner.RegisterCompleteObjectUndo("Change Keyword Type");
-                    if (keyword.keywordScope == (ShaderKeywordScope)evt.newValue)
+                    if (keyword.keywordType == (ShaderKeywordType)evt.newValue)
                         return;
-                    keyword.keywordScope = (ShaderKeywordScope)evt.newValue;
-                    keywordTypeField.MarkDirtyRepaint();
+                    keyword.keywordType = (ShaderKeywordType)evt.newValue;
+                    RemoveAllElements();
+                    BuildFields(keyword);
+                    this.MarkDirtyRepaint();
                 });
-                AddRow("Scope", keywordScopeField);
+                AddRow("Type", keywordTypeField);
+            }
+            
+            // KeywordScope
+            if(keyword.isEditable)
+            {
+                if(keyword.keywordType != ShaderKeywordType.Predefined)
+                {
+                    var keywordScopeField = new EnumField((Enum)keyword.keywordScope);
+                    keywordScopeField.RegisterValueChangedCallback(evt =>
+                    {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change Keyword Type");
+                        if (keyword.keywordScope == (ShaderKeywordScope)evt.newValue)
+                            return;
+                        keyword.keywordScope = (ShaderKeywordScope)evt.newValue;
+                    });
+                    AddRow("Scope", keywordScopeField);
+                }
+            }
+
+            // Exposed
+            if(!m_Graph.isSubGraph)
+            { 
+                if(keyword.isExposable)
+                {
+                    var exposedToogle = new Toggle();
+                    exposedToogle.OnToggleChanged(evt =>
+                    {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
+                        keyword.generatePropertyBlock = evt.newValue;
+                        if (keyword.generatePropertyBlock)
+                        {
+                            m_BlackboardField.icon = BlackboardProvider.exposedIcon;
+                        }
+                        else
+                        {
+                            m_BlackboardField.icon = null;
+                        }
+                        DirtyNodes(ModificationScope.Graph);
+                    });
+                    exposedToogle.value = keyword.generatePropertyBlock;
+                    AddRow("Exposed", exposedToogle);
+                }
             }
 
             // Entries
-            m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
-            Add(m_Container);
+            if(keyword.isEditable)
+            {
+                m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
+                Add(m_Container);
+            }
         }
 
         private void OnGUIHandler()
         {
-            // if(m_ReorderableList == null)
-            // {
+            // TODO: Add this back?
+            if(m_ReorderableList == null)
+            {
                 RecreateList();
                 AddCallbacks();
-            // }
-
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
-            {
-                m_ReorderableList.index = m_SelectedIndex;
-                m_ReorderableList.DoLayoutList();
-
-                if (changeCheckScope.changed)
-                    this.MarkDirtyRepaint();
             }
+
+            m_ReorderableList.index = m_SelectedIndex;
+            m_ReorderableList.DoLayoutList();
         }
 
         internal void RecreateList()
         {           
             // Create reorderable list from entries
-            m_ReorderableList = new ReorderableList(m_Keyword.entries, typeof(int), true, true, true, true);
-            // this.MarkDirtyRepaint();
+            m_ReorderableList = new ReorderableList(m_Keyword.entries, typeof(ShaderKeywordEntry), true, true, true, true);
         }
 
         private void AddCallbacks() 
-        {      
+        {
+            // Draw Header      
             m_ReorderableList.drawHeaderCallback = (Rect rect) => 
             {  
                 var labelRect = new Rect(rect.x, rect.y, rect.width-10, rect.height);
@@ -114,16 +138,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Draw Element
             m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
             {
-                KeyValuePair<string, string> entry = ((KeyValuePair<string, string>)m_ReorderableList.list[index]);
+                ShaderKeywordEntry entry = ((ShaderKeywordEntry)m_ReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
                 
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.Key, EditorStyles.label);
-                var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.Value, EditorStyles.label);
+                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
+                var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, EditorStyles.label);
                 
                 if(EditorGUI.EndChangeCheck())
                 {
-                    m_Keyword.entries[index] = new KeyValuePair<string, string>(displayName, referenceName);
-                    RecreateList();
+                    m_Keyword.entries[index] = new ShaderKeywordEntry(displayName, referenceName);
                     DirtyNodes();
                 }   
             };
@@ -132,6 +155,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ReorderableList.elementHeightCallback = (int indexer) => 
             {
                 return m_ReorderableList.elementHeight;
+            };
+
+            // Can remove
+            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) => 
+            {  
+                return list.count > 1;
             };
 
             // Add callback delegates
@@ -151,10 +180,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph.owner.RegisterCompleteObjectUndo("Add Keyword Entry");
 
             // Add new entry
-            m_Keyword.entries.Add(new KeyValuePair<string, string>("New", "_NEW"));
+            m_Keyword.entries.Add(new ShaderKeywordEntry("New", "_NEW"));
 
             // Update GUI
-            RecreateList();
             DirtyNodes();
             m_SelectedIndex = list.list.Count - 1;
         }
@@ -165,26 +193,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Remove entry
             m_SelectedIndex = list.index;
-            var selectedEntry = (KeyValuePair<string, string>)m_ReorderableList.list[m_SelectedIndex];
+            var selectedEntry = (ShaderKeywordEntry)m_ReorderableList.list[list.index];
             m_Keyword.entries.Remove(selectedEntry);
 
             // Update GUI
-            RecreateList();
             DirtyNodes();
-            ReorderableList.defaultBehaviours.DoRemoveButton(list);
+            // ReorderableList.defaultBehaviours.DoRemoveButton(list);
         }
 
         private void ReorderEntries(ReorderableList list)
         {
-            m_Graph.owner.RegisterCompleteObjectUndo("Reorder Keyword Entries");
+            // m_Graph.owner.RegisterCompleteObjectUndo("Reorder Keyword Entries");
             
-            // Update entry list
-            m_Keyword.entries = (List<KeyValuePair<string, string>>)m_ReorderableList.list;
+            // // Update entry list
+            // m_Keyword.entries = (List<ShaderKeywordEntry>)m_ReorderableList.list;
 
-            // Update GUI
+            // // Update GUI
             RecreateList();
             DirtyNodes();
-            ReorderableList.defaultBehaviours.DoRemoveButton(list);
         }
 
         VisualElement CreateRow(string labelText, VisualElement control)
@@ -223,7 +249,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
             foreach (var node in m_Graph.GetNodes<KeywordNode>())
-                node.Dirty(modificationScope);
+                node.UpdateNode();
         }
     }
 }

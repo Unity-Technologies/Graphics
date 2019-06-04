@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -28,14 +29,12 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_KeywordGuid = value;
-                var keyword = owner.keywords.FirstOrDefault(x => x.guid == value);
-                if (keyword == null)
-                    return;
                 
-                UpdateNode(keyword);
+                UpdateNode();
                 Dirty(ModificationScope.Topological);
             }
         }
+
         public override bool canSetPrecision => false;
 
         // TODO: Set true when correct branch code is generated
@@ -43,18 +42,23 @@ namespace UnityEditor.ShaderGraph
 
         public void OnEnable()
         {
-            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
-            if (keyword == null)
-                return;
-            
-            UpdateNode(keyword);
+            UpdateNode();
         }
 
         public const int OutputSlotId = 0;
 
-        private void UpdateNode(ShaderKeyword keyword)
+        public void UpdateNode()
         {
+            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
+            if (keyword == null)
+                return;
+            
             name = keyword.displayName;
+
+            List<MaterialSlot> inputSlots = new List<MaterialSlot>();
+            GetInputSlots(inputSlots);
+            for(int i = 0; i < inputSlots.Count; i++)
+                RemoveSlot(inputSlots[i].id);
 
             int[] slotIds = new int[keyword.entries.Count + 1];
             slotIds[keyword.entries.Count] = OutputSlotId;
@@ -62,7 +66,7 @@ namespace UnityEditor.ShaderGraph
             for(int i = 0; i < keyword.entries.Count; i++)
             {
                 int slotId = i + 1;
-                AddSlot(new DynamicVectorMaterialSlot(slotId, keyword.entries[i].Key, keyword.entries[i].Value, SlotType.Input, Vector4.zero));
+                AddSlot(new DynamicVectorMaterialSlot(slotId, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero));
                 slotIds[i] = slotId;
             }
             

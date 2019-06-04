@@ -9,13 +9,13 @@ namespace UnityEditor.ShaderGraph
         {
             displayName = "Material Quality",
             isEditable = false,
-            keywordType = ShaderKeywordType.MultiCompile,
+            keywordType = ShaderKeywordType.ShaderFeature,
             keywordScope = ShaderKeywordScope.Global,
-            entries = new List<KeyValuePair<string, string>>()
+            entries = new List<ShaderKeywordEntry>()
             {
-                new KeyValuePair<string, string>("High", "MATERIAL_QUALITY_HIGH"),
-                new KeyValuePair<string, string>("Medium", "_"),
-                new KeyValuePair<string, string>("Low", "MATERIAL_QUALITY_LOW"),
+                new ShaderKeywordEntry("High", "MATERIAL_QUALITY_HIGH"),
+                new ShaderKeywordEntry("Medium", "_"),
+                new ShaderKeywordEntry("Low", "MATERIAL_QUALITY_LOW"),
             },
         };
     }
