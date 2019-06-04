@@ -15,6 +15,15 @@ namespace UnityEditor.ShaderGraph
             m_Entries = new List<KeyValuePair<string, string>>();
         }
 
+        [SerializeField]
+        private bool m_IsEditable = true;
+
+        public bool isEditable
+        {
+            get => m_IsEditable;
+            set => m_IsEditable = value;
+        }
+
         public override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector1;
 
         [SerializeField]

@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void AddKeywordItems(GenericMenu gm, string path)
         {
             gm.AddItem(new GUIContent($"{path}/Custom Keyword"), false, () => AddInputRow(new ShaderKeyword() { displayName = "Custom Keyword" }, true));
-            gm.AddItem(new GUIContent($"{path}/Quality"), false, () => AddInputRow(BuiltinKeyword.QualityKeyword, true));
+            gm.AddItem(new GUIContent($"{path}/{BuiltinKeyword.QualityKeyword.displayName}"), false, () => AddInputRow(BuiltinKeyword.QualityKeyword, true));
         }
 
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
@@ -269,6 +269,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             BlackboardField field = null;
             BlackboardRow row = null;
+            bool rowExpandable = true;
 
             switch(input)
             {
@@ -291,6 +292,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     field = new BlackboardField(null, keyword.displayName, "Keyword") { userData = keyword };
                     var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);
+                    rowExpandable = keyword.isEditable;
                     if (index < 0)
                         index = m_InputRows.Count;
                     if (index == m_InputRows.Count)
@@ -313,6 +315,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var expandButton = row.Q<Button>("expandButton");
             expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, input), TrickleDown.TrickleDown);
+            expandButton.visible = rowExpandable;
 
             m_InputRows[input.guid] = row;
             m_InputRows[input.guid].expanded = SessionState.GetBool(input.guid.ToString(), true);

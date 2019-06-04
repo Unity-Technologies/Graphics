@@ -7,7 +7,8 @@ namespace UnityEditor.ShaderGraph
     {
         public static ShaderKeyword QualityKeyword = new ShaderKeyword()
         {
-            displayName = "Quality",
+            displayName = "Material Quality",
+            isEditable = false,
             keywordType = ShaderKeywordType.MultiCompile,
             keywordScope = ShaderKeywordScope.Global,
             entries = new List<KeyValuePair<string, string>>()

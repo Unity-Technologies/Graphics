@@ -41,6 +41,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void BuildFields(ShaderKeyword keyword)
         {
+            if(!keyword.isEditable)
+                return;
+
             // KeywordType
             var keywordTypeField = new EnumField((Enum)keyword.keywordType);
             keywordTypeField.RegisterValueChangedCallback(evt =>
