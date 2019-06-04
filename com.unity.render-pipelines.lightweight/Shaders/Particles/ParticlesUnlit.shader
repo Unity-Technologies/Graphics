@@ -62,7 +62,6 @@ Shader "Lightweight Render Pipeline/Particles/Unlit"
             // Lightmode matches the ShaderPassName set in LightweightRenderPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Lightweight Render Pipeline
             Name "ForwardLit"
-            Tags {"LightMode" = "LightweightForward"}
             
             BlendOp[_BlendOp]
             Blend[_SrcBlend][_DstBlend]
