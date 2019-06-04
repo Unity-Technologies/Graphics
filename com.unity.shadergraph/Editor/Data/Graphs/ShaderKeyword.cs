@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
     {
         public ShaderKeyword()
         {
-            displayName = "Keyword";
             m_Entries = new List<KeyValuePair<string, string>>();
         }
 

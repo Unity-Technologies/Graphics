@@ -214,6 +214,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_Rows[i].parent == this)
                     Remove(m_Rows[i]);
             }
+            Remove(m_Container);
         }
 
         void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
