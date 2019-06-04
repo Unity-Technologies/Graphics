@@ -197,6 +197,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ButtonContainer.Add(m_CollapseButton);
                 m_TitleContainer.Add(m_ButtonContainer);
             }
+
+            // Registering the hovering callbacks for highlighting
+            RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            RegisterCallback<MouseLeaveEvent>(OnMouseHover);
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
@@ -647,6 +651,33 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 previewNode.SetDimensions(updatedWidth, updatedHeight);
                 UpdateSize();
+            }
+        }
+
+        void OnMouseHover(EventBase evt)
+        {
+            var graphView = GetFirstAncestorOfType<GraphEditorView>();
+            if (graphView == null)
+                return;
+
+            var blackboardProvider = graphView.blackboardProvider;
+            if (blackboardProvider == null)
+                return;
+
+            if(node is KeywordNode keywordNode)
+            {
+                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
+                if (keywordRow != null)
+                {
+                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                    {
+                        keywordRow.AddToClassList("hovered");
+                    }
+                    else
+                    {
+                        keywordRow.RemoveFromClassList("hovered");
+                    }
+                }
             }
         }
 
