@@ -157,10 +157,13 @@ namespace UnityEngine.Rendering.LWRP
 
         internal static bool SupportsRenderTextureFormat(RenderTextureFormat format)
         {
-            if (!m_RenderTextureFormatSupport.ContainsKey(format))
-                m_RenderTextureFormatSupport.Add(format, SystemInfo.SupportsRenderTextureFormat(format));
+            if (!m_RenderTextureFormatSupport.TryGetValue(format, out var support))
+            {
+                support = SystemInfo.SupportsRenderTextureFormat(format);
+                m_RenderTextureFormatSupport.Add(format, support);
+            }
 
-            return m_RenderTextureFormatSupport[format];
+            return support;
         }
     }
 }
