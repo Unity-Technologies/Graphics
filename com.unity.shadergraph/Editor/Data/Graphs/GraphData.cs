@@ -680,8 +680,10 @@ namespace UnityEditor.ShaderGraph
 
         public void SanitizeGraphInputReferenceName(ShaderInput input, string newName)
         {
+            if (string.IsNullOrEmpty(newName))
+                return;
+            
             string name = newName.Trim();
-
             if (string.IsNullOrEmpty(name))
                 return;
 

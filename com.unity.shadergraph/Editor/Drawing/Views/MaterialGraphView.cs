@@ -672,6 +672,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ShaderInput copiedInput = input.Copy();
                 graphView.graph.SanitizeGraphInputName(copiedInput);
                 graphView.graph.AddGraphInput(copiedInput);
+                graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
 
                 if(input is AbstractShaderProperty property)
                 {

@@ -172,18 +172,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Update GUI
             DirtyNodes();
-            // ReorderableList.defaultBehaviours.DoRemoveButton(list);
         }
 
         private void ReorderEntries(ReorderableList list)
         {
-            // graph.owner.RegisterCompleteObjectUndo("Reorder Keyword Entries");
-            
-            // // Update entry list
-            // m_Keyword.entries = (List<ShaderKeywordEntry>)m_ReorderableList.list;
-
-            // // Update GUI
-            RecreateList();
             DirtyNodes();
         }
 

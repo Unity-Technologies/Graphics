@@ -295,6 +295,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ShaderInput copiedInput = input.Copy();
                 subGraph.SanitizeGraphInputName(copiedInput);
                 subGraph.AddGraphInput(copiedInput);
+                subGraph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
 
                 if(input is AbstractShaderProperty property)
                 {
