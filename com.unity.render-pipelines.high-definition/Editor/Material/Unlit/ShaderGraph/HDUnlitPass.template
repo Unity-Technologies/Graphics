@@ -24,17 +24,20 @@ Pass
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     //#pragma enable_d3d11_debug_symbols
 
+    //-------------------------------------------------------------------------------------
+    // Variant
+    //-------------------------------------------------------------------------------------
+    
+    // #pragma shader_feature_local _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
+
+    // Keyword for transparent
+    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
+    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+
+    $AlphaFog:                           #define _ENABLE_FOG_ON_TRANSPARENT 1
+
     //enable GPU instancing support
     #pragma multi_compile_instancing
-
-    //-------------------------------------------------------------------------------------
-    // Variant Definitions (active field translations to HDRP defines)
-    //-------------------------------------------------------------------------------------
-    $SurfaceType.Transparent:            #define _SURFACE_TYPE_TRANSPARENT 1
-    $BlendMode.Alpha:                    #define _BLENDMODE_ALPHA 1
-    $BlendMode.Add:                      #define _BLENDMODE_ADD 1
-    $BlendMode.Premultiply:              #define _BLENDMODE_PRE_MULTIPLY 1
-    $AlphaFog:                           #define _ENABLE_FOG_ON_TRANSPARENT 1
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
