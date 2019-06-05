@@ -545,6 +545,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // properties used by either pixel and vertex shader
             PropertyCollector sharedProperties = new PropertyCollector();
+            ShaderStringBuilder shaderPropertyUniforms = new ShaderStringBuilder(1);
 
             // build the graph outputs structure to hold the results of each active slots (and fill out activeFields to indicate they are active)
             string pixelGraphInputStructName = "SurfaceDescriptionInputs";
@@ -620,6 +621,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
 
+            // Get property declarations
+            sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
+
             // propagate active field requirements using dependencies
             ShaderSpliceUtil.ApplyDependencies(
                 activeFields,
@@ -680,12 +684,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     shaderPassIncludes.AddShaderChunk(include);
             }
 
-
             // build graph code
             var graph = new ShaderGenerator();
             {
                 graph.AddShaderChunk("// Shared Graph Properties (uniform inputs)");
-                graph.AddShaderChunk(sharedProperties.GetPropertiesDeclaration(1, mode));
+                graph.AddShaderChunk(shaderPropertyUniforms.ToString());
 
                 if (vertexActive)
                 {

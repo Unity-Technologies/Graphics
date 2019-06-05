@@ -44,10 +44,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SharedRTManager = sharedRTManager;
 
             // Intermediate buffer that holds the pre-denoised texture
-            m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateAOBuffer");
+            m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateAOBuffer");
 
             // Buffer that holds the uncompressed normal buffer
-            m_ViewSpaceNormalBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, xrInstancing: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "ViewSpaceNormalBuffer");
+            m_ViewSpaceNormalBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "ViewSpaceNormalBuffer");
         }
 
         public void Release()
@@ -58,8 +58,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static RTHandleSystem.RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
-            return rtHandleSystem.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16_SFloat,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false, xrInstancing: true, 
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16_SFloat, dimension: TextureXR.dimension,
+                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
                                         name: string.Format("AmbientOcclusionHistoryBuffer{0}", frameIndex));
         }
 
@@ -73,13 +73,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandleSystem.RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // Let's check all the resources
-            HDRaytracingEnvironment rtEnvironement = m_RaytracingManager.CurrentEnvironment();
+            HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
             ComputeShader aoFilter = m_PipelineRayTracingResources.raytracingAOFilterCS;
             RaytracingShader aoShader = m_PipelineRayTracingResources.aoRaytracing;
             var aoSettings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
 
             // Check if the state is valid for evaluating ambient occlusion
-            bool invalidState = rtEnvironement == null
+            bool invalidState = rtEnvironment == null
             || aoFilter == null || aoShader == null
             || m_PipelineResources.textures.owenScrambledTex == null || m_PipelineResources.textures.scramblingTex == null;
 
@@ -91,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Grab the acceleration structure for the target camera
-            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironement.aoLayerMask);
+            RaytracingAccelerationStructure accelerationStructure = m_RaytracingManager.RequestAccelerationStructure(rtEnvironment.aoLayerMask);
 
             // Define the shader pass to use for the reflection pass
             cmd.SetRaytracingShaderPass(aoShader, "VisibilityDXR");
@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingTextureParam(aoShader, HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data
-            cmd.SetRaytracingFloatParams(aoShader, HDShaderIDs._RaytracingRayBias, rtEnvironement.rayBias);
+            cmd.SetRaytracingFloatParams(aoShader, HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
             cmd.SetRaytracingFloatParams(aoShader, HDShaderIDs._RaytracingRayMaxLength, aoSettings.rayLength.value);
             cmd.SetRaytracingIntParams(aoShader, HDShaderIDs._RaytracingNumSamples, aoSettings.numSamples.value);
 
@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetRaytracingTextureParam(aoShader, HDShaderIDs._AmbientOcclusionTextureRW, m_IntermediateBuffer);
             cmd.SetRaytracingTextureParam(aoShader, HDShaderIDs._RaytracingVSNormalTexture, m_ViewSpaceNormalBuffer);
 
-            // Run the calculus
+            // Run the computation
             cmd.DispatchRays(aoShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
 
             using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingAmbientOcclusion.GetSampler()))
@@ -158,11 +158,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Output the new history
                     m_KernelFilter = aoFilter.FindKernel("AOCopyHistory");
-                        
+
                     cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, m_ViewSpaceNormalBuffer);
                     cmd.SetComputeTextureParam(aoFilter, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, ambientOcclusionHistory);
                     cmd.DispatchCompute(aoFilter, m_KernelFilter, numTilesX, numTilesY, 1);
-                                    
+
                     m_KernelFilter = aoFilter.FindKernel("AOBilateralFilterH");
 
                     // Horizontal pass of the bilateral filter

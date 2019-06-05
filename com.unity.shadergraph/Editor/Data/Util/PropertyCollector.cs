@@ -37,15 +37,13 @@ namespace UnityEditor.ShaderGraph
             return sb.ToString();
         }
 
-        public string GetPropertiesDeclaration(int baseIndentLevel, GenerationMode mode)
+        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
         {
-            var builder = new ShaderStringBuilder(baseIndentLevel);
-            GetPropertiesDeclaration(builder, mode);
-            return builder.ToString();
-        }
+            foreach (var prop in properties)
+            {
+                prop.SetConcretePrecision(inheritedPrecision);
+            }
 
-        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode)
-        {
             // In preview we ignore the isBatchable of the properties and always bundle them in a constant buffer
             // not sure why...
             var batchAll = mode == GenerationMode.Preview;

@@ -58,7 +58,7 @@ void DebugLightCluster(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : S
 
 	// Convert this to a world space position
     float depth = LoadCameraDepth(currentPixelCoordinate.xy);
-    PositionInputs posInput = GetPositionInput(currentPixelCoordinate, 1.0/ _ScreenSize.xy, depth, _InvViewProjMatrix, _ViewMatrix, 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoordinate, 1.0/ _ScreenSize.xy, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, 0);
 	posInput.positionWS += _WorldSpaceCameraPos;
 
 	// If this position is outisde of the cluster, color is black

@@ -125,8 +125,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_AmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                 filterMode: FilterMode.Bilinear,
                 colorFormat: GraphicsFormat.R8_UNorm,
+                slices: TextureXR.slices,
+                dimension: TextureXR.dimension,
                 enableRandomWrite: true,
-                xrInstancing: true,
                 useDynamicScale: true,
                 name: "Ambient Occlusion"
             );
@@ -136,8 +137,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_MultiAmbientOcclusionTex = RTHandles.Alloc(Vector2.one,
                     filterMode: FilterMode.Bilinear,
                     colorFormat: GraphicsFormat.R8G8_UNorm,
+                    slices: TextureXR.slices,
+                    dimension: TextureXR.dimension,
                     enableRandomWrite: true,
-                    xrInstancing: true,
                     useDynamicScale: true,
                     name: "Ambient Occlusion MSAA"
                 );
@@ -342,7 +344,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             rt = RTHandles.Alloc(
                 scaleFunc: m_ScaleFunctors[(int)size],
-                dimension: TextureDimension.Tex2D,
+                slices: TextureXR.slices,
+                dimension: TextureXR.dimension,
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
                 autoGenerateMips: false,
@@ -350,7 +353,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
-                xrInstancing: true,
                 name: name
             );
         }
@@ -362,20 +364,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 dimension: TextureDimension.Tex2DArray,
                 colorFormat: format,
                 depthBufferBits: DepthBits.None,
-                slices: 16,
+                slices: 16 * TextureXR.slices,
                 autoGenerateMips: false,
                 enableMSAA: false,
                 useDynamicScale: true,
                 enableRandomWrite: uav,
                 filterMode: FilterMode.Point,
-                xrInstancing: true,
                 name: name
             );
         }
 
         float CalculateTanHalfFovHeight(HDCamera camera)
         {
-            // XRTODO: handle XR instancing by looping over camera.xrViewConstants
+#if ENABLE_VR
+            if (camera.xr.instancingEnabled)
+            {
+                float tanHalfFovH = 0.0f;
+                for (int viewIndex = 0; viewIndex < camera.viewCount; ++viewIndex)
+                    tanHalfFovH += 1f / camera.xrViewConstants[viewIndex].projMatrix[0, 0];
+
+                // Average values from all instanced views
+                return tanHalfFovH / camera.viewCount;
+            }
+#endif
+
             return 1f / camera.mainViewConstants.projMatrix[0, 0];
         }
 
@@ -404,7 +416,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DS4xAtlas, m_TiledDepth2Tex);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Depth, depthMap, 0);
 
-            cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L4], m_Heights[(int)MipLevel.L4], camera.computePassCount);
+            cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L4], m_Heights[(int)MipLevel.L4], camera.viewCount);
 
             // 2nd downsampling pass.
             cs = m_Resources.shaders.aoDownsample2CS;
@@ -416,7 +428,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DS8xAtlas, m_TiledDepth3Tex);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DS16xAtlas, m_TiledDepth4Tex);
 
-            cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L6], m_Heights[(int)MipLevel.L6], camera.computePassCount);
+            cmd.DispatchCompute(cs, kernel, m_Widths[(int)MipLevel.L6], m_Heights[(int)MipLevel.L6], camera.viewCount);
         }
 
         void PushRenderCommands(CommandBuffer cmd, HDCamera camera, in Vector4 viewport, RTHandle source, RTHandle destination, AmbientOcclusion settings, in Vector3 sourceSize, float tanHalfFovH, bool msaa)
@@ -501,7 +513,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cs, kernel,
                 ((int)sourceSize.x + (int)xsize - 1) / (int)xsize,
                 ((int)sourceSize.y + (int)ysize - 1) / (int)ysize,
-                camera.computePassCount * ((int)sourceSize.z + (int)zsize - 1) / (int)zsize
+                camera.viewCount * ((int)sourceSize.z + (int)zsize - 1) / (int)zsize
             );
         }
 
@@ -533,7 +545,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int xcount = ((int)highResDepthSize.x + 17) / 16;
             int ycount = ((int)highResDepthSize.y + 17) / 16;
-            cmd.DispatchCompute(cs, kernel, xcount, ycount, camera.computePassCount);
+            cmd.DispatchCompute(cs, kernel, xcount, ycount, camera.viewCount);
         }
     }
 }

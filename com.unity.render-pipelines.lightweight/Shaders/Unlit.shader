@@ -118,7 +118,6 @@ Shader "Lightweight Render Pipeline/Unlit"
             }
             ENDHLSL
         }
-
         Pass
         {
             Tags{"LightMode" = "DepthOnly"}
@@ -143,8 +142,8 @@ Shader "Lightweight Render Pipeline/Unlit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "UnlitInput.hlsl"
-            #include "DepthOnlyPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/UnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
         }
 
@@ -163,8 +162,8 @@ Shader "Lightweight Render Pipeline/Unlit"
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMetaUnlit
 
-            #include "UnlitInput.hlsl"
-            #include "UnlitMetaPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/UnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/UnlitMetaPass.hlsl"
 
             ENDHLSL
         }

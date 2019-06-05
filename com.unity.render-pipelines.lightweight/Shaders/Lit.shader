@@ -159,8 +159,8 @@ Shader "Lightweight Render Pipeline/Lit"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LitInput.hlsl"
-            #include "ShadowCasterPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/ShadowCasterPass.hlsl"
             ENDHLSL
         }
 
@@ -191,8 +191,8 @@ Shader "Lightweight Render Pipeline/Lit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "LitInput.hlsl"
-            #include "DepthOnlyPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
         }
 
@@ -220,11 +220,35 @@ Shader "Lightweight Render Pipeline/Lit"
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LitInput.hlsl"
-            #include "LitMetaPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitMetaPass.hlsl"
 
             ENDHLSL
         }
+        Pass
+        {
+            Name "Lightweight2D"
+            Tags{ "LightMode" = "Lightweight2D" }
+
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/Utils/Lightweight2D.hlsl"
+            ENDHLSL
+        }
+
 
         // This pass it not used during regular rendering, only for finding out which VT tiles to load
         Pass

@@ -25,8 +25,8 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision}2 uv = ScreenPosition.xy * _ScreenParams.xy;
-    {precision} DITHER_THRESHOLDS[16] =
+    $precision2 uv = ScreenPosition.xy * _ScreenParams.xy;
+    $precision DITHER_THRESHOLDS[16] =
     {
         1.0 / 17.0,  9.0 / 17.0,  3.0 / 17.0, 11.0 / 17.0,
         13.0 / 17.0,  5.0 / 17.0, 15.0 / 17.0,  7.0 / 17.0,

@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.UI
         static private HashSet<IVFXSlotContainer> CollectAnscestorOfSpawner(IEnumerable<VFXNodeController> allSlotContainerControllers)
         {
             var operatorDependOnSpawner = new HashSet<IVFXSlotContainer>();
-            foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && (o.model as VFXBlock).GetParent().contextType == VFXContextType.kSpawner))
+            foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && (o.model as VFXBlock).GetParent().contextType == VFXContextType.Spawner))
             {
                 VFXViewController.CollectAncestorOperator(block.model as IVFXSlotContainer, operatorDependOnSpawner);
             }
@@ -211,7 +211,7 @@ namespace UnityEditor.VFX.UI
 #if _RESTRICT_ATTRIBUTE_ACCESS
 
                 var contextTypeInChildren = cache.localChildrenOperator.OfType<VFXBlock>().Select(o => o.GetParent().contextType);
-                if (contextTypeInChildren.Any(o => o == VFXContextType.kSpawner))
+                if (contextTypeInChildren.Any(o => o == VFXContextType.Spawner))
                 {
                     if (cache.descendantOfAttribute == null)
                         cache.descendantOfAttribute = CollectDescendantOfAttribute(viewController.AllSlotContainerControllers);

@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             // Not all outputs may be connected (well one is or we wouln't get called) so we are carefull to
             // only generate code for connected outputs
@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph
                 string result = string.Format("StackInfo {0}_info = PrepareStack({1}, {0});"
                         , stackName
                         , GetSlotValue(UVInputId, generationMode));
-                visitor.AddShaderChunk(result, true);
+                sb.AppendLine(result);
             }
 
             for (int i = 0; i < numSlots; i++)
@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph
                             , precision
                             , GetVariableNameForSlot(OutputSlotIds[i])
                             , id);
-                    visitor.AddShaderChunk(resultLayer, true);
+                    sb.AppendLine(resultLayer);
                 }
             }
 
@@ -169,11 +169,11 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (normalMapSpace == NormalMapSpace.Tangent)
                         {
-                            visitor.AddShaderChunk(string.Format("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotIds[i])), true);
+                            sb.AppendLine(string.Format("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotIds[i])));
                         }
                         else
                         {
-                            visitor.AddShaderChunk(string.Format("{0}.rgb = UnpackNormalRGB({0});", GetVariableNameForSlot(OutputSlotIds[i])), true);
+                            sb.AppendLine(string.Format("{0}.rgb = UnpackNormalRGB({0});", GetVariableNameForSlot(OutputSlotIds[i])));
                         }
                     }
                 }
@@ -185,7 +185,7 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForSlot(FeedbackSlotId)
                         , GetSlotValue(UVInputId, generationMode)
                         , stackName);
-                visitor.AddShaderChunk(feedBackCode, true);
+               sb.AppendLine(feedBackCode);
             }
         }
 
@@ -445,7 +445,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             var slots = this.GetInputSlots<ISlot>();
             int numSlots = slots.Count();
@@ -453,7 +453,7 @@ namespace UnityEditor.ShaderGraph
             if (numSlots > 1)
             {
                 string arrayName = string.Format("{0}_array", GetVariableNameForSlot(AggregateOutputId));
-                visitor.AddShaderChunk(string.Format("float4 {0}[{1}];", arrayName, numSlots));
+                sb.AppendLine(string.Format("float4 {0}[{1}];", arrayName, numSlots));
 
                 int arrayIndex = 0;
                 foreach (var slot in slots)
@@ -462,7 +462,7 @@ namespace UnityEditor.ShaderGraph
                             , arrayName
                             , arrayIndex
                             , GetSlotValue(AggregateInputFirstId + arrayIndex, generationMode));
-                    visitor.AddShaderChunk(code);
+                    sb.AppendLine(code);
                     arrayIndex++;
                 }
 
@@ -472,7 +472,7 @@ namespace UnityEditor.ShaderGraph
                         , ShaderGeneratorNames.PixelCoordinate
                         , numSlots);
 
-                visitor.AddShaderChunk(feedBackCode);
+                sb.AppendLine(feedBackCode);
             }
             else if (numSlots == 1)
             {
@@ -480,7 +480,7 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForSlot(AggregateOutputId)
                         , GetSlotValue(AggregateInputFirstId, generationMode));
 
-                visitor.AddShaderChunk(feedBackCode);
+                sb.AppendLine(feedBackCode);
             }
             else
             {
@@ -488,7 +488,7 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForSlot(AggregateOutputId)
                         , GetSlotValue(AggregateInputFirstId, generationMode));
 
-                visitor.AddShaderChunk(feedBackCode);
+                sb.AppendLine(feedBackCode);
             }
         }
 

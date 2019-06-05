@@ -185,7 +185,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 {
     // Prepare the VT stack for sampling
     StackInfo stackInfo = PrepareStack(ADD_IDX(layerTexCoord.base).uv, ADD_IDX(_TextureStack));
-    surfaceData.VTFeedback = GetResolveOutput(stackInfo); //TODO(ddebaets) merge this into StackInfo
+    surfaceData.VTFeedback = GetResolveOutput(stackInfo);
 
     const float4 baseColorValue = SampleStack(stackInfo, ADD_IDX(_BaseColorMap)); //SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base));
     float alpha = baseColorValue.a * ADD_IDX(_BaseColor).a;

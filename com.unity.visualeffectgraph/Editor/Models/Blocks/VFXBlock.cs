@@ -34,6 +34,14 @@ namespace UnityEditor.VFX
                 Invalidate(InvalidationCause.kStructureChanged);
             }
         }
+        public virtual bool isValid
+        {
+            get
+            {
+                if (GetParent() == null) return true; // a block is invalid only if added to incompatible context.
+                return (compatibleContexts & GetParent().contextType) == GetParent().contextType;
+            }
+        }
 
         public abstract VFXContextType compatibleContexts { get; }
         public abstract VFXDataType compatibleData { get; }

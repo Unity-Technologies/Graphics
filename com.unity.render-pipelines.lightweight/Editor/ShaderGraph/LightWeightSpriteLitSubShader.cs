@@ -76,6 +76,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             string litPassTemplate = ReadTemplate("lightweightSpriteLitPass.template", sourceAssetDependencyPaths);
             string normalPassTemplate = ReadTemplate("lightweightSpriteNormalPass.template", sourceAssetDependencyPaths);
+            string forwardPassTemplate = ReadTemplate("lightweightSpriteForwardPass.template", sourceAssetDependencyPaths);
             var litMasterNode = masterNode as SpriteLitMasterNode;
 
             var litPass = m_LitPass;
@@ -106,6 +107,13 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                         normalPass,
                         mode,
                         materialOptions));
+                subShader.AppendLines(GetShaderPassFromTemplate(
+                        false,
+                        forwardPassTemplate,
+                        litMasterNode,
+                        normalPass,
+                        mode,
+                        materialOptions));
             }
 
             return subShader.ToString();
@@ -122,6 +130,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
 
             var shaderProperties = new PropertyCollector();
             var shaderPragmas = new PragmaCollector();
+            var shaderPropertyUniforms = new ShaderStringBuilder(1);
             var functionBuilder = new ShaderStringBuilder(1);
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -292,6 +301,11 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             // ----------------------------------------------------- //
 
             // -------------------------------------
+            // Property uniforms
+
+            shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
+
+            // -------------------------------------
             // Generate Input structure for Vertex shader
 
             GraphUtil.GenerateApplicationVertexInputs(vertexRequirements.Union(pixelRequirements.Union(modelRequiements)), vertexInputStruct);
@@ -323,7 +337,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             // -------------------------------------
             // Combine Graph sections
 
-            graph.AppendLine(shaderProperties.GetPropertiesDeclaration(1, mode));
+            graph.AppendLines(shaderPropertyUniforms.ToString());
 
             graph.AppendLine(vertexDescriptionInputStruct.ToString());
             graph.AppendLine(surfaceDescriptionInputStruct.ToString());

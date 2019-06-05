@@ -337,14 +337,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // If Primary Visibility is on flag its RAS needUpdate
-            if (rtEnv.raytracedObjects)
+            // if (rtEnv.raytracedObjects)
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.raytracedLayerMask);
                 currentSubScene.needUpdate = true;
             }
 
             // If indirect diffuse is on flag its RAS needUpdate
-            if (rtEnv.raytracedIndirectDiffuse)
+            // if (rtEnv.raytracedIndirectDiffuse)
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.indirectDiffuseLayerMask);
                 currentSubScene.needUpdate = true;
@@ -392,14 +392,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // If Primary Visibility is on flag its light cluster
-            if (rtEnv.raytracedObjects)
+            // if (rtEnv.raytracedObjects)
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.raytracedLayerMask);
                 currentSubScene.needUpdate = true;
             }
 
             // If indirect diffuse is on flag its light cluster
-            if (rtEnv.raytracedIndirectDiffuse)
+            // if (rtEnv.raytracedIndirectDiffuse)
             {
                 HDRayTracingSubScene currentSubScene = RequestSubScene(rtEnv.indirectDiffuseLayerMask);
                 currentSubScene.needUpdate = true;

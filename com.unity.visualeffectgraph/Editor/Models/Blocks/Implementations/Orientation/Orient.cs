@@ -38,8 +38,8 @@ namespace UnityEditor.VFX.Block
 
         public override string name { get { return "Orient : " + ObjectNames.NicifyVariableName(mode.ToString()); } }
 
-        public override VFXContextType compatibleContexts   { get { return VFXContextType.kOutput; } }
-        public override VFXDataType compatibleData          { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts   { get { return VFXContextType.Output; } }
+        public override VFXDataType compatibleData          { get { return VFXDataType.Particle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

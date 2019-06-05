@@ -100,6 +100,8 @@ namespace UnityEngine.Rendering.LWRP
             Lightmapping.SetDelegate(lightsDelegate);
 
             CameraCaptureBridge.enabled = true;
+
+            RenderingUtils.ClearSystemInfoCache();
         }
 
         protected override void Dispose(bool disposing)
@@ -148,7 +150,11 @@ namespace UnityEngine.Rendering.LWRP
             var settings = asset;
             LWRPAdditionalCameraData additionalCameraData = null;
             if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
+#if UNITY_2019_3_OR_NEWER
+                camera.gameObject.TryGetComponent(out additionalCameraData);
+#else
                 additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
+#endif
 
             InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
             SetupPerCameraShaderConstants(cameraData);
@@ -160,8 +166,13 @@ namespace UnityEngine.Rendering.LWRP
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get(camera.name);
-            using (new ProfilingSample(cmd, camera.name))
+#if UNITY_EDITOR
+            string tag = camera.name;
+#else
+            string tag = k_RenderCameraTag;
+#endif
+            CommandBuffer cmd = CommandBufferPool.Get(tag);
+            using (new ProfilingSample(cmd, tag))
             {
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
@@ -216,30 +227,14 @@ namespace UnityEngine.Rendering.LWRP
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
                 msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
-
-            if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
-            {
-                bool msaaSampleCountHasChanged = false;
-                int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
-                if (currentQualitySettingsSampleCount != msaaSamples &&
-                    !(currentQualitySettingsSampleCount == 0 && msaaSamples == 1))
-                {
-                    msaaSampleCountHasChanged = true;
-                }
-
-                // There's no exposed API to control how a backbuffer is created with MSAA
-                // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
-                // We only do this for the main camera and this only takes effect in the beginning of next frame.
-                // This settings should not be changed on a frame basis so that's fine.
-                QualitySettings.antiAliasing = msaaSamples;
-
-                if (cameraData.isStereoEnabled && msaaSampleCountHasChanged)
-                    XR.XRDevice.UpdateEyeTextureMSAASetting();
-            }
             
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
+#if UNITY_2019_3_OR_NEWER
+            camera.TryGetComponent(out cameraData.postProcessLayer);
+#else
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
+#endif
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
 
             // Disables postprocessing in mobile VR. It's stable on mobile yet.
@@ -340,8 +335,15 @@ namespace UnityEngine.Rendering.LWRP
             for (int i = 0; i < visibleLights.Length; ++i)
             {
                 Light light = visibleLights[i].light;
-                LWRPAdditionalLightData data =
-                    (light != null) ? light.gameObject.GetComponent<LWRPAdditionalLightData>() : null;
+                LWRPAdditionalLightData data = null;
+                if (light != null)
+                {
+#if UNITY_2019_3_OR_NEWER
+                    light.gameObject.TryGetComponent(out data);
+#else
+                    data = light.gameObject.GetComponent<LWRPAdditionalLightData>();
+#endif
+                }
 
                 if (data && !data.usePipelineSettings)
                     m_ShadowBiasData.Add(new Vector4(light.shadowBias, light.shadowNormalBias, 0.0f, 0.0f));
@@ -354,7 +356,7 @@ namespace UnityEngine.Rendering.LWRP
             // Until we can have keyword stripping forcing single cascade hard shadows on gles2
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            shadowData.supportsMainLightShadows = settings.supportsMainLightShadows && mainLightCastShadows;
+            shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && settings.supportsMainLightShadows && mainLightCastShadows;
 
             // we resolve shadows in screenspace when cascades are enabled to save ALU as computing cascade index + shadowCoord on fragment is expensive
             shadowData.requiresScreenSpaceShadowResolve = shadowData.supportsMainLightShadows && supportsScreenSpaceShadows && settings.shadowCascadeOption != ShadowCascadesOption.NoCascades;
@@ -394,7 +396,7 @@ namespace UnityEngine.Rendering.LWRP
                     break;
             }
 
-            shadowData.supportsAdditionalLightShadows = settings.supportsAdditionalLightShadows && additionalLightsCastShadows;
+            shadowData.supportsAdditionalLightShadows = SystemInfo.supportsShadows && settings.supportsAdditionalLightShadows && additionalLightsCastShadows;
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;

@@ -20,7 +20,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingConsts.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 
 // The target acceleration structure that we will evaluate the reflexion in
@@ -40,7 +40,7 @@ void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload
 {
     if(_RaytracingReflectSky != 0)
     {
-        rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0).xyz;
+        rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0, 0).xyz;
     }
     rayIntersection.t = _RaytracingRayMaxLength;
 }
@@ -66,12 +66,12 @@ void RayGenHalfRes()
     // Pixel where we will store the result of the raytracing
     uint2 outputCoord = halfResCoord * 2;
 
-    // Pixel coordinate in full res of the pixel that we will be using for our calculus
+    // Pixel coordinate in full res of the pixel that we will be using for our computation
     uint2 sourceCoord = outputCoord + shift;
 
     // Clear the textures (in case the sample that we generate does doesn't generate any )
-    _SsrLightingTextureRW[outputCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    _SsrHitPointTexture[outputCoord] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    _SsrLightingTextureRW[outputCoord] = float4(0.0, 0.0, 0.0, 0.0);
+    _SsrHitPointTexture[outputCoord] = float4(0.0, 0.0, 0.0, 1.0);
 
     // Read the depth value
     float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
@@ -116,9 +116,9 @@ void RayGenHalfRes()
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
-    float NdotL, NdotH, VdotH, LdotH;
+    float NdotL, NdotH, VdotH;
     // TODO: use Eric's paper on visible normal distribution sampling in order to make all samples worth it
-    SampleGGXDir2(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH, LdotH, false);
+    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
     // If this direction is under the surface, let's generate a new one that won't be
     // TODO: use Eric's paper on visible normal distribution sampling
@@ -130,7 +130,7 @@ void RayGenHalfRes()
 
         sample.x = GetRaytracingNoiseSample(globalSampleIndex, 0, scramblingValue.x);
         sample.y = GetRaytracingNoiseSample(globalSampleIndex, 1, scramblingValue.y);
-        SampleGGXDir2(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH, LdotH, false);
+        SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     }
 
     if (dot(sampleDir, normalData.normalWS) <= 0.00f)
@@ -148,10 +148,10 @@ void RayGenHalfRes()
     rayIntersection.color = float3(0.0, 0.0, 0.0);
     rayIntersection.incidentDirection = rayDescriptor.Direction;
     rayIntersection.origin = rayDescriptor.Origin;
-    rayIntersection.t = -1.0f;
+    rayIntersection.t = -1.0;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
+    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
     if (_RayCountEnabled > 0)
     {
@@ -162,12 +162,12 @@ void RayGenHalfRes()
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Compute the PDF
-    float samplePDF = 1.0f;
+    float samplePDF = 1.0;
 
     // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
     if (roughness > 0.001)
     {
-        samplePDF = D_GGX(NdotH, roughness) * NdotH / (4.0f * LdotH);
+        samplePDF = D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH);
     }
 
     // Make sure we pre-expose and then we clamp
@@ -176,7 +176,7 @@ void RayGenHalfRes()
     // We store the clamped, pre-exposed value and the index of the target pixel in the first texture
     _SsrLightingTextureRW[outputCoord] = float4(exposedValue, subPixelSample);
     // In the second texture, we store the sampled direction and the invPDF of the sample
-    _SsrHitPointTexture[outputCoord] = float4(sampleDir, 1.0f / samplePDF);
+    _SsrHitPointTexture[outputCoord] = float4(sampleDir, 1.0 / samplePDF);
 }
 
 [shader("raygeneration")]
@@ -193,7 +193,7 @@ void RayGenIntegration()
     uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
 
     // Clear the output color texture
-    _SsrLightingTextureRW[currentCoord] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    _SsrLightingTextureRW[currentCoord] = float4(0.0, 0.0, 0.0, 0.0);
 
     // Read the depth value
     float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).r;
@@ -203,7 +203,7 @@ void RayGenIntegration()
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, 1.0f/LaunchDim.xy, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
     float distanceToCamera = length(posInput.positionWS);
 
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
@@ -217,7 +217,7 @@ void RayGenIntegration()
     // Override the roughness by the clearcoat value of this is a clear coat
     float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, currentCoord);
     normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
-    
+
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
@@ -233,7 +233,7 @@ void RayGenIntegration()
 
     // Variable that accumulate the radiance
     float3 finalColor = float3(0.0, 0.0, 0.0);
-    
+
     if (_RayCountEnabled > 0)
     {
         _RayCountTexture[currentCoord].y = _RayCountTexture[currentCoord].y + (uint)realSampleCount;
@@ -252,18 +252,18 @@ void RayGenIntegration()
 
         // Importance sample the direction using GGX
         float3 sampleDir = float3(0.0, 0.0, 0.0);
-        float NdotL, NdotH, VdotH, LdotH;
-        SampleGGXDir2(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH, LdotH, false);
+        float NdotL, NdotH, VdotH;
+        SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
         // If the sample is under the surface
-        if (dot(sampleDir, normalData.normalWS) <= 0.00f)
+        if (dot(sampleDir, normalData.normalWS) <= 0.0)
             continue;
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
         rayDescriptor.Origin = positionWS + normalData.normalWS * _RaytracingRayBias;
         rayDescriptor.Direction = sampleDir;
-        rayDescriptor.TMin = 0.0f;
+        rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = _RaytracingRayMaxLength;
 
         // Create and init the RayIntersection structure for this
@@ -271,7 +271,7 @@ void RayGenIntegration()
         rayIntersection.color = float3(0.0, 0.0, 0.0);
         rayIntersection.incidentDirection = rayDescriptor.Direction;
         rayIntersection.origin = rayDescriptor.Origin;
-        rayIntersection.t = -1.0f;
+        rayIntersection.t = -1.0;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle;
@@ -285,13 +285,13 @@ void RayGenIntegration()
     }
 
    	// Normalize the value
-    finalColor *= 1.0f / realSampleCount;
+    finalColor *= 1.0 / realSampleCount;
 
     // Expose and clamp the final color
     finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
 
-    // We store the sampled color and the weight that shall be used for it (1.0f)
-    _SsrLightingTextureRW[currentCoord] = float4(finalColor, 1.0f);
+    // We store the sampled color and the weight that shall be used for it (1.0)
+    _SsrLightingTextureRW[currentCoord] = float4(finalColor, 1.0);
 }
 
 [shader("closesthit")]
