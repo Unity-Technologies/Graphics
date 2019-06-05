@@ -336,6 +336,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8104_Unlit.unity
     guid: 7529f10e11b78924b9c1ee1727b1405f
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8105_BlendStates.unity
+    guid: e75b9916869e2384b8e53bc6bffb1314
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8201_VertexAnimation.unity
     guid: 328570ab5ddac484bbf26d8504f7f417
   - enabled: 1
