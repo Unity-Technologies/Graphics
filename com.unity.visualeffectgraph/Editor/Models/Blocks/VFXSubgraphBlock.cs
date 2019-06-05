@@ -33,15 +33,24 @@ namespace UnityEditor.VFX
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get {
-                if(m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
-                    Debug.LogError("input Properties called before OnEnable in Subgraph block");
 
-                foreach ( var param in GetParameters(t=> InputPredicate(t)))
+                if(m_isInOnEnable) // Recreate copy cannot be called in OnEnable because the subgraph my not have been enabled itself so in OnEnable send back the previous input properties
                 {
-                    if (!string.IsNullOrEmpty(param.tooltip))
-                        yield return new VFXPropertyWithValue(new VFXProperty(param.type, param.exposedName, new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip, param.tooltip)), param.value);
-                    else
-                        yield return new VFXPropertyWithValue(new VFXProperty(param.type, param.exposedName), param.value);
+                    if (subgraph != null)
+                    {
+                        foreach (var inputSlot in inputSlots)
+                            yield return new VFXPropertyWithValue(inputSlot.property, inputSlot.value);
+                    }
+                }
+                else
+                {
+                    if (m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
+                        RecreateCopy();
+
+                    foreach (var param in GetParameters(t => InputPredicate(t)))
+                    {
+                        yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
+                    }
                 }
             }
         }
@@ -62,10 +71,12 @@ namespace UnityEditor.VFX
             return m_SubChildren.OfType<VFXParameter>().Where(t => predicate(t)).OrderBy(t => t.order);
         }
 
+        bool m_isInOnEnable;
         private new void OnEnable()
         {
-            RecreateCopy();
+            m_isInOnEnable = true;
             base.OnEnable();
+            m_isInOnEnable = false;
         }
 
         void SubChildrenOnInvalidate(VFXModel model, InvalidationCause cause)
@@ -76,10 +87,13 @@ namespace UnityEditor.VFX
         {
             get
             {
-                foreach( var block in m_SubBlocks)
+                if (m_SubBlocks != null)
                 {
-                    foreach (var attribute in block.attributes)
-                        yield return attribute;
+                    foreach (var block in m_SubBlocks)
+                    {
+                        foreach (var attribute in block.attributes)
+                            yield return attribute;
+                    }
                 }
             }
         }
@@ -185,7 +199,16 @@ namespace UnityEditor.VFX
             {
                 if (m_Subgraph == null)
                     return true;
-                return (m_Subgraph.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType & GetParent().contextType) == GetParent().contextType;
+
+                VFXGraph subGraph = m_Subgraph.GetResource().GetOrCreateGraph();
+                VFXBlockSubgraphContext blockContext = subGraph.children.OfType<VFXBlockSubgraphContext>().First();
+                VFXContext parent = GetParent();
+                if (parent == null )
+                    return true;
+                if (blockContext == null)
+                    return false;
+
+                return (blockContext.compatibleContextType & parent.contextType) == parent.contextType;
             }
         }
 

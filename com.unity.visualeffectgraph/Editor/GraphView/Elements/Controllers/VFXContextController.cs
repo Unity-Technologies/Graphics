@@ -112,7 +112,7 @@ namespace UnityEditor.VFX.UI
             if (model is VFXSubgraphContext)
             {
                 SyncFlowAnchors();
-                model.ResyncSlots(false);
+                model.ResyncSlots(true);
             }
         }
 
