@@ -37,9 +37,7 @@ namespace UnityEditor.ShaderGraph
 
                     if (vtStack != null)
                     {
-                        string[] textureProperties = ShaderUtil.GetStackTextureProperties(shader, stackPropName);
-
-                        string hash = GetStackHash(textureProperties, material);
+                        string hash = GetStackHash(stackPropName, material);
 
                         if (hash != vtStack.atlasName)
                             return false;
@@ -55,10 +53,19 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
 
-        private static string GetStackHash(string[] textureProperties, Material material)
-        {
+        public static string GetStackHash(string stackPropName, Material material)
+        {            
             // fill in a (hashed) name
             string texturesHash = "";
+
+            if (material == null)
+                return texturesHash;
+
+            if (material.shader == null)
+                return texturesHash;
+
+
+            string[] textureProperties = ShaderUtil.GetStackTextureProperties(material.shader, stackPropName);
 
             TextureWrapMode wrapMode = TextureWrapMode.Clamp;
             TextureImporterNPOTScale textureScaling = TextureImporterNPOTScale.None;
@@ -68,47 +75,42 @@ namespace UnityEditor.ShaderGraph
             for (int j = 0; j < textureProperties.Length; j++)
             {
                 string textureProperty = textureProperties[j];
+                string hash = "NO-DATA";  //TODO for empty layers the Granite layer data type is unknown. Therefor, this stack can be part of different tile sets with different layer layouts and still have the same hash
 
-                if (!material.HasProperty(textureProperty)) //todo is this a broken shader? Report to user?
-                    continue;
+                Debug.Assert(material.HasProperty(textureProperty));    
 
                 Texture2D tex2D = material.GetTexture(textureProperty) as Texture2D;
 
-                if (tex2D == null)
-                    continue;
-
-                string path = AssetDatabase.GetAssetPath(tex2D);
-
-                if (string.IsNullOrEmpty(path))
-                    continue;
-
-                string hash = tex2D.imageContentsHash.ToString();
-
-                if (hash == null)
+                if (tex2D != null)
                 {
-                    continue;
-                }
+                    string path = AssetDatabase.GetAssetPath(tex2D);
 
-                TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
-                if (textureImporter == null)
-                {
-                    // probably a fallback texture
-                    continue;
-                }
+                    if (!string.IsNullOrEmpty(path) && tex2D.imageContentsHash != null )
+                    { 
+                        Debug.Assert(hash!=null); // todo we checked this before, does this still make sense?
+
+                        TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+
+                        if (textureImporter != null)// probably a fallback texture if this is false
+                        {
+                            hash = GetTextureHash(tex2D);
+
+                            if (!firstTextureAdded)
+                            {
+                                wrapMode = tex2D.wrapMode;
+                                textureScaling = textureImporter.npotScale;
+                                firstTextureAdded = true;
+                            }
+                            else
+                            {
+                                if (wrapMode != tex2D.wrapMode || textureScaling != textureImporter.npotScale)
+                                    UnityEngine.Debug.LogError("Texture settings don't match on all layers of StackedTexture");
+                            }
+                        }
+                    }
+                }                
 
                 texturesHash += hash;
-
-                if (!firstTextureAdded)
-                {
-                    wrapMode = tex2D.wrapMode;
-                    textureScaling = textureImporter.npotScale;
-                    firstTextureAdded = true;
-                }
-                else
-                {
-                    if (wrapMode != tex2D.wrapMode || textureScaling != textureImporter.npotScale)
-                        UnityEngine.Debug.LogError("Texture settings don't match on all layers of StackedTexture");
-                }
 
             }
 
@@ -119,9 +121,73 @@ namespace UnityEditor.ShaderGraph
             String settingsHash = "";
 
 
-            return ("version_1_" + textureProperties.Length + texturesHash + assetHash + settingsHash).GetHashCode().ToString("X");
+            return ("version_1_" + texturesHash + assetHash + settingsHash).GetHashCode().ToString("X");
         }
 
+        /// <summary>
+        /// Get a string that uniquely identifies the texture on the given slot of the given material.
+        /// </summary>
+        public static string GetTextureHash(Texture2D texture)
+        {
+            if (texture == null)
+            {
+                return null;
+            }
 
+            // Do the texture resize here if needed. We only resize the texture if it's a normal texture. 
+            // This makes sure we get the texture hash after the rescale, which is the hash we'll get when the material is valid
+            string assetPath = AssetDatabase.GetAssetPath(texture);
+            TextureImporter textureImporter = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+
+            if (textureImporter != null)
+            {
+                /* TODO no resizing for now
+                if (textureImporter.maxTextureSize > Constants.TextureResizeSize)
+                {
+                    textureImporter.maxTextureSize = Constants.TextureResizeSize;
+                    AssetDatabase.ImportAsset(assetPath);
+
+                    // Validate setting the size worked.
+                    TextureImporter validateImport = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+                    if (validateImport.maxTextureSize > Constants.TextureResizeSize)
+                    {
+                        UnityEngine.Debug.LogError("Could not set maxTextureSize of '" + assetPath + "' to " + Constants.TextureResizeSize + ". Do you have an AssetPostProcessor active that changes texture sizes?");
+                    }
+                }
+                */
+            }
+
+            return texture.imageContentsHash.ToString() + GetGraniteLayerDataType(textureImporter);
+        }
+
+        //returns null if no valid texture importer is passed
+        public static string GetGraniteLayerDataType(TextureImporter textureImporter)
+        {
+            if (textureImporter == null)
+                return null;
+
+            if (textureImporter.textureType == TextureImporterType.NormalMap)
+                return "X8Y8Z0_TANGENT";
+
+            if (textureImporter.textureType == TextureImporterType.SingleChannel)
+                return "X8";
+
+            //todo is this the only way to detect HDR?
+            TextureImporterFormat format = textureImporter.GetAutomaticFormat("Standalone");
+
+            switch (format)
+            {
+                case TextureImporterFormat.BC6H:
+                case TextureImporterFormat.RGB16:
+                    return "R16G16B16_FLOAT";
+                default:
+                    break;
+            }
+
+            if (textureImporter.sRGBTexture)
+                return "R8G8B8A8_SRGB";
+            else
+                return "R8G8B8A8_LINEAR";
+        }
     }
 }
