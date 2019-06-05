@@ -119,7 +119,7 @@ namespace UnityEditor.VFX.UI
             UpdateInfos();
             Profiler.EndSample();
 
-            sourceNode.DataEdgesMightHaveChanged();
+            sourceNode.DataEdgesMightHaveChanged();            
 
             Profiler.BeginSample("VFXDataAnchorController.NotifyChange");
             NotifyChange(AnyThing);

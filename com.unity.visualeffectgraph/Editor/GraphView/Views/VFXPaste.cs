@@ -307,7 +307,7 @@ namespace UnityEditor.VFX.UI
 
             var slotContainer = model as IVFXSlotContainer;
             var inputSlots = slotContainer.inputSlots;
-            for (int i = 0; i < node.inputSlots.Length; ++i)
+            for (int i = 0; i < node.inputSlots.Length && i< inputSlots.Count; ++i)
             {
                 if (inputSlots[i].name == node.inputSlots[i].name)
                 {

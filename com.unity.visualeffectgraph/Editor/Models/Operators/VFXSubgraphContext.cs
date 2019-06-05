@@ -6,7 +6,8 @@ using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental.VFX;
 
 namespace UnityEditor.VFX
-{   
+{
+
     class VFXSubgraphContext : VFXContext
     {
         public const string triggerEventName = "Trigger";
@@ -21,8 +22,23 @@ namespace UnityEditor.VFX
             get { return m_Subgraph; }
         }
 
+        public static void CallOnGraphChanged(VFXGraph graph)
+        {
+            if (OnGraphChanged != null)
+                OnGraphChanged(graph);
+        }
+
+        static Action<VFXGraph> OnGraphChanged; 
+
         public VFXSubgraphContext():base(VFXContextType.Subgraph, VFXDataType.SpawnEvent, VFXDataType.None)
         {
+            OnGraphChanged += GraphParameterChanged;
+        }
+
+        void GraphParameterChanged(VFXGraph graph)
+        {
+            if (m_Subgraph == graph.GetResource().asset && GetParent() != null)
+                RecreateCopy();
         }
 
         public const int s_MaxInputFlow = 5;
@@ -42,9 +58,7 @@ namespace UnityEditor.VFX
                 }
 
                 foreach ( var param in GetParameters(t=> InputPredicate(t)))
-                {
-                    yield return new VFXPropertyWithValue(new VFXProperty(param.type, param.exposedName));
-                }
+                    yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
             }
         }
 
@@ -90,6 +104,7 @@ namespace UnityEditor.VFX
         private void OnDisable()
         {
             DetachFromOriginal();
+            OnGraphChanged -= GraphParameterChanged;
         }
 
 

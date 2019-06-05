@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.UI
             m_ContextController = contextController;
             if (model is VFXSubgraphBlock)
             {
-                model.Invalidate(VFXModel.InvalidationCause.kSettingChanged); // Simulate a settings change in case the subgraph parameters has changed.
+                (model as VFXSubgraphBlock).RecreateCopy();
             }
         }
 
