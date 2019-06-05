@@ -101,7 +101,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ExposedToogle.value = input.generatePropertyBlock;
                     AddRow("Exposed", m_ExposedToogle);
                 }
+            }
 
+            if(!m_Graph.isSubGraph || input is ShaderKeyword)
+            {
                 if(input.isRenamable)
                 {
                     m_ReferenceNameField = new TextField(512, false, false, ' ') { isDelayed = true };
