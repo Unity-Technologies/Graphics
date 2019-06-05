@@ -137,7 +137,6 @@ namespace UnityEditor.ShaderGraph
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            return "";
         }
 
         public override ShaderInput Copy()

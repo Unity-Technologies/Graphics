@@ -67,6 +67,48 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            switch(m_Keyword.keywordType)
+            {
+                case ShaderKeywordType.Boolean:
+                    BuildBooleanKeywordField(m_Keyword);
+                    break;
+                case ShaderKeywordType.Enum:
+                    BuildEnumKeywordField(m_Keyword);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        void BuildBooleanKeywordField(ShaderKeyword keyword)
+        {
+            var field = new Toggle() { value = keyword.value == 1 };
+            field.OnToggleChanged(evt =>
+                {
+                    graph.owner.RegisterCompleteObjectUndo("Change property value");
+                    keyword.value = evt.newValue ? 1 : 0;
+                    DirtyNodes();
+                });
+            AddRow("Default", field);
+        }
+
+        void BuildEnumKeywordField(ShaderKeyword keyword)
+        {
+            var field = new IntegerField { value = keyword.value };
+            field.RegisterValueChangedCallback(evt =>
+            {
+                keyword.value = evt.newValue;
+                this.MarkDirtyRepaint();
+            });
+            field.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
+            {
+                graph.owner.RegisterCompleteObjectUndo("Change Keyword Value");
+                int clampedValue = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
+                field.value = clampedValue;
+                DirtyNodes();
+            });
+            AddRow("Default", field);
+
             // Entries
             if(reorderableListInHierarchy)
             {
