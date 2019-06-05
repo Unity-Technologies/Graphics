@@ -287,6 +287,7 @@ public class VisualEffectAssetEditor : Editor
         motionVectorRenderModeProperty = resourceObject.FindProperty("m_Infos.m_RendererSettings.motionVectorGenerationMode");
         prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
         prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
+        initialEventName = resourceObject.FindProperty("m_Infos.m_InitialEventName");
     }
 
     PreviewRenderUtility m_PreviewUtility;
@@ -427,6 +428,7 @@ public class VisualEffectAssetEditor : Editor
     SerializedProperty motionVectorRenderModeProperty;
     SerializedProperty prewarmDeltaTime;
     SerializedProperty prewarmStepCount;
+    SerializedProperty initialEventName;
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
 
@@ -545,6 +547,17 @@ public class VisualEffectAssetEditor : Editor
                         prewarmDeltaTime.floatValue = k_MinimalCommonDeltaTime;
                     resourceObject.ApplyModifiedProperties();
                 }
+            }
+        }
+
+        if (initialEventName != null)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = initialEventName.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(initialEventName);
+            if (EditorGUI.EndChangeCheck())
+            {
+                resourceObject.ApplyModifiedProperties();
             }
         }
 

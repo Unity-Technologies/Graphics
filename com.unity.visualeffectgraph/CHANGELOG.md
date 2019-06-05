@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - auto recompile new vfx
 - better detection of default shader path
 - Bitfield control.
+- Initial Event Name inspector for visual effect asset and component
 
 ## [6.7.0-preview] - 2019-05-16
 ### Added
