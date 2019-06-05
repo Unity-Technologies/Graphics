@@ -94,12 +94,17 @@ namespace UnityEditor.VFX.UI
 
                         if ( typeof(T) == typeof(VisualEffectSubgraphBlock))
                         {
-                            VFXBlockSubgraphContext blockContext = asset.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First();
+                            VFXBlockSubgraphContext blockContext = asset.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
 
-                            item.additionalInfos = new AdditionalBlockInfo() { compatibleType = blockContext.compatibleContextType, compatibleData = blockContext.ownedType };
+                            if (blockContext != null)
+                            {
+                                item.additionalInfos = new AdditionalBlockInfo() { compatibleType = blockContext.compatibleContextType, compatibleData = blockContext.ownedType };
+                                m_Items.Add(item);
+                            }
                         }
+                        else
+                            m_Items.Add(item);
 
-                        m_Items.Add(item);
                     }
                 }
             }
