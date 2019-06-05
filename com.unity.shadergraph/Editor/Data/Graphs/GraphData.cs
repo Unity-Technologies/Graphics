@@ -642,6 +642,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void CollectShaderKeywords(KeywordCollector collector, GenerationMode generationMode)
+        {
+            foreach (var keyword in keywords)
+            {
+                collector.AddShaderKeyword(keyword);
+            }
+        }
+
         public void AddGraphInput(ShaderInput input)
         {
             if (input == null)

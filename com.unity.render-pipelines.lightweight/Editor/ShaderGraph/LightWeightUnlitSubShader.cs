@@ -135,6 +135,8 @@ namespace UnityEngine.Rendering.LWRP
             // -------------------------------------
             // String builders
 
+            var shaderKeywords = new KeywordCollector();
+            var shaderKeywordDeclarations = new ShaderStringBuilder(1);
             var shaderProperties = new PropertyCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder(1);
             var functionBuilder = new ShaderStringBuilder(1);
@@ -322,6 +324,12 @@ namespace UnityEngine.Rendering.LWRP
             // ----------------------------------------------------- //
 
             // -------------------------------------
+            // Keyword declarations
+
+            masterNode.owner.CollectShaderKeywords(shaderKeywords, mode);
+            shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
+
+            // -------------------------------------
             // Property uniforms
 
             shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
@@ -373,6 +381,7 @@ namespace UnityEngine.Rendering.LWRP
             // -------------------------------------
             // Combine Graph sections
 
+            graph.AppendLines(shaderKeywordDeclarations.ToString());
             graph.AppendLines(shaderPropertyUniforms.ToString());
 
             graph.AppendLine(vertexDescriptionInputStruct.ToString());

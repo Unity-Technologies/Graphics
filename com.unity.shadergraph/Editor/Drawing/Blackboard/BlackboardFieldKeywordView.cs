@@ -125,6 +125,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return m_ReorderableList.elementHeight;
             };
 
+            // Can add
+            m_ReorderableList.onCanAddCallback = (ReorderableList list) => 
+            {  
+                return list.count < 9;
+            };
+
             // Can remove
             m_ReorderableList.onCanRemoveCallback = (ReorderableList list) => 
             {  

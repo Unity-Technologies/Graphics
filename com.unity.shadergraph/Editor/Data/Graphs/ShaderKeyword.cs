@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -36,9 +37,9 @@ namespace UnityEditor.ShaderGraph
             if(keywordType == ShaderKeywordType.Enum)
             {
                 m_Entries = new List<ShaderKeywordEntry>();
-                m_Entries.Add(new ShaderKeywordEntry("A", $"{referenceName}_A"));
-                m_Entries.Add(new ShaderKeywordEntry("B", $"{referenceName}_B"));
-                m_Entries.Add(new ShaderKeywordEntry("C", $"{referenceName}_C"));
+                m_Entries.Add(new ShaderKeywordEntry("A", $"A"));
+                m_Entries.Add(new ShaderKeywordEntry("B", $"B"));
+                m_Entries.Add(new ShaderKeywordEntry("C", $"C"));
             }
         }
 
@@ -53,7 +54,7 @@ namespace UnityEditor.ShaderGraph
 
         public override ConcreteSlotValueType concreteShaderValueType => keywordType.ToConcreteSlotValueType();
         public override bool isExposable => keywordDefinition == ShaderKeywordDefinition.ShaderFeature;
-        public override bool isRenamable => keywordType == ShaderKeywordType.Boolean;
+        public override bool isRenamable => true;
 
         [SerializeField]
         private ShaderKeywordType m_KeywordType = ShaderKeywordType.Boolean;
@@ -89,6 +90,54 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_Entries;
             set => m_Entries = value;
+        }
+
+        [SerializeField]
+        private int m_Value;
+
+        public int value
+        {
+            get => m_Value;
+            set => m_Value = value;
+        }
+
+        public string GetPropertyBlockString()
+        {
+            switch(keywordType)
+            {
+                case ShaderKeywordType.Enum:
+                    string enumTagString = $"[KeywordEnum({string.Join(", ", entries.Select(x => x.displayName))})]";
+                    return $"{enumTagString}{referenceName}(\"{displayName}\", Float) = {value}";
+                case ShaderKeywordType.Boolean:
+                    return $"[Toggle]{referenceName}(\"{displayName}\", Float) = {value}";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public string GetKeywordDeclarationString()
+        {
+            if(keywordDefinition == ShaderKeywordDefinition.Predefined)
+                return string.Empty;
+
+            string scopeString = keywordScope == ShaderKeywordScope.Local ? "_local" : string.Empty;
+            string definitionString = $"{keywordDefinition.ToKeywordValueString()}{scopeString}";
+
+            switch(keywordType)
+            {
+                case ShaderKeywordType.Boolean:
+                    return $"#pragma {definitionString} _ {referenceName}";
+                case ShaderKeywordType.Enum:
+                    string[] enumEntryDefinitions = new string[entries.Count];
+                    for(int i = 0; i < enumEntryDefinitions.Length; i++)
+                        enumEntryDefinitions[i] = $"{referenceName}_{entries[i].referenceName}";
+                    string enumEntriesString = string.Join(" ", enumEntryDefinitions);
+                    // string enumEntriesString = $"{string.Join(" ", entries.Select(x => x.referenceName))}";
+                    return $"#pragma {definitionString} {enumEntriesString}";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            return "";
         }
 
         public override ShaderInput Copy()

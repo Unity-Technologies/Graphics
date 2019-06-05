@@ -926,6 +926,22 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
+        public static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector)
+        {
+            sb.AppendLine("Properties");
+            using (sb.BlockScope())
+            {
+                foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                {
+                    sb.AppendLine(prop.GetPropertyBlockString());
+                }
+                foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
+                {
+                    sb.AppendLine(key.GetPropertyBlockString());
+                }
+            }
+        }
+
         public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequiements, ShaderStringBuilder vertexInputs)
         {
             vertexInputs.AppendLine("struct GraphVertexInput");
@@ -975,7 +991,9 @@ namespace UnityEditor.ShaderGraph
             var results = new GenerationResults();
 
             var shaderProperties = new PropertyCollector();
+            var shaderKeywords = new KeywordCollector();
             var shaderPropertyUniforms = new ShaderStringBuilder();
+            var shaderKeywordDeclarations = new ShaderStringBuilder();
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -1069,6 +1087,8 @@ namespace UnityEditor.ShaderGraph
 
             shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, graph.concretePrecision);
 
+            shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
+
             // -------------------------------------
             // Generate Input structure for Vertex shader
 
@@ -1084,7 +1104,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.AppendLine(@"Shader ""{0}""", name);
             using (finalShader.BlockScope())
             {
-                shaderProperties.GetPropertiesBlock(finalShader);
+                GraphUtil.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords);
                 finalShader.AppendNewLine();
 
                 finalShader.AppendLine(@"HLSLINCLUDE");
@@ -1097,6 +1117,8 @@ namespace UnityEditor.ShaderGraph
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl""");
+
+                finalShader.AppendLines(shaderKeywordDeclarations.ToString());
                 finalShader.AppendLine(@"#define SHADERGRAPH_PREVIEW 1");
                 finalShader.AppendNewLine();
 

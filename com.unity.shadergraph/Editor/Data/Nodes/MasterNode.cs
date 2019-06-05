@@ -75,10 +75,12 @@ namespace UnityEditor.ShaderGraph
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
 
             var shaderProperties = new PropertyCollector();
-
-            var abstractMaterialGraph = owner as GraphData;
-            if (abstractMaterialGraph != null)
-                abstractMaterialGraph.CollectShaderProperties(shaderProperties, mode);
+            var shaderKeywords = new KeywordCollector();
+            if (owner != null)
+            {
+                owner.CollectShaderProperties(shaderProperties, mode);
+                owner.CollectShaderKeywords(shaderKeywords, mode);
+            }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
                 activeNode.CollectShaderProperties(shaderProperties, mode);
@@ -87,7 +89,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.AppendLine(@"Shader ""{0}""", outputName);
             using (finalShader.BlockScope())
             {
-                shaderProperties.GetPropertiesBlock(finalShader);
+                GraphUtil.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords);
 
                 foreach (var subShader in m_SubShaders)
                 {
