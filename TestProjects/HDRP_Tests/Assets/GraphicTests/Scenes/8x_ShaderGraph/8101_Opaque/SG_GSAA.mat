@@ -9,11 +9,11 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: SG_GSAA
   m_Shader: {fileID: 4800000, guid: c99e098f2f21b0c468ed12e3ae50f0b2, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _DISABLE_SSR
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap:
     MotionVector: User
   disabledShaderPasses:
@@ -29,10 +29,44 @@ Material:
     - Vector1_94EF1A0C: 0.95
     - Vector1_A20A5B58: 0.95
     - Vector1_C439D8D5: 0.95
+    - _AlphaCutoff: 0.5
+    - _AlphaCutoffEnable: 0
+    - _AlphaDstBlend: 0
+    - _AlphaSrcBlend: 1
+    - _BlendMode: 0
     - _CoatMask: 0.95
+    - _CullMode: 2
+    - _CullModeForward: 2
+    - _DoubleSidedEnable: 0
+    - _DoubleSidedNormalMode: 0
+    - _DstBlend: 0
     - _Metallic: 0.75
+    - _ReceivesSSR: 0
+    - _RenderQueueType: 1
+    - _RequireSplitLighting: 0
     - _Smoothness: 1
     - _SpecularAAScreenSpaceVariance: 0.8
     - _SpecularAAThreshold: 0.8
+    - _SrcBlend: 1
+    - _StencilRef: 2
+    - _StencilRefDepth: 32
+    - _StencilRefDistortionVec: 64
+    - _StencilRefGBuffer: 34
+    - _StencilRefMV: 160
+    - _StencilWriteMask: 3
+    - _StencilWriteMaskDepth: 48
+    - _StencilWriteMaskDistortionVec: 64
+    - _StencilWriteMaskGBuffer: 51
+    - _StencilWriteMaskMV: 176
+    - _SurfaceType: 0
+    - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
+    - _TransparentSortPriority: 0
+    - _UseShadowThreshold: 0
+    - _ZTestDepthEqualForOpaque: 3
+    - _ZTestGBuffer: 4
+    - _ZTestTransparent: 4
+    - _ZWrite: 1
     m_Colors:
+    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
