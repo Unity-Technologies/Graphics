@@ -685,9 +685,6 @@ namespace UnityEditor.ShaderGraph
             if (string.IsNullOrEmpty(name))
                 return;
 
-            if (!name.StartsWith("_"))
-                name = "_" + name;
-
             name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
             switch(input)
             {
