@@ -10,6 +10,19 @@ namespace UnityEditor.ShaderGraph
 
     public class StackStatus
     {
+        public static void UpdateMaterial(Material material, bool forceOff = false)
+        {
+            if (material.HasProperty("_VirtualTexturing") == false)
+                return;
+
+            bool enable = forceOff ? false : !(material.GetFloat("_VirtualTexturing") == 0.0f || !StackStatus.AllStacksValid(material));
+                     
+            if (enable)
+                material.EnableKeyword("VT_ON");
+            else
+                material.DisableKeyword("VT_ON");
+        }
+
         public static bool AllStacksValid(Material material)
         {
             var shader = material.shader;

@@ -4,6 +4,8 @@
 // Otherwise those parameters are not bound correctly at runtime.
 // ===========================================================================
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
+
 TEXTURE2D(_DistortionVectorMap);
 SAMPLER(sampler_DistortionVectorMap);
 
@@ -152,6 +154,8 @@ float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
+DECLARE_STACK_CB(_TextureStack);
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables
@@ -288,3 +292,5 @@ int _ObjectId;
 int _PassValue;
 
 CBUFFER_END
+
+DECLARE_STACK3(_TextureStack, _BaseColorMap, _MaskMap, _NormalMap);

@@ -138,7 +138,7 @@ Shader "Lightweight Render Pipeline/Terrain/Lit-VT"
 
             half4 frag(Varyings IN) : SV_TARGET
             {
-                return ResolveStack(IN.uvMainAndLM.xy, _TextureStack);
+                return ResolveStack(IN.uvMainAndLM.xy, _TextureStack, VT_ResolveConstantPatch);
             }
             ENDHLSL
         }

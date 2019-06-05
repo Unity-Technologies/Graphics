@@ -956,6 +956,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void MaterialPropertiesAdvanceGUI(Material material)
         {
             m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+
+#if ENABLE_VIRTUALTEXTURES
+            if (virtualTexturing != null)
+            {
+                m_MaterialEditor.ShaderProperty(virtualTexturing, StylesBaseLit.enableVirtualTextureText);
+            }
+#endif
         }
 
         protected override bool ShouldEmissionBeEnabled(Material material)

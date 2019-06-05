@@ -57,6 +57,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
+//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderConfig.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // Definition
@@ -68,6 +69,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #define GBufferType3 float4
 #define GBufferType4 float4
 #define GBufferType5 float4
+#define GBufferType6 float4
 
 #ifdef LIGHT_LAYERS
 #define GBUFFERMATERIAL_LIGHT_LAYERS 1
@@ -81,16 +83,35 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #define GBUFFERMATERIAL_SHADOWMASK 0
 #endif
 
-// Caution: This must be in sync with Lit.cs GetMaterialGBufferCount()
-#define GBUFFERMATERIAL_COUNT (4 + GBUFFERMATERIAL_LIGHT_LAYERS + GBUFFERMATERIAL_SHADOWMASK)
+#ifdef VT_ON
+#define GBUFFERMATERIAL_VTFEEDBACK 1
+#else
+#define GBUFFERMATERIAL_VTFEEDBACK 0
+#endif
 
-#if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
+
+// Caution: This must be in sync with Lit.cs GetMaterialGBufferCount()
+#define GBUFFERMATERIAL_COUNT (4 + GBUFFERMATERIAL_LIGHT_LAYERS + GBUFFERMATERIAL_SHADOWMASK + GBUFFERMATERIAL_VTFEEDBACK)
+
+#if defined(VT_ON) && defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer4
+#define OUT_GBUFFER_LIGHT_LAYERS outGBuffer5
+#define OUT_GBUFFER_SHADOWMASK outGBuffer6
+#elif defined(VT_ON) && defined(LIGHT_LAYERS)
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer4
+#define OUT_GBUFFER_LIGHT_LAYERS outGBuffer5
+#elif defined(VT_ON) && defined(SHADOWS_SHADOWMASK)
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer4
+#define OUT_GBUFFER_SHADOWMASK outGBuffer5
+#elif defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_LIGHT_LAYERS outGBuffer4
 #define OUT_GBUFFER_SHADOWMASK outGBuffer5
 #elif defined(LIGHT_LAYERS)
 #define OUT_GBUFFER_LIGHT_LAYERS outGBuffer4
 #elif defined(SHADOWS_SHADOWMASK)
 #define OUT_GBUFFER_SHADOWMASK outGBuffer4
+#elif defined(VT_ON)
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer4
 #endif
 
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
@@ -557,6 +578,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 #if GBUFFERMATERIAL_COUNT > 5
                         , out GBufferType5 outGBuffer5
 #endif
+#if GBUFFERMATERIAL_COUNT > 6
+                        , out GBufferType6 outGBuffer6
+#endif
                         )
 {
     // RT0 - 8:8:8:8 sRGB
@@ -660,6 +684,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 
 #ifdef SHADOWS_SHADOWMASK
     OUT_GBUFFER_SHADOWMASK = BUILTIN_DATA_SHADOW_MASK;
+#endif
+
+#ifdef VT_ON
+    OUT_GBUFFER_VTFEEDBACK = surfaceData.VTFeedback;
 #endif
 }
 

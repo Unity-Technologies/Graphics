@@ -82,9 +82,13 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 
     float4 rawAlbedoAlpha = SampleStack(info, _BaseMap);
 #ifdef _NORMALMAP
-    float4 rawNormal = SampleStack(info, _BumpMap);
+#ifdef VT_ON
+    float3 normal = SampleStack_Normal(info, _BumpMap, _BumpScale);
 #else
-    float4 rawNormal = float4(0,0,0,0);
+	float3 normal = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
+#endif
+#else
+    float3 normal = float3(0,0,0);
 #endif
 
     half4 albedoAlpha = ProcessAlbedoAlpha(rawAlbedoAlpha);
@@ -102,7 +106,7 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #endif
 
     outSurfaceData.smoothness = specGloss.a;
-    outSurfaceData.normalTS = ProcessNormal(rawNormal, _BumpScale);
+    outSurfaceData.normalTS = normal;
     outSurfaceData.occlusion = SampleOcclusion(uv);
     outSurfaceData.emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
 }

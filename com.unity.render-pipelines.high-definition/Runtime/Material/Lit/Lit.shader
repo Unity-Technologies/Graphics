@@ -232,6 +232,9 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
+
+        [Toggle] _VirtualTexturing("Virtual Texturing", Float) = 0.0
+        _TextureStack("_TextureStack", Stack) = { _BaseColorMap _MaskMap _NormalMap }
     }
 
     HLSLINCLUDE
@@ -298,6 +301,8 @@ Shader "HDRP/Lit"
     //enable GPU instancing support
     #pragma multi_compile_instancing
     #pragma instancing_options renderinglayer
+
+    #pragma shader_feature_local VT_ON
 
     //-------------------------------------------------------------------------------------
     // Define

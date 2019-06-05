@@ -120,7 +120,7 @@ Shader "Lightweight Render Pipeline/Lit"
 
             //--------------------------------------
             // Virtual Texturing
-            #pragma shader_feature VT_ON
+            #pragma shader_feature_local VT_ON
             //define VT_ON 1
 
 
@@ -243,7 +243,7 @@ Shader "Lightweight Render Pipeline/Lit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_instancing
-            #pragma shader_feature VT_ON
+            #pragma shader_feature_local VT_ON
 
             #include "LitInput.hlsl"
 
@@ -283,7 +283,7 @@ Shader "Lightweight Render Pipeline/Lit"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                return ResolveStack(input.uv, _TextureStack);
+                return ResolveStack(input.uv, _TextureStack, VT_ResolveConstantPatch);
             }
             ENDHLSL
         }

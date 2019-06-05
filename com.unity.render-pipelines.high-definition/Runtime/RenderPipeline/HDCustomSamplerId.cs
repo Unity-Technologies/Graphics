@@ -115,6 +115,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SMAA,
         FinalPost,
 
+#if ENABLE_VIRTUALTEXTURES
+        VTFeedbackDownSample,
+#endif
         Max
     }
 

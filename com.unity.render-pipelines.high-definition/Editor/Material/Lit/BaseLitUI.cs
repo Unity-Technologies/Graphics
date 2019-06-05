@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph; //TODO(ddebaets) remove when StackStatus is in core unity
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -75,6 +76,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
+
+#if ENABLE_VIRTUALTEXTURES
+            // VT
+            public static GUIContent enableVirtualTextureText = new GUIContent("Virtual Texturing", "When enabled, use virtual texturing instead of regular textures.");
+#endif
 
         }
 
@@ -193,6 +199,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty receivesSSR = null;
         protected const string kReceivesSSR = "_ReceivesSSR";
 
+#if ENABLE_VIRTUALTEXTURES
+        // VT
+        protected const string kVirtualTexturing = "_VirtualTexturing";
+        protected MaterialProperty virtualTexturing { get; set; }
+#endif
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
@@ -244,6 +255,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // SSR
             receivesSSR = FindProperty(kReceivesSSR, props, false);
+
+#if ENABLE_VIRTUALTEXTURES
+            // VT
+            virtualTexturing = FindProperty(kVirtualTexturing, props, false);
+#endif
         }
 
         void TessellationModePopup()
@@ -584,6 +600,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0);
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", material.HasProperty(kReceivesSSR) && material.GetFloat(kReceivesSSR) == 0.0);
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
+
+#if ENABLE_VIRTUALTEXTURES
+            StackStatus.UpdateMaterial(material);
+#endif
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

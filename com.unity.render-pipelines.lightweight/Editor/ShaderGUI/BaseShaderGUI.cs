@@ -414,17 +414,7 @@ namespace UnityEditor
             shadingModelFunc?.Invoke(material);
             shaderFunc?.Invoke(material);
 
-            if (material.HasProperty("_VirtualTexturing"))
-            {
-                if (material.GetFloat("_VirtualTexturing") == 0.0f || !StackStatus.AllStacksValid(material))
-                {
-                    material.DisableKeyword("VT_ON");
-                }
-                else
-                {
-                    material.EnableKeyword("VT_ON");
-                }
-            }
+            StackStatus.UpdateMaterial(material);
         }
 
         public static void SetupMaterialBlendMode(Material material)

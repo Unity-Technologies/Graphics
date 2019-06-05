@@ -121,6 +121,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             // String builders
 
             var shaderProperties = new PropertyCollector();
+            var shaderPragmas = new PragmaCollector();
             var functionBuilder = new ShaderStringBuilder(1);
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
@@ -227,6 +228,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 masterNode.owner as GraphData,
                 vertexDescriptionFunction,
                 functionRegistry,
+                shaderPragmas,
                 shaderProperties,
                 mode,
                 vertexNodes,
@@ -276,6 +278,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
                 masterNode.owner as GraphData,
                 surfaceDescriptionFunction,
                 functionRegistry,
+                shaderPragmas,
                 shaderProperties,
                 pixelRequirements,
                 mode,
@@ -344,6 +347,7 @@ namespace UnityEditor.Experimental.Rendering.LWRP
             resultPass = resultPass.Replace("${ZTest}", zTestBuilder.ToString());
             resultPass = resultPass.Replace("${ZWrite}", zWriteBuilder.ToString());
             resultPass = resultPass.Replace("${Defines}", defines.ToString());
+            resultPass = resultPass.Replace("${Pragmas}", shaderPragmas.ToString());
 
             resultPass = resultPass.Replace("${Graph}", graph.ToString());
             resultPass = resultPass.Replace("${VertexOutputStruct}", vertexOutputStruct.ToString());

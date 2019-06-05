@@ -65,6 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lowresTransparentSettings = GlobalLowResolutionTransparencySettings.@default,
             supportRayTracing = false,
             supportedRaytracingTier = RaytracingTier.Tier2,
+            supportsVirtualTexturing = false,
         };
 
         // Lighting
@@ -107,5 +108,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public GlobalPostProcessSettings postProcessSettings;
         public GlobalDynamicResolutionSettings dynamicResolutionSettings;
         public GlobalLowResolutionTransparencySettings lowresTransparentSettings;
+
+        public bool supportsVirtualTexturing;
     }
 }

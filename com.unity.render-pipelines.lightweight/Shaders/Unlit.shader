@@ -56,7 +56,7 @@ Shader "Lightweight Render Pipeline/Unlit"
 
             //--------------------------------------
             // Virtual Texturing
-            #pragma shader_feature VT_ON
+            #pragma shader_feature_local VT_ON
 
 
             #include "UnlitInput.hlsl"
@@ -186,7 +186,7 @@ Shader "Lightweight Render Pipeline/Unlit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_instancing
-            #pragma shader_feature VT_ON
+            #pragma shader_feature_local VT_ON
 
             #include "LitInput.hlsl"
 
@@ -226,7 +226,7 @@ Shader "Lightweight Render Pipeline/Unlit"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                return ResolveStack(input.uv, _TextureStack);
+                return ResolveStack(input.uv, _TextureStack, VT_ResolveConstantPatch);
             }
             ENDHLSL
         }

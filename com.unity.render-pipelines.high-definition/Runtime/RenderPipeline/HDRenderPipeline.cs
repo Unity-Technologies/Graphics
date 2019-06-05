@@ -1637,6 +1637,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
+#if ENABLE_VIRTUALTEXTURES
+            // Unbind the RT. TODO(ddebaets) there must be a better way right ?
+            HDUtils.SetRenderTarget(cmd, m_GbufferManager.GetGBuffer0RT(), m_SharedRTManager.GetDepthStencilBuffer());
+            hdCamera.ResolveVT(cmd, m_GbufferManager, m_Asset);
+            Experimental.VirtualTexturing.UpdateSystem();
+#endif
+
             // We can now bind the normal buffer to be use by any effect
             m_SharedRTManager.BindNormalBuffer(cmd);
 

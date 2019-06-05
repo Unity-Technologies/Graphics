@@ -59,7 +59,12 @@
 
 #ifdef VT_ON
 
-#define StackInfo GraniteLookupData
+struct StackInfo
+{
+    GraniteLookupData lookupData;
+	float4 resolveOutput;
+};
+
 
 #define DECLARE_STACK_CB(stackName) \
     float4x4 stackName##_spaceparams[2];\
@@ -87,11 +92,13 @@ StackInfo PrepareVT_##stackName(float2 uv)\
 	translationTable.Texture = stackName##_transtab;\
 	translationTable.Sampler = sampler##stackName##_transtab;\
 \
-	StackInfo outLookupData;\
-	float4 outResolve;\
-	Granite_Lookup_Anisotropic(grCB, translationTable, uv, outLookupData, outResolve);\
-	return outLookupData;\
+	StackInfo info;\
+	Granite_Lookup_Anisotropic(grCB, translationTable, uv, info.lookupData, info.resolveOutput);\
+	return info;\
 }
+
+#define jj2(a, b) a##b
+#define jj(a, b) jj2(a, b)
 
 #define DECLARE_STACK_LAYER(stackName, layerSamplerName, layerIndex) \
 TEXTURE2D(stackName##_c##layerIndex);\
@@ -116,20 +123,24 @@ float4 SampleVT_##layerSamplerName(StackInfo info)\
 	cache.Sampler = sampler##stackName##_c##layerIndex;\
 \
 	float4 output;\
-	Granite_Sample_HQ(grCB, info, cache, layerIndex, output);\
+	Granite_Sample_HQ(grCB, info.lookupData, cache, layerIndex, output);\
 	return output;\
+} \
+float3 SampleVT_Normal_##layerSamplerName(StackInfo info, float scale)\
+{\
+	return Granite_UnpackNormal( jj(SampleVT_,layerSamplerName)( info ), scale ); \
 }
 
 #define DECLARE_STACK_RESOLVE(stackName)\
-float4 ResolveVT_##stackName(float2 uv)\
+float4 ResolveVT_##stackName(float2 uv, float2 resolveConstantPatch)\
 {\
     GraniteStreamingTextureConstantBuffer textureParamBlock;\
     textureParamBlock.data[0] = stackName##_atlasparams[0];\
     textureParamBlock.data[1] = stackName##_atlasparams[1];\
 \
     /* hack resolve scale into constant buffer here */\
-    stackName##_spaceparams[0][2][0] *= VT_ResolveConstantPatch.x;\
-    stackName##_spaceparams[0][3][0] *= VT_ResolveConstantPatch.y;\
+    stackName##_spaceparams[0][2][0] *= resolveConstantPatch.x;\
+    stackName##_spaceparams[0][3][0] *= resolveConstantPatch.y;\
 \
     GraniteTilesetConstantBuffer graniteParamBlock;\
     graniteParamBlock.data[0] = stackName##_spaceparams[0];\
@@ -170,7 +181,9 @@ float4 ResolveVT_##stackName(float2 uv)\
 
 #define PrepareStack(uv, stackName) PrepareVT_##stackName(uv)
 #define SampleStack(info, textureName) SampleVT_##textureName(info)
-#define ResolveStack(uv, stackName) ResolveVT_##stackName(uv)
+#define SampleStack_Normal(info, textureName, scale) SampleVT_Normal_##textureName(info, scale)
+#define GetResolveOutput(info) info.resolveOutput
+#define ResolveStack(uv, stackName, scale) ResolveVT_##stackName(uv, scale)
 
 #else
 
@@ -201,8 +214,10 @@ StackInfo MakeStackInfo(float2 uv)
 
 // Sample just samples the texture
 #define SampleStack(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info.uv)
+#define SampleStack_Normal(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info.uv)
 
 // Resolve does nothing
-#define ResolveStack(uv, stackName) float4(1,1,1,1);
+#define GetResolveOutput(info) float4(1,1,1,1)
+#define ResolveStack(uv, stackName, scale) float4(1,1,1,1)
 
 #endif

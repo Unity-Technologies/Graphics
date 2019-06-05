@@ -104,6 +104,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float atDistance;
             [SurfaceDataAttributes("Transmittance mask")]
             public float transmittanceMask;
+
+            [SurfaceDataAttributes("VTFeedback")]
+            public Vector4 VTFeedback;
         };
 
         //-----------------------------------------------------------------------------
@@ -175,12 +178,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override bool IsDefferedMaterial() { return true; }
 
-        protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
+        protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers, out bool supportsVirtualTexturing)
         {
             // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in 
             supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
             supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
-            gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
+            supportsVirtualTexturing = asset.currentPlatformRenderPipelineSettings.supportsVirtualTexturing;
+            gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0) + (supportsVirtualTexturing ? 1 : 0);
         }
 
         // This must return the number of GBuffer to allocate
@@ -189,7 +193,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int gBufferCount;
             bool unused0;
             bool unused1;
-            GetGBufferOptions(asset, out gBufferCount, out unused0, out unused1);
+            bool unused2;
+            GetGBufferOptions(asset, out gBufferCount, out unused0, out unused1, out unused2);
 
             return gBufferCount;
         }
@@ -199,7 +204,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int gBufferCount;
             bool supportShadowMask;
             bool supportLightLayers;
-            GetGBufferOptions(asset, out gBufferCount, out supportShadowMask, out supportLightLayers);
+            bool supportsVirtualTexturing;
+            GetGBufferOptions(asset, out gBufferCount, out supportShadowMask, out supportLightLayers, out supportsVirtualTexturing);
 
             RTFormat = new GraphicsFormat[gBufferCount];
             gBufferUsage = new GBufferUsage[gBufferCount];
@@ -218,20 +224,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             gBufferUsage[3] = GBufferUsage.None;
 
             // If we are in raytracing mode and we want to have indirect diffuse active, we need to make sure that the gbuffer3 is writable
-            #if ENABLE_RAYTRACING
+#if ENABLE_RAYTRACING
             enableWrite[3] = true;
-            #else
+#else
             enableWrite[3] = false;
-            #endif
+#endif
 
             int index = 4;
+
+#if ENABLE_VIRTUALTEXTURES
+            if (supportsVirtualTexturing)
+            {
+                RTFormat[index] = GraphicsFormat.R8G8B8A8_UNorm;
+                gBufferUsage[index] = GBufferUsage.VTFeedback;
+                enableWrite[index] = false; //TODO(ddebaets) once VTF DD comes online, this needs to be true
+                index++;
+            }
+#endif
 
             if (supportLightLayers)
             {
                 RTFormat[index] = GraphicsFormat.R8G8B8A8_UNorm;
                 gBufferUsage[index] = GBufferUsage.LightLayers;
                 index++;
-            }
+            }           
 
             // All buffer above are fixed. However shadow mask buffer can be setup or not depends on light in view.
             // Thus it need to be the last one, so all indexes stay the same
