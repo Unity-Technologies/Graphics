@@ -331,14 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_DBufferTexture3")
         };
 
-        public static readonly int[] _SSSBufferTexture =
-        {
-            Shader.PropertyToID("_SSSBufferTexture0"),
-            Shader.PropertyToID("_SSSBufferTexture1"),
-            Shader.PropertyToID("_SSSBufferTexture2"),
-            Shader.PropertyToID("_SSSBufferTexture3"),
-        };
-
+        public static readonly int _SSSBufferTexture = Shader.PropertyToID("_SSSBufferTexture");
         public static readonly int _NormalBufferTexture = Shader.PropertyToID("_NormalBufferTexture");
 
         public static readonly int _EnableSSRefraction = Shader.PropertyToID("_EnableSSRefraction");
