@@ -210,7 +210,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent($"{path}/Boolean"), false, () => AddInputRow(new ShaderKeyword(ShaderKeywordType.Boolean), true));
             gm.AddItem(new GUIContent($"{path}/Enum"), false, () => AddInputRow(new ShaderKeyword(ShaderKeywordType.Enum), true));
             gm.AddSeparator($"{path}/");
-            gm.AddItem(new GUIContent($"{path}/{BuiltinKeyword.QualityKeyword.displayName}"), false, () => AddInputRow(BuiltinKeyword.QualityKeyword, true));
+            AddBuiltinKeyword(gm, BuiltinKeyword.QualityKeyword, path);
+        }
+
+        void AddBuiltinKeyword(GenericMenu gm, ShaderKeyword keyword, string path)
+        {
+            if(m_Graph.keywords.Where(x => x.referenceName == keyword.referenceName).Any())
+            {
+                gm.AddDisabledItem(new GUIContent($"{path}/{keyword.displayName}"));
+            }
+            else
+            {
+                gm.AddItem(new GUIContent($"{path}/{keyword.displayName}"), false, () => AddInputRow(keyword, true));
+            }
         }
 
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
