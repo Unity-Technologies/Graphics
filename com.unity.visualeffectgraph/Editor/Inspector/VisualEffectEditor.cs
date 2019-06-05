@@ -68,7 +68,6 @@ namespace UnityEditor.VFX
         public const float playRateToValue = 100.0f;
         public const float valueToPlayRate = 1.0f / playRateToValue;
 
-
         public const float sliderPower = 10;
 
         public static readonly int[] setPlaybackValues = new int[] { 1, 10, 50, 100, 200, 500, 1000, 4000 };
@@ -99,6 +98,8 @@ namespace UnityEditor.VFX
 
         protected SerializedProperty m_VisualEffectAsset;
         SerializedProperty m_ReseedOnPlay;
+        SerializedProperty m_InitialEventName;
+        SerializedProperty m_InitialEventNameOverriden;
         SerializedProperty m_RandomSeed;
         SerializedProperty m_VFXPropertySheet;
 
@@ -124,6 +125,8 @@ namespace UnityEditor.VFX
             s_AllEditors.Add(this);
             m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
             m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
+            m_InitialEventName = serializedObject.FindProperty("m_InitialEventName");
+            m_InitialEventNameOverriden = serializedObject.FindProperty("m_InitialEventNameOverriden");
             m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
             m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
 
@@ -176,7 +179,7 @@ namespace UnityEditor.VFX
 
             var toggleRect = rect;
             toggleRect.x += EditorGUI.indentLevel * 16;
-            toggleRect.yMin += 1.0f;
+            toggleRect.yMin += 2.0f;
             toggleRect.width = 18;
             overridenProperty.boolValue = EditorGUI.Toggle(toggleRect, overridenProperty.hasMultipleDifferentValues ? false : overridenProperty.boolValue, overridenProperty.hasMultipleDifferentValues ? Styles.toggleMixedStyle : Styles.toggleStyle);
             rect.xMin += overrideWidth + EditorGUI.indentLevel * 16;
@@ -370,7 +373,13 @@ namespace UnityEditor.VFX
             GUILayout.Label("Show Bounds", GUILayout.Width(192));
 
             VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
+            GUILayout.EndHorizontal();
 
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(new GUIContent("Play()")))
+                effect.Play();
+            if (GUILayout.Button(new GUIContent("Stop()")))
+                effect.Stop();
             GUILayout.EndHorizontal();
         }
 
@@ -466,11 +475,8 @@ namespace UnityEditor.VFX
             EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
         }
 
-        protected virtual bool SeedField()
+        void SeedField()
         {
-            var component = (VisualEffect)target;
-            //Seed
-            EditorGUI.BeginChangeCheck();
             using (new GUILayout.HorizontalScope())
             {
                 using (new EditorGUI.DisabledGroupScope(m_ReseedOnPlay.boolValue || m_ReseedOnPlay.hasMultipleDifferentValues))
@@ -478,7 +484,7 @@ namespace UnityEditor.VFX
                     EditorGUILayout.PropertyField(m_RandomSeed, Contents.randomSeed);
                     if (GUILayout.Button(Contents.setRandomSeed, EditorStyles.miniButton, Styles.MiniButtonWidth))
                     {
-                        foreach( VisualEffect ve in targets)
+                        foreach (VisualEffect ve in targets)
                         {
                             var singleSerializedObject = new SerializedObject(ve);
                             var singleProperty = singleSerializedObject.FindProperty("m_StartSeed");
@@ -491,7 +497,78 @@ namespace UnityEditor.VFX
                 }
             }
             EditorGUILayout.PropertyField(m_ReseedOnPlay, Contents.reseedOnPlay);
-            return EditorGUI.EndChangeCheck();
+        }
+
+        private static readonly MethodInfo k_InitialEventNameMethod = FindInitialEventNameMethod();
+        private static MethodInfo FindInitialEventNameMethod()
+        {
+            var property = typeof(VisualEffectResource).GetProperty("initialEventName");
+            if (property == null)
+                return null;
+            return property.GetGetMethod();
+        }
+
+        private static readonly Func<VisualEffectResource, string> GetInitialEventName = delegate (VisualEffectResource effectResource)
+        {
+            //component.visualEffectAsset.GetResource().initialEventName (but using reflection to support an early merge)
+            if (k_InitialEventNameMethod != null)
+            {
+                return k_InitialEventNameMethod.Invoke(effectResource, null) as string;
+            }
+            return "OnPlay";
+        };
+
+        void InitialEventField()
+        {
+            if (m_InitialEventName == null)
+                return;
+
+            bool changed = false;
+            using (new GUILayout.HorizontalScope())
+            {
+                var rect = EditorGUILayout.GetControlRect(false, overrideWidth);
+                var toggleRect = rect;
+                toggleRect.yMin += 2.0f;
+                toggleRect.width = overrideWidth;
+
+                s_FakeObjectSerializedCache.Update();
+                var fakeInitialEventNameField = s_FakeObjectSerializedCache.FindProperty("m_InitialEventName");
+                var component = (VisualEffect)target;
+                fakeInitialEventNameField.stringValue = component.visualEffectAsset != null ? GetInitialEventName(component.visualEffectAsset.GetResource()) : "OnPlay";
+
+                EditorGUI.BeginChangeCheck();
+                bool resultOverriden = EditorGUI.Toggle(toggleRect, m_InitialEventNameOverriden.boolValue, Styles.toggleStyle);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_InitialEventNameOverriden.boolValue = resultOverriden;
+                    changed = true;
+                }
+
+                rect.xMin += overrideWidth;
+                var save = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0;
+                EditorGUI.BeginChangeCheck();
+
+                SerializedProperty intialEventName = m_InitialEventNameOverriden.boolValue ? m_InitialEventName : fakeInitialEventNameField;
+
+                EditorGUI.PropertyField(rect, intialEventName);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (!m_InitialEventNameOverriden.boolValue)
+                    {
+                        m_InitialEventNameOverriden.boolValue = true;
+                        s_FakeObjectSerializedCache.ApplyModifiedPropertiesWithoutUndo();
+                        m_InitialEventName.stringValue = intialEventName.stringValue;
+                    }
+                    changed = true;
+                }
+                EditorGUI.indentLevel = save;
+            }
+
+            if (changed)
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
         }
 
         bool ShowCategory(GUIContent nameContent, bool foldoutState)
@@ -519,30 +596,23 @@ namespace UnityEditor.VFX
 
         public override void OnInspectorGUI()
         {
-            bool reinit = false;
-
             GUILayout.Space(6);
             showGeneralCategory = ShowHeader(Contents.headerGeneral, true, showGeneralCategory);
 
             if(showGeneralCategory)
             {
                 AssetField();
-                reinit = SeedField();
+                SeedField();
             }
 
-            if (! m_VisualEffectAsset.hasMultipleDifferentValues)
+            if (!m_VisualEffectAsset.hasMultipleDifferentValues)
             {
+                InitialEventField();
                 DrawRendererProperties();
                 DrawParameters();
             }
 
             serializedObject.ApplyModifiedProperties();
-            if (reinit)
-            {
-                foreach( VisualEffect component in targets)
-                component.Reinit();
-            }
-
             GUI.enabled = true;
         }
 
@@ -567,7 +637,6 @@ namespace UnityEditor.VFX
             }
 
             GUI.enabled = true;
-
             if (m_graph != null)
             {
                 if (m_graph.m_ParameterInfo == null)
@@ -846,6 +915,7 @@ namespace UnityEditor.VFX
             public static readonly GUIContent reseedOnPlay =        EditorGUIUtility.TrTextContent("Reseed on play");
             public static readonly GUIContent openEditor =          EditorGUIUtility.TrTextContent("Edit");
             public static readonly GUIContent setRandomSeed =       EditorGUIUtility.TrTextContent("Reseed");
+            public static readonly GUIContent resetInitialEvent =   EditorGUIUtility.TrTextContent("Default");
             public static readonly GUIContent setPlayRate =         EditorGUIUtility.TrTextContent("Set");
             public static readonly GUIContent playRate =            EditorGUIUtility.TrTextContent("Rate");
 
