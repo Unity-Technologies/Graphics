@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public class LightweightRenderPipelineEditorResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
-        public sealed class ShaderResources
+        [MovedFrom("UnityEngine.Rendering.LWRP")] public sealed class ShaderResources
         {
             [Reload("Shaders/Autodesk Interactive/Autodesk Interactive.shadergraph")]
             public Shader autodeskInteractivePS;
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Serializable, ReloadGroup]
-        public sealed class MaterialResources
+        [MovedFrom("UnityEngine.Rendering.LWRP")] public sealed class MaterialResources
         {
             [Reload("Runtime/Materials/Lit.mat")]
             public Material lit;

@@ -1,9 +1,8 @@
-
-using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public struct RenderTargetHandle
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct RenderTargetHandle
     {
         public int id { set; get; }
 

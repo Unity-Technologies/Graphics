@@ -203,7 +203,7 @@ namespace LibTessDotNet
             }
         }
 
-        public struct EdgePair
+        [MovedFrom("UnityEngine.Rendering.LWRP")] public struct EdgePair
         {
             internal Edge _e, _eSym;
 

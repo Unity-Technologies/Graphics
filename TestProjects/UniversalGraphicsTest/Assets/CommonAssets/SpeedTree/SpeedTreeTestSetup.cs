@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.LWRP;
+
 
 public class SpeedTreeTestSetup : MonoBehaviour
 {
@@ -10,7 +10,7 @@ public class SpeedTreeTestSetup : MonoBehaviour
     {
         if (GraphicsSettings.renderPipelineAsset != null)
         {
-            var lwAsset = (LightweightRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+            var lwAsset = (UnityEngine.Rendering.Universal.LightweightRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
             distance = lwAsset.shadowDistance;
             lwAsset.shadowDistance = 1000.0f;
         }
@@ -20,7 +20,7 @@ public class SpeedTreeTestSetup : MonoBehaviour
     {
         if (GraphicsSettings.renderPipelineAsset != null)
         {
-            var lwAsset = (LightweightRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+            var lwAsset = (UnityEngine.Rendering.Universal.LightweightRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
             lwAsset.shadowDistance = distance;
         }
     }

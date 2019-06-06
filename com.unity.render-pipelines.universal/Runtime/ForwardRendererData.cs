@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         [Serializable, ReloadGroup]
-        public sealed class ShaderResources
+        [MovedFrom("UnityEngine.Rendering.LWRP")] public sealed class ShaderResources
         {
             [SerializeField, Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
