@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Keyword")]
-    class KeywordNode : AbstractMaterialNode, IOnAssetEnabled
+    class KeywordNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode
     {
         public KeywordNode()
         {
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
         public override bool canSetPrecision => false;
 
         // TODO: Set true when correct branch code is generated
-        public override bool hasPreview => false;
+        public override bool hasPreview => true;
 
         public void OnEnable()
         {
@@ -61,8 +61,9 @@ namespace UnityEditor.ShaderGraph
             // Boolean type slots
             if(keyword.keywordType == ShaderKeywordType.Boolean)
             {
-                AddSlot(new DynamicVectorMaterialSlot(1, "On", keyword.referenceName, SlotType.Input, Vector4.zero));
-                AddSlot(new DynamicVectorMaterialSlot(2, "Off", "_", SlotType.Input, Vector4.zero));
+                AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+                AddSlot(new DynamicVectorMaterialSlot(1, "On", "On", SlotType.Input, Vector4.zero));
+                AddSlot(new DynamicVectorMaterialSlot(2, "Off", "Off", SlotType.Input, Vector4.zero));
                 RemoveSlotsNameNotMatching(new int[] {0, 1, 2});
             }
         }
@@ -114,6 +115,56 @@ namespace UnityEditor.ShaderGraph
             }
 
             ValidateNode();
+        }
+
+        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        {
+            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
+            if (keyword == null)
+                return;
+            
+            var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
+            switch(keyword.keywordType)
+            {
+                case ShaderKeywordType.Boolean:
+                    sb.AppendLine($"#ifdef {keyword.referenceName}");
+                    using(sb.IndentScope())
+                    {
+                        var onValue = GetSlotValue(1, generationMode);
+                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {onValue};"));
+                    }
+                    sb.AppendLine($"#else");
+                    using(sb.IndentScope())
+                    {
+                        var offValue = GetSlotValue(2, generationMode);
+                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {offValue};"));
+                    }
+                    sb.AppendLine($"#endif");
+                    break;
+                case ShaderKeywordType.Enum:
+                    for(int i = 0; i < keyword.entries.Count; i++)
+                    {
+                        if(i == 0)
+                        {
+                            sb.AppendLine($"#ifdef {keyword.referenceName}_{keyword.entries[i].referenceName}");
+                        }
+                        else if(i == keyword.entries.Count - 1)
+                        {
+                            sb.AppendLine($"#else");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"#elif {keyword.referenceName}_{keyword.entries[i].referenceName}");
+                        }
+                        using(sb.IndentScope())
+                        {
+                            var value = GetSlotValue(keyword.entries[i].id, generationMode);
+                            sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {value};"));
+                        }
+                    }
+                    sb.AppendLine($"#endif");
+                    break;
+            }
         }
 
         protected override bool CalculateNodeHasError(ref string errorMessage)
