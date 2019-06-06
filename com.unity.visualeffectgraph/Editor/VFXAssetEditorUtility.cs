@@ -112,6 +112,15 @@ namespace UnityEditor
             }
         }
 
+        internal class DoCreateNewSubgraphOperator : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var sg = CreateNew<VisualEffectSubgraphOperator>(pathName);
+                ProjectWindowUtil.FrameObjectInProjectWindow(sg.GetInstanceID());
+            }
+        }
+
         internal class DoCreateNewSubgraphBlock : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
