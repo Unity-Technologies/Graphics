@@ -926,7 +926,7 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
-        public static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector)
+        public static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode)
         {
             sb.AppendLine("Properties");
             using (sb.BlockScope())
@@ -935,6 +935,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     sb.AppendLine(prop.GetPropertyBlockString());
                 }
+
+                // Keyword branches are not generated in preview
+                // Never add them to property block
+                if(mode == GenerationMode.Preview)
+                    return;
+
                 foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
                 {
                     sb.AppendLine(key.GetPropertyBlockString());
@@ -1083,11 +1089,15 @@ namespace UnityEditor.ShaderGraph
             // ----------------------------------------------------- //
 
             // -------------------------------------
+            // Get Keywords
+
+            graph.CollectShaderKeywords(shaderKeywords, mode);
+            shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
+
+            // -------------------------------------
             // Property uniforms
 
             shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, graph.concretePrecision);
-
-            shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
 
             // -------------------------------------
             // Generate Input structure for Vertex shader
@@ -1104,7 +1114,7 @@ namespace UnityEditor.ShaderGraph
             finalShader.AppendLine(@"Shader ""{0}""", name);
             using (finalShader.BlockScope())
             {
-                GraphUtil.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords);
+                GraphUtil.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords, mode);
                 finalShader.AppendNewLine();
 
                 finalShader.AppendLine(@"HLSLINCLUDE");

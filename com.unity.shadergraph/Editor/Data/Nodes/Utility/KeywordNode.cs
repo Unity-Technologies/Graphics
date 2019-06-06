@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Keyword")]
-    class KeywordNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode
+    class KeywordNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode, IGeneratesBranch
     {
         public KeywordNode()
         {
@@ -127,26 +127,36 @@ namespace UnityEditor.ShaderGraph
             switch(keyword.keywordType)
             {
                 case ShaderKeywordType.Boolean:
-                    sb.AppendLine($"#ifdef {keyword.referenceName}");
-                    using(sb.IndentScope())
+                    var onValue = GetSlotValue(1, generationMode);
+                    var offValue = GetSlotValue(2, generationMode);
+
+                    if(generationMode == GenerationMode.Preview)
                     {
-                        var onValue = GetSlotValue(1, generationMode);
-                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {onValue};"));
+                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {(keyword.value == 1 ? onValue : offValue)};"));
+                        return;
                     }
+
+                    sb.AppendLine($"#ifdef {keyword.referenceName}_ON");
+                    using(sb.IndentScope())
+                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {onValue};"));
                     sb.AppendLine($"#else");
                     using(sb.IndentScope())
-                    {
-                        var offValue = GetSlotValue(2, generationMode);
                         sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {offValue};"));
-                    }
                     sb.AppendLine($"#endif");
                     break;
                 case ShaderKeywordType.Enum:
+                    if(generationMode == GenerationMode.Preview)
+                    {
+                        var value = GetSlotValue(keyword.entries[keyword.value].id, generationMode);
+                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {value};"));
+                        return;
+                    }
+
                     for(int i = 0; i < keyword.entries.Count; i++)
                     {
                         if(i == 0)
                         {
-                            sb.AppendLine($"#ifdef {keyword.referenceName}_{keyword.entries[i].referenceName}");
+                            sb.AppendLine($"#if defined({keyword.referenceName}_{keyword.entries[i].referenceName})");
                         }
                         else if(i == keyword.entries.Count - 1)
                         {
@@ -154,7 +164,7 @@ namespace UnityEditor.ShaderGraph
                         }
                         else
                         {
-                            sb.AppendLine($"#elif {keyword.referenceName}_{keyword.entries[i].referenceName}");
+                            sb.AppendLine($"#elif defined({keyword.referenceName}_{keyword.entries[i].referenceName})");
                         }
                         using(sb.IndentScope())
                         {
@@ -164,7 +174,21 @@ namespace UnityEditor.ShaderGraph
                     }
                     sb.AppendLine($"#endif");
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
+        }
+
+        public void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
+        {
+            if(!generationMode.IsPreview())
+                return;
+
+            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
+            if (keyword == null)
+                return;
+
+            keywords.AddShaderKeyword(keyword);
         }
 
         protected override bool CalculateNodeHasError(ref string errorMessage)

@@ -128,7 +128,7 @@ namespace UnityEditor.ShaderGraph
             switch(keywordType)
             {
                 case ShaderKeywordType.Boolean:
-                    return $"#pragma {definitionString} _ {referenceName}";
+                    return $"#pragma {definitionString} _ {referenceName}_ON";
                 case ShaderKeywordType.Enum:
                     string[] enumEntryDefinitions = new string[entries.Count];
                     for(int i = 0; i < enumEntryDefinitions.Length; i++)

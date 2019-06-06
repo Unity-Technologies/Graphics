@@ -17,6 +17,9 @@ namespace UnityEditor.ShaderGraph
 
         public void GetKeywordsDeclaration(ShaderStringBuilder builder, GenerationMode mode)
         {
+            if(mode == GenerationMode.Preview)
+                return;
+
             foreach (var keyword in keywords)
             {
                 builder.AppendLine(keyword.GetKeywordDeclarationString());

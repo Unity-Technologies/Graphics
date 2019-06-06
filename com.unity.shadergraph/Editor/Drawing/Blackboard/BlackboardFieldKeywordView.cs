@@ -105,7 +105,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graph.owner.RegisterCompleteObjectUndo("Change Keyword Value");
                 int clampedValue = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
                 field.value = clampedValue;
-                DirtyNodes();
+                keyword.value = clampedValue;
+                DirtyEnumEntries();
             });
             AddRow("Default", field);
 
